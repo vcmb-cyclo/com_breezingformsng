@@ -38,7 +38,7 @@ class BFBehaviorTabs
 		if (!array_key_exists((string) $group, $loaded))
 		{
 			// Include MooTools framework
-			//JHtml::_('behavior.framework', true);
+			///*** JHTML::_('behavior.framework', true); ***/
 
 			$opt['onActive']            = (isset($params['onActive'])) ? '\\' . $params['onActive'] : null;
 			$opt['onBackground']        = (isset($params['onBackground'])) ? '\\' . $params['onBackground'] : null;

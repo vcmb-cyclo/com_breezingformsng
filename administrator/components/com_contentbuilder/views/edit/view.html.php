@@ -22,7 +22,7 @@ class ContentbuilderViewEdit extends CBView
 {
     function display($tpl = null)
     {
-        //JHTML::_('behavior.tooltip');
+        //JHTML::_('bootstrap.tooltip');
         
         // Get data from the model
         $subject = $this->get('Data');

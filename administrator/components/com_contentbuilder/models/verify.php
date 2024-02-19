@@ -182,7 +182,7 @@ class ContentbuilderModelVerify extends CBModel
         }
         
         /*
-         if(intval($out['client']) && !JFactory::getApplication()->isAdmin()){
+         if(intval($out['client']) && !JFactory::getApplication()->isClient('administrator')){
             parse_str(JURI::getInstance()->getQuery(), $data1);
             $this_page = JURI::getInstance()->base() . 'administrator/index.php?'.http_build_query($data1, '', '&');
         }else{
@@ -191,7 +191,7 @@ class ContentbuilderModelVerify extends CBModel
             $this_page = $urlex[0] . '?' . http_build_query($data1, '', '&');
         }
          */
-        if(intval($out['client']) && !JFactory::getApplication()->isAdmin()){
+        if(intval($out['client']) && !JFactory::getApplication()->isClient('administrator')){
             $this_page = JURI::getInstance()->base() . 'administrator/index.php?'.JURI::getInstance()->getQuery();
         }else{
             $this_page = JURI::getInstance()->toString();
@@ -204,7 +204,7 @@ class ContentbuilderModelVerify extends CBModel
            
             if( !CBRequest::getBool('verify', 0) ){
                 
-                if(JFactory::getApplication()->isAdmin()){
+                if(JFactory::getApplication()->isClient('administrator')){
                     $local = explode('/', JURI::getInstance()->base());
                     unset($local[count($local)-1]);
                     unset($local[count($local)-1]);
@@ -257,7 +257,7 @@ class ContentbuilderModelVerify extends CBModel
                             }
 
                             if( ( !$out['client'] && ( !isset($out['return-site']) || !$out['return-site'] ) ) || ( $out['client'] && ( !isset($out['return-admin']) || !$out['return-admin'] ) ) ){
-                                if(intval($out['client']) && !JFactory::getApplication()->isAdmin()){
+                                if(intval($out['client']) && !JFactory::getApplication()->isClient('administrator')){
                                     $redirect_view = JURI::getInstance()->base() . 'administrator/index.php?option=com_contentbuilder&controller=list&lang='.CBRequest::getCmd('lang','').'&id='.$out['verify_view'];
                                 }else{
                                     $redirect_view = 'index.php?option=com_contentbuilder&controller=list&lang='.CBRequest::getCmd('lang','').'&id='.$out['verify_view'];
@@ -502,7 +502,7 @@ class ContentbuilderModelVerify extends CBModel
 			$data['activate'] = JUri::root().'index.php?option=com_contentbuilder&controller=verify&token='.$data['activation'].'&verify_by_admin=1&format=raw';
 
 		    // Remove administrator/ from activate url in case this method is called from admin
-		    if (JFactory::getApplication()->isAdmin())
+		    if (JFactory::getApplication()->isClient('administrator'))
 		    {
 			    $adminPos         = strrpos($data['activate'], 'administrator/');
 			    $data['activate'] = substr_replace($data['activate'], '', $adminPos, 14);

@@ -344,7 +344,7 @@ function bf_ToolTip( $tooltip, $title = '', $width = '', $image = 'tooltip.png',
 	// Initialize the toolips if required
 	static $init;
 	if ( ! $init ) {
-		//JHTML::_( 'behavior.tooltip' );
+		//JHTML::_( 'bootstrap.tooltip' );
 		$init = true;
 	}
 

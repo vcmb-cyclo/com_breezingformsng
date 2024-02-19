@@ -58,7 +58,7 @@ class BFQuickModeMobile{
 		jimport('joomla.version');
 		$version = new JVersion();
 		if(version_compare($version->getShortVersion(), '3.0', '<')){
-			JHTML::_('behavior.mootools');
+			/*** JHTML::_('behavior.mootools'); ***/
 		}
 
 		$this->p = $p;

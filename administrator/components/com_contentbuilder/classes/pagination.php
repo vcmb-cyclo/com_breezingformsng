@@ -616,7 +616,7 @@ class CBPagination
 	protected function _item_active(JPaginationObject $item)
 	{
 		$app = JFactory::getApplication();
-		if ($app->isAdmin())
+		if ($app->isClient('administrator'))
 		{
 			if ($item->base > 0)
 			{
@@ -647,7 +647,7 @@ class CBPagination
 	protected function _item_inactive(JPaginationObject $item)
 	{
 		$app = JFactory::getApplication();
-		if ($app->isAdmin())
+		if ($app->isClient('administrator'))
 		{
 			return "<span>" . $item->text . "</span>";
 		}

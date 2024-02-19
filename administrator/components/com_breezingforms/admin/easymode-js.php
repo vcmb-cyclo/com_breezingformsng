@@ -7,7 +7,7 @@
 * @license Released under the terms of the GNU General Public License
 **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
-JHTML::_('behavior.modal');
+JHTML::_('bootstrap.modal');
 
 
 ?>

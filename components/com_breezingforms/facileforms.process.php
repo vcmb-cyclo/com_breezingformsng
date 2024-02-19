@@ -8328,7 +8328,7 @@ $checkout_session = \Stripe\Checkout\Session::create([
                                     if (!$this->inline)
                                         $html .= '<html><head><meta charset="UTF-8"></head><body>';
 
-                                    JHTML::_('behavior.modal');
+                                    JHTML::_('bootstrap.modal');
 
                                     $ppselect = BFRequest::getVar('ff_nm_bfPaymentSelect', array());
                                     if (count($ppselect) != 0) {
@@ -8454,7 +8454,7 @@ $checkout_session = \Stripe\Checkout\Session::create([
                                     if (!$this->inline)
                                         $html .= '<html><head></head><body>';
 
-                                    JHTML::_('behavior.modal');
+                                    JHTML::_('bootstrap.modal');
 
                                     $options = $element['options'];
 

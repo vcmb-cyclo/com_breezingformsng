@@ -1329,7 +1329,7 @@ var contentbuilder = new function(){
                                             ".$this->_db->Quote($data->registration_bypass_plugin).",
                                             ".$this->_db->Quote($_SERVER['REMOTE_ADDR']).",
                                             ".$this->_db->Quote($setup).",
-                                            ".intval(Factory::getApplication()->isAdmin() ? 1 : 0)."
+                                            ".intval(Factory::getApplication()->isClient('administrator') ? 1 : 0)."
                                             )
                                     ");
                                     $this->_db->execute();

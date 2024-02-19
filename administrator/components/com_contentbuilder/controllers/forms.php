@@ -21,7 +21,7 @@ class ContentbuilderControllerForms extends CBController
     {
         parent::__construct();
 
-		//JHtml::_('behavior.modal');
+		//JHtml::_('bootstrap.modal');
 
         if(CBRequest::getInt('email_users',-1) != -1){
             JFactory::getSession()->set('email_users', CBRequest::getVar('email_users','none'), 'com_contentbuilder');

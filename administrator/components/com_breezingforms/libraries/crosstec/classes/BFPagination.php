@@ -470,7 +470,7 @@ class BFPagination
 		$selected = $this->viewall ? 0 : $this->limit;
 
 		// Build the select list.
-		if ($app->isAdmin())
+		if ($app->isClient('administrator'))
 		{
 			$html = JHtml::_(
 				'select.genericlist',
@@ -611,7 +611,7 @@ class BFPagination
 	protected function _item_active(JPaginationObject $item)
 	{
 		$app = JFactory::getApplication();
-		if ($app->isAdmin())
+		if ($app->isClient('administrator'))
 		{
 			if ($item->base > 0)
 			{
@@ -642,7 +642,7 @@ class BFPagination
 	protected function _item_inactive(JPaginationObject $item)
 	{
 		$app = JFactory::getApplication();
-		if ($app->isAdmin())
+		if ($app->isClient('administrator'))
 		{
 			return "<span>" . $item->text . "</span>";
 		}
