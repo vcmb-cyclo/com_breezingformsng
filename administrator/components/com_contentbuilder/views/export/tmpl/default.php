@@ -93,7 +93,7 @@ $cell_length = 0;
 for($col='A';$col<$ch;$col++){
     for($row=1;$row<$i;$row++){
         $cell="$col"."$row";
-        $length = strlen($objPHPExcel->getActiveSheet()->getCell($cell)->getValue());
+        $length = strlen($objPHPExcel->getActiveSheet()->getCell($cell)->getValue() ?? '');
         if($length > $cell_length){
             $cell_length = $length;
         }

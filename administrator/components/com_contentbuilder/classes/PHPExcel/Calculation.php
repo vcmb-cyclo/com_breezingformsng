@@ -177,6 +177,12 @@ class PHPExcel_Calculation
     public $formulaError = null;
 
     /**
+     * PHPExcel_CalcEngine_Logger instance.
+     */
+    private $_debugLog = null;
+    
+
+    /**
      * An array of the nested cell references accessed by the calculation engine, used for the debug log
      *
      * @access    private
