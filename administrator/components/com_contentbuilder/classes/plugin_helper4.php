@@ -242,7 +242,7 @@ class PluginHelper4
 			return static::$plugins;
 		}
 
-		$levels = Factory::getUser()->getAuthorisedViewLevels();
+		$levels = Factory::getApplication()->getIdentity()->getAuthorisedViewLevels();
 
 		/** @var \Joomla\CMS\Cache\Controller\CallbackController $cache */
 		$cache = Factory::getCache('com_plugins', 'callback');

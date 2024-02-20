@@ -88,9 +88,9 @@ class ContentbuilderModelEdit extends CBModel
             $path = str_replace('{'.strtolower($name).':value}', $value, $path);
         }
         
-        $path = str_replace('{userid}', Factory::getUser()->get('id', 0), $path);
-        $path = str_replace('{username}', Factory::getUser()->get('username', 'anonymous') . '_' . Factory::getUser()->get('id', 0), $path);
-        $path = str_replace('{name}', Factory::getUser()->get('name', 'Anonymous') . '_' . Factory::getUser()->get('id', 0), $path);
+        $path = str_replace('{userid}', Factory::getApplication()->getIdentity()->get('id', 0), $path);
+        $path = str_replace('{username}', Factory::getApplication()->getIdentity()->get('username', 'anonymous') . '_' . Factory::getApplication()->getIdentity()->get('id', 0), $path);
+        $path = str_replace('{name}', Factory::getApplication()->getIdentity()->get('name', 'Anonymous') . '_' . Factory::getApplication()->getIdentity()->get('id', 0), $path);
         
         $_now = Factory::getDate();
         
@@ -364,7 +364,7 @@ class ContentbuilderModelEdit extends CBModel
                         }
                     }
                     
-                    $data->items = $data->form->getRecord($this->_record_id, $data->published_only, $this->frontend ? ( $data->own_only_fe ? Factory::getUser()->get('id', 0) : -1 ) : ( $data->own_only ? Factory::getUser()->get('id', 0) : -1 ), $this->frontend ? $data->show_all_languages_fe : true );
+                    $data->items = $data->form->getRecord($this->_record_id, $data->published_only, $this->frontend ? ( $data->own_only_fe ? Factory::getApplication()->getIdentity()->get('id', 0) : -1 ) : ( $data->own_only ? Factory::getApplication()->getIdentity()->get('id', 0) : -1 ), $this->frontend ? $data->show_all_languages_fe : true );
                     
                     if(count($data->items)){
                         
@@ -739,7 +739,7 @@ var contentbuilder = new function(){
                                 Factory::getApplication()->enqueueMessage(Text::_('COM_CONTENTBUILDER_EMAIL_MISMATCH'), 'error');
                             }
                             
-                            if( !$meta->created_id && !Factory::getUser()->get('id', 0) ){
+                            if( !$meta->created_id && !Factory::getApplication()->getIdentity()->get('id', 0) ){
 
                                 $this->_db->setQuery("Select count(id) From #__users Where `username` = " . $this->_db->Quote($username));
                                 if($this->_db->loadResult()){
@@ -772,7 +772,7 @@ var contentbuilder = new function(){
                             }
                             else
                             {
-                                if($meta->created_id && $meta->created_id != Factory::getUser()->get('id', 0)){
+                                if($meta->created_id && $meta->created_id != Factory::getApplication()->getIdentity()->get('id', 0)){
                                     $this->_db->setQuery("Select count(id) From #__users Where id <> ".$this->_db->Quote($meta->created_id)." And `username` = " . $this->_db->Quote($username));
                                     if($this->_db->loadResult()){
                                         CBRequest::setVar('cb_submission_failed', 1);
@@ -787,13 +787,13 @@ var contentbuilder = new function(){
                                 }
                                 else
                                 {
-                                    $this->_db->setQuery("Select count(id) From #__users Where id <> ".$this->_db->Quote(Factory::getUser()->get('id', 0))." And `username` = " . $this->_db->Quote($username));
+                                    $this->_db->setQuery("Select count(id) From #__users Where id <> ".$this->_db->Quote(Factory::getApplication()->getIdentity()->get('id', 0))." And `username` = " . $this->_db->Quote($username));
                                     if($this->_db->loadResult()){
                                         CBRequest::setVar('cb_submission_failed', 1);
                                         Factory::getApplication()->enqueueMessage(Text::_('COM_CONTENTBUILDER_USERNAME_NOT_AVAILABLE'), 'error');
                                     }
 
-                                    $this->_db->setQuery("Select count(id) From #__users Where id <> ".$this->_db->Quote(Factory::getUser()->get('id', 0))." And `email` = " . $this->_db->Quote($email));
+                                    $this->_db->setQuery("Select count(id) From #__users Where id <> ".$this->_db->Quote(Factory::getApplication()->getIdentity()->get('id', 0))." And `email` = " . $this->_db->Quote($email));
                                     if($this->_db->loadResult()){
                                         CBRequest::setVar('cb_submission_failed', 1);
                                         Factory::getApplication()->enqueueMessage(Text::_('COM_CONTENTBUILDER_EMAIL_NOT_AVAILABLE'), 'error');
@@ -852,7 +852,7 @@ var contentbuilder = new function(){
 
                     $form_elements_objects = array();
                     
-                    $_items = $data->form->getRecord($this->_record_id, $data->published_only, $this->frontend ? ( $data->own_only_fe ? Factory::getUser()->get('id', 0) : -1 ) : ( $data->own_only ? Factory::getUser()->get('id', 0) : -1 ), $this->frontend ? $data->show_all_languages_fe : true );
+                    $_items = $data->form->getRecord($this->_record_id, $data->published_only, $this->frontend ? ( $data->own_only_fe ? Factory::getApplication()->getIdentity()->get('id', 0) : -1 ) : ( $data->own_only ? Factory::getApplication()->getIdentity()->get('id', 0) : -1 ), $this->frontend ? $data->show_all_languages_fe : true );
                     
                     // asigning the proper names first
                     foreach($names As $id => $name){
@@ -1268,7 +1268,7 @@ var contentbuilder = new function(){
                                 $verification_id = '';
 
                                 if($bypass->text != $orig_text){
-                                    $verification_id = md5(uniqid(null,true) . mt_rand(0, mt_getrandmax()) . Factory::getUser()->get('id',0));
+                                    $verification_id = md5(uniqid(null,true) . mt_rand(0, mt_getrandmax()) . Factory::getApplication()->getIdentity()->get('id',0));
                                 }
 
                                 $user_id = $this->register(
@@ -1341,7 +1341,7 @@ var contentbuilder = new function(){
                     if( $this->frontend && !CBRequest::getCmd('record_id',0) && $record_return && !CBRequest::getVar('return','') ){
                         
                         if( $data->force_login ){
-                            if( !Factory::getUser()->get('id', 0) ){
+                            if( !Factory::getApplication()->getIdentity()->get('id', 0) ){
                                 if(!$this->is15){
                                     CBRequest::setVar('return', cb_b64enc(JRoute::_('index.php?option=com_users&view=login&Itemid='.CBRequest::getInt('Itemid', 0), false)));
                                 }
@@ -1425,7 +1425,7 @@ var contentbuilder = new function(){
                     
                 }
 
-                $data->items = $data->form->getRecord($record_return, $data->published_only, $this->frontend ? ( $data->own_only_fe ? Factory::getUser()->get('id', 0)  : -1 ) : ( $data->own_only ? Factory::getUser()->get('id', 0)  : -1 ), true );
+                $data->items = $data->form->getRecord($record_return, $data->published_only, $this->frontend ? ( $data->own_only_fe ? Factory::getApplication()->getIdentity()->get('id', 0)  : -1 ) : ( $data->own_only ? Factory::getApplication()->getIdentity()->get('id', 0)  : -1 ), true );
 
                 $data_email_items = $data->form->getRecord($record_return, false, -1, true );
 
@@ -1578,10 +1578,10 @@ var contentbuilder = new function(){
                                 }
                                 $subject_admin = $data->email_admin_subject;
                                 $subject_admin = str_replace(array('{RECORD_ID}','{record_id}'), $record_return, $subject_admin);
-                                $subject_admin = str_replace(array('{USER_ID}','{user_id}'), Factory::getUser()->get('id'), $subject_admin);
-                                $subject_admin = str_replace(array('{USERNAME}','{username}'), Factory::getUser()->get('username'), $subject_admin);
-                                $subject_admin = str_replace(array('{USER_FULL_NAME}','{user_full_name}'), Factory::getUser()->get('name'), $subject_admin);
-                                $subject_admin = str_replace(array('{EMAIL}','{email}'), Factory::getUser()->get('email'), $subject_admin);
+                                $subject_admin = str_replace(array('{USER_ID}','{user_id}'), Factory::getApplication()->getIdentity()->get('id'), $subject_admin);
+                                $subject_admin = str_replace(array('{USERNAME}','{username}'), Factory::getApplication()->getIdentity()->get('username'), $subject_admin);
+                                $subject_admin = str_replace(array('{USER_FULL_NAME}','{user_full_name}'), Factory::getApplication()->getIdentity()->get('name'), $subject_admin);
+                                $subject_admin = str_replace(array('{EMAIL}','{email}'), Factory::getApplication()->getIdentity()->get('email'), $subject_admin);
                                 $subject_admin = str_replace(array('{VIEW_NAME}','{view_name}'), $data->name, $subject_admin);
                                 $subject_admin = str_replace(array('{VIEW_ID}','{view_id}'), $this->_id, $subject_admin);
                                 $subject_admin = str_replace(array('{IP}','{ip}'), $_SERVER['REMOTE_ADDR'], $subject_admin);
@@ -1690,10 +1690,10 @@ var contentbuilder = new function(){
                                 }
                                 $subject = $data->email_subject;
                                 $subject = str_replace(array('{RECORD_ID}','{record_id}'), $record_return, $subject);
-                                $subject = str_replace(array('{USER_ID}','{user_id}'), Factory::getUser()->get('id'), $subject);
-                                $subject = str_replace(array('{USERNAME}','{username}'), Factory::getUser()->get('username'), $subject);
-                                $subject = str_replace(array('{EMAIL}','{email}'), Factory::getUser()->get('email'), $subject);
-                                $subject = str_replace(array('{USER_FULL_NAME}','{user_full_name}'), Factory::getUser()->get('name'), $subject);
+                                $subject = str_replace(array('{USER_ID}','{user_id}'), Factory::getApplication()->getIdentity()->get('id'), $subject);
+                                $subject = str_replace(array('{USERNAME}','{username}'), Factory::getApplication()->getIdentity()->get('username'), $subject);
+                                $subject = str_replace(array('{EMAIL}','{email}'), Factory::getApplication()->getIdentity()->get('email'), $subject);
+                                $subject = str_replace(array('{USER_FULL_NAME}','{user_full_name}'), Factory::getApplication()->getIdentity()->get('name'), $subject);
                                 $subject = str_replace(array('{VIEW_NAME}','{view_name}'), $data->name, $subject);
                                 $subject = str_replace(array('{VIEW_ID}','{view_id}'), $this->_id, $subject);
                                 $subject = str_replace(array('{IP}','{ip}'), $_SERVER['REMOTE_ADDR'], $subject);

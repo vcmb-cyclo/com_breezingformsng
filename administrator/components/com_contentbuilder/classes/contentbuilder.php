@@ -1200,9 +1200,9 @@ class contentbuilder{
             $item = null;
             
             $template = str_replace(array('{RECORD_ID}','{record_id}'), $record_id, $template);
-            $template = str_replace(array('{USER_ID}','{user_id}'), JFactory::getUser()->get('id'), $template);
-            $template = str_replace(array('{USERNAME}','{username}'), JFactory::getUser()->get('username'), $template);
-            $template = str_replace(array('{USER_FULL_NAME}','{user_full_name}'), JFactory::getUser()->get('name'), $template);
+            $template = str_replace(array('{USER_ID}','{user_id}'), Factory::getApplication()->getIdentity()->get('id'), $template);
+            $template = str_replace(array('{USERNAME}','{username}'), Factory::getApplication()->getIdentity()->get('username'), $template);
+            $template = str_replace(array('{USER_FULL_NAME}','{user_full_name}'), Factory::getApplication()->getIdentity()->get('name'), $template);
             $template = str_replace(array('{VIEW_NAME}','{view_name}'), $result['name'], $template);
             $template = str_replace(array('{VIEW_ID}','{view_id}'), $contentbuilder_form_id, $template);
             $template = str_replace(array('{IP}','{ip}'), $_SERVER['REMOTE_ADDR'], $template);
@@ -1242,8 +1242,8 @@ class contentbuilder{
                     $meta = $form->getRecordMetadata($record_id);
                     $db->setQuery("Select * From #__users Where id = " . $meta->created_id);
                     $user = $db->loadObject();
-                }  else if( JFactory::getUser()->get('id',0) ) {
-                    $db->setQuery("Select * From #__users Where id = " . JFactory::getUser()->get('id',0));
+                }  else if( Factory::getApplication()->getIdentity()->get('id',0) ) {
+                    $db->setQuery("Select * From #__users Where id = " . Factory::getApplication()->getIdentity()->get('id',0));
                     $user = $db->loadObject();
                 }
             }
@@ -1680,8 +1680,8 @@ class contentbuilder{
                 $meta = $form_->getRecordMetadata($record_id);
                 $db->setQuery("Select * From #__users Where id = " . $meta->created_id);
                 $user = $db->loadObject();
-            }  else if( JFactory::getUser()->get('id',0) ) {
-                $db->setQuery("Select * From #__users Where id = " . JFactory::getUser()->get('id',0));
+            }  else if( Factory::getApplication()->getIdentity()->get('id',0) ) {
+                $db->setQuery("Select * From #__users Where id = " . Factory::getApplication()->getIdentity()->get('id',0));
                 $user = $db->loadObject();
             }
         }
@@ -1995,9 +1995,9 @@ class contentbuilder{
                           ".$db->Quote($state).",
                           ".intval($form['default_category']).",
                           ".$db->Quote($created).",
-                          ".$db->Quote($created_by ? $created_by : JFactory::getUser()->get('id',0)).",
+                          ".$db->Quote($created_by ? $created_by : Factory::getApplication()->getIdentity()->get('id',0)).",
                           ".$db->Quote($created).",
-                          ".$db->Quote($created_by ? $created_by : JFactory::getUser()->get('id',0)).",
+                          ".$db->Quote($created_by ? $created_by : Factory::getApplication()->getIdentity()->get('id',0)).",
                           NULL,
                           NULL,
                           ".($publish_up != '' && $publish_up != '0000-00-00 00:00:00' ? $db->Quote($publish_up) : 'NULL').",
@@ -2054,7 +2054,7 @@ class contentbuilder{
         }else{
 	        $___datenow = Factory::getDate()->toSql();
             $modified = $metadata->modified ? $metadata->modified : $___datenow;
-            $modified_by = $metadata->modified_id ? $metadata->modified_id : JFactory::getUser()->get('id',0);
+            $modified_by = $metadata->modified_id ? $metadata->modified_id : Factory::getApplication()->getIdentity()->get('id',0);
         
             if($full){
 
@@ -2068,7 +2068,7 @@ class contentbuilder{
                              `state` = ".$db->Quote($state).",
                              `catid` = ".intval($form['default_category']).",
                              `modified` = ".$db->Quote($modified).",
-                             `modified_by` = ".$db->Quote($modified_by ? $modified_by : JFactory::getUser()->get('id',0)).",
+                             `modified_by` = ".$db->Quote($modified_by ? $modified_by : Factory::getApplication()->getIdentity()->get('id',0)).",
                              `attribs` = ".$db->Quote($attribs != '' ? $attribs : '{"article_layout":"","show_title":"","link_titles":"","show_tags":"","show_intro":"","info_block_position":"","info_block_show_title":"","show_category":"","link_category":"","show_parent_category":"","link_parent_category":"","show_author":"","link_author":"","show_create_date":"","show_modify_date":"","show_publish_date":"","show_item_navigation":"","show_hits":"","show_noauth":"","urls_position":"","alternative_readmore":"","article_page_title":"","show_publishing_options":"","show_article_options":"","show_urls_images_backend":"","show_urls_images_frontend":""}').",
                              `metakey` = ".$db->Quote($metakey).",
                              `metadesc` = ".$db->Quote($metadesc).",
@@ -2124,7 +2124,7 @@ class contentbuilder{
                              `fulltext` = ".$db->Quote($fulltext.'<div style=\'display:none;\'><!--(cbArticleId:'.$article.')--></div>').",
                              `state` = ".$db->Quote($state).",
                              `modified` = ".$db->Quote($modified).",
-                             `modified_by` = ".$db->Quote($modified_by ? $modified_by : JFactory::getUser()->get('id',0)).",
+                             `modified_by` = ".$db->Quote($modified_by ? $modified_by : Factory::getApplication()->getIdentity()->get('id',0)).",
                              `version` = `version`+1,
                              language=".$db->Quote($language)."
                         Where id = $article
@@ -2196,15 +2196,15 @@ class contentbuilder{
                 require_once(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'types' . DS . $type . '.php');
                 $type = 'contentbuilder_'.$type;
                 if(class_exists($type)){
-                    $num_records_query = call_user_func(array($type, 'getNumRecordsQuery'),$reference_id, JFactory::getUser()->get('id', 0));
-                    //$num_records_query = $type::getNumRecordsQuery($reference_id, JFactory::getUser()->get('id', 0));
+                    $num_records_query = call_user_func(array($type, 'getNumRecordsQuery'),$reference_id, Factory::getApplication()->getIdentity()->get('id', 0));
+                    //$num_records_query = $type::getNumRecordsQuery($reference_id, Factory::getApplication()->getIdentity()->get('id', 0));
                 }
             } else if(JFile::exists(JPATH_SITE . DS . 'media' . DS . 'contentbuilder' . DS . 'types' . DS . $type . '.php')){
                 require_once(JPATH_SITE . DS . 'media' . DS . 'contentbuilder' . DS . 'types' . DS . $type . '.php');
                 $type = 'contentbuilder_'.$type;
                 if(class_exists($type)){
-                    $num_records_query = call_user_func(array($type, 'getNumRecordsQuery'),$reference_id, JFactory::getUser()->get('id', 0));
-                    //$num_records_query = $type::getNumRecordsQuery($reference_id, JFactory::getUser()->get('id', 0));
+                    $num_records_query = call_user_func(array($type, 'getNumRecordsQuery'),$reference_id, Factory::getApplication()->getIdentity()->get('id', 0));
+                    //$num_records_query = $type::getNumRecordsQuery($reference_id, Factory::getApplication()->getIdentity()->get('id', 0));
                 }
             }
         }
@@ -2257,7 +2257,7 @@ class contentbuilder{
                 #__contentbuilder_forms As forms
                 Left Join 
                     #__contentbuilder_users As contentbuilder_users
-                On ( contentbuilder_users.form_id = forms.id And contentbuilder_users.userid = ".JFactory::getUser()->get('id', 0)." )
+                On ( contentbuilder_users.form_id = forms.id And contentbuilder_users.userid = ".Factory::getApplication()->getIdentity()->get('id', 0)." )
                 ".( $record_id && !is_array($record_id) ? "Left Join 
                     #__contentbuilder_records As contentbuilder_records
                 On ( contentbuilder_records.`type` = ".$db->Quote(isset($_type) ? $_type : '')." And contentbuilder_records.reference_id = forms.reference_id And contentbuilder_records.record_id = ".$db->Quote($record_id)." )
@@ -2601,7 +2601,7 @@ class contentbuilder{
         if(!isset($permissions['own'.$suffix])){
             $gids = array();
             
-            $groups = JAccess::getGroupsByUser(JFactory::getUser()->get('id',0));
+            $groups = JAccess::getGroupsByUser(Factory::getApplication()->getIdentity()->get('id',0));
             
             foreach($groups As $gid){
                 $gids[] = $gid;
@@ -2640,7 +2640,7 @@ class contentbuilder{
                                 foreach($user_return['record_id'] As $recid){
                                     $db->setQuery("Select session_id From #__contentbuilder_records Where `record_id` = ".$db->Quote($recid)." And `type` = ".$db->Quote($typerefid['type'])." And `reference_id` = ".$db->Quote($typerefid['reference_id'])."");
                                     $session_id = $db->loadResult();
-                                    if($form && $session_id != JFactory::getSession()->getId() && !$form->isOwner(JFactory::getUser()->get('id',0), $recid)){
+                                    if($form && $session_id != JFactory::getSession()->getId() && !$form->isOwner(Factory::getApplication()->getIdentity()->get('id',0), $recid)){
                                         $allowed = false;
                                         break;
                                     } else {
@@ -2652,7 +2652,7 @@ class contentbuilder{
                                 $db->setQuery("Select session_id From #__contentbuilder_records Where `record_id` = ".$db->Quote($user_return['record_id'])." And `type` = ".$db->Quote($typerefid['type'])." And `reference_id` = ".$db->Quote($typerefid['reference_id'])."");
                                 $session_id = $db->loadResult();
                                 
-                                if($form && ( $user_return['record_id'] == false || $session_id == JFactory::getSession()->getId() || ( $form->isOwner(JFactory::getUser()->get('id',0), $user_return['record_id']) ) ) ){
+                                if($form && ( $user_return['record_id'] == false || $session_id == JFactory::getSession()->getId() || ( $form->isOwner(Factory::getApplication()->getIdentity()->get('id',0), $user_return['record_id']) ) ) ){
                                     $allowed = true;
                                 }
                             }

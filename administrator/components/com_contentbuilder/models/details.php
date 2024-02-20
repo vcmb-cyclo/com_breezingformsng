@@ -181,7 +181,7 @@ class ContentbuilderModelDetails extends CBModel
 
                     if( $this->_latest ){
 
-                        $rec = $data->form->getListRecords($ids, '', array(), 0, 1, '', array(), 'desc', 0, false, JFactory::getUser()->get('id', 0), 0, -1, -1, -1, -1, array(), true, null);
+                        $rec = $data->form->getListRecords($ids, '', array(), 0, 1, '', array(), 'desc', 0, false, Factory::getApplication()->getIdentity()->get('id', 0), 0, -1, -1, -1, -1, array(), true, null);
 
                         if(count($rec) > 0){
 
@@ -228,7 +228,7 @@ class ContentbuilderModelDetails extends CBModel
                     if(isset($rec2) && count($rec2)){
                         $data->items = $rec2;
                     }else{
-                        $data->items = $data->form->getRecord($this->_record_id, $data->published_only, $this->frontend ? ( $data->own_only_fe ? JFactory::getUser()->get('id', 0) : -1 ) : ( $data->own_only ? JFactory::getUser()->get('id', 0) : -1 ), $this->frontend ? $data->show_all_languages_fe : true );
+                        $data->items = $data->form->getRecord($this->_record_id, $data->published_only, $this->frontend ? ( $data->own_only_fe ? Factory::getApplication()->getIdentity()->get('id', 0) : -1 ) : ( $data->own_only ? Factory::getApplication()->getIdentity()->get('id', 0) : -1 ), $this->frontend ? $data->show_all_languages_fe : true );
                     }
 
                     if(count($data->items)){

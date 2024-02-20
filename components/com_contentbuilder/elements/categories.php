@@ -9,6 +9,7 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Factory;
 
 jimport('joomla.html.html');
 jimport('joomla.form.formfield');
@@ -58,7 +59,7 @@ class JFormFieldCategories extends JFormField {
         }
 
         // Initialise variables.
-        $user = JFactory::getUser();
+        $user = Factory::getApplication()->getIdentity();
 
         if (empty($id)) {
             // New item, only have to check core.create.

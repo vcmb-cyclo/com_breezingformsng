@@ -178,7 +178,7 @@ abstract class CBPluginHelper
 			return $plugins;
 		}
 
-		$user	= JFactory::getUser();
+		$user	= Factory::getApplication()->getIdentity();
 		$cache 	= JFactory::getCache('com_plugins', '');
 
 		$levels = implode(',', $user->getAuthorisedViewLevels());

@@ -224,7 +224,7 @@ class plgContentContentbuilder_download extends JPlugin {
                     if ($form) {
                         
                         $protect = $data['protect_upload_directory'];
-                        $record = $form->getRecord($data['record_id'], $data['published_only'], $frontend ? ( $data['own_only_fe'] ? JFactory::getUser()->get('id', 0) : -1 ) : ( $data['own_only'] ? JFactory::getUser()->get('id', 0) : -1 ), true );
+                        $record = $form->getRecord($data['record_id'], $data['published_only'], $frontend ? ( $data['own_only_fe'] ? Factory::getApplication()->getIdentity()->get('id', 0) : -1 ) : ( $data['own_only'] ? Factory::getApplication()->getIdentity()->get('id', 0) : -1 ), true );
                         $default_title = $data['title_field'];
                         $form_id = $data['form_id'];
                         $record_id = $data['record_id'];

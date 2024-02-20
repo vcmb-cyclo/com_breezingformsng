@@ -721,10 +721,10 @@ class contentbuilder_com_contentbuilder{
             }
         }
         
-        if(JFactory::getUser()->get('id',0) > 0){
-            $username = JFactory::getUser()->get('username','');
-            $user_full_name = JFactory::getUser()->get('name','');
-            $user_id = JFactory::getUser()->get('id',0);
+        if(Factory::getApplication()->getIdentity()->get('id',0) > 0){
+            $username = Factory::getApplication()->getIdentity()->get('username','');
+            $user_full_name = Factory::getApplication()->getIdentity()->get('name','');
+            $user_id = Factory::getApplication()->getIdentity()->get('id',0);
         }
         
         $date = Factory::getDate();

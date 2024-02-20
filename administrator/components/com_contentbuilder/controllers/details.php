@@ -61,7 +61,7 @@ class ContentbuilderControllerDetails extends CBController
                 }
             }
             
-            $rec = $form->getListRecords($ids, '', array(), 0, 1, '', array(), 'desc', 0, false, JFactory::getUser()->get('id', 0), 0, -1, -1, -1, -1, array(), true, null);
+            $rec = $form->getListRecords($ids, '', array(), 0, 1, '', array(), 'desc', 0, false, Factory::getApplication()->getIdentity()->get('id', 0), 0, -1, -1, -1, -1, array(), true, null);
                       
             if(count($rec) > 0){
 

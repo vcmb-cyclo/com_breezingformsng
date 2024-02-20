@@ -384,7 +384,7 @@ class  plgSystemContentbuilder_system extends JPlugin
             if($app->isClient('site')){
 
                 $db         = Factory::getContainer()->get(DatabaseInterface::class);
-                $user       = Factory::getUser();
+                $user       = Factory::getApplication()->getIdentity();
                 
                 $db->setQuery("
                     Update

@@ -895,9 +895,9 @@ class contentbuilder_com_breezingforms{
         if(!$record_id){
             $username = '-';
             $user_full_name = '-';
-            if(JFactory::getUser()->get('id',0) > 0){
-                $username = JFactory::getUser()->get('username','');
-                $user_full_name = JFactory::getUser()->get('name','');
+            if(Factory::getApplication()->getIdentity()->get('id',0) > 0){
+                $username = Factory::getApplication()->getIdentity()->get('username','');
+                $user_full_name = Factory::getApplication()->getIdentity()->get('name','');
             }
             jimport('joomla.environment.browser');
             $now = Factory::getDate()->toSql();
@@ -920,7 +920,7 @@ class contentbuilder_com_breezingforms{
                 ".$db->Quote($_SERVER['REMOTE_ADDR']).",
                 ".$db->Quote(JBrowser::getInstance()->getAgentString()).",
                 ".$db->Quote(JBrowser::getInstance()->getPlatform()).",
-                ".$db->Quote(JFactory::getUser()->get('id',0)).",
+                ".$db->Quote(Factory::getApplication()->getIdentity()->get('id',0)).",
                 ".$db->Quote($username).",
                 ".$db->Quote($user_full_name)."
             )");

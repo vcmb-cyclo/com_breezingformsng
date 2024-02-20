@@ -11,6 +11,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\User\UserFactoryInterface;
 
 require_once(JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_contentbuilder'.DS.'classes'.DS.'joomla_compat.php');
 
@@ -44,7 +45,7 @@ class ContentbuilderModelVerify extends CBModel
 	    }
 
         if( !$verification_id ){
-            $user_id = JFactory::getUser()->get('id', 0);
+            $user_id = Factory::getApplication()->getIdentity()->get('id', 0);
             $setup = JFactory::getSession()->get($plugin.$verification_name, '', 'com_contentbuilder.verify.'.$plugin.$verification_name);
         }
         else
@@ -369,7 +370,7 @@ class ContentbuilderModelVerify extends CBModel
 
     public function activate_by_admin($token){
 
-	    $user = JFactory::getUser();
+	    $user = Factory::getApplication()->getIdentity();
 
 	    if (!$user->authorise('core.create', 'com_users')) {
 
@@ -402,8 +403,9 @@ class ContentbuilderModelVerify extends CBModel
 	    $query = $db->getQuery(true);
 
 	    // Activate the user.
-	    $user = JFactory::getUser($userId);
-
+        $container = Factory::getContainer();
+        // To create a user instance:
+        $user = $container->get(UserFactoryInterface::class)->loadUserById($userId);
 	    $user->set( 'activation', '' );
 	    $user->set( 'block', '0' );
 

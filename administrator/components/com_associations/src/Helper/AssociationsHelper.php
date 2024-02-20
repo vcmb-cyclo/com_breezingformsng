@@ -495,7 +495,7 @@ class AssociationsHelper extends ContentHelper
             return $helper->allowEdit($typeName, $itemId);
         }
 
-        return Factory::getUser()->authorise('core.edit', $extensionName);
+        return Factory::getApplication()->getIdentity()->authorise('core.edit', $extensionName);
     }
 
     /**
@@ -521,7 +521,7 @@ class AssociationsHelper extends ContentHelper
             return $helper->allowAdd($typeName);
         }
 
-        return Factory::getUser()->authorise('core.create', $extensionName);
+        return Factory::getApplication()->getIdentity()->authorise('core.create', $extensionName);
     }
 
     /**
@@ -591,7 +591,7 @@ class AssociationsHelper extends ContentHelper
 
         $checkedOutFieldName = $helper->getTypeFieldName($typeName, 'checked_out');
 
-        $userId = Factory::getUser()->id;
+        $userId = Factory::getApplication()->getIdentity()->id;
 
         return ($item->{$checkedOutFieldName} == $userId || $item->{$checkedOutFieldName} == 0);
     }
