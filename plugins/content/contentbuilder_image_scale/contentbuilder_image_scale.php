@@ -12,6 +12,7 @@ defined( '_JEXEC' ) or die( 'Direct Access to this location is not allowed.' );
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Filesystem\File;
+use Joomla\CMS\Router\Route;
 
 if(!function_exists('cb_b64enc')){
 
@@ -712,7 +713,7 @@ class plgContentContentbuilder_image_scale extends JPlugin {
 
 																if(trim($open) == 'true'){
 																	if($protect){
-																		$open_ = JRoute::_($url.(strstr($url,'?') !== false ? '&' : '?').'contentbuilder_display_detail=1&contentbuilder_detail_file='.  sha1($field.$the_value));
+																		$open_ = Route::_($url.(strstr($url,'?') !== false ? '&' : '?').'contentbuilder_display_detail=1&contentbuilder_detail_file='.  sha1($field.$the_value));
 																	}else{
 																		$ex = explode(JPATH_SITE . DS, JPath::clean($the_value), 2);
 																		$open_ = JURI::root(true) . '/' . str_replace("\\","/",$ex[count($ex)-1]);
@@ -725,7 +726,7 @@ class plgContentContentbuilder_image_scale extends JPlugin {
 																}
 
 																if($protect){
-																	$src = JRoute::_($url.(strstr($url,'?') !== false ? '&' : '?').'contentbuilder_display=1&contentbuilder_field='.  sha1($field.$filename));
+																	$src = Route::_($url.(strstr($url,'?') !== false ? '&' : '?').'contentbuilder_display=1&contentbuilder_field='.  sha1($field.$filename));
 																}else{
 																	$ex = explode(JPATH_SITE . DS, $filename, 2);
 																	$src = JURI::root(true) . '/' . str_replace("\\","/",$ex[count($ex)-1]);
