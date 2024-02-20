@@ -10,6 +10,8 @@
 /** ensure this file is being included by a parent file */
 defined( '_JEXEC' ) or die( 'Direct Access to this location is not allowed.' );
 
+use Joomla\CMS\Factory;
+
 if(!function_exists('cb_b64enc')){
     
     function cb_b64enc($str){
@@ -65,7 +67,7 @@ class plgContentContentbuilder_rating extends JPlugin {
         
         require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
         
-        $lang = JFactory::getLanguage();
+        $lang = Factory::getApplication()->getLanguage();
         $lang->load('plg_content_contentbuilder_rating', JPATH_ADMINISTRATOR);
         
         /*
@@ -119,7 +121,7 @@ class plgContentContentbuilder_rating extends JPlugin {
                 $record_id = 0;
                 
                 $frontend = true;
-                if (JFactory::getApplication()->isClient('administrator')) {
+                if (Factory::getApplication()->isClient('administrator')) {
                     $frontend = false;
                 }
                 

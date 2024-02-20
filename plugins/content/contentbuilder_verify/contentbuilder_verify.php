@@ -163,10 +163,10 @@ class plgContentContentbuilder_verify extends JPlugin {
                 
                 if($plugin && $verification_name && $verify_view){
                 
-                    $plugin_settings = 'return-site='.($return_site ? cb_b64enc($return_site) : '').'&return-admin='.($return_admin ? cb_b64enc($return_admin) : '').'&client='.(JFactory::getApplication()->isClient('site') ? 0 : 1).'&plugin='.$plugin.'&verification_msg='.urlencode($verification_msg).'&verification_name='.urlencode($verification_name).'&verify_view='.$verify_view.'&verify_levels='.$verify_levels.'&require_view='.$require_view.'&plugin_options='.cb_b64enc($this->buildStr($plugin_options));
+                    $plugin_settings = 'return-site='.($return_site ? cb_b64enc($return_site) : '').'&return-admin='.($return_admin ? cb_b64enc($return_admin) : '').'&client='.(Factory::getApplication()->isClient('site') ? 0 : 1).'&plugin='.$plugin.'&verification_msg='.urlencode($verification_msg).'&verification_name='.urlencode($verification_name).'&verify_view='.$verify_view.'&verify_levels='.$verify_levels.'&require_view='.$require_view.'&plugin_options='.cb_b64enc($this->buildStr($plugin_options));
 
-                    JFactory::getSession()->clear($plugin.$verification_name, 'com_contentbuilder.verify.'.$plugin.$verification_name);
-                    JFactory::getSession()->set($plugin.$verification_name, $plugin_settings, 'com_contentbuilder.verify.'.$plugin.$verification_name);
+                    Factory::getSession()->clear($plugin.$verification_name, 'com_contentbuilder.verify.'.$plugin.$verification_name);
+                    Factory::getSession()->set($plugin.$verification_name, $plugin_settings, 'com_contentbuilder.verify.'.$plugin.$verification_name);
 
                     $link = JURI::root(true).'/index.php?option=com_contentbuilder&controller=verify&plugin='.urlencode($plugin).'&verification_name='.urlencode($verification_name).'&format=raw';
                     JPluginHelper::importPlugin('contentbuilder_verify', $plugin);

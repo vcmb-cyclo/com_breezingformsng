@@ -10,6 +10,7 @@
 /** ensure this file is being included by a parent file */
 defined( '_JEXEC' ) or die( 'Direct Access to this location is not allowed.' );
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Factory;
 
 if(!function_exists('cb_b64enc')){
     
@@ -59,7 +60,7 @@ class plgContentContentbuilder_permission_observer extends JPlugin {
         if (isset($article->id) && $article->id) {
             
             $frontend = true;
-            if (JFactory::getApplication()->isClient('administrator')) {
+            if (Factory::getApplication()->isClient('administrator')) {
                 $frontend = false;
             }
             
@@ -76,7 +77,7 @@ class plgContentContentbuilder_permission_observer extends JPlugin {
             
             if ($form && !( CBRequest::getVar('option','') == 'com_contentbuilder' && CBRequest::getVar('controller','') == 'edit' )) {
                 
-                JFactory::getLanguage()->load('com_contentbuilder');
+                Factory::getLanguage()->load('com_contentbuilder');
                 contentbuilder::setPermissions($data['form_id'], $data['record_id'], $frontend ? '_fe' : '');
                 
                 if(CBRequest::getCmd('view') == 'article'){
