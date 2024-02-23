@@ -10,7 +10,7 @@ defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
-
+use Joomla\CMS\HTML\HTMLHelper;
 
 $___tableOrdering = "function tableOrdering";
 $___tableOrdering = "Joomla.tableOrdering = function";
@@ -403,7 +403,7 @@ Label 3;value3</textarea>
                         <?php echo Text::_( 'COM_CONTENTBUILDER_ID' ); ?>
                     </th>
                     <th width="20">
-                        <input class="form-check-input" type="checkbox" name="toggle" value="" onclick="<?php echo CBCompat::getCheckAll($this->elements);?>" />
+                        <input class="form-check-input" type="checkbox" name="toggle" value="" onclick="Joomla.checkAll(this);" />
                     </th>
                     <th>
                         <?php echo Text::_( 'COM_CONTENTBUILDER_NAME' ); ?>
@@ -492,8 +492,8 @@ Label 3;value3</textarea>
     </table>
 
 <?php
-echo $cbcompat->endPanel();
-echo $cbcompat->endPane();
+echo HTMLHelper::_('uitab.endTab');
+echo HTMLHelper::_('uitab.endTabSet');
 ?>
 
 </div>

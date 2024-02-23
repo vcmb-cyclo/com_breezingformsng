@@ -13,8 +13,7 @@ use Joomla\Utilities\ArrayHelper;
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
 require_once(JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_contentbuilder'.DS.'classes'.DS.'joomla_compat.php');
-
-CBCompat::requireModel();
+require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'modellegacy.php');
 
 class ContentbuilderModelForms extends CBModel
 {

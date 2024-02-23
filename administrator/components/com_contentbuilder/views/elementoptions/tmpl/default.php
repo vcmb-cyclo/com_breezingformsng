@@ -12,7 +12,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
-
+use Joomla\CMS\HTML\HTMLHelper;
 
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'classes' . DS . 'plugin_helper.php');
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'classes' . DS . 'plugin_helper4.php');
@@ -619,7 +619,7 @@ switch( $this->element->type ){
         break;
 }
 
-echo $cbcompat->endPanel();
+echo HTMLHelper::_('uitab.endTab');
 if( $this->element->type != 'captcha' ){
 echo $cbcompat->startPanel( Text::_( 'COM_CONTENTBUILDER_ELEMENT_OPTIONS_SCRIPTS' ), "tab1" );
 ?>
@@ -726,9 +726,9 @@ echo $cbcompat->startPanel( Text::_( 'COM_CONTENTBUILDER_ELEMENT_OPTIONS_SCRIPTS
     }
     ?>
 <?php
-echo $cbcompat->endPanel();
+echo HTMLHelper::_('uitab.endTab');
 }
-echo $cbcompat->endPane();
+echo HTMLHelper::_('uitab.endTabSet');
 ?>
 </div>
     

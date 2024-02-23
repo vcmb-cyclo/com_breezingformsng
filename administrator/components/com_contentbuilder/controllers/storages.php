@@ -13,7 +13,7 @@ use Joomla\CMS\Language\Text;
 
 require_once(JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_contentbuilder'.DS.'classes'.DS.'joomla_compat.php');
 
-CBCompat::requireController();
+require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'controllerlegacy.php');
 
 class ContentbuilderControllerStorages extends CBController
 {

@@ -62,7 +62,7 @@ if( typeof Joomla != 'undefined' ){
                 <?php echo Text::_( 'COM_CONTENTBUILDER_ID' ); ?>
             </th>
             <th width="20">
-              <input type="checkbox" name="toggle" value="" onclick="<?php echo CBCompat::getCheckAll($this->items);?>" />
+              <input type="checkbox" name="toggle" value="" onclick="Joomla.checkAll(this);" />
             </th>
             <th>
                 <?php echo JHTML::_('grid.sort', Text::_( 'COM_CONTENTBUILDER_NAME' ), 'name', $this->lists['order_Dir'], $this->lists['order'] ); ?>

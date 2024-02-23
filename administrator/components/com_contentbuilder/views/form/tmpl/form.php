@@ -667,7 +667,7 @@ $cbcompat = new CBCompat();
                             </th>
                             <th width="20">
                                 <input class="form-check-input" type="checkbox" name="toggle" value=""
-                                    onclick="<?php echo CBCompat::getCheckAll($this->elements); ?>" />
+                                    onclick="Joomla.checkAll(this);" />
                             </th>
                             <th>
                                 <span class="editlinktip hasTip"
@@ -853,7 +853,7 @@ $cbcompat = new CBCompat();
 
         <?php
         $title = Text::_('COM_CONTENTBUILDER_LIST_INTRO_TEXT');
-        echo $cbcompat->endPanel();
+        echo HTMLHelper::_('uitab.endTab');
         echo $cbcompat->startPanel($title, "tab2");
         $editor = Editor::getInstance(Factory::getApplication()->get('editor'));
         echo $editor->display("intro_text", $this->form->intro_text, '100%', '550', '75', '20');
@@ -861,7 +861,7 @@ $cbcompat = new CBCompat();
 
         <?php
         $title = Text::_('COM_CONTENTBUILDER_LIST_STATES');
-        echo $cbcompat->endPanel();
+        echo HTMLHelper::_('uitab.endTab');
         echo $cbcompat->startPanel($title, "tab1");
         ?>
         <table class="adminlist table table-striped">
@@ -924,7 +924,7 @@ $cbcompat = new CBCompat();
         </table>
         <?php
         $title = Text::_('COM_CONTENTBUILDER_DETAILS_TEMPLATE');
-        echo $cbcompat->endPanel();
+        echo HTMLHelper::_('uitab.endTab');
         echo $cbcompat->startPanel($title, "tab3");
         ?>
         <table width="100%" class="adminform table table-striped">
@@ -1179,7 +1179,7 @@ $cbcompat = new CBCompat();
         echo $editor->display("details_template", $this->form->details_template, '100%', '550', '75', '20');
 
         $title = Text::_('COM_CONTENTBUILDER_DETAILS_PREPARE');
-        echo $cbcompat->endPanel();
+        echo HTMLHelper::_('uitab.endTab');
         echo $cbcompat->startPanel($title, "tab4");
         if (trim($this->form->details_prepare) == '') {
             $this->form->details_prepare = '// Here you may alter labels and values for each item before it gets rendered through your details template.' . "\n";
@@ -1196,7 +1196,7 @@ $cbcompat = new CBCompat();
         //echo '<textarea name="details_prepare" style="width:100%;height: 500px;">'.htmlentities($this->form->details_prepare, ENT_QUOTES, 'UTF-8').'</textarea>';
         ?>
         <?php
-        echo $cbcompat->endPanel();
+        echo HTMLHelper::_('uitab.endTab');
         $title = Text::_('COM_CONTENTBUILDER_EDITABLE_TEMPLATE');
         echo $cbcompat->startPanel($title, "tab5");
         if ($this->form->edit_by_type && $this->form->type == 'com_breezingforms') {
@@ -1237,7 +1237,7 @@ $cbcompat = new CBCompat();
         ?>
         <?php
         $title = Text::_('COM_CONTENTBUILDER_EDITABLE_PREPARE');
-        echo $cbcompat->endPanel();
+        echo HTMLHelper::_('uitab.endTab');
         echo $cbcompat->startPanel($title, "tab6");
         if ($this->form->edit_by_type) {
             echo Text::_('COM_CONTENTBUILDER_EDITABLE_TEMPLATE_PROVIDED_BY_BREEZINGFORMS');
@@ -1255,7 +1255,7 @@ $cbcompat = new CBCompat();
             echo $editor->display("editable_prepare", $this->form->editable_prepare, '100%', '550', '75', '20', false, null, null, null, $params);
         }
 
-        echo $cbcompat->endPanel();
+        echo HTMLHelper::_('uitab.endTab');
         $title = Text::_('COM_CONTENTBUILDER_EMAIL_TEMPLATES');
         echo $cbcompat->startPanel($title, "tab7");
 
@@ -1486,7 +1486,7 @@ $cbcompat = new CBCompat();
             <?php
         }
 
-        echo $cbcompat->endPanel();
+        echo HTMLHelper::_('uitab.endTab');
         $title = Text::_('COM_CONTENTBUILDER_PERMISSIONS');
         echo $cbcompat->startPanel($title, "tab8");
 
@@ -2162,7 +2162,7 @@ $cbcompat = new CBCompat();
 
         echo $sliders->endPane();
 
-        echo $cbcompat->endPanel();
+        echo HTMLHelper::_('uitab.endTab');
         echo $cbcompat->endPane();
         ?>
 

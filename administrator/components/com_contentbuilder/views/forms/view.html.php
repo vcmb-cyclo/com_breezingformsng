@@ -13,8 +13,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 
 require_once(JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_contentbuilder'.DS.'classes'.DS.'joomla_compat.php');
-
-CBCompat::requireView();
+require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'viewlegacy.php');
 
 class ContentbuilderViewForms extends CBView
 {

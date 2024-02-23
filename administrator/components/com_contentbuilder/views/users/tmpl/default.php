@@ -56,7 +56,7 @@ use Joomla\CMS\Language\Text;
                 <?php echo JHTML::_('grid.sort', Text::_( 'COM_CONTENTBUILDER_ID' ), 'id', $this->lists['order_Dir'], $this->lists['order'] ); ?>
             </th>
             <th width="20">
-              <input class="form-check-input" type="checkbox" name="toggle" value="" onclick="<?php echo CBCompat::getCheckAll($this->items); ?>" />
+              <input class="form-check-input" type="checkbox" name="toggle" value="" onclick="Joomla.checkAll(this);" />
             </th>
             <th>
                 <?php echo JHTML::_('grid.sort', Text::_( 'COM_CONTENTBUILDER_NAME' ), 'name', $this->lists['order_Dir'], $this->lists['order'] ); ?>

@@ -16,15 +16,19 @@ defined('_JEXEC') or die;
  */
 class PlgSystemSysbreezingforms extends JPlugin
 {
-    public function onBeforeRender(){
+    public function onBeforeRender()
+    {
 
-        if(!file_exists(JPATH_ADMINISTRATOR . '/components/com_breezingforms/breezingforms.php')){ return; }
+        if (!file_exists(JPATH_ADMINISTRATOR . '/components/com_breezingforms/breezingforms.php')) {
+            return;
+        }
 
         $app = JFactory::getApplication();
 
         try {
 
-            if( JFactory::getApplication()->isClient('administrator') &&
+            if (
+                JFactory::getApplication()->isClient('administrator') &&
                 (
                     (
                         $app->input->getString('option') == 'com_breezingforms' &&
@@ -35,7 +39,7 @@ class PlgSystemSysbreezingforms extends JPlugin
                     $app->input->getString('option') == 'com_installer' &&
                     $app->input->getString('view', '') == 'update'
                 )
-            ){
+            ) {
 
                 $message = 'Please enter your update key in the BreezingForms configuration.<br />Without this key you won\'t be able to receive future upates.<br />You can get your personal update key at Crosstec.org in the My Account => My Downloads section after login.<br />If your membership is expired, you can renew it by <a style="font-weight: bold; text-decoration: underline;" target="_blank" href="https://crosstec.org/en/downloads/joomla-forms.html">purchasing a membership</a>.';
 
@@ -44,12 +48,12 @@ class PlgSystemSysbreezingforms extends JPlugin
                 $query = $db->loadResult();
 
                 $exp = explode('=', $query);
-                if(isset($exp[1])) {
+                if (isset($exp[1])) {
                     $exp = explode('-', $exp[1]);
 
                     if (is_numeric($exp[0])) {
 
-                        if($exp[0] > 0) { // 0 = unlimited
+                        if ($exp[0] > 0) { // 0 = unlimited
 
                             $time = strtotime(JHTML::_('date', 'now', 'Y-m-d H:i:s', false));
 
@@ -66,17 +70,19 @@ class PlgSystemSysbreezingforms extends JPlugin
                         $query = '';
                     }
 
-                }else{
+                } else {
 
                     $query = '';
                 }
 
-                if(trim($query) == '') {
+                if (trim($query) == '') {
 
                     $breaks2 = '';
                     $breaks = '';
-                    if ($app->input->getString('option') == 'com_installer' &&
-                        $app->input->getString('view', '') == 'update') {
+                    if (
+                        $app->input->getString('option') == 'com_installer' &&
+                        $app->input->getString('view', '') == 'update'
+                    ) {
                         $breaks = '<br /><h4>BreezingForms Pro</h4>';
                         $breaks2 = '<br /><br />';
                     }
@@ -84,9 +90,9 @@ class PlgSystemSysbreezingforms extends JPlugin
                 }
             }
 
-        }catch(Exception $e){
+        } catch (Exception $e) {
 
-        }catch(Error $e){
+        } catch (Error $e) {
 
         }
     }
@@ -94,11 +100,13 @@ class PlgSystemSysbreezingforms extends JPlugin
     public function onAfterRender()
     {
 
-        if(!file_exists(JPATH_ADMINISTRATOR . '/components/com_breezingforms/breezingforms.php')){ return; }
+        if (!file_exists(JPATH_ADMINISTRATOR . '/components/com_breezingforms/breezingforms.php')) {
+            return;
+        }
 
         $app = JFactory::getApplication();
 
-        if( $app->input->getString('option') == 'com_menus' && $app->input->getString('view') == 'items' ){
+        if ($app->input->getString('option') == 'com_menus' && $app->input->getString('view') == 'items') {
 
             $body = JFactory::getApplication()->getBody();
             $body = str_replace('&lt;img src=../administrator/components/com_breezingforms/images/icons/component-menu-icons/bf_icon.png width=23px; /&gt;', '', $body);
@@ -106,7 +114,7 @@ class PlgSystemSysbreezingforms extends JPlugin
             JFactory::getApplication()->setBody($body);
         }
 
-        if( $app->input->getString('option') == 'com_cpanel' && $app->input->getString('dashboard') == 'components' ){
+        if ($app->input->getString('option') == 'com_cpanel' && $app->input->getString('dashboard') == 'components') {
 
             $body = JFactory::getApplication()->getBody();
             $body = str_replace('&lt;img src=../administrator/components/com_breezingforms/images/icons/component-menu-icons/folder-open.png width=17; /&gt;', '', $body);
