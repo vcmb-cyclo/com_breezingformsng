@@ -13,6 +13,7 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Factory;
 use Joomla\Registry\Registry;
 use Joomla\CMS\Router\Route;
+use Joomla\Database\DatabaseInterface;
 
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'joomla_compat.php');
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'viewlegacy.php');
@@ -37,8 +38,8 @@ class ContentbuilderViewEdit extends CBView
 
 		if ($subject->edit_by_type) {
 
-			CBFactory::getDbo()->setQuery("Select articles.`article_id` From #__contentbuilder_articles As articles, #__content As content Where content.id = articles.article_id And (content.state = 1 Or content.state = 0) And articles.form_id = " . intval($subject->form_id) . " And articles.record_id = " . CBFactory::getDbo()->Quote($subject->record_id));
-			$article = CBFactory::getDbo()->loadResult();
+			Factory::getContainer()->get(DatabaseInterface::class)->setQuery("Select articles.`article_id` From #__contentbuilder_articles As articles, #__content As content Where content.id = articles.article_id And (content.state = 1 Or content.state = 0) And articles.form_id = " . intval($subject->form_id) . " And articles.record_id = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($subject->record_id));
+			$article = Factory::getContainer()->get(DatabaseInterface::class)->loadResult();
 
 			$table = JTable::getInstance('content');
 

@@ -11,6 +11,7 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Router\Route;
 
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'classes' . DS . 'contentbuilder_helpers.php');
 
@@ -105,7 +106,7 @@ if ($this->export_xls):
 	?>
 	<div class="mb-3" style="float: right; text-align: right;">
 		<a
-			href="<?php echo JRoute::_('index.php?option=com_contentbuilder&controller=export&id=' . CBRequest::getInt('id', 0) . '&type=xls&format=raw&tmpl=component'); ?>"><i
+			href="<?php echo Route::_('index.php?option=com_contentbuilder&controller=export&id=' . CBRequest::getInt('id', 0) . '&type=xls&format=raw&tmpl=component'); ?>"><i
 				class="fa fa-solid fa-2x fa-file-excel"></i></a>
 	</div>
 	<div style="clear: both;"></div>
@@ -122,11 +123,11 @@ endif;
 	<?php
 	/*	2023-12-19 XDA / GIL - BEGIN - remove, hide NEW button */
 	/*  if ($new_allowed) {
-			?>
-			<button class="button btn btn-sm btn-primary cbButton cbNewButton" onclick="location.href='<?php echo JRoute::_( 'index.php?option=com_contentbuilder&controller=edit&backtolist=1&id='.CBRequest::getInt('id', 0).(CBRequest::getVar('tmpl', '') != '' ? '&tmpl='.CBRequest::getVar('tmpl', '') : '').(CBRequest::getVar('layout', '') != '' ? '&layout='.CBRequest::getVar('layout', '') : '').'&record_id=0&limitstart='.CBRequest::getInt('limitstart',0).'&filter_order='.CBRequest::getCmd('filter_order') ); ?>'"><?php echo Text::_('COM_CONTENTBUILDER_NEW'); ?></button>
-			<?php
-		} 
-		2023-12-19 XDA / GIL */
+			   ?>
+			   <button class="button btn btn-sm btn-primary cbButton cbNewButton" onclick="location.href='<?php echo Route::_( 'index.php?option=com_contentbuilder&controller=edit&backtolist=1&id='.CBRequest::getInt('id', 0).(CBRequest::getVar('tmpl', '') != '' ? '&tmpl='.CBRequest::getVar('tmpl', '') : '').(CBRequest::getVar('layout', '') != '' ? '&layout='.CBRequest::getVar('layout', '') : '').'&record_id=0&limitstart='.CBRequest::getInt('limitstart',0).'&filter_order='.CBRequest::getCmd('filter_order') ); ?>'"><?php echo Text::_('COM_CONTENTBUILDER_NEW'); ?></button>
+			   <?php
+		   } 
+		   2023-12-19 XDA / GIL */
 	?>
 
 	<?php
@@ -158,7 +159,7 @@ $szRoute = 'index.php?option=com_contentbuilder'
 	. '&limitstart=' . CBRequest::getInt('limitstart', 0)
 	. '&filter_order=' . CBRequest::getCmd('filter_order')
 	. '&id=' . CBRequest::getInt('id');
-echo JRoute::_($szRoute); ?>" method="<?php echo $___getpost; ?>" name="adminForm" id="adminForm">
+echo Route::_($szRoute); ?>" method="<?php echo $___getpost; ?>" name="adminForm" id="adminForm">
 	<!-- 2023-12-19 END -->
 	<div style="overflow-x: auto;">
 		<table class="cbFilterTable" width="100%">
@@ -437,10 +438,10 @@ echo JRoute::_($szRoute); ?>" method="<?php echo $___getpost; ?>" name="adminFor
 			$n = count($this->items);
 			for ($i = 0; $i < $n; $i++) {
 				$row = $this->items[$i];
-				$link = JRoute::_('index.php?option=com_contentbuilder&controller=details&id=' . $this->form_id . '&record_id=' . $row->colRecord . '&Itemid=' . CBRequest::getInt('Itemid', 0) . (CBRequest::getVar('tmpl', '') != '' ? '&tmpl=' . CBRequest::getVar('tmpl', '') : '') . (CBRequest::getVar('layout', '') != '' ? '&layout=' . CBRequest::getVar('layout', '') : '') . '&limitstart=' . CBRequest::getInt('limitstart', 0) . '&filter_order=' . CBRequest::getCmd('filter_order'));
-				$edit_link = JRoute::_('index.php?option=com_contentbuilder&controller=edit&backtolist=1&id=' . $this->form_id . '&record_id=' . $row->colRecord . '&Itemid=' . CBRequest::getInt('Itemid', 0) . (CBRequest::getVar('tmpl', '') != '' ? '&tmpl=' . CBRequest::getVar('tmpl', '') : '') . (CBRequest::getVar('layout', '') != '' ? '&layout=' . CBRequest::getVar('layout', '') : '') . '&limitstart=' . CBRequest::getInt('limitstart', 0) . '&filter_order=' . CBRequest::getCmd('filter_order'));
-				$publish_link = JRoute::_('index.php?option=com_contentbuilder&controller=edit&task=publish&backtolist=1&id=' . $this->form_id . '&list_publish=1&cid[]=' . $row->colRecord . '&Itemid=' . CBRequest::getInt('Itemid', 0) . (CBRequest::getVar('tmpl', '') != '' ? '&tmpl=' . CBRequest::getVar('tmpl', '') : '') . (CBRequest::getVar('layout', '') != '' ? '&layout=' . CBRequest::getVar('layout', '') : '') . '&limitstart=' . CBRequest::getInt('limitstart', 0) . '&filter_order=' . CBRequest::getCmd('filter_order'));
-				$unpublish_link = JRoute::_('index.php?option=com_contentbuilder&controller=edit&task=publish&backtolist=1&id=' . $this->form_id . '&list_publish=0&cid[]=' . $row->colRecord . '&Itemid=' . CBRequest::getInt('Itemid', 0) . (CBRequest::getVar('tmpl', '') != '' ? '&tmpl=' . CBRequest::getVar('tmpl', '') : '') . (CBRequest::getVar('layout', '') != '' ? '&layout=' . CBRequest::getVar('layout', '') : '') . '&limitstart=' . CBRequest::getInt('limitstart', 0) . '&filter_order=' . CBRequest::getCmd('filter_order'));
+				$link = Route::_('index.php?option=com_contentbuilder&controller=details&id=' . $this->form_id . '&record_id=' . $row->colRecord . '&Itemid=' . CBRequest::getInt('Itemid', 0) . (CBRequest::getVar('tmpl', '') != '' ? '&tmpl=' . CBRequest::getVar('tmpl', '') : '') . (CBRequest::getVar('layout', '') != '' ? '&layout=' . CBRequest::getVar('layout', '') : '') . '&limitstart=' . CBRequest::getInt('limitstart', 0) . '&filter_order=' . CBRequest::getCmd('filter_order'));
+				$edit_link = Route::_('index.php?option=com_contentbuilder&controller=edit&backtolist=1&id=' . $this->form_id . '&record_id=' . $row->colRecord . '&Itemid=' . CBRequest::getInt('Itemid', 0) . (CBRequest::getVar('tmpl', '') != '' ? '&tmpl=' . CBRequest::getVar('tmpl', '') : '') . (CBRequest::getVar('layout', '') != '' ? '&layout=' . CBRequest::getVar('layout', '') : '') . '&limitstart=' . CBRequest::getInt('limitstart', 0) . '&filter_order=' . CBRequest::getCmd('filter_order'));
+				$publish_link = Route::_('index.php?option=com_contentbuilder&controller=edit&task=publish&backtolist=1&id=' . $this->form_id . '&list_publish=1&cid[]=' . $row->colRecord . '&Itemid=' . CBRequest::getInt('Itemid', 0) . (CBRequest::getVar('tmpl', '') != '' ? '&tmpl=' . CBRequest::getVar('tmpl', '') : '') . (CBRequest::getVar('layout', '') != '' ? '&layout=' . CBRequest::getVar('layout', '') : '') . '&limitstart=' . CBRequest::getInt('limitstart', 0) . '&filter_order=' . CBRequest::getCmd('filter_order'));
+				$unpublish_link = Route::_('index.php?option=com_contentbuilder&controller=edit&task=publish&backtolist=1&id=' . $this->form_id . '&list_publish=0&cid[]=' . $row->colRecord . '&Itemid=' . CBRequest::getInt('Itemid', 0) . (CBRequest::getVar('tmpl', '') != '' ? '&tmpl=' . CBRequest::getVar('tmpl', '') : '') . (CBRequest::getVar('layout', '') != '' ? '&layout=' . CBRequest::getVar('layout', '') : '') . '&limitstart=' . CBRequest::getInt('limitstart', 0) . '&filter_order=' . CBRequest::getCmd('filter_order'));
 				$select = '<input class="form-check-input" type="checkbox" name="cid[]" value="' . $row->colRecord . '"/>';
 				?>
 				<tr class="<?php echo "row$k"; ?>">

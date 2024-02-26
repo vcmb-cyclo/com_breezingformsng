@@ -15,8 +15,10 @@ use Joomla\Event\EventInterface;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Filesystem\Folder;
 use Joomla\Filesystem\File;
+use Joomla\CMS\Router\Route;
 
-class bfMobile {
+class bfMobile
+{
 
     public $isMobile = false;
 
@@ -72,12 +74,15 @@ define('_FF_DEBUG_EXIT', 4);
 define('_FF_DEBUG_DIRECTIVE', 8);
 define('_FF_DEBUG', 0);
 
-function ff_trace($msg = null) {
+function ff_trace($msg = null)
+{
     global $ff_processor;
 
-    if ($ff_processor->dying ||
-            ($ff_processor->traceMode & _FF_TRACEMODE_DISABLE) ||
-            !($ff_processor->traceMode & _FF_TRACEMODE_MESSAGE))
+    if (
+        $ff_processor->dying ||
+        ($ff_processor->traceMode & _FF_TRACEMODE_DISABLE) ||
+        !($ff_processor->traceMode & _FF_TRACEMODE_MESSAGE)
+    )
         return;
     $level = count($ff_processor->traceStack);
     $trc = '';
@@ -91,7 +96,8 @@ function ff_trace($msg = null) {
 
 // ff_trace
 
-function _ff_trace($line, $msg = null) {
+function _ff_trace($line, $msg = null)
+{
     global $ff_processor;
 
     // version for patched code
@@ -113,16 +119,18 @@ function _ff_trace($line, $msg = null) {
 
 // _ff_trace
 
-function _ff_getMode(&$newmode, &$name) {
+function _ff_getMode(&$newmode, &$name)
+{
     global $ff_processor;
 
     $oldmode = $ff_processor->traceMode;
     if (_FF_DEBUG & _FF_DEBUG_ENTER)
         $ff_processor->traceBuffer .= htmlspecialchars(
-                "\n_FF_DEBUG_ENTER:" .
-                "\n  Name              = $name" .
-                "\n  Old mode before   = " . $ff_processor->dispTraceMode($oldmode) .
-                "\n  New mode before   = " . $ff_processor->dispTraceMode($newmode), ENT_QUOTES
+            "\n_FF_DEBUG_ENTER:" .
+            "\n  Name              = $name" .
+            "\n  Old mode before   = " . $ff_processor->dispTraceMode($oldmode) .
+            "\n  New mode before   = " . $ff_processor->dispTraceMode($newmode),
+            ENT_QUOTES
         );
     if (is_null($newmode) || ($newmode & _FF_TRACEMODE_PRIORITY) < ($oldmode & _FF_TRACEMODE_PRIORITY)) {
         $newmode = $oldmode;
@@ -135,9 +143,10 @@ function _ff_getMode(&$newmode, &$name) {
     } // if
     if (_FF_DEBUG & _FF_DEBUG_ENTER) {
         $ff_processor->traceBuffer .= htmlspecialchars(
-                "\n  Old mode compiled = " . $ff_processor->dispTraceMode($ret) .
-                "\n  New mode compiled = " . $ff_processor->dispTraceMode($newmode) .
-                "\n", ENT_QUOTES
+            "\n  Old mode compiled = " . $ff_processor->dispTraceMode($ret) .
+            "\n  New mode compiled = " . $ff_processor->dispTraceMode($newmode) .
+            "\n",
+            ENT_QUOTES
         );
         if ($ff_processor->traceMode & _FF_TRACEMODE_DIRECT)
             $ff_processor->dumpTrace();
@@ -147,7 +156,8 @@ function _ff_getMode(&$newmode, &$name) {
 
 // _ff_getmode
 
-function _ff_tracePiece($newmode, $name, $line, $type, $id, $pane) {
+function _ff_tracePiece($newmode, $name, $line, $type, $id, $pane)
+{
     global $ff_processor;
 
     if ($ff_processor->dying || ($ff_processor->traceMode & _FF_TRACEMODE_DISABLE))
@@ -158,7 +168,8 @@ function _ff_tracePiece($newmode, $name, $line, $type, $id, $pane) {
         for ($l = 0; $l < $level; $l++)
             $ff_processor->traceBuffer .= '  ';
         $ff_processor->traceBuffer .= htmlspecialchars(
-                "+" . BFText::_('COM_BREEZINGFORMS_PROCESS_ENTER') . " $name " . BFText::_('COM_BREEZINGFORMS_PROCESS_ATLINE') . " $line\n", ENT_QUOTES
+            "+" . BFText::_('COM_BREEZINGFORMS_PROCESS_ENTER') . " $name " . BFText::_('COM_BREEZINGFORMS_PROCESS_ATLINE') . " $line\n",
+            ENT_QUOTES
         );
         if ($ff_processor->traceMode & _FF_TRACEMODE_DIRECT)
             $ff_processor->dumpTrace();
@@ -168,7 +179,8 @@ function _ff_tracePiece($newmode, $name, $line, $type, $id, $pane) {
 
 // _ff_tracePiece
 
-function _ff_traceFunction($newmode, $name, $line, $type, $id, $pane, &$args) {
+function _ff_traceFunction($newmode, $name, $line, $type, $id, $pane, &$args)
+{
     global $ff_processor;
 
     if ($ff_processor->dying || ($ff_processor->traceMode & _FF_TRACEMODE_DISABLE))
@@ -190,28 +202,28 @@ function _ff_traceFunction($newmode, $name, $line, $type, $id, $pane, &$args) {
                 if (is_null($arg))
                     $trc .= 'null';
                 else
-                if (is_bool($arg)) {
-                    $trc .= $arg ? 'true' : 'false';
-                } else
-                if (is_numeric($arg))
-                    $trc .= $arg;
-                else
-                if (is_string($arg)) {
-                    $arg = preg_replace('/([\\s]+)/si', ' ', $arg);
-                    if (strlen($arg) > _FF_TRACE_NAMELIMIT)
-                        $arg = substr($arg, 0, _FF_TRACE_NAMELIMIT - 3) . '...';
-                    $trc .= "'$arg'";
-                } else
-                if (is_array($arg))
-                    $trc .= BFText::_('COM_BREEZINGFORMS_PROCESS_ARRAY');
-                else
-                if (is_object($arg))
-                    $trc .= BFText::_('COM_BREEZINGFORMS_PROCESS_OBJECT');
-                else
-                if (is_resource($arg))
-                    $trc .= BFText::_('COM_BREEZINGFORMS_PROCESS_RESOURCE');
-                else
-                    $trc .= _FACILEFORMS_PROCESS_UNKTYPE;
+                    if (is_bool($arg)) {
+                        $trc .= $arg ? 'true' : 'false';
+                    } else
+                        if (is_numeric($arg))
+                            $trc .= $arg;
+                        else
+                            if (is_string($arg)) {
+                                $arg = preg_replace('/([\\s]+)/si', ' ', $arg);
+                                if (strlen($arg) > _FF_TRACE_NAMELIMIT)
+                                    $arg = substr($arg, 0, _FF_TRACE_NAMELIMIT - 3) . '...';
+                                $trc .= "'$arg'";
+                            } else
+                                if (is_array($arg))
+                                    $trc .= BFText::_('COM_BREEZINGFORMS_PROCESS_ARRAY');
+                                else
+                                    if (is_object($arg))
+                                        $trc .= BFText::_('COM_BREEZINGFORMS_PROCESS_OBJECT');
+                                    else
+                                        if (is_resource($arg))
+                                            $trc .= BFText::_('COM_BREEZINGFORMS_PROCESS_RESOURCE');
+                                        else
+                                            $trc .= _FACILEFORMS_PROCESS_UNKTYPE;
             } // foreach
         } // if
         $trc .= ") " . BFText::_('COM_BREEZINGFORMS_PROCESS_ATLINE') . " $line\n";
@@ -224,7 +236,8 @@ function _ff_traceFunction($newmode, $name, $line, $type, $id, $pane, &$args) {
 
 // _ff_traceFunction
 
-function _ff_traceExit($line, $retval = null) {
+function _ff_traceExit($line, $retval = null)
+{
     global $ff_processor;
 
     if ($ff_processor->dying || ($ff_processor->traceMode & _FF_TRACEMODE_DISABLE))
@@ -240,11 +253,12 @@ function _ff_traceExit($line, $retval = null) {
         $pane = $info[6];
         if (_FF_DEBUG & _FF_DEBUG_EXIT) {
             $ff_processor->traceBuffer .= htmlspecialchars(
-                    "\n_FF_DEBUG_EXIT:" .
-                    "\n  Info     = $kind $name at line $line" .
-                    "\n  Old mode = " . $ff_processor->dispTraceMode($oldmode) .
-                    "\n  New mode = " . $ff_processor->dispTraceMode($newmode) .
-                    "\n", ENT_QUOTES
+                "\n_FF_DEBUG_EXIT:" .
+                "\n  Info     = $kind $name at line $line" .
+                "\n  Old mode = " . $ff_processor->dispTraceMode($oldmode) .
+                "\n  New mode = " . $ff_processor->dispTraceMode($newmode) .
+                "\n",
+                ENT_QUOTES
             );
             if ($ff_processor->traceMode & _FF_TRACEMODE_DIRECT)
                 $ff_processor->dumpTrace();
@@ -258,7 +272,8 @@ function _ff_traceExit($line, $retval = null) {
             for ($l = 0; $l < $level; $l++)
                 $ff_processor->traceBuffer .= '  ';
             $ff_processor->traceBuffer .= htmlspecialchars(
-                    "-" . BFText::_('COM_BREEZINGFORMS_PROCESS_LEAVE') . " $name " . BFText::_('COM_BREEZINGFORMS_PROCESS_ATLINE') . " $line\n", ENT_QUOTES
+                "-" . BFText::_('COM_BREEZINGFORMS_PROCESS_LEAVE') . " $name " . BFText::_('COM_BREEZINGFORMS_PROCESS_ATLINE') . " $line\n",
+                ENT_QUOTES
             );
             if ($oldmode & _FF_TRACEMODE_DIRECT)
                 $ff_processor->dumpTrace();
@@ -277,7 +292,8 @@ function _ff_traceExit($line, $retval = null) {
 
 // _ff_traceExit
 
-function _ff_errorHandler($errno, $errstr, $errfile, $errline) {
+function _ff_errorHandler($errno, $errstr, $errfile, $errline)
+{
     global $ff_processor, $ff_mossite, $database;
     $database = BFFactory::getDbo();
 
@@ -285,26 +301,32 @@ function _ff_errorHandler($errno, $errstr, $errfile, $errline) {
         return;
 
     $msg = "\n<strong>*** " . htmlspecialchars(BFText::_('COM_BREEZINGFORMS_PROCESS_EXCAUGHT'), ENT_QUOTES) . " ***</strong>\n" .
-            htmlspecialchars(BFText::_('COM_BREEZINGFORMS_PROCESS_PHPLEVEL') . ' ', ENT_QUOTES);
+        htmlspecialchars(BFText::_('COM_BREEZINGFORMS_PROCESS_PHPLEVEL') . ' ', ENT_QUOTES);
     $fail = false;
     if (!defined('E_DEPRECATED')) {
         define('E_DEPRECATED', 8192);
     }
     switch ($errno) {
-        case E_WARNING : $msg .= "E_WARNING";
+        case E_WARNING:
+            $msg .= "E_WARNING";
             break;
-        case E_NOTICE : $msg .= "E_NOTICE";
+        case E_NOTICE:
+            $msg .= "E_NOTICE";
             break;
-        case E_USER_ERROR : $msg .= "E_USER_ERROR";
+        case E_USER_ERROR:
+            $msg .= "E_USER_ERROR";
             $fail = true;
             break;
-        case E_USER_WARNING: $msg .= "E_USER_WARNING";
+        case E_USER_WARNING:
+            $msg .= "E_USER_WARNING";
             break;
-        case E_USER_NOTICE : $msg .= "E_USER_NOTICE";
+        case E_USER_NOTICE:
+            $msg .= "E_USER_NOTICE";
             break;
-        case E_DEPRECATED : $msg .= "E_DEPRECATED";
+        case E_DEPRECATED:
+            $msg .= "E_DEPRECATED";
             break;
-        case 2048 :
+        case 2048:
             if (_FF_IGNORE_STRICT)
                 return;
             $msg .= "E_STRICT";
@@ -312,12 +334,14 @@ function _ff_errorHandler($errno, $errstr, $errfile, $errline) {
         case 16384: // JLanguage deprecation error
             return;
             break;
-        default : $msg .= $errno;
+        default:
+            $msg .= $errno;
             $fail = true;
     } // switch
     $msg .= htmlspecialchars(
-            "\n" . BFText::_('COM_BREEZINGFORMS_PROCESS_PHPFILE') . " $errfile\n" .
-            BFText::_('COM_BREEZINGFORMS_PROCESS_PHPLINE') . " $errline\n", ENT_QUOTES
+        "\n" . BFText::_('COM_BREEZINGFORMS_PROCESS_PHPFILE') . " $errfile\n" .
+        BFText::_('COM_BREEZINGFORMS_PROCESS_PHPLINE') . " $errline\n",
+        ENT_QUOTES
     );
 
     $n = 0;
@@ -337,8 +361,8 @@ function _ff_errorHandler($errno, $errstr, $errfile, $errline) {
             switch ($type) {
                 case 'f':
                     $url .= '&act=editpage' .
-                            '&task=editform' .
-                            '&form=' . $ff_processor->form;
+                        '&task=editform' .
+                        '&form=' . $ff_processor->form;
                     if ($ff_processor->formrow->package != '')
                         $url .= '&pkg=' . urlencode($ff_processor->formrow->package);
                     if ($pane > 0)
@@ -355,10 +379,10 @@ function _ff_errorHandler($errno, $errstr, $errfile, $errline) {
                         } // if
                     $what = 'element ' . $what;
                     $url .= '&act=editpage' .
-                            '&task=edit' .
-                            '&form=' . $ff_processor->form .
-                            '&page=' . $page .
-                            '&ids[]=' . $id;
+                        '&task=edit' .
+                        '&form=' . $ff_processor->form .
+                        '&page=' . $page .
+                        '&ids[]=' . $id;
                     if ($ff_processor->formrow->package != '')
                         $url .= '&pkg=' . urlencode($ff_processor->formrow->package);
                     if ($pane > 0)
@@ -374,8 +398,8 @@ function _ff_errorHandler($errno, $errstr, $errfile, $errline) {
                     }
                     $what = 'piece ' . $what;
                     $url .= '&act=managepieces' .
-                            '&task=edit' .
-                            '&ids[]=' . $id;
+                        '&task=edit' .
+                        '&ids[]=' . $id;
                     if ($package != '')
                         $url .= '&pkg=' . urlencode($package);
                     break;
@@ -389,8 +413,8 @@ function _ff_errorHandler($errno, $errstr, $errfile, $errline) {
                     }
                     $what = 'script ' . $what;
                     $url .= '&act=managescripts' .
-                            '&task=edit' .
-                            '&ids[]=' . $id;
+                        '&task=edit' .
+                        '&ids[]=' . $id;
                     if ($package != '')
                         $url .= '&pkg=' . urlencode($package);
                     break;
@@ -399,10 +423,10 @@ function _ff_errorHandler($errno, $errstr, $errfile, $errline) {
             } // switch
             if ($url)
                 $name = '<a href="#" ' .
-                        'onMouseOver="window.status=\'Open ' . $what . '\';return true;" ' .
-                        'onMouseOut="window.status=\'\';return true;" ' .
-                        'onClick="ff_redirectParent(\'' . htmlspecialchars($url, ENT_QUOTES) . '\');return true;"' .
-                        '>' . $name . '</a>';
+                    'onMouseOver="window.status=\'Open ' . $what . '\';return true;" ' .
+                    'onMouseOut="window.status=\'\';return true;" ' .
+                    'onClick="ff_redirectParent(\'' . htmlspecialchars($url, ENT_QUOTES) . '\');return true;"' .
+                    '>' . $name . '</a>';
         } // if
         $msg .= htmlspecialchars(BFText::_('COM_BREEZINGFORMS_PROCESS_LASTPOS'), ENT_QUOTES) . ' ' . $name . "\n";
     } // if
@@ -413,18 +437,19 @@ function _ff_errorHandler($errno, $errstr, $errfile, $errline) {
             $ff_processor->suicide();
         }
     } else
-    if (isset($ff_processor)) {
-        if (($ff_processor->traceMode & _FF_TRACEMODE_DISABLE) == 0) {
-            $ff_processor->traceBuffer .= $msg;
-            if ($ff_processor->traceMode & _FF_TRACEMODE_DIRECT)
-                $ff_processor->dumpTrace();
-        }
-    } // if
+        if (isset($ff_processor)) {
+            if (($ff_processor->traceMode & _FF_TRACEMODE_DISABLE) == 0) {
+                $ff_processor->traceBuffer .= $msg;
+                if ($ff_processor->traceMode & _FF_TRACEMODE_DIRECT)
+                    $ff_processor->dumpTrace();
+            }
+        } // if
 }
 
 // _ff_errorHandler
 
-class HTML_facileFormsProcessor {
+class HTML_facileFormsProcessor
+{
 
     var $okrun = null;     // running is allowed
     var $ip = null;     // visitor ip
@@ -486,16 +511,18 @@ class HTML_facileFormsProcessor {
     public $legacy_wrap = true;
 
     function __construct(
-            $runmode, // _FF_RUNMODE_FRONTEND, ..._BACKEND, ..._PREVIEW
-            $inframe, // run in iframe
-            $form, // form id
-            $page = 1, // page #
-            $border = 0, // show border
-            $align = 1, // align code
-            $top = 0, // top margin
-            $target = '', // target form name
-            $suffix = '', // class name suffix
-            $editable = 0, $editable_override = 0) {
+        $runmode, // _FF_RUNMODE_FRONTEND, ..._BACKEND, ..._PREVIEW
+        $inframe, // run in iframe
+        $form, // form id
+        $page = 1, // page #
+        $border = 0, // show border
+        $align = 1, // align code
+        $top = 0, // top margin
+        $target = '', // target form name
+        $suffix = '', // class name suffix
+        $editable = 0,
+        $editable_override = 0
+    ) {
         global $database, $ff_config, $ff_mossite, $ff_mospath, $ff_processor;
         $ff_processor = $this;
         $database = BFFactory::getDbo();
@@ -570,9 +597,9 @@ class HTML_facileFormsProcessor {
 
         if ($this->formrow->published) {
             $database->setQuery(
-                    "select * from #__facileforms_elements " .
-                    "where form=" . $this->form . " and published=1 " .
-                    "order by page, ordering"
+                "select * from #__facileforms_elements " .
+                "where form=" . $this->form . " and published=1 " .
+                "order by page, ordering"
             );
             $this->rows = $database->loadObjectList();
             $this->rowcount = count($this->rows);
@@ -638,42 +665,51 @@ class HTML_facileFormsProcessor {
                 case _FF_RUNMODE_BACKEND:
                     $this->okrun = ($this->formrow->runmode == 0 || $this->formrow->runmode == 2);
                     break;
-                default:;
+                default:
+                    ;
             } // switch
         $this->traceMode = _FF_TRACEMODE_FIRST;
         $this->traceStack = array();
         $this->traceBuffer = null;
     }
 
-//  HTML_facileFormsProcessor
+    //  HTML_facileFormsProcessor
 
-    function dispTraceMode($mode) {
+    function dispTraceMode($mode)
+    {
         if (!is_int($mode))
             return $mode;
         $m = '(';
         if ($mode & _FF_TRACEMODE_FIRST)
             $m .= 'first ';
-        $m .= ( $mode & _FF_TRACEMODE_DIRECT ? 'direct' : ( $mode & _FF_TRACEMODE_APPEND ? 'append' : 'popup') );
+        $m .= ($mode & _FF_TRACEMODE_DIRECT ? 'direct' : ($mode & _FF_TRACEMODE_APPEND ? 'append' : 'popup'));
         if ($mode & _FF_TRACEMODE_DISABLE)
             $m .= ' disable';
         else {
             switch ($mode & _FF_TRACEMODE_PRIORITY) {
-                case 0: $m .= ' minimum';
+                case 0:
+                    $m .= ' minimum';
                     break;
-                case 1: $m .= ' low';
+                case 1:
+                    $m .= ' low';
                     break;
-                case 2: $m .= ' normal';
+                case 2:
+                    $m .= ' normal';
                     break;
-                case 3: $m .= ' high';
+                case 3:
+                    $m .= ' high';
                     break;
-                default: $m .= ' maximum';
+                default:
+                    $m .= ' maximum';
                     break;
             } // switch
             $m .= $mode & _FF_TRACEMODE_LOCAL ? ' local' : ' global';
             switch ($mode & _FF_TRACEMODE_TOPIC) {
-                case 0 : $m .= ' none';
+                case 0:
+                    $m .= ' none';
                     break;
-                case _FF_TRACEMODE_TOPIC: $m .= ' all';
+                case _FF_TRACEMODE_TOPIC:
+                    $m .= ' all';
                     break;
                 default:
                     if ($mode & _FF_TRACEMODE_EVAL)
@@ -689,9 +725,10 @@ class HTML_facileFormsProcessor {
         return $m . ')';
     }
 
-// dispTraceMode
+    // dispTraceMode
 
-    function trim(&$code) {
+    function trim(&$code)
+    {
         $len = strlen($code);
         if (!$len)
             return false;
@@ -701,15 +738,17 @@ class HTML_facileFormsProcessor {
         return $code != '';
     }
 
-// trim
+    // trim
 
-    function nonblank(&$code) {
+    function nonblank(&$code)
+    {
         return preg_match("/[^\\s]+/si", $code);
     }
 
-// nonblank
+    // nonblank
 
-    function getClassName($classdef) {
+    function getClassName($classdef)
+    {
         $name = '';
         if (strpos($classdef, ';') === false)
             $name = $classdef;
@@ -722,9 +761,10 @@ class HTML_facileFormsProcessor {
         return $name;
     }
 
-// getClassName
+    // getClassName
 
-    function expJsValue($mixed, $indent = '') {
+    function expJsValue($mixed, $indent = '')
+    {
         if (is_null($mixed))
             return $indent . 'null';
 
@@ -736,11 +776,13 @@ class HTML_facileFormsProcessor {
 
         if (is_string($mixed))
             return
-                    $indent . "'" .
-                    str_replace(
-                            array("\\", "'", "\r", "<", "\n"), array("\\\\", "\\'", "\\r", "\\074", "\\n'+" . nl() . $indent . "'"), $mixed
-                    ) .
-                    "'";
+                $indent . "'" .
+                str_replace(
+                    array("\\", "'", "\r", "<", "\n"),
+                    array("\\\\", "\\'", "\\r", "\\074", "\\n'+" . nl() . $indent . "'"),
+                    $mixed
+                ) .
+                "'";
 
         if (is_array($mixed)) {
             $dst = $indent . '[' . nl();
@@ -775,15 +817,17 @@ class HTML_facileFormsProcessor {
         return $indent . "'" . BFText::_('COM_BREEZINGFORMS_PROCESS_UNKNOWN') . "'";
     }
 
-// expJsValue
+    // expJsValue
 
-    function expJsVar($name, $mixed) {
+    function expJsVar($name, $mixed)
+    {
         return $name . ' = ' . $this->expJsValue($mixed) . ';' . nl();
     }
 
-// expJsVar
+    // expJsVar
 
-    function dumpTrace() {
+    function dumpTrace()
+    {
         if ($this->traceMode & _FF_TRACEMODE_DIRECT) {
             $html = ob_get_contents();
             ob_end_clean();
@@ -800,22 +844,25 @@ class HTML_facileFormsProcessor {
             return;
         } // if
         echo
-        '<script type="text/javascript">' . nl() .
-        '<!--' . nl();
+            '<script type="text/javascript">' . nl() .
+            '<!--' . nl();
         if ($this->dying)
             echo 'console.log(' . json_encode($this->traceBuffer) . ')' . nl();
         echo
-        '-->' . nl() .
-        '</script>' . nl();
+            '-->' . nl() .
+            '</script>' . nl();
         $this->traceBuffer = null;
     }
 
-// dumpTrace
+    // dumpTrace
 
-    function traceEval($name) {
-        if (($this->traceMode & _FF_TRACEMODE_DISABLE) ||
-                !($this->traceMode & _FF_TRACEMODE_EVAL) ||
-                $this->dying)
+    function traceEval($name)
+    {
+        if (
+            ($this->traceMode & _FF_TRACEMODE_DISABLE) ||
+            !($this->traceMode & _FF_TRACEMODE_EVAL) ||
+            $this->dying
+        )
             return;
         $level = count($this->traceStack);
         for ($l = 0; $l < $level; $l++)
@@ -825,9 +872,10 @@ class HTML_facileFormsProcessor {
             $this->dumpTrace();
     }
 
-// traceEval
+    // traceEval
 
-    function suicide() {
+    function suicide()
+    {
         if ($this->dying)
             return false;
         $this->dying = true;
@@ -836,9 +884,10 @@ class HTML_facileFormsProcessor {
         return true;
     }
 
-// suicide
+    // suicide
 
-    function bury() {
+    function bury()
+    {
         if (!$this->dying)
             return false;
         if ($this->traceMode & _FF_TRACEMODE_DIRECT)
@@ -853,9 +902,10 @@ class HTML_facileFormsProcessor {
         return true;
     }
 
-// bury
+    // bury
 
-    function findToken(&$code, &$spos, &$offs) {
+    function findToken(&$code, &$spos, &$offs)
+    {
         $srch = '#(function|return[^a-zA-Z_-]|_ff_trace|ff_trace[ \\t]*\\(|//|/\*|\*/|\\\\"|\\\\\'|{|}|\(|\)|;|"|\'|\n)#si';
         $match = array();
         if (!preg_match($srch, $code, $match, PREG_OFFSET_CAPTURE, $spos))
@@ -866,12 +916,13 @@ class HTML_facileFormsProcessor {
         return $token;
     }
 
-// findToken
+    // findToken
 
-    function findRealToken(&$code, &$spos, &$offs, &$line) {
+    function findRealToken(&$code, &$spos, &$offs, &$line)
+    {
         $linecmt = $blockcmt = false;
         $quote = null;
-        for (;;) {
+        for (; ; ) {
             $token = preg_replace('/[ \\t]*/', '', $this->findToken($code, $spos, $offs));
             switch ($token) {
                 case '':
@@ -904,8 +955,8 @@ class HTML_facileFormsProcessor {
                     if ($quote == $token)
                         $quote = null;
                     else
-                    if (!$linecmt && !$blockcmt && !$quote)
-                        $quote = $token;
+                        if (!$linecmt && !$blockcmt && !$quote)
+                            $quote = $token;
                     break;
                 default:
                     break;
@@ -913,9 +964,10 @@ class HTML_facileFormsProcessor {
         } // for
     }
 
-// findRealToken
+    // findRealToken
 
-    function patchCode($mode, $code, $name, $type, $id, $pane) {
+    function patchCode($mode, $code, $name, $type, $id, $pane)
+    {
         $flevel = $cpos = $spos = $offs = 0;
         $bye = false;
         $fstack = array();
@@ -930,27 +982,30 @@ class HTML_facileFormsProcessor {
         $dst = "_ff_tracePiece($mode,'$name',$line,$type,$id,$pane);";
         while (!$bye) {
             switch ($this->findRealToken($code, $spos, $offs, $line)) {
-                case '': $bye = true;
+                case '':
+                    $bye = true;
                     break;
                 case 'function':
                     $brk = false;
                     while (!$brk) {
                         // consume tokens until finding the opening bracket
                         switch ($this->findRealToken($code, $spos, $offs, $line)) {
-                            case '': $bye = $brk = true;
+                            case '':
+                                $bye = $brk = true;
                                 break;
                             case '{':
                                 $dst .= substr($code, $cpos, $spos - $cpos) .
-                                        '$_ff_traceArgs = func_get_args();' .
-                                        '_ff_traceFunction(' . $mode . ',__FUNCTION__,' . $line . ',' . $type . ',' . $id . ',' . $pane . ',$_ff_traceArgs);' .
-                                        '$_ff_traceArgs=null;';
+                                    '$_ff_traceArgs = func_get_args();' .
+                                    '_ff_traceFunction(' . $mode . ',__FUNCTION__,' . $line . ',' . $type . ',' . $id . ',' . $pane . ',$_ff_traceArgs);' .
+                                    '$_ff_traceArgs=null;';
                                 $cpos = $spos;
                                 if ($flevel)
                                     array_push($fstack, $flevel);
                                 $flevel = 1;
                                 $brk = true;
                                 break;
-                            default:;
+                            default:
+                                ;
                         } // switch
                     } // while
                     break;
@@ -961,7 +1016,8 @@ class HTML_facileFormsProcessor {
                     while (!$brk) {
                         // consume tokens until semicolon found
                         switch ($this->findRealToken($code, $spos, $offs, $line)) {
-                            case '': $bye = $brk = true;
+                            case '':
+                                $bye = $brk = true;
                                 break;
                             case ';':
                                 $arg = substr($code, $cpos, $offs - $cpos);
@@ -972,7 +1028,8 @@ class HTML_facileFormsProcessor {
                                 $cpos = $spos;
                                 $brk = true;
                                 break;
-                            default:;
+                            default:
+                                ;
                         } // switch
                     } // while
                     break;
@@ -984,9 +1041,11 @@ class HTML_facileFormsProcessor {
                     while (!$brk) {
                         // consume tokens until finding the closing bracket
                         switch ($this->findRealToken($code, $spos, $offs, $line)) {
-                            case '': $bye = $brk = true;
+                            case '':
+                                $bye = $brk = true;
                                 break;
-                            case '(': $lvl++;
+                            case '(':
+                                $lvl++;
                                 break;
                             case ')':
                                 if ($lvl)
@@ -994,7 +1053,8 @@ class HTML_facileFormsProcessor {
                                 else
                                     $brk = true;
                                 break;
-                            default:;
+                            default:
+                                ;
                         } // switch
                     } // while
                     $par = $offs == $cpos ? '' : substr($code, $cpos, $offs - $cpos);
@@ -1027,14 +1087,15 @@ class HTML_facileFormsProcessor {
         $dst .= "_ff_traceExit($line);";
         if (_FF_DEBUG & _FF_DEBUG_PATCHEDCODE) {
             $this->traceBuffer .= htmlspecialchars(
-                    "\n_FF_DEBUG_PATCHEDCODE:" .
-                    "\n  Mode = " . $this->dispTraceMode($mode) .
-                    "\n  Name = $name" .
-                    "\n  Link = $type $id $pane" .
-                    "\n------ begin patched code ------" .
-                    "\n$dst" .
-                    "\n------- end patched code -------" .
-                    "\n", ENT_QUOTES
+                "\n_FF_DEBUG_PATCHEDCODE:" .
+                "\n  Mode = " . $this->dispTraceMode($mode) .
+                "\n  Name = $name" .
+                "\n  Link = $type $id $pane" .
+                "\n------ begin patched code ------" .
+                "\n$dst" .
+                "\n------- end patched code -------" .
+                "\n",
+                ENT_QUOTES
             );
             if ($this->traceMode & _FF_TRACEMODE_DIRECT)
                 $this->dumpTrace();
@@ -1042,9 +1103,10 @@ class HTML_facileFormsProcessor {
         return $dst;
     }
 
-// patchCode
+    // patchCode
 
-    function prepareEvalCode(&$code, $name, $type, $id, $pane) {
+    function prepareEvalCode(&$code, $name, $type, $id, $pane)
+    {
         if ($this->dying)
             return false;
         if (!$this->nonblank($code))
@@ -1054,15 +1116,15 @@ class HTML_facileFormsProcessor {
         if (!$disable) {
             $mode = 'null';
             $srch = '#' .
-                    '^[\\s]*(//\+trace|/\*\+trace)' .
-                    '[ \\t]*([\\w]+)?' .
-                    '[ \\t]*([\\w]+)?' .
-                    '[ \\t]*([\\w]+)?' .
-                    '[ \\t]*([\\w]+)?' .
-                    '[ \\t]*([\\w]+)?' .
-                    '[ \\t]*([\\w]+)?' .
-                    '[ \\t]*(\\*/|\\r\\n)?' .
-                    '#';
+                '^[\\s]*(//\+trace|/\*\+trace)' .
+                '[ \\t]*([\\w]+)?' .
+                '[ \\t]*([\\w]+)?' .
+                '[ \\t]*([\\w]+)?' .
+                '[ \\t]*([\\w]+)?' .
+                '[ \\t]*([\\w]+)?' .
+                '[ \\t]*([\\w]+)?' .
+                '[ \\t]*(\\*/|\\r\\n)?' .
+                '#';
             $match = array();
             if (preg_match($srch, $code, $match)) {
                 $mode = 2;
@@ -1071,67 +1133,85 @@ class HTML_facileFormsProcessor {
                 for ($m = 2; $m < count($match); $m++)
                     switch ($match[$m]) {
                         // disable
-                        case 'dis' :
-                        case 'disable' : $disable = true;
+                        case 'dis':
+                        case 'disable':
+                            $disable = true;
                             break;
                         // mode
-                        case 'pop' :
-                        case 'popup' : $direct = $append = false;
+                        case 'pop':
+                        case 'popup':
+                            $direct = $append = false;
                             break;
-                        case 'app' :
-                        case 'append' : $append = true;
+                        case 'app':
+                        case 'append':
+                            $append = true;
                             $direct = false;
                             break;
-                        case 'dir' :
-                        case 'direct' : $direct = true;
+                        case 'dir':
+                        case 'direct':
+                            $direct = true;
                             $append = false;
                             break;
                         // priority
-                        case 'min' :
-                        case 'minimum' : $mode = 0;
+                        case 'min':
+                        case 'minimum':
+                            $mode = 0;
                             break;
-                        case 'low' : $mode = 1;
+                        case 'low':
+                            $mode = 1;
                             break;
-                        case 'nor' :
-                        case 'normal' : $mode = 2;
+                        case 'nor':
+                        case 'normal':
+                            $mode = 2;
                             break;
-                        case 'hig' :
-                        case 'high' : $mode = 3;
+                        case 'hig':
+                        case 'high':
+                            $mode = 3;
                             break;
-                        case 'max' :
-                        case 'maximum' : $mode = 4;
+                        case 'max':
+                        case 'maximum':
+                            $mode = 4;
                             break;
                         // scope
-                        case 'glo' :
-                        case 'global' : $local = false;
+                        case 'glo':
+                        case 'global':
+                            $local = false;
                             break;
-                        case 'loc' :
-                        case 'local' : $local = true;
+                        case 'loc':
+                        case 'local':
+                            $local = true;
                             break;
                         // topics
-                        case 'all' : $def = false;
+                        case 'all':
+                            $def = false;
                             $xeval = $piece = $func = $msg = true;
                             break;
-                        case 'non' :
-                        case 'none' : $def = $xeval = $piece = $func = $msg = false;
+                        case 'non':
+                        case 'none':
+                            $def = $xeval = $piece = $func = $msg = false;
                             break;
-                        case 'eva' :
-                        case 'eval' : $def = false;
+                        case 'eva':
+                        case 'eval':
+                            $def = false;
                             $xeval = true;
                             break;
-                        case 'pie' :
-                        case 'piece' : $def = false;
+                        case 'pie':
+                        case 'piece':
+                            $def = false;
                             $piece = true;
                             break;
-                        case 'fun' :
-                        case 'function': $def = false;
+                        case 'fun':
+                        case 'function':
+                            $def = false;
                             $func = true;
                             break;
-                        case 'mes' :
-                        case 'message' : $def = false;
+                        case 'mes':
+                        case 'message':
+                            $def = false;
                             $msg = true;
                             break;
-                        default : break;
+                        default:
+                            break;
                     } // switch
 
                 if ($def) {
@@ -1171,8 +1251,8 @@ class HTML_facileFormsProcessor {
                     if ($first)
                         $_deb .= "\n  Previous mode=" . $this->dispTraceMode($oldMode);
                     $_deb .= "\n  Trace mode   =" . $this->dispTraceMode($this->traceMode) .
-                            "\n  New mode     =" . $this->dispTraceMode($mode) .
-                            "\n";
+                        "\n  New mode     =" . $this->dispTraceMode($mode) .
+                        "\n";
                     $this->traceBuffer .= htmlspecialchars($_deb, ENT_QUOTES);
                     if ($this->traceMode & _FF_TRACEMODE_DIRECT)
                         $this->dumpTrace();
@@ -1191,16 +1271,17 @@ class HTML_facileFormsProcessor {
         return true;
     }
 
-// prepareEvalCode
+    // prepareEvalCode
 
-    function getPieceById($id, $name = null) {
+    function getPieceById($id, $name = null)
+    {
         if ($this->dying)
             return '';
         global $database;
         $database = BFFactory::getDbo();
         $database->setQuery(
-                'select code, name from #__facileforms_pieces ' .
-                'where id=' . $id . ' and published=1 '
+            'select code, name from #__facileforms_pieces ' .
+            'where id=' . $id . ' and published=1 '
         );
         $rows = $database->loadObjectList();
         if ($rows && count($rows)) {
@@ -1210,17 +1291,18 @@ class HTML_facileFormsProcessor {
         return '';
     }
 
-// getPieceById
+    // getPieceById
 
-    function getPieceByName($name, $id = null) {
+    function getPieceByName($name, $id = null)
+    {
         if ($this->dying)
             return '';
         global $database;
         $database = BFFactory::getDbo();
         $database->setQuery(
-                'select id, code from #__facileforms_pieces ' .
-                'where name=\'' . $name . '\' and published=1 ' .
-                'order by id desc'
+            'select id, code from #__facileforms_pieces ' .
+            'where name=\'' . $name . '\' and published=1 ' .
+            'order by id desc'
         );
         $rows = $database->loadObjectList();
         if ($rows && count($rows)) {
@@ -1230,9 +1312,10 @@ class HTML_facileFormsProcessor {
         return '';
     }
 
-// getPieceByName
+    // getPieceByName
 
-    function execPiece($code, $name, $type, $id, $pane) {
+    function execPiece($code, $name, $type, $id, $pane)
+    {
         $ret = '';
         if ($this->prepareEvalCode($code, $name, $type, $id, $pane)) {
             $this->traceEval($name);
@@ -1242,25 +1325,28 @@ class HTML_facileFormsProcessor {
         return $ret;
     }
 
-// execPiece
+    // execPiece
 
-    function execPieceById($id) {
+    function execPieceById($id)
+    {
         $name = null;
         $code = $this->getPieceById($id, $name);
         return $this->execPiece($code, BFText::_('COM_BREEZINGFORMS_PROCESS_PIECE') . " $name", 'p', $id, null);
     }
 
-// execPieceById
+    // execPieceById
 
-    function execPieceByName($name) {
+    function execPieceByName($name)
+    {
         $id = null;
         $code = $this->getPieceByName($name, $id);
         return $this->execPiece($code, BFText::_('COM_BREEZINGFORMS_PROCESS_PIECE') . " $name", 'p', $id, null);
     }
 
-// execPieceByName
+    // execPieceByName
 
-    function replaceCode($code, $name, $type, $id, $pane) {
+    function replaceCode($code, $name, $type, $id, $pane)
+    {
 
         if ($this->dying)
             return '';
@@ -1289,9 +1375,10 @@ class HTML_facileFormsProcessor {
         return str_replace($this->findtags, $this->replacetags, $c);
     }
 
-// replaceCode
+    // replaceCode
 
-    function compileQueryCol(&$elem, &$coldef) {
+    function compileQueryCol(&$elem, &$coldef)
+    {
         $coldef->comp = array();
         if ($this->trim(str_replace($this->findtags, $this->replacetags, $coldef->value))) {
             $c = $p1 = 0;
@@ -1303,7 +1390,9 @@ class HTML_facileFormsProcessor {
                 $coldef->comp[$c] = array(
                     false,
                     str_replace(
-                            $this->findtags, $this->replacetags, trim(substr($coldef->value, $p1, $p2 - $p1))
+                        $this->findtags,
+                        $this->replacetags,
+                        trim(substr($coldef->value, $p1, $p2 - $p1))
                     )
                 );
                 if ($this->trim($coldef->comp[$c][1]))
@@ -1315,9 +1404,14 @@ class HTML_facileFormsProcessor {
                     if ($p2 === false)
                         $p2 = $l;
                     $coldef->comp[$c] = array(true, substr($coldef->value, $p1, $p2 - $p1));
-                    if ($this->prepareEvalCode(
-                                    $coldef->comp[$c][1], BFText::_('COM_BREEZINGFORMS_PROCESS_QVALUEOF') . " " . $elem->name . "::" . $coldef->name, 'e', $elem->id, 2
-                            )
+                    if (
+                        $this->prepareEvalCode(
+                            $coldef->comp[$c][1],
+                            BFText::_('COM_BREEZINGFORMS_PROCESS_QVALUEOF') . " " . $elem->name . "::" . $coldef->name,
+                            'e',
+                            $elem->id,
+                            2
+                        )
                     )
                         $c++;
                     $p1 = $p2 + 2;
@@ -1328,16 +1422,18 @@ class HTML_facileFormsProcessor {
         } // if non-empty
     }
 
-// compileQueryCol
+    // compileQueryCol
 
-    function execQueryValue($code, &$elem, &$row, &$coldef, $value) {
+    function execQueryValue($code, &$elem, &$row, &$coldef, $value)
+    {
         $this->traceEval(BFText::_('COM_BREEZINGFORMS_PROCESS_QVALUEOF') . " " . $elem->name . "::" . $coldef->name);
         return eval($code);
     }
 
-// execQueryValue
+    // execQueryValue
 
-    function execQuery(&$elem, &$valrows, &$coldefs) {
+    function execQuery(&$elem, &$valrows, &$coldefs)
+    {
         $ret = null;
         $code = $elem->data2;
         if ($this->prepareEvalCode($code, BFText::_('COM_BREEZINGFORMS_PROCESS_QPIECEOF') . " " . $elem->name, 'e', $elem->id, 1)) {
@@ -1379,9 +1475,10 @@ class HTML_facileFormsProcessor {
         } // if
     }
 
-// execQuery
+    // execQuery
 
-    function script2clause(&$row) {
+    function script2clause(&$row)
+    {
         if ($this->dying)
             return '';
         global $database;
@@ -1390,8 +1487,8 @@ class HTML_facileFormsProcessor {
         switch ($row->script2cond) {
             case 1:
                 $database->setQuery(
-                        "select name from #__facileforms_scripts " .
-                        "where id=" . $row->script2id . " and published=1 "
+                    "select name from #__facileforms_scripts " .
+                    "where id=" . $row->script2id . " and published=1 "
                 );
                 $funcname = $database->loadResult();
                 break;
@@ -1417,9 +1514,10 @@ class HTML_facileFormsProcessor {
         return $attribs;
     }
 
-// script2clause
+    // script2clause
 
-    function loadBuiltins(&$library) {
+    function loadBuiltins(&$library)
+    {
         global $database, $ff_config, $ff_request;
         $database = BFFactory::getDbo();
         if ($this->dying)
@@ -1472,7 +1570,8 @@ class HTML_facileFormsProcessor {
 
         $library[] = array('ff_param', $code);
 
-        $library[] = array('ff_getElementByIndex',
+        $library[] = array(
+            'ff_getElementByIndex',
             "function ff_getElementByIndex(index)" . nl() .
             "{" . nl() .
             "    if (index >= 0 && index < ff_elements.length)" . nl() .
@@ -1481,7 +1580,8 @@ class HTML_facileFormsProcessor {
             "} // ff_getElementByIndex"
         );
 
-        $library[] = array('ff_getElementByName',
+        $library[] = array(
+            'ff_getElementByName',
             "function ff_getElementByName(name)" . nl() .
             "{" . nl() .
             "    if (name.substr(0,6) == 'ff_nm_') name = name.substring(6,name.length-2);" . nl() .
@@ -1492,7 +1592,8 @@ class HTML_facileFormsProcessor {
             "} // ff_getElementByName"
         );
 
-        $library[] = array('ff_getPageByName',
+        $library[] = array(
+            'ff_getPageByName',
             "function ff_getPageByName(name)" . nl() .
             "{" . nl() .
             "    if (name.substr(0,6) == 'ff_nm_') name = name.substring(6,name.length-2);" . nl() .
@@ -1503,7 +1604,8 @@ class HTML_facileFormsProcessor {
             "} // ff_getPageByName"
         );
 
-        $library[] = array('ff_getDivByName',
+        $library[] = array(
+            'ff_getDivByName',
             "function ff_getDivByName(name)" . nl() .
             "{" . nl() .
             "    if (name.substr(0,6) == 'ff_nm_') name = name.substring(6,name.length-2);" . nl() .
@@ -1514,7 +1616,8 @@ class HTML_facileFormsProcessor {
             "} // ff_getDivByName"
         );
 
-        $library[] = array('ff_getIdByName',
+        $library[] = array(
+            'ff_getIdByName',
             "function ff_getIdByName(name)" . nl() .
             "{" . nl() .
             "    if (name.substr(0,6) == 'ff_nm_') name = name.substring(6,name.length-2);" . nl() .
@@ -1525,7 +1628,8 @@ class HTML_facileFormsProcessor {
             "} // ff_getIdByName"
         );
 
-        $library[] = array('ff_getForm',
+        $library[] = array(
+            'ff_getForm',
             "function ff_getForm()" . nl() .
             "{" . nl() .
             "    return document." . $this->form_id . ";" . nl() .
@@ -1533,9 +1637,9 @@ class HTML_facileFormsProcessor {
         );
 
         $code = "function ff_submitForm()" . nl() .
-                "{if(document.getElementById('bfSubmitButton')){document.getElementById('bfSubmitButton').disabled = true;} if(typeof JQuery != 'undefined'){JQuery('.bfCustomSubmitButton').prop('disabled', true);} bfCheckCaptcha();}" . nl();
+            "{if(document.getElementById('bfSubmitButton')){document.getElementById('bfSubmitButton').disabled = true;} if(typeof JQuery != 'undefined'){JQuery('.bfCustomSubmitButton').prop('disabled', true);} bfCheckCaptcha();}" . nl();
         $code .= "function ff_submitForm2()" . nl() .
-                "{if(document.getElementById('bfSubmitButton')){document.getElementById('bfSubmitButton').disabled = true;} if(typeof JQuery != 'undefined'){JQuery('.bfCustomSubmitButton').prop('disabled', true);} " . nl();
+            "{if(document.getElementById('bfSubmitButton')){document.getElementById('bfSubmitButton').disabled = true;} if(typeof JQuery != 'undefined'){JQuery('.bfCustomSubmitButton').prop('disabled', true);} " . nl();
         if ($this->inline)
             $code .= " if(typeof bf_ajax_submit != 'undefined') { bf_ajax_submit() } else { submitform('submit'); }" . nl();
         else
@@ -1543,7 +1647,8 @@ class HTML_facileFormsProcessor {
         $code .= "} // ff_submitForm";
         $library[] = array('ff_submitForm', $code);
 
-        $library[] = array('ff_validationFocus',
+        $library[] = array(
+            'ff_validationFocus',
             "function ff_validationFocus(name)" . nl() .
             "{" . nl() .
             "    if (name==undefined || name=='') {" . nl() .
@@ -1563,10 +1668,10 @@ class HTML_facileFormsProcessor {
         );
 
         $code = "function ff_validation(page)" . nl() .
-                "{" . nl() .
-                "    if(typeof inlineErrorElements != 'undefined') inlineErrorElements = new Array();" . nl() .
-                "    error = '';" . nl() .
-                "    ff_validationFocusName = '';" . nl();
+            "{" . nl() .
+            "    if(typeof inlineErrorElements != 'undefined') inlineErrorElements = new Array();" . nl() .
+            "    error = '';" . nl() .
+            "    ff_validationFocusName = '';" . nl();
         $curr = -1;
         for ($i = 0; $i < $this->rowcount; $i++) {
             $row = $this->rows[$i];
@@ -1574,8 +1679,8 @@ class HTML_facileFormsProcessor {
             switch ($row->script3cond) {
                 case 1:
                     $database->setQuery(
-                            "select name from #__facileforms_scripts " .
-                            "where id=" . $row->script3id . " and published=1 "
+                        "select name from #__facileforms_scripts " .
+                        "where id=" . $row->script3id . " and published=1 "
                     );
                     $funcname = $database->loadResult();
                     break;
@@ -1620,19 +1725,19 @@ class HTML_facileFormsProcessor {
         $code .= 'if(error!="" && document.getElementById("bfSubmitButton")){document.getElementById("bfSubmitButton").disabled = false;}' . nl();
         $code .= 'if(error!="" && typeof JQuery != "undefined"){JQuery(".bfCustomSubmitButton").prop("disabled", false);}' . nl();
         $code .= "    return error;" . nl() .
-                "} // ff_validation";
+            "} // ff_validation";
         $library[] = array('ff_validation', $code);
 
         // ff_initialize
         $code = "function ff_initialize(condition)" . nl() .
-                "{" . nl();
+            "{" . nl();
         $formentry = false;
         $funcname = '';
         switch ($this->formrow->script1cond) {
             case 1:
                 $database->setQuery(
-                        "select name from #__facileforms_scripts " .
-                        "where id=" . $this->formrow->script1id . " and published=1 "
+                    "select name from #__facileforms_scripts " .
+                    "where id=" . $this->formrow->script1id . " and published=1 "
                 );
                 $funcname = $database->loadResult();
                 break;
@@ -1644,7 +1749,7 @@ class HTML_facileFormsProcessor {
         } // switch
         if ($funcname != '') {
             $code .= "    if (condition=='formentry') {" . nl() .
-                    "        " . $funcname . "();" . nl();
+                "        " . $funcname . "();" . nl();
             $formentry = true;
         } // if
         for ($i = 0; $i < $this->rowcount; $i++) {
@@ -1653,8 +1758,8 @@ class HTML_facileFormsProcessor {
             switch ($row->script1cond) {
                 case 1:
                     $database->setQuery(
-                            "select name from #__facileforms_scripts " .
-                            "where id=" . $row->script1id . " and published=1 "
+                        "select name from #__facileforms_scripts " .
+                        "where id=" . $row->script1id . " and published=1 "
                     );
                     $funcname = $database->loadResult();
                     break;
@@ -1682,8 +1787,8 @@ class HTML_facileFormsProcessor {
             switch ($row->script1cond) {
                 case 1:
                     $database->setQuery(
-                            "select name from #__facileforms_scripts " .
-                            "where id=" . $row->script1id . " and published=1 "
+                        "select name from #__facileforms_scripts " .
+                        "where id=" . $row->script1id . " and published=1 "
                     );
                     $funcname = $database->loadResult();
                     break;
@@ -1725,7 +1830,8 @@ class HTML_facileFormsProcessor {
                 $width = $this->formrow->prevwidth;
             else
                 $width = $this->formrow->width;
-            $library[] = array('ff_showgrid',
+            $library[] = array(
+                'ff_showgrid',
                 "var ff_gridvcnt = 0;" . nl() .
                 "var ff_gridhcnt = 0;" . nl() .
                 "var ff_gridheight = " . $this->formrow->height . ";" . nl() .
@@ -1778,47 +1884,47 @@ class HTML_facileFormsProcessor {
         } // if
         // ff_resizePage
         $code = "function ff_resizepage(mode, value)" . nl() .
-                "{" . nl() .
-                "    var height = 0;" . nl() .
-                "    if (mode > 0) {" . nl() .
-                "        for (var i = 0; i < ff_elements.length; i++) {" . nl() .
-                "            if (mode==2 || ff_elements[i][3]==ff_currentpage) {" . nl() .
-                "                e = document.getElementById(ff_elements[i][1]);" . nl() .
-                "                if(e){" . nl() .
-                "                	h = e.offsetTop+e.offsetHeight;" . nl() .
-                "                	if (h > height) height = h;" . nl() .
-                "                }" . nl() .
-                "            } // if" . nl() .
-                "        } // for" . nl() .
-                "    } // if" . nl() .
-                "    var totheight = height+value;" . nl() .
-                "    if ((mode==2 && totheight>ff_currentheight) || (mode!=2 && totheight!=ff_currentheight)) {" . nl();
+            "{" . nl() .
+            "    var height = 0;" . nl() .
+            "    if (mode > 0) {" . nl() .
+            "        for (var i = 0; i < ff_elements.length; i++) {" . nl() .
+            "            if (mode==2 || ff_elements[i][3]==ff_currentpage) {" . nl() .
+            "                e = document.getElementById(ff_elements[i][1]);" . nl() .
+            "                if(e){" . nl() .
+            "                	h = e.offsetTop+e.offsetHeight;" . nl() .
+            "                	if (h > height) height = h;" . nl() .
+            "                }" . nl() .
+            "            } // if" . nl() .
+            "        } // for" . nl() .
+            "    } // if" . nl() .
+            "    var totheight = height+value;" . nl() .
+            "    if ((mode==2 && totheight>ff_currentheight) || (mode!=2 && totheight!=ff_currentheight)) {" . nl();
         if ($this->inframe) {
             $fn = ($this->runmode == _FF_RUNMODE_PREVIEW) ? 'ff_prevframe' : ('ff_frame' . $this->form);
             $code .= "        parent.document.getElementById('" . $fn . "').style.height = totheight+'px';" . nl() .
-                    "        parent.window.scrollTo(0,0);" . nl() .
-                    "        document.getElementById('ff_formdiv" . $this->form . "').style.height = height+'px';" . nl() .
-                    "        window.scrollTo(0,0);" . nl();
+                "        parent.window.scrollTo(0,0);" . nl() .
+                "        document.getElementById('ff_formdiv" . $this->form . "').style.height = height+'px';" . nl() .
+                "        window.scrollTo(0,0);" . nl();
         } // if
         else
             $code .= "        document.getElementById('ff_formdiv" . $this->form . "').style.height = totheight+'px';" . nl() .
-                    "        window.scrollTo(0,0);" . nl();
+                "        window.scrollTo(0,0);" . nl();
         $code .= "        ff_currentheight = totheight;" . nl();
         if ($this->showgrid) {
             $code .= "        ff_gridheight = totheight;" . nl() .
-                    "        ff_showgrid();" . nl();
+                "        ff_showgrid();" . nl();
         } // if
         $code .= "    } // if" . nl() .
-                "} // ff_resizepage";
+            "} // ff_resizepage";
         $library[] = array('ff_resizepage', $code);
 
         if ($this->formrow->template_code_processed == '') {
 
             // ff_switchpage
             $code = "function ff_switchpage(page)" . nl() .
-                    "{;" . nl() .
-                    "    if (page>=1 && page<=ff_lastpage && page!=ff_currentpage) {" . nl() .
-                    "        vis = 'visible';" . nl();
+                "{;" . nl() .
+                "    if (page>=1 && page<=ff_lastpage && page!=ff_currentpage) {" . nl() .
+                "        vis = 'visible';" . nl();
             $curr = -1;
             for ($i = 0; $i < $this->rowcount; $i++) {
                 $row = $this->rows[$i];
@@ -1827,7 +1933,7 @@ class HTML_facileFormsProcessor {
                         if ($curr >= 1)
                             $code .= "        } // if" . nl();
                         $code .= "        if (page==" . $row->page . " || ff_currentpage==" . $row->page . ") {" . nl() .
-                                "            if (page==" . $row->page . ") vis = 'visible';  else vis = 'hidden';" . nl();
+                            "            if (page==" . $row->page . ") vis = 'visible';  else vis = 'hidden';" . nl();
                         $curr = $row->page;
                     } // if
                     $code .= "            document.getElementById('ff_div" . $row->id . "').style.visibility=vis;" . nl();
@@ -1839,8 +1945,8 @@ class HTML_facileFormsProcessor {
             if ($this->formrow->heightmode == 1)
                 $code .= "        ff_resizepage(" . $this->formrow->heightmode . ", " . $this->formrow->height . ");" . nl();
             $code .= "        ff_initialize('pageentry');" . nl() .
-                    "    } // if" . nl() .
-                    "} // ff_switchpage";
+                "    } // if" . nl() .
+                "} // ff_switchpage";
         } else {
             $visPages = '';
             $pagesSize = isset($this->formrow->pages) ? intval($this->formrow->pages) : 1;
@@ -1860,17 +1966,18 @@ class HTML_facileFormsProcessor {
         $library[] = array('ff_switchpage', $code);
     }
 
-// loadBuiltins
+    // loadBuiltins
 
-    function loadScripts(&$library) {
+    function loadScripts(&$library)
+    {
         global $database;
         $database = BFFactory::getDbo();
         if ($this->dying)
             return;
         $database->setQuery(
-                "select id, name, code from #__facileforms_scripts " .
-                "where published=1 " .
-                "order by type, title, name, id desc"
+            "select id, name, code from #__facileforms_scripts " .
+            "where published=1 " .
+            "order by type, title, name, id desc"
         );
         $rows = $database->loadObjectList();
         $cnt = count($rows);
@@ -1880,9 +1987,10 @@ class HTML_facileFormsProcessor {
         } // if
     }
 
-// loadScripts
+    // loadScripts
 
-    function compressJavascript($str) {
+    function compressJavascript($str)
+    {
         if ($this->dying)
             return '';
         $str = str_replace("\r", "", $str);
@@ -1906,71 +2014,71 @@ class HTML_facileFormsProcessor {
                             $lcnt++;
                             $escape = false;
                         } else
-                        if ($c == "\\") {
-                            $code .= $c;
-                            $lcnt++;
-                            $escape = true;
-                        } else
-                        if ($d == $quote . $quote) {
-                            $code .= $d;
-                            $lcnt += 2;
-                            $j += 2;
-                        } else {
-                            $code .= $c;
-                            $lcnt++;
-                            if ($c == $quote)
-                                $quote = '';
-                        } // if
+                            if ($c == "\\") {
+                                $code .= $c;
+                                $lcnt++;
+                                $escape = true;
+                            } else
+                                if ($d == $quote . $quote) {
+                                    $code .= $d;
+                                    $lcnt += 2;
+                                    $j += 2;
+                                } else {
+                                    $code .= $c;
+                                    $lcnt++;
+                                    if ($c == $quote)
+                                        $quote = '';
+                                } // if
                     } else {
                         // not in literal
                         if ($d == $skip) {
                             $skip = '';
                             $j += 2;
                         } else
-                        if ($skip == '') {
-                            if ($d == '/*') {
-                                $skip = '*/';
-                                $j += 2;
-                            } else
-                            if ($d == '//')
-                                break;
-                            else
-                                switch ($c) {
-                                    case ' ':
-                                    case "\t":
-                                    case "\n":
-                                        if ($lcnt)
-                                            $ws = true;
+                            if ($skip == '') {
+                                if ($d == '/*') {
+                                    $skip = '*/';
+                                    $j += 2;
+                                } else
+                                    if ($d == '//')
                                         break;
-                                    case '"':
-                                    case "'":
-                                        if ($ws) {
-                                            $b = substr($code, strlen($code) - 1, 1);
-                                            if ($b == '_' || ($b >= '0' && $b <= '9') || ($b >= 'a' && $b <= 'z') || ($b >= 'A' && $b <= 'Z')) {
-                                                $code .= ' ';
-                                                $lcnt++;
-                                            } // if
-                                            $ws = false;
-                                        } // if
-                                        $quote = $c;
-                                        $code .= $c;
-                                        $lcnt++;
-                                        break;
-                                    default:
-                                        if ($ws) {
-                                            if ($c == '_' || ($c >= '0' && $c <= '9') || ($c >= 'a' && $c <= 'z') || ($c >= 'A' && $c <= 'Z')) {
-                                                $b = substr($code, strlen($code) - 1, 1);
-                                                if ($b == '_' || ($b >= '0' && $b <= '9') || ($b >= 'a' && $b <= 'z') || ($b >= 'A' && $b <= 'Z')) {
-                                                    $code .= ' ';
-                                                    $lcnt++;
+                                    else
+                                        switch ($c) {
+                                            case ' ':
+                                            case "\t":
+                                            case "\n":
+                                                if ($lcnt)
+                                                    $ws = true;
+                                                break;
+                                            case '"':
+                                            case "'":
+                                                if ($ws) {
+                                                    $b = substr($code, strlen($code) - 1, 1);
+                                                    if ($b == '_' || ($b >= '0' && $b <= '9') || ($b >= 'a' && $b <= 'z') || ($b >= 'A' && $b <= 'Z')) {
+                                                        $code .= ' ';
+                                                        $lcnt++;
+                                                    } // if
+                                                    $ws = false;
                                                 } // if
-                                            } // if
-                                            $ws = false;
-                                        } // if
-                                        $code .= $c;
-                                        $lcnt++;
-                                } // switch
-                        } // if
+                                                $quote = $c;
+                                                $code .= $c;
+                                                $lcnt++;
+                                                break;
+                                            default:
+                                                if ($ws) {
+                                                    if ($c == '_' || ($c >= '0' && $c <= '9') || ($c >= 'a' && $c <= 'z') || ($c >= 'A' && $c <= 'Z')) {
+                                                        $b = substr($code, strlen($code) - 1, 1);
+                                                        if ($b == '_' || ($b >= '0' && $b <= '9') || ($b >= 'a' && $b <= 'z') || ($b >= 'A' && $b <= 'Z')) {
+                                                            $code .= ' ';
+                                                            $lcnt++;
+                                                        } // if
+                                                    } // if
+                                                    $ws = false;
+                                                } // if
+                                                $code .= $c;
+                                                $lcnt++;
+                                        } // switch
+                            } // if
                     } // else
                 } // for
                 if ($lcnt) {
@@ -1990,9 +2098,10 @@ class HTML_facileFormsProcessor {
         return $code;
     }
 
-// compressJavascript
+    // compressJavascript
 
-    function linkcode($func, &$library, &$linked, $code, $type = null, $id = null, $pane = null) {
+    function linkcode($func, &$library, &$linked, $code, $type = null, $id = null, $pane = null)
+    {
         global $ff_config;
 
         if ($this->dying)
@@ -2028,16 +2137,17 @@ class HTML_facileFormsProcessor {
             // emit the code
             if ($ff_config->compress)
                 echo $this->compressJavascript(
-                        $this->replaceCode($code, BFText::_('COM_BREEZINGFORMS_PROCESS_SCRIPT') . " $func", $type, $id, $pane)
+                    $this->replaceCode($code, BFText::_('COM_BREEZINGFORMS_PROCESS_SCRIPT') . " $func", $type, $id, $pane)
                 );
             else
                 echo $this->replaceCode($code, BFText::_('COM_BREEZINGFORMS_PROCESS_SCRIPT') . " $func", $type, $id, $pane) . nl() . nl();
         } // if
     }
 
-// linkcode
+    // linkcode
 
-    function addFunction($cond, $id, $name, $code, &$library, &$linked, $type, $rowid, $pane) {
+    function addFunction($cond, $id, $name, $code, &$library, &$linked, $type, $rowid, $pane)
+    {
         global $database;
         $database = BFFactory::getDbo();
         if ($this->dying)
@@ -2045,8 +2155,8 @@ class HTML_facileFormsProcessor {
         switch ($cond) {
             case 1:
                 $database->setQuery(
-                        "select name, code from #__facileforms_scripts " .
-                        "where id=" . $database->Quote($id) . " and published=1"
+                    "select name, code from #__facileforms_scripts " .
+                    "where id=" . $database->Quote($id) . " and published=1"
                 );
                 $rows = $database->loadObjectList();
                 if (count($rows) > 0) {
@@ -2070,52 +2180,54 @@ class HTML_facileFormsProcessor {
         } // switch
     }
 
-// addFunction
+    // addFunction
 
-    function header() {
+    function header()
+    {
         global $ff_comsite, $ff_config;
         $code = 'ff_processor = new Object();' . nl() .
-                $this->expJsVar('ff_processor.okrun      ', $this->okrun) .
-                $this->expJsVar('ff_processor.ip         ', $this->ip) .
-                $this->expJsVar('ff_processor.agent      ', $this->agent) .
-                $this->expJsVar('ff_processor.browser    ', $this->browser) .
-                $this->expJsVar('ff_processor.opsys      ', $this->opsys) .
-                $this->expJsVar('ff_processor.provider   ', $this->provider) .
-                $this->expJsVar('ff_processor.submitted  ', $this->submitted) .
-                $this->expJsVar('ff_processor.form       ', $this->form) .
-                $this->expJsVar('ff_processor.form_id    ', $this->form_id) .
-                $this->expJsVar('ff_processor.page       ', $this->page) .
-                $this->expJsVar('ff_processor.target     ', $this->target) .
-                $this->expJsVar('ff_processor.runmode    ', $this->runmode) .
-                $this->expJsVar('ff_processor.inframe    ', $this->inframe) .
-                $this->expJsVar('ff_processor.inline     ', $this->inline) .
-                $this->expJsVar('ff_processor.template   ', $this->template) .
-                $this->expJsVar('ff_processor.homepage   ', $this->homepage) .
-                $this->expJsVar('ff_processor.mossite    ', $this->mossite) .
-                //$this->expJsVar('ff_processor.mospath    ', $this->mospath).
-                $this->expJsVar('ff_processor.images     ', $this->images) .
-                //$this->expJsVar('ff_processor.uploads    ', $this->uploads).
-                $this->expJsVar('ff_processor.border     ', $this->border) .
-                $this->expJsVar('ff_processor.align      ', $this->align) .
-                $this->expJsVar('ff_processor.top        ', $this->top) .
-                $this->expJsVar('ff_processor.suffix     ', $this->suffix) .
-                $this->expJsVar('ff_processor.status     ', $this->status) .
-                $this->expJsVar('ff_processor.message    ', $this->message) .
-                $this->expJsVar('ff_processor.record_id  ', $this->record_id) .
-                $this->expJsVar('ff_processor.showgrid   ', $this->showgrid) .
-                $this->expJsVar('ff_processor.traceBuffer', $this->traceBuffer);
+            $this->expJsVar('ff_processor.okrun      ', $this->okrun) .
+            $this->expJsVar('ff_processor.ip         ', $this->ip) .
+            $this->expJsVar('ff_processor.agent      ', $this->agent) .
+            $this->expJsVar('ff_processor.browser    ', $this->browser) .
+            $this->expJsVar('ff_processor.opsys      ', $this->opsys) .
+            $this->expJsVar('ff_processor.provider   ', $this->provider) .
+            $this->expJsVar('ff_processor.submitted  ', $this->submitted) .
+            $this->expJsVar('ff_processor.form       ', $this->form) .
+            $this->expJsVar('ff_processor.form_id    ', $this->form_id) .
+            $this->expJsVar('ff_processor.page       ', $this->page) .
+            $this->expJsVar('ff_processor.target     ', $this->target) .
+            $this->expJsVar('ff_processor.runmode    ', $this->runmode) .
+            $this->expJsVar('ff_processor.inframe    ', $this->inframe) .
+            $this->expJsVar('ff_processor.inline     ', $this->inline) .
+            $this->expJsVar('ff_processor.template   ', $this->template) .
+            $this->expJsVar('ff_processor.homepage   ', $this->homepage) .
+            $this->expJsVar('ff_processor.mossite    ', $this->mossite) .
+            //$this->expJsVar('ff_processor.mospath    ', $this->mospath).
+            $this->expJsVar('ff_processor.images     ', $this->images) .
+            //$this->expJsVar('ff_processor.uploads    ', $this->uploads).
+            $this->expJsVar('ff_processor.border     ', $this->border) .
+            $this->expJsVar('ff_processor.align      ', $this->align) .
+            $this->expJsVar('ff_processor.top        ', $this->top) .
+            $this->expJsVar('ff_processor.suffix     ', $this->suffix) .
+            $this->expJsVar('ff_processor.status     ', $this->status) .
+            $this->expJsVar('ff_processor.message    ', $this->message) .
+            $this->expJsVar('ff_processor.record_id  ', $this->record_id) .
+            $this->expJsVar('ff_processor.showgrid   ', $this->showgrid) .
+            $this->expJsVar('ff_processor.traceBuffer', $this->traceBuffer);
         return
-                '<script type="text/javascript">' . nl() .
-                '<!--' . nl() .
-                ($ff_config->compress ? $this->compressJavascript($code) : $code) .
-                '//-->' . nl() .
-                '</script>' . nl() .
-                '<script type="text/javascript" src="' . Uri::root(true) . '/components/com_breezingforms/facileforms.js"></script>' . nl();
+            '<script type="text/javascript">' . nl() .
+            '<!--' . nl() .
+            ($ff_config->compress ? $this->compressJavascript($code) : $code) .
+            '//-->' . nl() .
+            '</script>' . nl() .
+            '<script type="text/javascript" src="' . Uri::root(true) . '/components/com_breezingforms/facileforms.js"></script>' . nl();
     }
 
-// header
+    // header
 
-    function cbCreatePathByTokens($path, array $rows, $field_name) {
+    function cbCreatePathByTokens($path, array $rows, $field_name)
+    {
 
         if (strpos(strtolower($path), '{cbsite}') === 0) {
             $path = str_replace(array('{cbsite}', '{CBSite}'), array(JPATH_SITE, JPATH_SITE), $path);
@@ -2131,7 +2243,7 @@ class HTML_facileFormsProcessor {
         $path = stristr($path, '|', true) . '|';
         $path = str_replace('|', DS, $path);
 
-        foreach ($rows As $row) {
+        foreach ($rows as $row) {
             $value = BFRequest::getVar('ff_nm_' . $row->name, array(), 'POST', 'HTML', BFREQUEST_ALLOWHTML);
 
             $value = implode(DS, $value);
@@ -2141,7 +2253,7 @@ class HTML_facileFormsProcessor {
             $path = str_replace('{' . strtolower($row->name) . ':value}', trim($value), $path);
         }
 
-        foreach ($rows As $row) {
+        foreach ($rows as $row) {
             $path = str_replace('{field:' . strtolower($row->name) . '}', strtolower($row->name), $path);
         }
 
@@ -2190,7 +2302,7 @@ class HTML_facileFormsProcessor {
 
         $parts = explode(DS, $endpath);
         $inner_path = '';
-        foreach ($parts As $part) {
+        foreach ($parts as $part) {
             if (!is_dir($inner_path . $part)) {
                 $inner_path .= DS;
             }
@@ -2200,13 +2312,15 @@ class HTML_facileFormsProcessor {
         return $endpath . $after;
     }
 
-    function makeSafeFolder($path) {
+    function makeSafeFolder($path)
+    {
         //$ds = (DS == '\\') ? '\\/' : DS;
         $regex = array('#[^A-Za-z0-9{}\.:_\\\/-]#');
         return preg_replace($regex, '_', $path);
     }
 
-    function cbCheckPermissions() {
+    function cbCheckPermissions()
+    {
         // CONTENTBUILDER BEGIN
         jimport('joomla.filesystem.file');
 
@@ -2251,7 +2365,7 @@ class HTML_facileFormsProcessor {
             if (!BFRequest::getInt('cb_record_id', 0) || !BFRequest::getInt('cb_form_id', 0)) {
 
                 $cbAuth = false;
-                foreach ($cbForms As $cbFormId) {
+                foreach ($cbForms as $cbFormId) {
                     contentbuilder::setPermissions($cbFormId, 0, $cbFrontend ? '_fe' : '');
                     if ($cbFrontend) {
                         $cbAuth = contentbuilder::authorizeFe('new');
@@ -2264,7 +2378,7 @@ class HTML_facileFormsProcessor {
                 }
 
                 if (count($cbForms) && !$cbAuth) {
-                                        throw new Exception(JText::_('COM_CONTENTBUILDER_PERMISSIONS_NEW_NOT_ALLOWED'), 403);
+                    throw new Exception(JText::_('COM_CONTENTBUILDER_PERMISSIONS_NEW_NOT_ALLOWED'), 403);
                 }
             }
 
@@ -2284,10 +2398,10 @@ class HTML_facileFormsProcessor {
                 if (is_array($cbData)) {
                     $cbFull = $cbFrontend ? contentbuilder::authorizeFe('fullarticle') : contentbuilder::authorize('fullarticle');
                     $cbForm = contentbuilder::getForm('com_breezingforms', $cbData['reference_id']);
-                    $cbRecord = $cbForm->getRecord(BFRequest::getInt('cb_record_id', 0), $cbData['published_only'], $cbFrontend ? ( $cbData['own_only_fe'] ? JFactory::getUser()->get('id', 0) : -1 ) : ( $cbData['own_only'] ? JFactory::getUser()->get('id', 0) : -1 ), $cbFrontend ? $cbData['show_all_languages_fe'] : true);
+                    $cbRecord = $cbForm->getRecord(BFRequest::getInt('cb_record_id', 0), $cbData['published_only'], $cbFrontend ? ($cbData['own_only_fe'] ? JFactory::getUser()->get('id', 0) : -1) : ($cbData['own_only'] ? JFactory::getUser()->get('id', 0) : -1), $cbFrontend ? $cbData['show_all_languages_fe'] : true);
 
                     if (!count($cbRecord) && !BFRequest::getBool('cbIsNew')) {
-                            throw new Exception(JText::_('COM_CONTENTBUILDER_RECORD_NOT_FOUND'), 404);
+                        throw new Exception(JText::_('COM_CONTENTBUILDER_RECORD_NOT_FOUND'), 404);
                     }
                 }
             }
@@ -2296,7 +2410,8 @@ class HTML_facileFormsProcessor {
         // CONTENTBUILDER END
     }
 
-    function view() {
+    function view()
+    {
         global $ff_mospath, $ff_mossite, $database, $my;
         global $ff_config, $ff_version, $ff_comsite, $ff_otherparams;
 
@@ -2326,7 +2441,7 @@ class HTML_facileFormsProcessor {
 
             if (BFRequest::getVar('ff_applic', '') != 'mod_facileforms' && BFRequest::getInt('ff_frame', 0) != 1 && bf_is_mobile()) {
                 $is_device = true;
-                $this->isMobile = isset($rootMdata['mobileEnabled']) && isset($rootMdata['forceMobile']) && $rootMdata['mobileEnabled'] && $rootMdata['forceMobile'] ? true : ( isset($rootMdata['mobileEnabled']) && isset($rootMdata['forceMobile']) && $rootMdata['mobileEnabled'] && JFactory::getSession()->get('com_breezingforms.mobile', false) ? true : false );
+                $this->isMobile = isset($rootMdata['mobileEnabled']) && isset($rootMdata['forceMobile']) && $rootMdata['mobileEnabled'] && $rootMdata['forceMobile'] ? true : (isset($rootMdata['mobileEnabled']) && isset($rootMdata['forceMobile']) && $rootMdata['mobileEnabled'] && JFactory::getSession()->get('com_breezingforms.mobile', false) ? true : false);
             } else {
                 $this->isMobile = false;
 
@@ -2339,7 +2454,7 @@ class HTML_facileFormsProcessor {
                 $is_mobile_type = 'choose';
             }
 
-            if (!$this->isMobile || ( $this->isMobile && BFRequest::getVar('ff_task', '') == 'submit')) {
+            if (!$this->isMobile || ($this->isMobile && BFRequest::getVar('ff_task', '') == 'submit')) {
 
                 // nothing
             } else {
@@ -2395,8 +2510,8 @@ class HTML_facileFormsProcessor {
         switch ($this->formrow->piece1cond) {
             case 1: // library
                 $database->setQuery(
-                        'select name, code from #__facileforms_pieces ' .
-                        'where id=' . $this->formrow->piece1id . ' and published=1 '
+                    'select name, code from #__facileforms_pieces ' .
+                    'where id=' . $this->formrow->piece1id . ' and published=1 '
                 );
                 $rows = $database->loadObjectList();
                 if (count($rows))
@@ -2570,7 +2685,7 @@ class HTML_facileFormsProcessor {
                                                         responseField = JQuery("input#recaptcha_response_field").val();
                                                         var html = JQuery.ajax({
                                                         type: "POST",
-                                                        url: "' . JRoute::_("index.php?raw=true&option=com_breezingforms&bfReCaptcha=true&form=" . $this->form . "&Itemid=0&tmpl=component") . '",
+                                                        url: "' . Route::_("index.php?raw=true&option=com_breezingforms&bfReCaptcha=true&form=" . $this->form . "&Itemid=0&tmpl=component") . '",
                                                         data: "recaptcha_challenge_field=" + challengeField + "&recaptcha_response_field=" + responseField,
                                                         async: false
                                                         }).responseText;
@@ -2662,11 +2777,11 @@ class HTML_facileFormsProcessor {
         }
 
         echo
-        '<script type="text/javascript">' . nl() .
-        '<!--' . nl() .
-        '' . nl() .
-        $fileExtensionsCheck .
-        $capFunc;
+            '<script type="text/javascript">' . nl() .
+            '<!--' . nl() .
+            '' . nl() .
+            $fileExtensionsCheck .
+            $capFunc;
 
         // create library list
         $library = array();
@@ -2678,23 +2793,23 @@ class HTML_facileFormsProcessor {
 
         if ($this->status == '') {
             $code = "onload = function()" . nl() .
-                    "{" . nl() .
-                    "    ff_initialize('formentry');" . nl() .
-                    "    ff_initialize('pageentry');" . nl();
+                "{" . nl() .
+                "    ff_initialize('formentry');" . nl() .
+                "    ff_initialize('pageentry');" . nl();
             if ($this->formrow->heightmode)
                 $code .= "    ff_resizepage(" . $this->formrow->heightmode . ", " . $this->formrow->height . ");" . nl();
             if ($this->showgrid)
                 $code .= "    ff_showgrid();" . nl();
             $code .= "    if (ff_processor && ff_processor.traceBuffer) ff_traceWindow();" . nl() .
-                    "} // onload";
+                "} // onload";
             $this->linkcode('onload', $library, $linked, $code);
         } else {
             $funcname = "";
             switch ($this->formrow->script2cond) {
                 case 1:
                     $database->setQuery(
-                            "select name from #__facileforms_scripts " .
-                            "where id=" . $this->formrow->script2id . " and published=1 "
+                        "select name from #__facileforms_scripts " .
+                        "where id=" . $this->formrow->script2id . " and published=1 "
                     );
                     $funcname = $database->loadResult();
                     break;
@@ -2706,7 +2821,7 @@ class HTML_facileFormsProcessor {
             } // switch
             if ($funcname != '' || $this->formrow->heightmode || $this->showgrid) {
                 $code = "onload = function()" . nl() .
-                        "{" . nl();
+                    "{" . nl();
                 if ($this->formrow->heightmode)
                     $code .= "    ff_resizepage(" . $this->formrow->heightmode . ", " . $this->formrow->height . ");" . nl();
                 if ($this->showgrid)
@@ -2727,12 +2842,28 @@ class HTML_facileFormsProcessor {
 
         // add form scripts
         $this->addFunction(
-                $this->formrow->script1cond, $this->formrow->script1id, 'ff_' . $this->formrow->name . '_init', $this->formrow->script1code, $library, $linked, 'f', $this->form, 1
+            $this->formrow->script1cond,
+            $this->formrow->script1id,
+            'ff_' . $this->formrow->name . '_init',
+            $this->formrow->script1code,
+            $library,
+            $linked,
+            'f',
+            $this->form,
+            1
         );
         if ($this->bury())
             return;
         $this->addFunction(
-                $this->formrow->script2cond, $this->formrow->script2id, 'ff_' . $this->formrow->name . '_submitted', $this->formrow->script2code, $library, $linked, 'f', $this->form, 1
+            $this->formrow->script2cond,
+            $this->formrow->script2id,
+            'ff_' . $this->formrow->name . '_submitted',
+            $this->formrow->script2code,
+            $library,
+            $linked,
+            'f',
+            $this->form,
+            1
         );
         if ($this->bury())
             return;
@@ -2744,7 +2875,7 @@ class HTML_facileFormsProcessor {
         $qcode = '';
 
         for ($i = 0; $i < $this->rowcount; $i++) {
-            $row = & $this->rows[$i];
+            $row = &$this->rows[$i];
 
             $this->draggableDivIds[] = 'ff_div' . $row->id;
 
@@ -2758,7 +2889,7 @@ class HTML_facileFormsProcessor {
 
                 // load column definitions
                 $this->queryCols['ff_' . $row->id] = array();
-                $cols = & $this->queryCols['ff_' . $row->id];
+                $cols = &$this->queryCols['ff_' . $row->id];
                 if ($this->trim($row->data3)) {
                     $cls = explode("\n", $row->data3);
                     for ($c = 0; $c < count($cls); $c++) {
@@ -2787,12 +2918,12 @@ class HTML_facileFormsProcessor {
 
                 // export the javascript parameters
                 $qcode .= nl() .
-                        'ff_queryCurrPage[' . $row->id . '] = 1;' . nl() .
-                        'ff_queryPageSize[' . $row->id . '] = ' . $row->height . ';' . nl() .
-                        'ff_queryCheckbox[' . $row->id . '] = ' . $checkbox . ';' . nl() .
-                        'ff_queryHeader[' . $row->id . '] = ' . $header . ';' . nl() .
-                        'ff_queryPagenav[' . $row->id . '] = ' . $pagenav . ';' . nl() .
-                        'ff_queryCols[' . $row->id . '] = [';
+                    'ff_queryCurrPage[' . $row->id . '] = 1;' . nl() .
+                    'ff_queryPageSize[' . $row->id . '] = ' . $row->height . ';' . nl() .
+                    'ff_queryCheckbox[' . $row->id . '] = ' . $checkbox . ';' . nl() .
+                    'ff_queryHeader[' . $row->id . '] = ' . $header . ';' . nl() .
+                    'ff_queryPagenav[' . $row->id . '] = ' . $pagenav . ';' . nl() .
+                    'ff_queryCols[' . $row->id . '] = [';
                 for ($c = 0; $c < $colcnt; $c++) {
                     if ($cols[$c]->thspan > 0)
                         $qcode .= '1';
@@ -2813,21 +2944,45 @@ class HTML_facileFormsProcessor {
                     return;
             } // if
             $this->addFunction(
-                    $row->script1cond, $row->script1id, 'ff_' . $row->name . '_init', $row->script1code, $library, $linked, 'e', $row->id, 1
+                $row->script1cond,
+                $row->script1id,
+                'ff_' . $row->name . '_init',
+                $row->script1code,
+                $library,
+                $linked,
+                'e',
+                $row->id,
+                1
             );
             if ($this->bury()) {
                 unset($row);
                 return;
             }
             $this->addFunction(
-                    $row->script2cond, $row->script2id, 'ff_' . $row->name . '_action', $row->script2code, $library, $linked, 'e', $row->id, 1
+                $row->script2cond,
+                $row->script2id,
+                'ff_' . $row->name . '_action',
+                $row->script2code,
+                $library,
+                $linked,
+                'e',
+                $row->id,
+                1
             );
             if ($this->bury()) {
                 unset($row);
                 return;
             }
             $this->addFunction(
-                    $row->script3cond, $row->script3id, 'ff_' . $row->name . '_validate', $row->script3code, $library, $linked, 'e', $row->id, 1
+                $row->script3cond,
+                $row->script3id,
+                'ff_' . $row->name . '_validate',
+                $row->script3code,
+                $library,
+                $linked,
+                'e',
+                $row->id,
+                1
             );
             if ($this->bury()) {
                 ob_end_clean();
@@ -2841,17 +2996,25 @@ class HTML_facileFormsProcessor {
         } // for
 
         if ($icons > 0) {
-            $this->linkcode('ff_hideIconBorder', $library, $linked, 'function ff_hideIconBorder(element)' . nl() .
-                    '{' . nl() .
-                    '    element.style.border = "none";' . nl() .
-                    '} // ff_hideIconBorder'
+            $this->linkcode(
+                'ff_hideIconBorder',
+                $library,
+                $linked,
+                'function ff_hideIconBorder(element)' . nl() .
+                '{' . nl() .
+                '    element.style.border = "none";' . nl() .
+                '} // ff_hideIconBorder'
             );
             if ($this->bury())
                 return;
-            $this->linkcode('ff_dispIconBorder', $library, $linked, 'function ff_dispIconBorder(element)' . nl() .
-                    '{' . nl() .
-                    '    element.style.border = "1px outset";' . nl() .
-                    '} // ff_dispIconBorder'
+            $this->linkcode(
+                'ff_dispIconBorder',
+                $library,
+                $linked,
+                'function ff_dispIconBorder(element)' . nl() .
+                '{' . nl() .
+                '    element.style.border = "1px outset";' . nl() .
+                '} // ff_dispIconBorder'
             );
             if ($this->bury())
                 return;
@@ -2866,7 +3029,8 @@ class HTML_facileFormsProcessor {
             $library[] = array('ff_queryPagenav', 'var ff_queryPagenav = new Array();');
             $library[] = array('ff_queryRows', 'var ff_queryRows = new Array();' . nl() . $qcode);
 
-            $library[] = array('ff_selectAllQueryRows',
+            $library[] = array(
+                'ff_selectAllQueryRows',
                 'function ff_selectAllQueryRows(id,checked)' . nl() .
                 '{' . nl() .
                 '    if (!ff_queryCheckbox[id]) return;' . nl() .
@@ -2894,83 +3058,83 @@ class HTML_facileFormsProcessor {
             );
 
             $code = 'function ff_dispQueryPage(id,page)' . nl() .
-                    '{' . nl() .
-                    '    var forced = false;' . nl() .
-                    '    if (arguments.length>2) forced = arguments[2];' . nl() .
-                    '    var qrows = ff_queryRows[id];' . nl() .
-                    '    var cnt = qrows.length;' . nl() .
-                    '    var currpage = ff_queryCurrPage[id];' . nl() .
-                    '    var pagesize = ff_queryPageSize[id];' . nl() .
-                    '    var pagenav = ff_queryPagenav[id];' . nl() .
-                    '    var lastpage = 1;' . nl() .
-                    '    if (pagesize > 0) {' . nl() .
-                    '        lastpage = parseInt((cnt+pagesize-1)/pagesize);' . nl() .
-                    '        if (lastpage == 1) pagesize = cnt;' . nl() .
-                    '    } // if' . nl() .
-                    '    if (page < 1) page = 1;' . nl() .
-                    '    if (page > lastpage) page = lastpage;' . nl() .
-                    '    if (!forced && page == currpage) return;' . nl() .
-                    '    var p, c;' . nl() .
-                    '    for (p = 1; p < page; p++) cnt -= pagesize;' . nl() .
-                    '    if (cnt > pagesize) cnt = pagesize;' . nl() .
-                    '    var start = (page-1) * pagesize;' . nl() .
-                    '    var rows = document.getElementById(\'ff_elem\'+id).rows;' . nl() .
-                    '    var cols = ff_queryCols[id];' . nl() .
-                    '    var checkbox = ff_queryCheckbox[id];' . nl() .
-                    '    var header = ff_queryHeader[id];' . nl() .
-                    '    for (p = 0; p < cnt; p++) {' . nl() .
-                    '        var qrow = qrows[start+p];' . nl() .
-                    '        var row = rows[header+p];' . nl() .
-                    '        var cc = 0;' . nl() .
-                    '        for (c = 0; c < cols.length; c++)' . nl() .
-                    '            if (cols[c]) {' . nl() .
-                    '                if (c==0 && checkbox>0) {' . nl() .
-                    '                    document.getElementById(\'ff_cb\'+id+\'_\'+p).value = qrow[c];' . nl() .
-                    '                    cc++;' . nl() .
-                    '                } else' . nl() .
-                    '                    row.cells[cc++].innerHTML = qrow[c];' . nl() .
-                    '            } // if' . nl() .
-                    '        row.style.display = \'\';' . nl() .
-                    '    } // for' . nl() .
-                    '    for (p = cnt; p < pagesize; p++) {' . nl() .
-                    '        var row = rows[p+header];' . nl() .
-                    '        row.style.display = \'none\';' . nl() .
-                    '    } // for' . nl() .
-                    '    if (pagenav > 0 && pagesize > 0) {' . nl() .
-                    '        var navi = \'\';' . nl() .
-                    '        if (pagenav<=4) {' . nl() .
-                    '            if (page>1) navi += \'<a href="javascript:ff_dispQueryPage(\'+id+\',1);">\';' . nl() .
-                    '            navi += \'&lt;&lt;\';' . nl() .
-                    '            if (pagenav<=2) navi += \' ' . BFText::_('COM_BREEZINGFORMS_PROCESS_PAGESTART') . '\';' . nl() .
-                    '            if (page>1) navi += \'<\/a>\';' . nl() .
-                    '            navi += \' \';' . nl() .
-                    '            if (page>1) navi += \'<a href="javascript:ff_dispQueryPage(\'+id+\',\'+(page-1)+\');">\';' . nl() .
-                    '            navi += \'&lt;\';' . nl() .
-                    '            if (pagenav<=2) navi += \' ' . BFText::_('COM_BREEZINGFORMS_PROCESS_PAGEPREV') . '\';' . nl() .
-                    '            if (page>1) navi += \'<\/a>\';' . nl() .
-                    '            navi += \' \';' . nl() .
-                    '        } // if' . nl() .
-                    '        if (pagenav % 2) {' . nl() .
-                    '            for (p = 1; p <= lastpage; p++)' . nl() .
-                    '                if (p == page) ' . nl() .
-                    '                    navi += p+\' \';' . nl() .
-                    '                else' . nl() .
-                    '                    navi += \'<a href="javascript:ff_dispQueryPage(\'+id+\',\'+p+\');">\'+p+\'<\/a> \';' . nl() .
-                    '        } // if' . nl() .
-                    '        if (pagenav<=4) {' . nl() .
-                    '            if (page<lastpage) navi += \'<a href="javascript:ff_dispQueryPage(\'+id+\',\'+(page+1)+\');">\';' . nl() .
-                    '            if (pagenav<=2) navi += \'' . BFText::_('COM_BREEZINGFORMS_PROCESS_PAGENEXT') . ' \';' . nl() .
-                    '            navi += \'&gt;\';' . nl() .
-                    '            if (page<lastpage) navi += \'<\/a>\';' . nl() .
-                    '            navi += \' \';' . nl() .
-                    '            if (page<lastpage) navi += \'<a href="javascript:ff_dispQueryPage(\'+id+\',\'+lastpage+\');">\';' . nl() .
-                    '            if (pagenav<=2) navi += \'' . BFText::_('COM_BREEZINGFORMS_PROCESS_PAGEEND') . ' \';' . nl() .
-                    '            navi += \'&gt;&gt;\';' . nl() .
-                    '            if (page<lastpage) navi += \'<\/a>\';' . nl() .
-                    '        } // if' . nl() .
-                    '        rows[header+pagesize].cells[0].innerHTML = navi;' . nl() .
-                    '    } // if' . nl() .
-                    '    ff_queryCurrPage[id] = page;' . nl();
+                '{' . nl() .
+                '    var forced = false;' . nl() .
+                '    if (arguments.length>2) forced = arguments[2];' . nl() .
+                '    var qrows = ff_queryRows[id];' . nl() .
+                '    var cnt = qrows.length;' . nl() .
+                '    var currpage = ff_queryCurrPage[id];' . nl() .
+                '    var pagesize = ff_queryPageSize[id];' . nl() .
+                '    var pagenav = ff_queryPagenav[id];' . nl() .
+                '    var lastpage = 1;' . nl() .
+                '    if (pagesize > 0) {' . nl() .
+                '        lastpage = parseInt((cnt+pagesize-1)/pagesize);' . nl() .
+                '        if (lastpage == 1) pagesize = cnt;' . nl() .
+                '    } // if' . nl() .
+                '    if (page < 1) page = 1;' . nl() .
+                '    if (page > lastpage) page = lastpage;' . nl() .
+                '    if (!forced && page == currpage) return;' . nl() .
+                '    var p, c;' . nl() .
+                '    for (p = 1; p < page; p++) cnt -= pagesize;' . nl() .
+                '    if (cnt > pagesize) cnt = pagesize;' . nl() .
+                '    var start = (page-1) * pagesize;' . nl() .
+                '    var rows = document.getElementById(\'ff_elem\'+id).rows;' . nl() .
+                '    var cols = ff_queryCols[id];' . nl() .
+                '    var checkbox = ff_queryCheckbox[id];' . nl() .
+                '    var header = ff_queryHeader[id];' . nl() .
+                '    for (p = 0; p < cnt; p++) {' . nl() .
+                '        var qrow = qrows[start+p];' . nl() .
+                '        var row = rows[header+p];' . nl() .
+                '        var cc = 0;' . nl() .
+                '        for (c = 0; c < cols.length; c++)' . nl() .
+                '            if (cols[c]) {' . nl() .
+                '                if (c==0 && checkbox>0) {' . nl() .
+                '                    document.getElementById(\'ff_cb\'+id+\'_\'+p).value = qrow[c];' . nl() .
+                '                    cc++;' . nl() .
+                '                } else' . nl() .
+                '                    row.cells[cc++].innerHTML = qrow[c];' . nl() .
+                '            } // if' . nl() .
+                '        row.style.display = \'\';' . nl() .
+                '    } // for' . nl() .
+                '    for (p = cnt; p < pagesize; p++) {' . nl() .
+                '        var row = rows[p+header];' . nl() .
+                '        row.style.display = \'none\';' . nl() .
+                '    } // for' . nl() .
+                '    if (pagenav > 0 && pagesize > 0) {' . nl() .
+                '        var navi = \'\';' . nl() .
+                '        if (pagenav<=4) {' . nl() .
+                '            if (page>1) navi += \'<a href="javascript:ff_dispQueryPage(\'+id+\',1);">\';' . nl() .
+                '            navi += \'&lt;&lt;\';' . nl() .
+                '            if (pagenav<=2) navi += \' ' . BFText::_('COM_BREEZINGFORMS_PROCESS_PAGESTART') . '\';' . nl() .
+                '            if (page>1) navi += \'<\/a>\';' . nl() .
+                '            navi += \' \';' . nl() .
+                '            if (page>1) navi += \'<a href="javascript:ff_dispQueryPage(\'+id+\',\'+(page-1)+\');">\';' . nl() .
+                '            navi += \'&lt;\';' . nl() .
+                '            if (pagenav<=2) navi += \' ' . BFText::_('COM_BREEZINGFORMS_PROCESS_PAGEPREV') . '\';' . nl() .
+                '            if (page>1) navi += \'<\/a>\';' . nl() .
+                '            navi += \' \';' . nl() .
+                '        } // if' . nl() .
+                '        if (pagenav % 2) {' . nl() .
+                '            for (p = 1; p <= lastpage; p++)' . nl() .
+                '                if (p == page) ' . nl() .
+                '                    navi += p+\' \';' . nl() .
+                '                else' . nl() .
+                '                    navi += \'<a href="javascript:ff_dispQueryPage(\'+id+\',\'+p+\');">\'+p+\'<\/a> \';' . nl() .
+                '        } // if' . nl() .
+                '        if (pagenav<=4) {' . nl() .
+                '            if (page<lastpage) navi += \'<a href="javascript:ff_dispQueryPage(\'+id+\',\'+(page+1)+\');">\';' . nl() .
+                '            if (pagenav<=2) navi += \'' . BFText::_('COM_BREEZINGFORMS_PROCESS_PAGENEXT') . ' \';' . nl() .
+                '            navi += \'&gt;\';' . nl() .
+                '            if (page<lastpage) navi += \'<\/a>\';' . nl() .
+                '            navi += \' \';' . nl() .
+                '            if (page<lastpage) navi += \'<a href="javascript:ff_dispQueryPage(\'+id+\',\'+lastpage+\');">\';' . nl() .
+                '            if (pagenav<=2) navi += \'' . BFText::_('COM_BREEZINGFORMS_PROCESS_PAGEEND') . ' \';' . nl() .
+                '            navi += \'&gt;&gt;\';' . nl() .
+                '            if (page<lastpage) navi += \'<\/a>\';' . nl() .
+                '        } // if' . nl() .
+                '        rows[header+pagesize].cells[0].innerHTML = navi;' . nl() .
+                '    } // if' . nl() .
+                '    ff_queryCurrPage[id] = page;' . nl();
             if ($qcheckboxes)
                 $code .= '    if (checkbox) ff_selectAllQueryRows(id, false);' . nl();
             if ($this->formrow->heightmode > 0)
@@ -2978,14 +3142,14 @@ class HTML_facileFormsProcessor {
             if ($this->inframe)
                 $code .= '    parent.window.scrollTo(0,0);' . nl();
             $code .= '    window.scrollTo(0,0);' . nl() .
-                    '} // ff_dispQueryPage';
+                '} // ff_dispQueryPage';
             $this->linkcode('ff_dispQueryPage', $library, $linked, $code);
             if ($this->bury())
                 return;
         } // if
 
         echo '//-->' . nl() .
-        '</script>' . nl();
+            '</script>' . nl();
 
         if ($icons > 0)
             echo '<script language="JavaScript" src="' . $ff_mossite . '/components/com_breezingforms/libraries/js/joomla.javascript.js" type="text/javascript"></script>' . nl();
@@ -3029,12 +3193,12 @@ class HTML_facileFormsProcessor {
                 }
             }
 
-            $url = ($this->inframe) ? $ff_mossite . '/index.php?format=html&tmpl=component' : (($this->runmode == _FF_RUNMODE_FRONTEND) ? $current_url : 'index.php?format=html' . ( BFRequest::getCmd('tmpl', '') ? '&tmpl=' . BFRequest::getCmd('tmpl', '') : $current_url ));
+            $url = ($this->inframe) ? $ff_mossite . '/index.php?format=html&tmpl=component' : (($this->runmode == _FF_RUNMODE_FRONTEND) ? $current_url : 'index.php?format=html' . (BFRequest::getCmd('tmpl', '') ? '&tmpl=' . BFRequest::getCmd('tmpl', '') : $current_url));
             $params = ' action="' . $url . '"' .
-                    ' method="post"' .
-                    ' name="' . $this->form_id . '"' .
-                    ' id="' . $this->form_id . '"' .
-                    ' enctype="multipart/form-data"';
+                ' method="post"' .
+                ' name="' . $this->form_id . '"' .
+                ' id="' . $this->form_id . '"' .
+                ' enctype="multipart/form-data"';
             if ($this->formrow->class2 != '')
                 $params .= ' class="' . $this->getClassName($this->formrow->class2) . '"';
             echo '<form data-ajax="false" ' . $params . ' accept-charset="utf-8" onsubmit="return false;" class="bfQuickMode">' . nl();
@@ -3052,7 +3216,7 @@ class HTML_facileFormsProcessor {
                 $db->setQuery("Select * From #__facileforms_subrecords Where record = " . $recordsResult[0]->id . "");
                 $recordEntries = $db->loadObjectList();
                 $js = '';
-                foreach ($recordEntries As $recordEntry) {
+                foreach ($recordEntries as $recordEntry) {
 
                     //$recordEntry->value = $this->removeDangerousHtml($recordEntry->value);
 
@@ -3150,7 +3314,7 @@ class HTML_facileFormsProcessor {
             require_once(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
             $cbNonEditableFields = contentbuilder::getListNonEditableElements($cbResult['data']['id']);
             $cbFlashUploadValidationOverride = '';
-            foreach ($cbRecord As $cbEntry) {
+            foreach ($cbRecord as $cbEntry) {
                 if (!in_array($cbEntry->recElementId, $cbNonEditableFields)) {
 
                     //$cbEntry->recValue = $this->removeDangerousHtml($cbEntry->recValue);
@@ -3189,7 +3353,7 @@ class HTML_facileFormsProcessor {
                                     cbFlashElemCnt["ff_elem' . $cbEntry->recElementId . '"] = ' . $cnt . ';
                                 ';
                                 $cbDeac = '';
-                                foreach ($cbFiles As $cbFile) {
+                                foreach ($cbFiles as $cbFile) {
                                     if (trim($cbFile)) {
                                         $cbOut .= '<div><input type=\"checkbox\" onchange=\"bfCheckUploadValidation(\'ff_elem' . $cbEntry->recElementId . '\', this, \'ff_nm_' . $cbEntry->recName . '[]\')\" value=\"1\" name=\"cb_delete_' . $cbEntry->recElementId . '[' . $i . ']\" id=\"cb_delete_' . $cbEntry->recElementId . '_' . $i . '\"/> <label style=\"margin-left: 5px; float: none !important; display: inline !important;\" for=\"cb_delete_' . $cbEntry->recElementId . '_' . $i . '\">' . addslashes(basename(contentbuilder_wordwrap($cbFile->recValue, 150, "<br>", true))) . '</label></div>';
                                         if ($cbDeac == '') {
@@ -3227,7 +3391,7 @@ class HTML_facileFormsProcessor {
                                 $js .= '
 										JQuery(document).ready(function(){
 											if(typeof bf_signaturePad' . $cbEntry->recElementId . ' != "undefined"){
-												if(' . ( strlen($sig_encoded) > 0 ? 'true' : 'false' ) . '){
+												if(' . (strlen($sig_encoded) > 0 ? 'true' : 'false') . '){
 													JQuery("[name=\"ff_nm_' . $cbEntry->recName . '[]\"]").val(' . json_encode('data:image/png;' . $base . ',' . $sig_encoded) . ')
 													bf_signaturePad' . $cbEntry->recElementId . '.fromDataURL(' . json_encode('data:image/png;' . $base . ',' . $sig_encoded) . ');
 												}
@@ -3266,7 +3430,7 @@ class HTML_facileFormsProcessor {
                         case 'Checkbox':
                         case 'Checkbox Group':
                             $cbValues = explode(',', $cbEntry->recValue);
-                            foreach ($cbValues As $cbValue) {
+                            foreach ($cbValues as $cbValue) {
                                 $cbValue = trim($cbValue);
                                 $js .= '
                                                 for(var i = 0;i < document.ff_form' . $this->form . '.elements.length;i++){
@@ -3281,7 +3445,7 @@ class HTML_facileFormsProcessor {
                         case 'Radio Button':
                         case 'Radio Group':
                             $cbValues = explode(',', $cbEntry->recValue);
-                            foreach ($cbValues As $cbValue) {
+                            foreach ($cbValues as $cbValue) {
                                 $cbValue = trim($cbValue);
                                 $js .= '
                                                 for(var i = 0;i < document.ff_form' . $this->form . '.elements.length;i++){
@@ -3295,7 +3459,7 @@ class HTML_facileFormsProcessor {
                             break;
                         case 'Select List':
                             $cbValues = explode(',', $cbEntry->recValue);
-                            foreach ($cbValues As $cbValue) {
+                            foreach ($cbValues as $cbValue) {
                                 $cbValue = trim($cbValue);
                                 $js .= 'for(var i = 0; i < document.getElementById("ff_elem' . $cbEntry->recElementId . '").options.length; i++){
                                                         if(document.getElementById("ff_elem' . $cbEntry->recElementId . '").options[i].value == ' . json_encode($cbValue) . '){
@@ -3351,7 +3515,7 @@ class HTML_facileFormsProcessor {
                 echo '<!--' . nl();
                 echo 'function bfDisableContentBuilderFields(){' . nl();
             }
-            foreach ($cbNonEditableFields As $cbNonEditableField) {
+            foreach ($cbNonEditableFields as $cbNonEditableField) {
                 echo 'if(typeof document.getElementById("ff_elem' . $cbNonEditableField . '").disabled != "undefined"){' . nl();
                 echo 'bfCbName = document.getElementById("ff_elem' . $cbNonEditableField . '").name;' . nl();
                 echo 'if(typeof document.getElementsByName != "undefined"){' . nl();
@@ -3383,7 +3547,7 @@ class HTML_facileFormsProcessor {
 
             // fixing J3 css
             JFactory::getDocument()->addStyleDeclaration(
-                    '
+                '
              .bfFormDiv input[type=checkbox][id^="ff_elem"], input[type=radio][id^="ff_elem"]{
                 vertical-align: text-bottom;
              }
@@ -3395,7 +3559,7 @@ class HTML_facileFormsProcessor {
             );
 
             for ($i = 0; $i < $this->rowcount; $i++) {
-                $row = & $this->rows[$i];
+                $row = &$this->rows[$i];
                 if (!is_numeric($row->width))
                     $row->width = 0;
                 if (!is_numeric($row->height))
@@ -3491,11 +3655,14 @@ class HTML_facileFormsProcessor {
                     case 'Tooltip':
                         echo indentc(1) . '<div id="ff_div' . $row->id . '" style="' . $attribs . '" onMouseOver="return overlib(\'' . expstring($data2) . '\',CAPTION,\'' . $row->title . '\',BELOW,RIGHT);" onMouseOut="return nd();"' . $class1 . '>' . nlc();
                         switch ($row->flag1) {
-                            case 0: $url = $ff_mossite . '/components/com_breezingforms/images/tooltip.png';
+                            case 0:
+                                $url = $ff_mossite . '/components/com_breezingforms/images/tooltip.png';
                                 break;
-                            case 1: $url = $ff_mossite . '/components/com_breezingforms/images/warning.png';
+                            case 1:
+                                $url = $ff_mossite . '/components/com_breezingforms/images/warning.png';
                                 break;
-                            default: $url = $data1;
+                            default:
+                                $url = $data1;
                         } // switch
                         echo indentc(2) . '<img src="' . $url . '" alt="" border="0"' . $class2 . '/>' . nlc();
                         echo indentc(1) . '</div>' . nl();
@@ -3708,11 +3875,14 @@ class HTML_facileFormsProcessor {
                         else
                             $attribs .= ' type="text"';
                         switch ($row->flag2) {
-                            case 1: $attribs .= ' disabled="disabled"';
+                            case 1:
+                                $attribs .= ' disabled="disabled"';
                                 break;
-                            case 2: $attribs .= ' readonly="readonly"';
+                            case 2:
+                                $attribs .= ' readonly="readonly"';
                                 break;
-                            default: break;
+                            default:
+                                break;
                         } // switch
                         $attribs .= $this->script2clause($row);
                         echo indentc(2) . '<input id="ff_elem' . $row->id . '"' . $attribs . ' name="ff_nm_' . $row->name . '[]" value="' . $data1 . '"' . $class2 . '/>' . nlc();
@@ -3723,11 +3893,14 @@ class HTML_facileFormsProcessor {
                         $attribs = '';
                         $styles = '';
                         switch ($row->flag2) {
-                            case 1: $attribs .= ' disabled="disabled"';
+                            case 1:
+                                $attribs .= ' disabled="disabled"';
                                 break;
-                            case 2: $attribs .= ' readonly="readonly"';
+                            case 2:
+                                $attribs .= ' readonly="readonly"';
                                 break;
-                            default: break;
+                            default:
+                                break;
                         } // switch
                         if ($row->width > 0) {
                             if ($row->widthmode > 0)
@@ -3825,7 +3998,7 @@ class HTML_facileFormsProcessor {
                         // display 1st page of table
                         echo indentc(2) . '<table id="ff_elem' . $row->id . '"' . $attribs . $class2 . '>' . nl();
 
-                        $cols = & $this->queryCols['ff_' . $row->id];
+                        $cols = &$this->queryCols['ff_' . $row->id];
                         $colcnt = count($cols);
 
                         // display header
@@ -3836,31 +4009,41 @@ class HTML_facileFormsProcessor {
                                 if ($skip > 0)
                                     $skip--;
                                 else {
-                                    $col = & $cols[$c];
+                                    $col = &$cols[$c];
                                     if ($col->thspan > 0) {
                                         $attribs = '';
                                         $style = '';
                                         switch ($col->thalign) {
-                                            case 1: $style .= 'text-align:left;';
+                                            case 1:
+                                                $style .= 'text-align:left;';
                                                 break;
-                                            case 2: $style .= 'text-align:center;';
+                                            case 2:
+                                                $style .= 'text-align:center;';
                                                 break;
-                                            case 3: $style .= 'text-align:right;';
+                                            case 3:
+                                                $style .= 'text-align:right;';
                                                 break;
-                                            case 4: $style .= 'text-align:justify;';
+                                            case 4:
+                                                $style .= 'text-align:justify;';
                                                 break;
-                                            default:;
+                                            default:
+                                                ;
                                         } // switch
                                         switch ($col->thvalign) {
-                                            case 1: $attribs .= ' valign="top"';
+                                            case 1:
+                                                $attribs .= ' valign="top"';
                                                 break;
-                                            case 2: $attribs .= ' valign="middle"';
+                                            case 2:
+                                                $attribs .= ' valign="middle"';
                                                 break;
-                                            case 3: $attribs .= ' valign="bottom"';
+                                            case 3:
+                                                $attribs .= ' valign="bottom"';
                                                 break;
-                                            case 4: $attribs .= ' valign="baseline"';
+                                            case 4:
+                                                $attribs .= ' valign="baseline"';
                                                 break;
-                                            default:;
+                                            default:
+                                                ;
                                         } // switch
                                         if ($col->thwrap == 1)
                                             $attribs .= ' nowrap="nowrap"';
@@ -3892,13 +4075,13 @@ class HTML_facileFormsProcessor {
                             echo indentc(3) . '</tr>' . nl();
                         } // if
                         // display data rows
-                        $qrows = & $this->queryRows['ff_' . $row->id];
+                        $qrows = &$this->queryRows['ff_' . $row->id];
                         $qcnt = count($qrows);
                         $k = 1;
                         if ($row->height > 0 && $qcnt > $row->height)
                             $qcnt = $row->height;
                         for ($q = 0; $q < $qcnt; $q++) {
-                            $qrow = & $qrows[$q];
+                            $qrow = &$qrows[$q];
                             if ($k == 1)
                                 $cl = $tr1class;
                             else
@@ -3906,31 +4089,41 @@ class HTML_facileFormsProcessor {
                             echo indentc(3) . '<tr' . $cl . '>' . nlc();
                             $skip = 0;
                             for ($c = 0; $c < $colcnt; $c++) {
-                                $col = & $cols[$c];
+                                $col = &$cols[$c];
                                 if ($col->thspan > 0) {
                                     $attribs = '';
                                     $style = '';
                                     switch ($col->align) {
-                                        case 1: $style .= 'text-align:left;';
+                                        case 1:
+                                            $style .= 'text-align:left;';
                                             break;
-                                        case 2: $style .= 'text-align:center;';
+                                        case 2:
+                                            $style .= 'text-align:center;';
                                             break;
-                                        case 3: $style .= 'text-align:right;';
+                                        case 3:
+                                            $style .= 'text-align:right;';
                                             break;
-                                        case 4: $style .= 'text-align:justify;';
+                                        case 4:
+                                            $style .= 'text-align:justify;';
                                             break;
-                                        default:;
+                                        default:
+                                            ;
                                     } // switch
                                     switch ($col->valign) {
-                                        case 1: $attribs .= ' valign="top"';
+                                        case 1:
+                                            $attribs .= ' valign="top"';
                                             break;
-                                        case 2: $attribs .= ' valign="middle"';
+                                        case 2:
+                                            $attribs .= ' valign="middle"';
                                             break;
-                                        case 3: $attribs .= ' valign="bottom"';
+                                        case 3:
+                                            $attribs .= ' valign="bottom"';
                                             break;
-                                        case 4: $attribs .= ' valign="baseline"';
+                                        case 4:
+                                            $attribs .= ' valign="baseline"';
                                             break;
-                                        default:;
+                                        default:
+                                            ;
                                     } // switch
                                     if ($col->wrap == 1)
                                         $attribs .= ' nowrap="nowrap"';
@@ -4205,11 +4398,11 @@ class HTML_facileFormsProcessor {
         switch ($this->runmode) {
             case _FF_RUNMODE_FRONTEND:
                 echo indentc(1) . '<input type="hidden" name="ff_contentid" value="' . BFRequest::getInt('ff_contentid', 0) . '"/>' . nl() .
-                indentc(1) . '<input type="hidden" name="ff_applic" value="' . BFRequest::getWord('ff_applic', '') . '"/>' . nl() .
-                indentc(1) . '<input type="hidden" name="ff_record_id" value="' . $this->record_id . '"/>' . nl() .
-                indentc(1) . '<input type="hidden" name="ff_module_id" value="' . BFRequest::getInt('ff_module_id', 0) . '"/>' . nl();
+                    indentc(1) . '<input type="hidden" name="ff_applic" value="' . BFRequest::getWord('ff_applic', '') . '"/>' . nl() .
+                    indentc(1) . '<input type="hidden" name="ff_record_id" value="' . $this->record_id . '"/>' . nl() .
+                    indentc(1) . '<input type="hidden" name="ff_module_id" value="' . BFRequest::getInt('ff_module_id', 0) . '"/>' . nl();
                 echo indentc(1) . '<input type="hidden" name="ff_form" value="' . htmlentities($this->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
-                indentc(1) . '<input type="hidden" name="ff_task" value="submit"/>' . nl();
+                    indentc(1) . '<input type="hidden" name="ff_task" value="submit"/>' . nl();
                 if ($this->target > 1)
                     echo indentc(1) . '<input type="hidden" name="ff_target" value="' . htmlentities($this->target, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
                 if ($this->inframe)
@@ -4240,14 +4433,14 @@ class HTML_facileFormsProcessor {
 
             case _FF_RUNMODE_BACKEND:
                 echo indentc(1) . '<input type="hidden" name="option" value="com_breezingforms"/>' . nl() .
-                indentc(1) . '<input type="hidden" name="act" value="run"/>' . nl() .
-                indentc(1) . '<input type="hidden" name="ff_form" value="' . htmlentities($this->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
-                indentc(1) . '<input type="hidden" name="ff_task" value="submit"/>' . nl() .
-                indentc(1) . '<input type="hidden" name="ff_contentid" value="' . BFRequest::getInt('ff_contentid', 0) . '"/>' . nl() .
-                indentc(1) . '<input type="hidden" name="ff_applic" value="' . BFRequest::getWord('ff_applic', '') . '"/>' . nl() .
-                indentc(1) . '<input type="hidden" name="ff_record_id" value="' . $this->record_id . '"/>' . nl() .
-                indentc(1) . '<input type="hidden" name="ff_module_id" value="' . BFRequest::getInt('ff_module_id', 0) . '"/>' . nl() .
-                indentc(1) . '<input type="hidden" name="ff_runmode" value="' . htmlentities($this->runmode, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
+                    indentc(1) . '<input type="hidden" name="act" value="run"/>' . nl() .
+                    indentc(1) . '<input type="hidden" name="ff_form" value="' . htmlentities($this->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
+                    indentc(1) . '<input type="hidden" name="ff_task" value="submit"/>' . nl() .
+                    indentc(1) . '<input type="hidden" name="ff_contentid" value="' . BFRequest::getInt('ff_contentid', 0) . '"/>' . nl() .
+                    indentc(1) . '<input type="hidden" name="ff_applic" value="' . BFRequest::getWord('ff_applic', '') . '"/>' . nl() .
+                    indentc(1) . '<input type="hidden" name="ff_record_id" value="' . $this->record_id . '"/>' . nl() .
+                    indentc(1) . '<input type="hidden" name="ff_module_id" value="' . BFRequest::getInt('ff_module_id', 0) . '"/>' . nl() .
+                    indentc(1) . '<input type="hidden" name="ff_runmode" value="' . htmlentities($this->runmode, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
                 if ($this->target > 1)
                     echo indentc(1) . '<input type="hidden" name="ff_target" value="' . htmlentities($this->target, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
                 if ($this->inframe)
@@ -4275,14 +4468,14 @@ class HTML_facileFormsProcessor {
             default: // _FF_RUNMODE_PREVIEW:
                 if ($this->inframe) {
                     echo indentc(1) . '<input type="hidden" name="option" value="com_breezingforms"/>' . nl() .
-                    indentc(1) . '<input type="hidden" name="ff_frame" value="1"/>' . nl() .
-                    indentc(1) . '<input type="hidden" name="ff_form" value="' . htmlentities($this->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
-                    indentc(1) . '<input type="hidden" name="ff_task" value="submit"/>' . nl() .
-                    indentc(1) . '<input type="hidden" name="ff_contentid" value="' . BFRequest::getInt('ff_contentid', 0) . '"/>' . nl() .
-                    indentc(1) . '<input type="hidden" name="ff_applic" value="' . BFRequest::getWord('ff_applic', '') . '"/>' . nl() .
-                    indentc(1) . '<input type="hidden" name="ff_record_id" value="' . $this->record_id . '"/>' . nl() .
-                    indentc(1) . '<input type="hidden" name="ff_module_id" value="' . BFRequest::getInt('ff_module_id', 0) . '"/>' . nl() .
-                    indentc(1) . '<input type="hidden" name="ff_runmode" value="' . htmlentities($this->runmode, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
+                        indentc(1) . '<input type="hidden" name="ff_frame" value="1"/>' . nl() .
+                        indentc(1) . '<input type="hidden" name="ff_form" value="' . htmlentities($this->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
+                        indentc(1) . '<input type="hidden" name="ff_task" value="submit"/>' . nl() .
+                        indentc(1) . '<input type="hidden" name="ff_contentid" value="' . BFRequest::getInt('ff_contentid', 0) . '"/>' . nl() .
+                        indentc(1) . '<input type="hidden" name="ff_applic" value="' . BFRequest::getWord('ff_applic', '') . '"/>' . nl() .
+                        indentc(1) . '<input type="hidden" name="ff_record_id" value="' . $this->record_id . '"/>' . nl() .
+                        indentc(1) . '<input type="hidden" name="ff_module_id" value="' . BFRequest::getInt('ff_module_id', 0) . '"/>' . nl() .
+                        indentc(1) . '<input type="hidden" name="ff_runmode" value="' . htmlentities($this->runmode, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
                     if ($this->page != 1)
                         echo indentc(1) . '<input type="hidden" name="ff_page" value="' . htmlentities($this->page, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
                     if (isset($_REQUEST['cb_form_id']) && isset($_REQUEST['cb_record_id'])) {
@@ -4302,18 +4495,26 @@ class HTML_facileFormsProcessor {
         switch ($this->formrow->piece2cond) {
             case 1: // library
                 $database->setQuery(
-                        "select name, code from #__facileforms_pieces " .
-                        "where id=" . intval($this->formrow->piece2id) . " and published=1 "
+                    "select name, code from #__facileforms_pieces " .
+                    "where id=" . intval($this->formrow->piece2id) . " and published=1 "
                 );
                 $rows = $database->loadObjectList();
                 if (count($rows))
                     echo $this->execPiece(
-                            $rows[0]->code, BFText::_('COM_BREEZINGFORMS_PROCESS_AFPIECE') . " " . $rows[0]->name, 'p', $this->formrow->piece2id, null
+                        $rows[0]->code,
+                        BFText::_('COM_BREEZINGFORMS_PROCESS_AFPIECE') . " " . $rows[0]->name,
+                        'p',
+                        $this->formrow->piece2id,
+                        null
                     );
                 break;
             case 2: // custom code
                 echo $this->execPiece(
-                        $this->formrow->piece2code, BFText::_('COM_BREEZINGFORMS_PROCESS_AFPIECEC'), 'f', $this->form, 2
+                    $this->formrow->piece2code,
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_AFPIECEC'),
+                    'f',
+                    $this->form,
+                    2
                 );
                 break;
             default:
@@ -4362,9 +4563,10 @@ class HTML_facileFormsProcessor {
         }
     }
 
-// view
+    // view
 
-    function logToDatabase($cbResult = null) { // CONTENTBUILDER
+    function logToDatabase($cbResult = null)
+    { // CONTENTBUILDER
         global $database, $ff_config;
         $database = BFFactory::getDbo();
         if ($this->dying)
@@ -4373,7 +4575,7 @@ class HTML_facileFormsProcessor {
         if (!is_object($cbResult['form']) && $this->editable && $this->editable_override) {
             $database->setQuery("Select id From #__facileforms_records Where form = " . $database->Quote($this->form) . " And user_id = " . $database->Quote(JFactory::getUser()->get('id', 0)) . " And user_id <> 0");
             $records = $database->loadObjectList();
-            foreach ($records As $record) {
+            foreach ($records as $record) {
                 $database->setQuery("Delete From #__facileforms_subrecords Where record = " . $record->id);
                 $database->query();
                 $database->setQuery("Delete From #__facileforms_records Where id = " . $record->id);
@@ -4448,12 +4650,12 @@ class HTML_facileFormsProcessor {
                 $db->setQuery('Select SQL_CALC_FOUND_ROWS * From #__contentbuilder_forms Where id = ' . BFRequest::getInt('cb_form_id', 0) . ' And published = 1');
                 $_settings = $db->loadObject();
 
-                $_record = $cbResult['form']->getRecord(BFRequest::getInt('record_id', 0), $_settings->published_only, $cbResult['frontend'] ? ( $_settings->own_only_fe ? JFactory::getUser()->get('id', 0) : -1 ) : ( $_settings->own_only ? JFactory::getUser()->get('id', 0) : -1 ), true);
-                foreach ($_record As $_rec) {
+                $_record = $cbResult['form']->getRecord(BFRequest::getInt('record_id', 0), $_settings->published_only, $cbResult['frontend'] ? ($_settings->own_only_fe ? JFactory::getUser()->get('id', 0) : -1) : ($_settings->own_only ? JFactory::getUser()->get('id', 0) : -1), true);
+                foreach ($_record as $_rec) {
                     $_files_deleted = array();
                     if ($_rec->recType == 'File Upload') {
                         $_array = BFRequest::getVar('cb_delete_' . $_rec->recElementId, array(), '', 'ARRAY');
-                        foreach ($_array As $_key => $_arr) {
+                        foreach ($_array as $_key => $_arr) {
                             if ($_arr == 1) {
                                 $_values = explode("\n", $_rec->recValue);
                                 if (isset($_values[$_key])) {
@@ -4477,7 +4679,7 @@ class HTML_facileFormsProcessor {
                                 if ($data[_FF_DATA_ID] == $_rec->recElementId) {
                                     $_is_values = explode("\n", $_rec->recValue);
                                     $_j = 0;
-                                    foreach ($_is_values As $_is_value) {
+                                    foreach ($_is_values as $_is_value) {
                                         if (!in_array($_j, $_files_deleted[$_rec->recElementId])) {
                                             $this->savedata[$_i][_FF_DATA_VALUE] .= $_is_value . "\n";
                                         }
@@ -4498,7 +4700,7 @@ class HTML_facileFormsProcessor {
                                 $this->savedata[$next][_FF_DATA_TYPE] = $_rec->recType;
                                 $this->savedata[$next][_FF_DATA_VALUE] = '';
                                 $_is_values = explode("\n", $_rec->recValue);
-                                foreach ($_is_values As $_is_value) {
+                                foreach ($_is_values as $_is_value) {
                                     $this->savedata[$next][_FF_DATA_VALUE] .= $_is_value . "\n";
                                 }
                                 $this->savedata[$next][_FF_DATA_VALUE] = rtrim($this->savedata[$next][_FF_DATA_VALUE]);
@@ -4580,12 +4782,12 @@ class HTML_facileFormsProcessor {
 
                 jimport('joomla.version');
                 $version = new JVersion();
-                    $is15 = false;
+                $is15 = false;
 
                 $values = array();
                 $names = $cbResult['form']->getAllElements();
 
-                foreach ($names As $id => $name) {
+                foreach ($names as $id => $name) {
                     if (isset($cbData[$id])) {
                         if (in_array($id, $cbFileFields) && trim($cbData[$id]) == '') {
                             $values[$id] = '';
@@ -4601,7 +4803,8 @@ class HTML_facileFormsProcessor {
                     BFRequest::getInt('cb_record_id', 0),
                     $cbResult['form'],
                     $values
-                ));
+                )
+                );
 
                 $record_return = $cbResult['form']->saveRecord(BFRequest::getInt('cb_record_id', 0), $values);
 
@@ -4621,11 +4824,11 @@ class HTML_facileFormsProcessor {
                         jimport('joomla.version');
                         $version = new JVersion();
 
-                            $db->setQuery("Select lang_code From #__languages Where published = 1 And sef = " . $db->Quote(trim(BFRequest::getCmd('lang', ''))));
-                            $ignore_lang_code = $db->loadResult();
-                            if (!$ignore_lang_code) {
-                                    $ignore_lang_code = '*';
-                            }
+                        $db->setQuery("Select lang_code From #__languages Where published = 1 And sef = " . $db->Quote(trim(BFRequest::getCmd('lang', ''))));
+                        $ignore_lang_code = $db->loadResult();
+                        if (!$ignore_lang_code) {
+                            $ignore_lang_code = '*';
+                        }
 
                         $sef = trim(BFRequest::getCmd('lang', ''));
                         if ($ignore_lang_code == '*') {
@@ -4639,8 +4842,8 @@ class HTML_facileFormsProcessor {
                         jimport('joomla.version');
                         $version = new JVersion();
 
-                            $db->setQuery("Select sef From #__languages Where published = 1 And lang_code = " . $db->Quote($cbResult['data']['default_lang_code']));
-                            $sef = $db->loadResult();
+                        $db->setQuery("Select sef From #__languages Where published = 1 And lang_code = " . $db->Quote($cbResult['data']['default_lang_code']));
+                        $sef = $db->loadResult();
                     }
 
                     $language = $cbResult['data']['default_lang_code_ignore'] ? $ignore_lang_code : $cbResult['data']['default_lang_code'];
@@ -4686,18 +4889,18 @@ class HTML_facileFormsProcessor {
                     $version = new JVersion();
 
                     if (JFactory::getApplication()->isClient('site') && BFRequest::getInt('Itemid', 0)) {
-                            $menu = JFactory::getApplication()->getMenu();
-                            $item = $menu->getActive();
-                            if (is_object($item)) {
-                                    BFRequest::setVar('cb_category_id', $item->getParams()->get('cb_category_id', null));
-                                    BFRequest::setVar('cb_controller', $item->getParams()->get('cb_controller', null));
-                            }
+                        $menu = JFactory::getApplication()->getMenu();
+                        $item = $menu->getActive();
+                        if (is_object($item)) {
+                            BFRequest::setVar('cb_category_id', $item->getParams()->get('cb_category_id', null));
+                            BFRequest::setVar('cb_controller', $item->getParams()->get('cb_controller', null));
+                        }
                     }
 
                     $cbData->page_title = $cbData->use_view_name_as_title ? $cbData->name : $cbResult['form']->getPageTitle();
                     $cbData->labels = $cbResult['form']->getElementLabels();
                     $ids = array();
-                    foreach ($cbData->labels As $reference_id => $label) {
+                    foreach ($cbData->labels as $reference_id => $label) {
                         $ids[] = $db->Quote($reference_id);
                     }
                     $cbData->labels = array();
@@ -4705,13 +4908,13 @@ class HTML_facileFormsProcessor {
                         $db->setQuery("Select Distinct `label`, reference_id From #__contentbuilder_elements Where form_id = " . BFRequest::getInt('cb_form_id', 0) . " And reference_id In (" . implode(',', $ids) . ") And published = 1 Order By ordering");
                         $rows = $db->loadAssocList();
                         $ids = array();
-                        foreach ($rows As $row) {
+                        foreach ($rows as $row) {
                             $ids[] = $row['reference_id'];
                         }
                     }
-                    $cbData->items = $cbResult['form']->getRecord($record_return, $cbData->published_only, $cbResult['frontend'] ? ( $cbData->own_only_fe ? JFactory::getUser()->get('id', 0) : -1 ) : ( $cbData->own_only ? JFactory::getUser()->get('id', 0) : -1 ), true);
+                    $cbData->items = $cbResult['form']->getRecord($record_return, $cbData->published_only, $cbResult['frontend'] ? ($cbData->own_only_fe ? JFactory::getUser()->get('id', 0) : -1) : ($cbData->own_only ? JFactory::getUser()->get('id', 0) : -1), true);
                     if (!count($cbData->items)) {
-                            throw new Exception(JText::_('COM_CONTENTBUILDER_RECORD_NOT_FOUND'), 404);
+                        throw new Exception(JText::_('COM_CONTENTBUILDER_RECORD_NOT_FOUND'), 404);
                     }
                     $config = array();
                     foreach ($this->savedata as $data) {
@@ -4734,7 +4937,8 @@ class HTML_facileFormsProcessor {
                     $article_id,
                     $cbResult['form'],
                     $values
-                ));
+                )
+                );
             }
             // CONTENTBUILDER END
         }
@@ -4756,7 +4960,8 @@ class HTML_facileFormsProcessor {
      * https://stackoverflow.com/questions/4356289/php-random-string-generator/31107425#31107425
      */
 
-    function random_str($length, $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ') {
+    function random_str($length, $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+    {
         $pieces = [];
         $max = mb_strlen($keyspace, '8bit') - 1;
         for ($i = 0; $i < $length; ++$i) {
@@ -4765,9 +4970,10 @@ class HTML_facileFormsProcessor {
         return implode('', $pieces);
     }
 
-// logToDatabase
+    // logToDatabase
 
-    function sendMail($from, $fromname, $recipient, $subject, $body, $attachment = NULL, $html = NULL, $cc = NULL, $bcc = NULL, $alt_sender = '') {
+    function sendMail($from, $fromname, $recipient, $subject, $body, $attachment = NULL, $html = NULL, $cc = NULL, $bcc = NULL, $alt_sender = '')
+    {
         if ($this->dying)
             return;
         $mail = bf_createMail($from, $fromname, $subject, $body, $alt_sender);
@@ -4825,13 +5031,15 @@ class HTML_facileFormsProcessor {
         }
     }
 
-// sendMail
+    // sendMail
 
-    function endsWith($haystack, $needle) {
+    function endsWith($haystack, $needle)
+    {
         return $needle === "" || substr($haystack, -strlen($needle)) === $needle;
     }
 
-    function exppdf($filter = array(), $mailback = false, $translate = true) {
+    function exppdf($filter = array(), $mailback = false, $translate = true)
+    {
         global $ff_compath;
 
         jimport('joomla.version');
@@ -5047,7 +5255,8 @@ class HTML_facileFormsProcessor {
         return $pdfname;
     }
 
-    function expcsv($filter = array(), $mailback = false) {
+    function expcsv($filter = array(), $mailback = false)
+    {
         global $ff_config;
 
         $inverted = isset($ff_config->csvinverted) ? $ff_config->csvinverted : false;
@@ -5117,7 +5326,7 @@ class HTML_facileFormsProcessor {
         $head = '';
         ksort($fields);
         $lineLength = count($lines);
-        foreach ($fields As $fieldName => $null) {
+        foreach ($fields as $fieldName => $null) {
             if ($inverted == false) {
                 $head .= $csvquote . $fieldName . $csvquote . $csvdelimiter;
             }
@@ -5130,7 +5339,7 @@ class HTML_facileFormsProcessor {
         $out = '';
         for ($i = 0; $i < $lineLength; $i++) {
             ksort($lines[$i]);
-            foreach ($lines[$i] As $fieldName => $line) {
+            foreach ($lines[$i] as $fieldName => $line) {
                 if ($inverted == true) {
                     $out .= $csvquote . str_replace($csvquote, $csvquote . $csvquote, str_replace("\n", $cellnewline, str_replace("\r", "", $fieldName))) . $csvquote . $csvdelimiter;
                 }
@@ -5165,7 +5374,8 @@ class HTML_facileFormsProcessor {
         return $csvname;
     }
 
-    function expxml($filter = array(), $mailback = false, $translate = false) {
+    function expxml($filter = array(), $mailback = false, $translate = false)
+    {
         global $ff_compath, $ff_version, $mosConfig_fileperms;
 
         jimport('joomla.version');
@@ -5199,8 +5409,8 @@ class HTML_facileFormsProcessor {
         $xmlname = $this->uploads . '/ffexport-' . $date_stamp . '-' . mt_rand(0, mt_getrandmax()) . '.xml';
 
         $xml = '<?xml version="1.0" encoding="utf-8" ?>' . nl() .
-                '<FacileFormsExport type="records" version="' . $ff_version . '">' . nl() .
-                indent(1) . '<exportdate>' . $date_file . '</exportdate>' . nl();
+            '<FacileFormsExport type="records" version="' . $ff_version . '">' . nl() .
+            indent(1) . '<exportdate>' . $date_file . '</exportdate>' . nl();
         if ($this->record_id != '')
             $xml .= indent(1) . '<record id="' . $this->record_id . '">' . nl();
         else
@@ -5209,16 +5419,16 @@ class HTML_facileFormsProcessor {
         $title_translated = $this->getFormTitleTranslated();
 
         $xml .= indent(2) . '<submitted>' . $submitted . '</submitted>' . nl() .
-                indent(2) . '<form>' . $this->form . '</form>' . nl() .
-                indent(2) . '<title>' . htmlspecialchars($title_translated != '' ? $title_translated : $this->formrow->title, ENT_QUOTES, 'UTF-8') . '</title>' . nl() .
-                indent(2) . '<name>' . $this->formrow->name . '</name>' . nl() .
-                indent(2) . '<ip>' . $this->ip . '</ip>' . nl() .
-                indent(2) . '<browser>' . htmlspecialchars($this->browser, ENT_QUOTES, 'UTF-8') . '</browser>' . nl() .
-                indent(2) . '<opsys>' . htmlspecialchars($this->opsys, ENT_QUOTES, 'UTF-8') . '</opsys>' . nl() .
-                indent(2) . '<provider>' . $this->provider . '</provider>' . nl() .
-                indent(2) . '<viewed>0</viewed>' . nl() .
-                indent(2) . '<exported>0</exported>' . nl() .
-                indent(2) . '<archived>0</archived>' . nl();
+            indent(2) . '<form>' . $this->form . '</form>' . nl() .
+            indent(2) . '<title>' . htmlspecialchars($title_translated != '' ? $title_translated : $this->formrow->title, ENT_QUOTES, 'UTF-8') . '</title>' . nl() .
+            indent(2) . '<name>' . $this->formrow->name . '</name>' . nl() .
+            indent(2) . '<ip>' . $this->ip . '</ip>' . nl() .
+            indent(2) . '<browser>' . htmlspecialchars($this->browser, ENT_QUOTES, 'UTF-8') . '</browser>' . nl() .
+            indent(2) . '<opsys>' . htmlspecialchars($this->opsys, ENT_QUOTES, 'UTF-8') . '</opsys>' . nl() .
+            indent(2) . '<provider>' . $this->provider . '</provider>' . nl() .
+            indent(2) . '<viewed>0</viewed>' . nl() .
+            indent(2) . '<exported>0</exported>' . nl() .
+            indent(2) . '<archived>0</archived>' . nl();
         $processed = array();
 
         $xmldata = $this->xmldata;
@@ -5236,17 +5446,17 @@ class HTML_facileFormsProcessor {
 
                 if (!in_array($data[_FF_DATA_NAME], $filter) && !in_array($data[_FF_DATA_NAME], $processed)) {
                     $xml .= indent(2) . '<subrecord>' . nl() .
-                            indent(3) . '<element>' . $data[_FF_DATA_ID] . '</element>' . nl() .
-                            indent(3) . '<name>' . $data[_FF_DATA_NAME] . '</name>' . nl() .
-                            indent(3) . '<title>' . htmlspecialchars($title_translated != '' ? $title_translated : strip_tags($data[_FF_DATA_TITLE]), ENT_QUOTES, 'UTF-8') . '</title>' . nl() .
-                            indent(3) . '<type>' . $data[_FF_DATA_TYPE] . '</type>' . nl() .
-                            indent(3) . '<value>' . htmlspecialchars(is_array($data[_FF_DATA_VALUE]) ? implode('|', $data[_FF_DATA_VALUE]) : $data[_FF_DATA_VALUE], ENT_QUOTES, 'UTF-8') . '</value>' . nl() .
-                            indent(2) . '</subrecord>' . nl();
+                        indent(3) . '<element>' . $data[_FF_DATA_ID] . '</element>' . nl() .
+                        indent(3) . '<name>' . $data[_FF_DATA_NAME] . '</name>' . nl() .
+                        indent(3) . '<title>' . htmlspecialchars($title_translated != '' ? $title_translated : strip_tags($data[_FF_DATA_TITLE]), ENT_QUOTES, 'UTF-8') . '</title>' . nl() .
+                        indent(3) . '<type>' . $data[_FF_DATA_TYPE] . '</type>' . nl() .
+                        indent(3) . '<value>' . htmlspecialchars(is_array($data[_FF_DATA_VALUE]) ? implode('|', $data[_FF_DATA_VALUE]) : $data[_FF_DATA_VALUE], ENT_QUOTES, 'UTF-8') . '</value>' . nl() .
+                        indent(2) . '</subrecord>' . nl();
                     //$processed[] = $data[_FF_DATA_NAME];
                 }
             } // foreach
         $xml .= indent(1) . '</record>' . nl() .
-                '</FacileFormsExport>' . nl();
+            '</FacileFormsExport>' . nl();
 
         File::makeSafe($xmlname);
         if (!File::write($xmlname, $xml)) {
@@ -5256,9 +5466,10 @@ class HTML_facileFormsProcessor {
         return $xmlname;
     }
 
-// expxml
+    // expxml
 
-    function sendEmailNotification() {
+    function sendEmailNotification()
+    {
         global $ff_config;
 
         $mainframe = JFactory::getApplication();
@@ -5279,7 +5490,7 @@ class HTML_facileFormsProcessor {
 
         $alt_sender = '';
 
-        foreach ($recipients As $recipient) {
+        foreach ($recipients as $recipient) {
 
             $test = explode(':', $recipient);
             if (count($test) == 2 && strtolower(trim($test[0])) == 'sender') {
@@ -5327,7 +5538,7 @@ class HTML_facileFormsProcessor {
                         if (strtolower($DATA[_FF_DATA_NAME]) == strtolower($field)) {
                             if (isset($froms[1])) {
                                 $valuepairs = explode(',', $froms[1]);
-                                foreach ($valuepairs As $valuepair) {
+                                foreach ($valuepairs as $valuepair) {
                                     $keyval = explode('>', trim($valuepair));
                                     $key = trim($keyval[0]);
                                     if (isset($keyval[1])) {
@@ -5339,7 +5550,7 @@ class HTML_facileFormsProcessor {
                                             $data_value = explode(', ', strtolower($DATA[_FF_DATA_VALUE]));
 
                                             if (in_array(strtolower($key), $data_value)) {
-                                                foreach ($value_exploded As $value2) {
+                                                foreach ($value_exploded as $value2) {
                                                     $all_recipients[] = trim($value2);
                                                     unset($recipients[$i]);
                                                 }
@@ -5347,7 +5558,7 @@ class HTML_facileFormsProcessor {
                                         } else {
 
                                             if (strtolower($key) == strtolower($DATA[_FF_DATA_VALUE])) {
-                                                foreach ($value_exploded As $value2) {
+                                                foreach ($value_exploded as $value2) {
                                                     $all_recipients[] = trim($value2);
                                                     unset($recipients[$i]);
                                                 }
@@ -5519,16 +5730,16 @@ class HTML_facileFormsProcessor {
                 if ($this->record_id != '')
                     $body .= BFText::_('COM_BREEZINGFORMS_PROCESS_RECORDSAVEDID') . " " . $this->record_id . nl() . nl();
                 $body .= BFText::_('COM_BREEZINGFORMS_PROCESS_FORMID') . ": " . $this->form . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_FORMTITLE') . ": " . $this->formrow->title . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_FORMNAME') . ": " . $this->formrow->name . nl() . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTEDAT') . ": " . $submitted . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERIP') . ": " . $this->ip . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERID') . ": " . JFactory::getUser()->get('id', 0) . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERUSERNAME') . ": " . JFactory::getUser()->get('username', '') . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERFULLNAME') . ": " . JFactory::getUser()->get('name', '') . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_PROVIDER') . ": " . $this->provider . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_BROWSER') . ": " . $this->browser . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_OPSYS') . ": " . $this->opsys . nl() . nl();
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_FORMTITLE') . ": " . $this->formrow->title . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_FORMNAME') . ": " . $this->formrow->name . nl() . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTEDAT') . ": " . $submitted . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERIP') . ": " . $this->ip . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERID') . ": " . JFactory::getUser()->get('id', 0) . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERUSERNAME') . ": " . JFactory::getUser()->get('username', '') . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERFULLNAME') . ": " . JFactory::getUser()->get('name', '') . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_PROVIDER') . ": " . $this->provider . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_BROWSER') . ": " . $this->browser . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_OPSYS') . ": " . $this->opsys . nl() . nl();
                 if (count($this->maildata)) {
                     foreach ($this->maildata as $data) {
                         $subject = str_replace('{' . $data[_FF_DATA_NAME] . ':label}', strip_tags($data[_FF_DATA_TITLE]), $subject);
@@ -5713,7 +5924,7 @@ class HTML_facileFormsProcessor {
                     if (strtolower($DATA[_FF_DATA_NAME]) == strtolower($field)) {
                         if (isset($froms[1])) {
                             $valuepairs = explode(',', $froms[1]);
-                            foreach ($valuepairs As $valuepair) {
+                            foreach ($valuepairs as $valuepair) {
                                 $keyval = explode('>', trim($valuepair));
                                 $key = trim($keyval[0]);
                                 if (isset($keyval[1])) {
@@ -5755,7 +5966,7 @@ class HTML_facileFormsProcessor {
 
                         if (isset($froms[1])) {
                             $valuepairs = explode(',', $froms[1]);
-                            foreach ($valuepairs As $valuepair) {
+                            foreach ($valuepairs as $valuepair) {
                                 $keyval = explode('>', trim($valuepair));
                                 $key = trim($keyval[0]);
                                 if (isset($keyval[1])) {
@@ -5870,24 +6081,27 @@ class HTML_facileFormsProcessor {
             }
 
             if (!file_exists($paymentCache . $paymentFile)) {
-                $later_content = serialize(array(
-                    'from' => $from,
-                    'fromname' => $fromname,
-                    'recipients' => $recipients,
-                    'subject' => $subject,
-                    'body' => $body,
-                    'attachment' => $attachment,
-                    'isHtml' => $isHtml,
-                    'alt_sender' => $alt_sender
-                ));
+                $later_content = serialize(
+                    array(
+                        'from' => $from,
+                        'fromname' => $fromname,
+                        'recipients' => $recipients,
+                        'subject' => $subject,
+                        'body' => $body,
+                        'attachment' => $attachment,
+                        'isHtml' => $isHtml,
+                        'alt_sender' => $alt_sender
+                    )
+                );
                 File::write($paymentCache . $paymentFile, $later_content);
             }
         }
     }
 
-// sendEmailNotification
+    // sendEmailNotification
 
-    function getFormTitleTranslated() {
+    function getFormTitleTranslated()
+    {
         if (trim($this->formrow->template_code_processed) == 'QuickMode') {
             require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Decoder.php');
             require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Encoder.php');
@@ -5906,7 +6120,8 @@ class HTML_facileFormsProcessor {
         }
     }
 
-    function getFieldTranslated($field, $name, &$res, $dataObject = null, $childrenLength = 0) {
+    function getFieldTranslated($field, $name, &$res, $dataObject = null, $childrenLength = 0)
+    {
 
         if (count(JLanguageHelper::getLanguages()) == 1) {
             return;
@@ -5944,7 +6159,8 @@ class HTML_facileFormsProcessor {
         }
     }
 
-    function sendMailbackNotification() {
+    function sendMailbackNotification()
+    {
         global $ff_config;
 
         $signatures = array();
@@ -5965,7 +6181,7 @@ class HTML_facileFormsProcessor {
         $_senders = explode(';', $_senders);
 
         $alt_sender = '';
-        foreach ($_senders As $_sender) {
+        foreach ($_senders as $_sender) {
 
             $test = explode(':', $_sender);
             if (count($test) == 2 && strtolower(trim($test[0])) == 'sender') {
@@ -5998,7 +6214,7 @@ class HTML_facileFormsProcessor {
                         //    $fromname = trim($mb[$x]);
                         //    $customSender = true;
                         //}
-                        if (!isset($accept[$row->name]) || ( isset($accept[$row->name]) && $yesno[0] == 'true' && $checked[0] != '' )) {
+                        if (!isset($accept[$row->name]) || (isset($accept[$row->name]) && $yesno[0] == 'true' && $checked[0] != '')) {
                             $recipients[] = trim($mb[$x]);
                             if (!isset($mailbackfiles[trim($mb[$x])]))
                                 $mailbackfiles[trim($mb[$x])] = array();
@@ -6061,9 +6277,9 @@ class HTML_facileFormsProcessor {
         require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Encoder.php');
         $areas = Zend_Json::decode($this->formrow->template_areas);
         if (trim($this->formrow->template_code_processed) == 'QuickMode' && is_array($areas)) {
-            foreach ($areas As $area) { // don't worry, size is only 1 in QM
+            foreach ($areas as $area) { // don't worry, size is only 1 in QM
                 if (isset($area['elements'])) {
-                    foreach ($area['elements'] As $element) {
+                    foreach ($area['elements'] as $element) {
                         if (isset($element['hideInMailback']) && $element['hideInMailback'] && isset($element['name'])) {
                             $filter[] = $element['name'];
                         }
@@ -6086,7 +6302,7 @@ class HTML_facileFormsProcessor {
                         if (strtolower($DATA[_FF_DATA_NAME]) == strtolower($field)) {
                             if (isset($froms[1])) {
                                 $valuepairs = explode(',', $froms[1]);
-                                foreach ($valuepairs As $valuepair) {
+                                foreach ($valuepairs as $valuepair) {
                                     $keyval = explode('>', trim($valuepair));
                                     $key = trim($keyval[0]);
                                     if (isset($keyval[1])) {
@@ -6129,7 +6345,7 @@ class HTML_facileFormsProcessor {
                         if (strtolower($DATA[_FF_DATA_NAME]) == strtolower($field)) {
                             if (isset($froms[1])) {
                                 $valuepairs = explode(',', $froms[1]);
-                                foreach ($valuepairs As $valuepair) {
+                                foreach ($valuepairs as $valuepair) {
                                     $keyval = explode('>', trim($valuepair));
                                     $key = trim($keyval[0]);
                                     if (isset($keyval[1])) {
@@ -6314,16 +6530,16 @@ class HTML_facileFormsProcessor {
                 }
 
                 $body .= BFText::_('COM_BREEZINGFORMS_PROCESS_FORMID') . ": " . $this->form . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_FORMTITLE') . ": " . ($form_title_translated != '' ? $form_title_translated : $this->formrow->title) . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_FORMNAME') . ": " . $this->formrow->name . nl() . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTEDAT') . ": " . $submitted . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERIP') . ": " . $this->ip . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERID') . ": " . JFactory::getUser()->get('id', 0) . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERUSERNAME') . ": " . JFactory::getUser()->get('username', '') . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERFULLNAME') . ": " . JFactory::getUser()->get('name', '') . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_PROVIDER') . ": " . $this->provider . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_BROWSER') . ": " . $this->browser . nl() .
-                        BFText::_('COM_BREEZINGFORMS_PROCESS_OPSYS') . ": " . $this->opsys . nl() . nl();
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_FORMTITLE') . ": " . ($form_title_translated != '' ? $form_title_translated : $this->formrow->title) . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_FORMNAME') . ": " . $this->formrow->name . nl() . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTEDAT') . ": " . $submitted . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERIP') . ": " . $this->ip . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERID') . ": " . JFactory::getUser()->get('id', 0) . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERUSERNAME') . ": " . JFactory::getUser()->get('username', '') . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERFULLNAME') . ": " . JFactory::getUser()->get('name', '') . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_PROVIDER') . ": " . $this->provider . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_BROWSER') . ": " . $this->browser . nl() .
+                    BFText::_('COM_BREEZINGFORMS_PROCESS_OPSYS') . ": " . $this->opsys . nl() . nl();
                 if (count($this->maildata)) {
                     foreach ($this->maildata as $data) {
                         $trans_title = '';
@@ -6474,7 +6690,7 @@ class HTML_facileFormsProcessor {
                         $body = str_replace('{' . $data[_FF_DATA_NAME] . ':value}', '', $body);
                     }
 
-                    if ($data[_FF_DATA_TYPE] == 'Signature'  && $this->formrow->mb_emailxml != 4) {
+                    if ($data[_FF_DATA_TYPE] == 'Signature' && $this->formrow->mb_emailxml != 4) {
 
                         $signatures[] = JPATH_SITE . '/media/breezingforms/signatures/' . $data[_FF_DATA_VALUE];
                     }
@@ -6564,16 +6780,18 @@ class HTML_facileFormsProcessor {
                     $attachment = $signatures;
                 }
 
-                $later_content = serialize(array(
-                    'from' => $from,
-                    'fromname' => $fromname,
-                    'recipients' => $recipients,
-                    'subject' => $subject,
-                    'body' => $body,
-                    'attachment' => $attachment,
-                    'isHtml' => $isHtml,
-                    'alt_sender' => $alt_sender
-                ));
+                $later_content = serialize(
+                    array(
+                        'from' => $from,
+                        'fromname' => $fromname,
+                        'recipients' => $recipients,
+                        'subject' => $subject,
+                        'body' => $body,
+                        'attachment' => $attachment,
+                        'isHtml' => $isHtml,
+                        'alt_sender' => $alt_sender
+                    )
+                );
                 File::write($paymentCache . $paymentFile, $later_content);
             }
         }
@@ -6581,7 +6799,8 @@ class HTML_facileFormsProcessor {
         $this->mailbackRecipients = $recipients;
     }
 
-    function sendSalesforceNotification() {
+    function sendSalesforceNotification()
+    {
 
         if ($this->formrow->salesforce_enabled != 1) {
             return;
@@ -6590,10 +6809,10 @@ class HTML_facileFormsProcessor {
         define("BF_SOAP_CLIENT_BASEDIR", JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'salesforce');
 
         if (!class_exists('SforcePartnerClient')) {
-            require_once (BF_SOAP_CLIENT_BASEDIR . '/SforcePartnerClient.php');
+            require_once(BF_SOAP_CLIENT_BASEDIR . '/SforcePartnerClient.php');
         }
         if (!class_exists('SforceHeaderOptions')) {
-            require_once (BF_SOAP_CLIENT_BASEDIR . '/SforceHeaderOptions.php');
+            require_once(BF_SOAP_CLIENT_BASEDIR . '/SforceHeaderOptions.php');
         }
 
         try {
@@ -6608,16 +6827,16 @@ class HTML_facileFormsProcessor {
             $fields = array();
             $this->formrow->salesforce_fields = explode(',', $this->formrow->salesforce_fields);
 
-            foreach ($this->formrow->salesforce_fields As $sfields) {
-                foreach ($this->sfdata As $savedata) {
+            foreach ($this->formrow->salesforce_fields as $sfields) {
+                foreach ($this->sfdata as $savedata) {
                     $sfield = explode('::', $sfields);
                     if ($sfield[0] == $savedata[1]) {
-                        foreach ($sobjects As $sobject) {
+                        foreach ($sobjects as $sobject) {
                             // forcing some primitives
                             if ($sobject->name == $sfield[1]) {
                                 switch ($sobject->type) {
                                     case 'boolean':
-                                        $savedata[4] = ( $savedata[4] ? 1 : 0 );
+                                        $savedata[4] = ($savedata[4] ? 1 : 0);
                                         break;
                                     case 'int':
                                         $savedata[4] = intval($savedata[4]);
@@ -6658,7 +6877,8 @@ class HTML_facileFormsProcessor {
         }
     }
 
-    function sendMailChimpNotification() {
+    function sendMailChimpNotification()
+    {
 
         $mainframe = JFactory::getApplication();
 
@@ -6723,7 +6943,7 @@ class HTML_facileFormsProcessor {
             }
 
             // MailChimp API v3 update
-            foreach ($list_ids As $list_id) {
+            foreach ($list_ids as $list_id) {
                 $subHash = $api->subscriberHash($email);
 
                 if ($email != '' && $checked) {
@@ -6751,7 +6971,8 @@ class HTML_facileFormsProcessor {
         }
     }
 
-    function saveUpload($filename, $userfile_name, $destpath, $timestamp, $useUrl = false, $useUrlDownloadDirectory = '', $resize_target_width = 0, $resize_target_height = 0, $resize_type = '', $resize_bgcolor = '#ffffff', $field_name = '') {
+    function saveUpload($filename, $userfile_name, $destpath, $timestamp, $useUrl = false, $useUrlDownloadDirectory = '', $resize_target_width = 0, $resize_target_height = 0, $resize_type = '', $resize_bgcolor = '#ffffff', $field_name = '')
+    {
         global $ff_config, $mosConfig_fileperms;
 
         if ($this->dying)
@@ -6808,10 +7029,10 @@ class HTML_facileFormsProcessor {
 
         if ($fmtest != basename($_baseDir)) {
             $fm = basename($_baseDir);
-            foreach ($this->rows As $row) {
+            foreach ($this->rows as $row) {
                 $fname = BFRequest::getVar('ff_nm_' . $row->name, array(), 'POST', 'HTML', BFREQUEST_ALLOWHTML);
 
-                foreach ($fname As $_fname) {
+                foreach ($fname as $_fname) {
                     $fm = str_replace('{filemask:' . strtolower($row->name) . '}', File::makeSafe(trim($_fname)), $fm);
                     // so it works the same like for folders
                     $fm = str_replace('{' . strtolower($row->name) . ':value}', File::makeSafe(trim($_fname)), $fm);
@@ -6885,10 +7106,11 @@ class HTML_facileFormsProcessor {
         return array('default' => $path, 'server' => $serverPath);
     }
 
-    public function exifImageType($filename) {
+    public function exifImageType($filename)
+    {
         // some hosting providers think it is a good idea not to compile in exif with php...
         if (!function_exists('exif_imagetype')) {
-            if (( list($width, $height, $type, $attr) = getimagesize($filename) ) !== false) {
+            if ((list($width, $height, $type, $attr) = getimagesize($filename)) !== false) {
                 return $type;
             }
             return false;
@@ -6897,7 +7119,8 @@ class HTML_facileFormsProcessor {
         }
     }
 
-    public function resizeFile($path, $width, $height, $bgcolor = '#ffffff', $type = '') {
+    public function resizeFile($path, $width, $height, $bgcolor = '#ffffff', $type = '')
+    {
         $image = @getimagesize($path);
 
         if ($image !== false) {
@@ -6929,8 +7152,9 @@ class HTML_facileFormsProcessor {
             $K64 = 65536;
             $TWEAKFACTOR = 1.5;
             $channels = isset($image['channels']) ? $image['channels'] : 0;
-            $memoryNeeded = round(( $image[0] * $image[1] * $image['bits'] * ($channels / 8) + $K64
-                    ) * $TWEAKFACTOR
+            $memoryNeeded = round(
+                ($image[0] * $image[1] * $image['bits'] * ($channels / 8) + $K64
+                ) * $TWEAKFACTOR
             );
 
             $ini = 8 * $MB;
@@ -6938,17 +7162,19 @@ class HTML_facileFormsProcessor {
                 $ini = $this->returnBytes(ini_get('memory_limit'));
             }
             $memoryLimit = $ini;
-            if (function_exists('memory_get_usage') &&
-                    memory_get_usage() + $memoryNeeded > $memoryLimit) {
+            if (
+                function_exists('memory_get_usage') &&
+                memory_get_usage() + $memoryNeeded > $memoryLimit
+            ) {
                 $memory = false;
             }
             if ($memory) {
                 switch ($exif_type) {
-                    case IMAGETYPE_JPEG2000 :
-                    case IMAGETYPE_JPEG :
+                    case IMAGETYPE_JPEG2000:
+                    case IMAGETYPE_JPEG:
                         $resource = @imagecreatefromjpeg($path);
                         if ($resource) {
-                            $resized = @$this->resize_image($resource, $width, $height, $type == 'crop' ? 1 : ( $type == 'simple' ? 3 : 2), $col_);
+                            $resized = @$this->resize_image($resource, $width, $height, $type == 'crop' ? 1 : ($type == 'simple' ? 3 : 2), $col_);
                             if ($resized) {
                                 ob_start();
                                 @imagejpeg($resized);
@@ -6960,10 +7186,10 @@ class HTML_facileFormsProcessor {
                             @imagedestroy($resource);
                         }
                         break;
-                    case IMAGETYPE_GIF :
+                    case IMAGETYPE_GIF:
                         $resource = @imagecreatefromgif($path);
                         if ($resource) {
-                            $resized = @$this->resize_image($resource, $width, $height, $type == 'crop' ? 1 : ( $type == 'simple' ? 3 : 2), $col_);
+                            $resized = @$this->resize_image($resource, $width, $height, $type == 'crop' ? 1 : ($type == 'simple' ? 3 : 2), $col_);
                             if ($resized) {
                                 ob_start();
                                 @imagegif($resized);
@@ -6975,10 +7201,10 @@ class HTML_facileFormsProcessor {
                             @imagedestroy($resource);
                         }
                         break;
-                    case IMAGETYPE_PNG :
+                    case IMAGETYPE_PNG:
                         $resource = @imagecreatefrompng($path);
                         if ($resource) {
-                            $resized = @$this->resize_image($resource, $width, $height, $type == 'crop' ? 1 : ( $type == 'simple' ? 3 : 2), $col_);
+                            $resized = @$this->resize_image($resource, $width, $height, $type == 'crop' ? 1 : ($type == 'simple' ? 3 : 2), $col_);
                             if ($resized) {
                                 ob_start();
                                 @imagepng($resized);
@@ -6995,7 +7221,8 @@ class HTML_facileFormsProcessor {
         }
     }
 
-    public function resize_image($source_image, $destination_width, $destination_height, $type = 0, $bgcolor = array(0, 0, 0)) {
+    public function resize_image($source_image, $destination_width, $destination_height, $type = 0, $bgcolor = array(0, 0, 0))
+    {
         // $type (1=crop to fit, 2=letterbox)
         $source_width = imagesx($source_image);
         $source_height = imagesy($source_image);
@@ -7076,7 +7303,8 @@ class HTML_facileFormsProcessor {
         return $destination_image;
     }
 
-    public function returnBytes($val) {
+    public function returnBytes($val)
+    {
         $val = trim($val);
         $last = strtolower($val[strlen($val) - 1]);
         $val = str_replace($val[strlen($val) - 1], '', $val);
@@ -7098,7 +7326,8 @@ class HTML_facileFormsProcessor {
         return $val;
     }
 
-    public function findQuickModeElement(array $dataObject, $needle) {
+    public function findQuickModeElement(array $dataObject, $needle)
+    {
 
         if ($dataObject['properties']['type'] == 'element' && isset($dataObject['properties']['bfName']) && $dataObject['properties']['bfName'] == $needle) {
             return $dataObject;
@@ -7118,14 +7347,16 @@ class HTML_facileFormsProcessor {
         return null;
     }
 
-// saveUpload
+    // saveUpload
 
-    public function measureTime() {
+    public function measureTime()
+    {
         $a = explode(' ', microtime());
         return ((double) $a[0] + $a[1]) / 1000;
     }
 
-    function collectSubmitdata($cbResult = null) {
+    function collectSubmitdata($cbResult = null)
+    {
         if ($this->dying || $this->submitdata)
             return;
 
@@ -7170,9 +7401,9 @@ class HTML_facileFormsProcessor {
                             $resize_type = '';
                             $resize_bgcolor = '#ffffff';
                             if (trim($this->formrow->template_code_processed) == 'QuickMode' && is_array($areas)) {
-                                foreach ($areas As $area) { // don't worry, size is only 1 in QM
+                                foreach ($areas as $area) { // don't worry, size is only 1 in QM
                                     if (isset($area['elements'])) {
-                                        foreach ($area['elements'] As $element) {
+                                        foreach ($area['elements'] as $element) {
                                             if (isset($element['options']) && isset($element['options']['useUrl']) && isset($element['name']) && trim($element['name']) == trim($row->name) && isset($element['internalType']) && $element['internalType'] == 'bfFile') {
                                                 $useUrl = $element['options']['useUrl'];
                                                 $useUrlDownloadDirectory = $element['options']['useUrlDownloadDirectory'];
@@ -7313,11 +7544,11 @@ class HTML_facileFormsProcessor {
                                                                 if ($fmtest != basename($_baseDir)) {
                                                                     $fm = basename($_baseDir);
 
-                                                                    foreach ($this->rows As $row2) {
+                                                                    foreach ($this->rows as $row2) {
 
                                                                         $fname = BFRequest::getVar('ff_nm_' . $row2->name, array(), 'POST', 'HTML', BFREQUEST_ALLOWHTML);
 
-                                                                        foreach ($fname As $_fname) {
+                                                                        foreach ($fname as $_fname) {
                                                                             $fm = str_replace('{filemask:' . strtolower($row2->name) . '}', File::makeSafe(trim($_fname)), $fm);
                                                                             // so it works the same like for folders
                                                                             $fm = str_replace('{' . strtolower($row2->name) . ':value}', File::makeSafe(trim($_fname)), $fm);
@@ -7418,7 +7649,7 @@ class HTML_facileFormsProcessor {
                                     require_once JPATH_SITE . '/administrator/components/com_breezingforms/libraries/dropbox/v2/autoload.php';
                                 }
 
-                                foreach ($serverPaths As $serverPath) {
+                                foreach ($serverPaths as $serverPath) {
 
                                     // DROPBOX File Upload
                                     if ($this->formrow->dropbox_email && version_compare(phpversion(), '5.3.0', '>=')) {
@@ -7427,48 +7658,60 @@ class HTML_facileFormsProcessor {
                                         $upload = new Alorel\Dropbox\Operation\Files\Upload();
                                         $file_to_upload = fopen($serverPath, "rb");
                                         $upload->raw(
-                                                '/' . ($this->formrow->dropbox_folder != '' ? $this->formrow->dropbox_folder : $this->formrow->name) . '/' . basename($serverPath),
-                                                $file_to_upload
+                                            '/' . ($this->formrow->dropbox_folder != '' ? $this->formrow->dropbox_folder : $this->formrow->name) . '/' . basename($serverPath),
+                                            $file_to_upload
                                         );
-                                            try
-                                            {
-                                                    fclose($file_to_upload);
-                                            }catch(Error $e){}
+                                        try {
+                                            fclose($file_to_upload);
+                                        } catch (Error $e) {
+                                        }
                                     }
 
                                     // CONTENTBUILDER: to keep the relative path with prefix
                                     $savedata_path = $serverPath;
-                                    foreach ($this->findtags As $tag) {
+                                    foreach ($this->findtags as $tag) {
                                         if (strtolower($tag) == '{cbsite}' && isset($is_relative[$serverPath]) && $is_relative[$serverPath]) {
                                             $savedata_path = JPath::clean(str_replace(array(JPATH_SITE, JPATH_SITE), array('{cbsite}', '{CBSite}'), $savedata_path));
                                         }
                                     }
 
-                                    if (($this->formrow->dblog == 1 && $savedata_path != '') ||
-                                            $this->formrow->dblog == 2 || ( $cbResult != null && $cbResult['record'] != null))
+                                    if (
+                                        ($this->formrow->dblog == 1 && $savedata_path != '') ||
+                                        $this->formrow->dblog == 2 || ($cbResult != null && $cbResult['record'] != null)
+                                    )
                                         $this->savedata[] = array($row->id, $row->name, strip_tags($row->title), $row->type, $savedata_path);
                                 }
 
                                 foreach ($paths as $path) {
-                                    if (( ($this->formrow->emaillog == 1 && $this->trim($path)) ||
-                                            $this->formrow->emaillog == 2 ) && ($this->formrow->emailxml == 1 ||
-                                            $this->formrow->emailxml == 2 || $this->formrow->emailxml == 3 || $this->formrow->emailxml == 4))
+                                    if (
+                                        (($this->formrow->emaillog == 1 && $this->trim($path)) ||
+                                            $this->formrow->emaillog == 2) && ($this->formrow->emailxml == 1 ||
+                                            $this->formrow->emailxml == 2 || $this->formrow->emailxml == 3 || $this->formrow->emailxml == 4)
+                                    )
                                         $this->xmldata[] = array($row->id, $row->name, strip_tags($row->title), $row->type, $path);
-                                    if (( ($this->formrow->emaillog == 1 && $this->trim($path)) ||
-                                            $this->formrow->mb_emaillog == 2 ) && ($this->formrow->mb_emailxml == 1 ||
-                                            $this->formrow->mb_emailxml == 2 || $this->formrow->mb_emailxml == 3 || $this->formrow->mb_emailxml == 4))
+                                    if (
+                                        (($this->formrow->emaillog == 1 && $this->trim($path)) ||
+                                            $this->formrow->mb_emaillog == 2) && ($this->formrow->mb_emailxml == 1 ||
+                                            $this->formrow->mb_emailxml == 2 || $this->formrow->mb_emailxml == 3 || $this->formrow->mb_emailxml == 4)
+                                    )
                                         $this->mb_xmldata[] = array($row->id, $row->name, strip_tags($row->title), $row->type, $path);
                                 } // foreach
 
                                 if (!count($paths)) {
-                                    if (($this->formrow->dblog == 1) ||
-                                            $this->formrow->dblog == 2)
+                                    if (
+                                        ($this->formrow->dblog == 1) ||
+                                        $this->formrow->dblog == 2
+                                    )
                                         $this->savedata[] = array($row->id, $row->name, strip_tags($row->title), $row->type, '');
-                                    if ($this->formrow->emaillog == 2 && ($this->formrow->emailxml == 1 ||
-                                            $this->formrow->emailxml == 2 || $this->formrow->emailxml == 3 || $this->formrow->emailxml == 4))
+                                    if (
+                                        $this->formrow->emaillog == 2 && ($this->formrow->emailxml == 1 ||
+                                            $this->formrow->emailxml == 2 || $this->formrow->emailxml == 3 || $this->formrow->emailxml == 4)
+                                    )
                                         $this->xmldata[] = array($row->id, $row->name, strip_tags($row->title), $row->type, '');
-                                    if ($this->formrow->mb_emaillog == 2 && ($this->formrow->mb_emailxml == 1 ||
-                                            $this->formrow->mb_emailxml == 2 || $this->formrow->mb_emailxml == 3 || $this->formrow->mb_emailxml == 4))
+                                    if (
+                                        $this->formrow->mb_emaillog == 2 && ($this->formrow->mb_emailxml == 1 ||
+                                            $this->formrow->mb_emailxml == 2 || $this->formrow->mb_emailxml == 3 || $this->formrow->mb_emailxml == 4)
+                                    )
                                         $this->mb_xmldata[] = array($row->id, $row->name, strip_tags($row->title), $row->type, '');
                                 }
                                 // mail
@@ -7479,8 +7722,10 @@ class HTML_facileFormsProcessor {
                                     $this->sfadata[] = array($row->id, $row->name, strip_tags($row->title), $row->type, $paths, $serverPaths);
                                 }
 
-                                if (($this->formrow->emaillog == 1 && $this->trim($paths)) ||
-                                        $this->formrow->emaillog == 2) {
+                                if (
+                                    ($this->formrow->emaillog == 1 && $this->trim($paths)) ||
+                                    $this->formrow->emaillog == 2
+                                ) {
                                     $this->maildata[] = array(
                                         $row->id,
                                         $row->name,
@@ -7568,19 +7813,21 @@ class HTML_facileFormsProcessor {
                                             $upload = new Alorel\Dropbox\Operation\Files\Upload();
                                             $file_to_upload = fopen($sig_file, "rb");
                                             $upload->raw(
-                                                    '/' . ($this->formrow->dropbox_folder != '' ? $this->formrow->dropbox_folder : $this->formrow->name) . '/' . basename($sig_file),
-                                                    $file_to_upload
+                                                '/' . ($this->formrow->dropbox_folder != '' ? $this->formrow->dropbox_folder : $this->formrow->name) . '/' . basename($sig_file),
+                                                $file_to_upload
                                             );
-                                                try
-                                                {
-                                                        fclose($file_to_upload);
-                                                }catch(Error $e){}
+                                            try {
+                                                fclose($file_to_upload);
+                                            } catch (Error $e) {
+                                            }
                                         }
                                     }
 
                                     // for db
-                                    if (($this->formrow->dblog == 1 && $value != '') ||
-                                            $this->formrow->dblog == 2 || ( $cbResult != null && $cbResult['record'] != null))
+                                    if (
+                                        ($this->formrow->dblog == 1 && $value != '') ||
+                                        $this->formrow->dblog == 2 || ($cbResult != null && $cbResult['record'] != null)
+                                    )
                                         $this->savedata[] = array($row->id, $row->name, strip_tags($row->title), $row->type, $value);
 
                                     // CONTENTBUILDER
@@ -7602,13 +7849,17 @@ class HTML_facileFormsProcessor {
                                         if ($this->trim($value) != '')
                                             $this->submitdata[] = array($row->id, $row->name, strip_tags($row->title), $row->type, $value);
 
-                                        if (($this->formrow->emaillog == 1 && $this->trim($value) != '') ||
-                                                $this->formrow->emaillog == 2 && ( ($this->formrow->emailxml == 1 ||
-                                                $this->formrow->emailxml == 2 || $this->formrow->emailxml == 3 || $this->formrow->emailxml == 4)))
+                                        if (
+                                            ($this->formrow->emaillog == 1 && $this->trim($value) != '') ||
+                                            $this->formrow->emaillog == 2 && (($this->formrow->emailxml == 1 ||
+                                                $this->formrow->emailxml == 2 || $this->formrow->emailxml == 3 || $this->formrow->emailxml == 4))
+                                        )
                                             $this->xmldata[] = array($row->id, $row->name, strip_tags($row->title), $row->type, $value);
-                                        if (($this->formrow->mb_emaillog == 1 && $this->trim($value) != '') ||
-                                                $this->formrow->mb_emaillog == 2 && ( ($this->formrow->mb_emailxml == 1 ||
-                                                $this->formrow->mb_emailxml == 2 || $this->formrow->mb_emailxml == 3 || $this->formrow->mb_emailxml == 4)))
+                                        if (
+                                            ($this->formrow->mb_emaillog == 1 && $this->trim($value) != '') ||
+                                            $this->formrow->mb_emaillog == 2 && (($this->formrow->mb_emailxml == 1 ||
+                                                $this->formrow->mb_emailxml == 2 || $this->formrow->mb_emailxml == 3 || $this->formrow->mb_emailxml == 4))
+                                        )
                                             $this->mb_xmldata[] = array($row->id, $row->name, strip_tags($row->title), $row->type, $value);
                                     }
                                 } // foreach
@@ -7661,8 +7912,10 @@ class HTML_facileFormsProcessor {
                                     $this->sfdata[] = array($row->id, $row->name, strip_tags($row->title), $row->type, $sfvalues);
                                 }
 
-                                if (($this->formrow->emaillog == 1 && $this->trim($values)) ||
-                                        $this->formrow->emaillog == 2) {
+                                if (
+                                    ($this->formrow->emaillog == 1 && $this->trim($values)) ||
+                                    $this->formrow->emaillog == 2
+                                ) {
                                     $this->maildata[] = array(
                                         $row->id,
                                         $row->name,
@@ -7673,7 +7926,8 @@ class HTML_facileFormsProcessor {
                                 }
                             } // if logging
                             break;
-                        default:;
+                        default:
+                            ;
                     } // switch
                     $names[] = $row->name;
                 } // if
@@ -7685,9 +7939,10 @@ class HTML_facileFormsProcessor {
         }
     }
 
-// collectSubmitdata
+    // collectSubmitdata
 
-    function submit() {
+    function submit()
+    {
         global $database, $ff_config, $ff_comsite, $ff_mossite, $ff_otherparams;
 
         // CONTENTBUILDER BEGIN
@@ -7745,7 +8000,7 @@ class HTML_facileFormsProcessor {
 
             if (BFRequest::getVar('ff_applic', '') != 'mod_facileforms' && BFRequest::getInt('ff_frame', 0) != 1 && bf_is_mobile()) {
                 $is_device = true;
-                $this->isMobile = isset($rootMdata['mobileEnabled']) && isset($rootMdata['forceMobile']) && $rootMdata['mobileEnabled'] && $rootMdata['forceMobile'] ? true : ( isset($rootMdata['mobileEnabled']) && isset($rootMdata['forceMobile']) && $rootMdata['mobileEnabled'] && JFactory::getSession()->get('com_breezingforms.mobile', false) ? true : false );
+                $this->isMobile = isset($rootMdata['mobileEnabled']) && isset($rootMdata['forceMobile']) && $rootMdata['mobileEnabled'] && $rootMdata['forceMobile'] ? true : (isset($rootMdata['mobileEnabled']) && isset($rootMdata['forceMobile']) && $rootMdata['mobileEnabled'] && JFactory::getSession()->get('com_breezingforms.mobile', false) ? true : false);
             } else
                 $this->isMobile = false;
 
@@ -7763,46 +8018,46 @@ class HTML_facileFormsProcessor {
                     }
                     break;
                 } else
-                if ($row->type == "ReCaptcha") {
+                    if ($row->type == "ReCaptcha") {
 
-                    require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Decoder.php');
-                    require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Encoder.php');
+                        require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Decoder.php');
+                        require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Encoder.php');
 
-                    $areas = Zend_Json::decode($this->formrow->template_areas);
+                        $areas = Zend_Json::decode($this->formrow->template_areas);
 
-                    foreach ($areas As $area) {
-                        foreach ($area['elements'] As $element) {
-                            if ($element['bfType'] == 'ReCaptcha') {
+                        foreach ($areas as $area) {
+                            foreach ($area['elements'] as $element) {
+                                if ($element['bfType'] == 'ReCaptcha') {
 
-                                if (!class_exists('ReCaptcha')) {
+                                    if (!class_exists('ReCaptcha')) {
 
-                                    require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/recaptcha/newrecaptchalib.php');
+                                        require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/recaptcha/newrecaptchalib.php');
+                                    }
+
+                                    $reCaptcha = new ReCaptcha($element['privkey']);
+
+                                    $resp = @$reCaptcha->verifyResponse(
+                                        $_SERVER["REMOTE_ADDR"],
+                                        BFRequest::getVar('g-recaptcha-response', '')
+                                    );
+
+                                    if ($resp != null && $resp->success) {
+
+                                        // all good
+                                    } else {
+
+                                        $halt = true;
+                                        $this->status = _FF_STATUS_CAPTCHA_FAILED;
+                                        exit;
+                                    }
+
+                                    break;
                                 }
-
-                                $reCaptcha = new ReCaptcha($element['privkey']);
-
-                                $resp = @$reCaptcha->verifyResponse(
-                                                $_SERVER["REMOTE_ADDR"],
-                                                BFRequest::getVar('g-recaptcha-response', '')
-                                );
-
-                                if ($resp != null && $resp->success) {
-
-                                    // all good
-                                } else {
-
-                                    $halt = true;
-                                    $this->status = _FF_STATUS_CAPTCHA_FAILED;
-                                    exit;
-                                }
-
-                                break;
                             }
                         }
-                    }
 
-                    break;
-                }
+                        break;
+                    }
             }
 
             require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Decoder.php');
@@ -7815,8 +8070,8 @@ class HTML_facileFormsProcessor {
                     case 'Stripe':
                     case 'PayPal':
                     case 'Sofortueberweisung':
-                        foreach ($areas As $area) {
-                            foreach ($area['elements'] As $element) {
+                        foreach ($areas as $area) {
+                            foreach ($area['elements'] as $element) {
                                 if ($element['internalType'] == 'bfStripe' || $element['internalType'] == 'bfPayPal' || $element['internalType'] == 'bfSofortueberweisung') {
                                     $options = $element['options'];
                                     if (isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
@@ -7836,18 +8091,26 @@ class HTML_facileFormsProcessor {
             switch ($this->formrow->piece3cond) {
                 case 1: // library
                     $database->setQuery(
-                            "select name, code from #__facileforms_pieces " .
-                            "where id=" . $this->formrow->piece3id . " and published=1 "
+                        "select name, code from #__facileforms_pieces " .
+                        "where id=" . $this->formrow->piece3id . " and published=1 "
                     );
                     $rows = $database->loadObjectList();
                     if (count($rows))
                         echo $this->execPiece(
-                                $rows[0]->code, BFText::_('COM_BREEZINGFORMS_PROCESS_BSPIECE') . " " . $rows[0]->name, 'p', $this->formrow->piece3id, null
+                            $rows[0]->code,
+                            BFText::_('COM_BREEZINGFORMS_PROCESS_BSPIECE') . " " . $rows[0]->name,
+                            'p',
+                            $this->formrow->piece3id,
+                            null
                         );
                     break;
                 case 2: // custom code
                     echo $this->execPiece(
-                            $this->formrow->piece3code, BFText::_('COM_BREEZINGFORMS_PROCESS_BSPIECEC'), 'f', $this->form, 3
+                        $this->formrow->piece3code,
+                        BFText::_('COM_BREEZINGFORMS_PROCESS_BSPIECEC'),
+                        'f',
+                        $this->form,
+                        3
                     );
                     break;
                 default:
@@ -7865,10 +8128,10 @@ class HTML_facileFormsProcessor {
                             $cbRecordId = $this->logToDatabase($cbResult);
 
                         if ($this->status == _FF_STATUS_OK) {
-                            if ($this->formrow->emailntf > 0 && ( $cbEmailNotifications || $cbEmailUpdateNotifications )) { // CONTENTBUILDER
+                            if ($this->formrow->emailntf > 0 && ($cbEmailNotifications || $cbEmailUpdateNotifications)) { // CONTENTBUILDER
                                 $this->sendEmailNotification();
                             }
-                            if ($this->formrow->mb_emailntf > 0 && ( $cbEmailNotifications || $cbEmailUpdateNotifications )) { // CONTENTBUILDER
+                            if ($this->formrow->mb_emailntf > 0 && ($cbEmailNotifications || $cbEmailUpdateNotifications)) { // CONTENTBUILDER
                                 $this->sendMailbackNotification();
                             }
 
@@ -7882,14 +8145,17 @@ class HTML_facileFormsProcessor {
                                         Alorel\Dropbox\Operation\AbstractOperation::setDefaultToken($this->formrow->dropbox_email);
 
                                         $dropbox_types = explode(',', $this->formrow->dropbox_submission_types);
-                                        foreach ($dropbox_types As $dropbox_type) {
+                                        foreach ($dropbox_types as $dropbox_type) {
                                             $dropbox_file = '';
                                             switch ($dropbox_type) {
-                                                case 'pdf': $dropbox_file = $this->exppdf();
+                                                case 'pdf':
+                                                    $dropbox_file = $this->exppdf();
                                                     break;
-                                                case 'csv': $dropbox_file = $this->expcsv();
+                                                case 'csv':
+                                                    $dropbox_file = $this->expcsv();
                                                     break;
-                                                case 'xml': $dropbox_file = $this->expxml();
+                                                case 'xml':
+                                                    $dropbox_file = $this->expxml();
                                                     break;
                                             }
                                             if ($dropbox_file != '') {
@@ -7898,20 +8164,20 @@ class HTML_facileFormsProcessor {
                                                     $upload = new Alorel\Dropbox\Operation\Files\Upload();
                                                     $file_to_upload = fopen($dropbox_file, "rb");
                                                     $upload->raw(
-                                                            '/' . ($this->formrow->dropbox_folder != '' ? $this->formrow->dropbox_folder : $this->formrow->name) . '/' . basename($dropbox_file),
-                                                            $file_to_upload
+                                                        '/' . ($this->formrow->dropbox_folder != '' ? $this->formrow->dropbox_folder : $this->formrow->name) . '/' . basename($dropbox_file),
+                                                        $file_to_upload
                                                     );
-                                                                                                        try
-                                                                                                        {
-                                                                                                                fclose($file_to_upload);
-                                                                                                        }catch(Error $e){}
+                                                    try {
+                                                        fclose($file_to_upload);
+                                                    } catch (Error $e) {
+                                                    }
                                                 } catch (Exception $e) {
-                                                    
+
                                                 }
                                             }
                                         }
                                     } catch (Exception $e) {
-                                        
+
                                     }
                                 }
                             }
@@ -7923,7 +8189,8 @@ class HTML_facileFormsProcessor {
                             JPluginHelper::importPlugin('breezingforms_addons');
                             Factory::getApplication()->triggerEvent('onPropertiesExecute', array(
                                 $this
-                            ));
+                            )
+                            );
 
                             $tickets = JFactory::getSession()->get('bfFlashUploadTickets', array());
                             mt_srand();
@@ -7951,7 +8218,7 @@ class HTML_facileFormsProcessor {
                 $email_field_name = $this->formrow->opt_mail;
 
                 // getting the email address from the form based on the setting in admin
-                foreach ($this->submitdata As $data) {
+                foreach ($this->submitdata as $data) {
 
                     if ($data[_FF_DATA_NAME] == $email_field_name) {
                         $recipient = $data[_FF_DATA_VALUE];
@@ -8009,18 +8276,26 @@ class HTML_facileFormsProcessor {
             switch ($this->formrow->piece4cond) {
                 case 1: // library
                     $database->setQuery(
-                            "select name, code from #__facileforms_pieces " .
-                            "where id=" . $this->formrow->piece4id . " and published=1 "
+                        "select name, code from #__facileforms_pieces " .
+                        "where id=" . $this->formrow->piece4id . " and published=1 "
                     );
                     $rows = $database->loadObjectList();
                     if (count($rows))
                         echo $this->execPiece(
-                                $rows[0]->code, BFText::_('COM_BREEZINGFORMS_PROCESS_ESPIECE') . " " . $rows[0]->name, 'p', $this->formrow->piece4id, null
+                            $rows[0]->code,
+                            BFText::_('COM_BREEZINGFORMS_PROCESS_ESPIECE') . " " . $rows[0]->name,
+                            'p',
+                            $this->formrow->piece4id,
+                            null
                         );
                     break;
                 case 2: // custom code
                     echo $this->execPiece(
-                            $this->formrow->piece4code, BFText::_('COM_BREEZINGFORMS_PROCESS_ESPIECEC'), 'f', $this->form, 3
+                        $this->formrow->piece4code,
+                        BFText::_('COM_BREEZINGFORMS_PROCESS_ESPIECEC'),
+                        'f',
+                        $this->form,
+                        3
                     );
                     break;
                 default:
@@ -8089,7 +8364,7 @@ class HTML_facileFormsProcessor {
 
                     case 'Stripe':
 
-                        foreach ($area['elements'] As $element) {
+                        foreach ($area['elements'] as $element) {
 
                             if ($element['internalType'] == 'bfStripe') {
 
@@ -8099,9 +8374,9 @@ class HTML_facileFormsProcessor {
                                 if (count($ppselect) != 0) {
                                     $ppselected = explode('|', $ppselect[0]);
                                     if (count($ppselected) == 4) {
-                                                                                // XDA - BUG : useless with normal itemname
-                                                                                // Replace item name for Stripe button field with TEXT1 TEXT2 values from bfPaymentSelect text build as TEXT1|TEXT2|MNT1|MNT2
-                                                                                // $options['itemname'] = $ppselected[0] . ' ' . $ppselected[1];
+                                        // XDA - BUG : useless with normal itemname
+                                        // Replace item name for Stripe button field with TEXT1 TEXT2 values from bfPaymentSelect text build as TEXT1|TEXT2|MNT1|MNT2
+                                        // $options['itemname'] = $ppselected[0] . ' ' . $ppselected[1];
                                         $options['amount'] = floatval($ppselected[2]) + floatval($ppselected[3]);
                                     }
                                 }
@@ -8113,83 +8388,83 @@ class HTML_facileFormsProcessor {
                                 $html = '';
 
                                 if (!$this->inline)
-                                                                        /*$html .= '<html><head><style> .stripe_checkout_app { height: 580px !important; } </style>
+                                    /*$html .= '<html><head><style> .stripe_checkout_app { height: 580px !important; } </style>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style type="text/css">
 .thebutton {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -ms-box-sizing: border-box;
-    -o-box-sizing: border-box;
-    box-sizing: border-box;
-    padding: 0;
-    margin: 0;
-    width: 120px;
-    height: 37px;
-    border: 0;
-    text-decoration: none;
-    background: #45b1e8;
-    cursor: pointer;
-    background-image: -webkit-linear-gradient(#45b1e8,#3097de);
-    background-image: -moz-linear-gradient(#45b1e8,#3097de);
-    background-image: -ms-linear-gradient(#45b1e8,#3097de);
-    background-image: -o-linear-gradient(#45b1e8,#3097de);
-    background-image: -webkit-linear-gradient(#45b1e8,#3097de);
-    background-image: -moz-linear-gradient(#45b1e8,#3097de);
-    background-image: -ms-linear-gradient(#45b1e8,#3097de);
-    background-image: -o-linear-gradient(#45b1e8,#3097de);
-    background-image: linear-gradient(#45b1e8,#3097de);
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    -ms-border-radius: 4px;
-    -o-border-radius: 4px;
-    border-radius: 4px;
-    -webkit-font-smoothing: antialiased;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -o-user-select: none;
-    user-select: none;
-    cursor: pointer;
-    font-family: "Helvetica Neue","Helvetica",Arial,sans-serif;
-    font-weight: bold;
-    font-size: 17px;
-    color: #fff;
-    text-shadow: 0 -1px 0 rgba(46,86,153,0.3);
-    -webkit-box-shadow: 0 1px 0 rgba(46,86,153,0.15),0 0 4px rgba(86,149,219,0),inset 0 2px 0 rgba(41,102,20,0);
-    -moz-box-shadow: 0 1px 0 rgba(46,86,153,0.15),0 0 4px rgba(86,149,219,0),inset 0 2px 0 rgba(41,102,20,0);
-    -ms-box-shadow: 0 1px 0 rgba(46,86,153,0.15),0 0 4px rgba(86,149,219,0),inset 0 2px 0 rgba(41,102,20,0);
-    -o-box-shadow: 0 1px 0 rgba(46,86,153,0.15),0 0 4px rgba(86,149,219,0),inset 0 2px 0 rgba(41,102,20,0);
-    box-shadow: 0 1px 0 rgba(46,86,153,0.15),0 0 4px rgba(86,149,219,0),inset 0 2px 0 rgba(41,102,20,0);
-    -webkit-transition: box-shadow .15s linear;
-    -moz-transition: box-shadow .15s linear;
-    -ms-transition: box-shadow .15s linear;
-    -o-transition: box-shadow .15s linear;
-    transition: box-shadow .15s linear;
+-webkit-box-sizing: border-box;
+-moz-box-sizing: border-box;
+-ms-box-sizing: border-box;
+-o-box-sizing: border-box;
+box-sizing: border-box;
+padding: 0;
+margin: 0;
+width: 120px;
+height: 37px;
+border: 0;
+text-decoration: none;
+background: #45b1e8;
+cursor: pointer;
+background-image: -webkit-linear-gradient(#45b1e8,#3097de);
+background-image: -moz-linear-gradient(#45b1e8,#3097de);
+background-image: -ms-linear-gradient(#45b1e8,#3097de);
+background-image: -o-linear-gradient(#45b1e8,#3097de);
+background-image: -webkit-linear-gradient(#45b1e8,#3097de);
+background-image: -moz-linear-gradient(#45b1e8,#3097de);
+background-image: -ms-linear-gradient(#45b1e8,#3097de);
+background-image: -o-linear-gradient(#45b1e8,#3097de);
+background-image: linear-gradient(#45b1e8,#3097de);
+-webkit-border-radius: 4px;
+-moz-border-radius: 4px;
+-ms-border-radius: 4px;
+-o-border-radius: 4px;
+border-radius: 4px;
+-webkit-font-smoothing: antialiased;
+-webkit-touch-callout: none;
+-webkit-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+-o-user-select: none;
+user-select: none;
+cursor: pointer;
+font-family: "Helvetica Neue","Helvetica",Arial,sans-serif;
+font-weight: bold;
+font-size: 17px;
+color: #fff;
+text-shadow: 0 -1px 0 rgba(46,86,153,0.3);
+-webkit-box-shadow: 0 1px 0 rgba(46,86,153,0.15),0 0 4px rgba(86,149,219,0),inset 0 2px 0 rgba(41,102,20,0);
+-moz-box-shadow: 0 1px 0 rgba(46,86,153,0.15),0 0 4px rgba(86,149,219,0),inset 0 2px 0 rgba(41,102,20,0);
+-ms-box-shadow: 0 1px 0 rgba(46,86,153,0.15),0 0 4px rgba(86,149,219,0),inset 0 2px 0 rgba(41,102,20,0);
+-o-box-shadow: 0 1px 0 rgba(46,86,153,0.15),0 0 4px rgba(86,149,219,0),inset 0 2px 0 rgba(41,102,20,0);
+box-shadow: 0 1px 0 rgba(46,86,153,0.15),0 0 4px rgba(86,149,219,0),inset 0 2px 0 rgba(41,102,20,0);
+-webkit-transition: box-shadow .15s linear;
+-moz-transition: box-shadow .15s linear;
+-ms-transition: box-shadow .15s linear;
+-o-transition: box-shadow .15s linear;
+transition: box-shadow .15s linear;
 }
 </style></head><body>';*/
-require_once JPATH_SITE . '/administrator/components/com_breezingforms/libraries/stripe/vendor/autoload.php';
-\Stripe\Stripe::setApiKey($options['secretKey']);
-$stripeemail = strtolower(BFRequest::getVar('ff_nm_'.$options['emailfield'], '')[0]);
-//header('Content-Type: application/json');
-$returnurl = Uri::root() . "index.php?option=com_breezingforms&confirmStripe=true&form_id=" . $this->form . "&record_id=" . $this->record_id;
-                                                                if(isset($options['emailfield']) && $options['emailfield'] !== '') {
-                                                                        $stripeemail = strtolower(BFRequest::getVar('ff_nm_'.$options['emailfield'], '')[0]);
-                                                                        JFactory::getSession()->set('emailfield', $stripeemail);
-                                                                }
+                                    require_once JPATH_SITE . '/administrator/components/com_breezingforms/libraries/stripe/vendor/autoload.php';
+                                \Stripe\Stripe::setApiKey($options['secretKey']);
+                                $stripeemail = strtolower(BFRequest::getVar('ff_nm_' . $options['emailfield'], '')[0]);
+                                //header('Content-Type: application/json');
+                                $returnurl = Uri::root() . "index.php?option=com_breezingforms&confirmStripe=true&form_id=" . $this->form . "&record_id=" . $this->record_id;
+                                if (isset($options['emailfield']) && $options['emailfield'] !== '') {
+                                    $stripeemail = strtolower(BFRequest::getVar('ff_nm_' . $options['emailfield'], '')[0]);
+                                    JFactory::getSession()->set('emailfield', $stripeemail);
+                                }
 
-// XDA BEGIN
+                                // XDA BEGIN
 // preg_match('#\((.*?)\)#', $_POST['ff_nm_donationAmount'][0], $match);
 // $productName = $match[1];
-$productName = $options['itemname'];
-// XDA END
+                                $productName = $options['itemname'];
+                                // XDA END
 
-// XDA $pricearr = explode(" ", $$_POST['ff_nm_donationAmount'][0], 2);
+                                // XDA $pricearr = explode(" ", $$_POST['ff_nm_donationAmount'][0], 2);
 // XDA $productPrice = $pricearr[0];
 
-// ---------------------------------------------------------------------------------------------------------------------------------------------
+                                // ---------------------------------------------------------------------------------------------------------------------------------------------
 // XDA : in the Stripe Checkout session, 2 changes :
 // 1 - To disable address collection we will either need to pass billing_address_collection parameter with value auto or send API request without it.
 //      billing_address_collection' => 'required' -> 'auto'
@@ -8198,54 +8473,56 @@ $productName = $options['itemname'];
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
 
-$checkout_session = \Stripe\Checkout\Session::create([
-        'customer_email' => $stripeemail,
-        'billing_address_collection' => 'auto',
-        /*
-        'line_items' => [[
-          'price' => 'price_1JYA3UDkYxK6vMJ2QF2S6fNh',
-          'quantity' => 1,
-          //'description' => var_dump($stripeemail);
-        ]],*/
-        'line_items' => [[
-                'price_data' => [
-                  'currency' => strtolower($options['currencyCode']),
-                  'product_data' => [
-                        'name' => "$productName",
-                  ],
-                  'unit_amount' => $options['amount'],
-                ],
-                'quantity' => 1,
-          ]],
-        'payment_method_types' => [
-          'card',
-        ],
-        'mode' => 'payment',
-        'success_url' => $returnurl."&session_id={CHECKOUT_SESSION_ID}",
-        'cancel_url' => $returnurl."&session_id={CHECKOUT_SESSION_ID}",
-  ]);
+                                $checkout_session = \Stripe\Checkout\Session::create([
+                                    'customer_email' => $stripeemail,
+                                    'billing_address_collection' => 'auto',
+                                    /*
+                                    'line_items' => [[
+                                      'price' => 'price_1JYA3UDkYxK6vMJ2QF2S6fNh',
+                                      'quantity' => 1,
+                                      //'description' => var_dump($stripeemail);
+                                    ]],*/
+                                    'line_items' => [
+                                        [
+                                            'price_data' => [
+                                                'currency' => strtolower($options['currencyCode']),
+                                                'product_data' => [
+                                                    'name' => "$productName",
+                                                ],
+                                                'unit_amount' => $options['amount'],
+                                            ],
+                                            'quantity' => 1,
+                                        ]
+                                    ],
+                                    'payment_method_types' => [
+                                        'card',
+                                    ],
+                                    'mode' => 'payment',
+                                    'success_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
+                                    'cancel_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
+                                ]);
 
-        //$html .=  $_POST['ff_nm_email'][0];
-        $html .= header("HTTP/1.1 303 See Other");
-        $html .= header("Location: " . $checkout_session->url);
+                                //$html .=  $_POST['ff_nm_email'][0];
+                                $html .= header("HTTP/1.1 303 See Other");
+                                $html .= header("Location: " . $checkout_session->url);
 
-        $current_tag = JFactory::getApplication()->getLanguage()->getTag();
-        $exploded = explode('-', $current_tag);
+                                $current_tag = JFactory::getApplication()->getLanguage()->getTag();
+                                $exploded = explode('-', $current_tag);
 
-        $locale = 'auto';
+                                $locale = 'auto';
 
-        if (in_array(strtolower($exploded[0]), array('zh', 'nl', 'en', 'fr', 'de', 'it', 'ja', 'es'))) {
+                                if (in_array(strtolower($exploded[0]), array('zh', 'nl', 'en', 'fr', 'de', 'it', 'ja', 'es'))) {
 
-            $locale = strtolower($exploded[0]);
-        }
+                                    $locale = strtolower($exploded[0]);
+                                }
 
-        $returnurl = Uri::root() . "index.php?option=com_breezingforms&confirmStripe=true&form_id=" . $this->form . "&record_id=" . $this->record_id;
-        if (isset($options['emailfield']) && $options['emailfield'] !== '') {
-            $stripeemail = strtolower(BFRequest::getVar('ff_nm_' . $options['emailfield'], '')[0]);
-            JFactory::getSession()->set('emailfield', $stripeemail);
-        }
+                                $returnurl = Uri::root() . "index.php?option=com_breezingforms&confirmStripe=true&form_id=" . $this->form . "&record_id=" . $this->record_id;
+                                if (isset($options['emailfield']) && $options['emailfield'] !== '') {
+                                    $stripeemail = strtolower(BFRequest::getVar('ff_nm_' . $options['emailfield'], '')[0]);
+                                    JFactory::getSession()->set('emailfield', $stripeemail);
+                                }
 
-        $html .= '
+                                $html .= '
                         
                         <script src="https://checkout.stripe.com/checkout.js"></script>
         
@@ -8304,9 +8581,9 @@ $checkout_session = \Stripe\Checkout\Session::create([
 
                     case 'PayPal':
 
-                        foreach ($areas As $area) {
+                        foreach ($areas as $area) {
 
-                            foreach ($area['elements'] As $element) {
+                            foreach ($area['elements'] as $element) {
 
                                 if ($element['internalType'] == 'bfPayPal') {
 
@@ -8387,7 +8664,7 @@ $checkout_session = \Stripe\Checkout\Session::create([
                                     $html .= "<input type=\"hidden\" name=\"item_number\" value=\"" . $options['itemnumber'] . "\"/>";
                                     $html .= "<input type=\"hidden\" name=\"amount\" value=\"" . $options['amount'] . "\"/>";
                                     $html .= "<input type=\"hidden\" name=\"tax\" value=\"" . $options['tax'] . "\"/>";
-                                    $html .= "<input type=\"hidden\" name=\"no_shipping\" value=\"" . ( $options['shipping'] == 1 ? 0 : 1 ) . "\"/>";
+                                    $html .= "<input type=\"hidden\" name=\"no_shipping\" value=\"" . ($options['shipping'] == 1 ? 0 : 1) . "\"/>";
                                     $html .= "<input type=\"hidden\" name=\"no_note\" value=\"1\"/>";
                                     if ($options['useIpn']) {
                                         $html .= "<input type=\"hidden\" name=\"notify_url\" value=\"" . htmlentities(Uri::root() . "index.php?option=com_breezingforms&confirmPayPalIpn=true&raw=true&form_id=" . $this->form . "&record_id=" . $this->record_id) . "\"/>";
@@ -8413,8 +8690,8 @@ $checkout_session = \Stripe\Checkout\Session::create([
                                     // TODO: let the user decide to use modal or simple alert
                                     if ($j15) {
                                         $html .= '<script type="text/javascript">' . nl() .
-                                                indentc(1) . '<!--' . nl() .
-                                                indentc(2) . '
+                                            indentc(1) . '<!--' . nl() .
+                                            indentc(2) . '
 
 										    SqueezeBox.initialize({});
 
@@ -8431,8 +8708,8 @@ $checkout_session = \Stripe\Checkout\Session::create([
 										 	
 
 										' . nl() .
-                                                indentc(1) . '// -->' . nl() .
-                                                '</script>' . nl();
+                                            indentc(1) . '// -->' . nl() .
+                                            '</script>' . nl();
                                     }
                                     $html .= '<script type="text/javascript"><!--' . nl() . 'document.ff_submitform.submit();' . nl() . '//--></script>';
                                     echo $html;
@@ -8446,8 +8723,8 @@ $checkout_session = \Stripe\Checkout\Session::create([
 
                     case 'Sofortueberweisung':
 
-                        foreach ($areas As $area) {
-                            foreach ($area['elements'] As $element) {
+                        foreach ($areas as $area) {
+                            foreach ($area['elements'] as $element) {
                                 if ($element['internalType'] == 'bfSofortueberweisung') {
 
                                     $html = '';
@@ -8466,7 +8743,7 @@ $checkout_session = \Stripe\Checkout\Session::create([
                                             $options['reason_2'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
                                             $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
                                             if ($ppselected[3] != '' && intval($ppselected[3]) > 0) {
-                                                $options['amount'] = '' . ( doubleval($options['amount']) + doubleval($ppselected[3]) );
+                                                $options['amount'] = '' . (doubleval($options['amount']) + doubleval($ppselected[3]));
                                             }
                                         }
                                     }
@@ -8529,8 +8806,8 @@ $checkout_session = \Stripe\Checkout\Session::create([
                                     if ($j15) {
                                         // TODO: let the user decide to use modal or simple alert
                                         $html .= '<script type="text/javascript">' . nl() .
-                                                indentc(1) . '<!--' . nl() .
-                                                indentc(2) . '
+                                            indentc(1) . '<!--' . nl() .
+                                            indentc(2) . '
 
 										    SqueezeBox.initialize({});
 
@@ -8545,8 +8822,8 @@ $checkout_session = \Stripe\Checkout\Session::create([
 										    SqueezeBox.loadModal("' . Uri::root() . 'index.php?raw=true&option=com_breezingforms&showPayPalConnectMsg=true","iframe",300,100);
 
 										' . nl() .
-                                                indentc(1) . '// -->' . nl() .
-                                                '</script>' . nl();
+                                            indentc(1) . '// -->' . nl() .
+                                            '</script>' . nl();
                                     }
                                     $html .= '<script type="text/javascript"><!--' . nl() . 'document.ff_submitform.submit();' . nl() . '//--></script>';
 
@@ -8590,17 +8867,17 @@ $checkout_session = \Stripe\Checkout\Session::create([
                 }
 
                 if (!JFactory::getUser()->get('id', 0)) {
-                        JFactory::getApplication()->redirect(JRoute::_('index.php?option=com_users&view=login&Itemid=' . BFRequest::getInt('Itemid', 0), false));
+                    JFactory::getApplication()->redirect(Route::_('index.php?option=com_users&view=login&Itemid=' . BFRequest::getInt('Itemid', 0), false));
                 } else {
 
-                        JFactory::getApplication()->redirect(JRoute::_('index.php?option=com_users&view=profile&Itemid=' . BFRequest::getInt('Itemid', 0), false));
+                    JFactory::getApplication()->redirect(Route::_('index.php?option=com_users&view=profile&Itemid=' . BFRequest::getInt('Itemid', 0), false));
                 }
             } else if (trim($cbResult['data']['force_url'])) {
                 JFactory::getApplication()->redirect(trim($cbResult['data']['force_url']));
             }
 
-                        Factory::getApplication()->enqueueMessage(BFText::_('COM_CONTENTBUILDER_SAVED'), 'success');
-            JFactory::getApplication()->redirect(JRoute::_('index.php?option=com_contentbuilder&controller=details&Itemid=' . BFRequest::getInt('Itemid', 0) . '&backtolist=' . BFRequest::getInt('backtolist', 0) . '&id=' . $cbResult['data']['id'] . '&record_id=' . $cbRecordId . '&limitstart=' . BFRequest::getInt('limitstart', 0) . '&filter_order=' . BFRequest::getCmd('filter_order'), false));
+            Factory::getApplication()->enqueueMessage(BFText::_('COM_CONTENTBUILDER_SAVED'), 'success');
+            JFactory::getApplication()->redirect(Route::_('index.php?option=com_contentbuilder&controller=details&Itemid=' . BFRequest::getInt('Itemid', 0) . '&backtolist=' . BFRequest::getInt('backtolist', 0) . '&id=' . $cbResult['data']['id'] . '&record_id=' . $cbRecordId . '&limitstart=' . BFRequest::getInt('limitstart', 0) . '&filter_order=' . BFRequest::getCmd('filter_order'), false));
         }
 
         if (!$paymentAction) {
@@ -8631,7 +8908,7 @@ $checkout_session = \Stripe\Checkout\Session::create([
             } // if
 
             if (!$this->inline) {
-                $url = ($this->inframe) ? $ff_mossite . '/index.php?format=html&tmpl=component' : (($this->runmode == _FF_RUNMODE_FRONTEND) ? '' : 'index.php?format=html' . (BFRequest::getCmd('tmpl', '') ? '&tmpl=' . BFRequest::getCmd('tmpl', '') : '') );
+                $url = ($this->inframe) ? $ff_mossite . '/index.php?format=html&tmpl=component' : (($this->runmode == _FF_RUNMODE_FRONTEND) ? '' : 'index.php?format=html' . (BFRequest::getCmd('tmpl', '') ? '&tmpl=' . BFRequest::getCmd('tmpl', '') : ''));
                 echo '<form name="ff_submitform" action="' . $url . '" method="post">' . nl();
             } // if
 
@@ -8657,9 +8934,9 @@ $checkout_session = \Stripe\Checkout\Session::create([
 
                 case _FF_RUNMODE_BACKEND:
                     echo indentc(1) . '<input type="hidden" name="option" value="com_breezingforms"/>' . nl() .
-                    indentc(1) . '<input type="hidden" name="act" value="run"/>' . nl() .
-                    indentc(1) . '<input type="hidden" name="ff_form" value="' . htmlentities($this->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
-                    indentc(1) . '<input type="hidden" name="ff_runmode" value="' . htmlentities($this->runmode, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
+                        indentc(1) . '<input type="hidden" name="act" value="run"/>' . nl() .
+                        indentc(1) . '<input type="hidden" name="ff_form" value="' . htmlentities($this->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
+                        indentc(1) . '<input type="hidden" name="ff_runmode" value="' . htmlentities($this->runmode, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
                     if ($this->target > 1)
                         echo indentc(1) . '<input type="hidden" name="ff_target" value="' . htmlentities($this->target, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
                     if ($this->inframe)
@@ -8677,21 +8954,21 @@ $checkout_session = \Stripe\Checkout\Session::create([
                 default: // _FF_RUNMODE_PREVIEW:
                     if ($this->inframe) {
                         echo indentc(1) . '<input type="hidden" name="option" value="com_breezingforms"/>' . nl() .
-                        indentc(1) . '<input type="hidden" name="ff_frame" value="1"/>' . nl() .
-                        indentc(1) . '<input type="hidden" name="ff_form" value="' . htmlentities($this->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
-                        indentc(1) . '<input type="hidden" name="ff_runmode" value="' . htmlentities($this->runmode, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
+                            indentc(1) . '<input type="hidden" name="ff_frame" value="1"/>' . nl() .
+                            indentc(1) . '<input type="hidden" name="ff_form" value="' . htmlentities($this->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
+                            indentc(1) . '<input type="hidden" name="ff_runmode" value="' . htmlentities($this->runmode, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
                         if ($this->page != 1)
                             indentc(1) . '<input type="hidden" name="ff_page" value="' . htmlentities($this->page, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
                     } // if
             } // if
 
             echo indentc(1) . '<input type="hidden" name="ff_contentid" value="' . BFRequest::getInt('ff_contentid', 0) . '"/>' . nl() .
-            indentc(1) . '<input type="hidden" name="ff_applic" value="' . BFRequest::getWord('ff_applic', '') . '"/>' . nl() .
-            indentc(1) . '<input type="hidden" name="ff_record_id" value="' . $this->record_id . '"/>' . nl() .
-            indentc(1) . '<input type="hidden" name="ff_module_id" value="' . BFRequest::getInt('ff_module_id', 0) . '"/>' . nl() .
-            indentc(1) . '<input type="hidden" name="ff_status" value="' . htmlentities($this->status, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
-            indentc(1) . '<input type="hidden" name="ff_message" value="' . htmlentities($message, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
-            indentc(1) . '<input type="hidden" name="ff_form_submitted" value="1"/>' . nl();
+                indentc(1) . '<input type="hidden" name="ff_applic" value="' . BFRequest::getWord('ff_applic', '') . '"/>' . nl() .
+                indentc(1) . '<input type="hidden" name="ff_record_id" value="' . $this->record_id . '"/>' . nl() .
+                indentc(1) . '<input type="hidden" name="ff_module_id" value="' . BFRequest::getInt('ff_module_id', 0) . '"/>' . nl() .
+                indentc(1) . '<input type="hidden" name="ff_status" value="' . htmlentities($this->status, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
+                indentc(1) . '<input type="hidden" name="ff_message" value="' . htmlentities($message, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
+                indentc(1) . '<input type="hidden" name="ff_form_submitted" value="1"/>' . nl();
 
             if (BFRequest::getVar('tmpl') == 'component') {
                 echo indentc(1) . '<input type="hidden" name="tmpl" value="component"/>' . nl();
@@ -8715,11 +8992,11 @@ $checkout_session = \Stripe\Checkout\Session::create([
 
             if (!$this->inline) {
                 echo '</form>' . nl() .
-                '<script type="text/javascript">' . nl() .
-                indentc(1) . '<!--' . nl() .
-                indentc(2) . 'document.ff_submitform.submit();' . nl() .
-                indentc(1) . '// -->' . nl() .
-                '</script>' . nl();
+                    '<script type="text/javascript">' . nl() .
+                    indentc(1) . '<!--' . nl() .
+                    indentc(2) . 'document.ff_submitform.submit();' . nl() .
+                    indentc(1) . '// -->' . nl() .
+                    '</script>' . nl();
             } // if
 
             if (!defined('VMBFCF_RUNNING')) {
@@ -8742,12 +9019,14 @@ $checkout_session = \Stripe\Checkout\Session::create([
         }
     }
 
-    private function getEvent(string $name): EventInterface {
+    private function getEvent(string $name): EventInterface
+    {
 
         return new Event($name);
     }
 
-    function removeDangerousHtml($value) {
+    function removeDangerousHtml($value)
+    {
 
         if (trim($value) == '')
             return '';
@@ -8807,5 +9086,5 @@ $checkout_session = \Stripe\Checkout\Session::create([
         return strip_tags($value);
     }
 
-// submit
+    // submit
 }

@@ -8,10 +8,12 @@
  */
 defined('_JEXEC') or die('Restricted access');
 
-use Joomla\CMS\Language\Text;
-
 jimport('joomla.html.html');
 jimport('joomla.form.formfield');
+
+use Joomla\CMS\Language\Text;
+use Joomla\Database\DatabaseInterface;
+use Joomla\CMS\Factory;
 
 class JFormFieldCbfilter extends JFormField {
 
@@ -22,7 +24,7 @@ class JFormFieldCbfilter extends JFormField {
 		$out = '<input type="hidden" name="'.$this->name.'" id="'.$this->id.'" value="'.htmlentities($this->value, ENT_QUOTES, 'UTF-8').'"/>';
 		$out .= '<div id="cbElementsWrapper">';
 		$class = $this->element['class'] ? $this->element['class'] : "text_area";
-		$db = CBFactory::getDbo();
+		$db = Factory::getContainer()->get(DatabaseInterface::class);
 		if($this->value){
 			$db->setQuery("Select * From #__contentbuilder_elements Where published = 1 And form_id = " . intval($this->value));
 			$elements = $db->loadAssocList();

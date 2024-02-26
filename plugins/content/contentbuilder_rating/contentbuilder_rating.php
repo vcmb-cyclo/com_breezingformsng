@@ -13,6 +13,7 @@ defined( '_JEXEC' ) or die( 'Direct Access to this location is not allowed.' );
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\File;
 use Joomla\Filesystem\Folder;
+use Joomla\Database\DatabaseInterface;
 
 if(!function_exists('cb_b64enc')){
     
@@ -111,7 +112,7 @@ class plgContentContentbuilder_rating extends JPlugin {
         
         if(isset($article->id) || isset($article->cbrecord)){
             
-            $db = CBFactory::getDbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
             
             $matches = array();
             

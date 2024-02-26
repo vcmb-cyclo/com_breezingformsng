@@ -11,6 +11,9 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 
 jimport( 'joomla.plugin.plugin' );
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 class plgContentbuilder_themesKhepri extends JPlugin
 {
         function __construct( &$subject, $params )
@@ -969,7 +972,7 @@ table.group-rules td select
          * @return string
          */
         function onContentTemplateSample($contentbuilder_form_id, $form){
-            $db = CBFactory::getDbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
             $out = '<table border="0" width="100%" class="admintable adminlist"><tbody>'."\n";
             $names = $form->getElementNames();
             foreach($names As $reference_id => $name){
@@ -993,7 +996,7 @@ table.group-rules td select
          * @return string
          */
         function onEditableTemplateSample($contentbuilder_form_id, $form){
-            $db = CBFactory::getDbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
             $out = '<table border="0" width="100%" class="admintable adminlist"><tbody>'."\n";
             $names = $form->getElementNames();
             $hidden = array();

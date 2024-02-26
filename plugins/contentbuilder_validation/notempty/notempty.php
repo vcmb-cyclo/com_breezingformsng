@@ -12,6 +12,8 @@ use Joomla\CMS\Language\Text;
 
 jimport( 'joomla.plugin.plugin' );
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 class plgContentbuilder_validationNotempty extends JPlugin
 {
@@ -25,7 +27,7 @@ class plgContentbuilder_validationNotempty extends JPlugin
             $lang = JFactory::getLanguage();
             $lang->load('plg_contentbuilder_validation_notempty', JPATH_ADMINISTRATOR);
 
-            $db = CBFactory::getDbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
             $msg = '';
             
             if(!is_array($value)){

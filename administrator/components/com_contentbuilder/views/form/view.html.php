@@ -9,11 +9,13 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
+jimport('joomla.html.pane');
+
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Database\DatabaseInterface;
 
-jimport('joomla.html.pane');
 
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'joomla_compat.php');
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'pane' . DS . 'CBTabs.php');
@@ -79,7 +81,7 @@ class ContentbuilderViewForm extends CBView
         $ordering = ($lists['order'] == 'ordering');
 
         $gmap = array();
-        $db = CBFactory::getDbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
         $query = 'SELECT CONCAT( REPEAT(\'..\', COUNT(parent.id) - 1), node.title) as text, node.id as value'
             . ' FROM #__usergroups AS node, #__usergroups AS parent'
             . ' WHERE node.lft BETWEEN parent.lft AND parent.rgt'

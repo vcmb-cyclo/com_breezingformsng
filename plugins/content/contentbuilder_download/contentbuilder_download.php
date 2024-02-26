@@ -15,6 +15,7 @@ use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Filesystem\Folder;
+use Joomla\Database\DatabaseInterface;
 
 if(!function_exists('cb_b64enc')){
     
@@ -192,7 +193,7 @@ class plgContentContentbuilder_download extends JPlugin {
         
         if(isset($article->id) || isset($article->cbrecord)){
             
-            $db = CBFactory::getDbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
             
             $matches = array();
             

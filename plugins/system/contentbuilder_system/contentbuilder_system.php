@@ -14,6 +14,7 @@ use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
 
+
 if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
 }
@@ -232,7 +233,7 @@ class plgSystemContentbuilder_system extends JPlugin
         // register non-existent records
         if (in_array(CBRequest::getVar('option', ''), array('com_contentbuilder', 'com_content'))) {
 
-            $db = CBFactory::getDbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
 
             require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
             $db->setQuery("Select `type`, `reference_id` From #__contentbuilder_forms Where published = 1");
@@ -300,7 +301,7 @@ class plgSystemContentbuilder_system extends JPlugin
 
         if (CBRequest::getVar('option') == 'com_contentbuilder') {
 
-            CBFactory::getDbo()->setQuery("
+            Factory::getContainer()->get(DatabaseInterface::class)->setQuery("
                     Update 
                         #__contentbuilder_records As records,
                         #__contentbuilder_forms As forms,
@@ -329,9 +330,9 @@ class plgSystemContentbuilder_system extends JPlugin
                         )
                       )
                     ");
-            CBFactory::getDbo()->execute();
+            Factory::getContainer()->get(DatabaseInterface::class)->execute();
 
-            CBFactory::getDbo()->setQuery("
+            Factory::getContainer()->get(DatabaseInterface::class)->setQuery("
                     Update 
                         #__contentbuilder_records As records,
                         #__contentbuilder_forms As forms,
@@ -356,7 +357,7 @@ class plgSystemContentbuilder_system extends JPlugin
                     And
                         users.block = 0
                     ");
-            CBFactory::getDbo()->execute();
+            Factory::getContainer()->get(DatabaseInterface::class)->execute();
         }
     }
 

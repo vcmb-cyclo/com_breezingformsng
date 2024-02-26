@@ -8,23 +8,26 @@
  */
 defined('_JEXEC') or die('Restricted access');
 
-use Joomla\CMS\Language\Text;
-use Joomla\CMS\Factory;
-
 jimport('joomla.html.html');
 jimport('joomla.form.formfield');
 
-class JFormFieldCategories extends JFormField {
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
+class JFormFieldCategories extends JFormField
+{
 
     protected $type = 'Forms';
 
-    protected function getInput() {
+    protected function getInput()
+    {
         $class = $this->element['class'] ? $this->element['class'] : "text_area";
-        
+
         // Initialise variables.
         $options = array();
 
-        $db = CBFactory::getDbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
         $query = $db->getQuery(true);
 
         $query->select('a.id AS value, a.title AS text, a.level');
@@ -98,16 +101,16 @@ class JFormFieldCategories extends JFormField {
 
         // Merge any additional options in the XML definition.
         //$options = array_merge(parent::getOptions(), $options);
-        
+
         $out = '<select style="max-width: 200px;" name="' . $this->name . '" id="' . $this->id . '" class="' . $this->element['class'] . '">' . "\n";
-        
-        $out .= '<option value="-2">'.Text::_('COM_CONTENTBUILDER_INHERIT').'</option>'."\n";
-        
-        foreach ($options As $category) {
-            $out .= '<option '.($this->value == $category->value  ? ' selected="selected"' : '').'value="'.$category->value.'">'.htmlentities($category->text, ENT_QUOTES, 'UTF-8').'</option>'."\n";
+
+        $out .= '<option value="-2">' . Text::_('COM_CONTENTBUILDER_INHERIT') . '</option>' . "\n";
+
+        foreach ($options as $category) {
+            $out .= '<option ' . ($this->value == $category->value ? ' selected="selected"' : '') . 'value="' . $category->value . '">' . htmlentities($category->text, ENT_QUOTES, 'UTF-8') . '</option>' . "\n";
         }
         $out .= '</select>' . "\n";
-        
+
         return $out;
     }
 }

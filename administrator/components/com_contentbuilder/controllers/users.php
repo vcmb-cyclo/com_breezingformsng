@@ -151,7 +151,7 @@ class ContentbuilderControllerUsers extends CBController
             $model->setPublished();
         }
 
-        $this->setRedirect( JRoute::_('index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart='.CBRequest::getInt('limitstart'), false), Text::_('COM_CONTENTBUILDER_PUBLISHED') );
+        $this->setRedirect( Route::_('index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart='.CBRequest::getInt('limitstart'), false), Text::_('COM_CONTENTBUILDER_PUBLISHED') );
     }
     
     function unpublish() {
@@ -168,7 +168,7 @@ class ContentbuilderControllerUsers extends CBController
             $model->setUnpublished();
         }
 
-        $this->setRedirect( JRoute::_('index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart='.CBRequest::getInt('limitstart'), false), Text::_('COM_CONTENTBUILDER_UNPUBLISHED') );
+        $this->setRedirect( Route::_('index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart='.CBRequest::getInt('limitstart'), false), Text::_('COM_CONTENTBUILDER_UNPUBLISHED') );
     }
     
     function save($keep_task = false)
@@ -193,13 +193,13 @@ class ContentbuilderControllerUsers extends CBController
 
         // Check the table in so it can be edited.... we are done with it anyway
         $link = 'index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart='.$limit.$additionalParams;
-        $this->setRedirect(JRoute::_($link, false), $msg);
+        $this->setRedirect(Route::_($link, false), $msg);
     }
 
     function cancel()
     {
         $msg = Text::_( 'COM_CONTENTBUILDER_CANCELLED' );
-        $this->setRedirect( JRoute::_('index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart=0', false), $msg );
+        $this->setRedirect( Route::_('index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart=0', false), $msg );
     }
 
     function display($cachable = false, $urlparams = array())
