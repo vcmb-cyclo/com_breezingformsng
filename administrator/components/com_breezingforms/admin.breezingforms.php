@@ -4,6 +4,7 @@
  * @version 1.9
  * @package BreezingForms
  * @copyright (C) 2008-2020 by Markus Bopp
+ * @copyright (C) 2024 by XDA+GIL
  * @license Released under the terms of the GNU General Public License
  **/
 
@@ -46,16 +47,9 @@ if (!function_exists('bf_b64dec')) {
 
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'crosstec' . DS . 'classes' . DS . 'BFJoomlaConfig.php');
 
-jimport('joomla.version');
-$version = new JVersion();
-
 function bf_getTableFields($tables, $typeOnly = true)
 {
-    jimport('joomla.version');
-    $version = new JVersion();
-
     $results = array();
-
     settype($tables, 'array');
 
     foreach ($tables as $table) {
@@ -341,8 +335,6 @@ require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries
 require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/functions/helpers.php');
 require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/constants.php');
 
-jimport('joomla.version');
-$version = new JVersion();
 
 $_POST = bf_stripslashes_deep($_POST);
 $_GET = bf_stripslashes_deep($_GET);
@@ -362,10 +354,6 @@ global $ff_config, $ff_compatible, $ff_install;
 $my = JFactory::getUser();
 
 if (!isset($ff_compath)) { // joomla!
-
-    jimport('joomla.version');
-    $version = new JVersion();
-
     // get paths
     $comppath = '/components/com_breezingforms';
     $ff_admpath = dirname(__FILE__);
@@ -584,69 +572,28 @@ function addComponentMenu($row, $parent, $copy = false)
     else
         $ordering = $row->ordering;
 
-    jimport('joomla.version');
-    $version = new JVersion();
 
-    if (version_compare($version->getShortVersion(), '3.0', '<') && version_compare($version->getShortVersion(), '1.6', '>=')) {
+    $parent = $parent == 0 ? 1 : $parent;
 
-        $parent = $parent == 0 ? 1 : $parent;
+    $db->setQuery("Select component_id From #__menu Where link = 'index.php?option=com_breezingforms' And parent_id = 1");
+    $result = $db->loadResult();
+    if ($result) {
 
-        $db->setQuery("Select component_id From #__menu Where link = 'index.php?option=com_breezingforms' And parent_id = 1");
-        $result = $db->loadResult();
-        if ($result) {
-
-            return _ff_query(
-                "insert into #__menu (" .
-                "`title`, alias, menutype, parent_id, " .
-                "link," .
-                "ordering, level, component_id, client_id, img, lft, rgt" .
-                ") " .
-                "values (" . $db->Quote(($copy ? 'Copy of ' : '') . $row->title . ($copy ? ' (' . md5(session_id() . microtime() . mt_rand(0, mt_getrandmax())) . ')' : '')) . ", " . $db->Quote(($copy ? 'Copy of ' : '') . $row->title . ($copy ? ' (' . md5(session_id() . microtime() . mt_rand(0, mt_getrandmax())) . ')' : '')) . ", 'menu', $parent, " .
-                "'index.php?$admin_menu_link'," .
-                "'$ordering', 1, " . intval($result) . ", 1, 'components/com_breezingforms/images/$row->img',( Select mlftrgt From (Select max(mlft.rgt)+1 As mlftrgt From #__menu As mlft) As tbone ),( Select mrgtrgt From (Select max(mrgt.rgt)+2 As mrgtrgt From #__menu As mrgt) As filet )" .
-                ")",
-                true
-            );
-        } else {
-            die("BreezingForms main menu item not found!");
-        }
-    } else if (version_compare($version->getShortVersion(), '3.0', '>=')) {
-        $parent = $parent == 0 ? 1 : $parent;
-
-        $db->setQuery("Select component_id From #__menu Where link = 'index.php?option=com_breezingforms' And parent_id = 1");
-        $result = $db->loadResult();
-        if ($result) {
-
-            return _ff_query(
-                "insert into #__menu (" .
-                "`title`, alias, menutype, parent_id, " .
-                "link," .
-                "level, component_id, client_id, img, lft, rgt" .
-                ") " .
-                "values (" . $db->Quote(($copy ? 'Copy of ' : '') . $row->title . ($copy ? ' (' . md5(session_id() . microtime() . mt_rand(0, mt_getrandmax())) . ')' : '')) . ", " . $db->Quote(($copy ? 'Copy of ' : '') . $row->title . ($copy ? ' (' . md5(session_id() . microtime() . mt_rand(0, mt_getrandmax())) . ')' : '')) . ", 'menu', $parent, " .
-                "'index.php?$admin_menu_link'," .
-                "1, " . intval($result) . ", 1, 'components/com_breezingforms/images/$row->img',( Select mlftrgt From (Select max(mlft.rgt)+1 As mlftrgt From #__menu As mlft) As tbone ),( Select mrgtrgt From (Select max(mrgt.rgt)+2 As mrgtrgt From #__menu As mrgt) As filet )" .
-                ")",
-                true
-            );
-        } else {
-            die("BreezingForms main menu item not found!");
-        }
+        return _ff_query(
+            "insert into #__menu (" .
+            "`title`, alias, menutype, parent_id, " .
+            "link," .
+            "level, component_id, client_id, img, lft, rgt" .
+            ") " .
+            "values (" . $db->Quote(($copy ? 'Copy of ' : '') . $row->title . ($copy ? ' (' . md5(session_id() . microtime() . mt_rand(0, mt_getrandmax())) . ')' : '')) . ", " . $db->Quote(($copy ? 'Copy of ' : '') . $row->title . ($copy ? ' (' . md5(session_id() . microtime() . mt_rand(0, mt_getrandmax())) . ')' : '')) . ", 'menu', $parent, " .
+            "'index.php?$admin_menu_link'," .
+            "1, " . intval($result) . ", 1, 'components/com_breezingforms/images/$row->img',( Select mlftrgt From (Select max(mlft.rgt)+1 As mlftrgt From #__menu As mlft) As tbone ),( Select mrgtrgt From (Select max(mrgt.rgt)+2 As mrgtrgt From #__menu As mrgt) As filet )" .
+            ")",
+            true
+        );
+    } else {
+        die("BreezingForms main menu item not found!");
     }
-    // if older JVersion
-    return _ff_query(
-        "insert into #__components (" .
-        "id, name, link, menuid, parent, " .
-        "admin_menu_link, admin_menu_alt, `option`, " .
-        "ordering, admin_menu_img, iscore, params" .
-        ") " .
-        "values (" .
-        "'', " . $db->Quote($row->title) . ", '', 0, $parent, " .
-        "'$admin_menu_link', " . $db->Quote($row->title) . ", 'com_breezingforms', " .
-        "'$ordering', '$row->img', 1, ''" .
-        ")",
-        true
-    );
 } // addComponentMenu
 
 function updateComponentMenus($copy = false)
@@ -654,23 +601,11 @@ function updateComponentMenus($copy = false)
     // remove unprotected menu items
     $protids = protectedComponentIds();
     if (trim($protids) != '') {
-
-        jimport('joomla.version');
-        $version = new JVersion();
-
-        if (version_compare($version->getShortVersion(), '1.6', '>=')) {
-            _ff_query(
-                "delete from #__menu " .
-                "where `link` Like 'index.php?option=com_breezingforms&act=run%' " .
-                "and id not in ($protids)"
-            );
-        } else {
-            _ff_query(
-                "delete from #__components " .
-                "where `option`='com_breezingforms' " .
-                "and id not in ($protids)"
-            );
-        }
+        _ff_query(
+            "delete from #__menu " .
+            "where `link` Like 'index.php?option=com_breezingforms&act=run%' " .
+            "and id not in ($protids)"
+        );
     }
 
     // add published menu items
@@ -698,29 +633,16 @@ function updateComponentMenus($copy = false)
     $parent = 0;
     if (count($rows))
         foreach ($rows as $row) {
+            BFFactory::getDbo()->setQuery("Select id From #__menu Where `alias` = " . BFFactory::getDbo()->Quote($row->title));
 
-            jimport('joomla.version');
-            $version = new JVersion();
+            if (BFFactory::getDbo()->loadResult()) {
+                return BFText::_('COM_BREEZINGFORMS_MENU_ITEM_EXISTS');
+            }
 
-            if (version_compare($version->getShortVersion(), '1.6', '>=')) {
-
-                BFFactory::getDbo()->setQuery("Select id From #__menu Where `alias` = " . BFFactory::getDbo()->Quote($row->title));
-
-                if (BFFactory::getDbo()->loadResult()) {
-                    return BFText::_('COM_BREEZINGFORMS_MENU_ITEM_EXISTS');
-                }
-
-                if ($row->parent == 0 || $row->parent == 1) {
-                    $parent = addComponentMenu($row, 1, $copy);
-                } else {
-                    addComponentMenu($row, $parent, $copy);
-                }
+            if ($row->parent == 0 || $row->parent == 1) {
+                $parent = addComponentMenu($row, 1, $copy);
             } else {
-                if ($row->parent == 0) {
-                    $parent = addComponentMenu($row, 0);
-                } else {
-                    addComponentMenu($row, $parent);
-                }
+                addComponentMenu($row, $parent, $copy);
             }
         } // foreach
 

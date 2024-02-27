@@ -11,18 +11,15 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 jimport('joomla.version');
 $version = new JVersion();
 
-if (version_compare($version->getShortVersion(), '1.6', '>=') && BFRequest::getVar('act', '') == 'configuration') {
+if (BFRequest::getVar('act', '') == 'configuration') {
 	JToolBarHelper::preferences('com_breezingforms');
 }
 
-if (version_compare($version->getShortVersion(), '3.0', '>=')) {
-
-	echo '<style type="text/css">
+echo '<style type="text/css">
 label{
     display: inline;
 }
 </style>';
-}
 
 class HTML_facileFormsConf
 {
@@ -326,20 +323,20 @@ class HTML_facileFormsConf
 		$startdir = '{mospath}/administrator/components/com_breezingforms/packages/samples.english.xml';
 		?>
 		<script type="text/javascript">
-				<!--
-				function submitbutton(pressbutton)
-				{
-					var form = document.adminForm;
-					switch (pressbutton) {
-						case 'delpkgs':
-							if (form.boxchecked.value==0) {
-								alert("<?php echo BFText::_('COM_BREEZINGFORMS_INSTALLER_SELPKGSFIRST'); ?>");
+						<!--
+						function submitbutton(pressbutton)
+						{
+							var form = document.adminForm;
+							switch (pressbutton) {
+								case 'delpkgs':
+									if (form.boxchecked.value==0) {
+										alert("<?php echo BFText::_('COM_BREEZINGFORMS_INSTALLER_SELPKGSFIRST'); ?>");
 			return;
-							} // if
+									} // if
 			break;
-						default:
+								default:
 			break;
-					} // switch
+							} // switch
 			switch (pressbutton) {
 				case 'start':
 					if (form.uploadpackage.checked) {
@@ -369,7 +366,7 @@ class HTML_facileFormsConf
 					break;
 			} // switch
 			Joomla.submitform(pressbutton);
-				} // submitbutton
+						} // submitbutton
 
 			function clickInstMode(value) {
 				var form = document.adminForm;
@@ -563,7 +560,7 @@ class HTML_facileFormsConf
 		echo "\t\t\t\tpkgChange('$selpkg');\n"
 			?>
 			form.pkg.focus();
-					} // onload
+							} // onload
 
 			function setSelection(topic, selected) {
 				var form = document.adminForm;

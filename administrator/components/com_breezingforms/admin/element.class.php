@@ -282,8 +282,6 @@ class facileFormsElement
                     $cbForm = contentbuilder::getForm('com_breezingforms', $formId);
                     $db = BFFactory::getDbo();
                     $db->setQuery("Select id From #__contentbuilder_forms Where `type` = 'com_breezingforms' And `reference_id` = " . intval($formId));
-                    jimport('joomla.version');
-                    $version = new JVersion();
 	                $cbForms = $db->loadColumn();
                     if(is_object($cbForm) && count($cbForms)){
                         require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'tables' . DS . 'elements.php');

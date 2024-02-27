@@ -4,6 +4,7 @@
  * @version 1.9
  * @package BreezingForms
  * @copyright (C) 2008-2020 by Markus Bopp
+ * @copyright (C) 2024 by XDA+GIL
  * @license Released under the terms of the GNU General Public License
  * */
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
@@ -12,9 +13,11 @@ use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Uri\Uri;
 
-class QuickModeHtml {
+class QuickModeHtml
+{
 
-    public static function showApplication($formId, $formName, $formTitle, $formDesc, $formEmailntf, $formEmailadr, $dataObjectString, $elementScripts, $themes, $themesbootstrap, $themesbootstrap3) {
+    public static function showApplication($formId, $formName, $formTitle, $formDesc, $formEmailntf, $formEmailadr, $dataObjectString, $elementScripts, $themes, $themesbootstrap, $themesbootstrap3)
+    {
         $active_language_code = htmlentities(BFRequest::getVar('active_language_code', ''), ENT_QUOTES, 'UTF-8');
         HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
         JHTML::_('behavior.keepalive');
@@ -27,28 +30,22 @@ class QuickModeHtml {
         ?>
 
         <script type="text/javascript"
-        src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/jtree/'; ?>_lib.js"></script>
+            src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/jtree/'; ?>_lib.js"></script>
         <script type="text/javascript"
-        src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/jtree/'; ?>tree_component.min.js"></script>
-        <script
-            type="text/javascript"
-        src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/'; ?>jq-ui.min.js"></script>
-        <script
-            type="text/javascript"
-        src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/plugins/bas'; ?>e64.js"></script>
-        <script
-            type="text/javascript"
-        src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/plugins/'; ?>json.js"></script>
-        <script
-            type="text/javascript"
-        src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/plugins/'; ?>md5.js"></script>
-        <script
-            type="text/javascript"
-        src="<?php echo Uri::root() ?>components/com_breezingforms/libraries/jquery/center.js"></script>
+            src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/jtree/'; ?>tree_component.min.js"></script>
+        <script type="text/javascript"
+            src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/'; ?>jq-ui.min.js"></script>
+        <script type="text/javascript"
+            src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/plugins/bas'; ?>e64.js"></script>
+        <script type="text/javascript"
+            src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/plugins/'; ?>json.js"></script>
+        <script type="text/javascript"
+            src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/plugins/'; ?>md5.js"></script>
+        <script type="text/javascript"
+            src="<?php echo Uri::root() ?>components/com_breezingforms/libraries/jquery/center.js"></script>
 
-        <script
-            type="text/javascript"
-        src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/'; ?>jquery.scroll.js"></script>
+        <script type="text/javascript"
+            src="<?php echo Uri::root() . 'administrator/components/com_breezingforms/libraries/jquery/'; ?>jquery.scroll.js"></script>
 
 
 
@@ -82,7 +79,7 @@ class QuickModeHtml {
                 this.elementScripts = <?php echo Zend_Json::encode($elementScripts) ?>;
                 this.dataObject = <?php echo str_replace("..\\/administrator\\/components\\/com_facileforms", "..\\/administrator\\/components\\/com_breezingforms", $dataObjectString) ?>;
 
-        <?php require_once( JPATH_SITE . '/administrator/components/com_breezingforms/admin/quickmode-elements-js.php' ); ?>
+                <?php require_once(JPATH_SITE . '/administrator/components/com_breezingforms/admin/quickmode-elements-js.php'); ?>
 
                 /**
                  Helper methods
@@ -2553,200 +2550,200 @@ class QuickModeHtml {
                 };
 
                 JQuery('#bfElementExplorer').tree(
-                        {
-                            ui: {
-                                theme_name: "apple",
-                                context: [
-                                    {
-                                        id: 'copy',
-                                        label: 'Copy',
-                                        visible: function (NODE, TREE_OBJ) {
-                                            var source = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                            if (source.attributes['class'] == 'bfQuickModeSectionClass' || source.attributes['class'] == 'bfQuickModeElementClass') {
+                    {
+                        ui: {
+                            theme_name: "apple",
+                            context: [
+                                {
+                                    id: 'copy',
+                                    label: 'Copy',
+                                    visible: function (NODE, TREE_OBJ) {
+                                        var source = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
+                                        if (source.attributes['class'] == 'bfQuickModeSectionClass' || source.attributes['class'] == 'bfQuickModeElementClass') {
+                                            return true;
+                                        }
+                                        return false;
+                                    },
+                                    action: function (NODE, TREE_OBJ) {
+                                        var source = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
+                                        if (source.attributes['class'] == 'bfQuickModeSectionClass' || source.attributes['class'] == 'bfQuickModeElementClass') {
+                                            if (source && source.attributes && source.attributes.id) {
+                                                appScope.copyTreeElement = source;
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    id: 'paste',
+                                    label: 'Paste',
+                                    visible: function (NODE, TREE_OBJ) {
+                                        if (appScope.copyTreeElement) {
+                                            var target = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
+                                            if (target.attributes['class'] == 'bfQuickModeSectionClass' || target.attributes['class'] == 'bfQuickModePageClass') {
                                                 return true;
                                             }
                                             return false;
-                                        },
-                                        action: function (NODE, TREE_OBJ) {
-                                            var source = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                            if (source.attributes['class'] == 'bfQuickModeSectionClass' || source.attributes['class'] == 'bfQuickModeElementClass') {
-                                                if (source && source.attributes && source.attributes.id) {
-                                                    appScope.copyTreeElement = source;
-                                                }
+                                        }
+                                        return false;
+                                    },
+                                    action: function (NODE, TREE_OBJ) {
+                                        if (appScope.copyTreeElement) {
+                                            var target = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
+                                            if (target.attributes['class'] == 'bfQuickModeSectionClass' || target.attributes['class'] == 'bfQuickModePageClass') {
+                                                appScope.insertElementInto(clone_obj(appScope.copyTreeElement), target);
+                                                setTimeout("JQuery.tree_reference('bfElementExplorer').refresh()", 10); // give it time to close the context menu
                                             }
                                         }
-                                    },
-                                    {
-                                        id: 'paste',
-                                        label: 'Paste',
-                                        visible: function (NODE, TREE_OBJ) {
-                                            if (appScope.copyTreeElement) {
-                                                var target = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                                if (target.attributes['class'] == 'bfQuickModeSectionClass' || target.attributes['class'] == 'bfQuickModePageClass') {
-                                                    return true;
-                                                }
-                                                return false;
-                                            }
+                                    }
+                                },
+                                {
+                                    id: "delete",
+                                    label: "Delete",
+                                    icon: "remove.png",
+                                    visible: function (NODE, TREE_OBJ) {
+                                        var ok = true;
+                                        JQuery.each(NODE, function () {
+                                            if (TREE_OBJ.check("deletable", this) == false)
+                                                ok = false;
                                             return false;
-                                        },
-                                        action: function (NODE, TREE_OBJ) {
-                                            if (appScope.copyTreeElement) {
-                                                var target = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                                if (target.attributes['class'] == 'bfQuickModeSectionClass' || target.attributes['class'] == 'bfQuickModePageClass') {
-                                                    appScope.insertElementInto(clone_obj(appScope.copyTreeElement), target);
-                                                    setTimeout("JQuery.tree_reference('bfElementExplorer').refresh()", 10); // give it time to close the context menu
-                                                }
-                                            }
-                                        }
+                                        });
+                                        return ok;
                                     },
-                                    {
-                                        id: "delete",
-                                        label: "Delete",
-                                        icon: "remove.png",
-                                        visible: function (NODE, TREE_OBJ) {
-                                            var ok = true;
-                                            JQuery.each(NODE, function () {
-                                                if (TREE_OBJ.check("deletable", this) == false)
-                                                    ok = false;
-                                                return false;
-                                            });
-                                            return ok;
-                                        },
-                                        action: function (NODE, TREE_OBJ) {
-                                            JQuery.each(NODE, function () {
-                                                TREE_OBJ.remove(this);
-                                            });
-                                        }
+                                    action: function (NODE, TREE_OBJ) {
+                                        JQuery.each(NODE, function () {
+                                            TREE_OBJ.remove(this);
+                                        });
                                     }
+                                }
 
-                                ]
+                            ]
 
-                            },
-                            selected: 'bfQuickModeRoot',
-                            callback: {
-                                onselect: function (node, obj) {
-                                    appScope.selectedTreeElement = node;
-                                    JQuery('#bfPropertySaveButton').css('display', '');
-                                    JQuery('#bfPropertySaveButtonTop').css('display', '');
-                                    JQuery('#bfAdvancedSaveButton').css('display', '');
-                                    JQuery('#bfAdvancedSaveButtonTop').css('display', '');
-                                    switch (appScope.getNodeClass(node)) {
-                                        case 'bfQuickModeRootClass':
-                                            appScope.toggleProperties('bfFormProperties');
-                                            appScope.toggleAdvanced('bfFormAdvanced');
-                                            appScope.populateFormProperties();
-                                            break;
-                                        case 'bfQuickModeSectionClass':
-                                            appScope.toggleProperties('bfSectionProperties');
-                                            appScope.toggleAdvanced('bfSectionAdvanced');
-                                            appScope.populateSectionProperties();
-                                            //JQuery('#bfAdvancedSaveButton').css('display','none');
-                                            //JQuery('#bfAdvancedSaveButtonTop').css('display','none');
-                                            break;
-                                        case 'bfQuickModeElementClass':
-                                            appScope.toggleProperties('bfElementProperties');
-                                            appScope.toggleAdvanced('bfElementAdvanced');
-                                            appScope.populateSelectedElementProperties();
-                                            break;
-                                        case 'bfQuickModePageClass':
-                                            appScope.toggleProperties('bfPageProperties');
-                                            appScope.toggleAdvanced('bfPageAdvanced');
-                                            appScope.populatePageProperties();
-                                            JQuery('#bfAdvancedSaveButton').css('display', 'none');
-                                            JQuery('#bfAdvancedSaveButtonTop').css('display', 'none');
-                                            break;
-                                    }
-                                },
-                                onload: function (obj) {
-
-                                },
-                                onopen: function (NODE, TREE_OBJ) {
-                                    var source = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                    source.state = 'open';
-                                },
-                                onclose: function (NODE, TREE_OBJ) {
-                                    var source = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                    source.state = 'close';
-                                },
-                                ondelete: function (NODE, TREE_OBJ, RB) {
-                                    appScope.selectedTreeElement = null;
-                                    appScope.deleteDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                    var target = appScope.findDataObjectItem(JQuery('#bfQuickModeRoot').attr('id'), appScope.dataObject);
-                                    if (target && !target.children) {
-                                        target.children = new Array();
-                                    }
-                                    // restoring page numbers
-                                    if (target && target.children) {
-                                        if (target.attributes['class'] == 'bfQuickModeRootClass') {
-                                            for (var i = 0; i < target.children.length; i++) {
-                                                if (target.children[i].attributes['class'] == 'bfQuickModePageClass') {
-                                                    var mdata = appScope.getProperties(JQuery('#' + target.children[i].attributes.id));
-                                                    if (mdata) {
-                                                        target.children[i].attributes.id = 'bfQuickModePage' + (i + 1);
-                                                        target.children[i].data.title = "<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_PAGE')) ?> " + (i + 1);
-                                                        target.children[i].properties.pageNumber = i + 1;
-                                                    }
-                                                }
-                                            }
-                                            // taking care of last page as thank you page
-                                            var pagesSize = target.children.length;
-                                            if (target.properties.lastPageThankYou && pagesSize > 1) {
-                                                target.properties.submittedScriptCondidtion = 2;
-                                                target.properties.submittedScriptCode = 'function ff_' + target.properties.name + '_submitted(status, message){if(status==0){ff_switchpage(' + pagesSize + ');}else{alert(message);}}';
-                                            } else {
-                                                target.properties.submittedScriptCondidtion = -1;
-                                            }
-                                        }
-                                    }
-                                    setTimeout("JQuery.tree_reference('bfElementExplorer').refresh()", 10); // give it time to close the context menu
-                                },
-                                onmove: function (NODE, REF_NODE, TYPE, TREE_OBJ, RB) {
-                                    var parent = JQuery.tree_reference('bfElementExplorer').parent(NODE);
-                                    if (!parent) {
-                                        parent = '#bfQuickModeRoot';
-                                    }
-                                    children = parent.children("ul").children("li");
-                                    if (children && children.length && children.length > 0) {
-                                        for (var i = 0; i < children.length; i++) {
-                                            if (JQuery(NODE).attr('id') == children[i].id) {
-                                                appScope.moveDataObjectItem(JQuery(NODE).attr('id'), JQuery(parent).attr('id'), i, appScope.dataObject);
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    JQuery.tree_reference('bfElementExplorer').refresh();
+                        },
+                        selected: 'bfQuickModeRoot',
+                        callback: {
+                            onselect: function (node, obj) {
+                                appScope.selectedTreeElement = node;
+                                JQuery('#bfPropertySaveButton').css('display', '');
+                                JQuery('#bfPropertySaveButtonTop').css('display', '');
+                                JQuery('#bfAdvancedSaveButton').css('display', '');
+                                JQuery('#bfAdvancedSaveButtonTop').css('display', '');
+                                switch (appScope.getNodeClass(node)) {
+                                    case 'bfQuickModeRootClass':
+                                        appScope.toggleProperties('bfFormProperties');
+                                        appScope.toggleAdvanced('bfFormAdvanced');
+                                        appScope.populateFormProperties();
+                                        break;
+                                    case 'bfQuickModeSectionClass':
+                                        appScope.toggleProperties('bfSectionProperties');
+                                        appScope.toggleAdvanced('bfSectionAdvanced');
+                                        appScope.populateSectionProperties();
+                                        //JQuery('#bfAdvancedSaveButton').css('display','none');
+                                        //JQuery('#bfAdvancedSaveButtonTop').css('display','none');
+                                        break;
+                                    case 'bfQuickModeElementClass':
+                                        appScope.toggleProperties('bfElementProperties');
+                                        appScope.toggleAdvanced('bfElementAdvanced');
+                                        appScope.populateSelectedElementProperties();
+                                        break;
+                                    case 'bfQuickModePageClass':
+                                        appScope.toggleProperties('bfPageProperties');
+                                        appScope.toggleAdvanced('bfPageAdvanced');
+                                        appScope.populatePageProperties();
+                                        JQuery('#bfAdvancedSaveButton').css('display', 'none');
+                                        JQuery('#bfAdvancedSaveButtonTop').css('display', 'none');
+                                        break;
                                 }
                             },
-                            rules: {
-                                metadata: 'mdata',
-                                use_inline: true,
-                                deletable: 'none',
-                                creatable: 'none',
-                                renameable: 'none',
+                            onload: function (obj) {
 
-                                draggable: ['section', 'element', 'page'],
-                                dragrules: [
-                                    'element inside section',
-                                    'section inside section',
-                                    'element inside page',
-                                    'section inside page',
-                                    'element after element',
-                                    'element before element',
-                                    'element after section',
-                                    'element before section',
-                                    'section after element',
-                                    'section before element',
-                                    'section after section',
-                                    'section before section',
-                                    'page before page',
-                                    'page after page'
-                                ]
                             },
-                            data: {
-                                type: "json",
-                                json: [appScope.dataObject]
+                            onopen: function (NODE, TREE_OBJ) {
+                                var source = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
+                                source.state = 'open';
+                            },
+                            onclose: function (NODE, TREE_OBJ) {
+                                var source = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
+                                source.state = 'close';
+                            },
+                            ondelete: function (NODE, TREE_OBJ, RB) {
+                                appScope.selectedTreeElement = null;
+                                appScope.deleteDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
+                                var target = appScope.findDataObjectItem(JQuery('#bfQuickModeRoot').attr('id'), appScope.dataObject);
+                                if (target && !target.children) {
+                                    target.children = new Array();
+                                }
+                                // restoring page numbers
+                                if (target && target.children) {
+                                    if (target.attributes['class'] == 'bfQuickModeRootClass') {
+                                        for (var i = 0; i < target.children.length; i++) {
+                                            if (target.children[i].attributes['class'] == 'bfQuickModePageClass') {
+                                                var mdata = appScope.getProperties(JQuery('#' + target.children[i].attributes.id));
+                                                if (mdata) {
+                                                    target.children[i].attributes.id = 'bfQuickModePage' + (i + 1);
+                                                    target.children[i].data.title = "<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_PAGE')) ?> " + (i + 1);
+                                                    target.children[i].properties.pageNumber = i + 1;
+                                                }
+                                            }
+                                        }
+                                        // taking care of last page as thank you page
+                                        var pagesSize = target.children.length;
+                                        if (target.properties.lastPageThankYou && pagesSize > 1) {
+                                            target.properties.submittedScriptCondidtion = 2;
+                                            target.properties.submittedScriptCode = 'function ff_' + target.properties.name + '_submitted(status, message){if(status==0){ff_switchpage(' + pagesSize + ');}else{alert(message);}}';
+                                        } else {
+                                            target.properties.submittedScriptCondidtion = -1;
+                                        }
+                                    }
+                                }
+                                setTimeout("JQuery.tree_reference('bfElementExplorer').refresh()", 10); // give it time to close the context menu
+                            },
+                            onmove: function (NODE, REF_NODE, TYPE, TREE_OBJ, RB) {
+                                var parent = JQuery.tree_reference('bfElementExplorer').parent(NODE);
+                                if (!parent) {
+                                    parent = '#bfQuickModeRoot';
+                                }
+                                children = parent.children("ul").children("li");
+                                if (children && children.length && children.length > 0) {
+                                    for (var i = 0; i < children.length; i++) {
+                                        if (JQuery(NODE).attr('id') == children[i].id) {
+                                            appScope.moveDataObjectItem(JQuery(NODE).attr('id'), JQuery(parent).attr('id'), i, appScope.dataObject);
+                                            break;
+                                        }
+                                    }
+                                }
+                                JQuery.tree_reference('bfElementExplorer').refresh();
                             }
+                        },
+                        rules: {
+                            metadata: 'mdata',
+                            use_inline: true,
+                            deletable: 'none',
+                            creatable: 'none',
+                            renameable: 'none',
+
+                            draggable: ['section', 'element', 'page'],
+                            dragrules: [
+                                'element inside section',
+                                'section inside section',
+                                'element inside page',
+                                'section inside page',
+                                'element after element',
+                                'element before element',
+                                'element after section',
+                                'element before section',
+                                'section after element',
+                                'section before element',
+                                'section after section',
+                                'section before section',
+                                'page before page',
+                                'page after page'
+                            ]
+                        },
+                        data: {
+                            type: "json",
+                            json: [appScope.dataObject]
                         }
+                    }
                 );
 
                 this.saveButton = function () {
@@ -2827,119 +2824,119 @@ class QuickModeHtml {
                 };
 
                 JQuery('#bfPropertySaveButton').click(
-                        appScope.saveButton
-                        );
+                    appScope.saveButton
+                );
 
                 JQuery('#bfPropertySaveButtonTop').click(
-                        appScope.saveButton
-                        );
+                    appScope.saveButton
+                );
 
                 JQuery('#bfAdvancedSaveButton').click(
-                        appScope.saveButton
-                        );
+                    appScope.saveButton
+                );
 
                 JQuery('#bfAdvancedSaveButtonTop').click(
-                        appScope.saveButton
-                        );
+                    appScope.saveButton
+                );
 
                 JQuery('#bfNewSectionButton').click(
-                        function () {
-                            var id = "bfQuickModeSection" + (Math.floor(Math.random() * 100000));
-                            var obj = {
-                                attributes: {
-                                    "class": 'bfQuickModeSectionClass',
-                                    id: id,
-                                    mdata: JQuery.toJSON({deletable: true, type: 'section'})
-                                },
-                                properties: {
-                                    bfType: 'normal',
-                                    type: 'section',
-                                    displayType: 'breaks',
-                                    title: "untitled section",
-                                    name: id,
-                                    description: '',
-                                    off: false
-                                }
-                                ,
-                                state: "open",
-                                data: {title: "untitled section", icon: '<?php echo $iconBase . 'icon_section.png' ?>'},
-                                children: []
-                            };
-                            appScope.createTreeItem(obj);
-                            JQuery.tree_reference('bfElementExplorer').select_branch(JQuery('#' + id));
-                        }
+                    function () {
+                        var id = "bfQuickModeSection" + (Math.floor(Math.random() * 100000));
+                        var obj = {
+                            attributes: {
+                                "class": 'bfQuickModeSectionClass',
+                                id: id,
+                                mdata: JQuery.toJSON({ deletable: true, type: 'section' })
+                            },
+                            properties: {
+                                bfType: 'normal',
+                                type: 'section',
+                                displayType: 'breaks',
+                                title: "untitled section",
+                                name: id,
+                                description: '',
+                                off: false
+                            }
+                            ,
+                            state: "open",
+                            data: { title: "untitled section", icon: '<?php echo $iconBase . 'icon_section.png' ?>' },
+                            children: []
+                        };
+                        appScope.createTreeItem(obj);
+                        JQuery.tree_reference('bfElementExplorer').select_branch(JQuery('#' + id));
+                    }
                 );
 
                 JQuery('#bfElementType').change(
-                        function () {
-                            var obj = null;
-                            var id = "bfQuickMode" + (Math.floor(Math.random() * 10000000));
-                            var selected = JQuery('#bfElementType').val();
-                            switch (selected) {
-                                case 'bfElementTypeText':
-                                    obj = appScope.createTextfield(id);
-                                    break;
-                                case 'bfElementTypeRadioGroup':
-                                    obj = appScope.createRadioGroup(id);
-                                    break;
-                                case 'bfElementTypeCheckboxGroup':
-                                    obj = appScope.createCheckboxGroup(id);
-                                    break;
-                                case 'bfElementTypeCheckbox':
-                                    obj = appScope.createCheckbox(id);
-                                    break;
-                                case 'bfElementTypeSelect':
-                                    obj = appScope.createSelect(id);
-                                    break;
-                                case 'bfElementTypeTextarea':
-                                    obj = appScope.createTextarea(id);
-                                    break;
-                                case 'bfElementTypeFile':
-                                    obj = appScope.createFile(id);
-                                    break;
-                                case 'bfElementTypeSubmitButton':
-                                    obj = appScope.createSubmitButton(id);
-                                    break;
-                                case 'bfElementTypeNumberInput':
-                                    obj = appScope.createNumberInput(id);
-                                    break;
-                                case 'bfElementTypeHidden':
-                                    obj = appScope.createHidden(id);
-                                    break;
-                                case 'bfElementTypeSummarize':
-                                    obj = appScope.createSummarize(id);
-                                    break;
-                                case 'bfElementTypeCaptcha':
-                                    obj = appScope.createCaptcha(id);
-                                    break;
-                                case 'bfElementTypeReCaptcha':
-                                    obj = appScope.createReCaptcha(id);
-                                    break;
-                                case 'bfElementTypeCalendar':
-                                    obj = appScope.createCalendar(id);
-                                    break;
-                                case 'bfElementTypeCalendarResponsive':
-                                    obj = appScope.createCalendarResponsive(id);
-                                    break;
-                                case 'bfElementTypeStripe':
-                                    obj = appScope.createStripe(id);
-                                    break;
-                                case 'bfElementTypeSignature':
-                                    obj = appScope.createSignature(id);
-                                    break;
-                                case 'bfElementTypePayPal':
-                                    obj = appScope.createPayPal(id);
-                                    break;
-                                case 'bfElementTypeSofortueberweisung':
-                                    obj = appScope.createSofortueberweisung(id);
-                                    break;
-                            }
-                            if (obj) {
-                                appScope.replaceDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), obj, appScope.dataObject);
-                                JQuery.tree_reference('bfElementExplorer').refresh();
-                                JQuery.tree_reference('bfElementExplorer').select_branch(JQuery('#' + id));
-                            }
+                    function () {
+                        var obj = null;
+                        var id = "bfQuickMode" + (Math.floor(Math.random() * 10000000));
+                        var selected = JQuery('#bfElementType').val();
+                        switch (selected) {
+                            case 'bfElementTypeText':
+                                obj = appScope.createTextfield(id);
+                                break;
+                            case 'bfElementTypeRadioGroup':
+                                obj = appScope.createRadioGroup(id);
+                                break;
+                            case 'bfElementTypeCheckboxGroup':
+                                obj = appScope.createCheckboxGroup(id);
+                                break;
+                            case 'bfElementTypeCheckbox':
+                                obj = appScope.createCheckbox(id);
+                                break;
+                            case 'bfElementTypeSelect':
+                                obj = appScope.createSelect(id);
+                                break;
+                            case 'bfElementTypeTextarea':
+                                obj = appScope.createTextarea(id);
+                                break;
+                            case 'bfElementTypeFile':
+                                obj = appScope.createFile(id);
+                                break;
+                            case 'bfElementTypeSubmitButton':
+                                obj = appScope.createSubmitButton(id);
+                                break;
+                            case 'bfElementTypeNumberInput':
+                                obj = appScope.createNumberInput(id);
+                                break;
+                            case 'bfElementTypeHidden':
+                                obj = appScope.createHidden(id);
+                                break;
+                            case 'bfElementTypeSummarize':
+                                obj = appScope.createSummarize(id);
+                                break;
+                            case 'bfElementTypeCaptcha':
+                                obj = appScope.createCaptcha(id);
+                                break;
+                            case 'bfElementTypeReCaptcha':
+                                obj = appScope.createReCaptcha(id);
+                                break;
+                            case 'bfElementTypeCalendar':
+                                obj = appScope.createCalendar(id);
+                                break;
+                            case 'bfElementTypeCalendarResponsive':
+                                obj = appScope.createCalendarResponsive(id);
+                                break;
+                            case 'bfElementTypeStripe':
+                                obj = appScope.createStripe(id);
+                                break;
+                            case 'bfElementTypeSignature':
+                                obj = appScope.createSignature(id);
+                                break;
+                            case 'bfElementTypePayPal':
+                                obj = appScope.createPayPal(id);
+                                break;
+                            case 'bfElementTypeSofortueberweisung':
+                                obj = appScope.createSofortueberweisung(id);
+                                break;
                         }
+                        if (obj) {
+                            appScope.replaceDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), obj, appScope.dataObject);
+                            JQuery.tree_reference('bfElementExplorer').refresh();
+                            JQuery.tree_reference('bfElementExplorer').select_branch(JQuery('#' + id));
+                        }
+                    }
                 );
 
                 this.setActionScriptDescription = function () {
@@ -2951,9 +2948,9 @@ class QuickModeHtml {
                 };
 
                 JQuery('#bfActionsScriptSelection').change(
-                        function () {
-                            appScope.setActionScriptDescription();
-                        }
+                    function () {
+                        appScope.setActionScriptDescription();
+                    }
                 );
 
                 this.setInitScriptDescription = function () {
@@ -2965,9 +2962,9 @@ class QuickModeHtml {
                 };
 
                 JQuery('#bfInitScriptSelection').change(
-                        function () {
-                            appScope.setInitScriptDescription();
-                        }
+                    function () {
+                        appScope.setInitScriptDescription();
+                    }
                 );
 
                 this.setValidationScriptDescription = function () {
@@ -2979,52 +2976,52 @@ class QuickModeHtml {
                 };
 
                 JQuery('#bfValidationScriptSelection').change(
-                        function () {
-                            appScope.setValidationScriptDescription();
-                        }
+                    function () {
+                        appScope.setValidationScriptDescription();
+                    }
                 );
 
                 JQuery('#bfNewElementButton').click(
-                        function () {
-                            var id = "bfQuickMode" + (Math.floor(Math.random() * 10000000));
-                            var obj = appScope.createTextfield(id);
-                            appScope.createTreeItem(obj);
-                            JQuery.tree_reference('bfElementExplorer').select_branch(JQuery('#' + id));
-                        }
+                    function () {
+                        var id = "bfQuickMode" + (Math.floor(Math.random() * 10000000));
+                        var obj = appScope.createTextfield(id);
+                        appScope.createTreeItem(obj);
+                        JQuery.tree_reference('bfElementExplorer').select_branch(JQuery('#' + id));
+                    }
                 );
 
                 JQuery('#bfNewPageButton').click(
-                        function () {
-                            var pageNumber = JQuery('#bfQuickModeRoot').children("ul").children("li").size() == 0 ? 1 : JQuery('#bfQuickModeRoot').children("ul").children("li").size() + 1;
-                            var id = "bfQuickModePage" + pageNumber;
+                    function () {
+                        var pageNumber = JQuery('#bfQuickModeRoot').children("ul").children("li").size() == 0 ? 1 : JQuery('#bfQuickModeRoot').children("ul").children("li").size() + 1;
+                        var id = "bfQuickModePage" + pageNumber;
 
-                            // taking care of thank you page if a new page is added
-                            var item = appScope.findDataObjectItem('bfQuickModeRoot', appScope.dataObject);
-                            var pagesSize = JQuery('#bfQuickModeRoot').children("ul").children("li").size();
-                            if (item.properties.lastPageThankYou && pagesSize > 0) {
-                                item.properties.submittedScriptCondidtion = 2;
-                                item.properties.submittedScriptCode = 'function ff_' + item.properties.name + '_submitted(status, message){if(status==0){ff_switchpage(' + (pagesSize + 1) + ');}else{alert(message);}}';
-                            } else {
-                                item.properties.submittedScriptCondidtion = -1;
-                            }
-
-                            var obj = {
-                                attributes: {
-                                    "class": 'bfQuickModePageClass',
-                                    id: id,
-                                    mdata: JQuery.toJSON({deletable: true, type: 'page'})
-                                },
-                                properties: {type: 'page', pageNumber: pageNumber, pageIntro: ''},
-                                state: "open",
-                                data: {
-                                    title: "<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_PAGE')) ?> " + pageNumber,
-                                    icon: '<?php echo $iconBase . 'icon_page.png' ?>'
-                                },
-                                children: []
-                            };
-                            appScope.createTreeItem(obj);
-                            JQuery.tree_reference('bfElementExplorer').select_branch(JQuery('#' + id));
+                        // taking care of thank you page if a new page is added
+                        var item = appScope.findDataObjectItem('bfQuickModeRoot', appScope.dataObject);
+                        var pagesSize = JQuery('#bfQuickModeRoot').children("ul").children("li").size();
+                        if (item.properties.lastPageThankYou && pagesSize > 0) {
+                            item.properties.submittedScriptCondidtion = 2;
+                            item.properties.submittedScriptCode = 'function ff_' + item.properties.name + '_submitted(status, message){if(status==0){ff_switchpage(' + (pagesSize + 1) + ');}else{alert(message);}}';
+                        } else {
+                            item.properties.submittedScriptCondidtion = -1;
                         }
+
+                        var obj = {
+                            attributes: {
+                                "class": 'bfQuickModePageClass',
+                                id: id,
+                                mdata: JQuery.toJSON({ deletable: true, type: 'page' })
+                            },
+                            properties: { type: 'page', pageNumber: pageNumber, pageIntro: '' },
+                            state: "open",
+                            data: {
+                                title: "<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_PAGE')) ?> " + pageNumber,
+                                icon: '<?php echo $iconBase . 'icon_page.png' ?>'
+                            },
+                            children: []
+                        };
+                        appScope.createTreeItem(obj);
+                        JQuery.tree_reference('bfElementExplorer').select_branch(JQuery('#' + id));
+                    }
                 );
 
                 JQuery('#menutab').tabs({
@@ -3075,364 +3072,364 @@ class QuickModeHtml {
                         return;
                     } // if
                     if (!confirm("<?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_CREAINIT'); ?>\n<?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_EXISTAPP'); ?>"))
-                                    return;
-                                code =
-                                        "function ff_" + name + "_init(element, condition)\n" +
-                                        "{\n" +
-                                        "    switch (condition) {\n";
-                                if (form.bfInitFormEntry.checked)
-                                    code +=
-                                            "        case 'formentry':\n" +
-                                            "            break;\n";
-                                if (form.bfInitPageEntry.checked)
-                                    code +=
-                                            "        case 'pageentry':\n" +
-                                            "            break;\n";
-                                code +=
-                                        "        default:;\n" +
-                                        "    } // switch\n" +
-                                        "} // ff_" + name + "_init\n";
-                                oldcode = Joomla.editors.instances["bfInitCode"].getValue();
-                                if (oldcode != '')
-                                    Joomla.editors.instances["bfInitCode"].setValue(
-                                            code +
-                                            "\n// -------------- <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_OLDBELOW'); ?> --------------\n\n" +
-                                            oldcode);
-                                else
-                                    Joomla.editors.instances["bfInitCode"].setValue(code);
+                        return;
+                    code =
+                        "function ff_" + name + "_init(element, condition)\n" +
+                        "{\n" +
+                        "    switch (condition) {\n";
+                    if (form.bfInitFormEntry.checked)
+                        code +=
+                            "        case 'formentry':\n" +
+                            "            break;\n";
+                    if (form.bfInitPageEntry.checked)
+                        code +=
+                            "        case 'pageentry':\n" +
+                            "            break;\n";
+                    code +=
+                        "        default:;\n" +
+                        "    } // switch\n" +
+                        "} // ff_" + name + "_init\n";
+                    oldcode = Joomla.editors.instances["bfInitCode"].getValue();
+                    if (oldcode != '')
+                        Joomla.editors.instances["bfInitCode"].setValue(
+                            code +
+                            "\n// -------------- <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_OLDBELOW'); ?> --------------\n\n" +
+                            oldcode);
+                    else
+                        Joomla.editors.instances["bfInitCode"].setValue(code);
+                }
+            } // createInitCode
+
+            function createValidationCode() {
+                var mdata = app.getProperties(app.selectedTreeElement);
+                if (mdata) {
+                    form = document.bfForm;
+                    name = mdata.bfName;
+                    if (name == '') {
+                        alert('Please enter the element name first.');
+                        return;
+                    } // if
+                    if (!confirm("<?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_CREAVALID'); ?>\n<?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_EXISTAPP'); ?>"))
+                        return;
+                    code =
+                        "function ff_" + name + "_validation(element, message)\n" +
+                        "{\n" +
+                        "    if (element_fails_my_test) {\n" +
+                        "        if (message=='') message = element.name+\" faild in my test.\\n\"\n" +
+                        "        ff_validationFocus(element.name);\n" +
+                        "        return message;\n" +
+                        "    } // if\n" +
+                        "    return '';\n" +
+                        "} // ff_" + name + "_validation\n";
+                    oldcode = Joomla.editors.instances["bfValidationCode"].getValue();
+                    if (oldcode != '')
+                        Joomla.editors.instances["bfValidationCode"].setValue(
+                            code +
+                            "\n// -------------- <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_OLDBELOW'); ?> --------------\n\n" +
+                            oldcode);
+                    else
+                        Joomla.editors.instances["bfValidationCode"].setValue(code);
+                }
+            } // createValidationCode
+
+            function createActionCode(element) {
+                var mdata = app.getProperties(app.selectedTreeElement);
+                if (mdata) {
+                    form = document.bfForm;
+                    name = mdata.bfName;
+                    if (name == '') {
+                        alert('Please enter the element name first.');
+                        return;
+                    } // if
+                    if (!confirm("<?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_CREAACTION'); ?>\n<?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_EXISTAPP'); ?>"))
+                        return;
+                    code =
+                        "function ff_" + name + "_action(element, action)\n" +
+                        "{\n" +
+                        "    switch (action) {\n";
+                    if (form.bfActionClick)
+                        if (form.bfActionClick.checked)
+                            code +=
+                                "        case 'click':\n" +
+                                "            break;\n";
+                    if (form.bfActionBlur)
+                        if (form.bfActionBlur.checked)
+                            code +=
+                                "        case 'blur':\n" +
+                                "            break;\n";
+                    if (form.bfActionChange)
+                        if (form.bfActionChange.checked)
+                            code +=
+                                "        case 'change':\n" +
+                                "            break;\n";
+                    if (form.bfActionFocus)
+                        if (form.bfActionFocus.checked)
+                            code +=
+                                "        case 'focus':\n" +
+                                "            break;\n";
+                    if (form.bfActionSelect)
+                        if (form.bfActionSelect.checked)
+                            code +=
+                                "        case 'select':\n" +
+                                "            break;\n";
+                    code +=
+                        "        default:;\n" +
+                        "    } // switch\n" +
+                        "} // ff_" + name + "_action\n";
+
+                    oldcode = Joomla.editors.instances["bfActionCode"].getValue();
+                    if (oldcode != '')
+                        Joomla.editors.instances["bfActionCode"].setValue(
+                            code +
+                            "\n// -------------- <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_OLDBELOW'); ?> --------------\n\n" +
+                            oldcode);
+                    else
+                        Joomla.editors.instances["bfActionCode"].setValue(code);
+                }
+            } // createActionCode
+
+            function postTheStuff() {
+                JQuery.ajax({
+                    type: 'POST',
+                    url: 'index.php',
+                    data: {
+                        option: 'com_breezingforms',
+                        act: "quickmode",
+                        task: "doAjaxSave",
+                        form: document.adminForm.form.value,
+                        chunksLength: chunks.length,
+                        chunkIdx: chunki,
+                        chunk: chunks[chunki],
+                        rndAdd: rndAdd
+                    },
+                    success: function (data) {
+
+                        if (data != '' && data != 0 && !isNaN(data)) {
+
+                            document.adminForm.form.value = data;
+                            document.adminForm.submit();
+
+                        } else if (JQuery.trim(data) == '') {
+                            JQuery("#bfSaveQueue").get(0).innerHTML = "<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_LOAD_PACKAGE')); ?> " + (chunki + 1) + " <?php echo addslashes(BFText::_('COM_BREEZINGFORMS_LOAD_PACKAGE_OF')); ?> " + (chunks.length - 1);
+                            chunki++;
+                            setTimeout(postTheStuff, 100);
+
+                        }
+                    },
+                    error: function () {
+                        JQuery("#bfSaveQueue").get(0).innerHTML = 'connection problem, trying again in 120 seconds, please wait...';
+                        var secs = 120;
+                        var clear = null;
+                        clear = setInterval(
+                            function () {
+                                JQuery("#bfSaveQueue").get(0).innerHTML = 'connection problem, trying again in ' + secs + ' seconds, please wait...';
+                                secs--;
+                                if (secs <= 0) {
+                                    clearInterval(clear);
+                                    setTimeout(postTheStuff, 100);
+                                }
                             }
-                        } // createInitCode
+                            , 1000);
 
-                        function createValidationCode() {
-                            var mdata = app.getProperties(app.selectedTreeElement);
-                            if (mdata) {
-                                form = document.bfForm;
-                                name = mdata.bfName;
-                                if (name == '') {
-                                    alert('Please enter the element name first.');
-                                    return;
-                                } // if
-                                if (!confirm("<?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_CREAVALID'); ?>\n<?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_EXISTAPP'); ?>"))
-                                                return;
-                                            code =
-                                                    "function ff_" + name + "_validation(element, message)\n" +
-                                                    "{\n" +
-                                                    "    if (element_fails_my_test) {\n" +
-                                                    "        if (message=='') message = element.name+\" faild in my test.\\n\"\n" +
-                                                    "        ff_validationFocus(element.name);\n" +
-                                                    "        return message;\n" +
-                                                    "    } // if\n" +
-                                                    "    return '';\n" +
-                                                    "} // ff_" + name + "_validation\n";
-                                            oldcode = Joomla.editors.instances["bfValidationCode"].getValue();
-                                            if (oldcode != '')
-                                                Joomla.editors.instances["bfValidationCode"].setValue(
-                                                        code +
-                                                        "\n// -------------- <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_OLDBELOW'); ?> --------------\n\n" +
-                                                        oldcode);
-                                            else
-                                                Joomla.editors.instances["bfValidationCode"].setValue(code);
-                                        }
-                                    } // createValidationCode
+                    },
+                    async: false
+                });
+            }
 
-                                    function createActionCode(element) {
-                                        var mdata = app.getProperties(app.selectedTreeElement);
-                                        if (mdata) {
-                                            form = document.bfForm;
-                                            name = mdata.bfName;
-                                            if (name == '') {
-                                                alert('Please enter the element name first.');
-                                                return;
-                                            } // if
-                                            if (!confirm("<?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_CREAACTION'); ?>\n<?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_EXISTAPP'); ?>"))
-                                                            return;
-                                                        code =
-                                                                "function ff_" + name + "_action(element, action)\n" +
-                                                                "{\n" +
-                                                                "    switch (action) {\n";
-                                                        if (form.bfActionClick)
-                                                            if (form.bfActionClick.checked)
-                                                                code +=
-                                                                        "        case 'click':\n" +
-                                                                        "            break;\n";
-                                                        if (form.bfActionBlur)
-                                                            if (form.bfActionBlur.checked)
-                                                                code +=
-                                                                        "        case 'blur':\n" +
-                                                                        "            break;\n";
-                                                        if (form.bfActionChange)
-                                                            if (form.bfActionChange.checked)
-                                                                code +=
-                                                                        "        case 'change':\n" +
-                                                                        "            break;\n";
-                                                        if (form.bfActionFocus)
-                                                            if (form.bfActionFocus.checked)
-                                                                code +=
-                                                                        "        case 'focus':\n" +
-                                                                        "            break;\n";
-                                                        if (form.bfActionSelect)
-                                                            if (form.bfActionSelect.checked)
-                                                                code +=
-                                                                        "        case 'select':\n" +
-                                                                        "            break;\n";
-                                                        code +=
-                                                                "        default:;\n" +
-                                                                "    } // switch\n" +
-                                                                "} // ff_" + name + "_action\n";
+            var chunki = 0;
+            var rndAdd = Math.random();
+            var chunks = new Array();
+            var saveButtonClicked = false;
 
-                                                        oldcode = Joomla.editors.instances["bfActionCode"].getValue();
-                                                        if (oldcode != '')
-                                                            Joomla.editors.instances["bfActionCode"].setValue(
-                                                                    code +
-                                                                    "\n// -------------- <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_OLDBELOW'); ?> --------------\n\n" +
-                                                                    oldcode);
-                                                        else
-                                                            Joomla.editors.instances["bfActionCode"].setValue(code);
-                                                    }
-                                                } // createActionCode
+            JQuery(document).ready(function () {
 
-                                                function postTheStuff() {
-                                                    JQuery.ajax({
-                                                        type: 'POST',
-                                                        url: 'index.php',
-                                                        data: {
-                                                            option: 'com_breezingforms',
-                                                            act: "quickmode",
-                                                            task: "doAjaxSave",
-                                                            form: document.adminForm.form.value,
-                                                            chunksLength: chunks.length,
-                                                            chunkIdx: chunki,
-                                                            chunk: chunks[chunki],
-                                                            rndAdd: rndAdd
-                                                        },
-                                                        success: function (data) {
+                JQuery('#adminForm').get(0).onsubmit = function () {
+                    return false;
+                };
 
-                                                            if (data != '' && data != 0 && !isNaN(data)) {
+                JQuery('joomla-toolbar-button').click(function (e) {
 
-                                                                document.adminForm.form.value = data;
-                                                                document.adminForm.submit();
+                    e.preventDefault();
 
-                                                            } else if (JQuery.trim(data) == '') {
-                                                                JQuery("#bfSaveQueue").get(0).innerHTML = "<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_LOAD_PACKAGE')); ?> " + (chunki + 1) + " <?php echo addslashes(BFText::_('COM_BREEZINGFORMS_LOAD_PACKAGE_OF')); ?> " + (chunks.length - 1);
-                                                                chunki++;
-                                                                setTimeout(postTheStuff, 100);
+                    let pressbutton = JQuery(this).attr('task');
 
-                                                            }
-                                                        },
-                                                        error: function () {
-                                                            JQuery("#bfSaveQueue").get(0).innerHTML = 'connection problem, trying again in 120 seconds, please wait...';
-                                                            var secs = 120;
-                                                            var clear = null;
-                                                            clear = setInterval(
-                                                                    function () {
-                                                                        JQuery("#bfSaveQueue").get(0).innerHTML = 'connection problem, trying again in ' + secs + ' seconds, please wait...';
-                                                                        secs--;
-                                                                        if (secs <= 0) {
-                                                                            clearInterval(clear);
-                                                                            setTimeout(postTheStuff, 100);
-                                                                        }
-                                                                    }
-                                                            , 1000);
+                    var form = document.adminForm;
 
-                                                        },
-                                                        async: false
-                                                    });
-                                                }
+                    switch (pressbutton) {
 
-                                                var chunki = 0;
-                                                var rndAdd = Math.random();
-                                                var chunks = new Array();
-                                                var saveButtonClicked = false;
+                        case 'close':
+                            JQuery('#adminForm').get(0).onsubmit = function () {
+                                return false;
+                            };
+                            location.href = "index.php?option=com_breezingforms&act=manageforms";
+                            break;
+                        case 'save':
 
-                                                JQuery(document).ready(function () {
+                            JQuery('#adminForm').get(0).onsubmit = function () {
+                                return false;
+                            };
 
-                                                    JQuery('#adminForm').get(0).onsubmit = function () {
-                                                        return false;
-                                                    };
+                            if (!app.saveButton()) {
+                                saveButtonClicked = false;
+                                return;
+                            }
 
-                                                    JQuery('joomla-toolbar-button').click(function (e) {
+                            if (saveButtonClicked) {
+                                return;
+                            }
 
-                                                        e.preventDefault();
+                            saveButtonClicked = true;
 
-                                                        let pressbutton = JQuery(this).attr('task');
+                            form.task.value = 'save';
+                            form.act.value = 'quickmode';
 
-                                                        var form = document.adminForm;
+                            var base = 'base';
+                            var sixty_four = '64Encode';
 
-                                                        switch (pressbutton) {
+                            var cVal = JQuery[base + sixty_four](JSON.stringify(app.dataObject));
+                            JQuery.ajaxSetup({ async: false });
+                            rndAdd = Math.random();
+                            chunks = new Array();
+                            var chunk = '';
+                            if (cVal.length > 10000) {
+                                var cnt = 0;
+                                for (var i = 0; i < cVal.length; i++) {
+                                    chunk += cVal[i];
+                                    cnt++;
+                                    if (cnt == 20000 || (i + 1 == cVal.length && cnt + 1 < 20000)) {
+                                        chunks.push(chunk);
+                                        chunk = '';
+                                        cnt = 0;
+                                    }
+                                }
+                            } else {
+                                chunks.push(cVal);
+                            }
 
-                                                            case 'close':
-                                                                JQuery('#adminForm').get(0).onsubmit = function () {
-                                                                    return false;
-                                                                };
-                                                                location.href = "index.php?option=com_breezingforms&act=manageforms";
-                                                                break;
-                                                            case 'save':
+                            if (chunks.length > 1) {
+                                JQuery("#bfSaveQueue").css("display", "");
+                                JQuery("#bfSaveQueue").bfcenter();
+                                JQuery("#bfSaveQueue").css("visibility", "visible");
+                            }
 
-                                                                JQuery('#adminForm').get(0).onsubmit = function () {
-                                                                    return false;
-                                                                };
+                            postTheStuff();
 
-                                                                if (!app.saveButton()) {
-                                                                    saveButtonClicked = false;
-                                                                    return;
-                                                                }
+                            break;
+                        case 'preview':
 
-                                                                if (saveButtonClicked) {
-                                                                    return;
-                                                                }
+                            jQuery('#adminForm').get(0).onsubmit = function () {
+                                return false;
+                            };
+                            jQuery('#bfPreviewModal').modal('show');
 
-                                                                saveButtonClicked = true;
+                            break;
+                        case 'preview_site':
 
-                                                                form.task.value = 'save';
-                                                                form.act.value = 'quickmode';
+                            jQuery('#adminForm').get(0).onsubmit = function () {
+                                return false;
+                            };
+                            jQuery('#bfPreviewModal2').modal('show');
 
-                                                                var base = 'base';
-                                                                var sixty_four = '64Encode';
+                            break;
+                    }
 
-                                                                var cVal = JQuery[base + sixty_four](JSON.stringify(app.dataObject));
-                                                                JQuery.ajaxSetup({async: false});
-                                                                rndAdd = Math.random();
-                                                                chunks = new Array();
-                                                                var chunk = '';
-                                                                if (cVal.length > 10000) {
-                                                                    var cnt = 0;
-                                                                    for (var i = 0; i < cVal.length; i++) {
-                                                                        chunk += cVal[i];
-                                                                        cnt++;
-                                                                        if (cnt == 20000 || (i + 1 == cVal.length && cnt + 1 < 20000)) {
-                                                                            chunks.push(chunk);
-                                                                            chunk = '';
-                                                                            cnt = 0;
-                                                                        }
-                                                                    }
-                                                                } else {
-                                                                    chunks.push(cVal);
-                                                                }
+                    return false;
+                });
 
-                                                                if (chunks.length > 1) {
-                                                                    JQuery("#bfSaveQueue").css("display", "");
-                                                                    JQuery("#bfSaveQueue").bfcenter();
-                                                                    JQuery("#bfSaveQueue").css("visibility", "visible");
-                                                                }
+            });
 
-                                                                postTheStuff();
+            function addslashes(str) {
+                return (str + '').replace(/([\\"'])/g, "\\$1").replace(/\0/g, "\\0");
+            }
 
-                                                                break;
-                                                            case 'preview':
+            function clone_obj(obj) {
+                var c = obj instanceof Array ? [] : {};
 
-                                                                jQuery('#adminForm').get(0).onsubmit = function () {
-                                                                    return false;
-                                                                };
-                                                                jQuery('#bfPreviewModal').modal('show');
+                for (var i in obj) {
+                    var prop = obj[i];
 
-                                                                break;
-                                                            case 'preview_site':
+                    if (typeof prop == 'object') {
+                        if (prop instanceof Array) {
+                            c[i] = [];
 
-                                                                jQuery('#adminForm').get(0).onsubmit = function () {
-                                                                    return false;
-                                                                };
-                                                                jQuery('#bfPreviewModal2').modal('show');
+                            for (var j = 0; j < prop.length; j++) {
+                                if (typeof prop[j] != 'object') {
+                                    c[i].push(prop[j]);
+                                } else {
+                                    c[i].push(clone_obj(prop[j]));
+                                }
+                            }
+                        } else {
+                            c[i] = clone_obj(prop);
+                        }
+                    } else {
+                        c[i] = prop;
+                    }
+                }
 
-                                                                break;
-                                                        }
+                return c;
+            }
 
-                                                        return false;
-                                                    });
+            jQuery(document).ready(function () {
 
-                                                });
+                let validationCodeVisible = false;
+                let initCodeVisible = false;
+                let actionCodeVisible = false;
 
-                                                function addslashes(str) {
-                                                    return (str + '').replace(/([\\"'])/g, "\\$1").replace(/\0/g, "\\0");
-                                                }
+                setInterval(function () {
 
-                                                function clone_obj(obj) {
-                                                    var c = obj instanceof Array ? [] : {};
+                    if (!actionCodeVisible && jQuery('#bfActionScriptCustom').is(':visible')) {
+                        actionCodeVisible = true;
+                        // XDA-GIL - 20240112 - refresh seems to not exit with CodeMirror v6.  
+                        //Joomla.editors.instances["bfActionCode"].refresh();
+                    } else if (initCodeVisible && jQuery('#bfActionScriptCustom').is(':hidden')) {
+                        actionCodeVisible = false;
+                    }
 
-                                                    for (var i in obj) {
-                                                        var prop = obj[i];
+                    if (!initCodeVisible && jQuery('#bfInitScriptCustom').is(':visible')) {
+                        initCodeVisible = true;
+                        // XDA-GIL - 20240112 - refresh seems to not exit with CodeMirror v6.  
+                        //Joomla.editors.instances["bfInitCode"].refresh();
+                    } else if (initCodeVisible && jQuery('#bfInitScriptCustom').is(':hidden')) {
+                        initCodeVisible = false;
+                    }
 
-                                                        if (typeof prop == 'object') {
-                                                            if (prop instanceof Array) {
-                                                                c[i] = [];
+                    if (!validationCodeVisible && jQuery('#bfValidationScriptCustom').is(':visible')) {
+                        validationCodeVisible = true;
+                        // XDA-GIL - 20240112 - refresh seems to not exit with CodeMirror v6.  
+                        //Joomla.editors.instances["bfValidationCode"].refresh();
+                    } else if (validationCodeVisible && jQuery('#bfValidationScriptCustom').is(':hidden')) {
+                        validationCodeVisible = false;
+                    }
 
-                                                                for (var j = 0; j < prop.length; j++) {
-                                                                    if (typeof prop[j] != 'object') {
-                                                                        c[i].push(prop[j]);
-                                                                    } else {
-                                                                        c[i].push(clone_obj(prop[j]));
-                                                                    }
-                                                                }
-                                                            } else {
-                                                                c[i] = clone_obj(prop);
-                                                            }
-                                                        } else {
-                                                            c[i] = prop;
-                                                        }
-                                                    }
+                }, 500);
 
-                                                    return c;
-                                                }
-
-                                                jQuery(document).ready(function () {
-
-                                                    let validationCodeVisible = false;
-                                                    let initCodeVisible = false;
-                                                    let actionCodeVisible = false;
-
-                                                    setInterval(function () {
-
-                                                        if (!actionCodeVisible && jQuery('#bfActionScriptCustom').is(':visible')) {
-                                                            actionCodeVisible = true;
-                                                            // XDA-GIL - 20240112 - refresh seems to not exit with CodeMirror v6.  
-                                                            //Joomla.editors.instances["bfActionCode"].refresh();
-                                                        } else if (initCodeVisible && jQuery('#bfActionScriptCustom').is(':hidden')) {
-                                                            actionCodeVisible = false;
-                                                        }
-
-                                                        if (!initCodeVisible && jQuery('#bfInitScriptCustom').is(':visible')) {
-                                                            initCodeVisible = true;
-                                                            // XDA-GIL - 20240112 - refresh seems to not exit with CodeMirror v6.  
-                                                            //Joomla.editors.instances["bfInitCode"].refresh();
-                                                        } else if (initCodeVisible && jQuery('#bfInitScriptCustom').is(':hidden')) {
-                                                            initCodeVisible = false;
-                                                        }
-
-                                                        if (!validationCodeVisible && jQuery('#bfValidationScriptCustom').is(':visible')) {
-                                                            validationCodeVisible = true;
-                                                            // XDA-GIL - 20240112 - refresh seems to not exit with CodeMirror v6.  
-                                                            //Joomla.editors.instances["bfValidationCode"].refresh();
-                                                        } else if (validationCodeVisible && jQuery('#bfValidationScriptCustom').is(':hidden')) {
-                                                            validationCodeVisible = false;
-                                                        }
-
-                                                    }, 500);
-
-                                                });
+            });
 
         </script>
 
         <?php
         echo JHtmlBootstrap::renderModal(
-                'bfPreviewModal',
-                array(
-                    'url' => Uri::root() . "index.php?format=html&tmpl=component&option=com_breezingforms&ff_form=" . $formId . "&ff_page=1",
-                    'width' => '1024px',
-                    'height' => '500px'
-                )
+            'bfPreviewModal',
+            array(
+                'url' => Uri::root() . "index.php?format=html&tmpl=component&option=com_breezingforms&ff_form=" . $formId . "&ff_page=1",
+                'width' => '1024px',
+                'height' => '500px'
+            )
         );
 
         echo JHtmlBootstrap::renderModal(
-                'bfPreviewModal2',
-                array(
-                    'url' => Uri::root() . "index.php?format=html&option=com_breezingforms&ff_form=" . $formId . "&ff_page=1",
-                    'width' => '1024px',
-                    'height' => '500px'
-                )
+            'bfPreviewModal2',
+            array(
+                'url' => Uri::root() . "index.php?format=html&option=com_breezingforms&ff_form=" . $formId . "&ff_page=1",
+                'width' => '1024px',
+                'height' => '500px'
+            )
         );
         ?>
 
         <div style="float:left; margin-right: 3px;">
-        <?php JToolBarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_SAVE'), false); ?>
+            <?php JToolBarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_SAVE'), false); ?>
             <?php
             if ($formId != 0) {
                 JToolBarHelper::custom('preview', 'publish.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_PREVIEW'), false);
@@ -3441,54 +3438,54 @@ class QuickModeHtml {
             ?>
             <?php JToolBarHelper::custom('close', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false); ?>
             <form action="index.php" method="post" name="adminForm" id="adminForm">
-                <input type="hidden" name="option" value="com_breezingforms"/>
-                <input type="hidden" name="act" value="quickmode"/>
-                <input type="hidden" name="task" value=""/>
-                <input type="hidden" name="form" value="<?php echo $formId; ?>"/>
-                <input type="hidden" name="active_language_code" value="<?php echo $active_language_code; ?>"/>
-                <input type="hidden" name="sizeTplCode" value="0"/>
+                <input type="hidden" name="option" value="com_breezingforms" />
+                <input type="hidden" name="act" value="quickmode" />
+                <input type="hidden" name="task" value="" />
+                <input type="hidden" name="form" value="<?php echo $formId; ?>" />
+                <input type="hidden" name="active_language_code" value="<?php echo $active_language_code; ?>" />
+                <input type="hidden" name="sizeTplCode" value="0" />
             </form>
         </div>
         <?php
         $menutabcss = 'width: 100%;';
-        if (version_compare($version->getShortVersion(), '3.0', '>=')) {
-            $menutabcss = 'width: 100%;';
-        }
+        $menutabcss = 'width: 100%;';
         ?>
         <style type="text/css">
             #bfQuickModeRight #menutab {
-        <?php echo $menutabcss; ?>
+                <?php echo $menutabcss; ?>
             }
         </style>
-                <?php
-                jimport('joomla.application.component.helper');
-                $default = JComponentHelper::getParams('com_languages')->get('site');
+        <?php
+        jimport('joomla.application.component.helper');
+        $default = JComponentHelper::getParams('com_languages')->get('site');
 
-                JFactory::getDocument()->addScriptDeclaration('
+        JFactory::getDocument()->addScriptDeclaration('
         jQuery(document).ready(function () {
             jQuery(\'.bfTrans\').css("display", "none");
         });
         ');
-                if ($formId > 0 && count(JLanguageHelper::getLanguages()) > 1) {
-                    if ($active_language_code != '' && $active_language_code != $default) {
-                        JFactory::getDocument()->addScriptDeclaration('
+        if ($formId > 0 && count(JLanguageHelper::getLanguages()) > 1) {
+            if ($active_language_code != '' && $active_language_code != $default) {
+                JFactory::getDocument()->addScriptDeclaration('
                 jQuery(document).ready(function () {
                     jQuery(\'.bfTrans\').css("display", "block");
                 });
                 ');
-                    }
-                    ?>
-            <div
-                onclick="location.href = 'index.php?option=com_breezingforms&format=html&act=quickmode&formName=translationtest&form=<?php echo $formId ?>&active_language_code='"
-                class="bfLanguageButton<?php echo $active_language_code == $default || $active_language_code == '' ? ' bfLanguageButtonActive' : '' ?>"><?php echo $default; ?></div>
+            }
+            ?>
+            <div onclick="location.href = 'index.php?option=com_breezingforms&format=html&act=quickmode&formName=translationtest&form=<?php echo $formId ?>&active_language_code='"
+                class="bfLanguageButton<?php echo $active_language_code == $default || $active_language_code == '' ? ' bfLanguageButtonActive' : '' ?>">
+                <?php echo $default; ?>
+            </div>
             <?php
             $languages = JLanguageHelper::getLanguages();
-            foreach ($languages As $language) {
+            foreach ($languages as $language) {
                 if ($language->lang_code != $default) {
                     ?>
-                    <div
-                        onclick="location.href = 'index.php?option=com_breezingforms&format=html&act=quickmode&formName=translationtest&form=<?php echo $formId ?>&active_language_code=<?php echo $language->lang_code; ?>'"
-                        class="bfLanguageButton<?php echo $active_language_code == $language->lang_code ? ' bfLanguageButtonActive' : '' ?>"><?php echo $language->lang_code; ?></div>
+                    <div onclick="location.href = 'index.php?option=com_breezingforms&format=html&act=quickmode&formName=translationtest&form=<?php echo $formId ?>&active_language_code=<?php echo $language->lang_code; ?>'"
+                        class="bfLanguageButton<?php echo $active_language_code == $language->lang_code ? ' bfLanguageButtonActive' : '' ?>">
+                        <?php echo $language->lang_code; ?>
+                    </div>
                     <?php
                 }
             }
@@ -3500,11 +3497,18 @@ class QuickModeHtml {
             <div id="bfQuickModeLeft" class="bfClearfix">
 
                 <form id="newStuffBar" onsubmit="return false;">
-                    <button class="btn btn-warning" id="bfNewPageButton"><?php echo BFText::_('COM_BREEZINGFORMS_NEW_PAGE'); ?></button>
-                    <button class="btn btn-warning" id="bfNewSectionButton"><?php echo BFText::_('COM_BREEZINGFORMS_NEW_SECTION'); ?></button>
-                    <button class="btn btn-warning" id="bfNewElementButton"><?php echo BFText::_('COM_BREEZINGFORMS_NEW_ELEMENT'); ?></button>
+                    <button class="btn btn-warning" id="bfNewPageButton">
+                        <?php echo BFText::_('COM_BREEZINGFORMS_NEW_PAGE'); ?>
+                    </button>
+                    <button class="btn btn-warning" id="bfNewSectionButton">
+                        <?php echo BFText::_('COM_BREEZINGFORMS_NEW_SECTION'); ?>
+                    </button>
+                    <button class="btn btn-warning" id="bfNewElementButton">
+                        <?php echo BFText::_('COM_BREEZINGFORMS_NEW_ELEMENT'); ?>
+                    </button>
                 </form>
-                <input id="scrollElementList" type="checkbox"><label for="scrollElementList" class="scrollElementListLabel">Scroll element list</label>
+                <input id="scrollElementList" type="checkbox"><label for="scrollElementList"
+                    class="scrollElementListLabel">Scroll element list</label>
                 <div id="bfElementExplorer"></div>
 
             </div> <!-- ##### bfQuickModeLeft end ##### -->
@@ -3515,13 +3519,20 @@ class QuickModeHtml {
                 <form name="bfForm" onsubmit="return false">
 
                     <div id="menutab" class="flora">
-                        <input id="triggerScrollable" type="checkbox"><label class="triggerScrollableLabel" for="triggerScrollable">Keep panel docked</label>
+                        <input id="triggerScrollable" type="checkbox"><label class="triggerScrollableLabel"
+                            for="triggerScrollable">Keep panel docked</label>
                         <ul>
-                            <li><a onclick="JQuery('.bfFadingMessage').css('display', 'none')" href="#fragment-1"><span><div
-                                            class="tab-items"><?php echo BFText::_('COM_BREEZINGFORMS_PROPERTIES') ?></div></span></a>
+                            <li><a onclick="JQuery('.bfFadingMessage').css('display', 'none')" href="#fragment-1"><span>
+                                        <div class="tab-items">
+                                            <?php echo BFText::_('COM_BREEZINGFORMS_PROPERTIES') ?>
+                                        </div>
+                                    </span></a>
                             </li>
-                            <li><a onclick="JQuery('.bfFadingMessage').css('display', 'none')" href="#fragment-2"><span><div
-                                            class="tab-element"><?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED') ?></div></span></a>
+                            <li><a onclick="JQuery('.bfFadingMessage').css('display', 'none')" href="#fragment-2"><span>
+                                        <div class="tab-element">
+                                            <?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED') ?>
+                                        </div>
+                                    </span></a>
                             </li>
                         </ul>
 
@@ -3536,157 +3547,207 @@ class QuickModeHtml {
 
                             <div id="fragment-1">
                                 <div>
-                                    <br/>
+                                    <br />
                                     <div class="bfFadingMessage" style="display:none"></div>
                                     <input type="submit" class="btn btn-secondary"
-                                           value="<?php echo BFText::_('COM_BREEZINGFORMS_PROPERTIES_SAVE'); ?>"
-                                           id="bfPropertySaveButtonTop"/>
+                                        value="<?php echo BFText::_('COM_BREEZINGFORMS_PROPERTIES_SAVE'); ?>"
+                                        id="bfPropertySaveButtonTop" />
                                     <!-- FORM PROPERTIES BEGIN -->
                                     <div class="bfProperties" id="bfFormProperties" style="display:none">
-                                        <br/>
+                                        <br />
                                         <fieldset>
 
-                                            <legend><?php echo BFText::_('COM_BREEZINGFORMS_FORM_PROPERTIES'); ?></legend>
+                                            <legend>
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_FORM_PROPERTIES'); ?>
+                                            </legend>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_TITLE')); ?>"
-                                                       for="bfFormTitle"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_TITLE'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_TITLE')); ?>"
+                                                    for="bfFormTitle">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_TITLE'); ?>
+                                                </label>
                                                 <input type="text"
-                                                       value="<?php echo htmlentities($formTitle, ENT_QUOTES, 'UTF-8') ?>"
-                                                       id="bfFormTitle"/>
+                                                    value="<?php echo htmlentities($formTitle, ENT_QUOTES, 'UTF-8') ?>"
+                                                    id="bfFormTitle" />
                                             </div>
 
                                             <div class="bfPropertyWrap bfTrans">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_TITLE')); ?>"
-                                                       for="bfFormTitleTrans"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_TITLE'); ?>
-                                                    <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                <input type="text" value="" id="bfFormTitleTrans"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_TITLE')); ?>"
+                                                    for="bfFormTitleTrans">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_TITLE'); ?>
+                                                    <br /><em>(
+                                                        <?php echo $active_language_code ?>)
+                                                    </em>
+                                                </label>
+                                                <input type="text" value="" id="bfFormTitleTrans" />
                                             </div>
 
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_NAME')); ?>"
-                                                       for="bfFormName"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_NAME'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_NAME')); ?>"
+                                                    for="bfFormName">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_NAME'); ?>
+                                                </label>
                                                 <input type="text"
-                                                       value="<?php echo htmlentities($formName, ENT_QUOTES, 'UTF-8') ?>"
-                                                       id="bfFormName"/>
+                                                    value="<?php echo htmlentities($formName, ENT_QUOTES, 'UTF-8') ?>"
+                                                    id="bfFormName" />
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_DESCRIPTION')); ?>"
-                                                       for="bfFormDescription"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_DESC'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_DESCRIPTION')); ?>"
+                                                    for="bfFormDescription">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_DESC'); ?>
+                                                </label>
                                                 <textarea
                                                     id="bfFormDescription"><?php echo htmlentities($formDesc, ENT_QUOTES, 'UTF-8') ?></textarea>
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_LASTPAGE')); ?>"
-                                                       for="bfFormLastPageThankYou"><?php echo BFText::_('COM_BREEZINGFORMS_LAST_PAGE_THANK_YOU'); ?></label>
-                                                <input type="checkbox" value="" id="bfFormLastPageThankYou"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_LASTPAGE')); ?>"
+                                                    for="bfFormLastPageThankYou">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_LAST_PAGE_THANK_YOU'); ?>
+                                                </label>
+                                                <input type="checkbox" value="" id="bfFormLastPageThankYou" />
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_EMAIL_NOTIFICATION')); ?>""
-                                                       for="bfFormMailNotification"><?php echo BFText::_('COM_BREEZINGFORMS_MAIL_NOTIFICATION'); ?></label>
-                                                <input <?php echo $formEmailntf == 2 || $formEmailntf == 1 ? 'checked="checked"' : '' ?>
-                                                    type="checkbox"
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_EMAIL_NOTIFICATION')); ?>""
+                                                       for=" bfFormMailNotification">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_MAIL_NOTIFICATION'); ?>
+                                                </label>
+                                                <input <?php echo $formEmailntf == 2 || $formEmailntf == 1 ? 'checked="checked"' : '' ?> type="checkbox"
                                                     value="<?php echo htmlentities($formEmailntf, ENT_QUOTES, 'UTF-8') ?>"
-                                                    id="bfFormMailNotification"/>
+                                                    id="bfFormMailNotification" />
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_EMAIL_NOTIFICATION_ADDRESS')); ?>"
-                                                       for="bfFormMailRecipient"><?php echo BFText::_('COM_BREEZINGFORMS_MAIL_RECIPIENT'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_EMAIL_NOTIFICATION_ADDRESS')); ?>"
+                                                    for="bfFormMailRecipient">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_MAIL_RECIPIENT'); ?>
+                                                </label>
                                                 <input type="text"
-                                                       value="<?php echo htmlentities($formEmailadr, ENT_QUOTES, 'UTF-8') ?>"
-                                                       id="bfFormMailRecipient"/>
+                                                    value="<?php echo htmlentities($formEmailadr, ENT_QUOTES, 'UTF-8') ?>"
+                                                    id="bfFormMailRecipient" />
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_SUBMIT_INCLUDE')); ?>"
-                                                       for="bfSubmitIncludeYes"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_SUBMIT_INCLUDE'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_SUBMIT_INCLUDE')); ?>"
+                                                    for="bfSubmitIncludeYes">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_SUBMIT_INCLUDE'); ?>
+                                                </label>
                                                 <input checked="checked" type="radio" name="bfSubmitInclude" value=""
-                                                       id="bfSubmitIncludeYes"/> <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
-                                                <input type="radio" name="bfSubmitInclude" value=""
-                                                       id="bfSubmitIncludeNo"/> <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
+                                                    id="bfSubmitIncludeYes" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
+                                                <input type="radio" name="bfSubmitInclude" value="" id="bfSubmitIncludeNo" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_SUBMIT_LABEL')); ?>"
-                                                       for="bfFormSubmitLabel"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_SUBMIT_LABEL'); ?></label>
-                                                <input type="text" value="save" id="bfFormSubmitLabel"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_SUBMIT_LABEL')); ?>"
+                                                    for="bfFormSubmitLabel">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_SUBMIT_LABEL'); ?>
+                                                </label>
+                                                <input type="text" value="save" id="bfFormSubmitLabel" />
                                             </div>
 
                                             <div class="bfPropertyWrap bfTrans">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_SUBMIT_LABEL')); ?>"
-                                                       for="bfFormSubmitLabelTrans"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_SUBMIT_LABEL'); ?>
-                                                    <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                <input type="text" value="save" id="bfFormSubmitLabelTrans"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_SUBMIT_LABEL')); ?>"
+                                                    for="bfFormSubmitLabelTrans">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_SUBMIT_LABEL'); ?>
+                                                    <br /><em>(
+                                                        <?php echo $active_language_code ?>)
+                                                    </em>
+                                                </label>
+                                                <input type="text" value="save" id="bfFormSubmitLabelTrans" />
                                             </div>
 
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_PAGING_INCLUDE')); ?>"
-                                                       for="bfPagingIncludeYes"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_PAGING_INCLUDE'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_PAGING_INCLUDE')); ?>"
+                                                    for="bfPagingIncludeYes">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_PAGING_INCLUDE'); ?>
+                                                </label>
                                                 <input checked="checked" type="radio" name="bfPagingInclude" value=""
-                                                       id="bfPagingIncludeYes"/> <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
-                                                <input type="radio" name="bfPagingInclude" value=""
-                                                       id="bfPagingIncludeNo"/> <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
+                                                    id="bfPagingIncludeYes" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
+                                                <input type="radio" name="bfPagingInclude" value="" id="bfPagingIncludeNo" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_PAGING_NEXT_LABEL')); ?>"
-                                                       for="bfFormPagingNextLabel"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_PAGING_NEXT_LABEL'); ?></label>
-                                                <input type="text" value="next" id="bfFormPagingNextLabel"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_PAGING_NEXT_LABEL')); ?>"
+                                                    for="bfFormPagingNextLabel">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_PAGING_NEXT_LABEL'); ?>
+                                                </label>
+                                                <input type="text" value="next" id="bfFormPagingNextLabel" />
                                             </div>
 
                                             <div class="bfPropertyWrap bfTrans">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_PAGING_NEXT_LABEL')); ?>"
-                                                       for="bfFormPagingNextLabelTrans"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_PAGING_NEXT_LABEL'); ?>
-                                                    <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                <input type="text" value="next" id="bfFormPagingNextLabelTrans"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_PAGING_NEXT_LABEL')); ?>"
+                                                    for="bfFormPagingNextLabelTrans">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_PAGING_NEXT_LABEL'); ?>
+                                                    <br /><em>(
+                                                        <?php echo $active_language_code ?>)
+                                                    </em>
+                                                </label>
+                                                <input type="text" value="next" id="bfFormPagingNextLabelTrans" />
                                             </div>
 
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_PAGING_PREV_LABEL')); ?>"
-                                                       for="bfFormPagingPrevLabel"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_PAGING_PREV_LABEL'); ?></label>
-                                                <input type="text" value="back" id="bfFormPagingPrevLabel"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_PAGING_PREV_LABEL')); ?>"
+                                                    for="bfFormPagingPrevLabel">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_PAGING_PREV_LABEL'); ?>
+                                                </label>
+                                                <input type="text" value="back" id="bfFormPagingPrevLabel" />
                                             </div>
 
                                             <div class="bfPropertyWrap bfTrans">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_PAGING_PREV_LABEL')); ?>"
-                                                       for="bfFormPagingPrevLabelTrans"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_PAGING_PREV_LABEL'); ?>
-                                                    <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                <input type="text" value="back" id="bfFormPagingPrevLabelTrans"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_PAGING_PREV_LABEL')); ?>"
+                                                    for="bfFormPagingPrevLabelTrans">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_PAGING_PREV_LABEL'); ?>
+                                                    <br /><em>(
+                                                        <?php echo $active_language_code ?>)
+                                                    </em>
+                                                </label>
+                                                <input type="text" value="back" id="bfFormPagingPrevLabelTrans" />
                                             </div>
 
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_CANCEL_INCLUDE')); ?>"
-                                                       for="bfCancelIncludeYes"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_CANCEL_INCLUDE'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_CANCEL_INCLUDE')); ?>"
+                                                    for="bfCancelIncludeYes">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_CANCEL_INCLUDE'); ?>
+                                                </label>
                                                 <input checked="checked" type="radio" name="bfCancelInclude" value=""
-                                                       id="bfCancelIncludeYes"/> <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
-                                                <input type="radio" name="bfCancelInclude" value=""
-                                                       id="bfCancelIncludeNo"/> <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
+                                                    id="bfCancelIncludeYes" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
+                                                <input type="radio" name="bfCancelInclude" value="" id="bfCancelIncludeNo" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_CANCEL_LABEL')); ?>"
-                                                       for="bfFormCancelLabel"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_CANCEL_LABEL'); ?></label>
-                                                <input type="text" value="reset" id="bfFormCancelLabel"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_CANCEL_LABEL')); ?>"
+                                                    for="bfFormCancelLabel">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_CANCEL_LABEL'); ?>
+                                                </label>
+                                                <input type="text" value="reset" id="bfFormCancelLabel" />
                                             </div>
 
                                             <div class="bfPropertyWrap bfTrans">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_CANCEL_LABEL')); ?>"
-                                                       for="bfFormCancelLabelTrans"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_CANCEL_LABEL'); ?>
-                                                    <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                <input type="text" value="reset" id="bfFormCancelLabelTrans"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FORM_CANCEL_LABEL')); ?>"
+                                                    for="bfFormCancelLabelTrans">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_CANCEL_LABEL'); ?>
+                                                    <br /><em>(
+                                                        <?php echo $active_language_code ?>)
+                                                    </em>
+                                                </label>
+                                                <input type="text" value="reset" id="bfFormCancelLabelTrans" />
                                             </div>
 
                                         </fieldset>
@@ -3695,48 +3756,62 @@ class QuickModeHtml {
 
                                     <!-- PAGE PROPERTIES BEGIN -->
                                     <div class="bfProperties" id="bfPageProperties" style="display:none">
-                                        <br/>
+                                        <br />
                                         <fieldset>
-                                            <legend><?php echo BFText::_('COM_BREEZINGFORMS_PAGE_PROPERTIES'); ?></legend>
+                                            <legend>
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_PAGE_PROPERTIES'); ?>
+                                            </legend>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAGE_INTRO')); ?>"
-                                                       for="bfPageIntro"><?php echo BFText::_('COM_BREEZINGFORMS_PAGE_INTRO'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAGE_INTRO')); ?>"
+                                                    for="bfPageIntro">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_PAGE_INTRO'); ?>
+                                                </label>
 
-        <?php
-        echo JHtmlBootstrap::renderModal(
-                'bfPropertiesIntroModal',
-                array(
-                    'url' => "index.php?option=com_breezingforms&tmpl=component&act=quickmode_editor",
-                    'width' => '1024px',
-                    'height' => '500px'
-                )
-        );
-        ?>
+                                                <?php
+                                                echo JHtmlBootstrap::renderModal(
+                                                    'bfPropertiesIntroModal',
+                                                    array(
+                                                        'url' => "index.php?option=com_breezingforms&tmpl=component&act=quickmode_editor",
+                                                        'width' => '1024px',
+                                                        'height' => '500px'
+                                                    )
+                                                );
+                                                ?>
 
-                                                <a href="javascript:jQuery('#bfPropertiesIntroModal').modal('show');void(0);" data-toggle="modal"><?php echo BFText::_('COM_BREEZINGFORMS_EDIT_INTRO'); ?></a>
+                                                <a href="javascript:jQuery('#bfPropertiesIntroModal').modal('show');void(0);"
+                                                    data-toggle="modal">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_EDIT_INTRO'); ?>
+                                                </a>
 
                                             </div>
 
                                             <div class="bfPropertyWrap bfTrans">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAGE_INTRO')); ?>"
-                                                       for="bfPageIntroTrans"><?php echo BFText::_('COM_BREEZINGFORMS_PAGE_INTRO'); ?>
-                                                    <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAGE_INTRO')); ?>"
+                                                    for="bfPageIntroTrans">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_PAGE_INTRO'); ?>
+                                                    <br /><em>(
+                                                        <?php echo $active_language_code ?>)
+                                                    </em>
+                                                </label>
 
 
-        <?php
-        echo JHtmlBootstrap::renderModal(
-                'bfPropertiesIntroModal2',
-                array(
-                    'url' => "index.php?option=com_breezingforms&tmpl=component&act=quickmode_editor&active_language_code=" . $active_language_code,
-                    'width' => '1024px',
-                    'height' => '500px'
-                )
-        );
-        ?>
+                                                <?php
+                                                echo JHtmlBootstrap::renderModal(
+                                                    'bfPropertiesIntroModal2',
+                                                    array(
+                                                        'url' => "index.php?option=com_breezingforms&tmpl=component&act=quickmode_editor&active_language_code=" . $active_language_code,
+                                                        'width' => '1024px',
+                                                        'height' => '500px'
+                                                    )
+                                                );
+                                                ?>
 
-                                                <a href="javascript:jQuery('#bfPropertiesIntroModal2').modal('show');void(0);" data-toggle="modal"><?php echo BFText::_('COM_BREEZINGFORMS_EDIT_INTRO'); ?></a>
+                                                <a href="javascript:jQuery('#bfPropertiesIntroModal2').modal('show');void(0);"
+                                                    data-toggle="modal">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_EDIT_INTRO'); ?>
+                                                </a>
 
                                             </div>
                                         </fieldset>
@@ -3745,91 +3820,121 @@ class QuickModeHtml {
 
                                     <!-- SECTION PROPERTIES BEGIN -->
                                     <div class="bfProperties" id="bfSectionProperties" style="display:none">
-                                        <br/>
+                                        <br />
                                         <fieldset>
-                                            <legend><?php echo BFText::_('COM_BREEZINGFORMS_SECTION_PROPERTIES'); ?></legend>
+                                            <legend>
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_SECTION_PROPERTIES'); ?>
+                                            </legend>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_TYPE')); ?>"
-                                                       for="bfSectionType"><?php echo BFText::_('COM_BREEZINGFORMS_SECTION_TYPE'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_TYPE')); ?>"
+                                                    for="bfSectionType">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_SECTION_TYPE'); ?>
+                                                </label>
                                                 <select id="bfSectionType">
-                                                    <option
-                                                        value="normal"><?php echo BFText::_('COM_BREEZINGFORMS_NORMAL'); ?></option>
-                                                    <option
-                                                        value="section"><?php echo BFText::_('COM_BREEZINGFORMS_FIELDSET'); ?></option>
+                                                    <option value="normal">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_NORMAL'); ?>
+                                                    </option>
+                                                    <option value="section">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FIELDSET'); ?>
+                                                    </option>
                                                 </select>
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_DISPLAY_TYPE')); ?>"
-                                                       for="bfSectionDisplayType"><?php echo BFText::_('COM_BREEZINGFORMS_SECTION_DISPLAY_TYPE'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_DISPLAY_TYPE')); ?>"
+                                                    for="bfSectionDisplayType">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_SECTION_DISPLAY_TYPE'); ?>
+                                                </label>
                                                 <select id="bfSectionDisplayType">
-                                                    <option
-                                                        value="inline"><?php echo BFText::_('COM_BREEZINGFORMS_INLINE'); ?></option>
-                                                    <option
-                                                        value="breaks"><?php echo BFText::_('COM_BREEZINGFORMS_BREAKS'); ?></option>
+                                                    <option value="inline">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_INLINE'); ?>
+                                                    </option>
+                                                    <option value="breaks">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_BREAKS'); ?>
+                                                    </option>
                                                 </select>
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_TITLE')); ?>"
-                                                       for="bfSectionTitle"><?php echo BFText::_('COM_BREEZINGFORMS_SECTION_TITLE'); ?></label>
-                                                <input type="text" value="" id="bfSectionTitle"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_TITLE')); ?>"
+                                                    for="bfSectionTitle">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_SECTION_TITLE'); ?>
+                                                </label>
+                                                <input type="text" value="" id="bfSectionTitle" />
                                             </div>
 
                                             <div class="bfPropertyWrap bfTrans">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_TITLE')); ?>"
-                                                       for="bfSectionTitleTrans"><?php echo BFText::_('COM_BREEZINGFORMS_SECTION_TITLE'); ?>
-                                                    <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                <input type="text" value="" id="bfSectionTitleTrans"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_TITLE')); ?>"
+                                                    for="bfSectionTitleTrans">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_SECTION_TITLE'); ?>
+                                                    <br /><em>(
+                                                        <?php echo $active_language_code ?>)
+                                                    </em>
+                                                </label>
+                                                <input type="text" value="" id="bfSectionTitleTrans" />
                                             </div>
 
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_NAME')); ?>"
-                                                       for="bfSectionName"><?php echo BFText::_('COM_BREEZINGFORMS_SECTION_NAME'); ?></label>
-                                                <input type="text" value="" id="bfSectionName"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_NAME')); ?>"
+                                                    for="bfSectionName">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_SECTION_NAME'); ?>
+                                                </label>
+                                                <input type="text" value="" id="bfSectionName" />
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_DESCRIPTION')); ?>"
-                                                       for="bfSectionDescription"><?php echo BFText::_('COM_BREEZINGFORMS_SECTION_DESCRIPTION'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_DESCRIPTION')); ?>"
+                                                    for="bfSectionDescription">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_SECTION_DESCRIPTION'); ?>
+                                                </label>
 
 
-        <?php
-        echo JHtmlBootstrap::renderModal(
-                'bfPropertiesDescriptionModal',
-                array(
-                    'url' => "index.php?option=com_breezingforms&tmpl=component&act=quickmode_editor",
-                    'width' => '1024px',
-                    'height' => '500px'
-                )
-        );
-        ?>
+                                                <?php
+                                                echo JHtmlBootstrap::renderModal(
+                                                    'bfPropertiesDescriptionModal',
+                                                    array(
+                                                        'url' => "index.php?option=com_breezingforms&tmpl=component&act=quickmode_editor",
+                                                        'width' => '1024px',
+                                                        'height' => '500px'
+                                                    )
+                                                );
+                                                ?>
 
-                                                <a href="javascript:jQuery('#bfPropertiesDescriptionModal').modal('show');void(0);"><?php echo BFText::_('COM_BREEZINGFORMS_EDIT_DESCRIPTION'); ?></a>
+                                                <a
+                                                    href="javascript:jQuery('#bfPropertiesDescriptionModal').modal('show');void(0);">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_EDIT_DESCRIPTION'); ?>
+                                                </a>
 
                                             </div>
 
                                             <div class="bfPropertyWrap bfTrans">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_DESCRIPTION')); ?>"
-                                                       for="bfSectionDescriptionTrans"><?php echo BFText::_('COM_BREEZINGFORMS_SECTION_DESCRIPTION'); ?>
-                                                    <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_DESCRIPTION')); ?>"
+                                                    for="bfSectionDescriptionTrans">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_SECTION_DESCRIPTION'); ?>
+                                                    <br /><em>(
+                                                        <?php echo $active_language_code ?>)
+                                                    </em>
+                                                </label>
 
-        <?php
-        echo JHtmlBootstrap::renderModal(
-                'bfPropertiesDescriptionModal2',
-                array(
-                    'url' => "index.php?option=com_breezingforms&tmpl=component&act=quickmode_editor&active_language_code=" . $active_language_code,
-                    'width' => '1024px',
-                    'height' => '500px'
-                )
-        );
-        ?>
+                                                <?php
+                                                echo JHtmlBootstrap::renderModal(
+                                                    'bfPropertiesDescriptionModal2',
+                                                    array(
+                                                        'url' => "index.php?option=com_breezingforms&tmpl=component&act=quickmode_editor&active_language_code=" . $active_language_code,
+                                                        'width' => '1024px',
+                                                        'height' => '500px'
+                                                    )
+                                                );
+                                                ?>
 
-                                                <a href="javascript:jQuery('#bfPropertiesDescriptionModal').modal('show');void(0);"><?php echo BFText::_('COM_BREEZINGFORMS_EDIT_DESCRIPTION'); ?></a>
+                                                <a
+                                                    href="javascript:jQuery('#bfPropertiesDescriptionModal').modal('show');void(0);">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_EDIT_DESCRIPTION'); ?>
+                                                </a>
 
 
                                             </div>
@@ -3839,203 +3944,263 @@ class QuickModeHtml {
 
                                     <!-- ELEMENT PROPERTIES BEGIN -->
                                     <div class="bfProperties" id="bfElementProperties" style="display:none">
-                                        <br/>
+                                        <br />
                                         <fieldset>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TYPE')); ?>"
-                                                       for="bfElementType"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TYPE'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TYPE')); ?>"
+                                                    for="bfElementType">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TYPE'); ?>
+                                                </label>
                                                 <select id="bfElementType">
-                                                    <option
-                                                        value=""><?php echo BFText::_('COM_BREEZINGFORMS_CHOOSE_ONE'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeText"><?php echo BFText::_('COM_BREEZINGFORMS_TEXTFIELD'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeTextarea"><?php echo BFText::_('COM_BREEZINGFORMS_TEXTAREA'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeRadioGroup"><?php echo BFText::_('COM_BREEZINGFORMS_RADIO_GROUP'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeCheckboxGroup"><?php echo BFText::_('COM_BREEZINGFORMS_CHECKBOX_GROUP'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeCheckbox"><?php echo BFText::_('COM_BREEZINGFORMS_CHECKBOX'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeSelect"><?php echo BFText::_('COM_BREEZINGFORMS_SELECT'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeFile"><?php echo BFText::_('COM_BREEZINGFORMS_FILE'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeSubmitButton"><?php echo BFText::_('COM_BREEZINGFORMS_SUBMIT_BUTTON'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeHidden"><?php echo BFText::_('COM_BREEZINGFORMS_HIDDEN'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeSummarize"><?php echo BFText::_('COM_BREEZINGFORMS_SUMMARIZE'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeCaptcha"><?php echo BFText::_('COM_BREEZINGFORMS_CAPTCHA'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeReCaptcha"><?php echo BFText::_('COM_BREEZINGFORMS_ReCaptcha'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeCalendarResponsive"><?php echo BFText::_('COM_BREEZINGFORMS_CALENDAR_RESPONSIVE'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeCalendar"><?php echo BFText::_('COM_BREEZINGFORMS_CALENDAR'); ?></option>
-                                                    <option
-                                                        value="bfElementTypePayPal"><?php echo BFText::_('COM_BREEZINGFORMS_PAYPAL'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeStripe"><?php echo BFText::_('COM_BREEZINGFORMS_STRIPE'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeSofortueberweisung"><?php echo BFText::_('COM_BREEZINGFORMS_SOFORTUEBERWEISUNG'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeNumberInput"><?php echo BFText::_('COM_BREEZINGFORMS_NUMBER_INPUT'); ?></option>
-                                                    <option
-                                                        value="bfElementTypeSignature"><?php echo BFText::_('COM_BREEZINGFORMS_SIGNATURE'); ?></option>
+                                                    <option value="">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CHOOSE_ONE'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeText">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_TEXTFIELD'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeTextarea">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_TEXTAREA'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeRadioGroup">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_RADIO_GROUP'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeCheckboxGroup">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CHECKBOX_GROUP'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeCheckbox">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CHECKBOX'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeSelect">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_SELECT'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeFile">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FILE'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeSubmitButton">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_SUBMIT_BUTTON'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeHidden">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDDEN'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeSummarize">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_SUMMARIZE'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeCaptcha">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CAPTCHA'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeReCaptcha">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ReCaptcha'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeCalendarResponsive">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CALENDAR_RESPONSIVE'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeCalendar">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CALENDAR'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypePayPal">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_PAYPAL'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeStripe">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_STRIPE'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeSofortueberweisung">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_SOFORTUEBERWEISUNG'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeNumberInput">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_NUMBER_INPUT'); ?>
+                                                    </option>
+                                                    <option value="bfElementTypeSignature">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_SIGNATURE'); ?>
+                                                    </option>
                                                 </select>
                                             </div>
-                                            <legend><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_PROPERTIES'); ?></legend>
+                                            <legend>
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_PROPERTIES'); ?>
+                                            </legend>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LABEL')); ?>"
-                                                       for="bfElementLabel"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_LABEL'); ?></label>
-                                                <input type="text" value="" id="bfElementLabel"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LABEL')); ?>"
+                                                    for="bfElementLabel">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_LABEL'); ?>
+                                                </label>
+                                                <input type="text" value="" id="bfElementLabel" />
                                             </div>
 
                                             <div class="bfPropertyWrap bfTrans">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LABEL')); ?>"
-                                                       for="bfElementLabelTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_LABEL'); ?>
-                                                    <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                <input type="text" value="" id="bfElementLabelTrans"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LABEL')); ?>"
+                                                    for="bfElementLabelTrans">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_LABEL'); ?>
+                                                    <br /><em>(
+                                                        <?php echo $active_language_code ?>)
+                                                    </em>
+                                                </label>
+                                                <input type="text" value="" id="bfElementLabelTrans" />
                                             </div>
 
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_NAME')); ?>"
-                                                       for="bfElementName"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_NAME'); ?></label>
-                                                <input type="text" value="" id="bfElementName"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_NAME')); ?>"
+                                                    for="bfElementName">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_NAME'); ?>
+                                                </label>
+                                                <input type="text" value="" id="bfElementName" />
                                             </div>
 
                                             <!-- NUMBER INPUT BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeNumberInput"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeNumberInput" style="display:none">
                                                 <div class="bfPropertyWrap">
-                                                    <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo 'value'; ?>"
-                                                           for="bfElementTypeNumberInputValue"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeNumberInputValue"/>
+                                                    <label class="bfPropertyLabel hasTooltip" title="<?php echo 'value'; ?>"
+                                                        for="bfElementTypeNumberInputValue">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeNumberInputValue" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo 'placeholder'; ?>"
-                                                           for="bfElementTypeNumberInputPlaceholder"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TEXT_PLACEHOLDER'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeNumberInputPlaceholder"/>
+                                                        title="<?php echo 'placeholder'; ?>"
+                                                        for="bfElementTypeNumberInputPlaceholder">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TEXT_PLACEHOLDER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeNumberInputPlaceholder" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo 'translated placholder'; ?>"
-                                                           for="bfElementTypeNumberInputPlaceholderTrans"><?php echo 'translated placeholder'; ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                    <input type="text" value="" id="bfElementTypeNumberInputPlaceholderTrans"/>
+                                                        title="<?php echo 'translated placholder'; ?>"
+                                                        for="bfElementTypeNumberInputPlaceholderTrans">
+                                                        <?php echo 'translated placeholder'; ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeNumberInputPlaceholderTrans" />
                                                 </div>
-        <?php
-        // Icon for Textfield
-        // This code is only for NEW THEME
-
-        $dataTheme = Zend_Json::decode($dataObjectString);
-        // echo '<pre>';
-        // print_r($dataTheme);
-        // echo '</pre>';
-        if ($dataTheme['properties']['themebootstrapThemeEngine'] == 'bootstrap' && $dataTheme['properties']['themebootstrap'] == 'Azure') {
-            ?>
+                                                <?php
+                                                // Icon for Textfield
+                                                // This code is only for NEW THEME
+                                        
+                                                $dataTheme = Zend_Json::decode($dataObjectString);
+                                                // echo '<pre>';
+                                                // print_r($dataTheme);
+                                                // echo '</pre>';
+                                                if ($dataTheme['properties']['themebootstrapThemeEngine'] == 'bootstrap' && $dataTheme['properties']['themebootstrap'] == 'Azure') {
+                                                    ?>
 
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo 'icon element'; ?>"
-                                                               for="bfElementTypeNumberInputIcon"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ICON'); ?></label>
-                                                        <input type="text" value="" id="bfElementTypeNumberInputIcon"/>
+                                                            title="<?php echo 'icon element'; ?>"
+                                                            for="bfElementTypeNumberInputIcon">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ICON'); ?>
+                                                        </label>
+                                                        <input type="text" value="" id="bfElementTypeNumberInputIcon" />
                                                     </div>
-        <?php } ?>
+                                                <?php } ?>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_SIZE')); ?>"
-                                                           for="bfElementTypeNumberInputSize"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_SIZE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeNumberInputSize"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_SIZE')); ?>"
+                                                        for="bfElementTypeNumberInputSize">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_SIZE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeNumberInputSize" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_MAXLENGTH')); ?>"
-                                                           for="bfElementTypeNumberInputMaxLength"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_MAX_LENGTH'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeNumberInputMaxLength"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_MAXLENGTH')); ?>"
+                                                        for="bfElementTypeNumberInputMaxLength">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_MAX_LENGTH'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeNumberInputMaxLength" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_HINT')); ?>"
-                                                           for="bfElementTypeNumberInputHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_HINT')); ?>"
+                                                        for="bfElementTypeNumberInputHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeNumberInputHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_HINT')); ?>"
-                                                           for="bfElementTypeNumberInputHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_HINT')); ?>"
+                                                        for="bfElementTypeNumberInputHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeNumberInputHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- NUMBER INPUT END -->
 
                                             <!-- HIDDEN BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeHidden"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeHidden" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDDEN_VALUE')); ?>"
-                                                           for="bfElementTypeHiddenValue"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeHiddenValue"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDDEN_VALUE')); ?>"
+                                                        for="bfElementTypeHiddenValue">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeHiddenValue" />
                                                 </div>
                                             </div>
                                             <!-- HIDDEN END -->
                                             <!-- SUMMARIZE BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeSummarize"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeSummarize" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_SUMMARIZE_CONNECTWITH')); ?>"
-                                                           for="bfElementTypeSummarizeConnectWith"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_SUMMARIZE_CONNECT_WITH'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_SUMMARIZE_CONNECTWITH')); ?>"
+                                                        for="bfElementTypeSummarizeConnectWith">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_SUMMARIZE_CONNECT_WITH'); ?>
+                                                    </label>
                                                     <select id="bfElementTypeSummarizeConnectWith">
-                                                        <option
-                                                            value=""><?php echo BFText::_('COM_BREEZINGFORMS_CHOOSE_ONE'); ?></option>
+                                                        <option value="">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_CHOOSE_ONE'); ?>
+                                                        </option>
                                                     </select>
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_SUMMARIZE_EMPTY_MESSAGE')); ?>"
-                                                           for="bfElementTypeSummarizeEmptyMessage"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_EMPTY_MESSAGE'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTypeSummarizeEmptyMessage"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_SUMMARIZE_EMPTY_MESSAGE')); ?>"
+                                                        for="bfElementTypeSummarizeEmptyMessage">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_EMPTY_MESSAGE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeSummarizeEmptyMessage" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_SUMMARIZE_EMPTY_MESSAGE')); ?>"
-                                                           for="bfElementTypeSummarizeEmptyMessageTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_EMPTY_MESSAGE'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTypeSummarizeEmptyMessageTrans"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_SUMMARIZE_EMPTY_MESSAGE')); ?>"
+                                                        for="bfElementTypeSummarizeEmptyMessageTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_EMPTY_MESSAGE'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeSummarizeEmptyMessageTrans" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_SUMMARIZE_EMPTY_HIDE')); ?>"
-                                                           for="bfElementTypeSummarizeHideIfEmpty"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HIDE_EMPTY'); ?></label>
-                                                    <input type="checkbox" value=""
-                                                           id="bfElementTypeSummarizeHideIfEmpty"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_SUMMARIZE_EMPTY_HIDE')); ?>"
+                                                        for="bfElementTypeSummarizeHideIfEmpty">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HIDE_EMPTY'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeSummarizeHideIfEmpty" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_SUMMARIZE_USE_LABEL')); ?>"
-                                                           for="bfElementTypeSummarizeUseElementLabel"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_USE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_SUMMARIZE_USE_LABEL')); ?>"
+                                                        for="bfElementTypeSummarizeUseElementLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_USE_LABEL'); ?>
+                                                    </label>
                                                     <input type="checkbox" value=""
-                                                           id="bfElementTypeSummarizeUseElementLabel"/>
+                                                        id="bfElementTypeSummarizeUseElementLabel" />
                                                 </div>
                                             </div>
                                             <!-- SUMMARIZE END -->
@@ -4043,260 +4208,333 @@ class QuickModeHtml {
                                             <div class="bfElementTypeClass" id="bfElementTypeText" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_VALUE')); ?>"
-                                                           for="bfElementTypeTextValue"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeTextValue"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_VALUE')); ?>"
+                                                        for="bfElementTypeTextValue">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeTextValue" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_VALUE')); ?>"
-                                                           for="bfElementTypeTextValueTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                    <input type="text" value="" id="bfElementTypeTextValueTrans"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_VALUE')); ?>"
+                                                        for="bfElementTypeTextValueTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeTextValueTrans" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_PLACEHOLDER')); ?>"
-                                                           for="bfElementTypeTextPlaceholder"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TEXT_PLACEHOLDER'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeTextPlaceholder"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_PLACEHOLDER')); ?>"
+                                                        for="bfElementTypeTextPlaceholder">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TEXT_PLACEHOLDER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeTextPlaceholder" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_PLACEHOLDER')); ?>"
-                                                           for="bfElementTypeTextPlaceholderTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TEXT_PLACEHOLDER'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                    <input type="text" value="" id="bfElementTypeTextPlaceholderTrans"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_PLACEHOLDER')); ?>"
+                                                        for="bfElementTypeTextPlaceholderTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TEXT_PLACEHOLDER'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeTextPlaceholderTrans" />
                                                 </div>
-        <?php
-        // Icon for Textfield
-        // This code is only for NEW THEME
-
-        $dataTheme = Zend_Json::decode($dataObjectString);
-        // echo '<pre>';
-        // print_r($dataTheme);
-        // echo '</pre>';
-        if (isset($dataTheme['properties']) && isset($dataTheme['properties']['themebootstrapThemeEngine']) && isset($dataTheme['properties']['themebootstrap']) && $dataTheme['properties']['themebootstrapThemeEngine'] == 'bootstrap' && $dataTheme['properties']['themebootstrap'] == 'Azure') {
-            ?>
+                                                <?php
+                                                // Icon for Textfield
+                                                // This code is only for NEW THEME
+                                        
+                                                $dataTheme = Zend_Json::decode($dataObjectString);
+                                                // echo '<pre>';
+                                                // print_r($dataTheme);
+                                                // echo '</pre>';
+                                                if (isset($dataTheme['properties']) && isset($dataTheme['properties']['themebootstrapThemeEngine']) && isset($dataTheme['properties']['themebootstrap']) && $dataTheme['properties']['themebootstrapThemeEngine'] == 'bootstrap' && $dataTheme['properties']['themebootstrap'] == 'Azure') {
+                                                    ?>
 
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ICON')); ?>"
-                                                               for="bfElementTypeTextIcon"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ICON'); ?></label>
-                                                        <input type="text" value="" id="bfElementTypeTextIcon"/>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ICON')); ?>"
+                                                            for="bfElementTypeTextIcon">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ICON'); ?>
+                                                        </label>
+                                                        <input type="text" value="" id="bfElementTypeTextIcon" />
                                                     </div>
 
-        <?php } ?>
+                                                <?php } ?>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_SIZE')); ?>"
-                                                           for="bfElementTypeTextSize"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_SIZE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeTextSize"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_SIZE')); ?>"
+                                                        for="bfElementTypeTextSize">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_SIZE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeTextSize" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_MAXLENGTH')); ?>"
-                                                           for="bfElementTypeTextMaxLength"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_MAX_LENGTH'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeTextMaxLength"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_MAXLENGTH')); ?>"
+                                                        for="bfElementTypeTextMaxLength">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_MAX_LENGTH'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeTextMaxLength" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_HINT')); ?>"
-                                                           for="bfElementTypeTextHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_HINT')); ?>"
+                                                        for="bfElementTypeTextHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeTextHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_HINT')); ?>"
-                                                           for="bfElementTypeTextHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTFIELD_HINT')); ?>"
+                                                        for="bfElementTypeTextHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeTextHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- TEXTFIELD END -->
                                             <!-- TEXTAREA BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeTextarea"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeTextarea" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_VALUE')); ?>"
-                                                           for="bfElementTypeTextareaValue"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_VALUE')); ?>"
+                                                        for="bfElementTypeTextareaValue">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeTextareaValue"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_VALUE')); ?>"
-                                                           for="bfElementTypeTextareaValueTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_VALUE')); ?>"
+                                                        for="bfElementTypeTextareaValueTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeTextareaValueTrans"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_PLACEHOLDER')); ?>"
-                                                           for="bfElementTypeTextareaPlaceholder"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TEXT_PLACEHOLDER'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeTextareaPlaceholder"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_PLACEHOLDER')); ?>"
+                                                        for="bfElementTypeTextareaPlaceholder">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TEXT_PLACEHOLDER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeTextareaPlaceholder" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_PLACEHOLDER')); ?>"
-                                                           for="bfElementTypeTextareaPlaceholderTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TEXT_PLACEHOLDER'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTypeTextareaPlaceholderTrans"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_PLACEHOLDER')); ?>"
+                                                        for="bfElementTypeTextareaPlaceholderTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TEXT_PLACEHOLDER'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeTextareaPlaceholderTrans" />
                                                 </div>
-        <?php
-        // Icon for Textarea
-        // This code is only for NEW THEME
+                                                <?php
+                                                // Icon for Textarea
+                                                // This code is only for NEW THEME
+                                        
+                                                $dataTheme = Zend_Json::decode($dataObjectString);
 
-        $dataTheme = Zend_Json::decode($dataObjectString);
-
-        if (isset($dataTheme['properties']) && isset($dataTheme['properties']['themebootstrap']) && isset($dataTheme['properties']['themebootstrapThemeEngine']) && $dataTheme['properties']['themebootstrapThemeEngine'] == 'bootstrap' && $dataTheme['properties']['themebootstrap'] == 'Azure') {
-            ?>
+                                                if (isset($dataTheme['properties']) && isset($dataTheme['properties']['themebootstrap']) && isset($dataTheme['properties']['themebootstrapThemeEngine']) && $dataTheme['properties']['themebootstrapThemeEngine'] == 'bootstrap' && $dataTheme['properties']['themebootstrap'] == 'Azure') {
+                                                    ?>
 
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ICON')); ?>"
-                                                               for="bfElementTypeTextareaIcon"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ICON'); ?></label>
-                                                        <input type="text" value="" id="bfElementTypeTextareaIcon"/>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ICON')); ?>"
+                                                            for="bfElementTypeTextareaIcon">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ICON'); ?>
+                                                        </label>
+                                                        <input type="text" value="" id="bfElementTypeTextareaIcon" />
                                                     </div>
 
-        <?php } ?>
+                                                <?php } ?>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_WIDTH')); ?>"
-                                                           for="bfElementTypeTextareaWidth"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_WIDTH'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeTextareaWidth"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_WIDTH')); ?>"
+                                                        for="bfElementTypeTextareaWidth">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_WIDTH'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeTextareaWidth" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_HEIGHT')); ?>"
-                                                           for="bfElementTypeTextareaHeight"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HEIGHT'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeTextareaHeight"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_HEIGHT')); ?>"
+                                                        for="bfElementTypeTextareaHeight">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HEIGHT'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeTextareaHeight" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_MAXLENGTH')); ?>"
-                                                           for="bfElementTypeTextareaMaxLength"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_MAX_LENGTH'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeTextareaMaxLength"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_MAXLENGTH')); ?>"
+                                                        for="bfElementTypeTextareaMaxLength">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_MAX_LENGTH'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeTextareaMaxLength" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_MAXLENGTH_SHOW')); ?>"
-                                                           for="bfElementTypeTextareaMaxLengthShow"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_MAX_LENGTH_SHOW'); ?></label>
-                                                    <input type="checkbox" value=""
-                                                           id="bfElementTypeTextareaMaxLengthShow"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_MAXLENGTH_SHOW')); ?>"
+                                                        for="bfElementTypeTextareaMaxLengthShow">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_MAX_LENGTH_SHOW'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeTextareaMaxLengthShow" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_HTML')); ?>"
-                                                           for="bfElementTypeTextareaIsHtml">HTML</label>
-                                                    <input type="checkbox" value="" id="bfElementTypeTextareaIsHtml"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TEXTAREA_HTML')); ?>"
+                                                        for="bfElementTypeTextareaIsHtml">HTML</label>
+                                                    <input type="checkbox" value="" id="bfElementTypeTextareaIsHtml" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeTextareaHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeTextareaHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeTextareaHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeTextareaHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeTextareaHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeTextareaHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- TEXTAREA END -->
 
                                             <!-- RADIOGROUP BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeRadioGroup"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeRadioGroup" style="display:none">
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_RADIO_GROUP')); ?>"
-                                                           for="bfElementTypeRadioGroupGroups"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_GROUP'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_RADIO_GROUP')); ?>"
+                                                        for="bfElementTypeRadioGroupGroups">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_GROUP'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeRadioGroupGroups"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_RADIO_GROUP')); ?>"
-                                                           for="bfElementTypeRadioGroupGroupsTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_GROUP'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_RADIO_GROUP')); ?>"
+                                                        for="bfElementTypeRadioGroupGroupsTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_GROUP'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeRadioGroupGroupsTrans"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_RADIO_GROUP_READONLY')); ?>"
-                                                           for="bfElementTypeRadioGroupReadonly"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_READONLY'); ?></label>
-                                                    <input type="checkbox" value=""
-                                                           id="bfElementTypeRadioGroupReadonly"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_RADIO_GROUP_READONLY')); ?>"
+                                                        for="bfElementTypeRadioGroupReadonly">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_READONLY'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeRadioGroupReadonly" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_RADIO_GROUP_WRAP')); ?>"
-                                                           for="bfElementTypeRadioGroupWrap"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_WRAP'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementTypeRadioGroupWrap"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_RADIO_GROUP_WRAP')); ?>"
+                                                        for="bfElementTypeRadioGroupWrap">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_WRAP'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeRadioGroupWrap" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeRadioGroupHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeRadioGroupHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeRadioGroupHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeRadioGroupHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeRadioGroupHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeRadioGroupHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- RADIOGROUP END -->
                                             <!-- SUBMITBUTTON BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeSubmitButton"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeSubmitButton" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SUBMIT_VALUE')); ?>"
-                                                           for="bfElementTypeSubmitButtonValue"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeSubmitButtonValue"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SUBMIT_VALUE')); ?>"
+                                                        for="bfElementTypeSubmitButtonValue">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeSubmitButtonValue" />
                                                 </div>
 
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SUBMIT_VALUE')); ?>"
-                                                           for="bfElementTypeSubmitButtonValueTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTypeSubmitButtonValueTrans"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SUBMIT_VALUE')); ?>"
+                                                        for="bfElementTypeSubmitButtonValueTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeSubmitButtonValueTrans" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeSubmitButtonHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeSubmitButtonHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeSubmitButtonHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeSubmitButtonHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeSubmitButtonHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeSubmitButtonHintTrans"></textarea>
                                                 </div>
                                             </div>
@@ -4304,67 +4542,86 @@ class QuickModeHtml {
 
 
                                             <!-- STRIPE BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeStripe"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeStripe" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_SECRETKEY')); ?>"
-                                                           for="bfElementTypeStripeSecretKey"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_SECRETKEY'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeStripeSecretKey"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_SECRETKEY')); ?>"
+                                                        for="bfElementTypeStripeSecretKey">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_SECRETKEY'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeStripeSecretKey" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_PUBLISHABLEKEY')); ?>"
-                                                           for="bfElementTypeStripePublishableKey"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_PUBLISHABLEKEY'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeStripePublishableKey"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_PUBLISHABLEKEY')); ?>"
+                                                        for="bfElementTypeStripePublishableKey">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_PUBLISHABLEKEY'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeStripePublishableKey" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_ITEMNAME')); ?>"
-                                                           for="bfElementTypeStripeItemname"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ITEMNAME'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeStripeItemname"/>
-                                                </div>
-
-                                                <div class="bfPropertyWrap">
-                                                    <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_AMOUNT')); ?>"
-                                                           for="bfElementTypeStripeAmount"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_AMOUNT'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeStripeAmount"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_ITEMNAME')); ?>"
+                                                        for="bfElementTypeStripeItemname">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ITEMNAME'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeStripeItemname" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_CURRENCY')); ?>"
-                                                           for="bfElementTypeStripeCurrencyCode"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CURRENCY_CODE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeStripeCurrencyCode"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_AMOUNT')); ?>"
+                                                        for="bfElementTypeStripeAmount">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_AMOUNT'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeStripeAmount" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_THANKYOUPAGE')); ?>"
-                                                           for="bfElementTypeStripeThankYouPage"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_THANKYOU_PAGE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeStripeThankYouPage"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_CURRENCY')); ?>"
+                                                        for="bfElementTypeStripeCurrencyCode">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CURRENCY_CODE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeStripeCurrencyCode" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_SENDNOTAFPAY')); ?>"
-                                                           for="bfElementTypeStripeSendNotificationAfterPayment"><?php echo BFText::_('COM_BREEZINGFORMS_NOTIFICATION_AFTER_PAYMENT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_THANKYOUPAGE')); ?>"
+                                                        for="bfElementTypeStripeThankYouPage">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_THANKYOU_PAGE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeStripeThankYouPage" />
+                                                </div>
+
+                                                <div class="bfPropertyWrap">
+                                                    <label class="bfPropertyLabel hasTooltip"
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_SENDNOTAFPAY')); ?>"
+                                                        for="bfElementTypeStripeSendNotificationAfterPayment">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_NOTIFICATION_AFTER_PAYMENT'); ?>
+                                                    </label>
                                                     <input type="checkbox" value=""
-                                                           id="bfElementTypeStripeSendNotificationAfterPayment"/>
+                                                        id="bfElementTypeStripeSendNotificationAfterPayment" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeStripeHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeStripeHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeStripeHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeStripeHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeStripeHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeStripeHintTrans"></textarea>
                                                 </div>
                                             </div>
@@ -4372,577 +4629,731 @@ class QuickModeHtml {
 
 
                                             <!-- PAYPAL BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypePayPal"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypePayPal" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_BUSINESS')); ?>"
-                                                           for="bfElementTypePayPalBusiness"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_BUSINESS'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypePayPalBusiness"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_BUSINESS')); ?>"
+                                                        for="bfElementTypePayPalBusiness">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_BUSINESS'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypePayPalBusiness" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_TOKEN')); ?>"
-                                                           for="bfElementTypePayPalToken"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TOKEN'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypePayPalToken"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_TOKEN')); ?>"
+                                                        for="bfElementTypePayPalToken">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TOKEN'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypePayPalToken" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_ITEMNAME')); ?>"
-                                                           for="bfElementTypePayPalItemname"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ITEMNAME'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypePayPalItemname"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_ITEMNAME')); ?>"
+                                                        for="bfElementTypePayPalItemname">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ITEMNAME'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypePayPalItemname" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_ITEMNUMBER')); ?>"
-                                                           for="bfElementTypePayPalItemnumber"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ITEMNUMBER'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypePayPalItemnumber"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_ITEMNUMBER')); ?>"
+                                                        for="bfElementTypePayPalItemnumber">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ITEMNUMBER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypePayPalItemnumber" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_AMOUNT')); ?>"
-                                                           for="bfElementTypePayPalAmount"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_AMOUNT'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypePayPalAmount"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_AMOUNT')); ?>"
+                                                        for="bfElementTypePayPalAmount">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_AMOUNT'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypePayPalAmount" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_TAX')); ?>"
-                                                           for="bfElementTypePayPalTax"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TAX'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypePayPalTax"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_TAX')); ?>"
+                                                        for="bfElementTypePayPalTax">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TAX'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypePayPalTax" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_THANKYOUPAGE')); ?>"
-                                                           for="bfElementTypePayPalThankYouPage"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_THANKYOU_PAGE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypePayPalThankYouPage"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_THANKYOUPAGE')); ?>"
+                                                        for="bfElementTypePayPalThankYouPage">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_THANKYOU_PAGE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypePayPalThankYouPage" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_CANCEL')); ?>"
-                                                           for="bfElementTypePayPalCancelURL"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CANCEL_URL'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypePayPalCancelURL"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_CANCEL')); ?>"
+                                                        for="bfElementTypePayPalCancelURL">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CANCEL_URL'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypePayPalCancelURL" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_LOCALE')); ?>"
-                                                           for="bfElementTypePayPalLocale"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_LOCALE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypePayPalLocale"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_LOCALE')); ?>"
+                                                        for="bfElementTypePayPalLocale">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_LOCALE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypePayPalLocale" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_CURRENCY')); ?>"
-                                                           for="bfElementTypePayPalCurrencyCode"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CURRENCY_CODE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypePayPalCurrencyCode"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_CURRENCY')); ?>"
+                                                        for="bfElementTypePayPalCurrencyCode">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CURRENCY_CODE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypePayPalCurrencyCode" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_SENDNOTAFPAY')); ?>"
-                                                           for="bfElementTypePayPalSendNotificationAfterPayment"><?php echo BFText::_('COM_BREEZINGFORMS_NOTIFICATION_AFTER_PAYMENT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_SENDNOTAFPAY')); ?>"
+                                                        for="bfElementTypePayPalSendNotificationAfterPayment">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_NOTIFICATION_AFTER_PAYMENT'); ?>
+                                                    </label>
                                                     <input type="checkbox" value=""
-                                                           id="bfElementTypePayPalSendNotificationAfterPayment"/>
+                                                        id="bfElementTypePayPalSendNotificationAfterPayment" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypePayPalHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypePayPalHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypePayPalHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypePayPalHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypePayPalHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypePayPalHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- PAYPAL END -->
                                             <!-- SOFORTUEBERWEISUNG BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeSofortueberweisung"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_USERID')); ?>"
-                                                           for="bfElementTypeSofortueberweisungUserId"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_USERID'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTypeSofortueberweisungUserId"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_USERID')); ?>"
+                                                        for="bfElementTypeSofortueberweisungUserId">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_USERID'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeSofortueberweisungUserId" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_PROJECTID')); ?>"
-                                                           for="bfElementTypeSofortueberweisungProjectId"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_PROJECTID'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTypeSofortueberweisungProjectId"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_PROJECTID')); ?>"
+                                                        for="bfElementTypeSofortueberweisungProjectId">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_PROJECTID'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeSofortueberweisungProjectId" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_PROJECTPASSWORD')); ?>"
-                                                           for="bfElementTypeSofortueberweisungProjectPassword"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_PROJECT_PASSWORD'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_PROJECTPASSWORD')); ?>"
+                                                        for="bfElementTypeSofortueberweisungProjectPassword">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_PROJECT_PASSWORD'); ?>
+                                                    </label>
                                                     <input type="password" value=""
-                                                           id="bfElementTypeSofortueberweisungProjectPassword"/>
+                                                        id="bfElementTypeSofortueberweisungProjectPassword" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_REASON1')); ?>"
-                                                           for="bfElementTypeSofortueberweisungReason1"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_REASON1'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_REASON1')); ?>"
+                                                        for="bfElementTypeSofortueberweisungReason1">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_REASON1'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeSofortueberweisungReason1" />
+                                                </div>
+                                                <div class="bfPropertyWrap">
+                                                    <label class="bfPropertyLabel hasTooltip"
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_REASON2')); ?>"
+                                                        for="bfElementTypeSofortueberweisungReason2">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_REASON2'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeSofortueberweisungReason2" />
+                                                </div>
+                                                <div class="bfPropertyWrap">
+                                                    <label class="bfPropertyLabel hasTooltip"
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_AMOUNT')); ?>"
+                                                        for="bfElementTypeSofortueberweisungAmount">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_AMOUNT'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeSofortueberweisungAmount" />
+                                                </div>
+                                                <div class="bfPropertyWrap">
+                                                    <label class="bfPropertyLabel hasTooltip"
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_THANKYOUPAGE')); ?>"
+                                                        for="bfElementTypeSofortueberweisungThankYouPage">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_THANKYOU_PAGE'); ?>
+                                                    </label>
                                                     <input type="text" value=""
-                                                           id="bfElementTypeSofortueberweisungReason1"/>
+                                                        id="bfElementTypeSofortueberweisungThankYouPage" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_REASON2')); ?>"
-                                                           for="bfElementTypeSofortueberweisungReason2"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_REASON2'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_LANGUAGEID')); ?>"
+                                                        for="bfElementTypeSofortueberweisungLanguageId">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_LANGUAGE_ID'); ?>
+                                                    </label>
                                                     <input type="text" value=""
-                                                           id="bfElementTypeSofortueberweisungReason2"/>
+                                                        id="bfElementTypeSofortueberweisungLanguageId" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_AMOUNT')); ?>"
-                                                           for="bfElementTypeSofortueberweisungAmount"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_AMOUNT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_CURRENCY')); ?>"
+                                                        for="bfElementTypeSofortueberweisungCurrencyId">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CURRENCY_ID'); ?>
+                                                    </label>
                                                     <input type="text" value=""
-                                                           id="bfElementTypeSofortueberweisungAmount"/>
+                                                        id="bfElementTypeSofortueberweisungCurrencyId" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_THANKYOUPAGE')); ?>"
-                                                           for="bfElementTypeSofortueberweisungThankYouPage"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_THANKYOU_PAGE'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTypeSofortueberweisungThankYouPage"/>
-                                                </div>
-                                                <div class="bfPropertyWrap">
-                                                    <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_LANGUAGEID')); ?>"
-                                                           for="bfElementTypeSofortueberweisungLanguageId"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_LANGUAGE_ID'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTypeSofortueberweisungLanguageId"/>
-                                                </div>
-                                                <div class="bfPropertyWrap">
-                                                    <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_CURRENCY')); ?>"
-                                                           for="bfElementTypeSofortueberweisungCurrencyId"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CURRENCY_ID'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTypeSofortueberweisungCurrencyId"/>
-                                                </div>
-                                                <div class="bfPropertyWrap">
-                                                    <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_SENDNOTAFPAY')); ?>"
-                                                           for="bfElementTypeSofortueberweisungSendNotificationAfterPayment"><?php echo BFText::_('COM_BREEZINGFORMS_NOTIFICATION_AFTER_PAYMENT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_SENDNOTAFPAY')); ?>"
+                                                        for="bfElementTypeSofortueberweisungSendNotificationAfterPayment">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_NOTIFICATION_AFTER_PAYMENT'); ?>
+                                                    </label>
                                                     <input type="checkbox" value=""
-                                                           id="bfElementTypeSofortueberweisungSendNotificationAfterPayment"/>
+                                                        id="bfElementTypeSofortueberweisungSendNotificationAfterPayment" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_MAILBACK')); ?>"
-                                                           for="bfElementTypeSofortueberweisungMailback"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_MAILBACK'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_MAILBACK')); ?>"
+                                                        for="bfElementTypeSofortueberweisungMailback">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_MAILBACK'); ?>
+                                                    </label>
                                                     <input type="checkbox" value=""
-                                                           id="bfElementTypeSofortueberweisungMailback"/>
+                                                        id="bfElementTypeSofortueberweisungMailback" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeSofortueberweisungHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeSofortueberweisungHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeSofortueberweisungHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeSofortueberweisungHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeSofortueberweisungHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeSofortueberweisungHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- SOFORTUEBERWEISUNG END -->
                                             <!-- CAPTCHA BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeCaptcha"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeCaptcha" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeCaptchaHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeCaptchaHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeCaptchaHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeCaptchaHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeCaptchaHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeCaptchaHintTrans"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CAPTCHA_WIDTH')); ?>"
-                                                           for="bfElementTypeCaptchaWidth"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CAPTCHA_WIDTH'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeCaptchaWidth"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CAPTCHA_WIDTH')); ?>"
+                                                        for="bfElementTypeCaptchaWidth">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CAPTCHA_WIDTH'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeCaptchaWidth" />
                                                 </div>
                                             </div>
                                             <!-- CAPTCHA END -->
                                             <!-- RECAPTCHA BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeReCaptcha"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeReCaptcha" style="display:none">
 
                                                 <div class="bfPropertyWrap">
-                                                    <label for="bfElementTypeReCaptchaNew"
-                                                           class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_NEW_CAPTCHA_HINT')); ?>">reCaptcha</label>
+                                                    <label for="bfElementTypeReCaptchaNew" class="bfPropertyLabel hasTooltip"
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_NEW_CAPTCHA_HINT')); ?>">reCaptcha</label>
 
                                                     <label>
-                                                        <input type="radio" name="bfElementTypeReCaptchaNew" value="" id="bfElementTypeReCaptchaNew"
-                                                               checked="checked"/><?php echo BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_NEW_CAPTCHA'); ?></label>
+                                                        <input type="radio" name="bfElementTypeReCaptchaNew" value=""
+                                                            id="bfElementTypeReCaptchaNew" checked="checked" />
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_NEW_CAPTCHA'); ?>
+                                                    </label>
                                                     <label>
-                                                        <input type="radio" name="bfElementTypeReCaptchaNew" value="" id="bfElementTypeReCaptchaInvisible"
-                                                               /><?php echo BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_INVISIBLE_CAPTCHA'); ?></label>
+                                                        <input type="radio" name="bfElementTypeReCaptchaNew" value=""
+                                                            id="bfElementTypeReCaptchaInvisible" />
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_INVISIBLE_CAPTCHA'); ?>
+                                                    </label>
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_PUBKEY')); ?>"
-                                                           for=bfElementTypeReCaptchaPubkey><?php echo BFText::_('COM_BREEZINGFORMS_PUBLIC_KEY'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeReCaptchaPubkey"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_PUBKEY')); ?>"
+                                                        for=bfElementTypeReCaptchaPubkey><?php echo BFText::_('COM_BREEZINGFORMS_PUBLIC_KEY'); ?></label>
+                                                    <input type="text" value="" id="bfElementTypeReCaptchaPubkey" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_PRIVKEY')); ?>"
-                                                           for=bfElementTypeReCaptchaPrivkey><?php echo BFText::_('COM_BREEZINGFORMS_PRIVATE_KEY'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeReCaptchaPrivkey"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_PRIVKEY')); ?>"
+                                                        for=bfElementTypeReCaptchaPrivkey><?php echo BFText::_('COM_BREEZINGFORMS_PRIVATE_KEY'); ?></label>
+                                                    <input type="text" value="" id="bfElementTypeReCaptchaPrivkey" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_THEME')); ?>"
-                                                           for=bfElementTypeReCaptchaTheme><?php echo BFText::_('COM_BREEZINGFORMS_Theme'); ?></label>
-                                                    <input type="text" value="red" id="bfElementTypeReCaptchaTheme"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_THEME')); ?>"
+                                                        for=bfElementTypeReCaptchaTheme><?php echo BFText::_('COM_BREEZINGFORMS_Theme'); ?></label>
+                                                    <input type="text" value="red" id="bfElementTypeReCaptchaTheme" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_SIZE')); ?>"
-                                                           for=bfElementTypeReCaptchaSize><?php echo BFText::_('COM_BREEZINGFORMS_RECAPTCHA_SIZE'); ?></label>
-                                                    <input type="text" value="normal" id="bfElementTypeReCaptchaSize"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_RECAPTCHA_SIZE')); ?>"
+                                                        for=bfElementTypeReCaptchaSize><?php echo BFText::_('COM_BREEZINGFORMS_RECAPTCHA_SIZE'); ?></label>
+                                                    <input type="text" value="normal" id="bfElementTypeReCaptchaSize" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeReCaptchaHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeReCaptchaHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeReCaptchaHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeReCaptchaHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeReCaptchaHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeReCaptchaHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- RECAPTCHA END -->
                                             <!-- CALENDAR Responsive BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCalendarResponsive"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_FORMAT')); ?>"
-                                                           for="bfElementTypeCalendarResponsiveFormat"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_FORMAT'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTypeCalendarResponsiveFormat"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_FORMAT')); ?>"
+                                                        for="bfElementTypeCalendarResponsiveFormat">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_FORMAT'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeCalendarResponsiveFormat" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_FORMAT')); ?>"
-                                                           for="bfElementTypeCalendarResponsiveFormatTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_FORMAT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_FORMAT')); ?>"
+                                                        for="bfElementTypeCalendarResponsiveFormatTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_FORMAT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <input type="text" value=""
-                                                           id="bfElementTypeCalendarResponsiveFormatTrans"/>
+                                                        id="bfElementTypeCalendarResponsiveFormatTrans" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_VALUE')); ?>"
-                                                           for="bfElementTypeCalendarResponsiveValue"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTypeCalendarResponsiveValue"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_VALUE')); ?>"
+                                                        for="bfElementTypeCalendarResponsiveValue">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeCalendarResponsiveValue" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_VALUE')); ?>"
-                                                           for="bfElementTypeCalendarResponsiveValueTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_VALUE')); ?>"
+                                                        for="bfElementTypeCalendarResponsiveValueTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <input type="text" value=""
-                                                           id="bfElementTypeCalendarResponsiveValueTrans"/>
+                                                        id="bfElementTypeCalendarResponsiveValueTrans" />
                                                 </div>
-        <?php
-        // Icon for Responsive Calendar
-        // This code is only for NEW THEME
+                                                <?php
+                                                // Icon for Responsive Calendar
+                                                // This code is only for NEW THEME
+                                        
+                                                $dataTheme = Zend_Json::decode($dataObjectString);
 
-        $dataTheme = Zend_Json::decode($dataObjectString);
-
-        if ($dataTheme['properties']['themebootstrapThemeEngine'] == 'bootstrap' && $dataTheme['properties']['themebootstrap'] == 'Azure') {
-            ?>
+                                                if ($dataTheme['properties']['themebootstrapThemeEngine'] == 'bootstrap' && $dataTheme['properties']['themebootstrap'] == 'Azure') {
+                                                    ?>
 
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ICON')); ?>"
-                                                               for="bfElementTypeCalendarResponsiveIcon"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ICON'); ?></label>
-                                                        <input type="text" value="" id="bfElementTypeCalendarResponsiveIcon"/>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ICON')); ?>"
+                                                            for="bfElementTypeCalendarResponsiveIcon">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ICON'); ?>
+                                                        </label>
+                                                        <input type="text" value="" id="bfElementTypeCalendarResponsiveIcon" />
                                                     </div>
 
-        <?php } ?>
+                                                <?php } ?>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SIZE')); ?>"
-                                                           for="bfElementTypeCalendarResponsiveSize"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_SIZE'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTypeCalendarResponsiveSize"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SIZE')); ?>"
+                                                        for="bfElementTypeCalendarResponsiveSize">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_SIZE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeCalendarResponsiveSize" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeCalendarResponsiveHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeCalendarResponsiveHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeCalendarResponsiveHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeCalendarResponsiveHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeCalendarResponsiveHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeCalendarResponsiveHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- CALENDAR RESPONSIVE END -->
                                             <!-- CALENDAR BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeCalendar"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeCalendar" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_FORMAT')); ?>"
-                                                           for="bfElementTypeCalendarFormat"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_FORMAT'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeCalendarFormat"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_FORMAT')); ?>"
+                                                        for="bfElementTypeCalendarFormat">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_FORMAT'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeCalendarFormat" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_FORMAT')); ?>"
-                                                           for="bfElementTypeCalendarFormatTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_FORMAT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                    <input type="text" value="" id="bfElementTypeCalendarFormatTrans"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_FORMAT')); ?>"
+                                                        for="bfElementTypeCalendarFormatTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_FORMAT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeCalendarFormatTrans" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_VALUE')); ?>"
-                                                           for="bfElementTypeCalendarValue"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeCalendarValue"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_VALUE')); ?>"
+                                                        for="bfElementTypeCalendarValue">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeCalendarValue" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_VALUE')); ?>"
-                                                           for="bfElementTypeCalendarValueTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                    <input type="text" value="" id="bfElementTypeCalendarValueTrans"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_VALUE')); ?>"
+                                                        for="bfElementTypeCalendarValueTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeCalendarValueTrans" />
                                                 </div>
 
-        <?php
-        // Icon for Calendar
-        // This code is only for NEW THEME
+                                                <?php
+                                                // Icon for Calendar
+                                                // This code is only for NEW THEME
+                                        
+                                                $dataTheme = Zend_Json::decode($dataObjectString);
 
-        $dataTheme = Zend_Json::decode($dataObjectString);
-
-        if ($dataTheme['properties']['themebootstrapThemeEngine'] == 'bootstrap' && $dataTheme['properties']['themebootstrap'] == 'Azure') {
-            ?>
+                                                if ($dataTheme['properties']['themebootstrapThemeEngine'] == 'bootstrap' && $dataTheme['properties']['themebootstrap'] == 'Azure') {
+                                                    ?>
 
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ICON')); ?>"
-                                                               for="bfElementTypeCalendarIcon"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ICON'); ?></label>
-                                                        <input type="text" value="" id="bfElementTypeCalendarIcon"/>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ICON')); ?>"
+                                                            for="bfElementTypeCalendarIcon">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_ICON'); ?>
+                                                        </label>
+                                                        <input type="text" value="" id="bfElementTypeCalendarIcon" />
                                                     </div>
 
-        <?php } ?>
+                                                <?php } ?>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SIZE')); ?>"
-                                                           for="bfElementTypeCalendarSize"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_SIZE'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeCalendarSize"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SIZE')); ?>"
+                                                        for="bfElementTypeCalendarSize">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_SIZE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeCalendarSize" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeCalendarHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeCalendarHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeCalendarHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeCalendarHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeCalendarHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeCalendarHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- CALENDAR END -->
                                             <!-- SIGNATURE BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeSignature"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeSignature" style="display:none">
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeSignatureHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeSignatureHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeSignatureHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeSignatureHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeSignatureHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeSignatureHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- SIGNATURE END -->
                                             <!-- CHECKBOXGROUP BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCheckboxGroup"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CHECKBOX_GROUP')); ?>"
-                                                           for="bfElementTypeCheckboxGroupGroups"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_GROUP'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CHECKBOX_GROUP')); ?>"
+                                                        for="bfElementTypeCheckboxGroupGroups">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_GROUP'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeCheckboxGroupGroups"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CHECKBOX_GROUP')); ?>"
-                                                           for="bfElementTypeCheckboxGroupGroupsTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_GROUP'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CHECKBOX_GROUP')); ?>"
+                                                        for="bfElementTypeCheckboxGroupGroupsTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_GROUP'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeCheckboxGroupGroupsTrans"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CHECKBOX_GROUP_READONLY')); ?>"
-                                                           for="bfElementTypeCheckboxGroupReadonly"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_READONLY'); ?></label>
-                                                    <input type="checkbox" value=""
-                                                           id="bfElementTypeCheckboxGroupReadonly"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CHECKBOX_GROUP_READONLY')); ?>"
+                                                        for="bfElementTypeCheckboxGroupReadonly">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_READONLY'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeCheckboxGroupReadonly" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CHECKBOX_GROUP_WRAP')); ?>"
-                                                           for="bfElementTypeCheckboxGroupWrap"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_WRAP'); ?></label>
-                                                    <input type="checkbox" value=""
-                                                           id="bfElementTypeCheckboxGroupWrap"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CHECKBOX_GROUP_WRAP')); ?>"
+                                                        for="bfElementTypeCheckboxGroupWrap">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_WRAP'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeCheckboxGroupWrap" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeCheckboxGroupHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeCheckboxGroupHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeCheckboxGroupHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeCheckboxGroupHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeCheckboxGroupHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeCheckboxGroupHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- CHECKBOXGROUP END -->
                                             <!-- CHECKBOX BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeCheckbox"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeCheckbox" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_CHECKBOX_VALUE')); ?>"
-                                                           for="bfElementTypeCheckboxValue"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_CHECKBOX_VALUE')); ?>"
+                                                        for="bfElementTypeCheckboxValue">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALUE'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeCheckboxValue"></textarea>
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_CHECKBOX_CHECKED')); ?>"
-                                                           for="bfElementTypeCheckboxChecked"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CHECKED'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementTypeCheckboxChecked"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_CHECKBOX_CHECKED')); ?>"
+                                                        for="bfElementTypeCheckboxChecked">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CHECKED'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeCheckboxChecked" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_CHECKBOX_READONLY')); ?>"
-                                                           for="bfElementTypeCheckboxReadonly"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_READONLY'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementTypeCheckboxReadonly"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_CHECKBOX_READONLY')); ?>"
+                                                        for="bfElementTypeCheckboxReadonly">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_READONLY'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeCheckboxReadonly" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeCheckboxHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeCheckboxHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeCheckboxHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeCheckboxHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeCheckboxHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeCheckboxHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- CHECKBOX END -->
                                             <!-- SELECT BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeSelect"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeSelect" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECTLIST')); ?>"
-                                                           for="bfElementTypeSelectList"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_LIST'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECTLIST')); ?>"
+                                                        for="bfElementTypeSelectList">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_LIST'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeSelectList"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECTLIST')); ?>"
-                                                           for="bfElementTypeSelectListTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_LIST'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECTLIST')); ?>"
+                                                        for="bfElementTypeSelectListTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_LIST'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeSelectListTrans"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECTLIST_MULTIPLE')); ?>"
-                                                           for="bfElementTypeSelectMultiple"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_MULTIPLE'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementTypeSelectMultiple"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECTLIST_MULTIPLE')); ?>"
+                                                        for="bfElementTypeSelectMultiple">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_MULTIPLE'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeSelectMultiple" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECTLIST_WIDTH')); ?>"
-                                                           for="bfElementTypeSelectListWidth"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_WIDTH'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeSelectListWidth"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECTLIST_WIDTH')); ?>"
+                                                        for="bfElementTypeSelectListWidth">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_WIDTH'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeSelectListWidth" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECTLIST_HEIGHT')); ?>"
-                                                           for="bfElementTypeSelectListHeight"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HEIGHT'); ?></label>
-                                                    <input type="text" value="" id="bfElementTypeSelectListHeight"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECTLIST_HEIGHT')); ?>"
+                                                        for="bfElementTypeSelectListHeight">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HEIGHT'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeSelectListHeight" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECTLIST_READONLY')); ?>"
-                                                           for="bfElementTypeSelectReadonly"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_READONLY'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementTypeSelectReadonly"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECTLIST_READONLY')); ?>"
+                                                        for="bfElementTypeSelectReadonly">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_READONLY'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeSelectReadonly" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeSelectHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeSelectHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeSelectHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeSelectHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeSelectHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeSelectHintTrans"></textarea>
                                                 </div>
                                             </div>
@@ -4951,448 +5362,541 @@ class QuickModeHtml {
                                             <div class="bfElementTypeClass" id="bfElementTypeFile" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_READONLY')); ?>"
-                                                           for="bfElementTypeFileReadonly"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_READONLY'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementTypeFileReadonly"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_READONLY')); ?>"
+                                                        for="bfElementTypeFileReadonly">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_READONLY'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeFileReadonly" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeFileHint"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeFileHint">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                    </label>
                                                     <textarea id="bfElementTypeFileHint"></textarea>
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
-                                                           for="bfElementTypeFileHintTrans"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeFileHintTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <textarea id="bfElementTypeFileHintTrans"></textarea>
                                                 </div>
                                             </div>
                                             <!-- FILE END -->
                                         </fieldset>
                                         <fieldset id="bfValidationScript" style="display:none">
-                                            <legend><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALIDATION'); ?></legend>
+                                            <legend>
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALIDATION'); ?>
+                                            </legend>
                                             <span id="bfElementValidationRequiredSet" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VALIDATION_REQUIRED')); ?>"
-                                                           for="bfElementValidationRequired"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALIDATION_REQUIRED'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementValidationRequired"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VALIDATION_REQUIRED')); ?>"
+                                                        for="bfElementValidationRequired">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALIDATION_REQUIRED'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementValidationRequired" />
                                                 </div>
                                             </span>
 
                                             <div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VALIDATION_TYPE')); ?>"
-                                                           for="bfElementValidation"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALIDATION_LABEL'); ?></label>
-        <?php echo BFText::_('COM_BREEZINGFORMS_TYPE') ?>:
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VALIDATION_TYPE')); ?>"
+                                                        for="bfElementValidation">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_VALIDATION_LABEL'); ?>
+                                                    </label>
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_TYPE') ?>:
                                                     <input
                                                         onclick="JQuery('#bfValidationScriptFlags').css('display', 'none');
                                                                             JQuery('#bfValidationScriptLibrary').css('display', 'none');JQuery('#bfValidationScriptCustom').css('display', 'none');"
                                                         type="radio" name="validationType" id="bfValidationTypeNone"
-                                                        class="bfValidationType"
-                                                        value="0"/> <?php echo BFText::_('COM_BREEZINGFORMS_NONE') ?>
+                                                        class="bfValidationType" value="0" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_NONE') ?>
                                                     <input
                                                         onclick="JQuery('#bfValidationScriptFlags').css('display', '');
                                                                             JQuery('#bfValidationScriptLibrary').css('display', '');JQuery('#bfValidationScriptCustom').css('display', 'none');"
                                                         type="radio" name="validationType" id="bfValidationTypeLibrary"
-                                                        class="bfValidationType"
-                                                        value="1"/> <?php echo BFText::_('COM_BREEZINGFORMS_LIBRARY') ?>
+                                                        class="bfValidationType" value="1" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_LIBRARY') ?>
                                                     <input
                                                         onclick="JQuery('#bfValidationScriptFlags').css('display', '');JQuery('#bfValidationScriptLibrary').css('display', 'none');
                                                                             JQuery('#bfValidationScriptCustom').css('display', '');"
                                                         type="radio" name="validationType" id="bfValidationTypeCustom"
-                                                        class="bfValidationType"
-                                                        value="2"/> <?php echo BFText::_('COM_BREEZINGFORMS_CUSTOM') ?>
+                                                        class="bfValidationType" value="2" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_CUSTOM') ?>
                                                 </div>
 
                                                 <div id="bfValidationScriptFlags" style="display:none">
-                                                    <hr/>
+                                                    <hr />
                                                     <div class="bfPropertyWrap">
                                                         <span class="hasTooltip"
-                                                              title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VALIDATION_ERROR_MESSAGE')); ?>"><?php echo BFText::_('COM_BREEZINGFORMS_ERROR_MESSAGE') ?>
-                                                            :</span> <input type="text" style="width:100%"
-                                                                        maxlength="255" class="bfValidationMessage"
-                                                                        id="bfValidationMessage"
-                                                                        name="bfValidationMessage" value=""
-                                                                        class="inputbox"/>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VALIDATION_ERROR_MESSAGE')); ?>">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_ERROR_MESSAGE') ?>
+                                                            :
+                                                        </span> <input type="text" style="width:100%" maxlength="255"
+                                                            class="bfValidationMessage" id="bfValidationMessage"
+                                                            name="bfValidationMessage" value="" class="inputbox" />
                                                     </div>
 
                                                     <div class="bfPropertyWrap bfTrans">
                                                         <span class="hasTooltip"
-                                                              title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VALIDATION_ERROR_MESSAGE')); ?>"><?php echo BFText::_('COM_BREEZINGFORMS_ERROR_MESSAGE') ?>
-                                                            <em>(<?php echo $active_language_code ?>)</em>:</span>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VALIDATION_ERROR_MESSAGE')); ?>">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_ERROR_MESSAGE') ?>
+                                                            <em>(
+                                                                <?php echo $active_language_code ?>)
+                                                            </em>:
+                                                        </span>
                                                         <input type="text" style="width:100%" maxlength="255"
-                                                               class="bfValidationMessage" id="bfValidationMessageTrans"
-                                                               name="bfValidationMessage" value="" class="inputbox"/>
+                                                            class="bfValidationMessage" id="bfValidationMessageTrans"
+                                                            name="bfValidationMessage" value="" class="inputbox" />
                                                     </div>
                                                 </div>
 
                                                 <div id="bfValidationScriptLibrary" style="display:none">
-                                                    <hr/>
+                                                    <hr />
                                                     <div class="bfPropertyWrap">
                                                         <span class="hasTooltip"
-                                                              title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VALIDATION_SCRIPTLIBRARY')); ?>"><?php echo BFText::_('COM_BREEZINGFORMS_SCRIPT') ?>
-                                                            :</span><br/> <select
-                                                            id="bfValidationScriptSelection"></select>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VALIDATION_SCRIPTLIBRARY')); ?>">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_SCRIPT') ?>
+                                                            :
+                                                        </span><br /> <select id="bfValidationScriptSelection"></select>
                                                     </div>
-                                                    <br/>
+                                                    <br />
                                                     <div id="bfValidationScriptSelectionDescription"></div>
                                                 </div>
 
                                                 <div id="bfValidationScriptCustom" style="display:none">
-                                                    <hr/>
+                                                    <hr />
                                                     <div class="bfPropertyWrap">
                                                         <div class="hasTooltip btn btn-secondary"
-                                                             title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VALIDATION_CODEFRAMEWORK')); ?>"
-                                                             style="cursor: pointer;"
-                                                             onclick="createValidationCode()"><?php echo BFText::_('COM_BREEZINGFORMS_CREATE_CODE_FRAMEWORK') ?></div>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VALIDATION_CODEFRAMEWORK')); ?>"
+                                                            style="cursor: pointer;" onclick="createValidationCode()">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_CREATE_CODE_FRAMEWORK') ?>
+                                                        </div>
 
-        <?php
-        echo self::renderCodeMirror('bfValidationCode');
-        ?>
+                                                        <?php
+                                                        echo self::renderCodeMirror('bfValidationCode');
+                                                        ?>
 
                                                     </div>
                                                 </div>
                                             </div>
                                         </fieldset>
                                     </div>
-                                    <br/>
+                                    <br />
                                     <!-- ELEMENT PROPERTIES END -->
                                     <div class="bfFadingMessage" style="display:none"></div>
                                     <input type="submit" class="btn btn-secondary"
-                                           value="<?php echo BFText::_('COM_BREEZINGFORMS_PROPERTIES_SAVE'); ?>"
-                                           id="bfPropertySaveButton"/>
-                                    <br/>
-                                    <br/>
+                                        value="<?php echo BFText::_('COM_BREEZINGFORMS_PROPERTIES_SAVE'); ?>"
+                                        id="bfPropertySaveButton" />
+                                    <br />
+                                    <br />
 
                                 </div>
                             </div>
 
                             <div id="fragment-2">
                                 <div>
-                                    <br/>
+                                    <br />
 
                                     <div class="bfFadingMessage" style="display:none"></div>
                                     <input type="submit" class="btn btn-secondary"
-                                           value="<?php echo BFText::_('COM_BREEZINGFORMS_PROPERTIES_SAVE'); ?>"
-                                           id="bfAdvancedSaveButtonTop"/>
+                                        value="<?php echo BFText::_('COM_BREEZINGFORMS_PROPERTIES_SAVE'); ?>"
+                                        id="bfAdvancedSaveButtonTop" />
                                     <div class="bfAdvanced" id="bfPageAdvanced" style="display:none">
                                     </div>
                                     <div class="bfAdvanced" id="bfFormAdvanced" style="display:none">
-                                        <br/>
+                                        <br />
                                         <fieldset>
-                                            <legend><?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_FORM_OPTIONS'); ?></legend>
-        <?php if ($formId != 0) { ?>
+                                            <legend>
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_FORM_OPTIONS'); ?>
+                                            </legend>
+                                            <?php if ($formId != 0) { ?>
                                                 <a href="index.php?option=com_breezingforms&task=editform&act=editpage&form=<?php echo $formId ?>&pkg=QuickModeForms"
-                                                   title="<?php echo BFText::_('COM_BREEZINGFORMS_MORE_OPTIONS'); ?>"><?php echo htmlentities(BFText::_('COM_BREEZINGFORMS_MORE_OPTIONS'), ENT_QUOTES, 'UTF-8') ?></a>
-        <?php } ?>
+                                                    title="<?php echo BFText::_('COM_BREEZINGFORMS_MORE_OPTIONS'); ?>">
+                                                    <?php echo htmlentities(BFText::_('COM_BREEZINGFORMS_MORE_OPTIONS'), ENT_QUOTES, 'UTF-8') ?>
+                                                </a>
+                                            <?php } ?>
                                         </fieldset>
                                         <fieldset>
-                                            <legend><?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_FORM_THEMES'); ?></legend>
+                                            <legend>
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_FORM_THEMES'); ?>
+                                            </legend>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_ENGINE')); ?>"
-                                                       for="bfThemeBootstrapThemeBreezingForms"><?php echo BFText::_('COM_BREEZINGFORMS_CHOOSE_THEME_ENGINE'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_ENGINE')); ?>"
+                                                    for="bfThemeBootstrapThemeBreezingForms">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_CHOOSE_THEME_ENGINE'); ?>
+                                                </label>
                                                 <input
                                                     onclick="JQuery('#bfThemeBootstrapDiv').css('display', 'none');JQuery('#bfThemeBreezingFormsDiv').css('display', 'block');"
-        <?php echo( version_compare($version->getShortVersion(), '3.0', '<') ? 'checked="checked" ' : '' ); ?>type="radio"
+                                                    <?php echo (version_compare($version->getShortVersion(), '3.0', '<') ? 'checked="checked" ' : ''); ?>type="radio"
                                                     name="bfThemeBootstrapThemeEngine" value=""
-                                                    id="bfThemeBootstrapThemeBreezingForms"/> BreezingForms
+                                                    id="bfThemeBootstrapThemeBreezingForms" /> BreezingForms
                                                 <input
                                                     onclick="JQuery('#bfThemeBootstrapDiv').css('display', 'block');
                                                                                             JQuery('#bfThemeBreezingFormsDiv').css('display', 'none');"
-                                                    <?php echo( version_compare($version->getShortVersion(), '3.0', '>=') ? 'checked="checked" ' : '' ); ?>type="radio"
+                                                    <?php echo (version_compare($version->getShortVersion(), '3.0', '>=') ? 'checked="checked" ' : ''); ?>type="radio"
                                                     name="bfThemeBootstrapThemeEngine" value=""
-                                                    id="bfThemeBootstrapThemeBootstrap"/> <?php echo BFText::_('COM_BREEZINGFORMS_THEME_ENGINE_BOOTSTRAP'); ?>
+                                                    id="bfThemeBootstrapThemeBootstrap" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_THEME_ENGINE_BOOTSTRAP'); ?>
                                             </div>
                                             <div id="bfThemeBreezingFormsDiv" style="display:none;">
-                                                <br/>
-                                                <legend><?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_THEME_BREEZINGFORMS_ENGINE'); ?></legend>
+                                                <br />
+                                                <legend>
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_THEME_BREEZINGFORMS_ENGINE'); ?>
+                                                </legend>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_NATIVE')); ?>"
-                                                           for="bfTheme"><?php echo BFText::_('COM_BREEZINGFORMS_THEME'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_NATIVE')); ?>"
+                                                        for="bfTheme">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_THEME'); ?>
+                                                    </label>
                                                     <select id="bfTheme">
-        <?php
-        $tCount = count($themes);
-        for ($i = 0; $i < $tCount; $i++) {
-            echo '<option value="' . $themes[$i] . '">' . $themes[$i] . '</option>' . "\n";
-        }
-        ?>
+                                                        <?php
+                                                        $tCount = count($themes);
+                                                        for ($i = 0; $i < $tCount; $i++) {
+                                                            echo '<option value="' . $themes[$i] . '">' . $themes[$i] . '</option>' . "\n";
+                                                        }
+                                                        ?>
                                                     </select>
                                                 </div>
                                             </div>
-        <?php
-        if (version_compare($version->getShortVersion(), '3.0', '<')) {
-            ?>
-                                                <br/>
-                                                <br/>
-            <?php
-        }
-        ?>
+                                            <?php
+                                            if (version_compare($version->getShortVersion(), '3.0', '<')) {
+                                                ?>
+                                                <br />
+                                                <br />
+                                                <?php
+                                            }
+                                            ?>
                                             <div id="bfThemeBootstrapDiv" style="display:none;">
-                                                <legend><?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_THEME_BOOTSTRAP_ENGINE'); ?></legend>
-                                                <br/>
+                                                <legend>
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_THEME_BOOTSTRAP_ENGINE'); ?>
+                                                </legend>
+                                                <br />
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP')); ?>"
-                                                           for="bfThemeBootstrap"><?php echo BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP'); ?></label>
-        <?php
-        $dbObject = Zend_Json::decode($dataObjectString);
-        $useBs3 = false;
-        if (isset($dbObject['properties']['themebootstrapUse3']) && $dbObject['properties']['themebootstrapUse3']) {
-            $useBs3 = true;
-        }
-        ?>
-                                                    <select id="bfThemeBootstrap"<?php echo $useBs3 ? ' style="display: none;"' : ''; ?>>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP')); ?>"
+                                                        for="bfThemeBootstrap">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP'); ?>
+                                                    </label>
+                                                    <?php
+                                                    $dbObject = Zend_Json::decode($dataObjectString);
+                                                    $useBs3 = false;
+                                                    if (isset($dbObject['properties']['themebootstrapUse3']) && $dbObject['properties']['themebootstrapUse3']) {
+                                                        $useBs3 = true;
+                                                    }
+                                                    ?>
+                                                    <select id="bfThemeBootstrap" <?php echo $useBs3 ? ' style="display: none;"' : ''; ?>>
                                                         <option value="">Default</option>
-                                                        > <?php
-                                                   $tCount = count($themesbootstrap);
-                                                   for ($i = 0; $i < $tCount; $i++) {
-                                                       echo '<option value="' . $themesbootstrap[$i] . '">' . $themesbootstrap[$i] . '</option>' . "\n";
-                                                   }
-        ?>
+                                                        >
+                                                        <?php
+                                                        $tCount = count($themesbootstrap);
+                                                        for ($i = 0; $i < $tCount; $i++) {
+                                                            echo '<option value="' . $themesbootstrap[$i] . '">' . $themesbootstrap[$i] . '</option>' . "\n";
+                                                        }
+                                                        ?>
                                                     </select>
-                                                    <select id="bfThemeBootstrap3"<?php echo!$useBs3 ? ' style="display: none;"' : ''; ?>>
+                                                    <select id="bfThemeBootstrap3" <?php echo !$useBs3 ? ' style="display: none;"' : ''; ?>>
                                                         <option value="">Default</option>
-                                                        > <?php
-                                                $tCount = count($themesbootstrap3);
-                                                for ($i = 0; $i < $tCount; $i++) {
-                                                    echo '<option value="' . $themesbootstrap3[$i] . '">' . $themesbootstrap3[$i] . '</option>' . "\n";
+                                                        >
+                                                        <?php
+                                                        $tCount = count($themesbootstrap3);
+                                                        for ($i = 0; $i < $tCount; $i++) {
+                                                            echo '<option value="' . $themesbootstrap3[$i] . '">' . $themesbootstrap3[$i] . '</option>' . "\n";
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                </div>
+                                                <?php
+                                                if (version_compare($version->getShortVersion(), '3.0', '<')) {
+                                                    ?>
+                                                    <br />
+                                                    <br />
+                                                    <?php
                                                 }
-        ?>
-                                                    </select>
-                                                </div>
-        <?php
-        if (version_compare($version->getShortVersion(), '3.0', '<')) {
-            ?>
-                                                    <br/>
-                                                    <br/>
-            <?php
-        }
-        ?>
+                                                ?>
 
 
                                                 <div class="bfPropertyWrap" style="display:none;">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_USE_BOOTSTRAP3_TIP')); ?>"
-                                                           for="bfThemeBootstrapUse3Yes"><?php echo BFText::_('COM_BREEZINGFORMS_QM_THEME_USE_BOOTSTRAP3'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_USE_BOOTSTRAP3_TIP')); ?>"
+                                                        for="bfThemeBootstrapUse3Yes">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_QM_THEME_USE_BOOTSTRAP3'); ?>
+                                                    </label>
 
-                                                    <input onclick="JQuery('#bfThemeBootstrap3').css('display', 'block');
-                                                                                        JQuery('#bfThemeBootstrap').css('display', 'none');" type="radio" name="bfThemeBootstrapUse3" value=""
-                                                           id="bfThemeBootstrapUse3Yes"/> <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
-                                                    <input checked="checked" onclick="JQuery('#bfThemeBootstrap').css('display', 'block');
-                                                                                        JQuery('#bfThemeBootstrap3').css('display', 'none');" type="radio" name="bfThemeBootstrapUse3"
-                                                           value=""
-                                                           id="bfThemeBootstrapUse3No"/> <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
+                                                    <input
+                                                        onclick="JQuery('#bfThemeBootstrap3').css('display', 'block');
+                                                                                        JQuery('#bfThemeBootstrap').css('display', 'none');"
+                                                        type="radio" name="bfThemeBootstrapUse3" value=""
+                                                        id="bfThemeBootstrapUse3Yes" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
+                                                    <input checked="checked"
+                                                        onclick="JQuery('#bfThemeBootstrap').css('display', 'block');
+                                                                                        JQuery('#bfThemeBootstrap3').css('display', 'none');"
+                                                        type="radio" name="bfThemeBootstrapUse3" value=""
+                                                        id="bfThemeBootstrapUse3No" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
                                                 </div>
 
                                                 <div class="bfPropertyWrap" style="display:none;">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP3_BUILTIN_TIP')); ?>"
-                                                           for="bfThemeBootstrap3BuiltInYes"><?php echo BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP3_BUILTIN'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP3_BUILTIN_TIP')); ?>"
+                                                        for="bfThemeBootstrap3BuiltInYes">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP3_BUILTIN'); ?>
+                                                    </label>
 
-                                                    <input checked="checked" type="radio" name="bfThemeBootstrap3BuiltIn" value=""
-                                                           id="bfThemeBootstrap3BuiltInYes"/> <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
-                                                    <input type="radio" name="bfThemeBootstrap3BuiltIn"
-                                                           value=""
-                                                           id="bfThemeBootstrap3BuiltInNo"/> <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
+                                                    <input checked="checked" type="radio" name="bfThemeBootstrap3BuiltIn"
+                                                        value="" id="bfThemeBootstrap3BuiltInYes" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
+                                                    <input type="radio" name="bfThemeBootstrap3BuiltIn" value=""
+                                                        id="bfThemeBootstrap3BuiltInNo" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
                                                 </div>
 
                                                 <div class="bfPropertyWrap" style="display:none;">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP3_CLASSPFX_TIP')); ?>"
-                                                           for="bfThemeBootstrap3Classpfx"><?php echo BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP3_CLASSPFX'); ?></label>
-                                                    <input type="text" value="" id="bfThemeBootstrap3Classpfx"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP3_CLASSPFX_TIP')); ?>"
+                                                        for="bfThemeBootstrap3Classpfx">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP3_CLASSPFX'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfThemeBootstrap3Classpfx" />
                                                 </div>
 
 
-        <?php
-        if (version_compare($version->getShortVersion(), '3.0', '<')) {
-            ?>
+                                                <?php
+                                                if (version_compare($version->getShortVersion(), '3.0', '<')) {
+                                                    ?>
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_LEGACY')); ?>"
-                                                               for="bfThemeBootstrapUseLegacyYes"><?php echo BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP_USE_LEGACY'); ?></label>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_LEGACY')); ?>"
+                                                            for="bfThemeBootstrapUseLegacyYes">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP_USE_LEGACY'); ?>
+                                                        </label>
 
-                                                        <input checked="checked" type="radio"
-                                                               name="bfThemeBootstrapUseLegacy" value=""
-                                                               id="bfThemeBootstrapUseLegacyYes"/> <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
+                                                        <input checked="checked" type="radio" name="bfThemeBootstrapUseLegacy"
+                                                            value="" id="bfThemeBootstrapUseLegacyYes" />
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
                                                         <input type="radio" name="bfThemeBootstrapUseLegacy" value=""
-                                                               id="bfThemeBootstrapUseLegacyNo"/> <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
+                                                            id="bfThemeBootstrapUseLegacyNo" />
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
                                                     </div>
-            <?php
-        }
-        ?>
+                                                    <?php
+                                                }
+                                                ?>
 
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_MODE_TIP')); ?>"
-                                                           for="bfThemeBootstrapModeYes"><?php echo BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_MODE'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_MODE_TIP')); ?>"
+                                                        for="bfThemeBootstrapModeYes">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_MODE'); ?>
+                                                    </label>
 
                                                     <input type="radio" name="bfThemeBootstrapMode" value=""
-                                                           id="bfThemeBootstrapModeYes"/> <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
-                                                    <input checked="checked" type="radio" name="bfThemeBootstrapMode"
-                                                           value=""
-                                                           id="bfThemeBootstrapModeNo"/> <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
+                                                        id="bfThemeBootstrapModeYes" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
+                                                    <input checked="checked" type="radio" name="bfThemeBootstrapMode" value=""
+                                                        id="bfThemeBootstrapModeNo" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_LABEL_TOP')); ?>"
-                                                           for="bfThemeBootstrapLabelTopYes"><?php echo BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP_LABELTOP'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_LABEL_TOP')); ?>"
+                                                        for="bfThemeBootstrapLabelTopYes">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP_LABELTOP'); ?>
+                                                    </label>
 
                                                     <input type="radio" name="bfThemeBootstrapLabelTop" value=""
-                                                           id="bfThemeBootstrapLabelTopYes"/> <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
-                                                    <input checked="checked" type="radio"
-                                                           name="bfThemeBootstrapLabelTop" value=""
-                                                           id="bfThemeBootstrapLabelTopNo"/> <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
+                                                        id="bfThemeBootstrapLabelTopYes" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
+                                                    <input checked="checked" type="radio" name="bfThemeBootstrapLabelTop"
+                                                        value="" id="bfThemeBootstrapLabelTopNo" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_HERO_UNIT')); ?>"
-                                                           for="bfThemeBootstrapUseHeroUnitYes"><?php echo BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP_USE_HERO_UNIT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_HERO_UNIT')); ?>"
+                                                        for="bfThemeBootstrapUseHeroUnitYes">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP_USE_HERO_UNIT'); ?>
+                                                    </label>
 
                                                     <input type="radio" name="bfThemeBootstrapUseHeroUnit" value=""
-                                                           id="bfThemeBootstrapUseHeroUnitYes"/> <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
-                                                    <input checked="checked" type="radio"
-                                                           name="bfThemeBootstrapUseHeroUnit" value=""
-                                                           id="bfThemeBootstrapUseHeroUnitNo"/> <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
+                                                        id="bfThemeBootstrapUseHeroUnitYes" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
+                                                    <input checked="checked" type="radio" name="bfThemeBootstrapUseHeroUnit"
+                                                        value="" id="bfThemeBootstrapUseHeroUnitNo" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_WELL')); ?>"
-                                                           for="bfThemeBootstrapUseWellYes"><?php echo BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP_USE_WELL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_WELL')); ?>"
+                                                        for="bfThemeBootstrapUseWellYes">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP_USE_WELL'); ?>
+                                                    </label>
 
                                                     <input type="radio" name="bfThemeBootstrapUseWell" value=""
-                                                           id="bfThemeBootstrapUseWellYes"/> <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
+                                                        id="bfThemeBootstrapUseWellYes" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
                                                     <input checked="checked" type="radio" name="bfThemeBootstrapUseWell"
-                                                           value=""
-                                                           id="bfThemeBootstrapUseWellNo"/> <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
+                                                        value="" id="bfThemeBootstrapUseWellNo" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_PROGRESS')); ?>"
-                                                           for="bfThemeBootstrapUseProgressYes"><?php echo BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP_USE_PROGRESS'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_PROGRESS')); ?>"
+                                                        for="bfThemeBootstrapUseProgressYes">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP_USE_PROGRESS'); ?>
+                                                    </label>
 
                                                     <input type="radio" name="bfThemeBootstrapUseProgress" value=""
-                                                           id="bfThemeBootstrapUseProgressYes"/> <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
-                                                    <input checked="checked" type="radio"
-                                                           name="bfThemeBootstrapUseProgress" value=""
-                                                           id="bfThemeBootstrapUseProgressNo"/> <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
+                                                        id="bfThemeBootstrapUseProgressYes" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_YES'); ?>
+                                                    <input checked="checked" type="radio" name="bfThemeBootstrapUseProgress"
+                                                        value="" id="bfThemeBootstrapUseProgressNo" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_NO'); ?>
                                                 </div>
 
-        <?php
-        jimport('joomla.filesystem.file');
-        jimport('joomla.filesystem.folder');
-        $dbObject = Zend_Json::decode($dataObjectString);
-        if (isset($dbObject['properties']['themebootstrap'])) {
-            $themeboostrapfolder = $dbObject['properties']['themebootstrap'];
-            $folder = 'themes-bootstrap';
-            if (isset($dbObject['properties']['themebootstrapUse3']) && $dbObject['properties']['themebootstrapUse3']) {
-                $folder = 'themes-bootstrap3';
-            }
-            $themesbootstrap_path = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . $folder . DS . $themeboostrapfolder . DS;
-            if (is_dir($themesbootstrap_path) && file_exists($themesbootstrap_path . 'vars.txt')) {
-                $varscontent = htmlentities(BFFile::read($themesbootstrap_path . 'vars.txt'), ENT_QUOTES, 'UTF-8');
-                if ($varscontent) {
-                    echo '<br/>
+                                                <?php
+                                                jimport('joomla.filesystem.file');
+                                                jimport('joomla.filesystem.folder');
+                                                $dbObject = Zend_Json::decode($dataObjectString);
+                                                if (isset($dbObject['properties']['themebootstrap'])) {
+                                                    $themeboostrapfolder = $dbObject['properties']['themebootstrap'];
+                                                    $folder = 'themes-bootstrap';
+                                                    if (isset($dbObject['properties']['themebootstrapUse3']) && $dbObject['properties']['themebootstrapUse3']) {
+                                                        $folder = 'themes-bootstrap3';
+                                                    }
+                                                    $themesbootstrap_path = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . $folder . DS . $themeboostrapfolder . DS;
+                                                    if (is_dir($themesbootstrap_path) && file_exists($themesbootstrap_path . 'vars.txt')) {
+                                                        $varscontent = htmlentities(BFFile::read($themesbootstrap_path . 'vars.txt'), ENT_QUOTES, 'UTF-8');
+                                                        if ($varscontent) {
+                                                            echo '<br/>
                                                                 <div class="bfPropertyWrap">
                                                                 <label class="bfPropertyLabel hasTooltip" title="' . bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_THEME_BOOTSTRAP_PROGRESS')) . '" for="bfThemeBootstrapVars">' . BFText::_('COM_BREEZINGFORMS_THEME_BOOTSTRAP_VARS') . '</label>
                                                                 <textarea id="bfThemeBootstrapVars">' . $varscontent . '</textarea>
                                                                 </div>
                                                                 <input type="hidden" name="bfThemeBootstrapBefore" id="bfThemeBootstrapBefore" value=""/>';
-                }
-            }
-        }
-        ?>
+                                                        }
+                                                    }
+                                                }
+                                                ?>
                                             </div>
+                                            <?php
+                                            if (version_compare($version->getShortVersion(), '3.0', '<')) {
+                                                ?>
+                                                <br />
+                                                <br />
                                                 <?php
-                                                if (version_compare($version->getShortVersion(), '3.0', '<')) {
-                                                    ?>
-                                                <br/>
-                                                <br/>
-            <?php
-        }
-        ?>
-                                            <legend><?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_FORM_OTHER'); ?></legend>
+                                            }
+                                            ?>
+                                            <legend>
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_FORM_OTHER'); ?>
+                                            </legend>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_MOBILE_FORMS')); ?>"
-                                                       for="bfElementAdvancedMobileEnabled"><?php echo BFText::_('COM_BREEZINGFORMS_MOBILE_ENABLED'); ?></label>
-                                                <input type="checkbox" value="" id="bfElementAdvancedMobileEnabled"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_MOBILE_FORMS')); ?>"
+                                                    for="bfElementAdvancedMobileEnabled">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_MOBILE_ENABLED'); ?>
+                                                </label>
+                                                <input type="checkbox" value="" id="bfElementAdvancedMobileEnabled" />
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_MOBILE_FORMS_FORCE')); ?>"
-                                                       for="bfElementAdvancedForceMobile"><?php echo BFText::_('COM_BREEZINGFORMS_FORCE_MOBILE'); ?></label>
-                                                <input type="checkbox" value="" id="bfElementAdvancedForceMobile"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_MOBILE_FORMS_FORCE')); ?>"
+                                                    for="bfElementAdvancedForceMobile">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORCE_MOBILE'); ?>
+                                                </label>
+                                                <input type="checkbox" value="" id="bfElementAdvancedForceMobile" />
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_MOBILE_FORMS_URL')); ?>"
-                                                       for="bfElementAdvancedForceMobileUrl"><?php echo BFText::_('COM_BREEZINGFORMS_FORCE_MOBILE_URL'); ?></label>
-                                                <input type="text" value="" id="bfElementAdvancedForceMobileUrl"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_MOBILE_FORMS_URL')); ?>"
+                                                    for="bfElementAdvancedForceMobileUrl">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORCE_MOBILE_URL'); ?>
+                                                </label>
+                                                <input type="text" value="" id="bfElementAdvancedForceMobileUrl" />
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_HINT_JOOMLA')); ?>"
-                                                       for="bfElementAdvancedJoomlaHint"><?php echo BFText::_('COM_BREEZINGFORMS_JOOMLA_HINT'); ?></label>
-                                                <input type="checkbox" value="" id="bfElementAdvancedJoomlaHint"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_HINT_JOOMLA')); ?>"
+                                                    for="bfElementAdvancedJoomlaHint">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_JOOMLA_HINT'); ?>
+                                                </label>
+                                                <input type="checkbox" value="" id="bfElementAdvancedJoomlaHint" />
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_JQUERY_DISABLE')); ?>"
-                                                       for="bfElementAdvancedDisableJQuery"><?php echo BFText::_('COM_BREEZINGFORMS_DISABLE_JQUERY'); ?></label>
-                                                <input type="checkbox" value="" id="bfElementAdvancedDisableJQuery"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_JQUERY_DISABLE')); ?>"
+                                                    for="bfElementAdvancedDisableJQuery">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_DISABLE_JQUERY'); ?>
+                                                </label>
+                                                <input type="checkbox" value="" id="bfElementAdvancedDisableJQuery" />
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ERROR_ALERTS')); ?>"
-                                                       for="bfElementAdvancedUseErrorAlerts"><?php echo BFText::_('COM_BREEZINGFORMS_USE_ERROR_ALERTS'); ?></label>
-                                                <input type="checkbox" value="" id="bfElementAdvancedUseErrorAlerts"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ERROR_ALERTS')); ?>"
+                                                    for="bfElementAdvancedUseErrorAlerts">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_USE_ERROR_ALERTS'); ?>
+                                                </label>
+                                                <input type="checkbox" value="" id="bfElementAdvancedUseErrorAlerts" />
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ERROR_DEFAULT')); ?>"
-                                                       for="bfElementAdvancedUseDefaultErrors"><?php echo BFText::_('COM_BREEZINGFORMS_IF_NOT_USE_ERROR_ALERTS'); ?></label>
-        <?php echo BFText::_('COM_BREEZINGFORMS_IF_USE_DEFAULT_ERRORS'); ?>
-                                                <input type="checkbox" value="" id="bfElementAdvancedUseDefaultErrors"/>
-                                                       <?php echo BFText::_('COM_BREEZINGFORMS_IF_USE_BALLOON_ERRORS'); ?>
-                                                <input type="checkbox" value="" id="bfElementAdvancedUseBalloonErrors"/>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ERROR_DEFAULT')); ?>"
+                                                    for="bfElementAdvancedUseDefaultErrors">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_IF_NOT_USE_ERROR_ALERTS'); ?>
+                                                </label>
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_IF_USE_DEFAULT_ERRORS'); ?>
+                                                <input type="checkbox" value="" id="bfElementAdvancedUseDefaultErrors" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_IF_USE_BALLOON_ERRORS'); ?>
+                                                <input type="checkbox" value="" id="bfElementAdvancedUseBalloonErrors" />
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <div id="bfFadingEffectToggle">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FADE_IN')); ?>"
-                                                           for="bfElementAdvancedFadeIn"><?php echo BFText::_('COM_BREEZINGFORMS_FADE_IN'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementAdvancedFadeIn"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FADE_IN')); ?>"
+                                                        for="bfElementAdvancedFadeIn">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FADE_IN'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementAdvancedFadeIn" />
                                                 </div>
                                             </div>
                                             <div id="bfRollOverToggle">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ROLLOVER')); ?>"
-                                                           for="bfElementAdvancedRollover"><?php echo BFText::_('COM_BREEZINGFORMS_ROLLOVER'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementAdvancedRollover"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ROLLOVER')); ?>"
+                                                        for="bfElementAdvancedRollover">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ROLLOVER'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementAdvancedRollover" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ROLLOVER_COLOR')); ?>"
-                                                           for="bfElementAdvancedRolloverColor"><?php echo BFText::_('COM_BREEZINGFORMS_ROLLOVER_COLOR'); ?></label>
-                                                    <input type="text" value="" id="bfElementAdvancedRolloverColor"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ROLLOVER_COLOR')); ?>"
+                                                        for="bfElementAdvancedRolloverColor">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ROLLOVER_COLOR'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementAdvancedRolloverColor" />
                                                 </div>
 
                                             </div>
                                             <div class="bfPropertyWrap">
                                                 <label class="bfPropertyLabel hasTooltip"
-                                                       title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VISIBILITY_RULES')); ?>"
-                                                       for="bfElementAdvancedToggleFields"><?php echo BFText::_('COM_BREEZINGFORMS_FORM_TOGGLEFIELDS'); ?></label>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_VISIBILITY_RULES')); ?>"
+                                                    for="bfElementAdvancedToggleFields">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_FORM_TOGGLEFIELDS'); ?>
+                                                </label>
                                                 <textarea id="bfElementAdvancedToggleFields"></textarea>
                                             </div>
                                         </fieldset>
@@ -5400,227 +5904,275 @@ class QuickModeHtml {
                                     <div class="bfAdvanced" id="bfSectionAdvanced" style="display:none">
                                         <div class="bfPropertyWrap">
                                             <label class="bfPropertyLabel hasTooltip"
-                                                   title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_TURNOFF')); ?>"
-                                                   for="bfSectionAdvancedTurnOff"><?php echo BFText::_('COM_BREEZINGFORMS_TURN_OFF_INITIALLY'); ?></label>
-                                            <input type="checkbox" value="" id="bfSectionAdvancedTurnOff"/>
+                                                title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SECTION_TURNOFF')); ?>"
+                                                for="bfSectionAdvancedTurnOff">
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_TURN_OFF_INITIALLY'); ?>
+                                            </label>
+                                            <input type="checkbox" value="" id="bfSectionAdvancedTurnOff" />
                                         </div>
                                     </div>
                                     <div class="bfAdvanced" id="bfElementAdvanced" style="display:none">
-                                        <br/>
+                                        <br />
                                         <fieldset>
-                                            <legend><?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_ELEMENT_OPTIONS'); ?></legend>
+                                            <legend>
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_ELEMENT_OPTIONS'); ?>
+                                            </legend>
                                             <div></div>
                                             <!-- HIDDEN BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeHiddenAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
-                                                           for="bfElementHiddenAdvancedOrderNumber"><?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementHiddenAdvancedOrderNumber"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
+                                                        for="bfElementHiddenAdvancedOrderNumber">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementHiddenAdvancedOrderNumber" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
-                                                           for="bfElementHiddenAdvancedLogging"><?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?></label>
-                                                    <input type="checkbox" value=""
-                                                           id="bfElementHiddenAdvancedLogging"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
+                                                        for="bfElementHiddenAdvancedLogging">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementHiddenAdvancedLogging" />
                                                 </div>
                                             </div>
                                             <!-- HIDDEN END -->
 
                                             <!-- NUMBER INPUT BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeNumberInputAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementNumberInputAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementNumberInputAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementNumberInputAdvancedHideLabel"/>
+                                                        id="bfElementNumberInputAdvancedHideLabel" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
-                                                           for="bfElementNumberInputAdvancedLogging"><?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
+                                                        for="bfElementNumberInputAdvancedLogging">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementNumberInputAdvancedLogging"/>
+                                                        id="bfElementNumberInputAdvancedLogging" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_STEP_TOOLTIP')); ?>"
-                                                           for="bfElementNumberInputAdvancedStep"><?php echo BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_STEP'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementNumberInputAdvancedStep"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_STEP_TOOLTIP')); ?>"
+                                                        for="bfElementNumberInputAdvancedStep">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_STEP'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementNumberInputAdvancedStep" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_MIN_TOOLTIP')); ?>"
-                                                           for="bfElementNumberInputAdvancedMin"><?php echo BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_MIN'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementNumberInputAdvancedMin"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_MIN_TOOLTIP')); ?>"
+                                                        for="bfElementNumberInputAdvancedMin">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_MIN'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementNumberInputAdvancedMin" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_MAX_TOOLTIP')); ?>"
-                                                           for="bfElementNumberInputAdvancedMax"><?php echo BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_MAX'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementNumberInputAdvancedMax"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_MAX_TOOLTIP')); ?>"
+                                                        for="bfElementNumberInputAdvancedMax">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_MAX'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementNumberInputAdvancedMax" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
-                                                           for="bfElementNumberInputOrderNumber"><?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?></label>
-                                                    <input type="text" value="" id="bfElementNumberInputOrderNumber"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
+                                                        for="bfElementNumberInputOrderNumber">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementNumberInputOrderNumber" />
                                                 </div>
                                             </div>
                                             <!-- NUMBER INPUT END -->
                                             <!--  SUMMARIZE BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeSummarizeAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SUMMARIZE_CALC')); ?>"
-                                                           for="bfElementAdvancedSummarizeCalc"><?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CALC'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SUMMARIZE_CALC')); ?>"
+                                                        for="bfElementAdvancedSummarizeCalc">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_CALC'); ?>
+                                                    </label>
                                                     <textarea id="bfElementAdvancedSummarizeCalc"></textarea>
                                                 </div>
                                             </div>
                                             <!--  SUMMARIZE END -->
 
                                             <!-- TEXTFIELD BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeTextAdvanced"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeTextAdvanced" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_TEXTFIELD_PASSWORD')); ?>"
-                                                           for="bfElementAdvancedPassword"><?php echo BFText::_('COM_BREEZINGFORMS_PASSWORD'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementAdvancedPassword"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_TEXTFIELD_PASSWORD')); ?>"
+                                                        for="bfElementAdvancedPassword">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_PASSWORD'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementAdvancedPassword" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_TEXTFIELD_READONLY')); ?>"
-                                                           for="bfElementAdvancedReadOnly"><?php echo BFText::_('COM_BREEZINGFORMS_READONLY'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementAdvancedReadOnly"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_TEXTFIELD_READONLY')); ?>"
+                                                        for="bfElementAdvancedReadOnly">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_READONLY'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementAdvancedReadOnly" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_TEXTFIELD_MAILBACK')); ?>"
-                                                           for="bfElementAdvancedMailback"><?php echo BFText::_('COM_BREEZINGFORMS_MAILBACK'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementAdvancedMailback"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_TEXTFIELD_MAILBACK')); ?>"
+                                                        for="bfElementAdvancedMailback">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_MAILBACK'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementAdvancedMailback" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_TEXTFIELD_MAILBACK_AS_SENDER')); ?>"
-                                                           for="bfElementAdvancedMailbackAsSender"><?php echo BFText::_('COM_BREEZINGFORMS_MAILBACK_AS_SENDER'); ?></label>
-                                                    <input type="checkbox" value=""
-                                                           id="bfElementAdvancedMailbackAsSender"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_TEXTFIELD_MAILBACK_AS_SENDER')); ?>"
+                                                        for="bfElementAdvancedMailbackAsSender">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_MAILBACK_AS_SENDER'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementAdvancedMailbackAsSender" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_TEXTFIELD_MAILBACK_FILE')); ?>"
-                                                           for="bfElementAdvancedMailbackfile"><?php echo BFText::_('COM_BREEZINGFORMS_MAILBACKFILE'); ?></label>
-                                                    <input type="text" value="" id="bfElementAdvancedMailbackfile"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_TEXTFIELD_MAILBACK_FILE')); ?>"
+                                                        for="bfElementAdvancedMailbackfile">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_MAILBACKFILE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementAdvancedMailbackfile" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementAdvancedHideLabel"/>
+                                                        id="bfElementAdvancedHideLabel" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
-                                                           for="bfElementAdvancedLogging"><?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
+                                                        for="bfElementAdvancedLogging">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementAdvancedLogging"/>
+                                                        id="bfElementAdvancedLogging" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
-                                                           for="bfElementOrderNumber"><?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?></label>
-                                                    <input type="text" value="" id="bfElementOrderNumber"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
+                                                        for="bfElementOrderNumber">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementOrderNumber" />
                                                 </div>
                                             </div>
                                             <!-- TEXTFIELD END -->
                                             <!-- TEXTAREA BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeTextareaAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementTextareaAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementTextareaAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementTextareaAdvancedHideLabel"/>
+                                                        id="bfElementTextareaAdvancedHideLabel" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
-                                                           for="bfElementTextareaAdvancedLogging"><?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
+                                                        for="bfElementTextareaAdvancedLogging">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementTextareaAdvancedLogging"/>
+                                                        id="bfElementTextareaAdvancedLogging" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
-                                                           for="bfElementTextareaAdvancedOrderNumber"><?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementTextareaAdvancedOrderNumber"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
+                                                        for="bfElementTextareaAdvancedOrderNumber">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTextareaAdvancedOrderNumber" />
                                                 </div>
                                             </div>
                                             <!-- TEXTAREA END -->
 
                                             <!-- RADIOGROUP BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeRadioGroupAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementRadioGroupAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementRadioGroupAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementRadioGroupAdvancedHideLabel"/>
+                                                        id="bfElementRadioGroupAdvancedHideLabel" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
-                                                           for="bfElementRadioGroupAdvancedLogging"><?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
+                                                        for="bfElementRadioGroupAdvancedLogging">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementRadioGroupAdvancedLogging"/>
+                                                        id="bfElementRadioGroupAdvancedLogging" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
-                                                           for="bfElementRadioGroupAdvancedOrderNumber"><?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementRadioGroupAdvancedOrderNumber"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
+                                                        for="bfElementRadioGroupAdvancedOrderNumber">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementRadioGroupAdvancedOrderNumber" />
                                                 </div>
                                             </div>
                                             <!-- RADIOGROUP END -->
                                             <!-- SUBMITBUTTON BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeSubmitButtonAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementSubmitButtonAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementSubmitButtonAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementSubmitButtonAdvancedHideLabel"/>
+                                                        id="bfElementSubmitButtonAdvancedHideLabel" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SUBMIT_BUTTON_SOURCE')); ?>"
-                                                           for="bfElementSubmitButtonAdvancedSrc"><?php echo BFText::_('COM_BREEZINGFORMS_SOURCE'); ?></label>
-                                                    <input type="text" value="" id="bfElementSubmitButtonAdvancedSrc"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SUBMIT_BUTTON_SOURCE')); ?>"
+                                                        for="bfElementSubmitButtonAdvancedSrc">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_SOURCE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementSubmitButtonAdvancedSrc" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SUBMIT_BUTTON_SOURCE')); ?>"
-                                                           for="bfElementSubmitButtonAdvancedSrcTrans"><?php echo BFText::_('COM_BREEZINGFORMS_SOURCE'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementSubmitButtonAdvancedSrcTrans"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SUBMIT_BUTTON_SOURCE')); ?>"
+                                                        for="bfElementSubmitButtonAdvancedSrcTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_SOURCE'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementSubmitButtonAdvancedSrcTrans" />
                                                 </div>
                                             </div>
                                             <!-- SUBMITBUTTON END -->
@@ -5628,58 +6180,72 @@ class QuickModeHtml {
 
                                             <!-- STRIPE BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeStripeAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
 
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_IMAGE')); ?>"
-                                                           for="bfElementStripeAdvancedImage"><?php echo BFText::_('COM_BREEZINGFORMS_IMAGE'); ?></label>
-                                                    <input type="text" value="" id="bfElementStripeAdvancedImage"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_IMAGE')); ?>"
+                                                        for="bfElementStripeAdvancedImage">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_IMAGE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementStripeAdvancedImage" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_IMAGE')); ?>"
-                                                           for="bfElementStripeAdvancedImageTrans"><?php echo BFText::_('COM_BREEZINGFORMS_IMAGE'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                    <input type="text" value="" id="bfElementStripeAdvancedImageTrans"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_IMAGE')); ?>"
+                                                        for="bfElementStripeAdvancedImageTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_IMAGE'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementStripeAdvancedImageTrans" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementStripeAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementStripeAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementStripeAdvancedHideLabel"/>
+                                                        id="bfElementStripeAdvancedHideLabel" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_FILE')); ?>"
-                                                           for="bfElementStripeAdvancedDownloadableFile"><?php echo BFText::_('COM_BREEZINGFORMS_DOWNLOADABLE_FILE'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_FILE')); ?>"
+                                                        for="bfElementStripeAdvancedDownloadableFile">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_DOWNLOADABLE_FILE'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementStripeAdvancedDownloadableFile"/>
+                                                        id="bfElementStripeAdvancedDownloadableFile" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_FILEPATH')); ?>"
-                                                           for="bfElementStripeAdvancedFilepath"><?php echo BFText::_('COM_BREEZINGFORMS_FILEPATH'); ?></label>
-                                                    <input type="text" value="" id="bfElementStripeAdvancedFilepath"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_FILEPATH')); ?>"
+                                                        for="bfElementStripeAdvancedFilepath">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FILEPATH'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementStripeAdvancedFilepath" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_TRIES')); ?>"
-                                                           for="bfElementStripeAdvancedDownloadTries"><?php echo BFText::_('COM_BREEZINGFORMS_DOWNLOAD_TRIES'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementStripeAdvancedDownloadTries"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_TRIES')); ?>"
+                                                        for="bfElementStripeAdvancedDownloadTries">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_DOWNLOAD_TRIES'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementStripeAdvancedDownloadTries" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltiptext(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_EMAIL')); ?>"
-                                                           for="bfElementStripeAdvancedEmailField"><?php echo BFText::_('COM_BREEZINGFORMS_STRIPE_EMAIL'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementStripeAdvancedEmailField"/>
+                                                        title="<?php echo bf_tooltiptext(BFText::_('COM_BREEZINGFORMS_QM_STRIPE_EMAIL')); ?>"
+                                                        for="bfElementStripeAdvancedEmailField">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_STRIPE_EMAIL'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementStripeAdvancedEmailField" />
                                                 </div>
                                             </div>
                                             <!-- STRIPE END -->
@@ -5688,556 +6254,687 @@ class QuickModeHtml {
 
                                             <!-- PAYPAL BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypePayPalAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_IPN')); ?>"
-                                                           for="bfElementPayPalAdvancedUseIpn"><?php echo BFText::_('COM_BREEZINGFORMS_USE_IPN'); ?></label>
-                                                    <input type="checkbox" value=""
-                                                           id="bfElementPayPalAdvancedUseIpn"/><?php echo BFText::_('COM_BREEZINGFORMS_USE_IPN_DESCRIPTION'); ?>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_IPN')); ?>"
+                                                        for="bfElementPayPalAdvancedUseIpn">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_USE_IPN'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementPayPalAdvancedUseIpn" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_USE_IPN_DESCRIPTION'); ?>
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementPayPalAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementPayPalAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementPayPalAdvancedHideLabel"/>
+                                                        id="bfElementPayPalAdvancedHideLabel" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_IMAGE')); ?>"
-                                                           for="bfElementPayPalAdvancedImage"><?php echo BFText::_('COM_BREEZINGFORMS_IMAGE'); ?></label>
-                                                    <input type="text" value="" id="bfElementPayPalAdvancedImage"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_IMAGE')); ?>"
+                                                        for="bfElementPayPalAdvancedImage">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_IMAGE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementPayPalAdvancedImage" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_IMAGE')); ?>"
-                                                           for="bfElementPayPalAdvancedImageTrans"><?php echo BFText::_('COM_BREEZINGFORMS_IMAGE'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
-                                                    <input type="text" value="" id="bfElementPayPalAdvancedImageTrans"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_IMAGE')); ?>"
+                                                        for="bfElementPayPalAdvancedImageTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_IMAGE'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementPayPalAdvancedImageTrans" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_TESTACCOUNT')); ?>"
-                                                           for="bfElementPayPalAdvancedTestaccount"><?php echo BFText::_('COM_BREEZINGFORMS_TESTACCOUNT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_TESTACCOUNT')); ?>"
+                                                        for="bfElementPayPalAdvancedTestaccount">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_TESTACCOUNT'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementPayPalAdvancedTestaccount"/>
+                                                        id="bfElementPayPalAdvancedTestaccount" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_TESTBUSINESS')); ?>"
-                                                           for="bfElementPayPalAdvancedTestBusiness"><?php echo BFText::_('COM_BREEZINGFORMS_TESTBUSINESS'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementPayPalAdvancedTestBusiness"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_TESTBUSINESS')); ?>"
+                                                        for="bfElementPayPalAdvancedTestBusiness">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_TESTBUSINESS'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementPayPalAdvancedTestBusiness" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_TESTTOKEN')); ?>"
-                                                           for="bfElementPayPalAdvancedTestToken"><?php echo BFText::_('COM_BREEZINGFORMS_TESTTOKEN'); ?></label>
-                                                    <input type="text" value="" id="bfElementPayPalAdvancedTestToken"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_TESTTOKEN')); ?>"
+                                                        for="bfElementPayPalAdvancedTestToken">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_TESTTOKEN'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementPayPalAdvancedTestToken" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_FILE')); ?>"
-                                                           for="bfElementPayPalAdvancedDownloadableFile"><?php echo BFText::_('COM_BREEZINGFORMS_DOWNLOADABLE_FILE'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_FILE')); ?>"
+                                                        for="bfElementPayPalAdvancedDownloadableFile">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_DOWNLOADABLE_FILE'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementPayPalAdvancedDownloadableFile"/>
+                                                        id="bfElementPayPalAdvancedDownloadableFile" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_FILEPATH')); ?>"
-                                                           for="bfElementPayPalAdvancedFilepath"><?php echo BFText::_('COM_BREEZINGFORMS_FILEPATH'); ?></label>
-                                                    <input type="text" value="" id="bfElementPayPalAdvancedFilepath"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_FILEPATH')); ?>"
+                                                        for="bfElementPayPalAdvancedFilepath">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FILEPATH'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementPayPalAdvancedFilepath" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_TRIES')); ?>"
-                                                           for="bfElementPayPalAdvancedDownloadTries"><?php echo BFText::_('COM_BREEZINGFORMS_DOWNLOAD_TRIES'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementPayPalAdvancedDownloadTries"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_PAYPAL_TRIES')); ?>"
+                                                        for="bfElementPayPalAdvancedDownloadTries">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_DOWNLOAD_TRIES'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementPayPalAdvancedDownloadTries" />
                                                 </div>
                                             </div>
                                             <!-- PAYPAL END -->
                                             <!-- SOFORTUEBERWEISUNG BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeSofortueberweisungAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementSofortueberweisungAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementSofortueberweisungAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementSofortueberweisungAdvancedHideLabel"/>
+                                                        id="bfElementSofortueberweisungAdvancedHideLabel" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_IMAGE')); ?>"
-                                                           for="bfElementSofortueberweisungAdvancedImage"><?php echo BFText::_('COM_BREEZINGFORMS_IMAGE'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementSofortueberweisungAdvancedImage"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_IMAGE')); ?>"
+                                                        for="bfElementSofortueberweisungAdvancedImage">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_IMAGE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementSofortueberweisungAdvancedImage" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_IMAGE')); ?>"
-                                                           for="bfElementSofortueberweisungAdvancedImageTrans"><?php echo BFText::_('COM_BREEZINGFORMS_IMAGE'); ?>
-                                                        <br/><em>(<?php echo $active_language_code ?>)</em></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_IMAGE')); ?>"
+                                                        for="bfElementSofortueberweisungAdvancedImageTrans">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_IMAGE'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
                                                     <input type="text" value=""
-                                                           id="bfElementSofortueberweisungAdvancedImageTrans"/>
+                                                        id="bfElementSofortueberweisungAdvancedImageTrans" />
                                                 </div>
 
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_FILE')); ?>"
-                                                           for="bfElementSofortueberweisungAdvancedDownloadableFile"><?php echo BFText::_('COM_BREEZINGFORMS_DOWNLOADABLE_FILE'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_FILE')); ?>"
+                                                        for="bfElementSofortueberweisungAdvancedDownloadableFile">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_DOWNLOADABLE_FILE'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementSofortueberweisungAdvancedDownloadableFile"/>
+                                                        id="bfElementSofortueberweisungAdvancedDownloadableFile" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_FILEPATH')); ?>"
-                                                           for="bfElementSofortueberweisungAdvancedFilepath"><?php echo BFText::_('COM_BREEZINGFORMS_FILEPATH'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_FILEPATH')); ?>"
+                                                        for="bfElementSofortueberweisungAdvancedFilepath">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FILEPATH'); ?>
+                                                    </label>
                                                     <input type="text" value=""
-                                                           id="bfElementSofortueberweisungAdvancedFilepath"/>
+                                                        id="bfElementSofortueberweisungAdvancedFilepath" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_TRIES')); ?>"
-                                                           for="bfElementSofortueberweisungAdvancedDownloadTries"><?php echo BFText::_('COM_BREEZINGFORMS_DOWNLOAD_TRIES'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SOFORT_TRIES')); ?>"
+                                                        for="bfElementSofortueberweisungAdvancedDownloadTries">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_DOWNLOAD_TRIES'); ?>
+                                                    </label>
                                                     <input type="text" value=""
-                                                           id="bfElementSofortueberweisungAdvancedDownloadTries"/>
+                                                        id="bfElementSofortueberweisungAdvancedDownloadTries" />
                                                 </div>
                                             </div>
                                             <!-- SOFORTUEBERWEISUNG END -->
                                             <!-- CAPTCHA BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCaptchaAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementCaptchaAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementCaptchaAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementCaptchaAdvancedHideLabel"/>
+                                                        id="bfElementCaptchaAdvancedHideLabel" />
                                                 </div>
                                             </div>
                                             <!-- CAPTCHA END -->
                                             <!-- RECAPTCHA BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeReCaptchaAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementReCaptchaAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementReCaptchaAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementReCaptchaAdvancedHideLabel"/>
+                                                        id="bfElementReCaptchaAdvancedHideLabel" />
                                                 </div>
                                             </div>
                                             <!-- RECAPTCHA END -->
                                             <!-- CALENDAR RESPONSIVE BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCalendarResponsiveAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementCalendarResponsiveAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementCalendarResponsiveAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementCalendarResponsiveAdvancedHideLabel"/>
+                                                        id="bfElementCalendarResponsiveAdvancedHideLabel" />
                                                 </div>
                                             </div>
                                             <!-- CALENDAR RESPONSIVE END -->
                                             <!-- CALENDAR BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCalendarAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementCalendarAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementCalendarAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementCalendarAdvancedHideLabel"/>
+                                                        id="bfElementCalendarAdvancedHideLabel" />
                                                 </div>
-        <?php if (version_compare($version->getShortVersion(), '3.7', '>=')) : ?>
+                                                <?php if (version_compare($version->getShortVersion(), '3.7', '>=')): ?>
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SHOW_TIME_TOOLTIP')); ?>"
-                                                               for="bfElementCalendarAdvancedShowTime"><?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SHOW_TIME'); ?></label>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SHOW_TIME_TOOLTIP')); ?>"
+                                                            for="bfElementCalendarAdvancedShowTime">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SHOW_TIME'); ?>
+                                                        </label>
                                                         <input checked="checked" type="checkbox" value=""
-                                                               id="bfElementCalendarAdvancedShowTime"/>
+                                                            id="bfElementCalendarAdvancedShowTime" />
                                                     </div>
                                                     <div class="bfPropertyWrap" style="display:none;">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_FIRST_DAY_TOOLTIP')); ?>"
-                                                               for="bfElementCalendarAdvancedFirstDay"><?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_FIRST_DAY'); ?></label>
-                                                        <input type="text" value=""
-                                                               id="bfElementCalendarAdvancedFirstDay"/>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_FIRST_DAY_TOOLTIP')); ?>"
+                                                            for="bfElementCalendarAdvancedFirstDay">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_FIRST_DAY'); ?>
+                                                        </label>
+                                                        <input type="text" value="" id="bfElementCalendarAdvancedFirstDay" />
                                                     </div>
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_24H_TIME_TOOLTIP')); ?>"
-                                                               for="bfElementCalendarAdvancedTimeFormat"><?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_24H_TIME'); ?></label>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_24H_TIME_TOOLTIP')); ?>"
+                                                            for="bfElementCalendarAdvancedTimeFormat">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_24H_TIME'); ?>
+                                                        </label>
                                                         <input checked="checked" type="checkbox" value=""
-                                                               id="bfElementCalendarAdvancedTimeFormat"/>
+                                                            id="bfElementCalendarAdvancedTimeFormat" />
                                                     </div>
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SINGLE_HEADER_TOOLTIP')); ?>"
-                                                               for="bfElementCalendarAdvancedSingleHeader"><?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SINGLE_HEADER'); ?></label>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SINGLE_HEADER_TOOLTIP')); ?>"
+                                                            for="bfElementCalendarAdvancedSingleHeader">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SINGLE_HEADER'); ?>
+                                                        </label>
                                                         <input checked="checked" type="checkbox" value=""
-                                                               id="bfElementCalendarAdvancedSingleHeader"/>
+                                                            id="bfElementCalendarAdvancedSingleHeader" />
                                                     </div>
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_TODAY_BTN_TOOLTIP')); ?>"
-                                                               for="bfElementCalendarAdvancedTodayButton"><?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_TODAY_BTN'); ?></label>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_TODAY_BTN_TOOLTIP')); ?>"
+                                                            for="bfElementCalendarAdvancedTodayButton">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_TODAY_BTN'); ?>
+                                                        </label>
                                                         <input checked="checked" type="checkbox" value=""
-                                                               id="bfElementCalendarAdvancedTodayButton"/>
+                                                            id="bfElementCalendarAdvancedTodayButton" />
                                                     </div>
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_WEEK_NMBR_TOOLTIP')); ?>"
-                                                               for="bfElementCalendarAdvancedWeekNumbers"><?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_WEEK_NMBR'); ?></label>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_WEEK_NMBR_TOOLTIP')); ?>"
+                                                            for="bfElementCalendarAdvancedWeekNumbers">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_WEEK_NMBR'); ?>
+                                                        </label>
                                                         <input checked="checked" type="checkbox" value=""
-                                                               id="bfElementCalendarAdvancedWeekNumbers"/>
+                                                            id="bfElementCalendarAdvancedWeekNumbers" />
                                                     </div>
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_MIN_YEAR_TOOLTIP')); ?>"
-                                                               for="bfElementCalendarAdvancedMinYear"><?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_MIN_YEAR'); ?></label>
-                                                        <input type="text" value=""
-                                                               id="bfElementCalendarAdvancedMinYear"/>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_MIN_YEAR_TOOLTIP')); ?>"
+                                                            for="bfElementCalendarAdvancedMinYear">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_MIN_YEAR'); ?>
+                                                        </label>
+                                                        <input type="text" value="" id="bfElementCalendarAdvancedMinYear" />
                                                     </div>
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_MAX_YEAR_TOOLTIP')); ?>"
-                                                               for="bfElementCalendarAdvancedShowTime"><?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_MAX_YEAR'); ?></label>
-                                                        <input type="text" value=""
-                                                               id="bfElementCalendarAdvancedMaxYear"/>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_MAX_YEAR_TOOLTIP')); ?>"
+                                                            for="bfElementCalendarAdvancedShowTime">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_MAX_YEAR'); ?>
+                                                        </label>
+                                                        <input type="text" value="" id="bfElementCalendarAdvancedMaxYear" />
                                                     </div>
-        <?php endif; ?>
+                                                <?php endif; ?>
                                             </div>
                                             <!-- CALENDAR END -->
                                             <!-- SIGNATURE BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeSignatureAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementSignatureAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementSignatureAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementSignatureAdvancedHideLabel"/>
+                                                        id="bfElementSignatureAdvancedHideLabel" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
-                                                           for="bfElementSignatureAdvancedLogging"><?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
+                                                        for="bfElementSignatureAdvancedLogging">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementSignatureAdvancedLogging"/>
+                                                        id="bfElementSignatureAdvancedLogging" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
-                                                           for="bfElementSignatureAdvancedOrderNumber"><?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementSignatureAdvancedOrderNumber"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
+                                                        for="bfElementSignatureAdvancedOrderNumber">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementSignatureAdvancedOrderNumber" />
                                                 </div>
                                             </div>
                                             <!-- SIGNATURE END -->
                                             <!-- CHECKBOXGROUP BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCheckboxGroupAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementCheckboxGroupAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementCheckboxGroupAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementCheckboxGroupAdvancedHideLabel"/>
+                                                        id="bfElementCheckboxGroupAdvancedHideLabel" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
-                                                           for="bfElementCheckboxGroupAdvancedLogging"><?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
+                                                        for="bfElementCheckboxGroupAdvancedLogging">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementCheckboxGroupAdvancedLogging"/>
+                                                        id="bfElementCheckboxGroupAdvancedLogging" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
-                                                           for="bfElementCheckboxGroupAdvancedOrderNumber"><?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
+                                                        for="bfElementCheckboxGroupAdvancedOrderNumber">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?>
+                                                    </label>
                                                     <input type="text" value=""
-                                                           id="bfElementCheckboxGroupAdvancedOrderNumber"/>
+                                                        id="bfElementCheckboxGroupAdvancedOrderNumber" />
                                                 </div>
                                             </div>
                                             <!-- CHECKBOXGROUP END -->
                                             <!-- CHECKBOX BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCheckboxAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_MAILBACK_ACCEPT')); ?>"
-                                                           for="bfElementCheckboxAdvancedMailbackAccept"><?php echo BFText::_('COM_BREEZINGFORMS_MAILBACK_ACCEPT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_MAILBACK_ACCEPT')); ?>"
+                                                        for="bfElementCheckboxAdvancedMailbackAccept">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_MAILBACK_ACCEPT'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementCheckboxAdvancedMailbackAccept"/>
+                                                        id="bfElementCheckboxAdvancedMailbackAccept" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_MAILBACK_CONNECTWITH')); ?>"
-                                                           for="bfElementCheckboxAdvancedMailbackConnectWith"><?php echo BFText::_('COM_BREEZINGFORMS_MAILBACK_CONNECT_WITH'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_MAILBACK_CONNECTWITH')); ?>"
+                                                        for="bfElementCheckboxAdvancedMailbackConnectWith">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_MAILBACK_CONNECT_WITH'); ?>
+                                                    </label>
                                                     <input type="text" value=""
-                                                           id="bfElementCheckboxAdvancedMailbackConnectWith"/>
+                                                        id="bfElementCheckboxAdvancedMailbackConnectWith" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementCheckboxAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementCheckboxAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementCheckboxAdvancedHideLabel"/>
+                                                        id="bfElementCheckboxAdvancedHideLabel" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
-                                                           for="bfElementCheckboxAdvancedLogging"><?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
+                                                        for="bfElementCheckboxAdvancedLogging">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementCheckboxAdvancedLogging"/>
+                                                        id="bfElementCheckboxAdvancedLogging" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
-                                                           for="bfElementCheckboxAdvancedOrderNumber"><?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementCheckboxAdvancedOrderNumber"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
+                                                        for="bfElementCheckboxAdvancedOrderNumber">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementCheckboxAdvancedOrderNumber" />
                                                 </div>
                                             </div>
                                             <!-- CHECKBOX END -->
                                             <!-- CHECKBOXGROUP BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeSelectAdvanced"
-                                                 style="display:none">
+                                                style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementSelectAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementSelectAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementSelectAdvancedHideLabel"/>
+                                                        id="bfElementSelectAdvancedHideLabel" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECT_MAILBACK')); ?>"
-                                                           for="bfElementSelectAdvancedMailback"><?php echo BFText::_('COM_BREEZINGFORMS_MAILBACK'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_SELECT_MAILBACK')); ?>"
+                                                        for="bfElementSelectAdvancedMailback">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_MAILBACK'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementSelectAdvancedMailback"/>
+                                                        id="bfElementSelectAdvancedMailback" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
-                                                           for="bfElementSelectAdvancedLogging"><?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
+                                                        for="bfElementSelectAdvancedLogging">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementSelectAdvancedLogging"/>
+                                                        id="bfElementSelectAdvancedLogging" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
-                                                           for="bfElementSelectAdvancedOrderNumber"><?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementSelectAdvancedOrderNumber"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
+                                                        for="bfElementSelectAdvancedOrderNumber">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementSelectAdvancedOrderNumber" />
                                                 </div>
                                             </div>
                                             <!-- CHECKBOXGROUP END -->
                                             <!-- FILE BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeFileAdvanced"
-                                                 style="display:none">
+                                            <div class="bfElementTypeClass" id="bfElementTypeFileAdvanced" style="display:none">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_HTML5')); ?>"
-                                                           for="bfElementFileAdvancedHtml5Uploader"><?php echo BFText::_('COM_BREEZINGFORMS_HTML5_UPLOADER'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_HTML5')); ?>"
+                                                        for="bfElementFileAdvancedHtml5Uploader">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HTML5_UPLOADER'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementFileAdvancedHtml5Uploader" />
+                                                </div>
+                                                <div class="bfPropertyWrap">
+                                                    <label class="bfPropertyLabel hasTooltip"
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_FLASH')); ?>"
+                                                        for="bfElementFileAdvancedFlashUploader">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementFileAdvancedFlashUploader" />
+                                                    <br />
+                                                    <br />
+                                                    <i>(
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_HINT'); ?>
+                                                        )
+                                                    </i>
+                                                </div>
+                                                <div class="bfPropertyWrap">
+                                                    <label class="bfPropertyLabel hasTooltip"
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_MULTI')); ?>"
+                                                        for="bfElementFileAdvancedFlashUploaderMulti">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_MULTI'); ?>
+                                                    </label>
                                                     <input type="checkbox" value=""
-                                                           id="bfElementFileAdvancedHtml5Uploader"/>
+                                                        id="bfElementFileAdvancedFlashUploaderMulti" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_FLASH')); ?>"
-                                                           for="bfElementFileAdvancedFlashUploader"><?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER'); ?></label>
-                                                    <input type="checkbox" value=""
-                                                           id="bfElementFileAdvancedFlashUploader"/>
-                                                    <br/>
-                                                    <br/>
-                                                    <i>(<?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_HINT'); ?>
-                                                        )</i>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_BYTES')); ?>"
+                                                        for="bfElementFileAdvancedFlashUploaderBytes">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_BYTES'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementFileAdvancedFlashUploaderBytes" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_MULTI')); ?>"
-                                                           for="bfElementFileAdvancedFlashUploaderMulti"><?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_MULTI'); ?></label>
-                                                    <input type="checkbox" value=""
-                                                           id="bfElementFileAdvancedFlashUploaderMulti"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_WIDTH')); ?>"
+                                                        for="bfElementFileAdvancedFlashUploaderWidth">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_WIDTH'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementFileAdvancedFlashUploaderWidth" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_BYTES')); ?>"
-                                                           for="bfElementFileAdvancedFlashUploaderBytes"><?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_BYTES'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementFileAdvancedFlashUploaderBytes"/>
-                                                </div>
-                                                <div class="bfPropertyWrap">
-                                                    <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_WIDTH')); ?>"
-                                                           for="bfElementFileAdvancedFlashUploaderWidth"><?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_WIDTH'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementFileAdvancedFlashUploaderWidth"/>
-                                                </div>
-                                                <div class="bfPropertyWrap">
-                                                    <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_HEIGHT')); ?>"
-                                                           for="bfElementFileAdvancedFlashUploaderHeight"><?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_HEIGHT'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementFileAdvancedFlashUploaderHeight"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_HEIGHT')); ?>"
+                                                        for="bfElementFileAdvancedFlashUploaderHeight">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_HEIGHT'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementFileAdvancedFlashUploaderHeight" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfTrans">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_TRANSPARENT')); ?>"
-                                                           for="bfElementFileAdvancedFlashUploaderTransparent"><?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_TRANSPARENT'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_TRANSPARENT')); ?>"
+                                                        for="bfElementFileAdvancedFlashUploaderTransparent">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_TRANSPARENT'); ?>
+                                                    </label>
                                                     <input type="checkbox" value=""
-                                                           id="bfElementFileAdvancedFlashUploaderTransparent"/>
+                                                        id="bfElementFileAdvancedFlashUploaderTransparent" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_UPLOAD_DIRECTORY')); ?>"
-                                                           for="bfElementFileAdvancedUploadDirectory"><?php echo BFText::_('COM_BREEZINGFORMS_UPLOAD_DIRECTORY'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementFileAdvancedUploadDirectory"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_UPLOAD_DIRECTORY')); ?>"
+                                                        for="bfElementFileAdvancedUploadDirectory">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_UPLOAD_DIRECTORY'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementFileAdvancedUploadDirectory" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_RESIZE_WIDTH')); ?>"
-                                                           for="bfElementFileAdvancedResizeTargetWidth"><?php echo BFText::_('COM_BREEZINGFORMS_RESIZE_TARGET_WIDTH'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementFileAdvancedResizeTargetWidth" value="0"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_RESIZE_WIDTH')); ?>"
+                                                        for="bfElementFileAdvancedResizeTargetWidth">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_RESIZE_TARGET_WIDTH'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementFileAdvancedResizeTargetWidth"
+                                                        value="0" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_RESIZE_HEIGHT')); ?>"
-                                                           for="bfElementFileAdvancedResizeTargetHeight"><?php echo BFText::_('COM_BREEZINGFORMS_RESIZE_TARGET_HEIGHT'); ?></label>
-                                                    <input type="text" value=""
-                                                           id="bfElementFileAdvancedResizeTargetHeight" value="0"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_RESIZE_HEIGHT')); ?>"
+                                                        for="bfElementFileAdvancedResizeTargetHeight">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_RESIZE_TARGET_HEIGHT'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementFileAdvancedResizeTargetHeight"
+                                                        value="0" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_RESIZE_TYPE')); ?>"
-                                                           for="bfElementFileAdvancedResizeType"><?php echo BFText::_('COM_BREEZINGFORMS_RESIZE_TYPE'); ?></label>
-                                                    <input type="text" value="" id="bfElementFileAdvancedResizeType"
-                                                           value=""/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_RESIZE_TYPE')); ?>"
+                                                        for="bfElementFileAdvancedResizeType">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_RESIZE_TYPE'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementFileAdvancedResizeType" value="" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_RESIZE_BGCOLOR')); ?>"
-                                                           for="bfElementFileAdvancedResizeBgcolor"><?php echo BFText::_('COM_BREEZINGFORMS_RESIZE_BGCOLOR'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_RESIZE_BGCOLOR')); ?>"
+                                                        for="bfElementFileAdvancedResizeBgcolor">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_RESIZE_BGCOLOR'); ?>
+                                                    </label>
                                                     <input type="text" value="" id="bfElementFileAdvancedResizeBgcolor"
-                                                           value="#ffffff"/>
-                                                    <br/>
-                                                    <br/>
-                                                    <i>(<?php echo BFText::_('COM_BREEZINGFORMS_RESIZE_HINT'); ?>)</i>
+                                                        value="#ffffff" />
+                                                    <br />
+                                                    <br />
+                                                    <i>(
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_RESIZE_HINT'); ?>)
+                                                    </i>
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_TIMESTAMP')); ?>"
-                                                           for="bfElementFileAdvancedTimestamp"><?php echo BFText::_('COM_BREEZINGFORMS_TIMESTAMP'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_TIMESTAMP')); ?>"
+                                                        for="bfElementFileAdvancedTimestamp">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_TIMESTAMP'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementFileAdvancedTimestamp"/>
+                                                        id="bfElementFileAdvancedTimestamp" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_EXTENSIONS')); ?>"
-                                                           for="bfElementFileAdvancedAllowedFileExtensions"><?php echo BFText::_('COM_BREEZINGFORMS_ALLOWED_FILE_EXTENSIONS'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_EXTENSIONS')); ?>"
+                                                        for="bfElementFileAdvancedAllowedFileExtensions">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ALLOWED_FILE_EXTENSIONS'); ?>
+                                                    </label>
                                                     <input type="text" value=""
-                                                           id="bfElementFileAdvancedAllowedFileExtensions"/>
+                                                        id="bfElementFileAdvancedAllowedFileExtensions" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_ATTACHUSERMAIL')); ?>"
-                                                           for="bfElementFileAdvancedAttachToUserMail"><?php echo BFText::_('COM_BREEZINGFORMS_ATTACH_TO_USERMAIL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_ATTACHUSERMAIL')); ?>"
+                                                        for="bfElementFileAdvancedAttachToUserMail">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ATTACH_TO_USERMAIL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementFileAdvancedAttachToUserMail"/>
+                                                        id="bfElementFileAdvancedAttachToUserMail" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_ATTACHADMINMAIL')); ?>"
-                                                           for="bfElementFileAdvancedAttachToAdminMail"><?php echo BFText::_('COM_BREEZINGFORMS_ATTACH_TO_ADMINMAIL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_ATTACHADMINMAIL')); ?>"
+                                                        for="bfElementFileAdvancedAttachToAdminMail">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ATTACH_TO_ADMINMAIL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementFileAdvancedAttachToAdminMail"/>
+                                                        id="bfElementFileAdvancedAttachToAdminMail" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_USEURL')); ?>"
-                                                           for="bfElementFileAdvancedUseUrl"><?php echo BFText::_('COM_BREEZINGFORMS_USE_URL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_USEURL')); ?>"
+                                                        for="bfElementFileAdvancedUseUrl">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_USE_URL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementFileAdvancedUseUrl"/>
+                                                        id="bfElementFileAdvancedUseUrl" />
                                                 </div>
-                                                <div class="bfPropertyWrap" style="display:none;"> <!-- legacy and hidden as not required any longer -->
+                                                <div class="bfPropertyWrap" style="display:none;">
+                                                    <!-- legacy and hidden as not required any longer -->
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_USEURL_DIR')); ?>"
-                                                           for="bfElementFileAdvancedUseUrlDownloadDirectory"><?php echo BFText::_('COM_BREEZINGFORMS_USE_URL_DOWNLOAD_DIRECTORY'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_FILE_USEURL_DIR')); ?>"
+                                                        for="bfElementFileAdvancedUseUrlDownloadDirectory">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_USE_URL_DOWNLOAD_DIRECTORY'); ?>
+                                                    </label>
                                                     <input type="text" value=""
-                                                           id="bfElementFileAdvancedUseUrlDownloadDirectory"/> <?php echo BFText::_('COM_BREEZINGFORMS_USE_URL_DOWNLOAD_DIRECTORY_SET_SYNCH'); ?>
+                                                        id="bfElementFileAdvancedUseUrlDownloadDirectory" />
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_USE_URL_DOWNLOAD_DIRECTORY_SET_SYNCH'); ?>
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                           for="bfElementFileAdvancedHideLabel"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_HIDE_LABEL')); ?>"
+                                                        for="bfElementFileAdvancedHideLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_LABEL'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementFileAdvancedHideLabel"/>
+                                                        id="bfElementFileAdvancedHideLabel" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
-                                                           for="bfElementFileAdvancedLogging"><?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?></label>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LOGGING')); ?>"
+                                                        for="bfElementFileAdvancedLogging">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_LOGGING'); ?>
+                                                    </label>
                                                     <input checked="checked" type="checkbox" value=""
-                                                           id="bfElementFileAdvancedLogging"/>
+                                                        id="bfElementFileAdvancedLogging" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
-                                                           for="bfElementFileAdvancedOrderNumber"><?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?></label>
-                                                    <input type="text" value="" id="bfElementFileAdvancedOrderNumber"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_ORDER_NUMBER')); ?>"
+                                                        for="bfElementFileAdvancedOrderNumber">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ORDER_NUMBER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementFileAdvancedOrderNumber" />
                                                 </div>
                                             </div>
                                             <!-- FILE END -->
                                             <div id="bfHideInMailback">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_MAILBACK_HIDE')); ?>"
-                                                           for="bfElementAdvancedHideInMailback"><?php echo BFText::_('COM_BREEZINGFORMS_HIDE_IN_MAILBACK'); ?></label>
-                                                    <input type="checkbox" value=""
-                                                           id="bfElementAdvancedHideInMailback"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_MAILBACK_HIDE')); ?>"
+                                                        for="bfElementAdvancedHideInMailback">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDE_IN_MAILBACK'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementAdvancedHideInMailback" />
                                                 </div>
                                             </div>
 
                                             <div id="bfAdvancedLeaf">
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TABINDEX')); ?>"
-                                                           id="bfElementAdvancedTabIndexLabel"
-                                                           for="bfElementAdvancedTabIndex"><?php echo BFText::_('COM_BREEZINGFORMS_TAB_INDEX'); ?></label>
-                                                    <input type="text" value="" id="bfElementAdvancedTabIndex"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TABINDEX')); ?>"
+                                                        id="bfElementAdvancedTabIndexLabel" for="bfElementAdvancedTabIndex">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_TAB_INDEX'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementAdvancedTabIndex" />
                                                 </div>
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
-                                                           title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TURNOFF')); ?>"
-                                                           for="bfElementAdvancedTurnOff"><?php echo BFText::_('COM_BREEZINGFORMS_TURN_OFF_INITIALLY'); ?></label>
-                                                    <input type="checkbox" value="" id="bfElementAdvancedTurnOff"/>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_TURNOFF')); ?>"
+                                                        for="bfElementAdvancedTurnOff">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_TURN_OFF_INITIALLY'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementAdvancedTurnOff" />
                                                 </div>
                                                 <div id="bfLabelPositionToggle">
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
-                                                               title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LABELPOS')); ?>"
-                                                               id="bfElementAdvancedLabelPositionLabel"
-                                                               for="bfElementAdvancedLabelPosition"><?php echo BFText::_('COM_BREEZINGFORMS_LABEL_POSITION'); ?></label>
+                                                            title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_LABELPOS')); ?>"
+                                                            id="bfElementAdvancedLabelPositionLabel"
+                                                            for="bfElementAdvancedLabelPosition">
+                                                            <?php echo BFText::_('COM_BREEZINGFORMS_LABEL_POSITION'); ?>
+                                                        </label>
                                                         <select id="bfElementAdvancedLabelPosition">
-                                                            <option
-                                                                value="left"><?php echo BFText::_('COM_BREEZINGFORMS_LEFT'); ?></option>
-                                                            <option
-                                                                value="top"><?php echo BFText::_('COM_BREEZINGFORMS_TOP'); ?></option>
-                                                            <option
-                                                                value="right"><?php echo BFText::_('COM_BREEZINGFORMS_RIGHT'); ?></option>
-                                                            <option
-                                                                value="bottom"><?php echo BFText::_('COM_BREEZINGFORMS_BOTTOM'); ?></option>
+                                                            <option value="left">
+                                                                <?php echo BFText::_('COM_BREEZINGFORMS_LEFT'); ?>
+                                                            </option>
+                                                            <option value="top">
+                                                                <?php echo BFText::_('COM_BREEZINGFORMS_TOP'); ?>
+                                                            </option>
+                                                            <option value="right">
+                                                                <?php echo BFText::_('COM_BREEZINGFORMS_RIGHT'); ?>
+                                                            </option>
+                                                            <option value="bottom">
+                                                                <?php echo BFText::_('COM_BREEZINGFORMS_BOTTOM'); ?>
+                                                            </option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -6245,157 +6942,177 @@ class QuickModeHtml {
                                         </fieldset>
 
                                         <fieldset id="bfInitScript" style="display:none">
-                                            <br/>
-                                            <legend><?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_ELEMENT_INITSCRIPT'); ?></legend>
+                                            <br />
+                                            <legend>
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_ELEMENT_INITSCRIPT'); ?>
+                                            </legend>
                                             <div class="bfPropertyWrap">
                                                 <span class="hasTooltip"
-                                                      title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_INITSCRIPT')); ?>"><?php echo BFText::_('COM_BREEZINGFORMS_TYPE') ?>
-                                                    :</span>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_INITSCRIPT')); ?>">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_TYPE') ?>
+                                                    :
+                                                </span>
                                                 <input
                                                     onclick="JQuery('#bfInitScriptFlags').css('display', 'none');
                                                                                             JQuery('#bfInitScriptLibrary').css('display', 'none');
                                                                                             JQuery('#bfInitScriptCustom').css('display', 'none');"
                                                     type="radio" name="initType" id="bfInitTypeNone" class="bfInitType"
-                                                    value="0"/> <?php echo BFText::_('COM_BREEZINGFORMS_NONE') ?>
+                                                    value="0" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_NONE') ?>
                                                 <input
                                                     onclick="JQuery('#bfInitScriptFlags').css('display', '');JQuery('#bfInitScriptLibrary').css('display', '');
                                                                                             JQuery('#bfInitScriptCustom').css('display', 'none');"
-                                                    type="radio" name="initType" id="bfInitTypeLibrary"
-                                                    class="bfInitType"
-                                                    value="1"/> <?php echo BFText::_('COM_BREEZINGFORMS_LIBRARY') ?>
+                                                    type="radio" name="initType" id="bfInitTypeLibrary" class="bfInitType"
+                                                    value="1" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_LIBRARY') ?>
                                                 <input
                                                     onclick="JQuery('#bfInitScriptFlags').css('display', '');
                                                                                             JQuery('#bfInitScriptLibrary').css('display', 'none');JQuery('#bfInitScriptCustom').css('display', '');"
-                                                    type="radio" name="initType" id="bfInitTypeCustom"
-                                                    class="bfInitType"
-                                                    value="2"/> <?php echo BFText::_('COM_BREEZINGFORMS_CUSTOM') ?>
+                                                    type="radio" name="initType" id="bfInitTypeCustom" class="bfInitType"
+                                                    value="2" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_CUSTOM') ?>
                                             </div>
                                             <div id="bfInitScriptFlags" style="display:none">
-                                                <hr/>
+                                                <hr />
                                                 <div class="bfPropertyWrap">
                                                     <input type="checkbox" id="bfInitFormEntry" class="bfInitFormEntry"
-                                                           name="bfInitFormEntry" value="1"/><label
-                                                           for="bfInitFormEntry" class="bfInitFormEntryLabel"> <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_FORMENTRY'); ?></label>
+                                                        name="bfInitFormEntry" value="1" /><label for="bfInitFormEntry"
+                                                        class="bfInitFormEntryLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_FORMENTRY'); ?>
+                                                    </label>
                                                     <input type="checkbox" id="bfInitPageEntry" class="bfInitPageEntry"
-                                                           name="bfInitPageEntry" value="1"/><label
-                                                           for="bfInitPageEntry" class="bfInitFormEntryLabel"> <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_PAGEENTRY'); ?></label>
+                                                        name="bfInitPageEntry" value="1" /><label for="bfInitPageEntry"
+                                                        class="bfInitFormEntryLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_PAGEENTRY'); ?>
+                                                    </label>
                                                 </div>
                                             </div>
 
                                             <div id="bfInitScriptLibrary" style="display:none">
-                                                <hr/>
+                                                <hr />
                                                 <div class="bfPropertyWrap">
-        <?php echo BFText::_('COM_BREEZINGFORMS_SCRIPT') ?>:<br/> <select
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_SCRIPT') ?>:<br /> <select
                                                         id="bfInitScriptSelection"></select>
                                                 </div>
-                                                <br/>
+                                                <br />
                                                 <div id="bfInitSelectionDescription"></div>
                                             </div>
 
                                             <div id="bfInitScriptCustom" style="display:none">
-                                                <hr/>
+                                                <hr />
                                                 <div class="bfPropertyWrap">
                                                     <div class="hasTooltip btn btn-secondary"
-                                                         title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_INITSCRIPT_CODEFRAMEWORK')); ?>"
-                                                         style="cursor: pointer;"
-                                                         onclick="createInitCode()"><?php echo BFText::_('COM_BREEZINGFORMS_CREATE_CODE_FRAMEWORK') ?></div>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_INITSCRIPT_CODEFRAMEWORK')); ?>"
+                                                        style="cursor: pointer;" onclick="createInitCode()">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CREATE_CODE_FRAMEWORK') ?>
+                                                    </div>
 
-        <?php
-        echo self::renderCodeMirror('bfInitCode');
-        ?>
+                                                    <?php
+                                                    echo self::renderCodeMirror('bfInitCode');
+                                                    ?>
                                                 </div>
                                             </div>
                                         </fieldset>
 
                                         <fieldset id="bfActionScript" style="display:none">
-                                            <br/>
-                                            <legend><?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_ELEMENT_ACTIONSCRIPT'); ?></legend>
+                                            <br />
+                                            <legend>
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_ELEMENT_ACTIONSCRIPT'); ?>
+                                            </legend>
                                             <div class="bfPropertyWrap">
                                                 <span class="hasTooltip"
-                                                      title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ACTIONSCRIPT')); ?>"><?php echo BFText::_('COM_BREEZINGFORMS_TYPE') ?>
-                                                    :</span>
+                                                    title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ACTIONSCRIPT')); ?>">
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_TYPE') ?>
+                                                    :
+                                                </span>
                                                 <input
                                                     onclick="JQuery('#bfActionScriptFlags').css('display', 'none');
                                                                                             JQuery('#bfActionScriptLibrary').css('display', 'none');
                                                                                             JQuery('#bfActionScriptCustom').css('display', 'none');"
-                                                    type="radio" name="actionType" name="actionType"
-                                                    id="bfActionTypeNone" class="bfActionType"
-                                                    value="0"/> <?php echo BFText::_('COM_BREEZINGFORMS_NONE') ?>
+                                                    type="radio" name="actionType" name="actionType" id="bfActionTypeNone"
+                                                    class="bfActionType" value="0" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_NONE') ?>
                                                 <input
                                                     onclick="JQuery('#bfActionScriptFlags').css('display', '');
                                                                                             JQuery('#bfActionScriptLibrary').css('display', '');
                                                                                             JQuery('#bfActionScriptCustom').css('display', 'none');"
-                                                    type="radio" name="actionType" id="bfActionTypeLibrary"
-                                                    class="bfActionType"
-                                                    value="1"/> <?php echo BFText::_('COM_BREEZINGFORMS_LIBRARY') ?>
+                                                    type="radio" name="actionType" id="bfActionTypeLibrary" class="bfActionType"
+                                                    value="1" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_LIBRARY') ?>
                                                 <input
                                                     onclick="JQuery('#bfActionScriptFlags').css('display', '');
                                                                                             JQuery('#bfActionScriptLibrary').css('display', 'none');
                                                                                             JQuery('#bfActionScriptCustom').css('display', '');"
-                                                    type="radio" name="actionType" id="bfActionTypeCustom"
-                                                    class="bfActionType"
-                                                    value="2"/> <?php echo BFText::_('COM_BREEZINGFORMS_CUSTOM') ?>
+                                                    type="radio" name="actionType" id="bfActionTypeCustom" class="bfActionType"
+                                                    value="2" />
+                                                <?php echo BFText::_('COM_BREEZINGFORMS_CUSTOM') ?>
                                             </div>
                                             <div id="bfActionScriptFlags" style="display:none">
-                                                <hr/>
+                                                <hr />
                                                 <div class="bfPropertyWrap">
-        <?php echo BFText::_('COM_BREEZINGFORMS_ACTIONS') ?>:
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_ACTIONS') ?>:
                                                     <input style="display:none" type="checkbox" class="bfAction"
-                                                           id="bfActionClick" name="bfActionClick" value="1"/><label
-                                                           style="display:none" class="bfActionLabel"
-                                                           id="bfActionClickLabel"> <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_CLICK'); ?></label>
+                                                        id="bfActionClick" name="bfActionClick" value="1" /><label
+                                                        style="display:none" class="bfActionLabel" id="bfActionClickLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_CLICK'); ?>
+                                                    </label>
                                                     <input style="display:none" type="checkbox" class="bfAction"
-                                                           id="bfActionBlur" name="bfActionBlur" value="1"/><label
-                                                           style="display:none" class="bfActionLabel"
-                                                           id="bfActionBlurLabel"> <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_BLUR'); ?></label>
+                                                        id="bfActionBlur" name="bfActionBlur" value="1" /><label
+                                                        style="display:none" class="bfActionLabel" id="bfActionBlurLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_BLUR'); ?>
+                                                    </label>
                                                     <input style="display:none" type="checkbox" class="bfAction"
-                                                           id="bfActionChange" name="bfActionChange" value="1"/><label
-                                                           style="display:none" class="bfActionLabel"
-                                                           id="bfActionChangeLabel"> <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_CHANGE'); ?></label>
+                                                        id="bfActionChange" name="bfActionChange" value="1" /><label
+                                                        style="display:none" class="bfActionLabel" id="bfActionChangeLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_CHANGE'); ?>
+                                                    </label>
                                                     <input style="display:none" type="checkbox" class="bfAction"
-                                                           id="bfActionFocus" name="bfActionFocus" value="1"/><label
-                                                           style="display:none" class="bfActionLabel"
-                                                           id="bfActionFocusLabel"> <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_FOCUS'); ?></label>
+                                                        id="bfActionFocus" name="bfActionFocus" value="1" /><label
+                                                        style="display:none" class="bfActionLabel" id="bfActionFocusLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_FOCUS'); ?>
+                                                    </label>
                                                     <input style="display:none" type="checkbox" class="bfAction"
-                                                           id="bfActionSelect" name="bfActionSelect" value="1"/><label
-                                                           style="display:none" class="bfActionLabel"
-                                                           id="bfActionSelectLabel"> <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_SELECTION'); ?></label>
+                                                        id="bfActionSelect" name="bfActionSelect" value="1" /><label
+                                                        style="display:none" class="bfActionLabel" id="bfActionSelectLabel">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_SELECTION'); ?>
+                                                    </label>
                                                 </div>
                                             </div>
 
                                             <div id="bfActionScriptLibrary" style="display:none">
-                                                <hr/>
+                                                <hr />
                                                 <div class="bfPropertyWrap">
-        <?php echo BFText::_('COM_BREEZINGFORMS_SCRIPT') ?>:<br/><select
+                                                    <?php echo BFText::_('COM_BREEZINGFORMS_SCRIPT') ?>:<br /><select
                                                         id="bfActionsScriptSelection"></select>
                                                 </div>
-                                                <br/>
+                                                <br />
                                                 <div id="bfActionsScriptSelectionDescription"></div>
                                             </div>
 
                                             <div id="bfActionScriptCustom" style="display:none">
-                                                <hr/>
+                                                <hr />
                                                 <div class="bfPropertyWrap">
                                                     <div class="hasTooltip btn btn-secondary"
-                                                         title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ACTIONSCRIPT_CODEFRAMEWORK')); ?>"
-                                                         style="cursor: pointer;"
-                                                         onclick="createActionCode()"><?php echo BFText::_('COM_BREEZINGFORMS_CREATE_CODE_FRAMEWORK') ?></div>
-        <?php
-        echo self::renderCodeMirror('bfActionCode');
-        ?>
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ACTIONSCRIPT_CODEFRAMEWORK')); ?>"
+                                                        style="cursor: pointer;" onclick="createActionCode()">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CREATE_CODE_FRAMEWORK') ?>
+                                                    </div>
+                                                    <?php
+                                                    echo self::renderCodeMirror('bfActionCode');
+                                                    ?>
                                                 </div>
                                             </div>
 
                                         </fieldset>
 
                                     </div>
-                                    <br/>
+                                    <br />
                                     <div class="bfFadingMessage" style="display:none"></div>
                                     <input type="submit" class="btn btn-secondary"
-                                           value="<?php echo BFText::_('COM_BREEZINGFORMS_PROPERTIES_SAVE'); ?>"
-                                           id="bfAdvancedSaveButton"/>
-                                    <br/>
-                                    <br/>
+                                        value="<?php echo BFText::_('COM_BREEZINGFORMS_PROPERTIES_SAVE'); ?>"
+                                        id="bfAdvancedSaveButton" />
+                                    <br />
+                                    <br />
 
                                 </div>
                             </div>
@@ -6418,17 +7135,20 @@ class QuickModeHtml {
         <?php
     }
 
-    public static function getContent($editor) {
+    public static function getContent($editor)
+    {
 
         return 'Joomla.editors.instances[' . json_encode($editor) . '].getValue()';
     }
 
-    public static function setContent($editor, $content) {
+    public static function setContent($editor, $content)
+    {
 
         return 'Joomla.editors.instances[' . json_encode($editor) . '].setValue(' . json_encode($content) . ')';
     }
 
-    public static function renderCodeMirror($name) {
+    public static function renderCodeMirror($name)
+    {
 
         $out = '';
         $params = array('syntax' => 'javascript');

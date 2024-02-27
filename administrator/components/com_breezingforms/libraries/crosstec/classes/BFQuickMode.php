@@ -882,9 +882,6 @@ function bfTriggerRules() {
 	function __construct(HTML_facileFormsProcessor $p) {
 
 		// will make sure mootools loads first, important 4 jquery
-		jimport('joomla.version');
-		$version = new JVersion();
-
         $default = JComponentHelper::getParams( 'com_languages' )->get( 'site' );
         $this->language_tag = JFactory::getApplication()->getLanguage()->getTag() != $default ? JFactory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
 
@@ -974,11 +971,6 @@ function bfTriggerRules() {
 
 					preg_match_all($regex, $introtext, $matches, PREG_SET_ORDER);
 
-					jimport('joomla.version');
-					$version = new JVersion();
-
-					if ($matches && version_compare($version->getShortVersion(), '1.6', '>=')) {
-
 						$document = JFactory::getDocument();
 						$renderer = $document->loadRenderer('modules');
 						$options = array('style' => 'xhtml');
@@ -989,7 +981,6 @@ function bfTriggerRules() {
 							$position = trim($matcheslist[0]);
 							$output = $renderer->render($position, $options, null);
 							$introtext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
-						}
 					}
 
 					echo $introtext . "\n";
@@ -1037,22 +1028,16 @@ function bfTriggerRules() {
 
 					preg_match_all($regex, $introtext, $matches, PREG_SET_ORDER);
 
-					jimport('joomla.version');
-					$version = new JVersion();
+					$document = JFactory::getDocument();
+					$renderer = $document->loadRenderer('modules');
+					$options = array('style' => 'xhtml');
 
-					if ($matches && version_compare($version->getShortVersion(), '1.6', '>=')) {
+					foreach ($matches as $match) {
 
-						$document = JFactory::getDocument();
-						$renderer = $document->loadRenderer('modules');
-						$options = array('style' => 'xhtml');
-
-						foreach ($matches as $match) {
-
-							$matcheslist = explode(',', $match[1]);
-							$position = trim($matcheslist[0]);
-							$output = $renderer->render($position, $options, null);
-							$introtext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
-						}
+						$matcheslist = explode(',', $match[1]);
+						$position = trim($matcheslist[0]);
+						$output = $renderer->render($position, $options, null);
+						$introtext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
 					}
 
 					echo $introtext . "\n";
@@ -1139,8 +1124,6 @@ function bfTriggerRules() {
 						$tipClose  = '';
 						$labelText = trim( $mdata['label'] ) . str_replace( "***", "\"", $maxlengthCounter );
 						if ( trim( $mdata['hint'] ) != '' ) {
-							jimport( 'joomla.version' );
-							$version = new JVersion();
 							if ( isset( $this->rootMdata['joomlaHint'] ) && $this->rootMdata['joomlaHint'] ) {
                                 HTMLHelper::_('bootstrap.tooltip');
 								$content   = trim( $mdata['hint'] );

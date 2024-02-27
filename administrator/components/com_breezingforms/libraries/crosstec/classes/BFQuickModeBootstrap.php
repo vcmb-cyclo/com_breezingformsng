@@ -65,14 +65,8 @@ class BFQuickModeBootstrap {
     }
 
     function __construct(HTML_facileFormsProcessor $p) {
-
-        jimport('joomla.version');
-        $version = new JVersion();
-
-        if (version_compare($version->getShortVersion(), '2.5', '>=')) {
-            $default = JComponentHelper::getParams('com_languages')->get('site');
-            $this->language_tag = JFactory::getApplication()->getLanguage()->getTag() != $default ? JFactory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
-        }
+        $default = JComponentHelper::getParams('com_languages')->get('site');
+        $this->language_tag = JFactory::getApplication()->getLanguage()->getTag() != $default ? JFactory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
 
         JFactory::getDocument()->addScriptDeclaration('<!--');
 
@@ -468,19 +462,16 @@ class BFQuickModeBootstrap {
                     jimport('joomla.version');
                     $version = new JVersion();
 
-                    if ($matches && version_compare($version->getShortVersion(), '1.6', '>=')) {
+                    $document = JFactory::getDocument();
+                    $renderer = $document->loadRenderer('modules');
+                    $options = array('style' => 'xhtml');
 
-                        $document = JFactory::getDocument();
-                        $renderer = $document->loadRenderer('modules');
-                        $options = array('style' => 'xhtml');
+                    foreach ($matches as $match) {
 
-                        foreach ($matches as $match) {
-
-                            $matcheslist = explode(',', $match[1]);
-                            $position = trim($matcheslist[0]);
-                            $output = $renderer->render($position, $options, null);
-                            $introtext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
-                        }
+                        $matcheslist = explode(',', $match[1]);
+                        $position = trim($matcheslist[0]);
+                        $output = $renderer->render($position, $options, null);
+                        $introtext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
                     }
 
                     echo $introtext . "\n";
@@ -539,7 +530,7 @@ class BFQuickModeBootstrap {
                     jimport('joomla.version');
                     $version = new JVersion();
 
-                    if ($matches && version_compare($version->getShortVersion(), '1.6', '>=')) {
+                    if ($matches) {
 
                         $document = JFactory::getDocument();
                         $renderer = $document->loadRenderer('modules');
@@ -1933,20 +1924,15 @@ display:none;
 }
 ');
 
-        jimport('joomla.version');
-        $version = new JVersion();
-        if (version_compare($version->getShortVersion(), '3.1', '>=')) {
-
-            // force jquery to be loaded after mootools but before any other js (since J! 3.4)
-            JHtml::_('bootstrap.framework');
-            JHtml::_('jquery.framework');
-            HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
-            JFactory::getDocument()->addScriptDeclaration('
-                    jQuery(document).ready(function()
-                    {
-                            jQuery(".hasTooltip").tooltip({"html": true,"container": "body"});
-                    });');
-        }
+        // force jquery to be loaded after mootools but before any other js (since J! 3.4)
+        JHtml::_('bootstrap.framework');
+        JHtml::_('jquery.framework');
+        HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
+        JFactory::getDocument()->addScriptDeclaration('
+                jQuery(document).ready(function()
+                {
+                        jQuery(".hasTooltip").tooltip({"html": true,"container": "body"});
+                });');
 
         $jQuery = '';
         if (isset($this->rootMdata['disableJQuery']) && $this->rootMdata['disableJQuery']) {

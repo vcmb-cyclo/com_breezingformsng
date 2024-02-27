@@ -96,13 +96,6 @@ class BFIntegrator {
 
     public function getTableFields($tables, $typeOnly = true)
     {
-        jimport('joomla.version');
-        $version = new JVersion();
-
-        if(version_compare($version->getShortVersion(), '3.0', '<')){
-            return BFFactory::getDbo()->getTableFields($tables);
-        }
-
         $results = array();
 
         settype($tables, 'array');

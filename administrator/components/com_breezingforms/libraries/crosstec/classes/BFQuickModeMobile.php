@@ -44,10 +44,8 @@ class BFQuickModeMobile{
 		jimport('joomla.version');
 		$version = new JVersion();
 
-		if (version_compare($version->getShortVersion(), '2.5', '>=')) {
-			$default = JComponentHelper::getParams( 'com_languages' )->get( 'site' );
-			$this->language_tag = JFactory::getApplication()->getLanguage()->getTag() != $default ? JFactory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
-		}
+		$default = JComponentHelper::getParams( 'com_languages' )->get( 'site' );
+		$this->language_tag = JFactory::getApplication()->getLanguage()->getTag() != $default ? JFactory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
 
 		$head = JFactory::getDocument()->getHeadData();
 		$head['styleSheets'] = array();
@@ -56,11 +54,6 @@ class BFQuickModeMobile{
 		$head['script'] = array();
 		$head['custom'] = array();
 		JFactory::getDocument()->setHeadData( $head );
-		jimport('joomla.version');
-		$version = new JVersion();
-		if(version_compare($version->getShortVersion(), '3.0', '<')){
-			/*** JHTML::_('behavior.mootools'); ***/
-		}
 
 		$this->p = $p;
 		$this->dataObject = Zend_Json::decode( bf_b64dec($this->p->formrow->template_code) );
@@ -1043,33 +1036,8 @@ function bfTriggerRules() {
 		//  data-position="fixed"
 		echo '<div data-role="header" class="ui-header ui-bar-inherit">';
 		echo '<h1>'.JFactory::getDocument()->getTitle().'</h1>';
-		jimport('joomla.version');
-		$version = new JVersion();
 		$current_url = Uri::getInstance()->toString();
-		if (version_compare($version->getShortVersion(), '3.0', '<')) {
-			if(strstr($current_url,'?') !== false){
-				$current_url_exploded = explode('?', $current_url);
-				$current_url = '';
-				$c_length = count($current_url_exploded);
-				if($c_length > 1){
-					for($c = 1; $c < $c_length; $c++){
-						$current_params_exploded = explode('&', $current_url_exploded[$c]);
-						$current_params_length = count($current_params_exploded);
-						for($p = 0; $p < $current_params_length; $p++){
-							$param_key_value = explode('=',$current_params_exploded[$p], 2);
-							if(count($param_key_value) >= 2){
-								$current_url .= urlencode($param_key_value[0]).'='.urlencode($param_key_value[1]).'&';
-							} else {
-								$current_url .= urlencode($param_key_value[0]).'&';
-							}
-						}
-						break;
-					}
-					$current_url = rtrim($current_url,'&');
-					$current_url = $current_url_exploded[0].'?'.$current_url;
-				}
-			}
-		}
+
 		$return_url = $current_url;
 		$return_url = (strstr($return_url,'?mobile=1') !== false ? str_replace('?mobile=1','',$return_url) : str_replace('&mobile=1','',$return_url));
 		$return_url = $return_url.(strstr($return_url,'?') !== false ? '&' : '?') . 'non_mobile=1';
@@ -1151,7 +1119,6 @@ function bfTriggerRules() {
 					jimport('joomla.version');
 					$version = new JVersion();
 
-					if ($matches && version_compare($version->getShortVersion(), '1.6', '>=')) {
 
 						$document	= JFactory::getDocument();
 						$renderer	= $document->loadRenderer('modules');

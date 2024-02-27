@@ -5,6 +5,7 @@
  * @version 1.9
  * @package BreezingForms
  * @copyright (C) 2008-2020 by Markus Bopp
+ * @copyright (C) 2024 by XDA+GIL
  * @license Released under the terms of the GNU General Public License
  * */
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
@@ -561,24 +562,13 @@ class HTML_facileFormsProcessor
         } // if
 
 
-        jimport('joomla.version');
-        $version = new JVersion();
-        $_version = $version->getShortVersion();
         $tz = 'UTC';
-        if (version_compare($_version, '3.2', '>=')) {
-            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-        }
+        $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
 
         $submitted = JFactory::getDate();
-        if (version_compare($_version, '3.2', '>=')) {
-            $submitted = JFactory::getDate('now', $tz);
-        }
+        $submitted = JFactory::getDate('now', $tz);
 
-        if (version_compare($version->getShortVersion(), '3.0', '>=')) {
-            $this->submitted = $submitted->format('Y-m-d H:i:s');
-        } else {
-            $this->submitted = $submitted->toMySQL();
-        }
+        $this->submitted = $submitted->format('Y-m-d H:i:s');
 
         /*
           $format = JText::_('DATE_FORMAT_LC2');
@@ -2262,36 +2252,27 @@ class HTML_facileFormsProcessor
         $path = str_replace('{name}', JFactory::getUser()->get('name', 'Anonymous') . '_' . JFactory::getUser()->get('id', 0), $path);
         $path = str_replace('{field}', File::makeSafe(strtolower(trim($field_name))), $path);
 
-        jimport('joomla.version');
-        $version = new JVersion();
-
         $is3 = false;
-        if (version_compare($version->getShortVersion(), '3.0', '>=')) {
-            $is3 = true;
-        }
+        $is3 = true;
 
         $tz = 'UTC';
-        if ($is3) {
-            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-        }
+        $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
 
         $date_stamp1 = date('Y_m_d');
         $date_stamp2 = date('H_i_s');
         $date_stamp3 = date('Y_m_d_H_i_s');
 
-        if ($is3) {
-            $date_ = JFactory::getDate($this->submitted, $tz);
-            $offset = $date_->getOffsetFromGMT();
-            if ($offset > 0) {
-                $date_->add(new DateInterval('PT' . $offset . 'S'));
-            } else if ($offset < 0) {
-                $offset = $offset * -1;
-                $date_->sub(new DateInterval('PT' . $offset . 'S'));
-            }
-            $date_stamp1 = $date_->format('Y_m_d', true);
-            $date_stamp2 = $date_->format('H_i_s', true);
-            $date_stamp3 = $date_->format('Y_m_d_H_i_s', true);
+        $date_ = JFactory::getDate($this->submitted, $tz);
+        $offset = $date_->getOffsetFromGMT();
+        if ($offset > 0) {
+            $date_->add(new DateInterval('PT' . $offset . 'S'));
+        } else if ($offset < 0) {
+            $offset = $offset * -1;
+            $date_->sub(new DateInterval('PT' . $offset . 'S'));
         }
+        $date_stamp1 = $date_->format('Y_m_d', true);
+        $date_stamp2 = $date_->format('H_i_s', true);
+        $date_stamp3 = $date_->format('Y_m_d_H_i_s', true);
 
         $_now = JFactory::getDate();
         $path = str_replace('{date}', $date_stamp1, $path);
@@ -2347,14 +2328,8 @@ class HTML_facileFormsProcessor
             require_once(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
 
             $db->setQuery("Select `id` From #__contentbuilder_forms Where `type` = 'com_breezingforms' And `reference_id` = " . intval($this->form) . " And published = 1");
-            jimport('joomla.version');
-            $version = new JVersion();
 
-            if (version_compare($version->getShortVersion(), '3.0', '<')) {
-                $cbForms = $db->loadResultArray();
-            } else {
-                $cbForms = $db->loadColumn();
-            }
+            $cbForms = $db->loadColumn();
 
             // if no BF form is associated with contentbuilder, we don't need no further checks
             if (!count($cbForms)) {
@@ -3160,38 +3135,7 @@ class HTML_facileFormsProcessor
         } // if
 
         if (!$this->inline) {
-
-            jimport('joomla.version');
-            $version = new JVersion();
             $current_url = Uri::getInstance()->toString();
-            if (version_compare($version->getShortVersion(), '3.0', '<')) {
-                if (strstr($current_url, '?') !== false) {
-                    $current_url_exploded = explode('?', $current_url);
-                    $current_url = '';
-                    $c_length = count($current_url_exploded);
-                    if ($c_length > 1) {
-                        for ($c = 1; $c < $c_length; $c++) {
-                            $current_params_exploded = explode('&', $current_url_exploded[$c]);
-                            $current_params_length = count($current_params_exploded);
-                            for ($p = 0; $p < $current_params_length; $p++) {
-                                $param_key_value = explode('=', $current_params_exploded[$p], 2);
-                                if (count($param_key_value) >= 2) {
-                                    $current_url .= urlencode($param_key_value[0]) . '=' . urlencode($param_key_value[1]) . '&amp;';
-                                } else {
-                                    $current_url .= urlencode($param_key_value[0]) . '&amp;';
-                                }
-                            }
-                            break;
-                        }
-                        $current_url = rtrim($current_url, ';');
-                        $current_url = rtrim($current_url, 'p');
-                        $current_url = rtrim($current_url, 'm');
-                        $current_url = rtrim($current_url, 'a');
-                        $current_url = rtrim($current_url, '&');
-                        $current_url = $current_url_exploded[0] . '?' . $current_url;
-                    }
-                }
-            }
 
             $url = ($this->inframe) ? $ff_mossite . '/index.php?format=html&tmpl=component' : (($this->runmode == _FF_RUNMODE_FRONTEND) ? $current_url : 'index.php?format=html' . (BFRequest::getCmd('tmpl', '') ? '&tmpl=' . BFRequest::getCmd('tmpl', '') : $current_url));
             $params = ' action="' . $url . '"' .
@@ -4249,33 +4193,7 @@ class HTML_facileFormsProcessor
             }
 
             if ($is_mobile_type == 'choose') {
-                jimport('joomla.version');
-                $version = new JVersion();
                 $current_url = Uri::getInstance()->toString();
-                if (version_compare($version->getShortVersion(), '3.0', '<')) {
-                    if (strstr($current_url, '?') !== false) {
-                        $current_url_exploded = explode('?', $current_url);
-                        $current_url = '';
-                        $c_length = count($current_url_exploded);
-                        if ($c_length > 1) {
-                            for ($c = 1; $c < $c_length; $c++) {
-                                $current_params_exploded = explode('&', $current_url_exploded[$c]);
-                                $current_params_length = count($current_params_exploded);
-                                for ($p = 0; $p < $current_params_length; $p++) {
-                                    $param_key_value = explode('=', $current_params_exploded[$p], 2);
-                                    if (count($param_key_value) >= 2) {
-                                        $current_url .= urlencode($param_key_value[0]) . '=' . urlencode($param_key_value[1]) . '&';
-                                    } else {
-                                        $current_url .= urlencode($param_key_value[0]) . '&';
-                                    }
-                                }
-                                break;
-                            }
-                            $current_url = rtrim($current_url, '&');
-                            $current_url = $current_url_exploded[0] . '?' . $current_url;
-                        }
-                    }
-                }
                 $return_url = $current_url;
                 $return_url = (strstr($return_url, '?non_mobile=1') !== false ? str_replace('?non_mobile=1', '', $return_url) : str_replace('&non_mobile=1', '', $return_url));
                 $return_url = $return_url . (strstr($return_url, '?') !== false ? '&' : '?') . 'mobile=1';
@@ -4617,8 +4535,6 @@ class HTML_facileFormsProcessor
 
             if ($record_return && file_exists(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'contentbuilder.xml')) {
                 $last_update = JFactory::getDate();
-                jimport('joomla.version');
-                $version = new JVersion();
                 $is3 = true;
                 $last_update = $last_update->toSql();
                 $db = BFFactory::getDbo();
@@ -4780,8 +4696,6 @@ class HTML_facileFormsProcessor
 
                 JPluginHelper::importPlugin('contentbuilder_submit');
 
-                jimport('joomla.version');
-                $version = new JVersion();
                 $is15 = false;
 
                 $values = array();
@@ -4799,11 +4713,13 @@ class HTML_facileFormsProcessor
                     }
                 }
 
-                Factory::getApplication()->triggerEvent('onBeforeSubmit', array(
-                    BFRequest::getInt('cb_record_id', 0),
-                    $cbResult['form'],
-                    $values
-                )
+                Factory::getApplication()->triggerEvent(
+                    'onBeforeSubmit',
+                    array(
+                        BFRequest::getInt('cb_record_id', 0),
+                        $cbResult['form'],
+                        $values
+                    )
                 );
 
                 $record_return = $cbResult['form']->saveRecord(BFRequest::getInt('cb_record_id', 0), $values);
@@ -4821,9 +4737,6 @@ class HTML_facileFormsProcessor
                     $ignore_lang_code = '*';
                     if ($cbResult['data']['default_lang_code_ignore']) {
 
-                        jimport('joomla.version');
-                        $version = new JVersion();
-
                         $db->setQuery("Select lang_code From #__languages Where published = 1 And sef = " . $db->Quote(trim(BFRequest::getCmd('lang', ''))));
                         $ignore_lang_code = $db->loadResult();
                         if (!$ignore_lang_code) {
@@ -4838,10 +4751,6 @@ class HTML_facileFormsProcessor
                             $sef = '';
                         }
                     } else {
-
-                        jimport('joomla.version');
-                        $version = new JVersion();
-
                         $db->setQuery("Select sef From #__languages Where published = 1 And lang_code = " . $db->Quote($cbResult['data']['default_lang_code']));
                         $sef = $db->loadResult();
                     }
@@ -4849,7 +4758,6 @@ class HTML_facileFormsProcessor
                     $language = $cbResult['data']['default_lang_code_ignore'] ? $ignore_lang_code : $cbResult['data']['default_lang_code'];
                     $res = $db->loadResult();
                     $last_update = JFactory::getDate();
-                    $version = new JVersion();
                     $is3 = true;
                     $last_update = $last_update->toSql();
                     if (!$res) {
@@ -4884,9 +4792,6 @@ class HTML_facileFormsProcessor
 
                     BFRequest::setVar('cb_category_id', null);
                     BFRequest::setVar('cb_controller', null);
-
-                    jimport('joomla.version');
-                    $version = new JVersion();
 
                     if (JFactory::getApplication()->isClient('site') && BFRequest::getInt('Itemid', 0)) {
                         $menu = JFactory::getApplication()->getMenu();
@@ -4932,12 +4837,14 @@ class HTML_facileFormsProcessor
                     $cache->clean();
                 }
 
-                Factory::getApplication()->triggerEvent('onAfterSubmit', array(
-                    $record_return,
-                    $article_id,
-                    $cbResult['form'],
-                    $values
-                )
+                Factory::getApplication()->triggerEvent(
+                    'onAfterSubmit',
+                    array(
+                        $record_return,
+                        $article_id,
+                        $cbResult['form'],
+                        $values
+                    )
                 );
             }
             // CONTENTBUILDER END
@@ -5042,13 +4949,8 @@ class HTML_facileFormsProcessor
     {
         global $ff_compath;
 
-        jimport('joomla.version');
-        $version = new JVersion();
-        $_version = $version->getShortVersion();
         $tz = 'UTC';
-        if (version_compare($_version, '3.2', '>=')) {
-            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-        }
+        $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
 
         $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->formrow->name . '_pdf_attachment.php';
         if (!file_exists($file)) {
@@ -5089,31 +4991,27 @@ class HTML_facileFormsProcessor
 
         $date_stamp = date('YmdHis');
         $submitted = $this->submitted;
-        if (version_compare($_version, '3.2', '>=')) {
-            $date_ = JFactory::getDate($this->submitted, $tz);
-            $offset = $date_->getOffsetFromGMT();
-            if ($offset > 0) {
-                $date_->add(new DateInterval('PT' . $offset . 'S'));
-            } else if ($offset < 0) {
-                $offset = $offset * -1;
-                $date_->sub(new DateInterval('PT' . $offset . 'S'));
-            }
-            $this->submitted = $date_->format('Y-m-d H:i:s', true);
-            $date_stamp = $date_->format('YmdHis', true);
+        $date_ = JFactory::getDate($this->submitted, $tz);
+        $offset = $date_->getOffsetFromGMT();
+        if ($offset > 0) {
+            $date_->add(new DateInterval('PT' . $offset . 'S'));
+        } else if ($offset < 0) {
+            $offset = $offset * -1;
+            $date_->sub(new DateInterval('PT' . $offset . 'S'));
         }
+        $this->submitted = $date_->format('Y-m-d H:i:s', true);
+        $date_stamp = $date_->format('YmdHis', true);
 
         $date_stamp2 = date('Ymd');
-        if (version_compare($_version, '3.2', '>=')) {
-            $date_ = JFactory::getDate($this->submitted, $tz);
-            $offset = $date_->getOffsetFromGMT();
-            if ($offset > 0) {
-                $date_->add(new DateInterval('PT' . $offset . 'S'));
-            } else if ($offset < 0) {
-                $offset = $offset * -1;
-                $date_->sub(new DateInterval('PT' . $offset . 'S'));
-            }
-            $date_stamp2 = $date_->format('YmdHis', true);
+        $date_ = JFactory::getDate($this->submitted, $tz);
+        $offset = $date_->getOffsetFromGMT();
+        if ($offset > 0) {
+            $date_->add(new DateInterval('PT' . $offset . 'S'));
+        } else if ($offset < 0) {
+            $offset = $offset * -1;
+            $date_->sub(new DateInterval('PT' . $offset . 'S'));
         }
+        $date_stamp2 = $date_->format('YmdHis', true);
 
         $this->submitted = $submitted;
 
@@ -5261,14 +5159,8 @@ class HTML_facileFormsProcessor
 
         $inverted = isset($ff_config->csvinverted) ? $ff_config->csvinverted : false;
 
-        jimport('joomla.version');
-        $version = new JVersion();
-        $_version = $version->getShortVersion();
         $tz = 'UTC';
-
-        if (version_compare($_version, '3.2', '>=')) {
-            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-        }
+        $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
 
         $csvdelimiter = stripslashes($ff_config->csvdelimiter);
         $csvquote = stripslashes($ff_config->csvquote);
@@ -5289,18 +5181,16 @@ class HTML_facileFormsProcessor
 
         $date_stamp = date('YmdHis');
         $submitted = $this->submitted;
-        if (version_compare($_version, '3.2', '>=')) {
-            $date_ = JFactory::getDate($this->submitted, $tz);
-            $offset = $date_->getOffsetFromGMT();
-            if ($offset > 0) {
-                $date_->add(new DateInterval('PT' . $offset . 'S'));
-            } else if ($offset < 0) {
-                $offset = $offset * -1;
-                $date_->sub(new DateInterval('PT' . $offset . 'S'));
-            }
-            $submitted = $date_->format('Y-m-d H:i:s', true);
-            $date_stamp = $date_->format('YmdHis', true);
+        $date_ = JFactory::getDate($this->submitted, $tz);
+        $offset = $date_->getOffsetFromGMT();
+        if ($offset > 0) {
+            $date_->add(new DateInterval('PT' . $offset . 'S'));
+        } else if ($offset < 0) {
+            $offset = $offset * -1;
+            $date_->sub(new DateInterval('PT' . $offset . 'S'));
         }
+        $submitted = $date_->format('Y-m-d H:i:s', true);
+        $date_stamp = $date_->format('YmdHis', true);
 
         $lines[$lineNum]['ZZZ_B_SUBMITTED'][] = $submitted;
         $lines[$lineNum]['ZZZ_C_IP'][] = $this->ip;
@@ -5378,30 +5268,23 @@ class HTML_facileFormsProcessor
     {
         global $ff_compath, $ff_version, $mosConfig_fileperms;
 
-        jimport('joomla.version');
-        $version = new JVersion();
-        $_version = $version->getShortVersion();
         $tz = 'UTC';
-        if (version_compare($_version, '3.2', '>=')) {
-            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-        }
+        $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
 
         $date_stamp = date('YmdHis');
         $submitted = $this->submitted;
         $date_file = date('Y-m-d H:i:s');
-        if (version_compare($_version, '3.2', '>=')) {
-            $date_ = JFactory::getDate($this->submitted, $tz);
-            $offset = $date_->getOffsetFromGMT();
-            if ($offset > 0) {
-                $date_->add(new DateInterval('PT' . $offset . 'S'));
-            } else if ($offset < 0) {
-                $offset = $offset * -1;
-                $date_->sub(new DateInterval('PT' . $offset . 'S'));
-            }
-            $submitted = $date_->format('Y-m-d H:i:s', true);
-            $date_stamp = $date_->format('YmdHis', true);
-            $date_file = $submitted;
+        $date_ = JFactory::getDate($this->submitted, $tz);
+        $offset = $date_->getOffsetFromGMT();
+        if ($offset > 0) {
+            $date_->add(new DateInterval('PT' . $offset . 'S'));
+        } else if ($offset < 0) {
+            $offset = $offset * -1;
+            $date_->sub(new DateInterval('PT' . $offset . 'S'));
         }
+        $submitted = $date_->format('Y-m-d H:i:s', true);
+        $date_stamp = $date_->format('YmdHis', true);
+        $date_file = $submitted;
 
         if ($this->dying)
             return '';
@@ -5638,27 +5521,20 @@ class HTML_facileFormsProcessor
 
                 $PROCESS_SUBMITTEDAT = BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTEDAT');
 
-                jimport('joomla.version');
-                $version = new JVersion();
-                $_version = $version->getShortVersion();
                 $tz = 'UTC';
-                if (version_compare($_version, '3.2', '>=')) {
-                    $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-                }
+                $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
 
                 $SUBMITTED = $this->submitted;
-                if (version_compare($_version, '3.2', '>=')) {
-                    $date_ = JFactory::getDate($this->submitted, $tz);
-                    $offset = $date_->getOffsetFromGMT();
-                    if ($offset > 0) {
-                        $date_->add(new DateInterval('PT' . $offset . 'S'));
-                    } else if ($offset < 0) {
-                        $offset = $offset * -1;
-                        $date_->sub(new DateInterval('PT' . $offset . 'S'));
-                    }
-
-                    $SUBMITTED = $date_->format('Y-m-d H:i:s', true);
+                $date_ = JFactory::getDate($this->submitted, $tz);
+                $offset = $date_->getOffsetFromGMT();
+                if ($offset > 0) {
+                    $date_->add(new DateInterval('PT' . $offset . 'S'));
+                } else if ($offset < 0) {
+                    $offset = $offset * -1;
+                    $date_->sub(new DateInterval('PT' . $offset . 'S'));
                 }
+
+                $SUBMITTED = $date_->format('Y-m-d H:i:s', true);
 
                 $PROCESS_SUBMITTERIP = BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERIP');
                 $IP = $this->ip;
@@ -5705,27 +5581,20 @@ class HTML_facileFormsProcessor
             } else {
                 // fallback if no template exists
 
-                jimport('joomla.version');
-                $version = new JVersion();
-                $_version = $version->getShortVersion();
                 $tz = 'UTC';
-                if (version_compare($_version, '3.2', '>=')) {
-                    $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-                }
+                $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
 
                 $submitted = $this->submitted;
-                if (version_compare($_version, '3.2', '>=')) {
-                    $date_ = JFactory::getDate($this->submitted, $tz);
-                    $offset = $date_->getOffsetFromGMT();
-                    if ($offset > 0) {
-                        $date_->add(new DateInterval('PT' . $offset . 'S'));
-                    } else if ($offset < 0) {
-                        $offset = $offset * -1;
-                        $date_->sub(new DateInterval('PT' . $offset . 'S'));
-                    }
-
-                    $submitted = $date_->format('Y-m-d H:i:s', true);
+                $date_ = JFactory::getDate($this->submitted, $tz);
+                $offset = $date_->getOffsetFromGMT();
+                if ($offset > 0) {
+                    $date_->add(new DateInterval('PT' . $offset . 'S'));
+                } else if ($offset < 0) {
+                    $offset = $offset * -1;
+                    $date_->sub(new DateInterval('PT' . $offset . 'S'));
                 }
+
+                $submitted = $date_->format('Y-m-d H:i:s', true);
 
                 if ($this->record_id != '')
                     $body .= BFText::_('COM_BREEZINGFORMS_PROCESS_RECORDSAVEDID') . " " . $this->record_id . nl() . nl();
@@ -5764,26 +5633,19 @@ class HTML_facileFormsProcessor
             $FORMNAME = $this->formrow->name;
             $SUBMITTED = $this->submitted;
 
-            jimport('joomla.version');
-            $version = new JVersion();
-            $_version = $version->getShortVersion();
             $tz = 'UTC';
-            if (version_compare($_version, '3.2', '>=')) {
-                $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
+            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
+
+            $date_ = JFactory::getDate($this->submitted, $tz);
+            $offset = $date_->getOffsetFromGMT();
+            if ($offset > 0) {
+                $date_->add(new DateInterval('PT' . $offset . 'S'));
+            } else if ($offset < 0) {
+                $offset = $offset * -1;
+                $date_->sub(new DateInterval('PT' . $offset . 'S'));
             }
 
-            if (version_compare($_version, '3.2', '>=')) {
-                $date_ = JFactory::getDate($this->submitted, $tz);
-                $offset = $date_->getOffsetFromGMT();
-                if ($offset > 0) {
-                    $date_->add(new DateInterval('PT' . $offset . 'S'));
-                } else if ($offset < 0) {
-                    $offset = $offset * -1;
-                    $date_->sub(new DateInterval('PT' . $offset . 'S'));
-                }
-
-                $SUBMITTED = $date_->format('Y-m-d H:i:s', true);
-            }
+            $SUBMITTED = $date_->format('Y-m-d H:i:s', true);
 
             $IP = $this->ip;
             $PROVIDER = $this->provider;
@@ -6137,16 +5999,12 @@ class HTML_facileFormsProcessor
             if (isset($dataObject['attributes']) && isset($dataObject['properties'])) {
                 if ($dataObject['properties']['type'] == 'element' && isset($dataObject['properties']['bfName'])) {
                     $language_tag = '';
-                    jimport('joomla.version');
-                    $version = new JVersion();
-                    if (version_compare($version->getShortVersion(), '2.5', '>=')) {
-                        jimport('joomla.application.component.helper');
-                        $default = JComponentHelper::getParams('com_languages')->get('site');
-                        $language_tag = JFactory::getApplication()->getLanguage()->getTag() != $default ? JFactory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
-                        if (trim($name) == trim($dataObject['properties']['bfName']) && isset($dataObject['properties'][$field . '_translation' . $language_tag]) && $dataObject['properties'][$field . '_translation' . $language_tag] != '') {
-                            $res = addslashes($dataObject['properties'][$field . '_translation' . $language_tag]);
-                            return;
-                        }
+                    jimport('joomla.application.component.helper');
+                    $default = JComponentHelper::getParams('com_languages')->get('site');
+                    $language_tag = JFactory::getApplication()->getLanguage()->getTag() != $default ? JFactory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
+                    if (trim($name) == trim($dataObject['properties']['bfName']) && isset($dataObject['properties'][$field . '_translation' . $language_tag]) && $dataObject['properties'][$field . '_translation' . $language_tag] != '') {
+                        $res = addslashes($dataObject['properties'][$field . '_translation' . $language_tag]);
+                        return;
                     }
                 }
             }
@@ -6426,26 +6284,19 @@ class HTML_facileFormsProcessor
                 $PROCESS_SUBMITTEDAT = BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTEDAT');
                 $SUBMITTED = $this->submitted;
 
-                jimport('joomla.version');
-                $version = new JVersion();
-                $_version = $version->getShortVersion();
                 $tz = 'UTC';
-                if (version_compare($_version, '3.2', '>=')) {
-                    $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
+                $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
+
+                $date_ = JFactory::getDate($this->submitted, $tz);
+                $offset = $date_->getOffsetFromGMT();
+                if ($offset > 0) {
+                    $date_->add(new DateInterval('PT' . $offset . 'S'));
+                } else if ($offset < 0) {
+                    $offset = $offset * -1;
+                    $date_->sub(new DateInterval('PT' . $offset . 'S'));
                 }
 
-                if (version_compare($_version, '3.2', '>=')) {
-                    $date_ = JFactory::getDate($this->submitted, $tz);
-                    $offset = $date_->getOffsetFromGMT();
-                    if ($offset > 0) {
-                        $date_->add(new DateInterval('PT' . $offset . 'S'));
-                    } else if ($offset < 0) {
-                        $offset = $offset * -1;
-                        $date_->sub(new DateInterval('PT' . $offset . 'S'));
-                    }
-
-                    $SUBMITTED = $date_->format('Y-m-d H:i:s', true);
-                }
+                $SUBMITTED = $date_->format('Y-m-d H:i:s', true);
 
                 $PROCESS_SUBMITTERIP = BFText::_('COM_BREEZINGFORMS_PROCESS_SUBMITTERIP');
                 $IP = $this->ip;
@@ -6507,27 +6358,20 @@ class HTML_facileFormsProcessor
 
                 $form_title_translated = $this->getFormTitleTranslated();
 
-                jimport('joomla.version');
-                $version = new JVersion();
-                $_version = $version->getShortVersion();
                 $tz = 'UTC';
-                if (version_compare($_version, '3.2', '>=')) {
-                    $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-                }
+                $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
 
                 $submitted = $this->submitted;
-                if (version_compare($_version, '3.2', '>=')) {
-                    $date_ = JFactory::getDate($this->submitted, $tz);
-                    $offset = $date_->getOffsetFromGMT();
-                    if ($offset > 0) {
-                        $date_->add(new DateInterval('PT' . $offset . 'S'));
-                    } else if ($offset < 0) {
-                        $offset = $offset * -1;
-                        $date_->sub(new DateInterval('PT' . $offset . 'S'));
-                    }
-
-                    $submitted = $date_->format('Y-m-d H:i:s', true);
+                $date_ = JFactory::getDate($this->submitted, $tz);
+                $offset = $date_->getOffsetFromGMT();
+                if ($offset > 0) {
+                    $date_->add(new DateInterval('PT' . $offset . 'S'));
+                } else if ($offset < 0) {
+                    $offset = $offset * -1;
+                    $date_->sub(new DateInterval('PT' . $offset . 'S'));
                 }
+
+                $submitted = $date_->format('Y-m-d H:i:s', true);
 
                 $body .= BFText::_('COM_BREEZINGFORMS_PROCESS_FORMID') . ": " . $this->form . nl() .
                     BFText::_('COM_BREEZINGFORMS_PROCESS_FORMTITLE') . ": " . ($form_title_translated != '' ? $form_title_translated : $this->formrow->title) . nl() .
@@ -6576,27 +6420,20 @@ class HTML_facileFormsProcessor
             $FORMNAME = $this->formrow->name;
             $SUBMITTED = $this->submitted;
 
-            jimport('joomla.version');
-            $version = new JVersion();
-            $_version = $version->getShortVersion();
             $tz = 'UTC';
-            if (version_compare($_version, '3.2', '>=')) {
-                $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-            }
+            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
 
             $submitted = $this->submitted;
-            if (version_compare($_version, '3.2', '>=')) {
-                $date_ = JFactory::getDate($this->submitted, $tz);
-                $offset = $date_->getOffsetFromGMT();
-                if ($offset > 0) {
-                    $date_->add(new DateInterval('PT' . $offset . 'S'));
-                } else if ($offset < 0) {
-                    $offset = $offset * -1;
-                    $date_->sub(new DateInterval('PT' . $offset . 'S'));
-                }
-
-                $SUBMITTED = $date_->format('Y-m-d H:i:s', true);
+            $date_ = JFactory::getDate($this->submitted, $tz);
+            $offset = $date_->getOffsetFromGMT();
+            if ($offset > 0) {
+                $date_->add(new DateInterval('PT' . $offset . 'S'));
+            } else if ($offset < 0) {
+                $offset = $offset * -1;
+                $date_->sub(new DateInterval('PT' . $offset . 'S'));
             }
+
+            $SUBMITTED = $date_->format('Y-m-d H:i:s', true);
 
             $IP = $this->ip;
             $PROVIDER = $this->provider;
@@ -6978,39 +6815,30 @@ class HTML_facileFormsProcessor
         if ($this->dying)
             return '';
 
-        jimport('joomla.version');
-        $version = new JVersion();
-        $_version = $version->getShortVersion();
         $tz = 'UTC';
-        if (version_compare($_version, '3.2', '>=')) {
-            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-        }
+        $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
 
         $date_stamp = date('Y_m_d_H_i_s');
-        if (version_compare($_version, '3.2', '>=')) {
-            $date_ = JFactory::getDate($this->submitted, $tz);
-            $offset = $date_->getOffsetFromGMT();
-            if ($offset > 0) {
-                $date_->add(new DateInterval('PT' . $offset . 'S'));
-            } else if ($offset < 0) {
-                $offset = $offset * -1;
-                $date_->sub(new DateInterval('PT' . $offset . 'S'));
-            }
-            $date_stamp = $date_->format('Y_m_d_H_i_s', true);
+        $date_ = JFactory::getDate($this->submitted, $tz);
+        $offset = $date_->getOffsetFromGMT();
+        if ($offset > 0) {
+            $date_->add(new DateInterval('PT' . $offset . 'S'));
+        } else if ($offset < 0) {
+            $offset = $offset * -1;
+            $date_->sub(new DateInterval('PT' . $offset . 'S'));
         }
+        $date_stamp = $date_->format('Y_m_d_H_i_s', true);
 
         $date_stamp2 = date('Y_m_d');
-        if (version_compare($_version, '3.2', '>=')) {
-            $date_ = JFactory::getDate($this->submitted, $tz);
-            $offset = $date_->getOffsetFromGMT();
-            if ($offset > 0) {
-                $date_->add(new DateInterval('PT' . $offset . 'S'));
-            } else if ($offset < 0) {
-                $offset = $offset * -1;
-                $date_->sub(new DateInterval('PT' . $offset . 'S'));
-            }
-            $date_stamp2 = $date_->format('Y_m_d', true);
+        $date_ = JFactory::getDate($this->submitted, $tz);
+        $offset = $date_->getOffsetFromGMT();
+        if ($offset > 0) {
+            $date_->add(new DateInterval('PT' . $offset . 'S'));
+        } else if ($offset < 0) {
+            $offset = $offset * -1;
+            $date_->sub(new DateInterval('PT' . $offset . 'S'));
         }
+        $date_stamp2 = $date_->format('Y_m_d', true);
 
         $baseDir = JPath::clean(str_replace($this->findtags, $this->replacetags, $destpath));
 
@@ -7472,39 +7300,30 @@ class HTML_facileFormsProcessor
                                     $sourcePath = JPATH_SITE . '/components/com_breezingforms/uploads/';
                                     if (@file_exists($sourcePath) && @is_readable($sourcePath) && @is_dir($sourcePath)) {
 
-                                        jimport('joomla.version');
-                                        $version = new JVersion();
-                                        $_version = $version->getShortVersion();
                                         $tz = 'UTC';
-                                        if (version_compare($_version, '3.2', '>=')) {
-                                            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-                                        }
+                                        $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
 
                                         $date_stamp = date('Y_m_d_H_i_s');
-                                        if (version_compare($_version, '3.2', '>=')) {
-                                            $date_ = JFactory::getDate($this->submitted, $tz);
-                                            $offset = $date_->getOffsetFromGMT();
-                                            if ($offset > 0) {
-                                                $date_->add(new DateInterval('PT' . $offset . 'S'));
-                                            } else if ($offset < 0) {
-                                                $offset = $offset * -1;
-                                                $date_->sub(new DateInterval('PT' . $offset . 'S'));
-                                            }
-                                            $date_stamp = $date_->format('Y_m_d_H_i_s', true);
+                                        $date_ = JFactory::getDate($this->submitted, $tz);
+                                        $offset = $date_->getOffsetFromGMT();
+                                        if ($offset > 0) {
+                                            $date_->add(new DateInterval('PT' . $offset . 'S'));
+                                        } else if ($offset < 0) {
+                                            $offset = $offset * -1;
+                                            $date_->sub(new DateInterval('PT' . $offset . 'S'));
                                         }
+                                        $date_stamp = $date_->format('Y_m_d_H_i_s', true);
 
                                         $date_stamp2 = date('Y_m_d');
-                                        if (version_compare($_version, '3.2', '>=')) {
-                                            $date_ = JFactory::getDate($this->submitted, $tz);
-                                            $offset = $date_->getOffsetFromGMT();
-                                            if ($offset > 0) {
-                                                $date_->add(new DateInterval('PT' . $offset . 'S'));
-                                            } else if ($offset < 0) {
-                                                $offset = $offset * -1;
-                                                $date_->sub(new DateInterval('PT' . $offset . 'S'));
-                                            }
-                                            $date_stamp2 = $date_->format('Y_m_d', true);
+                                        $date_ = JFactory::getDate($this->submitted, $tz);
+                                        $offset = $date_->getOffsetFromGMT();
+                                        if ($offset > 0) {
+                                            $date_->add(new DateInterval('PT' . $offset . 'S'));
+                                        } else if ($offset < 0) {
+                                            $offset = $offset * -1;
+                                            $date_->sub(new DateInterval('PT' . $offset . 'S'));
                                         }
+                                        $date_stamp2 = $date_->format('Y_m_d', true);
 
                                         // trying glob instead of readdir()
 
@@ -7644,15 +7463,12 @@ class HTML_facileFormsProcessor
                                 // db and attachment
                                 // DROPBOX SUPPORT request v2 API
 
-                                if ($this->formrow->dropbox_email && version_compare(phpversion(), '5.3.0', '>=')) {
-
-                                    require_once JPATH_SITE . '/administrator/components/com_breezingforms/libraries/dropbox/v2/autoload.php';
-                                }
+                                require_once JPATH_SITE . '/administrator/components/com_breezingforms/libraries/dropbox/v2/autoload.php';
 
                                 foreach ($serverPaths as $serverPath) {
 
                                     // DROPBOX File Upload
-                                    if ($this->formrow->dropbox_email && version_compare(phpversion(), '5.3.0', '>=')) {
+                                    if ($this->formrow->dropbox_email) {
 
                                         Alorel\Dropbox\Operation\AbstractOperation::setDefaultToken($this->formrow->dropbox_email);
                                         $upload = new Alorel\Dropbox\Operation\Files\Upload();
@@ -7801,13 +7617,13 @@ class HTML_facileFormsProcessor
                                         $sigValues .= $value;
 
                                         // DROPBOX SUPPORT request v2 API
-                                        if ($this->formrow->dropbox_email && version_compare(phpversion(), '5.3.0', '>=')) {
+                                        if ($this->formrow->dropbox_email) {
 
                                             require_once JPATH_SITE . '/administrator/components/com_breezingforms/libraries/dropbox/v2/autoload.php';
                                         }
 
                                         // DROPBOX Signature upload
-                                        if ($this->formrow->dropbox_email && version_compare(phpversion(), '5.3.0', '>=')) {
+                                        if ($this->formrow->dropbox_email) {
 
                                             Alorel\Dropbox\Operation\AbstractOperation::setDefaultToken($this->formrow->dropbox_email);
                                             $upload = new Alorel\Dropbox\Operation\Files\Upload();
@@ -8136,7 +7952,7 @@ class HTML_facileFormsProcessor
                             }
 
                             // DROPBOX request v2 API and PDF,CSV, XML upload
-                            if (version_compare(phpversion(), '5.3.0', '>=') && $this->formrow->dropbox_submission_enabled) {
+                            if ($this->formrow->dropbox_submission_enabled) {
                                 if ($this->formrow->dropbox_email) {
                                     try {
                                         require_once JPATH_SITE . '/administrator/components/com_breezingforms/libraries/dropbox/v2/autoload.php';
@@ -8187,9 +8003,11 @@ class HTML_facileFormsProcessor
                             $this->sendSalesforceNotification();
 
                             JPluginHelper::importPlugin('breezingforms_addons');
-                            Factory::getApplication()->triggerEvent('onPropertiesExecute', array(
-                                $this
-                            )
+                            Factory::getApplication()->triggerEvent(
+                                'onPropertiesExecute',
+                                array(
+                                    $this
+                                )
                             );
 
                             $tickets = JFactory::getSession()->get('bfFlashUploadTickets', array());
@@ -8351,9 +8169,6 @@ class HTML_facileFormsProcessor
             $head = Zend_Json::decode(bf_b64dec($this->formrow->template_code));
 
             if (is_array($areas)) {
-
-                jimport('joomla.version');
-                $version = new JVersion();
                 $j15 = false;
 
 
@@ -8858,13 +8673,7 @@ transition: box-shadow .15s linear;
             }
 
             if ($cbResult['data']['force_login']) {
-
-                jimport('joomla.version');
-                $version = new JVersion();
-                $is15 = true;
-                if (version_compare($version->getShortVersion(), '1.6', '>=')) {
-                    $is15 = false;
-                }
+                $is15 = false;
 
                 if (!JFactory::getUser()->get('id', 0)) {
                     JFactory::getApplication()->redirect(Route::_('index.php?option=com_users&view=login&Itemid=' . BFRequest::getInt('Itemid', 0), false));

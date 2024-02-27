@@ -412,7 +412,7 @@ class ContentbuilderModelVerify extends CBModel
         $data['fromname'] = $config->get('fromname');
         $data['mailfrom'] = $config->get('mailfrom');
         $data['sitename'] = $config->get('sitename');
-        $data['siteurl'] = JUri::root();
+        $data['siteurl'] = Uri::root();
 
         $sendpassword = $params->get('sendpassword', 1);
 
@@ -480,14 +480,14 @@ class ContentbuilderModelVerify extends CBModel
 
         // Admin activation is on and user is verifying their email
         if (($userParams->get('useractivation') == 2) && !$user->getParam('activate', 0)) {
-            $uri = JUri::getInstance();
+            $uri = Uri::getInstance();
 
             // Compile the admin notification mail values.
             $data = $user->getProperties();
             $data['activation'] = JApplicationHelper::getHash(JUserHelper::genRandomPassword());
             $user->set('activation', $data['activation']);
-            $data['siteurl'] = JUri::root();
-            $data['activate'] = JUri::root() . 'index.php?option=com_contentbuilder&controller=verify&token=' . $data['activation'] . '&verify_by_admin=1&format=raw';
+            $data['siteurl'] = Uri::root();
+            $data['activate'] = Uri::root() . 'index.php?option=com_contentbuilder&controller=verify&token=' . $data['activation'] . '&verify_by_admin=1&format=raw';
 
             // Remove administrator/ from activate url in case this method is called from admin
             if (JFactory::getApplication()->isClient('administrator')) {
@@ -559,7 +559,7 @@ class ContentbuilderModelVerify extends CBModel
             $data['fromname'] = $config->get('fromname');
             $data['mailfrom'] = $config->get('mailfrom');
             $data['sitename'] = $config->get('sitename');
-            $data['siteurl'] = JUri::root();
+            $data['siteurl'] = Uri::root();
             $emailSubject = Text::sprintf(
                 'COM_USERS_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_SUBJECT',
                 $data['name'],

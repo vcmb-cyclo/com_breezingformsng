@@ -4,20 +4,22 @@
  * @version       1.8
  * @package       BreezingForms
  * @copyright (C) 2008-2020 by Markus Bopp
+ * @copyright (C) 2024 by XDA+GIL
  * @license       Released under the terms of the GNU General Public License
  * */
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 jimport('joomla.filesystem.file');
 
-require_once( JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Decoder.php' );
-require_once( JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Encoder.php' );
+require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Decoder.php');
+require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Encoder.php');
 
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\Uri\Uri;
 
-class BFQuickModeOnePage {
+class BFQuickModeOnePage
+{
 
     /**
      * @var HTML_facileFormsProcessor
@@ -46,7 +48,8 @@ class BFQuickModeOnePage {
     private $bsClasses = array();
     private $bsClassPrefix = '';
 
-    function bsClass($key) {
+    function bsClass($key)
+    {
 
         if ($this->bsVersion == '') {
 
@@ -57,21 +60,17 @@ class BFQuickModeOnePage {
 
         return $this->bsClasses[$ver][$key];
     }
-    
-    public static function getEditorContent($editor) {
+
+    public static function getEditorContent($editor)
+    {
 
         return 'Joomla.editors.instances[' . json_encode($editor) . '].getValue()';
     }
 
-    function __construct(HTML_facileFormsProcessor $p) {
-
-        jimport('joomla.version');
-        $version = new JVersion();
-
-        if (version_compare($version->getShortVersion(), '2.5', '>=')) {
-            $default = JComponentHelper::getParams('com_languages')->get('site');
-            $this->language_tag = JFactory::getApplication()->getLanguage()->getTag() != $default ? JFactory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
-        }
+    function __construct(HTML_facileFormsProcessor $p)
+    {
+        $default = JComponentHelper::getParams('com_languages')->get('site');
+        $this->language_tag = JFactory::getApplication()->getLanguage()->getTag() != $default ? JFactory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
 
         JFactory::getDocument()->addScriptDeclaration('<!--');
 
@@ -185,7 +184,8 @@ class BFQuickModeOnePage {
         }
     }
 
-    function headers() {
+    function headers()
+    {
 
         // keep IE8 compatbility
         if (preg_match('/(?i)msie [1-8]/', $_SERVER['HTTP_USER_AGENT'])) {
@@ -212,19 +212,15 @@ display:none;
 }
 ');
 
-        jimport('joomla.version');
-        $version = new JVersion();
-        if (version_compare($version->getShortVersion(), '3.1', '>=')) {
-            // force jquery to be loaded after mootools but before any other js (since J! 3.4)
-            JHtml::_('bootstrap.framework');
-            JHtml::_('jquery.framework');
-            HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
-            JFactory::getDocument()->addScriptDeclaration('
-                    jQuery(document).ready(function()
-                    {
-                            jQuery(".hasTooltip").tooltip({"html": true,"container": "body"});
-                    });');
-        }
+        // force jquery to be loaded after mootools but before any other js (since J! 3.4)
+        JHtml::_('bootstrap.framework');
+        JHtml::_('jquery.framework');
+        HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
+        JFactory::getDocument()->addScriptDeclaration('
+                jQuery(document).ready(function()
+                {
+                        jQuery(".hasTooltip").tooltip({"html": true,"container": "body"});
+                });');
 
         $jQuery = '';
         if (isset($this->rootMdata['disableJQuery']) && $this->rootMdata['disableJQuery']) {
@@ -660,7 +656,7 @@ function bfTriggerRules() {
         JFactory::getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/ladda/ladda.jq.min.js');
 
         JFactory::getDocument()->addScriptDeclaration(
-                $jQuery . '
+            $jQuery . '
 			var inlineErrorElements = new Array();
 			var bfSummarizers = new Array();
 			var bfDeactivateField = new Array();
@@ -973,12 +969,13 @@ function bfTriggerRules() {
 					}
 				}
 			}
-');
+'
+        );
 
         if ($this->fading || !$this->useErrorAlerts || $this->rollover) {
             if (!$this->useErrorAlerts) {
                 $defaultErrors = '';
-                if ($this->useDefaultErrors || (!$this->useDefaultErrors && !$this->useBalloonErrors )) {
+                if ($this->useDefaultErrors || (!$this->useDefaultErrors && !$this->useBalloonErrors)) {
                     $defaultErrors = 'JQuery(".bfErrorMessage").html("");
 					JQuery(".bfErrorMessage").css("display","none");
 					JQuery("#bfPage"+ff_currentpage+" .bfErrorMessage").fadeIn(1500);
@@ -1122,9 +1119,6 @@ function bfTriggerRules() {
 
         if (method_exists($obj = JFactory::getDocument(), 'addCustomTag')) {
 
-            jimport('joomla.version');
-            $version = new JVersion();
-
             $stylelink = '<link rel="stylesheet" href="' . Uri::root(true) . '/components/com_breezingforms/themes/quickmode-bootstrap' . $this->bsVersion . '/system.css" />' . "\n";
             JFactory::getDocument()->addCustomTag($stylelink);
 
@@ -1150,7 +1144,7 @@ function bfTriggerRules() {
                         $themecss = BFFile::read($themecss_path);
                     }
                     if (file_exists($scriptphp_path)) {
-                        require_once( $scriptphp_path );
+                        require_once($scriptphp_path);
                     }
                     if (file_exists($scriptjs_path)) {
                         $scriptjs = BFFile::read($scriptjs_path);
@@ -1158,7 +1152,7 @@ function bfTriggerRules() {
 
                     $vars = str_replace("\r", '', $vars);
                     $vars = explode("\n", $vars);
-                    foreach ($vars As $var) {
+                    foreach ($vars as $var) {
                         if (trim($var)) {
                             $keyvalue = explode('=', $var);
                             if (count($keyvalue) == 2) {
@@ -1177,7 +1171,8 @@ function bfTriggerRules() {
         }
     }
 
-    public function process(&$dataObject, $parent = null, $parentPage = null, $index = 0, $childrenLength = 0, $parentFull = null) {
+    public function process(&$dataObject, $parent = null, $parentPage = null, $index = 0, $childrenLength = 0, $parentFull = null)
+    {
         if (isset($dataObject['attributes']) && isset($dataObject['properties'])) {
 
             HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
@@ -1200,8 +1195,8 @@ function bfTriggerRules() {
 
             if ($parentFull != null && isset($parentFull['children'])) {
                 $parentFullChildrenLength = count($parentFull['children']);
-                foreach ($parentFull['children'] As $child) {
-                    if (!isset($child['properties']) || ( isset($child['properties']) && isset($child['properties']['bfType']) && $child['properties']['bfType'] == 'bfHidden' ) || ( isset($child['properties']) && $child['properties']['type'] != 'element' && $child['properties']['type'] != 'section' )) {
+                foreach ($parentFull['children'] as $child) {
+                    if (!isset($child['properties']) || (isset($child['properties']) && isset($child['properties']['bfType']) && $child['properties']['bfType'] == 'bfHidden') || (isset($child['properties']) && $child['properties']['type'] != 'element' && $child['properties']['type'] != 'section')) {
                         $reduce++;
                     }
                     //if(isset($child['properties']) && isset($child['properties']['off']) && $child['properties']['off'] && $child['properties']['type'] == 'section'){
@@ -1211,17 +1206,22 @@ function bfTriggerRules() {
             }
 
             $span = '';
-            if (( $parentFullChildrenLength - $reduce ) > 0 && $parentInline) {
-                switch (12 / ( $parentFullChildrenLength - $reduce )) {
-                    case 6: $span = ' ' . $this->bsClass('span6');
+            if (($parentFullChildrenLength - $reduce) > 0 && $parentInline) {
+                switch (12 / ($parentFullChildrenLength - $reduce)) {
+                    case 6:
+                        $span = ' ' . $this->bsClass('span6');
                         break;
-                    case 4: $span = ' ' . $this->bsClass('span4');
+                    case 4:
+                        $span = ' ' . $this->bsClass('span4');
                         break;
-                    case 3: $span = ' ' . $this->bsClass('span3');
+                    case 3:
+                        $span = ' ' . $this->bsClass('span3');
                         break;
-                    case 2.4: $span = ' ' . $this->bsClass('span2');
+                    case 2.4:
+                        $span = ' ' . $this->bsClass('span2');
                         break;
-                    case 2: $span = ' ' . $this->bsClass('span2');
+                    case 2:
+                        $span = ' ' . $this->bsClass('span2');
                         break;
                 }
             }
@@ -1241,9 +1241,9 @@ function bfTriggerRules() {
                     $display = ' style="pointer-events:none;opacity:0.4"';
                 }
 
-                if (BFRequest::getInt('ff_page', 1) >= $parentPage['pageNumber'] && !( $this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->dataObject['children']) )) {
+                if (BFRequest::getInt('ff_page', 1) >= $parentPage['pageNumber'] && !($this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->dataObject['children']))) {
                     $display = ' style="pointer-events:auto;opacity:1.0"';
-                } else if (BFRequest::getInt('ff_page', 1) < $parentPage['pageNumber'] && !( $this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->dataObject['children']) )) {
+                } else if (BFRequest::getInt('ff_page', 1) < $parentPage['pageNumber'] && !($this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->dataObject['children']))) {
                     $display = ' style="pointer-events:none;opacity:0.4"';
                 } else if ($this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->dataObject['children'])) {
                     $display = ' style="display:none;"';
@@ -1259,29 +1259,23 @@ function bfTriggerRules() {
 
                 if (trim($mdata['pageIntro']) != '') {
 
-                    echo '<div class="' . ( isset($this->rootMdata['themebootstrapUseHeroUnit']) && $this->rootMdata['themebootstrapUseHeroUnit'] ? $this->bsClass('hero-unit') : '' ) . $this->fadingClass . '">' . "\n";
+                    echo '<div class="' . (isset($this->rootMdata['themebootstrapUseHeroUnit']) && $this->rootMdata['themebootstrapUseHeroUnit'] ? $this->bsClass('hero-unit') : '') . $this->fadingClass . '">' . "\n";
 
                     $regex = '/{loadposition\s+(.*?)}/i';
                     $introtext = $mdata['pageIntro'];
 
                     preg_match_all($regex, $introtext, $matches, PREG_SET_ORDER);
 
-                    jimport('joomla.version');
-                    $version = new JVersion();
+                    $document = JFactory::getDocument();
+                    $renderer = $document->loadRenderer('modules');
+                    $options = array('style' => 'xhtml');
 
-                    if ($matches && version_compare($version->getShortVersion(), '1.6', '>=')) {
+                    foreach ($matches as $match) {
 
-                        $document = JFactory::getDocument();
-                        $renderer = $document->loadRenderer('modules');
-                        $options = array('style' => 'xhtml');
-
-                        foreach ($matches as $match) {
-
-                            $matcheslist = explode(',', $match[1]);
-                            $position = trim($matcheslist[0]);
-                            $output = $renderer->render($position, $options, null);
-                            $introtext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
-                        }
+                        $matcheslist = explode(',', $match[1]);
+                        $position = trim($matcheslist[0]);
+                        $output = $renderer->render($position, $options, null);
+                        $introtext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
                     }
 
                     echo $introtext . "\n";
@@ -1307,7 +1301,7 @@ function bfTriggerRules() {
                 $normal = false;
 
                 if ($mdata['bfType'] == 'section') {
-                    echo '<div' . ( isset($mdata['off']) && $mdata['off'] ? ' style="display:none" ' : '' ) . '' . ( isset($mdata['off']) && $mdata['off'] ? '' : ' class="' . $span . ' ' . $this->fadingClass . '"' ) . ( isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != "" ? ' id="' . $dataObject['properties']['name'] . '"' : '' ) . '>' . "\n";
+                    echo '<div' . (isset($mdata['off']) && $mdata['off'] ? ' style="display:none" ' : '') . '' . (isset($mdata['off']) && $mdata['off'] ? '' : ' class="' . $span . ' ' . $this->fadingClass . '"') . (isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != "" ? ' id="' . $dataObject['properties']['name'] . '"' : '') . '>' . "\n";
 
                     if (trim($mdata['title']) != '') {
                         echo '<legend>' . htmlentities(trim($mdata['title']), ENT_QUOTES, 'UTF-8') . '</legend>' . "\n";
@@ -1318,7 +1312,7 @@ function bfTriggerRules() {
                     if (isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != '') {
                         $normal = true;
 
-                        echo '<section ' . ( isset($mdata['off']) && $mdata['off'] ? 'style="display:none" ' : ' class="' . $span . ' ' . $this->fadingClass . '"' ) . ( isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != "" ? ' id="' . $dataObject['properties']['name'] . '"' : '' ) . '>' . "\n";
+                        echo '<section ' . (isset($mdata['off']) && $mdata['off'] ? 'style="display:none" ' : ' class="' . $span . ' ' . $this->fadingClass . '"') . (isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != "" ? ' id="' . $dataObject['properties']['name'] . '"' : '') . '>' . "\n";
                         echo '<div>';
                     }
                 }
@@ -1330,7 +1324,7 @@ function bfTriggerRules() {
                 /* translatables end */
 
                 if (trim($mdata['description']) != '') {
-                    echo '<div class="bfSectionDescription mb-2' . ( isset($this->rootMdata['themebootstrapUseWell']) && $this->rootMdata['themebootstrapUseWell'] ? ' ' . $this->bsClass('well') . ' ' . $this->bsClass('well-small') . '' : '' ) . '">' . "\n";
+                    echo '<div class="bfSectionDescription mb-2' . (isset($this->rootMdata['themebootstrapUseWell']) && $this->rootMdata['themebootstrapUseWell'] ? ' ' . $this->bsClass('well') . ' ' . $this->bsClass('well-small') . '' : '') . '">' . "\n";
 
                     $regex = '/{loadposition\s+(.*?)}/i';
                     $introtext = $mdata['description'];
@@ -1383,7 +1377,7 @@ function bfTriggerRules() {
                 }
 
                 if ($mdata['bfType'] != 'bfHidden') {
-                    echo '<div ' . ( isset($mdata['off']) && $mdata['off'] ? 'style="display:none" ' : '' ) . 'class="bfElemWrap ' . $this->bsClass('control-group') . '' . $span . ( isset($mdata['off']) && $mdata['off'] ? '' : $this->fadingClass ) . '" id="bfElemWrap' . $mdata['dbId'] . '">' . "\n";
+                    echo '<div ' . (isset($mdata['off']) && $mdata['off'] ? 'style="display:none" ' : '') . 'class="bfElemWrap ' . $this->bsClass('control-group') . '' . $span . (isset($mdata['off']) && $mdata['off'] ? '' : $this->fadingClass) . '" id="bfElemWrap' . $mdata['dbId'] . '">' . "\n";
                 }
 
                 $label = '';
@@ -1395,7 +1389,7 @@ function bfTriggerRules() {
                         $badge = str_replace('invisible_', '', trim($mdata['theme']));
                     }
 
-                    if (!( $mdata['bfType'] == 'bfReCaptcha' && isset($mdata['invisibleCaptcha']) && $mdata['invisibleCaptcha'] && $badge != 'inline' )) {
+                    if (!($mdata['bfType'] == 'bfReCaptcha' && isset($mdata['invisibleCaptcha']) && $mdata['invisibleCaptcha'] && $badge != 'inline')) {
 
                         $maxlengthCounter = '';
                         if ($mdata['bfType'] == 'bfTextarea' && isset($mdata['maxlength']) && $mdata['maxlength'] > 0 && isset($mdata['showMaxlengthCounter']) && $mdata['showMaxlengthCounter']) {
@@ -1415,18 +1409,17 @@ function bfTriggerRules() {
                         $tipClose = '';
                         $labelText = trim($mdata['label']) . str_replace("***", "\"", $maxlengthCounter);
                         if (trim($mdata['hint']) != '') {
-                            jimport('joomla.version');
-                            $version = new JVersion();
-                            if (version_compare($version->getShortVersion(), '3.0', '<') || ( version_compare($version->getShortVersion(), '3.0', '>=') && isset($this->rootMdata['joomlaHint']) && $this->rootMdata['joomlaHint'] )) {
-	                            HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
+                            if (isset($this->rootMdata['joomlaHint']) && $this->rootMdata['joomlaHint']) {
+                                HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
                                 $content = trim($mdata['hint']);
-                                $tipOpen = '<span title="' . addslashes(trim($mdata['label'])) . '::' . str_replace(array(
-                                            "\n",
-                                            "\r"
-                                                ), array(
-                                            "",
-                                            ""
-                                                ), htmlentities($content, ENT_QUOTES, 'UTF-8')) . '" class="editlinktip hasTooltip">';
+                                $tipOpen = '<span title="' . addslashes(trim($mdata['label'])) . '::' . str_replace(
+                                    array(
+                                        "\n",
+                                        "\r"
+                                    ), array(
+                                        "",
+                                        ""
+                                    ), htmlentities($content, ENT_QUOTES, 'UTF-8')) . '" class="editlinktip hasTooltip">';
                                 $tipClose = '</span>';
                             } else {
                                 $content = trim($mdata['hint']);
@@ -1445,16 +1438,17 @@ function bfTriggerRules() {
                         }
 
                         $for = '';
-                        if ($mdata['bfType'] == 'bfTextfield' ||
-                                $mdata['bfType'] == 'bfTextarea' ||
-                                $mdata['bfType'] == 'bfCheckbox' ||
-                                $mdata['bfType'] == 'bfNumberInput' ||
-                                $mdata['bfType'] == 'bfCheckboxGroup' ||
-                                $mdata['bfType'] == 'bfCalendar' ||
-                                $mdata['bfType'] == 'bfCalendarResponsive' ||
-                                $mdata['bfType'] == 'bfSelect' ||
-                                $mdata['bfType'] == 'bfRadioGroup' ||
-                                ( $mdata['bfType'] == 'bfFile' && ( (!isset($mdata['flashUploader']) && !isset($mdata['html5']) ) || ( isset($mdata['flashUploader']) && !$mdata['flashUploader'] ) && ( isset($mdata['html5']) && !$mdata['html5'] ) ) )
+                        if (
+                            $mdata['bfType'] == 'bfTextfield' ||
+                            $mdata['bfType'] == 'bfTextarea' ||
+                            $mdata['bfType'] == 'bfCheckbox' ||
+                            $mdata['bfType'] == 'bfNumberInput' ||
+                            $mdata['bfType'] == 'bfCheckboxGroup' ||
+                            $mdata['bfType'] == 'bfCalendar' ||
+                            $mdata['bfType'] == 'bfCalendarResponsive' ||
+                            $mdata['bfType'] == 'bfSelect' ||
+                            $mdata['bfType'] == 'bfRadioGroup' ||
+                            ($mdata['bfType'] == 'bfFile' && ((!isset($mdata['flashUploader']) && !isset($mdata['html5'])) || (isset($mdata['flashUploader']) && !$mdata['flashUploader']) && (isset($mdata['html5']) && !$mdata['html5'])))
                         ) {
                             $for = 'for="ff_elem' . $mdata['dbId'] . '"';
                         }
@@ -1468,7 +1462,7 @@ function bfTriggerRules() {
                         if ($mdata['required']) {
                             $required = ' <i class="' . $this->bsClass('icon-asterisk') . '"></i> ' . "\n";
                         }
-                        $label = '<label class="' . $this->bsClass('control-label') . '' . ( isset($this->rootMdata['themebootstrapLabelTop']) && $this->rootMdata['themebootstrapLabelTop'] ? ' bfLabelBlock' : '' ) . '" id="bfLabel' . $mdata['dbId'] . '" ' . $for . '>' . $tipOpen . str_replace("***", "\"", $labelText) . $tipClose . $required . '</label>' . "\n";
+                        $label = '<label class="' . $this->bsClass('control-label') . '' . (isset($this->rootMdata['themebootstrapLabelTop']) && $this->rootMdata['themebootstrapLabelTop'] ? ' bfLabelBlock' : '') . '" id="bfLabel' . $mdata['dbId'] . '" ' . $for . '>' . $tipOpen . str_replace("***", "\"", $labelText) . $tipClose . $required . '</label>' . "\n";
                     }
                 }
 
@@ -1478,7 +1472,7 @@ function bfTriggerRules() {
                 }
 
                 $tabIndex = '';
-                if ($mdata['tabIndex'] != - 1 && is_numeric($mdata['tabIndex'])) {
+                if ($mdata['tabIndex'] != -1 && is_numeric($mdata['tabIndex'])) {
                     $tabIndex = 'tabindex="' . intval($mdata['tabIndex']) . '" ';
                 }
 
@@ -1491,8 +1485,9 @@ function bfTriggerRules() {
                     $row = $this->p->rows[$i];
                     if ($mdata['bfName'] == $row->name) {
 
-                        if (( isset($mdata['value']) || isset($mdata['list']) || isset($mdata['group'])) &&
-                                (
+                        if (
+                            (isset($mdata['value']) || isset($mdata['list']) || isset($mdata['group'])) &&
+                            (
                                 $mdata['bfType'] == 'bfTextfield' ||
                                 $mdata['bfType'] == 'bfTextarea' ||
                                 $mdata['bfType'] == 'bfCheckbox' ||
@@ -1504,7 +1499,7 @@ function bfTriggerRules() {
                                 $mdata['bfType'] == 'bfCalendarResponsive' ||
                                 $mdata['bfType'] == 'bfSelect' ||
                                 $mdata['bfType'] == 'bfRadioGroup'
-                                )
+                            )
                         ) {
 
                             if (isset($mdata['value_translation' . $this->language_tag]) && $mdata['value_translation' . $this->language_tag] != '') {
@@ -1573,7 +1568,7 @@ function bfTriggerRules() {
                         echo '<div class="' . $this->bsClass('form-group') . '">';
                         echo $label;
                         echo $icon;
-                        echo '<input ' . ( isset($mdata['placeholder']) && $mdata['placeholder'] ? 'placeholder="' . htmlentities($mdata['placeholder'], ENT_QUOTES, 'UTF-8') . '" ' : '' ) . 'class="' . $this->bsClass('form-control') . ' ff_elem inputbox" ' . $size . $tabIndex . $maxlength . $onclick . $onblur . $onchange . $onfocus . $onselect . $readonly . 'type="' . $type . '" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($mdata['value']), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . '"/>' . "\n";
+                        echo '<input ' . (isset($mdata['placeholder']) && $mdata['placeholder'] ? 'placeholder="' . htmlentities($mdata['placeholder'], ENT_QUOTES, 'UTF-8') . '" ' : '') . 'class="' . $this->bsClass('form-control') . ' ff_elem inputbox" ' . $size . $tabIndex . $maxlength . $onclick . $onblur . $onchange . $onfocus . $onselect . $readonly . 'type="' . $type . '" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($mdata['value']), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . '"/>' . "\n";
                         echo '</div>';
                         echo '</div>';
                         if ($mdata['mailbackAsSender']) {
@@ -1607,7 +1602,7 @@ function bfTriggerRules() {
 
                         $onkeyup = '';
                         if (isset($mdata['maxlength']) && $mdata['maxlength'] > 0) {
-                            $onkeyup = 'onkeyup="bfCheckMaxlength(' . intval($mdata['dbId']) . ', ' . intval($mdata['maxlength']) . ', ' . ( isset($mdata['showMaxlengthCounter']) && $mdata['showMaxlengthCounter'] ? 'true' : 'false' ) . ')" ';
+                            $onkeyup = 'onkeyup="bfCheckMaxlength(' . intval($mdata['dbId']) . ', ' . intval($mdata['maxlength']) . ', ' . (isset($mdata['showMaxlengthCounter']) && $mdata['showMaxlengthCounter'] ? 'true' : 'false') . ')" ';
                         }
 
                         /* translatables */
@@ -1632,7 +1627,7 @@ function bfTriggerRules() {
                             echo '</div>';
                             echo '<style type="text/css">.toggle-editor{display: none;}</style>';
                         } else {
-                            echo '<textarea ' . ( isset($mdata['placeholder']) && $mdata['placeholder'] ? 'placeholder="' . htmlentities($mdata['placeholder'], ENT_QUOTES, 'UTF-8') . '" ' : '' ) . ' class="' . $this->bsClass('form-control') . ' ff_elem inputbox" ' . $onkeyup . $size . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . $readonly . 'name="ff_nm_' . $mdata['bfName'] . '[]" id="ff_elem' . $mdata['dbId'] . '">' . htmlentities(trim($mdata['value']), ENT_QUOTES, 'UTF-8') . '</textarea>' . "\n";
+                            echo '<textarea ' . (isset($mdata['placeholder']) && $mdata['placeholder'] ? 'placeholder="' . htmlentities($mdata['placeholder'], ENT_QUOTES, 'UTF-8') . '" ' : '') . ' class="' . $this->bsClass('form-control') . ' ff_elem inputbox" ' . $onkeyup . $size . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . $readonly . 'name="ff_nm_' . $mdata['bfName'] . '[]" id="ff_elem' . $mdata['dbId'] . '">' . htmlentities(trim($mdata['value']), ENT_QUOTES, 'UTF-8') . '</textarea>' . "\n";
                         }
                         echo '</div>';
                         echo '</div>';
@@ -1663,9 +1658,9 @@ function bfTriggerRules() {
                                 $iEx = explode(";", $gEx[$i]);
                                 $iCnt = count($iEx);
                                 if ($iCnt == 3) {
-                                    echo '<label ' . ( $mdata['wrap'] ? 'style="display: block;" ' : 'style="vertical-align: baseline;" ' ) . 'class="' . $this->bsClass('radio') . '' . (!$mdata['wrap'] ? ' ' . $this->bsClass('inline') . ' ' : '' ) . '" id="bfGroupLabel' . $mdata['dbId'] . $idExt . '" for="ff_elem' . $mdata['dbId'] . $idExt . '">';
-                                    echo '<input ' . ( $iEx[0] == 1 ? 'checked="checked" ' : '' ) . ' class="ff_elem" ' . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . ( $readonly ? ' disabled="disabled" ' : '' ) . 'type="radio" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($iEx[2]), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . $idExt . '"/>' . "\n";
-                                    echo trim($iEx[1]) . '</label>' . ( $i + 1 < $lines && $mdata['wrap'] ? '<div style="clear:both;"></div>' : '' );
+                                    echo '<label ' . ($mdata['wrap'] ? 'style="display: block;" ' : 'style="vertical-align: baseline;" ') . 'class="' . $this->bsClass('radio') . '' . (!$mdata['wrap'] ? ' ' . $this->bsClass('inline') . ' ' : '') . '" id="bfGroupLabel' . $mdata['dbId'] . $idExt . '" for="ff_elem' . $mdata['dbId'] . $idExt . '">';
+                                    echo '<input ' . ($iEx[0] == 1 ? 'checked="checked" ' : '') . ' class="ff_elem" ' . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . ($readonly ? ' disabled="disabled" ' : '') . 'type="radio" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($iEx[2]), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . $idExt . '"/>' . "\n";
+                                    echo trim($iEx[1]) . '</label>' . ($i + 1 < $lines && $mdata['wrap'] ? '<div style="clear:both;"></div>' : '');
                                 }
                             }
                             if ($mdata['wrap']) {
@@ -1701,9 +1696,9 @@ function bfTriggerRules() {
                                 $iEx = explode(";", $gEx[$i]);
                                 $iCnt = count($iEx);
                                 if ($iCnt == 3) {
-                                    echo '<label ' . ( $mdata['wrap'] ? 'style="display: block;" ' : 'style="vertical-align: baseline;" ' ) . 'class="' . $this->bsClass('checkbox') . '' . (!$mdata['wrap'] ? ' ' . $this->bsClass('inline') . ' ' : '' ) . '" id="bfGroupLabel' . $mdata['dbId'] . $idExt . '">';
-                                    echo '<input ' . ( $iEx[0] == 1 ? 'checked="checked" ' : '' ) . ' class="ff_elem" ' . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . ( $readonly ? ' disabled="disabled" ' : '' ) . 'type="checkbox" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($iEx[2]), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . $idExt . '"/>' . "\n";
-                                    echo trim($iEx[1]) . '</label>' . ( $i + 1 < $lines && $mdata['wrap'] ? '<div style="clear:both;"></div>' : '' );
+                                    echo '<label ' . ($mdata['wrap'] ? 'style="display: block;" ' : 'style="vertical-align: baseline;" ') . 'class="' . $this->bsClass('checkbox') . '' . (!$mdata['wrap'] ? ' ' . $this->bsClass('inline') . ' ' : '') . '" id="bfGroupLabel' . $mdata['dbId'] . $idExt . '">';
+                                    echo '<input ' . ($iEx[0] == 1 ? 'checked="checked" ' : '') . ' class="ff_elem" ' . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . ($readonly ? ' disabled="disabled" ' : '') . 'type="checkbox" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($iEx[2]), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . $idExt . '"/>' . "\n";
+                                    echo trim($iEx[1]) . '</label>' . ($i + 1 < $lines && $mdata['wrap'] ? '<div style="clear:both;"></div>' : '');
                                 }
                             }
                             if ($mdata['wrap']) {
@@ -1721,7 +1716,7 @@ function bfTriggerRules() {
                         echo '<div class="' . $this->bsClass('form-group') . '">';
                         echo $label;
                         echo '<span class="' . $this->bsClass('nonform-control') . '">';
-                        echo '<input style="vertical-align: baseline;" class="ff_elem" ' . ( $mdata['checked'] ? 'checked="checked" ' : '' ) . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . ( $readonly ? ' disabled="disabled" ' : '' ) . 'type="checkbox" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($mdata['value']), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . '"/>' . "\n";
+                        echo '<input style="vertical-align: baseline;" class="ff_elem" ' . ($mdata['checked'] ? 'checked="checked" ' : '') . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . ($readonly ? ' disabled="disabled" ' : '') . 'type="checkbox" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($mdata['value']), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . '"/>' . "\n";
                         echo '</span>';
                         echo '</div>';
                         echo '</div>';
@@ -1758,12 +1753,12 @@ function bfTriggerRules() {
                             echo '<div class="' . $this->bsClass('controls') . ' ' . $this->bsClass('form-inline') . '">';
                             echo '<div class="' . $this->bsClass('form-group') . '">';
                             echo $label;
-                            echo '<select data-chosen="no-chzn" class="' . $this->bsClass('form-select') . ' ff_elem chzn-done" ' . $size . ( $mdata['multiple'] ? 'multiple="multiple" ' : '' ) . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . $readonly . 'name="ff_nm_' . $mdata['bfName'] . '[]" id="ff_elem' . $mdata['dbId'] . '">' . "\n";
+                            echo '<select data-chosen="no-chzn" class="' . $this->bsClass('form-select') . ' ff_elem chzn-done" ' . $size . ($mdata['multiple'] ? 'multiple="multiple" ' : '') . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . $readonly . 'name="ff_nm_' . $mdata['bfName'] . '[]" id="ff_elem' . $mdata['dbId'] . '">' . "\n";
                             for ($i = 0; $i < $lines; $i++) {
                                 $iEx = explode(";", $gEx[$i]);
                                 $iCnt = count($iEx);
                                 if ($iCnt == 3) {
-                                    echo '<option ' . ( $iEx[0] == 1 ? 'selected="selected" ' : '' ) . 'value="' . htmlentities(trim($iEx[2]), ENT_QUOTES, 'UTF-8') . '">' . htmlentities(trim($iEx[1]), ENT_QUOTES, 'UTF-8') . '</option>' . "\n";
+                                    echo '<option ' . ($iEx[0] == 1 ? 'selected="selected" ' : '') . 'value="' . htmlentities(trim($iEx[2]), ENT_QUOTES, 'UTF-8') . '">' . htmlentities(trim($iEx[1]), ENT_QUOTES, 'UTF-8') . '</option>' . "\n";
                                 }
                             }
                             echo '</select>' . "\n";
@@ -1799,7 +1794,7 @@ function bfTriggerRules() {
                         if ($allowedExtsCnt != 0) {
                             $exts = implode(',', $allowedExts);
                         }
-                        $bytes = ( isset($mdata['flashUploaderBytes']) && is_numeric($mdata['flashUploaderBytes']) && $mdata['flashUploaderBytes'] > 0 ? "max_file_size : '" . intval($mdata['flashUploaderBytes']) . "'," : '' );
+                        $bytes = (isset($mdata['flashUploaderBytes']) && is_numeric($mdata['flashUploaderBytes']) && $mdata['flashUploaderBytes'] > 0 ? "max_file_size : '" . intval($mdata['flashUploaderBytes']) . "'," : '');
                         echo "
                                                         <span id=\"bfUploadContainer" . $mdata['dbId'] . "\">
                                                             <button type=\"button\" class=\"" . $this->bsClass('btn') . " " . $this->bsClass('btn-primary') . " bfUploadButton button\" id=\"bfPickFiles" . $mdata['dbId'] . "\"><i class=\"" . $this->bsClass('icon-upload') . "\"></i></button>
@@ -1838,15 +1833,15 @@ function bfTriggerRules() {
                                                                 var iOS = ( navigator.userAgent.match(/(iPad|iPhone|iPod)/i) ? true : false );
                                                                 var uploader = new plupload.Uploader({
                                                                         max_retries: 10,
-                                                                        multi_selection: " . ( isset($mdata['flashUploaderMulti']) && $mdata['flashUploaderMulti'] ? 'true' : 'false' ) . ",
+                                                                        multi_selection: " . (isset($mdata['flashUploaderMulti']) && $mdata['flashUploaderMulti'] ? 'true' : 'false') . ",
                                                                         unique_names: iOS,
                                                                         chunk_size: '100kb',
-                                                                        runtimes : '" . ( isset($mdata['html5']) && $mdata['html5'] ? 'html5,' : '' ) . ( isset($mdata['flashUploader']) && $mdata['flashUploader'] ? 'flash,' : '' ) . "html4',
+                                                                        runtimes : '" . (isset($mdata['html5']) && $mdata['html5'] ? 'html5,' : '') . (isset($mdata['flashUploader']) && $mdata['flashUploader'] ? 'flash,' : '') . "html4',
                                                                         browse_button : 'bfPickFiles" . $mdata['dbId'] . "',
                                                                         container: 'bfUploadContainer" . $mdata['dbId'] . "',
                                                                         file_data_name: 'Filedata',
                                                                         multipart_params: { form: " . $this->p->form . ", itemName : '" . $mdata['bfName'] . "', bfFlashUploadTicket: '" . $this->flashUploadTicket . "', option: 'com_breezingforms', format: 'html', flashUpload: 'true', Itemid: 0 },
-                                                                        url : '" . $base . ( BFJoomlaConfig::get('config.sef') && !BFJoomlaConfig::get('config.sef_rewrite') ? 'index.php/' : '' ) . ( BFRequest::getCmd('lang', '') && BFJoomlaConfig::get('config.sef') ? ( BFJoomlaConfig::get('config.sef_rewrite') ? 'index.php' : '' ) : 'index.php' ) . "',
+                                                                        url : '" . $base . (BFJoomlaConfig::get('config.sef') && !BFJoomlaConfig::get('config.sef_rewrite') ? 'index.php/' : '') . (BFRequest::getCmd('lang', '') && BFJoomlaConfig::get('config.sef') ? (BFJoomlaConfig::get('config.sef_rewrite') ? 'index.php' : '') : 'index.php') . "',
                                                                         flash_swf_url : '" . $base . "components/com_breezingforms/libraries/jquery/plupload/Moxie.swf',
                                                                         filters : [
                                                                                 {title : '" . addslashes(BFText::_('COM_BREEZINGFORMS_CHOOSE_FILE')) . "', extensions : '" . $exts . "'}
@@ -1891,7 +1886,7 @@ function bfTriggerRules() {
                                                                                             bfUploaders_[i].start();
                                                                                         }
                                                                                         // re-enable button if there is none left
-                                                                                        if( " . ( isset($mdata['flashUploaderMulti']) && $mdata['flashUploaderMulti'] ? 'true' : 'false' ) . " == false ){
+                                                                                        if( " . (isset($mdata['flashUploaderMulti']) && $mdata['flashUploaderMulti'] ? 'true' : 'false') . " == false ){
                                                                                             var the_size = JQuery('#bfFlashFileQueue" . $mdata['dbId'] . " .bfFileQueueItem').size();
                                                                                             if( the_size == 0 ){
                                                                                                 JQuery('#bfPickFiles" . $mdata['dbId'] . "').prop('disabled',false);
@@ -1899,7 +1894,7 @@ function bfTriggerRules() {
                                                                                         }
                                                                                     }
                                                                                 );
-                                                                                var thebytes = " . ( isset($mdata['flashUploaderBytes']) && is_numeric($mdata['flashUploaderBytes']) && $mdata['flashUploaderBytes'] > 0 ? intval($mdata['flashUploaderBytes']) : '0' ) . ";
+                                                                                var thebytes = " . (isset($mdata['flashUploaderBytes']) && is_numeric($mdata['flashUploaderBytes']) && $mdata['flashUploaderBytes'] > 0 ? intval($mdata['flashUploaderBytes']) : '0') . ";
                                                                                 if(thebytes > 0 && typeof files[i].size != 'undefined' && files[i].size > thebytes){
                                                                                      alert(' " . addslashes(BFText::_('COM_BREEZINGFORMS_FLASH_UPLOADER_TOO_LARGE')) . "');
                                                                                      error = true;
@@ -1926,7 +1921,7 @@ function bfTriggerRules() {
                                                                             }
                                                                         }
                                                                         // disable the button if no multi upload
-                                                                        if( " . ( isset($mdata['flashUploaderMulti']) && $mdata['flashUploaderMulti'] ? 'true' : 'false' ) . " == false ){
+                                                                        if( " . (isset($mdata['flashUploaderMulti']) && $mdata['flashUploaderMulti'] ? 'true' : 'false') . " == false ){
                                                                             var the_size = JQuery('#bfFlashFileQueue" . $mdata['dbId'] . " .bfFileQueueItem').size();
                                                                             if( the_size > 0 ){
                                                                                 JQuery('#bfPickFiles" . $mdata['dbId'] . "').prop('disabled',true);
@@ -2023,7 +2018,7 @@ function bfTriggerRules() {
                         echo $label;
                         echo '<span class="' . $this->bsClass('nonform-control') . '">';
                         echo '<div style="display: inline-block; vertical-align: top;" class="ff_elem bfSummarize" id="ff_elem' . $mdata['dbId'] . '"></div>' . "\n";
-                        echo '<script type="text/javascript"><!--' . "\n" . 'bfRegisterSummarize("ff_elem' . $mdata['dbId'] . '", "' . $mdata['connectWith'] . '", "' . $mdata['connectType'] . '", "' . addslashes($mdata['emptyMessage']) . '", ' . ( $mdata['hideIfEmpty'] ? 'true' : 'false' ) . ')' . "\n" . '//--></script>';
+                        echo '<script type="text/javascript"><!--' . "\n" . 'bfRegisterSummarize("ff_elem' . $mdata['dbId'] . '", "' . $mdata['connectWith'] . '", "' . $mdata['connectType'] . '", "' . addslashes($mdata['emptyMessage']) . '", ' . ($mdata['hideIfEmpty'] ? 'true' : 'false') . ')' . "\n" . '//--></script>';
                         if (trim($mdata['fieldCalc']) != '') {
                             echo '<script type="text/javascript">
                                                         <!--
@@ -2044,7 +2039,7 @@ function bfTriggerRules() {
 
                     case 'bfReCaptcha':
 
-                        echo '<div class="' . $this->bsClass('controls') . ' ' . $this->bsClass('form-inline') . '' . ( isset($mdata['pubkey']) && $mdata['pubkey'] ? '' : ' ' . $this->bsClass('well') . ' ' . $this->bsClass('well-small') . '' ) . '">';
+                        echo '<div class="' . $this->bsClass('controls') . ' ' . $this->bsClass('form-inline') . '' . (isset($mdata['pubkey']) && $mdata['pubkey'] ? '' : ' ' . $this->bsClass('well') . ' ' . $this->bsClass('well-small') . '') . '">';
                         echo '<div class="' . $this->bsClass('form-group') . ' ' . $this->bsClass('other-form-group') . '">';
                         echo $label;
                         echo '<span class="' . $this->bsClass('nonform-control') . '">';
@@ -2086,7 +2081,7 @@ function bfTriggerRules() {
                                                     var onloadBFNewRecaptchaCallback = function() {
                                                       grecaptcha.render(document.getElementById("newrecaptcha"), {
                                                         "sitekey" : "' . $mdata['pubkey'] . '",
-														"theme" : "' . ( trim($mdata['theme']) == '' ? 'light' : trim($mdata['theme']) ) . '",
+														"theme" : "' . (trim($mdata['theme']) == '' ? 'light' : trim($mdata['theme'])) . '",
 														"size"	: ' . $size . ',
                                                       });
                                                     };
@@ -2102,24 +2097,24 @@ function bfTriggerRules() {
                                                     -->
                                                   </script>';
                             } else
-                            if (isset($mdata['invisibleCaptcha']) && $mdata['invisibleCaptcha']) {
+                                if (isset($mdata['invisibleCaptcha']) && $mdata['invisibleCaptcha']) {
 
-                                $http = 'https';
+                                    $http = 'https';
 
-                                $lang = BFRequest::getVar('lang', '');
-                                if ($lang != '') {
-                                    $lang = ',lang: ' . json_encode($lang) . '';
-                                }
+                                    $lang = BFRequest::getVar('lang', '');
+                                    if ($lang != '') {
+                                        $lang = ',lang: ' . json_encode($lang) . '';
+                                    }
 
-                                $callSubmit = 'ff_validate_submit(this, \'click\')';
-                                if ($this->hasFlashUpload) {
-                                    $callSubmit = 'if(typeof bfAjaxObject101 == \'undefined\' && typeof bfReCaptchaLoaded == \'undefined\'){bfDoFlashUpload()}else{ff_validate_submit(this, \'click\')}';
-                                }
+                                    $callSubmit = 'ff_validate_submit(this, \'click\')';
+                                    if ($this->hasFlashUpload) {
+                                        $callSubmit = 'if(typeof bfAjaxObject101 == \'undefined\' && typeof bfReCaptchaLoaded == \'undefined\'){bfDoFlashUpload()}else{ff_validate_submit(this, \'click\')}';
+                                    }
 
-                                $badge = str_replace('invisible_', '', trim($mdata['theme']));
+                                    $badge = str_replace('invisible_', '', trim($mdata['theme']));
 
-                                if ($badge == 'inline') {
-                                    echo '
+                                    if ($badge == 'inline') {
+                                        echo '
                                         <div style="display: inline-block !important; vertical-align: middle;">
                                             <div class="' . $this->bsClass('control-group') . '">
                                                 <div class="' . $this->bsClass('controls') . '">
@@ -2129,14 +2124,14 @@ function bfTriggerRules() {
                                             </div>
                                         </div>
                                         ';
-                                } else {
-                                    echo '
+                                    } else {
+                                        echo '
                                         <div id="bfInvisibleReCaptchaContainer"></div>
                                         <div id="bfInvisibleReCaptcha"></div>
                                         ';
-                                }
+                                    }
 
-                                echo '
+                                    echo '
                                                     <script data-usercentrics="reCAPTCHA" type="text/javascript">
                                                     <!--
                                                     bfInvisibleRecaptcha = true;
@@ -2168,7 +2163,7 @@ function bfTriggerRules() {
                                                   </script>
                                                   <script data-usercentrics="reCAPTCHA" src="https://www.google.com/recaptcha/api.js?onload=onloadBFNewRecaptchaCallback&render=explicit" async defer></script>
                                                   ';
-                            }
+                                }
                         } else {
                             echo '<span class="bfCaptcha">' . "\n";
                             echo 'WARNING: No public key given for ReCaptcha element!';
@@ -2236,10 +2231,10 @@ function bfTriggerRules() {
 
                         echo '<div style="display: inline-block;">';
 
-                        echo '<img alt="" ' . ( isset($mdata['width']) && intval($mdata['width']) > 0 ? ' style="width: ' . intval($mdata['width']) . 'px !important;min-width: ' . intval($mdata['width']) . 'px !important;max-width: ' . intval($mdata['width']) . 'px !important;"' : 'style="width: 230px !important;min-width: 230px !important;max-width: 230px !important;"' ) . ' id="ff_capimgValue" class="ff_capimg ' . $this->bsClass('img-polaroid') . '" src="' . $captcha_url . '"/>' . "\n";
+                        echo '<img alt="" ' . (isset($mdata['width']) && intval($mdata['width']) > 0 ? ' style="width: ' . intval($mdata['width']) . 'px !important;min-width: ' . intval($mdata['width']) . 'px !important;max-width: ' . intval($mdata['width']) . 'px !important;"' : 'style="width: 230px !important;min-width: 230px !important;max-width: 230px !important;"') . ' id="ff_capimgValue" class="ff_capimg ' . $this->bsClass('img-polaroid') . '" src="' . $captcha_url . '"/>' . "\n";
                         echo '<div style="height: 10px;"></div>';
                         echo '<div class="' . $this->bsClass('input-append') . '">';
-                        echo '<input ' . ( isset($mdata['width']) && intval($mdata['width']) > 0 ? ' style="width:' . ( intval($mdata['width']) - 45 ) . 'px !important;min-width:' . ( intval($mdata['width']) - 45 ) . 'px !important;max-width:' . ( intval($mdata['width']) - 45 ) . 'px !important;"' : '' ) . ' autocomplete="off" class="' . $this->bsClass('form-control') . ' ' . $this->bsClass('custom-form-control') . ' ff_elem bfCaptchaField" type="text" name="bfCaptchaEntry" id="bfCaptchaEntry" />' . "\n";
+                        echo '<input ' . (isset($mdata['width']) && intval($mdata['width']) > 0 ? ' style="width:' . (intval($mdata['width']) - 45) . 'px !important;min-width:' . (intval($mdata['width']) - 45) . 'px !important;max-width:' . (intval($mdata['width']) - 45) . 'px !important;"' : '') . ' autocomplete="off" class="' . $this->bsClass('form-control') . ' ' . $this->bsClass('custom-form-control') . ' ff_elem bfCaptchaField" type="text" name="bfCaptchaEntry" id="bfCaptchaEntry" />' . "\n";
                         echo '<button type="button" class="ff_elem ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . ' button" onclick="document.getElementById(\'bfCaptchaEntry\').value=\'\';document.getElementById(\'bfCaptchaEntry\').focus();document.getElementById(\'ff_capimgValue\').src = \'' . $captcha_url . '?bfMathRandom=\' + Math.random(); return false"><i class="' . $this->bsClass('icon-refresh') . '"></i></button>' . "\n";
                         echo '</div>';
                         echo '</div>';
@@ -2355,48 +2350,48 @@ function bfTriggerRules() {
                         if (!$this->hasResponsiveDatePicker) {
                             ob_start();
                             ?>
-                            <script type="text/javascript">
-                                                <!--
-                                    function bf_add_yearscroller(fieldname) {
-                                                    if (!JQuery("#bfCalExt" + fieldname).length) {
-                                                        // prev
-                                                        if (JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").get(0).selectedIndex > 0) {
-                                                            JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").before('<img id="bfCalExt' + fieldname + '" onclick="JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex=JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex-1;JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').trigger(\'change\')" border="0" src="<?php echo Juri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/minusyear.png' ?>" style="width: 30px; vertical-align: top; cursor:pointer;" />');
-                                                        }
-                                                        // next
-                                                        if (JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").get(0).selectedIndex + 1 < JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").get(0).options.length) {
-                                                            JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").after('<img id="bfCalExt' + fieldname + '" onclick="JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex=JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex+1;JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').trigger(\'change\')" border="0" src="<?php echo Juri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/plusyear.png' ?>" style="width: 30px; vertical-align: top; cursor:pointer;" />');
-                                                        }
+                                    <script type="text/javascript">
+                                                                                    <!--
+                                                                        function bf_add_yearscroller(fieldname) {
+                                                                                        if (!JQuery("#bfCalExt" + fieldname).length) {
+                                                                                            // prev
+                                                                                            if (JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").get(0).selectedIndex > 0) {
+                                                                                                JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").before('<img id="bfCalExt' + fieldname + '" onclick="JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex=JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex-1;JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').trigger(\'change\')" border="0" src="<?php echo Juri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/minusyear.png' ?>" style="width: 30px; vertical - align: top; cursor: pointer; " />');
+                                                                                            }
+                                        // next
+                                        if (JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").get(0).selectedIndex + 1 < JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").get(0).options.length) {
+                                            JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").after('<img id="bfCalExt' + fieldname + '" onclick="JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex=JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex+1;JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').trigger(\'change\')" border="0" src="<?php echo Juri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/plusyear.png' ?>" style="width: 30px; vertical-align: top; cursor:pointer;" />');
+                                        }
 
-                                                        JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').on('change', function () {
-                                                            bf_add_yearscroller(fieldname);
-                                                        });
-                                                        JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').on('change', function () {
-                                                            bf_add_yearscroller(fieldname);
-                                                        });
+                                        JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').on('change', function () {
+                                            bf_add_yearscroller(fieldname);
+                                        });
+                                        JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').on('change', function () {
+                                            bf_add_yearscroller(fieldname);
+                                        });
 
-                                                        var myVal = JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').val();
-                                                        var myInterval = setInterval(function () {
-                                                            if (myVal != JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').val()) {
-                                                                clearInterval(myInterval);
-                                                                bf_add_yearscroller(fieldname);
-                                                            }
-                                                        }, 200);
+                                        var myVal = JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').val();
+                                        var myInterval = setInterval(function () {
+                                            if (myVal != JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').val()) {
+                                                clearInterval(myInterval);
+                                                bf_add_yearscroller(fieldname);
+                                            }
+                                        }, 200);
 
-                                                        var myVal = JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').val();
-                                                        var myInterval = setInterval(function () {
-                                                            if (myVal != JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').val()) {
-                                                                clearInterval(myInterval);
-                                                                bf_add_yearscroller(fieldname);
-                                                            }
-                                                        }, 200);
-                                                    }
-                                                }
-                                                //-->
-                            </script>
-                            <?php
-                            $c = ob_get_contents();
-                            ob_end_clean();
+                                        var myVal = JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').val();
+                                        var myInterval = setInterval(function () {
+                                            if (myVal != JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').val()) {
+                                                clearInterval(myInterval);
+                                                bf_add_yearscroller(fieldname);
+                                            }
+                                        }, 200);
+                                                                                        }
+                                                                                    }
+                                        //-->
+                                    </script>
+                                <?php
+                                $c = ob_get_contents();
+                                ob_end_clean();
                         }
 
                         echo $c;
@@ -2684,7 +2679,7 @@ function bfTriggerRules() {
                         $this->rootMdata['pagingNextLabel'] = $this->rootMdata['pagingNextLabel_translation' . $this->language_tag];
                     }
                     /* translatables end */
-                    echo '<button type="button" class="bfNextButton ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . ' ' . $this->bsClass('pull-right') . ' button' . $this->fadingClass . '" type="submit" onclick="ff_currentpage = ' . json_encode($dataObject['properties']['pageNumber']) . ';bf_validate_nextpage(' . ( $dataObject['properties']['pageNumber'] + 1 ) . ');populateSummarizers();if(typeof bfRefreshAll != \'undefined\'){bfRefreshAll();}" value="' . htmlentities(trim($this->rootMdata['pagingNextLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['pagingNextLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
+                    echo '<button type="button" class="bfNextButton ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . ' ' . $this->bsClass('pull-right') . ' button' . $this->fadingClass . '" type="submit" onclick="ff_currentpage = ' . json_encode($dataObject['properties']['pageNumber']) . ';bf_validate_nextpage(' . ($dataObject['properties']['pageNumber'] + 1) . ');populateSummarizers();if(typeof bfRefreshAll != \'undefined\'){bfRefreshAll();}" value="' . htmlentities(trim($this->rootMdata['pagingNextLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['pagingNextLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
                 }
 
                 $callSubmit = 'bf_validate_submit(this, \'click\')';
@@ -2715,7 +2710,8 @@ function bfTriggerRules() {
         }
     }
 
-    public function render() {
+    public function render()
+    {
 
         if (isset($this->rootMdata['themebootstrapUseProgress']) && $this->rootMdata['themebootstrapUseProgress']) {
             echo '<div class="' . $this->bsClass('progress') . '"><div id="bfProgressBar" class="' . $this->bsClass('bar') . '"></div></div>
@@ -2723,7 +2719,7 @@ function bfTriggerRules() {
                         <!--
                         function bfUpdateProgress(){
                             if(ff_currentpage > 1){
-                                var pages = JQuery(".bfPage").size()' . ( $this->rootMdata['lastPageThankYou'] ? '-1' : '' ) . ';
+                                var pages = JQuery(".bfPage").size()' . ($this->rootMdata['lastPageThankYou'] ? '-1' : '') . ';
                                 var result = Math.round(((ff_currentpage-1) / pages)*100);
                                 JQuery("#bfProgressBar").css("width",result+"%");
                             }else{
@@ -2759,8 +2755,9 @@ function bfTriggerRules() {
 
         // we must make sure that everything mootools related is included after moxie and plupload
         if (isset(JFactory::getDocument()->_scripts)) {
-            foreach (JFactory::getDocument()->_scripts As $script_name => $script_value) {
-                if (basename($script_name) != 'moxie.js' && basename($script_name) != 'plupload.js' && basename($script_name) != 'calendar.js' && basename($script_name) != 'calendar-setup.js'
+            foreach (JFactory::getDocument()->_scripts as $script_name => $script_value) {
+                if (
+                    basename($script_name) != 'moxie.js' && basename($script_name) != 'plupload.js' && basename($script_name) != 'calendar.js' && basename($script_name) != 'calendar-setup.js'
                 ) {
                     unset(JFactory::getDocument()->_scripts[$script_name]);
                     JFactory::getDocument()->_scripts[$script_name] = $script_value;
@@ -2777,7 +2774,7 @@ function bfTriggerRules() {
                 $htmltextarea = $this->htmltextareas[$i];
                 $dbId = $this->htmltextareasDbIds[$i];
                 $htmltextarea_out .= 'JQuery("[name=\"' . $htmltextarea . '\"]").val(JQuery.trim(JQuery("[name=\"' . $htmltextarea . '\"]").val())+" ");' . "\n";
-                $htmltextarea_out .= 'bf_htmltextareas.push(' . $this->getEditorContent($dbId)  . ')' . "\n";
+                $htmltextarea_out .= 'bf_htmltextareas.push(' . $this->getEditorContent($dbId) . ')' . "\n";
                 $htmltextarea_out .= 'bf_htmltextareanames.push("' . $htmltextarea . '")' . "\n";
             }
             echo '<script type="text/javascript">
@@ -2905,7 +2902,8 @@ function bfTriggerRules() {
         JFactory::getDocument()->addScriptDeclaration('//-->');
     }
 
-    public function parseToggleFields($code) {
+    public function parseToggleFields($code)
+    {
         /*
           example codes:
 
