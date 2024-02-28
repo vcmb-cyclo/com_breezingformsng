@@ -6413,7 +6413,6 @@ class QuickModeHtml
                                                     <input checked="checked" type="checkbox" value=""
                                                         id="bfElementCalendarAdvancedHideLabel" />
                                                 </div>
-                                                <?php if (version_compare($version->getShortVersion(), '3.7', '>=')): ?>
                                                     <div class="bfPropertyWrap">
                                                         <label class="bfPropertyLabel hasTooltip"
                                                             title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_CALENDAR_SHOW_TIME_TOOLTIP')); ?>"
@@ -6483,7 +6482,6 @@ class QuickModeHtml
                                                         </label>
                                                         <input type="text" value="" id="bfElementCalendarAdvancedMaxYear" />
                                                     </div>
-                                                <?php endif; ?>
                                             </div>
                                             <!-- CALENDAR END -->
                                             <!-- SIGNATURE BEGIN -->
