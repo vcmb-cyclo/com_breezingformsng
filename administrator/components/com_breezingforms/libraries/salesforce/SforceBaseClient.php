@@ -786,7 +786,7 @@ class SforceBaseClient {
 	 */
 	public function query($query) {
 		$this->setHeaders("query");
-		$QueryResult = $this->sforce->query(array (
+		$QueryResult = $this->sforce->execute(array (
 					  'queryString' => $query
 		))->result;
 		return new QueryResult($QueryResult);

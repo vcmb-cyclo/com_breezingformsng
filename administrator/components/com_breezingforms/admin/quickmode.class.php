@@ -488,7 +488,7 @@ class QuickMode
 						)"
 			);
 
-			$this->db->query();
+			$this->db->execute();
 			$form = $this->db->insertid();
 
 		} else {
@@ -548,7 +548,7 @@ class QuickMode
 						"
 			);
 
-			$this->db->query();
+			$this->db->execute();
 
 			$chunkLength = count($chunks);
 			for ($i = 0; $i < $chunkLength; $i++) {
@@ -562,7 +562,7 @@ class QuickMode
 						"
 				);
 
-				$this->db->query();
+				$this->db->execute();
 			}
 		}
 
@@ -673,7 +673,7 @@ class QuickMode
 							)"
 				);
 
-				$this->db->query();
+				$this->db->execute();
 				if ($this->db->getErrormsg() == '') {
 					$elementId = $this->db->insertid();
 					$areas[0]['elements'][$elementCount]['dbId'] = $elementId;
@@ -750,7 +750,7 @@ class QuickMode
 								id = " . $this->db->Quote($element['dbId']) . "
 							"
 				);
-				$this->db->query();
+				$this->db->execute();
 
 				if ($this->db->getErrormsg() != '') {
 
@@ -771,10 +771,10 @@ class QuickMode
 
 		if (strlen($notRemoveIds) != 0) {
 			$this->db->setQuery("Delete From #__facileforms_elements Where " . $notRemoveIds . " form = " . $this->db->Quote($form) . " ");
-			$this->db->query();
+			$this->db->execute();
 		} else {
 			$this->db->setQuery("Delete From #__facileforms_elements Where form = " . $this->db->Quote($form) . " ");
-			$this->db->query();
+			$this->db->execute();
 		}
 
 		// preventing mysql has gone away errors by splitting the template code string into chunks
@@ -805,7 +805,7 @@ class QuickMode
 							id = " . $this->db->Quote($form) . "
 						"
 		);
-		$this->db->query();
+		$this->db->execute();
 
 		$chunkLength = count($chunks);
 		for ($i = 0; $i < $chunkLength; $i++) {
@@ -818,7 +818,7 @@ class QuickMode
                                                                 id = " . $this->db->Quote($form) . "
                                                         "
 			);
-			$this->db->query();
+			$this->db->execute();
 		}
 
 		return $form;

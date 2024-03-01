@@ -59,7 +59,7 @@ class EasyMode{
 						)"
 			);
 			
-			$this->db->query();
+			$this->db->execute();
 			$form = $this->db->insertid();
 			
 		} else {
@@ -78,7 +78,7 @@ class EasyMode{
 						"
 			);
 			
-			$this->db->query();
+			$this->db->execute();
 		}
 
 		$notRemoveIds = '';
@@ -186,7 +186,7 @@ class EasyMode{
 							)"
 					);
 					
-					$this->db->query();
+					$this->db->execute();
 					$elementId = $this->db->insertid();
 					$areas[$i]['elements'][$elementCount]['dbId'] = $elementId;
 					
@@ -252,7 +252,7 @@ class EasyMode{
 								id = ".$this->db->Quote($element['dbId'])."
 							"
 					);
-					$this->db->query();
+					$this->db->execute();
 					$elementId = $element['dbId'];
 				}
 				
@@ -279,10 +279,10 @@ class EasyMode{
 		
 		if(strlen($notRemoveIds) != 0){
 			$this->db->setQuery("Delete From #__facileforms_elements Where " . $notRemoveIds . " form = ".$this->db->Quote($form)." ");
-			$this->db->query();
+			$this->db->execute();
 		} else {
 			$this->db->setQuery("Delete From #__facileforms_elements Where form = ".$this->db->Quote($form)." ");
-			$this->db->query();
+			$this->db->execute();
 		}
 		
 		$this->db->setQuery(
@@ -296,7 +296,7 @@ class EasyMode{
 						"
 			);
 			
-		$this->db->query();
+		$this->db->execute();
 		
 		return $form;
 	}

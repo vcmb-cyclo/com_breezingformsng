@@ -342,7 +342,7 @@ class facileFormsConf
 				"where id = " . $database->Quote($prop) . ""
 			);
 
-			if (!$database->query()) {
+			if (!$database->execute()) {
 				echo "<br/>" . $database->getErrorMsg();
 				exit;
 			} // if
@@ -357,7 +357,7 @@ class facileFormsConf
 					"insert into #__facileforms_config (id, value) " .
 					"values (" . $database->Quote($prop) . ", " . $database->Quote($val) . ")"
 				);
-				if (!$database->query()) {
+				if (!$database->execute()) {
 					echo "<br/>" . $database->getErrorMsg();
 					exit;
 				} // if

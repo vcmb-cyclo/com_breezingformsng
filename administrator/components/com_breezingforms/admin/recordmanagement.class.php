@@ -39,7 +39,7 @@ class bfRecordManagement
             $db = BFFactory::getdbo();
 
             $db->setQuery("Update #__facileforms_forms Set filter_state = " . $db->quote(serialize($_POST)) . " Where id = " . $db->quote(BFRequest::getInt('form_id')));
-            $db->query();
+            $db->execute();
         }
         exit;
     }
@@ -66,7 +66,7 @@ class bfRecordManagement
         if (count($column) == 2) {
             $db = BFFactory::getdbo();
             $db->setQuery("Update #__facileforms_records Set `" . $column[1] . "` = " . $db->quote(BFRequest::getInt('flag', 0)) . " Where id = " . $db->quote(BFRequest::getInt('record_id')));
-            $db->query();
+            $db->execute();
         }
 
         exit;
@@ -81,7 +81,7 @@ class bfRecordManagement
         if (count($ids)) {
             $db = BFFactory::getdbo();
             $db->setQuery("Update #__facileforms_records Set `" . $column . "` = 1 Where id In (" . implode(',', $ids) . ")");
-            $db->query();
+            $db->execute();
         }
     }
 
@@ -504,7 +504,7 @@ class bfRecordManagement
             $query = $query . ')';
 
             $db->setQuery($query);
-            $db->query();
+            $db->execute();
 
             if ($db->getErrorMsg() != '') {
                 echo 'Import Error: ' . $db->getErrorMsg();
@@ -541,7 +541,7 @@ class bfRecordManagement
                 $query = $query . ')';
 
                 $db->setQuery($query);
-                $db->query();
+                $db->execute();
 
                 if ($db->getErrorMsg() != '') {
                     echo 'Import Error (subrecords): ' . $db->getErrorMsg();
@@ -560,7 +560,7 @@ class bfRecordManagement
         foreach ($delID as $id) {
             $query = 'DELETE FROM #__facileforms_records WHERE id = ' . $db->Quote($id['id']);
             $db->setQuery($query);
-            $db->query();
+            $db->execute();
         }
         // End Cleanup
 
@@ -1750,13 +1750,13 @@ class bfRecordManagement
                         foreach ($group_ids as $group_id) {
                             if (isset($values[$i])) {
                                 $db->setQuery("Update #__facileforms_subrecords Set value = " . $db->quote($values[$i]) . " Where id = " . $db->quote($group_id['id']));
-                                $db->query();
+                                $db->execute();
                             }
                             $i++;
                         }
                     } else {
                         $db->setQuery("Update #__facileforms_subrecords Set value = " . $db->quote($value) . " Where name = " . $db->quote($element['name']) . " And record = " . $record_id);
-                        $db->query();
+                        $db->execute();
                     }
                 }
             }
@@ -1839,7 +1839,7 @@ class bfRecordManagement
         }
 
         $db->setQuery("SET SESSION group_concat_max_len = 9999999");
-        $db->query();
+        $db->execute();
 
         $db->setQuery("Select * From #__facileforms_elements Where published = 1 And `name` <> 'bfFakeName' And `name` <> 'bfFakeName2' And `name` <> 'bfFakeName3' And `name` <> 'bfFakeName4' And `name` <> 'bfFakeName5' And  form = " . BFRequest::getInt('form_selection', 0) . " Order By `ordering`");
         $elements = $db->loadAssocList();
@@ -2072,7 +2072,7 @@ class bfRecordManagement
 
         if (BFRequest::getInt('record_id', 0) > 0) {
             $db->setQuery("Update #__facileforms_records Set viewed = 1 Where id = " . BFRequest::getInt('record_id', 0));
-            $db->query();
+            $db->execute();
         }
 
         echo json_encode($result);
@@ -2105,9 +2105,9 @@ class bfRecordManagement
             $cbRecords = $db->loadAssocList();
             foreach ($cbRecords as $cbRecord) {
                 $db->setQuery("Delete From #__contentbuilder_list_records Where form_id = " . intval($cbRecord['form_id']) . " And record_id = " . $db->Quote(BFRequest::getInt('bfrecord_id')));
-                $db->query();
+                $db->execute();
                 $db->setQuery("Delete From #__contentbuilder_records Where `type` = 'com_breezingforms' And `reference_id` = " . $db->Quote($cbRecord['reference_id']) . " And record_id = " . $db->Quote(BFRequest::getInt('bfrecord_id')));
-                $db->query();
+                $db->execute();
                 if ($cbRecord['delete_articles']) {
                     $db->setQuery("Select article_id From #__contentbuilder_articles Where form_id = " . intval($cbRecord['form_id']) . " And record_id = " . $db->Quote(BFRequest::getInt('bfrecord_id')));
                     $articles = $db->loadColumn();
@@ -2124,7 +2124,7 @@ class bfRecordManagement
                             }
 
                             $db->setQuery("Delete From #__content Where id = " . intval($article));
-                            $db->query();
+                            $db->execute();
                             // Trigger the onContentAfterDelete event.
                             $table->reset();
 
@@ -2132,21 +2132,21 @@ class bfRecordManagement
 
                         }
                         $db->setQuery("Delete From #__assets Where `name` In (" . implode(',', $article_items) . ")");
-                        $db->query();
+                        $db->execute();
                     }
                 }
 
                 $db->setQuery("Delete From #__contentbuilder_articles Where form_id = " . intval($cbRecord['form_id']) . " And record_id = " . $db->Quote(BFRequest::getInt('bfrecord_id')));
-                $db->query();
+                $db->execute();
             }
         }
         // CONTENTBUILDER END
 
         $db->setQuery("Delete From #__facileforms_records Where id = " . BFRequest::getInt('bfrecord_id'));
-        $db->query();
+        $db->execute();
 
         $db->setQuery("Delete From #__facileforms_subrecords Where record = " . BFRequest::getInt('bfrecord_id'));
-        $db->query();
+        $db->execute();
 
         $result = array();
         $result['Result'] = 'OK';
@@ -2492,7 +2492,7 @@ class bfRecordManagement
             $db->setQuery(
                 "update #__facileforms_records set exported=1 where id in ($updIds)"
             );
-            $db->query();
+            $db->execute();
         }
 
         if (!class_exists('BFPDF')) {
@@ -2875,7 +2875,7 @@ class bfRecordManagement
                 "update #__facileforms_records set exported=1 where id in ($updIds)"
             );
 
-            $db->query();
+            $db->execute();
         }
         /*
           $data = BFFile::read($csvname);
@@ -3058,7 +3058,7 @@ class bfRecordManagement
             $database->setQuery(
                 "update #__facileforms_records set exported=1 where id in ($updIds)"
             );
-            $database->query();
+            $database->execute();
         }
 
         @ob_end_clean();

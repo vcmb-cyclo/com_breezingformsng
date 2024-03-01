@@ -350,7 +350,7 @@ class ff_importPackage extends ff_xmlPackage
                                 }
 
                                 Factory::getContainer()->get(DatabaseInterface::class)->setQuery("Update #__facileforms_forms Set template_code = ".Factory::getContainer()->get(DatabaseInterface::class)->Quote($template_code).", template_areas = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($template_areas) . " Where id = " . intval($form_id));
-                                Factory::getContainer()->get(DatabaseInterface::class)->query();
+                                Factory::getContainer()->get(DatabaseInterface::class)->execute();
 
                                 if($row && $row->template_code_processed == 'QuickMode'){
                                     $quickMode = new QuickMode();

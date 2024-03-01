@@ -4495,9 +4495,9 @@ class HTML_facileFormsProcessor
             $records = $database->loadObjectList();
             foreach ($records as $record) {
                 $database->setQuery("Delete From #__facileforms_subrecords Where record = " . $record->id);
-                $database->query();
+                $database->execute();
                 $database->setQuery("Delete From #__facileforms_records Where id = " . $record->id);
-                $database->query();
+                $database->execute();
             }
         }
 
@@ -4542,10 +4542,10 @@ class HTML_facileFormsProcessor
                 $res = $db->loadResult();
                 if (!$res) {
                     $db->setQuery("Insert Into #__contentbuilder_records (session_id,`type`,last_update, published, record_id, reference_id) Values ('" . JFactory::getSession()->getId() . "','com_breezingforms'," . $db->Quote($last_update) . ",0, " . $db->Quote($record_return) . ", " . $db->Quote($this->form) . ")");
-                    $db->query();
+                    $db->execute();
                 } else {
                     $db->setQuery("Update #__contentbuilder_records Set last_update = " . $db->Quote($last_update) . ",edited = edited + 1 Where `type` = 'com_breezingforms' And `reference_id` = " . $db->Quote($this->form) . " And record_id = " . $db->Quote($record_return));
-                    $db->query();
+                    $db->execute();
                 }
             }
         }
@@ -4776,12 +4776,12 @@ class HTML_facileFormsProcessor
                         }
 
                         $db->setQuery("Insert Into #__contentbuilder_records (session_id,`type`,last_update,is_future,lang_code, sef, published, record_id, reference_id, publish_up, publish_down) Values ('" . JFactory::getSession()->getId() . "','com_breezingforms'," . $db->Quote($last_update) . ",$is_future, " . $db->Quote($language) . "," . $db->Quote(trim($sef)) . "," . $db->Quote($cbData->auto_publish && !$is_future ? 1 : 0) . ", " . $db->Quote($record_return) . ", " . $db->Quote($cbResult['form']->getReferenceId()) . ", " . $db->Quote($created_up) . ", " . $db->Quote($created_down) . ")");
-                        $db->query();
+                        $db->execute();
 
                     } else {
 
                         $db->setQuery("Update #__contentbuilder_records Set last_update = " . $db->Quote($last_update) . ",lang_code = " . $db->Quote($language) . ", sef = " . $db->Quote(trim($sef)) . ", edited = edited + 1 Where `type` = 'com_breezingforms' And `reference_id` = " . $db->Quote($cbResult['form']->getReferenceId()) . " And record_id = " . $db->Quote($record_return));
-                        $db->query();
+                        $db->execute();
                     }
                 }
 

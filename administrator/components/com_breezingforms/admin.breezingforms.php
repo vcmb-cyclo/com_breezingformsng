@@ -475,7 +475,7 @@ function _ff_query($sql, $insert = 0)
     $database = Factory::getContainer()->get(DatabaseInterface::class);
     $id = null;
     $database->setQuery($sql);
-    $database->query();
+    $database->execute();
     if ($database->getErrorNum()) {
         if (isset($errmode) && $errmode == 'log')
             $errors[] = $database->getErrorMsg();

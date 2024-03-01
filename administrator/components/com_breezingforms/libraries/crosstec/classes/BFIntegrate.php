@@ -242,7 +242,7 @@ class BFIntegrate
                     try {
 
                         $this->db->setQuery($sql);
-                        $this->db->query();
+                        $this->db->execute();
 
                         if (trim($rule['rule']->finalize_code) != '') {
                             $this->handleFinalizeCode($rule['rule']->finalize_code);
@@ -381,7 +381,7 @@ class BFIntegrate
                     try {
 
                         $this->db->setQuery($sql);
-                        $ret = $this->db->query();
+                        $ret = $this->db->execute();
 
                         // on update and no affected rows, we might like to add the row
                         if ($this->db->getAffectedRows($ret) <= 0) {
@@ -410,7 +410,7 @@ class BFIntegrate
                             if ($valOk && count($rule['items']) != 0) {
                                 try {
                                     $this->db->setQuery($sql);
-                                    $this->db->query();
+                                    $this->db->execute();
                                 } catch (Exception $e) {
 
                                 }

@@ -321,11 +321,11 @@ class facileFormsElement
                 $ids = implode(',', $quoted_ids);
                 
 		$database->setQuery("delete from #__facileforms_elements where form=$form and page=$page and id in ($ids)");
-		if (!$database->query()) {
+		if (!$database->execute()) {
 			echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
 		} // if
 		//$database->setQuery("delete from #__facileforms_forms where id in ($forms)");
-		//if (!$database->query()) {
+		//if (!$database->execute()) {
 		//	echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
 		//} // if
 		JFactory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
@@ -493,7 +493,7 @@ class facileFormsElement
 		$database->setQuery(
 			"update #__facileforms_elements set published=$publish where form=$form and page=$page and id in ($ids)"
 		);
-		if (!$database->query()) {
+		if (!$database->execute()) {
 			echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
 			exit();
 		} // if
@@ -526,7 +526,7 @@ class facileFormsElement
 				if(count($idAndPos) == 2 && is_numeric($idAndPos[0]) && is_numeric($idAndPos[1])){
 					
 					$database->setQuery("Update #__facileforms_elements Set ordering = '".intval($idAndPos[1])."' Where id = '".intval($idAndPos[0])."' And form=$form and page=$page");
-					$database->query();
+					$database->execute();
 					
 					//$jtable = new BFTableElements($database);
 					//$jtable->reorder("form=$form and page=$page");
@@ -565,7 +565,7 @@ class facileFormsElement
 			$database->setQuery(
 				"update #__facileforms_elements set page=page+1 where form=$form and page>$page"
 			);
-			if (!$database->query()) {
+			if (!$database->execute()) {
 				echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
 				exit();
 			} // if
@@ -585,7 +585,7 @@ class facileFormsElement
 		$database->setQuery(
 			"update #__facileforms_elements set page=page+1 where form=$form and page>=$page"
 		);
-		if (!$database->query()) {
+		if (!$database->execute()) {
 			echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
 			exit();
 		} // if
@@ -603,14 +603,14 @@ class facileFormsElement
 		$database->setQuery(
 			"delete from #__facileforms_elements where form=$form and page=$page"
 		);
-		if (!$database->query()) {
+		if (!$database->execute()) {
 			echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
 			exit();
 		} // if
 		$database->setQuery(
 			"update #__facileforms_elements set page=page-1 where form=$form and page>$page"
 		);
-		if (!$database->query()) {
+		if (!$database->execute()) {
 			echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
 			exit();
 		} // if
@@ -646,7 +646,7 @@ class facileFormsElement
 			$database->setQuery(
 				"update #__facileforms_elements set page=0 where form=$form and page=$page"
 			);
-			if (!$database->query()) {
+			if (!$database->execute()) {
 				echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
 				exit();
 			} // if
@@ -659,14 +659,14 @@ class facileFormsElement
 					"update #__facileforms_elements set page=page+1 where form=$form and page>=$newpage and page<$page"
 				);
 			} // if
-			if (!$database->query()) {
+			if (!$database->execute()) {
 				echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
 				exit();
 			} // if
 			$database->setQuery(
 				"update #__facileforms_elements set page=$newpage where form=$form and page=0"
 			);
-			if (!$database->query()) {
+			if (!$database->execute()) {
 				echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
 				exit();
 			} // if

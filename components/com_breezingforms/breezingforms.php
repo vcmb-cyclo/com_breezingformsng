@@ -820,7 +820,7 @@ if (
 											id = '" . BFRequest::getInt('record_id', -1) . "'
 											");
 
-                            $db->query();
+                            $db->execute();
 
                             // trigger a script after succeeded payment?
                             if (file_exists(JPATH_SITE . '/bf_paypalipn_success.php')) {
@@ -858,7 +858,7 @@ if (
 											id = '" . BFRequest::getInt('record_id', -1) . "'
 											");
 
-                        $db->query();
+                        $db->execute();
                     }
 
                     header("Status: 200 OK");
@@ -1112,7 +1112,7 @@ if (
 												paypal_tx_id = " . $db->Quote('Stripe: ' . BFRequest::getVar('token', '')) . "
 											");
 
-                            $db->query();
+                            $db->execute();
 
                             if (!file_exists($file)) {
                                 BFRedirect(Uri::root(), BFText::_('COM_BREEZINGFORMS_COULD_NOT_FIND_DOWNLOAD_FILE'));
@@ -1267,7 +1267,7 @@ if (
 											id = '" . BFRequest::getInt('record_id', -1) . "'
 											");
 
-                                $db->query();
+                                $db->execute();
 
                                 // trigger a script after succeeded payment?
                                 if (file_exists(JPATH_SITE . '/bf_paypal_success.php')) {
@@ -1402,7 +1402,7 @@ if (
                                                                                                 )
 											");
 
-                            $db->query();
+                            $db->execute();
 
                             if (!file_exists($file)) {
                                 BFRedirect(Uri::root(), BFText::_('COM_BREEZINGFORMS_COULD_NOT_FIND_DOWNLOAD_FILE'));
@@ -1618,7 +1618,7 @@ if (
 											id = '" . $recordId . "'
 											");
 
-                            $db->query();
+                            $db->execute();
 
                             $recipients = explode('###', BFRequest::getVar('user_variable_2', ''));
                             $recipientsSize = count($recipients);
@@ -1736,7 +1736,7 @@ if (
 												paypal_tx_id = " . $db->Quote('Sofortüberweisung: ' . BFRequest::getVar('tx', '')) . "
 											");
 
-                            $db->query();
+                            $db->execute();
 
                             if (!file_exists($file)) {
                                 BFRedirect(Uri::root(), BFText::_('COM_BREEZINGFORMS_COULD_NOT_FIND_DOWNLOAD_FILE'));

@@ -1695,7 +1695,7 @@ class Securimage
                 break;
         }
 
-        $result = $this->pdo_conn->query($query);
+        $result = $this->pdo_conn->execute($query);
 
         if (!$result) {
             $err = $this->pdo_conn->errorInfo();
@@ -1764,7 +1764,7 @@ class Securimage
         $this->pdo_conn->beginTransaction();
 
         foreach($queries as $query) {
-            $result = $this->pdo_conn->query($query);
+            $result = $this->pdo_conn->execute($query);
 
             if (!$result) {
                 $err = $this->pdo_conn->errorInfo();
@@ -1846,7 +1846,7 @@ class Securimage
             $query = sprintf("DELETE FROM %s WHERE id = %s AND namespace = %s",
                              $this->database_table, $id, $ns);
 
-            $result = $this->pdo_conn->query($query);
+            $result = $this->pdo_conn->execute($query);
             if (!$result) {
                 trigger_error("Failed to delete code from database.", E_USER_WARNING);
             }
@@ -1867,7 +1867,7 @@ class Securimage
                              $this->pdo_conn->quote($now, PDO::PARAM_INT),
                              $this->pdo_conn->quote($limit, PDO::PARAM_INT));
 
-            $result = $this->pdo_conn->query($query);
+            $result = $this->pdo_conn->execute($query);
         }
     }
 

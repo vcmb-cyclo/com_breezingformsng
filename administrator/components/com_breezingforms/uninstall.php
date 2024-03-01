@@ -18,9 +18,9 @@ function com_uninstall(){
 
     $db = Factory::getContainer()->get(DatabaseInterface::class);
     $db->setQuery("Delete From #__menu Where `link` Like 'index.php?option=com_breezingforms&act=%'");
-    $db->query();
+    $db->execute();
     $db->setQuery("Delete From #__menu Where `alias` Like 'BreezingForms' And `path` Like 'breezingforms'");
-    $db->query();
+    $db->execute();
 
     if(file_exists(JPATH_SITE.DS.'media'.DS.'breezingforms'.DS.'facileforms.config.php')){
         File::delete(JPATH_SITE.DS.'media'.DS.'breezingforms'.DS.'facileforms.config.php');

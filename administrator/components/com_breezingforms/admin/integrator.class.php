@@ -205,7 +205,7 @@ class BFIntegrator {
 			)
 
 		");
-        $this->db->query();
+        $this->db->execute();
 
         $ruleId = $this->db->insertid();
 
@@ -261,14 +261,14 @@ class BFIntegrator {
 			)
 
 		");
-        $this->db->query();
+        $this->db->execute();
         echo $this->db->getErrorMsg();
     }
 
     public function removeCriteria(){
 
         $this->db->setQuery("Delete From #__facileforms_integrator_criteria_form Where id = ".BFRequest::getInt('criteriaId',-1)."");
-        $this->db->query();
+        $this->db->execute();
 
     }
 
@@ -314,14 +314,14 @@ class BFIntegrator {
 			)
 
 		");
-        $this->db->query();
+        $this->db->execute();
         echo $this->db->getErrorMsg();
     }
 
     public function removeCriteriaJoomla(){
 
         $this->db->setQuery("Delete From #__facileforms_integrator_criteria_joomla Where id = ".BFRequest::getInt('criteriaId',-1)."");
-        $this->db->query();
+        $this->db->execute();
 
     }
 
@@ -367,14 +367,14 @@ class BFIntegrator {
 			)
 
 		");
-        $this->db->query();
+        $this->db->execute();
         echo $this->db->getErrorMsg();
     }
 
     public function removeCriteriaFixed(){
 
         $this->db->setQuery("Delete From #__facileforms_integrator_criteria_fixed Where id = ".BFRequest::getInt('criteriaId',-1)."");
-        $this->db->query();
+        $this->db->execute();
 
     }
 
@@ -398,61 +398,61 @@ class BFIntegrator {
 			)
 
 		");
-        $this->db->query();
+        $this->db->execute();
         echo $this->db->getErrorMsg();
     }
 
     public function removeItem(){
 
         $this->db->setQuery("Delete From #__facileforms_integrator_items Where id = ".BFRequest::getInt('itemId',-1)."");
-        $this->db->query();
+        $this->db->execute();
 
     }
 
     public function saveCode(){
         $this->db->setQuery("Update #__facileforms_integrator_items Set code = ".$this->db->Quote($_REQUEST['code'])." Where id = ".BFRequest::getInt('itemId',-1)." And rule_id = ".BFRequest::getInt('id',-1)."");
-        $this->db->query();
+        $this->db->execute();
     }
 
     public function saveFinalizeCode(){
         $this->db->setQuery("Update #__facileforms_integrator_rules Set finalize_code = ".$this->db->Quote($_REQUEST['finalizeCode'])." Where id = ".BFRequest::getInt('id',-1)."");
-        $this->db->query();
+        $this->db->execute();
     }
 
     public function publishRule(){
         $this->db->setQuery("Update #__facileforms_integrator_rules Set published = 1 Where id = ".BFRequest::getInt('publish_id',-1)."");
-        $this->db->query();
+        $this->db->execute();
     }
 
     public function unpublishRule(){
         $this->db->setQuery("Update #__facileforms_integrator_rules Set published = 0 Where id = ".BFRequest::getInt('publish_id',-1)."");
-        $this->db->query();
+        $this->db->execute();
     }
 
     public function removeRules(){
         foreach(BFRequest::getVar('cid', array()) As $id){
 
             $this->db->setQuery("Delete From #__facileforms_integrator_rules Where id = ".$id."");
-            $this->db->query();
+            $this->db->execute();
             $this->db->setQuery("Delete From #__facileforms_integrator_items Where rule_id = ".$id."");
-            $this->db->query();
+            $this->db->execute();
             $this->db->setQuery("Delete From #__facileforms_integrator_criteria_form Where rule_id = ".$id."");
-            $this->db->query();
+            $this->db->execute();
             $this->db->setQuery("Delete From #__facileforms_integrator_criteria_joomla Where rule_id = ".$id."");
-            $this->db->query();
+            $this->db->execute();
             $this->db->setQuery("Delete From #__facileforms_integrator_criteria_fixed Where rule_id = ".$id."");
-            $this->db->query();
+            $this->db->execute();
         }
     }
 
     public function publishItem(){
         $this->db->setQuery("Update #__facileforms_integrator_items Set published = 1 Where id = ".BFRequest::getInt('publish_id',-1)."");
-        $this->db->query();
+        $this->db->execute();
     }
 
     public function unpublishItem(){
         $this->db->setQuery("Update #__facileforms_integrator_items Set published = 0 Where id = ".BFRequest::getInt('publish_id',-1)."");
-        $this->db->query();
+        $this->db->execute();
     }
 
     private function str_replace_first($or_string,$string_to_rep,$rep_with){

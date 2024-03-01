@@ -365,7 +365,7 @@ class facileFormsForm {
                     }
 
                     Factory::getContainer()->get(DatabaseInterface::class)->setQuery("Update #__facileforms_forms Set template_code = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($template_code) . ", template_areas = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($template_areas) . " Where id = " . intval($row->id));
-                    Factory::getContainer()->get(DatabaseInterface::class)->query();
+                    Factory::getContainer()->get(DatabaseInterface::class)->execute();
 
                     if ($row_ && $row_->template_code_processed == 'QuickMode') {
                         $quickMode = new QuickMode();
@@ -389,11 +389,11 @@ class facileFormsForm {
         if (count($ids)) {
             $ids = implode(',', $ids);
             $database->setQuery("delete from #__facileforms_elements where form in ($ids)");
-            if (!$database->query()) {
+            if (!$database->execute()) {
                 echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
             } // if
             $database->setQuery("delete from #__facileforms_forms where id in ($ids)");
-            if (!$database->query()) {
+            if (!$database->execute()) {
                 echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
             } // if
         } // if
@@ -422,7 +422,7 @@ class facileFormsForm {
         $database->setQuery(
                 "update #__facileforms_forms set published='$publish' where id in ($ids)"
         );
-        if (!$database->query()) {
+        if (!$database->execute()) {
             echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
             exit();
         } // if

@@ -244,11 +244,11 @@ class facileFormsMenu
 		if (count($ids)) {
 			$ids = implode(',', $ids);
 			$database->setQuery("delete from #__facileforms_compmenus where parent in ($ids)");
-			if (!$database->query()) {
+			if (!$database->execute()) {
 				echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
 			} // if
 			$database->setQuery("delete from #__facileforms_compmenus where id in ($ids)");
-			if (!$database->query()) {
+			if (!$database->execute()) {
 				echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
 			} // if
 		} // if
@@ -275,7 +275,7 @@ class facileFormsMenu
 		$database->setQuery(
 			"update #__facileforms_compmenus set published='$publish' where id in ($ids)"
 		);
-		if (!$database->query()) {
+		if (!$database->execute()) {
 			echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
 			exit();
 		} // if
