@@ -475,13 +475,19 @@ function _ff_query($sql, $insert = 0)
     $database = Factory::getContainer()->get(DatabaseInterface::class);
     $id = null;
     $database->setQuery($sql);
-    $database->execute();
-    if ($database->getErrorNum()) {
-        if (isset($errmode) && $errmode == 'log')
-            $errors[] = $database->getErrorMsg();
-        else
-            die($database->stderr());
-    } // if
+
+    try {
+        $database->execute();
+    } catch (\Exception $e) {
+        try {
+            if (isset($errmode) && $errmode == 'log'){}
+                $errors[] = $e->getMessage();
+                Log::add(Text::sprintf('JLIB_DATABASE_ERROR_FUNCTION_FAILED', $e->getCode(), $e->getMessage()), Log::WARNING, 'jerror');
+        } else {
+                die($e->getMessage());
+        } // if
+    }
+
     if ($insert)
         $id = $database->insertid();
     return $id;
@@ -492,13 +498,17 @@ function _ff_select($sql)
     global $database, $errors;
     $database = Factory::getContainer()->get(DatabaseInterface::class);
     $database->setQuery($sql);
-    $rows = $database->loadObjectList();
-    if ($database->getErrorNum()) {
-        if (isset($errmode) && $errmode == 'log')
-            $errors[] = $database->getErrorMsg();
-        else
-            die($database->stderr());
-    } // if
+    try {
+        $rows = $database->loadObjectList();
+    } catch (\Exception $e) {
+        try {
+            if (isset($errmode) && $errmode == 'log'){}
+                $errors[] = $e->getMessage();
+                Log::add(Text::sprintf('JLIB_DATABASE_ERROR_FUNCTION_FAILED', $e->getCode(), $e->getMessage()), Log::WARNING, 'jerror');
+        } else {
+                die($e->getMessage());
+        } // if
+    }
 
     return $rows;
 } // _ff_select
@@ -508,11 +518,13 @@ function _ff_selectValue($sql)
     global $database, $errors;
     $database = Factory::getContainer()->get(DatabaseInterface::class);
     $database->setQuery($sql);
-    $value = $database->loadResult();
-    if ($database->getErrorNum()) {
 
-        die($database->stderr());
-    } // if
+    try {
+        $value = $database->loadResult();
+    } catch (\Exception $e) {
+        die($e->getMessage());
+    }
+
     return $value;
 } // _ff_selectValue
 

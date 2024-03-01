@@ -44,12 +44,12 @@ class JFormFieldCategories extends JFormField
         // Get the options.
         $db->setQuery($query);
 
-        $options = $db->loadObjectList();
-
         // Check for a database error.
-        if ($db->getErrorNum()) {
-            Factory::getApplication()->enqueueMessage($db->getErrorMsg(), 'error');
-        }
+        try {
+            $options = $db->loadObjectList();
+		} catch (\Exception $e) {
+            Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+		} // try
 
         // Pad the option text with spaces using depth level as a multiplier.
         for ($i = 0, $n = count($options); $i < $n; $i++) {

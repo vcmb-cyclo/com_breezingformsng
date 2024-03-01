@@ -2959,19 +2959,18 @@ class bfRecordManagement
             );
         }
 
-        $recs = $database->loadObjectList();
+        try {
+            $recs = $database->loadObjectList();
+		} catch (\Exception $e) {
+			echo $e->getMessage();
+			return false;
+		} // try
 
         if (BFRequest::getInt('form_selection', 0) && count($recs)) {
-
             $form_name = $recs[0]->name;
         }
 
         $xmlname = $ff_compath . '/exports/' . ($form_name != '' ? $form_name . '-' : '') . 'ffexport-' . $date_stamp . '.xml';
-
-        if ($database->getErrorNum()) {
-            echo $database->stderr();
-            return false;
-        } // if
 
         $xml = '<?xml version="1.0" encoding="utf-8" ?>' . nl() .
             '<FacileFormsExport type="records" version="' . $ff_version . '">' . nl() .

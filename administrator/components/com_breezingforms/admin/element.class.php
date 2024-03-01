@@ -197,11 +197,13 @@ class facileFormsElement
 			"where published=1 and type='Element Init' ".
 			"order by text, id desc"
 		);
-		$lists['scripts1'] = $database->loadObjectList();
-		if ($database->getErrorNum()) {
-			echo $database->stderr();
+
+		try {
+			$lists['scripts1'] = $database->loadObjectList();
+		} catch (\Exception $e) {
+			echo $e->getMessage();
 			return false;
-		} // if
+		} // try
 
 		$database->setQuery(
 			"select id, concat(package,'::',name) as text ".
@@ -209,11 +211,13 @@ class facileFormsElement
 			"where published=1 and type='Element Action' ".
 			"order by text, id desc"
 		);
-		$lists['scripts2'] = $database->loadObjectList();
-		if ($database->getErrorNum()) {
-			echo $database->stderr();
+
+		try {
+			$lists['scripts2'] = $database->loadObjectList();
+		} catch (\Exception $e) {
+			echo $e->getMessage();
 			return false;
-		} // if
+		} // try
 
 		$database->setQuery(
 			"select id, concat(package,'::',name) as text ".
@@ -221,11 +225,13 @@ class facileFormsElement
 			"where published=1 and type='Element Validation' ".
 			"order by text, id desc"
 		);
-		$lists['scripts3'] = $database->loadObjectList();
-		if ($database->getErrorNum()) {
-			echo $database->stderr();
+
+		try {
+			$lists['scripts3'] = $database->loadObjectList();
+		} catch (\Exception $e) {
+			echo $e->getMessage();
 			return false;
-		} // if
+		} // try
 
 		$order = JHTML::_('list.genericordering',
 					 "select ordering as value, title as text ".
@@ -543,12 +549,14 @@ class facileFormsElement
 		$database->setQuery(
 			"select * from #__facileforms_elements where form=$form and page=$page order by ordering"
 		);
-		$rows = $database->loadObjectList();
-                
-		if ($database->getErrorNum()) {
-			echo $database->stderr();
+
+		try {
+			$rows = $database->loadObjectList();
+		} catch (\Exception $e) {
+			echo $e->getMessage();
 			return false;
-		} // if
+		} // try
+
 		$formrow = new facileFormsForms($database);
 		$formrow->load($form);
 		$checkedIds = explode(',', BFRequest::getVar( 'checkedIds', ''));

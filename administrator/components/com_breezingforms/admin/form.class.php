@@ -13,6 +13,8 @@ use Joomla\CMS\Factory;
 use Joomla\Event\Event;
 use Joomla\Utilities\ArrayHelper;
 use Joomla\Database\DatabaseInterface;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 
 require_once($ff_admpath . '/admin/form.html.php');
 
@@ -440,11 +442,23 @@ class facileFormsForm {
                 "where package is not null and package!='' " .
                 "order by name"
         );
-        $pkgs = $database->loadObjectList();
-        if ($database->getErrorNum()) {
-            echo $database->stderr();
+
+
+        try {
+            $pkgs = $database->loadObjectList();
+        } catch (\Exception $e) {
+            try {
+                Log::add(Text::sprintf('JLIB_DATABASE_ERROR_FUNCTION_FAILED', $e->getCode(), $e->getMessage()), Log::WARNING, 'jerror');
+            } catch (\RuntimeException $exception) {
+                Factory::getApplication()->enqueueMessage(
+                    Text::sprintf('JLIB_DATABASE_ERROR_FUNCTION_FAILED', $e->getCode(), $e->getMessage()),
+                    'warning'
+                );
+            }
+
             return false;
         }
+
         $pkgok = $pkg == '';
         if (!$pkgok && count($pkgs))
             foreach ($pkgs as $p)
@@ -475,10 +489,13 @@ class facileFormsForm {
                 $limit
         );
         $rows = $database->loadObjectList();
-        if ($database->getErrorNum()) {
-            echo $database->stderr();
-            return false;
-        } // if
+
+        try {
+			$rows = $database->loadObjectList();
+		} catch (\Exception $e) {
+			echo $e->getMessage();
+			return false;
+		} // try
 
         $database->setQuery('SELECT FOUND_ROWS();');
         $total = $database->loadResult();

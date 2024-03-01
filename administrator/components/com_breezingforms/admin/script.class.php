@@ -114,8 +114,14 @@ class facileFormsScript
 			"where package is not null and package!='' ".
 			"order by name"
 		);
-		$pkgs = $database->loadObjectList();
-		if ($database->getErrorNum()) { echo $database->stderr(); return false; }
+
+        try {
+			$pkgs = $database->loadObjectList();
+		} catch (\Exception $e) {
+			echo $e->getMessage();
+			return false;
+		} // try
+
 		$pkgok = $pkg=='';
 		if (!$pkgok && count($pkgs)) foreach ($pkgs as $p) if ($p->name==$pkg) { $pkgok = true; break; }
 		if (!$pkgok) $pkg = '';
@@ -128,8 +134,15 @@ class facileFormsScript
 			"where package =  ".$database->Quote($pkg)." ".
 			"order by type, name, id desc"
 		);
-		$rows = $database->loadObjectList();
-		if ($database->getErrorNum()) { echo $database->stderr(); return false; }
+		
+        try {
+			$rows = $database->loadObjectList();
+		} catch (\Exception $e) {
+			echo $e->getMessage();
+			return false;
+		} // try
+
+
 		HTML_facileFormsScript::listitems($option, $rows, $pkglist);
 	} // listitems
 

@@ -293,12 +293,14 @@ class facileFormsMenu
 			"where package is not null and package!='' " .
 			"order by name"
 		);
-		$pkgs = $database->loadObjectList();
 
-		if ($database->getErrorNum()) {
-			echo $database->stderr();
+		try {
+			$pkgs = $database->loadObjectList();
+		} catch (\Exception $e) {
+			echo $e->getMessage();
 			return false;
-		}
+		} // try
+
 		$pkgok = $pkg == '';
 		if (!$pkgok && count($pkgs))
 			foreach ($pkgs as $p)
@@ -333,10 +335,12 @@ class facileFormsMenu
 		);
 		$rows = $database->loadObjectList();
 
-		if ($database->getErrorNum()) {
-			echo $database->stderr();
+		try {
+			$rows = $database->loadObjectList();
+		} catch (\Exception $e) {
+			echo $e->getMessage();
 			return false;
-		}
+		} // try
 
 		HTML_facileFormsMenu::listitems($option, $rows, $pkglist);
 	} // listitems
