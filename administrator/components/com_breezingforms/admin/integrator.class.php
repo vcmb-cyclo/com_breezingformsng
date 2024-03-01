@@ -8,6 +8,9 @@
  **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 class BFIntegrator {
 
     /**
@@ -17,7 +20,7 @@ class BFIntegrator {
     private $db = null;
 
     function __construct(){
-        $this->db = BFFactory::getDbo();
+        $this->db = Factory::getContainer()->get(DatabaseInterface::class);
     }
 
     function getRules(){
@@ -103,7 +106,7 @@ class BFIntegrator {
         foreach ($tables as $table)
         {
             try{
-                $results[$table] = BFFactory::getDbo()->getTableColumns($table, $typeOnly);
+                $results[$table] = Factory::getContainer()->get(DatabaseInterface::class)->getTableColumns($table, $typeOnly);
             }catch(Exception $e){  }
         }
 

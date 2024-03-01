@@ -289,7 +289,7 @@ class facileFormsConf
 	{
 		global $ff_compath, $database;
 
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 
 		$configfile = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'facileforms.config.php';
 		if (file_exists($configfile)) {
@@ -326,7 +326,7 @@ class facileFormsConf
 	{
 		global $ff_compath, $database, $mosConfig_fileperms;
 
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$configfile = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'facileforms.config.php';
 
 		// prepare output
@@ -420,7 +420,7 @@ class facileFormsMenus extends Table
 	public function load($id = null, $reset = true)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$database->setQuery("select * from #__facileforms_compmenus where id = $id");
 		$rows = $database->loadObjectList();
 		if ($rows) {

@@ -9,8 +9,10 @@
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
-$database = BFFactory::getDbo();
+$database = Factory::getContainer()->get(DatabaseInterface::class);
 
 /*
 ob_start();

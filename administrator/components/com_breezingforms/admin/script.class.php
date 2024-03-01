@@ -9,6 +9,8 @@
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\Utilities\ArrayHelper;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 require_once($ff_admpath.'/admin/script.html.php');
 
@@ -16,7 +18,7 @@ class facileFormsScript
 {
 	static function edit($option, $pkg, $ids)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
                 ArrayHelper::toInteger($ids);
 		$typelist = array();
 		$typelist[] = array('Untyped',BFText::_('COM_BREEZINGFORMS_SCRIPTS_UNTYPED'));
@@ -38,7 +40,7 @@ class facileFormsScript
 
 	static function save($option, $pkg)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$row = new facileFormsScripts($database);
 		// bind it to the table
 		if (!$row->bind($_POST)) {
@@ -62,7 +64,7 @@ class facileFormsScript
 
 	static function copy($option, $pkg, $ids)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$total = count($ids);
 		$row = new facileFormsScripts($database);
 		if (count($ids)) foreach ($ids as $id) {
@@ -76,7 +78,7 @@ class facileFormsScript
 
 	static function del($option, $pkg, $ids)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		if (count($ids)) {
 			$ids = implode(',', $ids);
 			$database->setQuery("delete from #__facileforms_scripts where id in ($ids)");
@@ -89,7 +91,7 @@ class facileFormsScript
 
 	static function publish($option, $pkg, $ids, $publish)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
                 ArrayHelper::toInteger($ids);
 		$ids = implode( ',', $ids );
 		$database->setQuery(
@@ -104,7 +106,7 @@ class facileFormsScript
 
 	static function listitems($option, $pkg)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 
 		$database->setQuery(
 			"select distinct  package as name ".

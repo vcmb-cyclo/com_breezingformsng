@@ -1,5 +1,10 @@
 <?php
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
+
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
+
 /**
  * BreezingForms - A Joomla Forms Application
  * @version 1.9
@@ -23,7 +28,7 @@ class BFIntegrate
 
     function __construct($formId)
     {
-        $this->db = BFFactory::getDbo();
+        $this->db = Factory::getContainer()->get(DatabaseInterface::class);
         $this->rules = $this->getRules($formId);
         $this->formId = $formId;
     }

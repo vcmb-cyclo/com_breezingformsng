@@ -9,6 +9,8 @@
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\Utilities\ArrayHelper;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 require_once($ff_admpath . '/admin/menu.html.php');
 
@@ -16,7 +18,7 @@ class facileFormsMenu
 {
 	static function create($option, $pkg)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$lists = array();
 
 		$database->setQuery(
@@ -54,7 +56,7 @@ class facileFormsMenu
 
 	static function edit($option, $pkg, $ids, $formid, $parent)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		ArrayHelper::toInteger($ids);
 		$row = new facileFormsMenus($database);
 		if ($formid == '')
@@ -171,7 +173,7 @@ class facileFormsMenu
 
 	static function save($option, $pkg)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$row = new facileFormsMenus($database);
 
 		unset($_POST['ordering']);
@@ -206,7 +208,7 @@ class facileFormsMenu
 
 	static function copy($option, $pkg, $ids)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$total = count($ids);
 		$row = new facileFormsMenus($database);
 		$child = new facileFormsMenus($database);
@@ -237,7 +239,7 @@ class facileFormsMenu
 
 	static function del($option, $pkg, $ids)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		ArrayHelper::toInteger($ids);
 		if (count($ids)) {
 			$ids = implode(',', $ids);
@@ -256,7 +258,7 @@ class facileFormsMenu
 
 	static function order($option, $pkg, $ids, $inc)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		ArrayHelper::toInteger($ids);
 		$row = new facileFormsMenus($database);
 		$row->load($ids[0]);
@@ -268,7 +270,7 @@ class facileFormsMenu
 	static function publish($option, $pkg, $ids, $publish)
 	{
 		ArrayHelper::toInteger($ids);
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$ids = implode(',', $ids);
 		$database->setQuery(
 			"update #__facileforms_compmenus set published='$publish' where id in ($ids)"
@@ -283,7 +285,7 @@ class facileFormsMenu
 
 	static function listitems($option, $pkg)
 	{
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 
 		$database->setQuery(
 			"select distinct package as name " .

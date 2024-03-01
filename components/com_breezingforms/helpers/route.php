@@ -9,6 +9,9 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 abstract class BreezingformsHelperRoute
 {
 	protected static $lookup = array();
@@ -21,7 +24,7 @@ abstract class BreezingformsHelperRoute
             $menu = 'Itemid';
             if(JFactory::getConfig()->get('sef')){
                 $menu = 'menuitemid';
-                $db = BFFactory::getDbo();
+                $db = Factory::getContainer()->get(DatabaseInterface::class);
                 $db->setQuery("Select `name` From #__facileforms_forms Where id = " . intval($the_id[0]));
                 $formname = $db->loadResult();
                 if($formname){

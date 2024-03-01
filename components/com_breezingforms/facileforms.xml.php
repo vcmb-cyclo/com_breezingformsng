@@ -8,6 +8,9 @@
 **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 global $_ff_xmlPackage;
 
 $_ff_xmlPackage = array();
@@ -99,7 +102,7 @@ class ff_xmlPackage
 
 	function getSqlText($p, $tag, $def = '')
 	{
-            $db = \JFactory::getDbo();
+            $db = \Factory::getContainer()->get(DatabaseInterface::class);
             return $db->quote($this->getText($p, $tag, $def));
 	} // getSqlText
 

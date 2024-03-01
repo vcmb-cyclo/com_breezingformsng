@@ -8,6 +8,9 @@
 **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 require_once($ff_admpath.'/admin/element.html.php');
 
 class facileFormsElement
@@ -15,7 +18,7 @@ class facileFormsElement
 	static function edit($option, $tabpane, $pkg, $form, $page, $ids, $newtype)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$row = new facileFormsElements($database);
 		if ($newtype=='')
 			$row->load($ids[0]);
@@ -247,7 +250,7 @@ class facileFormsElement
 	static function save($option, $pkg, $form, $page)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$row = new facileFormsElements($database);
                 
 		// bind it to the table
@@ -280,7 +283,7 @@ class facileFormsElement
                     $formId = $form;
                     require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
                     $cbForm = contentbuilder::getForm('com_breezingforms', $formId);
-                    $db = BFFactory::getDbo();
+                    $db = Factory::getContainer()->get(DatabaseInterface::class);
                     $db->setQuery("Select id From #__contentbuilder_forms Where `type` = 'com_breezingforms' And `reference_id` = " . intval($formId));
 	                $cbForms = $db->loadColumn();
                     if(is_object($cbForm) && count($cbForms)){
@@ -307,12 +310,12 @@ class facileFormsElement
 	static function del($option, $pkg, $form, $page, $ids)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		
                 $quoted_ids = array();
                         
                 foreach($ids As $the_id){
-                   $quoted_ids[] = BFFactory::getDbo()->Quote($the_id);
+                   $quoted_ids[] = Factory::getContainer()->get(DatabaseInterface::class)->Quote($the_id);
                 }
 
                 $ids = implode(',', $quoted_ids);
@@ -331,7 +334,7 @@ class facileFormsElement
 	static function getDestination($option, $pkg, $form, $page, $ids, $action)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$fff = array();
 
 		$database->setQuery(
@@ -377,7 +380,7 @@ class facileFormsElement
 	static function copy($option, $pkg, $form, $page, $ids)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$destination = explode( ',', BFRequest::getVar('destination',''));
 		list($newform, $newpage ) = $destination;
 		if (!$newform && !$newpage)
@@ -400,7 +403,7 @@ class facileFormsElement
 	static function move($option, $pkg, $form, $page, $ids)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$destination = explode( ',', BFRequest::getVar('destination',''));
 		list($newform, $newpage ) = $destination;
 		if (!$newform && !$newpage)
@@ -425,7 +428,7 @@ class facileFormsElement
 	static function sort($option, $pkg, $form, $page)
 	{
             
-		$rows = _ff_select("select * from `#__facileforms_forms` where id = ".BFFactory::getDbo()->Quote($form));
+		$rows = _ff_select("select * from `#__facileforms_forms` where id = ".Factory::getContainer()->get(DatabaseInterface::class)->Quote($form));
 		$width = $height = 600;
 		if (count($rows)) {
 			$f = $rows[0];
@@ -437,7 +440,7 @@ class facileFormsElement
 		$rows = _ff_select(
 			"select id ".
 			"from `#__facileforms_elements` ".
-			"where form=".BFFactory::getDbo()->Quote($form)." and page=".BFFactory::getDbo()->Quote($page)." ".
+			"where form=".Factory::getContainer()->get(DatabaseInterface::class)->Quote($form)." and page=".Factory::getContainer()->get(DatabaseInterface::class)->Quote($page)." ".
 			"order by ".
 				"if(`type`='Hidden Input',1,0), ".
 				"if(`type`='Hidden Input',0,if(posy<0,".intval($height)."+if(posymode=0,posy,(posy*".intval($height).")/100),if(posymode=0,posy,(posy*".intval($height).")/100))), ".
@@ -457,7 +460,7 @@ class facileFormsElement
 	static function movePos($option, $pkg, $form, $page, $ids, $task)
 	{
 		global $ff_config, $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$ff_config->movepixels = BFRequest::getVar('movepixels', '');
 		$ff_config->store();
 		$pos = explode(',', BFRequest::getVar('movepositions', ''));
@@ -476,7 +479,7 @@ class facileFormsElement
 	static function gridshow($option, $pkg, $form, $page, $ids, $task)
 	{
 		global $ff_config, $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$ff_config->gridshow = BFRequest::getVar('gridshow', 0);
 		$ff_config->store();
 		JFactory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg&checkedIds=".implode(',', $ids));
@@ -485,7 +488,7 @@ class facileFormsElement
 	static function publish($option, $pkg, $form, $page, $ids, $publish)
 	{
 		global $database, $my;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$ids = implode( ',', $ids );
 		$database->setQuery(
 			"update #__facileforms_elements set published=$publish where form=$form and page=$page and id in ($ids)"
@@ -500,7 +503,7 @@ class facileFormsElement
 	static function order($option, $pkg, $form, $page, $ids, $inc)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$row = new facileFormsElements($database);
 		$row->load($ids[0]);
 		$row->move($inc, "form=$form and page=$page" );
@@ -511,7 +514,7 @@ class facileFormsElement
 	{
 		if(trim($positions) != ''){
 
-			$database = BFFactory::getDbo();
+			$database = Factory::getContainer()->get(DatabaseInterface::class);
 			
 			$expl = explode(',',$positions);
 			$explSize = count($expl);
@@ -536,7 +539,7 @@ class facileFormsElement
 	static function listitems($option, $pkg, $form, $page, $prevmode)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$database->setQuery(
 			"select * from #__facileforms_elements where form=$form and page=$page order by ordering"
 		);
@@ -555,7 +558,7 @@ class facileFormsElement
 	static function addPageBehind($option, $pkg, $form, $page)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$row = new facileFormsForms($database);
 		$row->load($form);
 		if ($page < $row->pages) {
@@ -576,7 +579,7 @@ class facileFormsElement
 	static function addPageBefore($option, $pkg, $form, $page)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$row = new facileFormsForms($database);
 		$row->load($form);
 		$database->setQuery(
@@ -594,7 +597,7 @@ class facileFormsElement
 	static function delPage($option, $pkg, $form, $page)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$row = new facileFormsForms($database);
 		$row->load($form);
 		$database->setQuery(
@@ -620,7 +623,7 @@ class facileFormsElement
 	static function getPageDestination($option, $pkg, $form, $page)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$row = new facileFormsForms($database);
 		$row->load($form);
 		$lst = array();
@@ -637,7 +640,7 @@ class facileFormsElement
 	static function movePage($option, $pkg, $form, $page)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$newpage = BFRequest::getInt('destination','');
 		if ($newpage != $page) {
 			$database->setQuery(

@@ -8,6 +8,9 @@
 **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 require_once($ff_admpath.'/admin/config.html.php');
 require_once($ff_admpath.'/admin/import.class.php');
 
@@ -30,7 +33,7 @@ class facileFormsConfig extends facileFormsConf {
 
             try {
 
-                $db = JFactory::getDbo();
+                $db = Factory::getContainer()->get(DatabaseInterface::class);
                 $db->setQuery("Update #__update_sites Set last_check_timestamp = 0, extra_query = " . $db->quote('key=' . $_REQUEST['updatekey']) . " Where `name` = 'BreezingForms Pro' And `type` = 'extension'");
                 $db->execute();
 
@@ -144,7 +147,7 @@ class facileFormsConfig extends facileFormsConf {
 			if ($cond == 1) {
 				if($id){
 					$xml .= indent($ind).'<'.$name.'id>'.$id.'</'.$name.'id>'.nl();
-					$funcname = _ff_selectValue('select name from `'.$table.'` where id='.BFFactory::getDbo()->Quote($id));
+					$funcname = _ff_selectValue('select name from `'.$table.'` where id='.Factory::getContainer()->get(DatabaseInterface::class)->Quote($id));
 					if ($funcname && $funcname != '')
 						$xml .= indent($ind).'<'.$name.'name>'.$funcname.'</'.$name.'name>'.nl();
 				}
@@ -204,7 +207,7 @@ class facileFormsConfig extends facileFormsConf {
 			$ids = array();
 			$rows = _ff_select(
 				"select id from #__facileforms_scripts ".
-				"where package =  ".BFFactory::getDbo()->Quote($id)." ".
+				"where package =  ".Factory::getContainer()->get(DatabaseInterface::class)->Quote($id)." ".
 				"order by id"
 			);
 			if (count($rows)) foreach ($rows as $row) $ids[] = $row->id;
@@ -214,7 +217,7 @@ class facileFormsConfig extends facileFormsConf {
                         $quoted_ids = array();
                         
                         foreach($ids As $the_id){
-                           $quoted_ids[] = BFFactory::getDbo()->Quote($the_id);
+                           $quoted_ids[] = Factory::getContainer()->get(DatabaseInterface::class)->Quote($the_id);
                         }
                     
                         $ids = implode(',', $quoted_ids);
@@ -249,7 +252,7 @@ class facileFormsConfig extends facileFormsConf {
 			$ids = array();
 			$rows = _ff_select(
 				"select id from #__facileforms_pieces ".
-				"where package =  ".BFFactory::getDbo()->Quote($id)." ".
+				"where package =  ".Factory::getContainer()->get(DatabaseInterface::class)->Quote($id)." ".
 				"order by id"
 			);
 			if (count($rows)) foreach ($rows as $row) $ids[] = $row->id;
@@ -259,7 +262,7 @@ class facileFormsConfig extends facileFormsConf {
                         $quoted_ids = array();
                         
                         foreach($ids As $the_id){
-                           $quoted_ids[] = BFFactory::getDbo()->Quote($the_id);
+                           $quoted_ids[] = Factory::getContainer()->get(DatabaseInterface::class)->Quote($the_id);
                         }
                     
 			$ids = implode(',', $quoted_ids);
@@ -293,7 +296,7 @@ class facileFormsConfig extends facileFormsConf {
 			$ids = array();
 			$rows = _ff_select(
 				"select id from #__facileforms_forms ".
-				"where package =  ".BFFactory::getDbo()->Quote($id)." ".
+				"where package =  ".Factory::getContainer()->get(DatabaseInterface::class)->Quote($id)." ".
 				"order by id"
 			);
 			if (count($rows)) foreach ($rows as $row) $ids[] = $row->id;
@@ -302,7 +305,7 @@ class facileFormsConfig extends facileFormsConf {
 			$quoted_ids = array();
                         
                         foreach($ids As $the_id){
-                           $quoted_ids[] = BFFactory::getDbo()->Quote($the_id);
+                           $quoted_ids[] = Factory::getContainer()->get(DatabaseInterface::class)->Quote($the_id);
                         }
                     
 			$ids = implode(',', $quoted_ids);
@@ -480,7 +483,7 @@ class facileFormsConfig extends facileFormsConf {
 			$ids = array();
 			$rows = _ff_select(
 				"select id from #__facileforms_compmenus ".
-				"where package =  ".BFFactory::getDbo()->Quote($id)." and parent = 0 ".
+				"where package =  ".Factory::getContainer()->get(DatabaseInterface::class)->Quote($id)." and parent = 0 ".
 				"order by id"
 			);
 			if (count($rows)) foreach ($rows as $row) $ids[] = $row->id;
@@ -489,7 +492,7 @@ class facileFormsConfig extends facileFormsConf {
 			$quoted_ids = array();
                         
                         foreach($ids As $the_id){
-                           $quoted_ids[] = BFFactory::getDbo()->Quote($the_id);
+                           $quoted_ids[] = Factory::getContainer()->get(DatabaseInterface::class)->Quote($the_id);
                         }
                     
 			$ids = implode(',', $quoted_ids);

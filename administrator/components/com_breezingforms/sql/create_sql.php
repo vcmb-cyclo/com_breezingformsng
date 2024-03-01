@@ -8,6 +8,9 @@
 **/
 defined( '_JEXEC' ) or die( 'Direct Access to this location is not allowed.' );
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 $_1 = "DROP TABLE IF EXISTS `#__facileforms_config`;";
 
 $_2 = "CREATE TABLE `#__facileforms_config` (
@@ -434,7 +437,7 @@ $_52 = "ALTER TABLE `#__facileforms_scripts`
 $_53 = "ALTER TABLE `#__facileforms_subrecords`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT";
 
-$db = BFFactory::getDbo();
+$db = Factory::getContainer()->get(DatabaseInterface::class);
 
 $db->setQuery($_1);
 $db->query();

@@ -13,6 +13,8 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\Filesystem\File;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 function bf_sanitizeFilename($fileName, $defaultIfEmpty = 'upload', $separator = '_', $lowerCase = true)
 {
@@ -258,7 +260,7 @@ function bf_is_mobile()
 
 function bf_getFieldSelectorList($form_id, $element_target_id)
 {
-	$db = BFFactory::getDbo();
+	$db = Factory::getContainer()->get(DatabaseInterface::class);
 	$db->setQuery("Select `name` From #__facileforms_elements Where form = " . intval($form_id) . " And `name` Not In ('bfFakeName','bfFakeName2','bfFakeName3','bfFakeName4','bfFakeName5','bfFakeName6') Order by `ordering`");
 
 	$rows = $db->loadColumn();
@@ -299,7 +301,7 @@ myField.value += myValue;
 */
 function bf_getFieldSelectorListEditor($form_id, $element_target_id)
 {
-	$db = BFFactory::getDbo();
+	$db = Factory::getContainer()->get(DatabaseInterface::class);
 	$db->setQuery("Select `name` From #__facileforms_elements Where form = " . intval($form_id) . " And `name` Not In ('bfFakeName','bfFakeName2','bfFakeName3','bfFakeName4','bfFakeName5','bfFakeName6') Order by `ordering`");
 	$rows = $db->loadColumn();
 	$out = '<script type="text/javascript">
@@ -324,7 +326,7 @@ function bf_getFieldSelectorListEditor($form_id, $element_target_id)
 
 function bf_getFieldSelectorListHTML($form_id, $editor, $element_target_id)
 {
-	$db = BFFactory::getDbo();
+	$db = Factory::getContainer()->get(DatabaseInterface::class);
 	$db->setQuery("Select `name` From #__facileforms_elements Where form = " . intval($form_id) . " And `name` Not In ('bfFakeName','bfFakeName2','bfFakeName3','bfFakeName4','bfFakeName5','bfFakeName6') Order by `ordering`");
 	$rows = $db->loadColumn();
 	$out = '<script type="text/javascript">

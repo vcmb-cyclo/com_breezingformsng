@@ -9,6 +9,8 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use \Joomla\CMS\Filesystem\File;
 use Joomla\Filesystem\Folder;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 class BFFactory {
 
@@ -17,7 +19,6 @@ class BFFactory {
     public static function getDbo(){
 
         if(static::$dbo == null){
-
             static::$dbo = new BFDbo();
         }
 
@@ -44,7 +45,7 @@ class BFDbo  {
 
     function __construct()
     {
-        $this->dbo = JFactory::getDbo();
+        $this->dbo = Factory::getContainer()->get(DatabaseInterface::class);
     }
 
     public function setQuery($query, $offset = 0, $limit = 0){
@@ -423,57 +424,57 @@ class com_breezingformsInstallerScript
      */
     function update($parent)
     {
-        $db = BFFactory::getDbo();
-        $tables = self::getTableFields( BFFactory::getDbo()->getTableList() );
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $tables = self::getTableFields( Factory::getContainer()->get(DatabaseInterface::class)->getTableList() );
 
-        if(isset($tables[BFFactory::getDbo()->getPrefix().'facileforms_records']))
+        if(isset($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix().'facileforms_records']))
         {
-            if ( ! isset( $tables[BFFactory::getDbo()->getPrefix() . 'facileforms_records']['opted'] ) )
+            if ( ! isset( $tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_records']['opted'] ) )
             {
                 $db->setQuery( "ALTER TABLE `#__facileforms_records` ADD `opted` TINYINT(1) NOT NULL DEFAULT '0' AFTER `paypal_download_tries`, ADD INDEX (`opted`)" );
                 $db->execute();
             }
         }
 
-        if(isset($tables[BFFactory::getDbo()->getPrefix().'facileforms_records']))
+        if(isset($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix().'facileforms_records']))
         {
-            if ( ! isset( $tables[BFFactory::getDbo()->getPrefix() . 'facileforms_records']['opt_ip'] ) )
+            if ( ! isset( $tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_records']['opt_ip'] ) )
             {
                 $db->setQuery( "ALTER TABLE `#__facileforms_records` ADD `opt_ip` VARCHAR(255) NOT NULL DEFAULT '' AFTER `opted`, ADD INDEX (`opt_ip`)" );
                 $db->execute();
             }
         }
 
-        if(isset($tables[BFFactory::getDbo()->getPrefix().'facileforms_records']))
+        if(isset($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix().'facileforms_records']))
         {
-            if ( ! isset( $tables[BFFactory::getDbo()->getPrefix() . 'facileforms_records']['opt_date'] ) )
+            if ( ! isset( $tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_records']['opt_date'] ) )
             {
                 $db->setQuery( "ALTER TABLE `#__facileforms_records` ADD `opt_date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00' AFTER `opt_ip`, ADD INDEX (`opt_date`)" );
                 $db->execute();
             }
         }
 
-        if(isset($tables[BFFactory::getDbo()->getPrefix().'facileforms_records']))
+        if(isset($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix().'facileforms_records']))
         {
-            if ( ! isset( $tables[BFFactory::getDbo()->getPrefix() . 'facileforms_records']['opt_token'] ) )
+            if ( ! isset( $tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_records']['opt_token'] ) )
             {
                 $db->setQuery( "ALTER TABLE `#__facileforms_records` ADD `opt_token` VARCHAR(255) NOT NULL DEFAULT '' AFTER `opt_date`, ADD INDEX (`opt_token`)" );
                 $db->execute();
             }
         }
 
-        if(isset($tables[BFFactory::getDbo()->getPrefix().'facileforms_forms']))
+        if(isset($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix().'facileforms_forms']))
         {
-            if ( ! isset( $tables[BFFactory::getDbo()->getPrefix() . 'facileforms_forms']['double_opt'] ) )
+            if ( ! isset( $tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_forms']['double_opt'] ) )
             {
                 $db->setQuery( "ALTER TABLE `#__facileforms_forms` ADD `double_opt` TINYINT(1) NOT NULL DEFAULT '0' AFTER `filter_state`, ADD INDEX (`double_opt`)" );
                 $db->execute();
             }
         }
 
-        if(isset($tables[BFFactory::getDbo()->getPrefix().'facileforms_forms']))
+        if(isset($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix().'facileforms_forms']))
         {
-            if ( ! isset( $tables[BFFactory::getDbo()->getPrefix() . 'facileforms_forms']['opt_mail'] ) )
+            if ( ! isset( $tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_forms']['opt_mail'] ) )
             {
                 $db->setQuery( "ALTER TABLE `#__facileforms_forms` ADD `opt_mail` VARCHAR(128) NOT NULL DEFAULT '' AFTER `double_opt`, ADD INDEX (`opt_mail`)" );
                 $db->execute();
@@ -492,7 +493,7 @@ class com_breezingformsInstallerScript
         jimport('joomla.filesystem.file');
         jimport('joomla.version');
 
-        $db = BFFactory::getDbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
 
         $plugins = $this->getPlugins();
 
@@ -536,7 +537,7 @@ class com_breezingformsInstallerScript
      */
     function postflight($type, $parent)
     {
-        $db = BFFactory::getDbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
 
         $plugins = $this->getPlugins();
 
@@ -594,7 +595,7 @@ class com_breezingformsInstallerScript
 
         foreach ($tables as $table)
         {
-            $results[$table] = BFFactory::getDbo()->getTableColumns($table, $typeOnly);
+            $results[$table] = Factory::getContainer()->get(DatabaseInterface::class)->getTableColumns($table, $typeOnly);
         }
 
         return $results;

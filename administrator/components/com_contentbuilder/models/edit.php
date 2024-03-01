@@ -1875,9 +1875,9 @@ var contentbuilder = new function(){
 
             // Get all admin users
             $query->clear()
-                ->select(Factory::getDbo()->quoteName(array('name', 'email', 'sendEmail')))
-                ->from(Factory::getDbo()->quoteName('#__users'))
-                ->where(Factory::getDbo()->quoteName('sendEmail') . ' = ' . 1);
+                ->select(Factory::getContainer()->get(DatabaseInterface::class)->quoteName(array('name', 'email', 'sendEmail')))
+                ->from(Factory::getContainer()->get(DatabaseInterface::class)->quoteName('#__users'))
+                ->where(Factory::getContainer()->get(DatabaseInterface::class)->quoteName('sendEmail') . ' = ' . 1);
 
             Factory::getContainer()->get(DatabaseInterface::class)->setQuery($query);
 

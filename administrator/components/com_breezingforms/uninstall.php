@@ -9,12 +9,14 @@
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\Filesystem\File;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 function com_uninstall(){
 
     jimport('joomla.filesystem.file');
 
-    $db = BFFactory::getDbo();
+    $db = Factory::getContainer()->get(DatabaseInterface::class);
     $db->setQuery("Delete From #__menu Where `link` Like 'index.php?option=com_breezingforms&act=%'");
     $db->query();
     $db->setQuery("Delete From #__menu Where `alias` Like 'BreezingForms' And `path` Like 'breezingforms'");

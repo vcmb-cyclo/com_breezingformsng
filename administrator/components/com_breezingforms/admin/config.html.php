@@ -8,6 +8,9 @@
  **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 if (BFRequest::getVar('act', '') == 'configuration') {
 	JToolBarHelper::preferences('com_breezingforms');
 }
@@ -38,7 +41,7 @@ class HTML_facileFormsConf
 				$update_key = '';
 				try {
 
-					$db = JFactory::getDbo();
+					$db = Factory::getContainer()->get(DatabaseInterface::class);
 					$db->setQuery("Select extra_query From #__update_sites Where `name` = 'BreezingForms Pro'");
 					$update_key = $db->loadResult();
 					$update_key = explode('=', $update_key);

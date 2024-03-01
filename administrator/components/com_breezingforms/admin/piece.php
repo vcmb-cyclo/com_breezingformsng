@@ -8,6 +8,9 @@
 **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 require_once($ff_admpath.'/admin/piece.class.php');
 
 $pkg = getPiecePackage();
@@ -61,7 +64,7 @@ function getPiecePackage()
 	else {
 		$ok = _ff_selectValue(
 			"select count(*) from `#__facileforms_pieces` ".
-			"where package =  ".BFFactory::getDbo()->Quote($pkg)
+			"where package =  ".Factory::getContainer()->get(DatabaseInterface::class)->Quote($pkg)
 		);
 		if (!$ok) $pkg = $ff_config->piecepkg;
 	} // if

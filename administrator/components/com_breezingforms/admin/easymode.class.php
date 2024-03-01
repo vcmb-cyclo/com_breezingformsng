@@ -8,6 +8,9 @@
 **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 class EasyMode{
 	
 	/**
@@ -16,7 +19,7 @@ class EasyMode{
 	private $db = null;
 	
 	function __construct(){
-		$this->db = BFFactory::getDbo();
+		$this->db = Factory::getContainer()->get(DatabaseInterface::class);
 	}
 	
 	public function save($form, $formName, $formTitle, array $formOptions, $templateCode, array $areas, $pages = 1){

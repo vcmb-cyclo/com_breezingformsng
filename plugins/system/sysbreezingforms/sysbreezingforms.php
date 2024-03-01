@@ -10,6 +10,9 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 /**
  * Joomla! System Logging Plugin.
  *
@@ -43,7 +46,7 @@ class PlgSystemSysbreezingforms extends JPlugin
             if (false) {
                 $message = 'Please enter your update key in the BreezingForms configuration.<br />Without this key you won\'t be able to receive future upates.<br />You can get your personal update key at Crosstec.org in the My Account => My Downloads section after login.<br />If your membership is expired, you can renew it by <a style="font-weight: bold; text-decoration: underline;" target="_blank" href="https://crosstec.org/en/downloads/joomla-forms.html">purchasing a membership</a>.';
 
-                $db = JFactory::getDbo();
+                $db = Factory::getContainer()->get(DatabaseInterface::class);
                 $db->setQuery("Select extra_query From #__update_sites Where `name` = 'BreezingForms Pro' And `type` = 'extension'");
                 $query = $db->loadResult();
 

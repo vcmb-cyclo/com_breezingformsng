@@ -8,6 +8,9 @@
  **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 require_once($ff_admpath . '/admin/install.html.php');
 require_once($ff_admpath . '/admin/config.class.php');
 
@@ -86,7 +89,7 @@ class facileFormsInstaller
 	static function testdb($table, $column)
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$cnt = NULL;
 		$rep = 0;
 		$olderr = error_reporting($rep);

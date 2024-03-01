@@ -10,6 +10,8 @@
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 require_once($ff_compath . '/facileforms.process.php');
 
@@ -3250,7 +3252,7 @@ class HTML_facileFormsElement
 		global $ff_processor, $ff_mospath, $ff_mossite, $ff_admicon, $ff_comsite, $ff_config,
 		$ff_request, $ff_version, $database, $my;
 		$mainframe = JFactory::getApplication();
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 
 		$ff_mossite = Uri::root();
 		?>

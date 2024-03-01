@@ -9,6 +9,9 @@
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 if( isset($_POST['value']) && is_numeric( $_POST['value'] ) ){
 
     if (ob_get_level()) ob_end_clean();
@@ -16,7 +19,7 @@ if( isset($_POST['value']) && is_numeric( $_POST['value'] ) ){
         ob_end_clean();
     }
 
-    $db = BFFactory::getDbo();
+    $db = Factory::getContainer()->get(DatabaseInterface::class);
     $db->setQuery("Select s.value From #__facileforms_records As r, #__facileforms_subrecords As s Where r.form = " . intval($_POST['form_id']) . " And r.id = s.record And s.value = " . $db->quote(trim($_POST['value'])) . " Limit 1");
 
     $res = $db->loadObject();
@@ -323,8 +326,8 @@ class ff_importPackage extends ff_xmlPackage
                         require_once(JPATH_SITE.'/administrator/components/com_breezingforms/libraries/Zend/Json/Encoder.php');
                                 
                         foreach($this->forms As $form_id){
-                            BFFactory::getDbo()->setQuery("Select template_areas, template_code_processed, template_code From #__facileforms_forms Where id = " . intval($form_id));
-                            $row = BFFactory::getDbo()->loadObject();
+                            Factory::getContainer()->get(DatabaseInterface::class)->setQuery("Select template_areas, template_code_processed, template_code From #__facileforms_forms Where id = " . intval($form_id));
+                            $row = Factory::getContainer()->get(DatabaseInterface::class)->loadObject();
                             if(trim($row->template_code) != ''){
                                 $areas = Zend_Json::decode(bf_b64dec($row->template_areas));
                                 $i = 0;
@@ -346,8 +349,8 @@ class ff_importPackage extends ff_xmlPackage
                                     $template_code = bf_b64enc(Zend_Json::encode($dataObject));
                                 }
 
-                                BFFactory::getDbo()->setQuery("Update #__facileforms_forms Set template_code = ".BFFactory::getDbo()->Quote($template_code).", template_areas = " . BFFactory::getDbo()->Quote($template_areas) . " Where id = " . intval($form_id));
-                                BFFactory::getDbo()->query();
+                                Factory::getContainer()->get(DatabaseInterface::class)->setQuery("Update #__facileforms_forms Set template_code = ".Factory::getContainer()->get(DatabaseInterface::class)->Quote($template_code).", template_areas = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($template_areas) . " Where id = " . intval($form_id));
+                                Factory::getContainer()->get(DatabaseInterface::class)->query();
 
                                 if($row && $row->template_code_processed == 'QuickMode'){
                                     $quickMode = new QuickMode();
@@ -403,10 +406,10 @@ class ff_importPackage extends ff_xmlPackage
 	{
 		if ($this->hasErrors()) return;
 		$this->oldscripts = _ff_select(
-			"select id, name from #__facileforms_scripts where package =  ".BFFactory::getDbo()->Quote($id).""
+			"select id, name from #__facileforms_scripts where package =  ".Factory::getContainer()->get(DatabaseInterface::class)->Quote($id).""
 		);
 		$this->oldpieces = _ff_select(
-			"select id, name from #__facileforms_pieces where package =  ".BFFactory::getDbo()->Quote($id).""
+			"select id, name from #__facileforms_pieces where package =  ".Factory::getContainer()->get(DatabaseInterface::class)->Quote($id).""
 		);
 		dropPackage($id); // the one in admin.facileforms.php
 	} // dropPackage
@@ -414,7 +417,7 @@ class ff_importPackage extends ff_xmlPackage
 	function emitScript()
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		// sanity check
 		if ($this->hasErrors()) return;
 		// save new row
@@ -440,7 +443,7 @@ class ff_importPackage extends ff_xmlPackage
 	function emitPiece()
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		// sanity check
 		if ($this->hasErrors()) return;
 		// save new row
@@ -466,7 +469,7 @@ class ff_importPackage extends ff_xmlPackage
 	function emitForm()
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		// sanity check
 		if ($this->hasErrors()) return;
 		if (!array_key_exists('emitted', $this->params[1])) {
@@ -532,7 +535,7 @@ class ff_importPackage extends ff_xmlPackage
 	} // emitForm
 
 	public function resetQuickModeDbId( &$dataObject ){
-		$db = BFFactory::getDbo();
+		$db = Factory::getContainer()->get(DatabaseInterface::class);
                 
 		if(isset($dataObject['attributes']) && isset($dataObject['properties']) ){
 			$mdata = $dataObject['properties'];
@@ -604,7 +607,7 @@ class ff_importPackage extends ff_xmlPackage
 						// search published
 						$id = _ff_selectValue(
 							"select id from `".$table."`".
-							 "where name=".BFFactory::getDbo()->Quote($name)." and published=1 ".
+							 "where name=".Factory::getContainer()->get(DatabaseInterface::class)->Quote($name)." and published=1 ".
 							 "order by type, title, id"
 						);
 						if ($this->hasErrors()) return;
@@ -615,7 +618,7 @@ class ff_importPackage extends ff_xmlPackage
 							// search also unpublished
 							$id = _ff_selectValue(
 								"select id from `".$table."` ".
-								 "where name=".BFFactory::getDbo()->Quote($name)." ".
+								 "where name=".Factory::getContainer()->get(DatabaseInterface::class)->Quote($name)." ".
 								 "order by type, title, id"
 							);
 							if ($this->hasErrors()) return;
@@ -645,7 +648,7 @@ class ff_importPackage extends ff_xmlPackage
 	function emitElement()
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		// sanity check
 		if ($this->hasErrors()) return;
 		// save new row
@@ -704,7 +707,7 @@ class ff_importPackage extends ff_xmlPackage
 	function emitCompsubmenu()
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$this->emitCompmenu();
 		if ($this->hasErrors()) return;
 		// save new row
@@ -730,7 +733,7 @@ class ff_importPackage extends ff_xmlPackage
 	function emitCompmenu()
 	{
 		global $database;
-		$database = BFFactory::getDbo();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		// sanity check
 		if ($this->hasErrors()) return;
 		if (!array_key_exists('emitted', $this->params[1])) {

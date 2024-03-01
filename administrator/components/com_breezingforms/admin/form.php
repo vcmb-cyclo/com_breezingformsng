@@ -10,6 +10,8 @@
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\Utilities\ArrayHelper;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 $ids = BFRequest::getVar( 'ids', array(), 'post', 'array' );
 ArrayHelper::toInteger($ids);
@@ -85,7 +87,7 @@ function getFormPackage()
 	else {
 		$ok = _ff_selectValue(
 			"select count(*) from `#__facileforms_forms` ".
-			"where package = ".BFFactory::getDbo()->Quote($pkg).""
+			"where package = ".Factory::getContainer()->get(DatabaseInterface::class)->Quote($pkg).""
 		);
 		if (!$ok) $pkg = $ff_config->formpkg;
 	} // if

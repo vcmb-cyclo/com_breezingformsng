@@ -11,10 +11,11 @@
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
-use Joomla\CMS\Version;
 use Joomla\Filesystem\Folder;
 use Joomla\Filesystem\File;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFFactory.php');
 require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFRequest.php');
@@ -23,7 +24,7 @@ if (BFRequest::getVar('mosmsg', '') != '') {
     JFactory::getApplication()->enqueueMessage(BFRequest::getVar('mosmsg', ''));
 }
 
-$db = BFFactory::getDbo();
+$db = Factory::getContainer()->get(DatabaseInterface::class);
 
 if (!function_exists('bf_b64enc')) {
 
@@ -54,7 +55,7 @@ function bf_getTableFields($tables, $typeOnly = true)
 
     foreach ($tables as $table) {
         try {
-            $results[$table] = BFFactory::getDbo()->getTableColumns($table, $typeOnly);
+            $results[$table] = Factory::getContainer()->get(DatabaseInterface::class)->getTableColumns($table, $typeOnly);
         } catch (Exception $e) {
         }
     }
@@ -323,7 +324,7 @@ if (@file_exists($sourcePath) && @is_readable($sourcePath) && @is_dir($sourcePat
     @closedir($handle);
 }
 
-$tables = bf_getTableFields(BFFactory::getDBO()->getTableList());
+$tables = bf_getTableFields(Factory::getContainer()->get(DatabaseInterface::class)->getTableList());
 if (isset($tables[BFJoomlaConfig::get('dbprefix') . 'facileforms_forms'])) {
 
 
@@ -340,7 +341,7 @@ $_POST = bf_stripslashes_deep($_POST);
 $_GET = bf_stripslashes_deep($_GET);
 $_REQUEST = bf_stripslashes_deep($_REQUEST);
 
-$db = BFFactory::getDbo();
+$db = Factory::getContainer()->get(DatabaseInterface::class);
 
 /*
  * Temporary section end
@@ -471,7 +472,7 @@ function isVisibleElement($type)
 function _ff_query($sql, $insert = 0)
 {
     global $database, $errors;
-    $database = BFFactory::getDbo();
+    $database = Factory::getContainer()->get(DatabaseInterface::class);
     $id = null;
     $database->setQuery($sql);
     $database->query();
@@ -489,7 +490,7 @@ function _ff_query($sql, $insert = 0)
 function _ff_select($sql)
 {
     global $database, $errors;
-    $database = BFFactory::getDbo();
+    $database = Factory::getContainer()->get(DatabaseInterface::class);
     $database->setQuery($sql);
     $rows = $database->loadObjectList();
     if ($database->getErrorNum()) {
@@ -505,7 +506,7 @@ function _ff_select($sql)
 function _ff_selectValue($sql)
 {
     global $database, $errors;
-    $database = BFFactory::getDbo();
+    $database = Factory::getContainer()->get(DatabaseInterface::class);
     $database->setQuery($sql);
     $value = $database->loadResult();
     if ($database->getErrorNum()) {
@@ -551,7 +552,7 @@ function protectedComponentIds()
 
 function addComponentMenu($row, $parent, $copy = false)
 {
-    $db = BFFactory::getDbo();
+    $db = Factory::getContainer()->get(DatabaseInterface::class);
     $admin_menu_link = '';
     if ($row->name != '') {
         $admin_menu_link =
@@ -633,9 +634,9 @@ function updateComponentMenus($copy = false)
     $parent = 0;
     if (count($rows))
         foreach ($rows as $row) {
-            BFFactory::getDbo()->setQuery("Select id From #__menu Where `alias` = " . BFFactory::getDbo()->Quote($row->title));
+            Factory::getContainer()->get(DatabaseInterface::class)->setQuery("Select id From #__menu Where `alias` = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($row->title));
 
-            if (BFFactory::getDbo()->loadResult()) {
+            if (Factory::getContainer()->get(DatabaseInterface::class)->loadResult()) {
                 return BFText::_('COM_BREEZINGFORMS_MENU_ITEM_EXISTS');
             }
 
@@ -652,17 +653,17 @@ function updateComponentMenus($copy = false)
 function dropPackage($id)
 {
     // drop package settings
-    _ff_query("delete from #__facileforms_packages where id = " . BFFactory::getDbo()->Quote($id) . "");
+    _ff_query("delete from #__facileforms_packages where id = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($id) . "");
 
     // drop backend menus
-    $rows = _ff_select("select id from #__facileforms_compmenus where package = " . BFFactory::getDbo()->Quote($id) . "");
+    $rows = _ff_select("select id from #__facileforms_compmenus where package = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($id) . "");
     if (count($rows))
         foreach ($rows as $row)
             _ff_query("delete from #__facileforms_compmenus where id=$row->id or parent=$row->id");
     updateComponentMenus();
 
     // drop forms
-    $rows = _ff_select("select id from #__facileforms_forms where package = " . BFFactory::getDbo()->Quote($id) . "");
+    $rows = _ff_select("select id from #__facileforms_forms where package = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($id) . "");
     if (count($rows))
         foreach ($rows as $row) {
             _ff_query("delete from #__facileforms_elements where form = $row->id");
@@ -670,16 +671,16 @@ function dropPackage($id)
         } // if
 
     // drop scripts
-    _ff_query("delete from #__facileforms_scripts where package =  " . BFFactory::getDbo()->Quote($id) . "");
+    _ff_query("delete from #__facileforms_scripts where package =  " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($id) . "");
 
     // drop pieces
-    _ff_query("delete from #__facileforms_pieces where package =  " . BFFactory::getDbo()->Quote($id) . "");
+    _ff_query("delete from #__facileforms_pieces where package =  " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($id) . "");
 } // dropPackage
 
 function savePackage($id, $name, $title, $version, $created, $author, $email, $url, $description, $copyright)
 {
-    $db = BFFactory::getDbo();
-    $cnt = _ff_selectValue("select count(*) from #__facileforms_packages where id=" . BFFactory::getDbo()->Quote($id) . "");
+    $db = Factory::getContainer()->get(DatabaseInterface::class);
+    $cnt = _ff_selectValue("select count(*) from #__facileforms_packages where id=" . Factory::getContainer()->get(DatabaseInterface::class)->Quote($id) . "");
     if (!$cnt) {
 
         _ff_query(
@@ -703,7 +704,7 @@ function relinkScripts(&$oldscripts)
 {
     if ($oldscripts != null && @count($oldscripts))
         foreach ($oldscripts as $row) {
-            $newid = _ff_selectValue("select max(id) from #__facileforms_scripts where name = " . BFFactory::getDbo()->Quote($row->name) . "");
+            $newid = _ff_selectValue("select max(id) from #__facileforms_scripts where name = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($row->name) . "");
             if ($newid) {
                 _ff_query("update #__facileforms_forms set script1id=$newid where script1id=$row->id");
                 _ff_query("update #__facileforms_forms set script2id=$newid where script2id=$row->id");
@@ -718,7 +719,7 @@ function relinkPieces(&$oldpieces)
 {
     if ($oldpieces != null && @count($oldpieces))
         foreach ($oldpieces as $row) {
-            $newid = _ff_selectValue("select max(id) from #__facileforms_pieces where name = " . BFFactory::getDbo()->Quote($row->name) . "");
+            $newid = _ff_selectValue("select max(id) from #__facileforms_pieces where name = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($row->name) . "");
             if ($newid) {
                 _ff_query("update #__facileforms_forms set piece1id=$newid where piece1id=$row->id");
                 _ff_query("update #__facileforms_forms set piece2id=$newid where piece2id=$row->id");

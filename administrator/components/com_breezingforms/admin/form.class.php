@@ -12,11 +12,12 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\CMS\Factory;
 use Joomla\Event\Event;
 use Joomla\Utilities\ArrayHelper;
+use Joomla\Database\DatabaseInterface;
 
 require_once($ff_admpath . '/admin/form.html.php');
 
 function resetQuickModeDbId(&$dataObject) {
-    $db = BFFactory::getDbo();
+    $db = Factory::getContainer()->get(DatabaseInterface::class);
 
     if (isset($dataObject['attributes']) && isset($dataObject['properties'])) {
         $mdata = $dataObject['properties'];
@@ -72,7 +73,7 @@ class facileFormsForm {
     static function edit($option, $tabpane, $pkg, $ids, $caller) {
         global $database;
         ArrayHelper::toInteger($ids);
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         $row = new facileFormsForms($database);
         if ($ids[0]) {
             $row->load($ids[0]);
@@ -234,7 +235,7 @@ class facileFormsForm {
 
     static function save($option, $pkg, $caller, $nonclassic, $quickmode) {
         global $database;
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         $row = new facileFormsForms($database);
 
         if (isset($_POST['salesforce_fields']) && is_array($_POST['salesforce_fields'])) {
@@ -312,7 +313,7 @@ class facileFormsForm {
         require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Decoder.php');
         require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Encoder.php');
 
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         $total = count($ids);
         $row = new facileFormsForms($database);
         $elem = new facileFormsElements($database);
@@ -337,8 +338,8 @@ class facileFormsForm {
                     $elem->store();
                 } // for
                 // resetting easy and quickmode database ids
-                BFFactory::getDbo()->setQuery("Select template_areas, template_code_processed, template_code From #__facileforms_forms Where id = " . intval($row->id));
-                $row_ = BFFactory::getDbo()->loadObject();
+                Factory::getContainer()->get(DatabaseInterface::class)->setQuery("Select template_areas, template_code_processed, template_code From #__facileforms_forms Where id = " . intval($row->id));
+                $row_ = Factory::getContainer()->get(DatabaseInterface::class)->loadObject();
 
                 if (trim($row_->template_code) != '') {
                     $areas = Zend_Json::decode($row_->template_areas);
@@ -363,8 +364,8 @@ class facileFormsForm {
                         $template_code = bf_b64enc(Zend_Json::encode($dataObject));
                     }
 
-                    BFFactory::getDbo()->setQuery("Update #__facileforms_forms Set template_code = " . BFFactory::getDbo()->Quote($template_code) . ", template_areas = " . BFFactory::getDbo()->Quote($template_areas) . " Where id = " . intval($row->id));
-                    BFFactory::getDbo()->query();
+                    Factory::getContainer()->get(DatabaseInterface::class)->setQuery("Update #__facileforms_forms Set template_code = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($template_code) . ", template_areas = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($template_areas) . " Where id = " . intval($row->id));
+                    Factory::getContainer()->get(DatabaseInterface::class)->query();
 
                     if ($row_ && $row_->template_code_processed == 'QuickMode') {
                         $quickMode = new QuickMode();
@@ -384,7 +385,7 @@ class facileFormsForm {
     static function del($option, $pkg, $ids) {
         global $database;
         ArrayHelper::toInteger($ids);
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         if (count($ids)) {
             $ids = implode(',', $ids);
             $database->setQuery("delete from #__facileforms_elements where form in ($ids)");
@@ -404,7 +405,7 @@ class facileFormsForm {
     static function order($option, $pkg, $ids, $inc) {
         global $database;
         ArrayHelper::toInteger($ids);
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         $row = new facileFormsForms($database);
         $row->load($ids[0]);
         $row->move($inc, "package=" . $database->Quote($pkg) . "");
@@ -416,7 +417,7 @@ class facileFormsForm {
     static function publish($option, $pkg, $ids, $publish) {
         global $database, $my;
         ArrayHelper::toInteger($ids);
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         $ids = implode(',', $ids);
         $database->setQuery(
                 "update #__facileforms_forms set published='$publish' where id in ($ids)"
@@ -432,7 +433,7 @@ class facileFormsForm {
 
     static function listitems($option, $pkg) {
         global $database;
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         $database->setQuery(
                 "select distinct package as name " .
                 "from #__facileforms_forms " .

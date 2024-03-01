@@ -9,6 +9,8 @@
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\Filesystem\File;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 class QuickMode
 {
@@ -20,7 +22,7 @@ class QuickMode
 
 	function __construct()
 	{
-		$this->db = BFFactory::getDbo();
+		$this->db = Factory::getContainer()->get(DatabaseInterface::class);
 
 	}
 

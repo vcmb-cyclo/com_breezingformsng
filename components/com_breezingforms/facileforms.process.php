@@ -11,6 +11,7 @@
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 use Joomla\Event\Event;
 use Joomla\Event\EventInterface;
 use Joomla\CMS\Uri\Uri;
@@ -295,7 +296,7 @@ function _ff_traceExit($line, $retval = null)
 function _ff_errorHandler($errno, $errstr, $errfile, $errline)
 {
     global $ff_processor, $ff_mossite, $database;
-    $database = BFFactory::getDbo();
+    $database = Factory::getContainer()->get(DatabaseInterface::class);
 
     if (isset($ff_processor->dying) && $ff_processor->dying)
         return;
@@ -525,7 +526,7 @@ class HTML_facileFormsProcessor
     ) {
         global $database, $ff_config, $ff_mossite, $ff_mospath, $ff_processor;
         $ff_processor = $this;
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         $this->dying = false;
         $this->runmode = $runmode;
         $this->inframe = $inframe;
@@ -1267,7 +1268,7 @@ class HTML_facileFormsProcessor
         if ($this->dying)
             return '';
         global $database;
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         $database->setQuery(
             'select code, name from #__facileforms_pieces ' .
             'where id=' . $id . ' and published=1 '
@@ -1287,7 +1288,7 @@ class HTML_facileFormsProcessor
         if ($this->dying)
             return '';
         global $database;
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         $database->setQuery(
             'select id, code from #__facileforms_pieces ' .
             'where name=\'' . $name . '\' and published=1 ' .
@@ -1471,7 +1472,7 @@ class HTML_facileFormsProcessor
         if ($this->dying)
             return '';
         global $database;
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         $funcname = '';
         switch ($row->script2cond) {
             case 1:
@@ -1508,7 +1509,7 @@ class HTML_facileFormsProcessor
     function loadBuiltins(&$library)
     {
         global $database, $ff_config, $ff_request;
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         if ($this->dying)
             return;
         $library[] = array('FF_STATUS_OK', 'var FF_STATUS_OK = ' . _FF_STATUS_OK . ';');
@@ -1960,7 +1961,7 @@ class HTML_facileFormsProcessor
     function loadScripts(&$library)
     {
         global $database;
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         if ($this->dying)
             return;
         $database->setQuery(
@@ -2138,7 +2139,7 @@ class HTML_facileFormsProcessor
     function addFunction($cond, $id, $name, $code, &$library, &$linked, $type, $rowid, $pane)
     {
         global $database;
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         if ($this->dying)
             return;
         switch ($cond) {
@@ -2322,7 +2323,7 @@ class HTML_facileFormsProcessor
                 JFactory::getApplication()->getLanguage()->load('com_contentbuilder', JPATH_SITE . DS . 'administrator');
             }
 
-            $db = BFFactory::getDbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
 
             require_once(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
 
@@ -2455,7 +2456,7 @@ class HTML_facileFormsProcessor
         $cbFull = $cbResult['full'];
         // CONTENTBUILDER END
 
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         $mainframe = JFactory::getApplication();
         if (!$this->okrun)
             return;
@@ -3151,7 +3152,7 @@ class HTML_facileFormsProcessor
         $cbJs = '';
 
         if ($this->editable && $cbRecord === null) {
-            $db = BFFactory::getDbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
             $db->setQuery("Select id, form From #__facileforms_records Where form = " . $db->Quote($this->form) . " And user_id = " . $db->Quote(JFactory::getUser()->get('id', -1)) . " And user_id <> 0 And archived = 0 Order By id Desc Limit 1");
             $recordsResult = $db->loadObjectList();
             if (count($recordsResult) != 0) {
@@ -4485,7 +4486,7 @@ class HTML_facileFormsProcessor
     function logToDatabase($cbResult = null)
     { // CONTENTBUILDER
         global $database, $ff_config;
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         if ($this->dying)
             return;
 
@@ -4536,7 +4537,7 @@ class HTML_facileFormsProcessor
                 $last_update = JFactory::getDate();
                 $is3 = true;
                 $last_update = $last_update->toSql();
-                $db = BFFactory::getDbo();
+                $db = Factory::getContainer()->get(DatabaseInterface::class);
                 $db->setQuery("Select id From #__contentbuilder_records Where `type` = 'com_breezingforms' And `reference_id` = " . $db->Quote($this->form) . " And record_id = " . $db->Quote($record_return));
                 $res = $db->loadResult();
                 if (!$res) {
@@ -4561,7 +4562,7 @@ class HTML_facileFormsProcessor
             // CONTENTBUILDER file deletion/upgrade
             if (is_object($cbResult['form'])) {
 
-                $db = BFFactory::getDbo();
+                $db = Factory::getContainer()->get(DatabaseInterface::class);
                 $db->setQuery('Select SQL_CALC_FOUND_ROWS * From #__contentbuilder_forms Where id = ' . BFRequest::getInt('cb_form_id', 0) . ' And published = 1');
                 $_settings = $db->loadObject();
 
@@ -4723,7 +4724,7 @@ class HTML_facileFormsProcessor
 
                 $record_return = $cbResult['form']->saveRecord(BFRequest::getInt('cb_record_id', 0), $values);
 
-                $db = BFFactory::getDbo();
+                $db = Factory::getContainer()->get(DatabaseInterface::class);
 
                 $db->setQuery('Select SQL_CALC_FOUND_ROWS * From #__contentbuilder_forms Where id = ' . BFRequest::getInt('cb_form_id', 0) . ' And published = 1');
                 $cbData = $db->loadObject();
@@ -7785,7 +7786,7 @@ class HTML_facileFormsProcessor
         }
         // CONTENTBUILDER END
 
-        $database = BFFactory::getDbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
         if (!$this->okrun)
             return;
 
@@ -8058,7 +8059,7 @@ class HTML_facileFormsProcessor
 
                         $lastID = $this->record_id;
                         $token = $this->random_str(20);
-                        $database = BFFactory::getDbo();
+                        $database = Factory::getContainer()->get(DatabaseInterface::class);
                         $database->setQuery("UPDATE #__facileforms_records SET opt_token=" . $database->quote(bf_b64enc($token)) . " WHERE id=" . $database->quote($lastID));
                         $database->execute();
 
@@ -8083,8 +8084,8 @@ class HTML_facileFormsProcessor
 
             // DOUBLE OPT-INT END
 
-            BFFactory::getDbo()->setQuery("SELECT MAX(id) FROM #__facileforms_records");
-            $lastid = BFFactory::getDbo()->loadResult();
+            Factory::getContainer()->get(DatabaseInterface::class)->setQuery("SELECT MAX(id) FROM #__facileforms_records");
+            $lastid = Factory::getContainer()->get(DatabaseInterface::class)->loadResult();
             $_SESSION['virtuemart_bf_id'] = $lastid;
             $session = JFactory::getSession();
             $session->set('virtuemart_bf_id', $lastid);

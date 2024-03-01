@@ -21,6 +21,8 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\CMS\Uri\Uri;
 use Joomla\Filesystem\File;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFFactory.php');
 require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFRequest.php');
@@ -77,7 +79,7 @@ $ff_request, // array of request parameters ff_param_*
 $ff_processor, // current form procesor object
 $ff_target;    // index of form on current page
 
-$database = $db = BFFactory::getDbo();
+$database = $db = Factory::getContainer()->get(DatabaseInterface::class);
 
 // declare local vars
 // (1) only used in component space and not plain form)

@@ -8,6 +8,9 @@
 **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 require_once($ff_admpath.'/admin/easymode.html.php');
 require_once($ff_admpath.'/admin/easymode.class.php');
 require_once($ff_admpath.'/libraries/Zend/Json/Decoder.php');
@@ -60,7 +63,7 @@ if($easyMode->getUserBrowser() == 'firefox' || $easyMode->getUserBrowser() == 'c
                         {
                             require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
                             $cbForm = contentbuilder::getForm('com_breezingforms', $formId);
-                            $db = BFFactory::getDbo();
+                            $db = Factory::getContainer()->get(DatabaseInterface::class);
                             $db->setQuery("Select id From #__contentbuilder_forms Where `type` = 'com_breezingforms' And `reference_id` = " . intval($formId));
 	                        $cbForms = $db->loadColumn();
                             if(is_object($cbForm) && count($cbForms)){
