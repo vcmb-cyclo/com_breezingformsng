@@ -12,6 +12,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 require_once(JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_contentbuilder'.DS.'classes'.DS.'joomla_compat.php');
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'viewlegacy.php');
@@ -24,8 +25,8 @@ class ContentbuilderViewUsers extends CBView
     function display($tpl = null)
     {
 
-        JToolBarHelper::title(   '<span style="display:inline-block; vertical-align:middle">' . Text::_( 'COM_CONTENTBUILDER_FORMS' ) . '</span>', 'logo_left.png' );
-        JToolBarHelper::editList();
+        ToolBarHelper::title(   '<span style="display:inline-block; vertical-align:middle">' . Text::_( 'COM_CONTENTBUILDER_FORMS' ) . '</span>', 'logo_left.png' );
+        ToolBarHelper::editList();
 
         // Get data from the model
         $items = $this->get( 'Data');

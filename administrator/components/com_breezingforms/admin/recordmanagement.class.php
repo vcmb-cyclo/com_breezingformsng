@@ -16,6 +16,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\Filesystem\File;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\HTML\Helpers\Bootstrap;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 class bfRecordManagement
 {
@@ -575,14 +576,14 @@ class bfRecordManagement
         JHTML::_('behavior.keepalive');
 
 
-        JToolBarHelper::custom('exportPdf', 'download', 'download', BFText::_('COM_BREEZINGFORMS_PDF'), false);
-        JToolBarHelper::custom('exportCsv', 'download', 'download', BFText::_('COM_BREEZINGFORMS_CSV'), false);
-        JToolBarHelper::custom('exportXml', 'download', 'download', BFText::_('COM_BREEZINGFORMS_XML'), false);
-        JToolBarHelper::custom('csvimport', 'upload', 'upload', BFText::_('COM_BREEZINGFORMS_CSV'), false);
-        JToolBarHelper::custom('viewed', 'eye-open', 'eye-open', BFText::_('COM_BREEZINGFORMS_TOOLBAR_VIEW'), false);
-        JToolBarHelper::custom('exported', 'share', 'share', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EXPORT'), false);
-        JToolBarHelper::custom('archived', 'archive', 'archive', BFText::_('COM_BREEZINGFORMS_TOOLBAR_ARCHIVE'), false);
-        JToolBarHelper::custom('remove', 'delete.png', 'delete_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_DELETE'), false);
+        ToolBarHelper::custom('exportPdf', 'download', 'download', BFText::_('COM_BREEZINGFORMS_PDF'), false);
+        ToolBarHelper::custom('exportCsv', 'download', 'download', BFText::_('COM_BREEZINGFORMS_CSV'), false);
+        ToolBarHelper::custom('exportXml', 'download', 'download', BFText::_('COM_BREEZINGFORMS_XML'), false);
+        ToolBarHelper::custom('csvimport', 'upload', 'upload', BFText::_('COM_BREEZINGFORMS_CSV'), false);
+        ToolBarHelper::custom('viewed', 'eye-open', 'eye-open', BFText::_('COM_BREEZINGFORMS_TOOLBAR_VIEW'), false);
+        ToolBarHelper::custom('exported', 'share', 'share', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EXPORT'), false);
+        ToolBarHelper::custom('archived', 'archive', 'archive', BFText::_('COM_BREEZINGFORMS_TOOLBAR_ARCHIVE'), false);
+        ToolBarHelper::custom('remove', 'delete.png', 'delete_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_DELETE'), false);
 
         //Factory::getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jq.migrate.js');
         //Factory::getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jq.min.js');

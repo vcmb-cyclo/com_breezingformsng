@@ -4,6 +4,7 @@
  * @version 1.9
  * @package BreezingForms
  * @copyright (C) 2008-2020 by Markus Bopp
+ * @copyright (C) 2024 by XDA+GIL
  * @license Released under the terms of the GNU General Public License
  **/
 
@@ -12,6 +13,7 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\CMS\Factory;
 use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 class HTML_facileFormsScript
 {
@@ -20,23 +22,23 @@ class HTML_facileFormsScript
 		global $ff_mossite, $ff_admsite, $ff_config;
 		$action = $row->id ? BFText::_('COM_BREEZINGFORMS_SCRIPTS_EDITSCRIPT') : BFText::_('COM_BREEZINGFORMS_SCRIPTS_ADDSCRIPT');
 		HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
-		JToolBarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_SAVE'), false);
-		JToolBarHelper::custom('cancel', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false);
+		ToolBarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_SAVE'), false);
+		ToolBarHelper::custom('cancel', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false);
 		?>
 		<script type="text/javascript" src="<?php echo $ff_admsite; ?>/admin/areautils.js"></script>
 		<script type="text/javascript">
-				<!--
-				function checkIdentifier(value, name)
-				{
-					var invalidChars = /\W/;
-					var error = '';
-					if (value == '')
-						error += "<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_ENTERNAME'); ?>\n";
-					else
+						<!--
+						function checkIdentifier(value, name)
+						{
+							var invalidChars = /\W/;
+							var error = '';
+							if (value == '')
+								error += "<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_ENTERNAME'); ?>\n";
+							else
 			if (invalidChars.test(value))
 				error += "<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_ENTERIDENT'); ?>\n";
 			return error;
-				} // checkIdentifier
+						} // checkIdentifier
 
 			function submitbutton(pressbutton) {
 				var form = document.adminForm;
@@ -312,23 +314,23 @@ class HTML_facileFormsScript
 		global $ff_config, $ff_version;
 		?>
 		<script type="text/javascript">
-					<!--
-					function submitbutton(pressbutton)
-					{
-						var form = document.adminForm;
-						switch (pressbutton) {
-							case 'copy':
-							case 'publish':
-							case 'unpublish':
-							case 'remove':
-								if (form.boxchecked.value==0) {
-									alert("<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_SELSCRIPTSFIRST'); ?>");
+							<!--
+							function submitbutton(pressbutton)
+							{
+								var form = document.adminForm;
+								switch (pressbutton) {
+									case 'copy':
+									case 'publish':
+									case 'unpublish':
+									case 'remove':
+										if (form.boxchecked.value==0) {
+											alert("<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_SELSCRIPTSFIRST'); ?>");
 			return;
-								} // if
+										} // if
 			break;
-							default:
+									default:
 			break;
-						} // switch
+								} // switch
 			if (pressbutton == 'remove')
 				if (!confirm("<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_ASKDELETE'); ?>")) return;
 			if (pressbutton == '' && form.pkgsel.value == '')
@@ -336,7 +338,7 @@ class HTML_facileFormsScript
 			else
 				form.pkg.value = form.pkgsel.value;
 			Joomla.submitform(pressbutton);
-					} // submitbutton
+							} // submitbutton
 
 			<?php
 			Factory::getDocument()->addScriptDeclaration('
@@ -344,11 +346,11 @@ class HTML_facileFormsScript
                 Joomla.submitbutton = submitbutton;
             ');
 
-			JToolBarHelper::custom('new', 'new.png', 'new_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_NEW'), false);
-			JToolBarHelper::custom('copy', 'copy.png', 'copy_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_COPY'), false);
-			JToolBarHelper::custom('publish', 'publish.png', 'publish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_PUBLISH'), false);
-			JToolBarHelper::custom('unpublish', 'unpublish.png', 'unpublish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_UNPUBLISH'), false);
-			JToolBarHelper::custom('remove', 'delete.png', 'delete_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_DELETE'), false);
+			ToolBarHelper::custom('new', 'new.png', 'new_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_NEW'), false);
+			ToolBarHelper::custom('copy', 'copy.png', 'copy_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_COPY'), false);
+			ToolBarHelper::custom('publish', 'publish.png', 'publish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_PUBLISH'), false);
+			ToolBarHelper::custom('unpublish', 'unpublish.png', 'unpublish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_UNPUBLISH'), false);
+			ToolBarHelper::custom('remove', 'delete.png', 'delete_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_DELETE'), false);
 			?>
 
 			function listItemTask(id, task) {

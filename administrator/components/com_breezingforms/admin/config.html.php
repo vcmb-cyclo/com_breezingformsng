@@ -12,9 +12,10 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\CMS\Factory;
 use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 if (BFRequest::getVar('act', '') == 'configuration') {
-	JToolBarHelper::preferences('com_breezingforms');
+	ToolBarHelper::preferences('com_breezingforms');
 }
 
 echo '<style type="text/css">
@@ -29,10 +30,10 @@ class HTML_facileFormsConf
 	{
 		global $ff_mossite, $ff_config, $ff_admsite, $ff_admicon, $ff_version;
 
-		JToolBarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_SAVE'), false);
-		JToolBarHelper::custom('instpackage', 'upload', 'upload', BFText::_('COM_BREEZINGFORMS_TOOLBAR_PKGINSTLR'), false);
-		JToolBarHelper::custom('makepackage', 'new.png', 'new_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_CREAPKG'), false);
-		//JToolBarHelper::custom( 'cancel', 'cancel.png', 'cancel_f2.png', BFText::_( 'COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE' ), false );
+		ToolBarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_SAVE'), false);
+		ToolBarHelper::custom('instpackage', 'upload', 'upload', BFText::_('COM_BREEZINGFORMS_TOOLBAR_PKGINSTLR'), false);
+		ToolBarHelper::custom('makepackage', 'new.png', 'new_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_CREAPKG'), false);
+		//ToolBarHelper::custom( 'cancel', 'cancel.png', 'cancel_f2.png', BFText::_( 'COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE' ), false );
 
 		?>
 		<form action="index.php" method="post" name="adminForm" id="adminForm">
@@ -543,8 +544,8 @@ class HTML_facileFormsConf
 					$selpkg = $pkg;
 			} // foreach
 
-		JToolBarHelper::custom('mkpackage', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_CONTINUE'), false);
-		JToolBarHelper::custom('edit', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_CLOSE'), false);
+		ToolBarHelper::custom('mkpackage', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_CONTINUE'), false);
+		ToolBarHelper::custom('edit', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_CLOSE'), false);
 
 		?>
 
@@ -941,7 +942,7 @@ class HTML_facileFormsConf
 
 	static function showPackage($option, $caller, $pkgid, &$inst)
 	{
-		JToolBarHelper::custom('instpackage', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false);
+		ToolBarHelper::custom('instpackage', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false);
 
 		?>
 		<form action="index.php" method="post" id="adminForm" name="adminForm">

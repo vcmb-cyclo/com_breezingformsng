@@ -13,6 +13,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Factory;
 use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 require_once($ff_compath . '/facileforms.process.php');
 
@@ -3554,14 +3555,14 @@ class HTML_facileFormsElement
 				</td>
 				<td width="100%" align="right" nowrap>
 					<?php
-					JToolBarHelper::custom('new', 'new.png', 'new_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_NEW'), false);
-					JToolBarHelper::custom('editform', 'edit.png', 'edit_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EDITFORM'), false);
-					JToolBarHelper::custom('copy', 'copy.png', 'copy_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_COPY'), false);
-					JToolBarHelper::custom('move', 'move.png', 'move_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_MOVE'), false);
-					JToolBarHelper::custom('publish', 'publish.png', 'publish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_PUBLISH'), false);
-					JToolBarHelper::custom('unpublish', 'unpublish.png', 'unpublish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_UNPUBLISH'), false);
-					JToolBarHelper::custom('remove', 'delete.png', 'delete_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_DELETE'), false);
-					JToolBarHelper::custom('close', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false);
+					ToolBarHelper::custom('new', 'new.png', 'new_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_NEW'), false);
+					ToolBarHelper::custom('editform', 'edit.png', 'edit_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EDITFORM'), false);
+					ToolBarHelper::custom('copy', 'copy.png', 'copy_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_COPY'), false);
+					ToolBarHelper::custom('move', 'move.png', 'move_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_MOVE'), false);
+					ToolBarHelper::custom('publish', 'publish.png', 'publish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_PUBLISH'), false);
+					ToolBarHelper::custom('unpublish', 'unpublish.png', 'unpublish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_UNPUBLISH'), false);
+					ToolBarHelper::custom('remove', 'delete.png', 'delete_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_DELETE'), false);
+					ToolBarHelper::custom('close', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false);
 					?>
 				</td>
 			</tr>

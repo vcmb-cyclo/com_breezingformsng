@@ -3,6 +3,7 @@
  * @package     ContentBuilder
  * @author      Markus Bopp
  * @link        https://www.crosstec.org
+ * @copyright   (C) 2024 by XDA+GIL
  * @license     GNU/GPL
 */
 
@@ -12,6 +13,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 require_once(JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_contentbuilder'.DS.'classes'.DS.'joomla_compat.php');
 
@@ -44,29 +46,29 @@ class ContentbuilderViewStorage extends CBView
 
         $text = $isNew ? Text::_( 'COM_CONTENTBUILDER_NEW' ) : Text::_( 'COM_CONTENTBUILDER_EDIT' );
 
-	    JToolBarHelper::title(   'ContentBuilder :: ' . ($isNew ? Text::_( 'COM_CONTENTBUILDER_STORAGES' ) : $form->title) .' : <small><small>[ ' . $text.' ]</small></small></span>', 'logo_left.png' );
+	    ToolBarHelper::title(   'ContentBuilder :: ' . ($isNew ? Text::_( 'COM_CONTENTBUILDER_STORAGES' ) : $form->title) .' : <small><small>[ ' . $text.' ]</small></small></span>', 'logo_left.png' );
         
-        JToolBarHelper::apply();
-        JToolBarHelper::save();
+        ToolBarHelper::apply();
+        ToolBarHelper::save();
         
         if(version_compare(CBJOOMLAVERSION, '3.0', '<')){
-            JToolBarHelper::customX('saveNew', 'save', '', Text::_('COM_CONTENTBUILDER_SAVENEW'), false);
-            JToolBarHelper::customX('listpublish', 'publish', '', Text::_('COM_CONTENTBUILDER_PUBLISH'), false);
-            JToolBarHelper::customX('listunpublish', 'unpublish', '', Text::_('COM_CONTENTBUILDER_UNPUBLISH'), false);
-            JToolBarHelper::customX('listdelete', 'delete', '', Text::_('COM_CONTENTBUILDER_DELETE_FIELDS'), false);
+            ToolBarHelper::customX('saveNew', 'save', '', Text::_('COM_CONTENTBUILDER_SAVENEW'), false);
+            ToolBarHelper::customX('listpublish', 'publish', '', Text::_('COM_CONTENTBUILDER_PUBLISH'), false);
+            ToolBarHelper::customX('listunpublish', 'unpublish', '', Text::_('COM_CONTENTBUILDER_UNPUBLISH'), false);
+            ToolBarHelper::customX('listdelete', 'delete', '', Text::_('COM_CONTENTBUILDER_DELETE_FIELDS'), false);
         } else {
-            JToolBarHelper::custom('saveNew', 'save', '', Text::_('COM_CONTENTBUILDER_SAVENEW'), false);
-            JToolBarHelper::custom('listpublish', 'publish', '', Text::_('COM_CONTENTBUILDER_PUBLISH'), false);
-            JToolBarHelper::custom('listunpublish', 'unpublish', '', Text::_('COM_CONTENTBUILDER_UNPUBLISH'), false);
-            JToolBarHelper::custom('listdelete', 'delete', '', Text::_('COM_CONTENTBUILDER_DELETE_FIELDS'), false);
+            ToolBarHelper::custom('saveNew', 'save', '', Text::_('COM_CONTENTBUILDER_SAVENEW'), false);
+            ToolBarHelper::custom('listpublish', 'publish', '', Text::_('COM_CONTENTBUILDER_PUBLISH'), false);
+            ToolBarHelper::custom('listunpublish', 'unpublish', '', Text::_('COM_CONTENTBUILDER_UNPUBLISH'), false);
+            ToolBarHelper::custom('listdelete', 'delete', '', Text::_('COM_CONTENTBUILDER_DELETE_FIELDS'), false);
         }
         
-        //JToolBarHelper::deleteList();
+        //ToolBarHelper::deleteList();
         if ($isNew) {
-            JToolBarHelper::cancel();
+            ToolBarHelper::cancel();
         } else {
             // for existing items the button is renamed `close`
-            JToolBarHelper::cancel( 'cancel', 'Close' );
+            ToolBarHelper::cancel( 'cancel', 'Close' );
         }
 
         $state = $this->get( 'state' );

@@ -11,6 +11,7 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 class EasyModeHtml
 {
@@ -139,15 +140,15 @@ class EasyModeHtml
 		<?php require_once(JPATH_SITE . '/administrator/components/com_breezingforms/admin/easymode-js.php'); ?>
 
 		<div>
-			<?php echo JToolBarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EASYMODE_SAVE'), false); ?>
+			<?php echo ToolBarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EASYMODE_SAVE'), false); ?>
 			<?php
 			if ($formId != 0) {
-				JToolBarHelper::custom('editform', 'edit.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EASYMODE_FORM_EDIT'), false);
-				JToolBarHelper::custom('preview', 'publish.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EASYMODE_PREVIEW'), false);
-				JToolBarHelper::custom('preview_site', 'publish.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_SITE_PREVIEW'), false);
+				ToolBarHelper::custom('editform', 'edit.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EASYMODE_FORM_EDIT'), false);
+				ToolBarHelper::custom('preview', 'publish.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EASYMODE_PREVIEW'), false);
+				ToolBarHelper::custom('preview_site', 'publish.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_SITE_PREVIEW'), false);
 			}
 			?>
-			<?php JToolBarHelper::custom('close', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false); ?>
+			<?php ToolBarHelper::custom('close', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false); ?>
 			<form action="index.php" method="post" id="adminForm" name="adminForm">
 				<input type="hidden" name="option" value="com_breezingforms" />
 				<input type="hidden" name="act" value="easymode" />

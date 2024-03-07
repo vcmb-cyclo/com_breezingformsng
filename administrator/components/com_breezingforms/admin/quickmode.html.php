@@ -2,10 +2,10 @@
 /**
  * BreezingForms - A Joomla Forms Application
  * @version 5.0
- * @package BreezingForms
- * @copyright (C) 2008-2020 by Markus Bopp
- * @copyright (C) 2024 by XDA+GIL
- * @license Released under the terms of the GNU General Public License
+ * @package     BreezingForms
+ * @copyright   (C) 2008-2020 by Markus Bopp
+ * @copyright   (C) 2024 by XDA+GIL
+ * @license     Released under the terms of the GNU General Public License
  * */
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
@@ -14,6 +14,7 @@ use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\HTML\Helpers\Bootstrap;
 use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 class QuickModeHtml
 {
@@ -3429,14 +3430,14 @@ class QuickModeHtml
         ?>
 
         <div style="float:left; margin-right: 3px;">
-            <?php JToolBarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_SAVE'), false); ?>
+            <?php ToolbarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_SAVE'), false); ?>
             <?php
             if ($formId != 0) {
-                JToolBarHelper::custom('preview', 'publish.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_PREVIEW'), false);
-                JToolBarHelper::custom('preview_site', 'publish.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_SITE_PREVIEW'), false);
+                ToolbarHelper::custom('preview', 'publish.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_PREVIEW'), false);
+                ToolbarHelper::custom('preview_site', 'publish.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_SITE_PREVIEW'), false);
             }
             ?>
-            <?php JToolBarHelper::custom('close', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false); ?>
+            <?php ToolbarHelper::custom('close', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false); ?>
             <form action="index.php" method="post" name="adminForm" id="adminForm">
                 <input type="hidden" name="option" value="com_breezingforms" />
                 <input type="hidden" name="act" value="quickmode" />

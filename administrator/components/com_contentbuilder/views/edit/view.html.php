@@ -15,6 +15,7 @@ use Joomla\CMS\Factory;
 use Joomla\Registry\Registry;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'joomla_compat.php');
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'viewlegacy.php');
@@ -148,7 +149,7 @@ class ContentbuilderViewEdit extends CBView
 
 		if (!class_exists('cbFeMarker')) {
 
-			JToolBarHelper::title('<span style="display:inline-block; vertical-align:middle">' . $subject->page_title . '</span>', 'logo_left.png');
+			ToolBarHelper::title('<span style="display:inline-block; vertical-align:middle">' . $subject->page_title . '</span>', 'logo_left.png');
 		}
 
 		JPluginHelper::importPlugin('contentbuilder_themes', $subject->theme_plugin);

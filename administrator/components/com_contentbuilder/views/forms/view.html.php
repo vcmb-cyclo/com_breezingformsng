@@ -14,6 +14,7 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'joomla_compat.php');
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'viewlegacy.php');
@@ -30,12 +31,12 @@ class ContentbuilderViewForms extends CBView
         ';
         echo '<link rel="stylesheet" href="' . Uri::root(true) . '/administrator/components/com_contentbuilder/views/bluestork.fix.css" type="text/css" />';
 
-        JToolBarHelper::title('ContentBuilder :: ' . Text::_('COM_CONTENTBUILDER_FORMS') . '</span>', 'logo_left.png');
-        JToolBarHelper::addNew();
-        JToolBarHelper::custom('copy', 'copy', '', Text::_('COM_CONTENTBUILDER_COPY'));
-        JToolBarHelper::editList();
-        JToolBarHelper::deleteList();
-        JToolBarHelper::preferences('com_contentbuilder');
+        ToolBarHelper::title('ContentBuilder :: ' . Text::_('COM_CONTENTBUILDER_FORMS') . '</span>', 'logo_left.png');
+        ToolBarHelper::addNew();
+        ToolBarHelper::custom('copy', 'copy', '', Text::_('COM_CONTENTBUILDER_COPY'));
+        ToolBarHelper::editList();
+        ToolBarHelper::deleteList();
+        ToolBarHelper::preferences('com_contentbuilder');
 
         // Get data from the model
         $items = $this->get('Data');

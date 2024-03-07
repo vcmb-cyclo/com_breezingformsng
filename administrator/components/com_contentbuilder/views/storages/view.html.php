@@ -13,6 +13,7 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'joomla_compat.php');
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'viewlegacy.php');
@@ -28,14 +29,14 @@ class ContentbuilderViewStorages extends CBView
         ';
         echo '<link rel="stylesheet" href="' . Uri::root(true) . '/administrator/components/com_contentbuilder/views/bluestork.fix.css" type="text/css" />';
 
-        JToolBarHelper::addNew();
-        JToolBarHelper::editList();
+        ToolBarHelper::addNew();
+        ToolBarHelper::editList();
 
-        JToolBarHelper::title('ContentBuilder :: ' . Text::_('COM_CONTENTBUILDER_STORAGES') . '</span>', 'logo_left.png');
+        ToolBarHelper::title('ContentBuilder :: ' . Text::_('COM_CONTENTBUILDER_STORAGES') . '</span>', 'logo_left.png');
 
-        JToolBarHelper::deleteList();
+        ToolBarHelper::deleteList();
 
-        JToolBarHelper::preferences('com_contentbuilder');
+        ToolBarHelper::preferences('com_contentbuilder');
 
         // Get data from the model
         $items = $this->get('Data');
