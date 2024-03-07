@@ -1904,12 +1904,12 @@ function bfTriggerRules() {
 
 					case 'bfCalendar':
 
-						$this->addStyleSheet(Juri::root(true) . '/media/system/css/fields/calendar.min.css');
-						$this->addScript(Juri::root(true) . '/media/system/js/fields/calendar-locales/date/gregorian/date-helper.min.js');
-						$this->addScript(Juri::root(true) . '/media/system/js/fields/calendar.min.js');
-						$this->addScript(Juri::root(true) . '/media/vendor/bootstrap/js/bootstrap.bundle.min.js');
-						$this->addScript(Juri::root(true) . '/media/system/js/core.min.js');
-						$this->addScript(Juri::root(true) . '/media/legacy/js/bootstrap-init.min.js');
+						$this->addStyleSheet(Uri::root(true) . '/media/system/css/fields/calendar.min.css');
+						$this->addScript(Uri::root(true) . '/media/system/js/fields/calendar-locales/date/gregorian/date-helper.min.js');
+						$this->addScript(Uri::root(true) . '/media/system/js/fields/calendar.min.js');
+						$this->addScript(Uri::root(true) . '/media/vendor/bootstrap/js/bootstrap.bundle.min.js');
+						$this->addScript(Uri::root(true) . '/media/system/js/core.min.js');
+						$this->addScript(Uri::root(true) . '/media/legacy/js/bootstrap-init.min.js');
 
 						/* translatables */
 						if (isset($mdata['value_translation' . $this->language_tag]) && $mdata['value_translation' . $this->language_tag] != '') {
@@ -2060,7 +2060,7 @@ function bfTriggerRules() {
 
 						$base = 'ba' . 'se' . '64';
 
-						$this->addScript(Juri::root(true) . '/components/com_breezingforms/libraries/js/signature.js');
+						$this->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/js/signature.js');
 						$this->addScriptDeclaration('
 						var bf_signaturePad' . $mdata['dbId'] . ' = null;
 						var bf_canvas' . $mdata['dbId'] . ' = null;
@@ -2313,21 +2313,21 @@ function bfTriggerRules() {
 		$direction = strtolower(Factory::getApplication()->getDocument()->getDirection());
 
 		// Get the appropriate file for the current language date helper
-		$helperPath = Juri::root(true) . '/media/system/js/fields/calendar-locales/date/gregorian/date-helper.min.js';
+		$helperPath = Uri::root(true) . '/media/system/js/fields/calendar-locales/date/gregorian/date-helper.min.js';
 
 		if (!empty($calendar) && is_dir(JPATH_ROOT . '/media/system/js/fields/calendar-locales/date/' . strtolower($calendar))) {
-			$helperPath = Juri::root(true) . '/media/system/js/fields/calendar-locales/date/' . strtolower($calendar) . '/date-helper.min.js';
+			$helperPath = Uri::root(true) . '/media/system/js/fields/calendar-locales/date/' . strtolower($calendar) . '/date-helper.min.js';
 		}
 
 		// Get the appropriate locale file for the current language
-		$localesPath = Juri::root(true) . '/media/system/js/fields/calendar-locales/en.js';
+		$localesPath = Uri::root(true) . '/media/system/js/fields/calendar-locales/en.js';
 
 		if (is_file(JPATH_ROOT . '/media/system/js/fields/calendar-locales/' . strtolower($tag) . '.js')) {
-			$localesPath = Juri::root(true) . '/media/system/js/fields/calendar-locales/' . strtolower($tag) . '.js';
+			$localesPath = Uri::root(true) . '/media/system/js/fields/calendar-locales/' . strtolower($tag) . '.js';
 		} elseif (is_file(JPATH_ROOT . '/media/system/js/fields/calendar-locales/' . $tag . '.js')) {
-			$localesPath = Juri::root(true) . '/media/system/js/fields/calendar-locales/' . $tag . '.js';
+			$localesPath = Uri::root(true) . '/media/system/js/fields/calendar-locales/' . $tag . '.js';
 		} elseif (is_file(JPATH_ROOT . '/media/system/js/fields/calendar-locales/' . strtolower(substr($tag, 0, -3)) . '.js')) {
-			$localesPath = Juri::root(true) . '/media/system/js/fields/calendar-locales/' . strtolower(substr($tag, 0, -3)) . '.js';
+			$localesPath = Uri::root(true) . '/media/system/js/fields/calendar-locales/' . strtolower(substr($tag, 0, -3)) . '.js';
 		}
 
 		$this->addScript($localesPath);

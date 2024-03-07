@@ -482,7 +482,7 @@ echo Route::_($szRoute); ?>" method="<?php echo $___getpost; ?>" name="adminForm
 						?>
 						<td>
 							<a href="<?php echo $edit_link; ?>"><img
-									src="<?php Juri::root(true) ?>components/com_contentbuilder/images/edit.png" border="0"
+									src="<?php Uri::root(true) ?>components/com_contentbuilder/images/edit.png" border="0"
 									width="18" height="18" /></a>
 						</td>
 						<?php

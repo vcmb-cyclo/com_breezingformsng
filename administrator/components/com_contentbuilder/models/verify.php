@@ -86,7 +86,7 @@ class ContentbuilderModelVerify extends CBModel
 
         $_now = Factory::getDate();
 
-        //$this->_db->setQuery("Select count(id) From #__contentbuilder_verifications Where Timestampdiff(Second, `start_date`, '".strtotime($_now->toMySQL())."') < 1 And ip = " . $this->_db->Quote($_SERVER['REMOTE_ADDR']));
+        //$this->_db->setQuery("Select count(id) From #__contentbuilder_verifications Where Timestampdiff(Second, `start_date`, '".strtotime($_now->toSQL())."') < 1 And ip = " . $this->_db->Quote($_SERVER['REMOTE_ADDR']));
         //$ver = $this->_db->loadResult();
 
         //if($ver >= 5){
@@ -95,7 +95,7 @@ class ContentbuilderModelVerify extends CBModel
         //    JError::raiseError(500, 'Penetration Denied');
         //}
 
-        //$this->_db->setQuery("Delete From #__contentbuilder_verifications Where Timestampdiff(Second, `start_date`, '".strtotime($_now->toMySQL())."') > 86400 And `verification_date` = '0000-00-00 00:00:00'");
+        //$this->_db->setQuery("Delete From #__contentbuilder_verifications Where Timestampdiff(Second, `start_date`, '".strtotime($_now->toSQL())."') > 86400 And `verification_date` = '0000-00-00 00:00:00'");
         //$this->_db->execute();
 
         $rec = null;

@@ -2254,9 +2254,6 @@ class HTML_facileFormsProcessor
         $path = str_replace('{name}', Factory::getUser()->get('name', 'Anonymous') . '_' . Factory::getUser()->get('id', 0), $path);
         $path = str_replace('{field}', File::makeSafe(strtolower(trim($field_name))), $path);
 
-        $is3 = false;
-        $is3 = true;
-
         $tz = 'UTC';
         $tz = new DateTimeZone(Factory::getApplication()->getCfg('offset'));
 
@@ -2637,7 +2634,7 @@ class HTML_facileFormsProcessor
                                 function bfCheckCaptcha(){
                                         if(checkFileExtensions()){
                                                var ao = new bfAjaxObject101();
-                                               ao.sndReq("get","' . Juri::root(true) . (Factory::getApplication()->isClient('administrator') ? '/administrator' : '') . '/index.php?raw=true&option=com_breezingforms&checkCaptcha=true&Itemid=0&tmpl=component&value="+document.getElementById("bfCaptchaEntry").value,"");
+                                               ao.sndReq("get","' . Uri::root(true) . (Factory::getApplication()->isClient('administrator') ? '/administrator' : '') . '/index.php?raw=true&option=com_breezingforms&checkCaptcha=true&Itemid=0&tmpl=component&value="+document.getElementById("bfCaptchaEntry").value,"");
                                         }
                                 }';
                 break;
@@ -4537,7 +4534,6 @@ class HTML_facileFormsProcessor
 
             if ($record_return && file_exists(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'contentbuilder.xml')) {
                 $last_update = Factory::getDate();
-                $is3 = true;
                 $last_update = $last_update->toSql();
                 $db = Factory::getContainer()->get(DatabaseInterface::class);
                 $db->setQuery("Select id From #__contentbuilder_records Where `type` = 'com_breezingforms' And `reference_id` = " . $db->Quote($this->form) . " And record_id = " . $db->Quote($record_return));
@@ -4760,16 +4756,15 @@ class HTML_facileFormsProcessor
                     $language = $cbResult['data']['default_lang_code_ignore'] ? $ignore_lang_code : $cbResult['data']['default_lang_code'];
                     $res = $db->loadResult();
                     $last_update = Factory::getDate();
-                    $is3 = true;
                     $last_update = $last_update->toSql();
                     if (!$res) {
 
                         $is_future = 0;
-                        $created_up = $is3 ? $created_up->toSql() : $created_up->toMySQL();
+                        $created_up = $created_up->toSql();
                         if (intval($cbData->default_publish_up_days) != 0) {
                             $is_future = 1;
                             $date = Factory::getDate(strtotime('now +' . intval($cbData->default_publish_up_days) . ' days'));
-                            $created_up = $is3 ? $date->toSql() : $date->toMySQL();
+                            $created_up = $date->toSql();
                         }
                         $created_down = '0000-00-00 00:00:00';
                         if (intval($cbData->default_publish_down_days) != 0) {
@@ -6925,7 +6920,7 @@ class HTML_facileFormsProcessor
 
             $cleaned = str_replace(JPATH_SITE . '/', '', $baseDir);
 
-            $path = Juri::root() . rtrim($cleaned, '/') . '/' . basename($path);
+            $path = Uri::root() . rtrim($cleaned, '/') . '/' . basename($path);
         }
 
         // resize if image
@@ -7433,7 +7428,7 @@ class HTML_facileFormsProcessor
 
                                                                     $cleaned = str_replace(JPATH_SITE . '/', '', $baseDir);
 
-                                                                    $path = Juri::root() . rtrim($cleaned, '/') . '/' . basename($path);
+                                                                    $path = Uri::root() . rtrim($cleaned, '/') . '/' . basename($path);
                                                                 }
 
                                                                 $paths[] = $path;
@@ -8028,7 +8023,7 @@ class HTML_facileFormsProcessor
             if ($this->formrow->double_opt) {
 
 
-                $uri = JUri::getInstance();
+                $uri = Uri::getInstance();
                 $domainAddress = $uri->toString(array('scheme', 'host', 'port', 'path'));
 
                 $mailer = Factory::getMailer();

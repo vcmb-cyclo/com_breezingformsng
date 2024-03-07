@@ -390,7 +390,7 @@
 		<title>Add custom CSS File</title>
 		<type>Before Form</type>
 		<description>Adds a custom css file to the form. To choose a css file\x2C execute this piece and call the function ff_addCustomCSSFile(\x27path/to/css/file\x27) with the RELATIVE (not full!) path to your joomla installation.\r\nDo not forget to call $this-\x3EexecPieceByName(\x27ff_InitLib\x27) before!\r\n\r\nExample:\r\n\r\nglobal $mainframe\x3B\r\n\r\n$this-\x3EexecPieceByName(\x27ff_InitLib\x27)\x3B\r\n$this-\x3EexecPieceByName(\x27ff_addCustomCSSFile\x27)\x3B\r\n\r\nff_addCustomCSSFile(\x27templates/\x27 . $mainframe-\x3EgetTemplate() . \x27/css/template.css\x27)\x3B</description>
-		<code>function ff_addCustomCSSFile($path){\r\n	if(file_exists(JPATH_SITE . \x27/\x27 . $path)){\r\n		FactorytDocument()-\x3EaddStyleSheet(Uri::root() . $path)\x3B\r\n	}\r\n}</code>
+		<code>function ff_addCustomCSSFile($path){\r\n	if(file_exists(JPATH_SITE . \x27/\x27 . $path)){\r\n		Factory::getDocument()-\x3EaddStyleSheet(Uri::root() . $path)\x3B\r\n	}\r\n}</code>
 	</piece>
 	<piece id="2">
 		<package>FF</package>

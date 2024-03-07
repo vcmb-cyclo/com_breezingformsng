@@ -24,7 +24,7 @@ class HTML_facileFormsForm
     {
         global $ff_admsite, $ff_config;
 
-        //Factory::getDocument()->addScript(Juri::root(true) . '/components/com_breezingforms/libraries/codemirror/mode/htmlmixed/htmlmixed.js');
+        //Factory::getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/codemirror/mode/htmlmixed/htmlmixed.js');
 
         ToolbarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_SAVE'), false);
         ToolbarHelper::custom('cancel', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false);
