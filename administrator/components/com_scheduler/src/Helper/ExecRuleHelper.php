@@ -16,7 +16,6 @@ use Joomla\CMS\Factory;
 use Joomla\Component\Scheduler\Administrator\Task\Task;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Utilities\ArrayHelper;
-use Joomla\CMS\Date\Date;
 
 
 // phpcs:disable PSR1.Files.SideEffects

@@ -887,7 +887,7 @@ function bfTriggerRules() {
 
 		// will make sure mootools loads first, important 4 jquery
         $default = ComponentHelper::getParams( 'com_languages' )->get( 'site' );
-        $this->language_tag = Factoryication()->getLanguage()->getTag() != $default ? Factory->getLanguage()->getTag() : 'zz-ZZ';
+        $this->language_tag = Factory::getApplication()->getLanguage()->getTag() != $default ? Factory->getLanguage()->getTag() : 'zz-ZZ';
 
 		Factory::getDocument()->addScriptDeclaration('<!--');
 
@@ -1341,7 +1341,7 @@ function bfTriggerRules() {
 						if (isset($mdata['is_html']) && $mdata['is_html']) {
 							echo '<div style="display: inline-block; vertical-align: top; width: ' . strip_tags($mdata['width']) . ';">';
 							JImport('joomla.html.editor');
-							$editor = Factoryor();
+							$editor = Factory::getEditor();
 							$this->htmltextareas[] = 'ff_nm_' . $mdata['bfName'] . '[]';
 							echo $editor->display('ff_nm_' . $mdata['bfName'] . '[]', htmlentities(trim($mdata['value']), ENT_QUOTES, 'UTF-8'), strip_tags($mdata['width']), strip_tags($mdata['height']), '75', '20', true, 'ff_elem' . $mdata['dbId']);
 							echo '<style type="text/css">.toggle-editor{display: none;}</style>';
@@ -1747,7 +1747,7 @@ function bfTriggerRules() {
 
 								$lang = BFRequest::getVar('lang', '');
 
-                                $getLangTag = Factoryication()->getLanguage()->getTag();
+                                $getLangTag = Factory::getApplication()->getLanguage()->getTag();
                                 $getLangSlug = explode('-', $getLangTag);
                                 $reCaptchaLang = 'hl='. $getLangSlug[0];
 
@@ -1860,7 +1860,7 @@ function bfTriggerRules() {
 
 					case 'bfCaptcha':
 
-						if (Factoryication()->isClient('site')) {
+						if (Factory::getApplication()->isClient('site')) {
 							$captcha_url = Uri::root(true) . '/components/com_breezingforms/images/captcha/securimage_show.php';
 						} else {
 							$captcha_url = Uri::root(true) . '/administrator/components/com_breezingforms/images/captcha/securimage_show.php';
@@ -2298,7 +2298,7 @@ function bfTriggerRules() {
 			Factory::getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/picker.js');
 			Factory::getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/picker.date.js');
 
-			$lang = Factoryication()->getLanguage()->getTag();
+			$lang = Factory::getApplication()->getLanguage()->getTag();
 			$lang = explode('-', $lang);
 			$lang = strtolower($lang[0]);
 			if (file_exists(JPATH_SITE . '/components/com_breezingforms/libraries/jquery/pickadate/translations/' . $lang . '.js')) {
@@ -2322,7 +2322,7 @@ function bfTriggerRules() {
 		// requires a different mandatory validation than ff_valuenotempty
 		if (count($this->htmltextareas)) {
 			JImport('joomla.html.editor');
-			$editor = Factoryor();
+			$editor = Factory::getEditor();
 			$htmltextarea_out = '';
 			foreach ($this->htmltextareas As $htmltextarea) {
 				$htmltextarea_out .= 'JQuery("[name=\"' . $htmltextarea . '\"]").val(JQuery.trim(JQuery("[name=\"' . $htmltextarea . '\"]").val())+" ");' . "\n";

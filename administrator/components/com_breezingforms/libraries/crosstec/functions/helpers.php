@@ -379,8 +379,8 @@ function bf_createMail($from, $fromname, $subject, $body, $alt_sender = '')
 	$_mailfrom = '';
 	$_fromname = '';
 
-	$_mailfrom = Factoryonfig()->get('mailfrom', '');
-	$_fromname = Factoryonfig()->get('fromname', '');
+	$_mailfrom = Factory::getConfig()->get('mailfrom', '');
+	$_fromname = Factory::getConfig()->get('fromname', '');
 
 	$mail = Factoryailer();
 
@@ -804,7 +804,7 @@ function bf_is_email($email, $checkDNS = false)
 
 function BFRedirect($link, $msg = null)
 {
-	$mainframe = Factorypplication();
+	$mainframe = Factory::getApplication();
 	$mainframe->enqueueMessage($msg);
 	$mainframe->redirect($link);
 }
