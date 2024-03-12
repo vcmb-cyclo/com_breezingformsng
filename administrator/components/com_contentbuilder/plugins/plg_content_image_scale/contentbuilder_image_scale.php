@@ -17,6 +17,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\Filesystem\File;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Filter\OutputFilter;
+use Joomla\Filesystem\Path;
 
 if (!function_exists('cb_b64enc')) {
 
@@ -750,7 +751,7 @@ class plgContentContentbuilder_image_scale extends JPlugin
 																	if ($protect) {
 																		$open_ = Route::_($url . (strstr($url, '?') !== false ? '&' : '?') . 'contentbuilder_display_detail=1&contentbuilder_detail_file=' . sha1($field . $the_value));
 																	} else {
-																		$ex = explode(JPATH_SITE . DS, JPath::clean($the_value), 2);
+																		$ex = explode(JPATH_SITE . DS, Path::clean($the_value), 2);
 																		$open_ = Uri::root(true) . '/' . str_replace("\\", "/", $ex[count($ex) - 1]);
 																	}
 																}

@@ -21,6 +21,7 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Language\LanguageHelper;
+use Joomla\Filesystem\Path;
 
 class bfMobile
 {
@@ -6837,7 +6838,7 @@ class HTML_facileFormsProcessor
         }
         $date_stamp2 = $date_->format('Y_m_d', true);
 
-        $baseDir = JPath::clean(str_replace($this->findtags, $this->replacetags, $destpath));
+        $baseDir = Path::clean(str_replace($this->findtags, $this->replacetags, $destpath));
 
         // test if there is a filemask and remove it from the basepath
         $_baseDir = $baseDir;
@@ -7206,7 +7207,7 @@ class HTML_facileFormsProcessor
 
                             // CONTENTBUILDER
                             if ($cbResult !== null && isset($cbResult['data']) && $cbResult['data'] != null) {
-                                $rowdata1 = JPath::clean(str_replace($this->findtags, $this->replacetags, $row->data1));
+                                $rowdata1 = Path::clean(str_replace($this->findtags, $this->replacetags, $row->data1));
                                 if ($cbResult['data']['protect_upload_directory']) {
                                     if (is_dir($rowdata1) && !file_exists($rowdata1 . '/' . '.htaccess'))
                                         File::write($rowdata1 . '/' . '.htaccess', $def = 'deny from all');
@@ -7347,7 +7348,7 @@ class HTML_facileFormsProcessor
                                                                 //if ($cbResult !== null && isset($cbResult['data']) && $cbResult['data'] != null) {
                                                                 $rowpath1 = $this->cbCreatePathByTokens($rowpath1, $this->rows, $row->name);
                                                                 //}
-                                                                $baseDir = JPath::clean(str_replace($this->findtags, $this->replacetags, $rowpath1));
+                                                                $baseDir = Path::clean(str_replace($this->findtags, $this->replacetags, $rowpath1));
 
                                                                 // test if there is a filemask and remove it from the basepath
                                                                 $_baseDir = $baseDir;
@@ -7484,7 +7485,7 @@ class HTML_facileFormsProcessor
                                     $savedata_path = $serverPath;
                                     foreach ($this->findtags as $tag) {
                                         if (strtolower($tag) == '{cbsite}' && isset($is_relative[$serverPath]) && $is_relative[$serverPath]) {
-                                            $savedata_path = JPath::clean(str_replace(array(JPATH_SITE, JPATH_SITE), array('{cbsite}', '{CBSite}'), $savedata_path));
+                                            $savedata_path = Path::clean(str_replace(array(JPATH_SITE, JPATH_SITE), array('{cbsite}', '{CBSite}'), $savedata_path));
                                         }
                                     }
 
