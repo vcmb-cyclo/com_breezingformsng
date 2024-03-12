@@ -14,6 +14,7 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
@@ -676,7 +677,7 @@ class BFPagination
 	 */
 	public function set($property, $value = null)
 	{
-		JLog::add('JPagination::set() is deprecated. Access the properties directly.', JLog::WARNING, 'deprecated');
+		Log::add('JPagination::set() is deprecated. Access the properties directly.', Log::WARNING, 'deprecated');
 
 		if (strpos($property, '.')) {
 			$prop = explode('.', $property);
@@ -699,7 +700,7 @@ class BFPagination
 	 */
 	public function get($property, $default = null)
 	{
-		JLog::add('JPagination::get() is deprecated. Access the properties directly.', JLog::WARNING, 'deprecated');
+		Log::add('JPagination::get() is deprecated. Access the properties directly.', Log::WARNING, 'deprecated');
 
 		if (strpos($property, '.')) {
 			$prop = explode('.', $property);
