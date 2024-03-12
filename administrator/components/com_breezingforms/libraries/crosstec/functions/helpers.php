@@ -15,6 +15,7 @@ use Joomla\Filesystem\File;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Factory;
 use Joomla\Database\DatabaseInterface;
+use Joomla\String\StringHelper;
 
 function bf_sanitizeFilename($fileName, $defaultIfEmpty = 'upload', $separator = '_', $lowerCase = true)
 {
@@ -123,7 +124,7 @@ function bf_stringURLUnicodeSlug($string)
 	$str = str_replace('?', '', $str);
 
 	// Trim white spaces at beginning and end of alias and make lowercase
-	$str = trim(JString::strtolower($str));
+	$str = trim(StringHelper::strtolower($str));
 
 	// Remove any duplicate whitespace and replace whitespaces by hyphens
 	$str = preg_replace('#\x20+#', '-', $str);
