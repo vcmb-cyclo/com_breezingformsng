@@ -78,6 +78,10 @@ class facileFormsForm
 
     static function edit($option, $tabpane, $pkg, $ids, $caller)
     {
+         /**
+        * 
+        * @var object $database
+        */
         global $database;
         ArrayHelper::toInteger($ids);
         $database = Factory::getContainer()->get(DatabaseInterface::class);
