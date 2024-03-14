@@ -24,6 +24,8 @@ use Joomla\Filesystem\File;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Date\Date;
+use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\CMS\Form\Form;
 
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'joomla_compat.php');
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'modellegacy.php');
@@ -264,9 +266,9 @@ class ContentbuilderModelEdit extends CBModel
                     if ($data->create_articles) {
 
                         jimport('joomla.form.form');
-                        JForm::addFormPath(JPATH_SITE . '/administrator/components/com_contentbuilder/models/forms');
-                        JForm::addFieldPath(JPATH_SITE . '/administrator/components/com_content/models/fields');
-                        $form = JForm::getInstance('com_content.article', 'article', array('control' => 'jform', 'load_data' => true));
+                        Form::addFormPath(JPATH_SITE . '/administrator/components/com_contentbuilder/models/forms');
+                        Form::addFieldPath(JPATH_SITE . '/administrator/components/com_content/models/fields');
+                        $form = Form::getInstance('com_content.article', 'article', array('control' => 'Form', 'load_data' => true));
 
                         if (is_array($article)) {
 
@@ -295,7 +297,7 @@ class ContentbuilderModelEdit extends CBModel
                                 $item->articletext = trim($item->fulltext) != '' ? $item->introtext . "<hr id=\"system-readmore\" />" . $item->fulltext : $item->introtext;
 
                                 // Import the approriate plugin group.
-                                JPluginHelper::importPlugin('content');
+                                PluginHelper::importPlugin('content');
 
                                 // Trigger the form preparation event.
                                 $results = Factory::getApplication()->triggerEvent('onContentPrepareForm', array($form, $item));
@@ -586,7 +588,7 @@ var contentbuilder = new function(){
 
         CBRequest::checkToken('default') or jexit(Text::_('JInvalid_Token'));
 
-        JPluginHelper::importPlugin('contentbuilder_submit');
+        PluginHelper::importPlugin('contentbuilder_submit');
         Factory::getSession()->clear('cb_failed_values', 'com_contentbuilder.' . $this->_id);
         CBRequest::setVar('cb_submission_failed', 0);
 
@@ -1231,7 +1233,7 @@ var contentbuilder = new function(){
                                 $bypass->text = $orig_text = '{CBVerify plugin: ' . $data->registration_bypass_plugin . '; verification-name: ' . $verification_name . '; verify-view: ' . $verify_view . '; ' . str_replace(array("\r", "\n"), '', $data->registration_bypass_plugin_params) . '}';
                                 $params = new stdClass();
 
-                                JPluginHelper::importPlugin('content', 'contentbuilder_verify');
+                                PluginHelper::importPlugin('content', 'contentbuilder_verify');
                                 $bypass_result = Factory::getApplication()->triggerEvent('onPrepareContent', array(&$bypass, &$params));
 
                                 $verification_id = '';
@@ -1426,7 +1428,7 @@ var contentbuilder = new function(){
 
                     $config = array();
                     if ($article) {
-                        $config = CBRequest::getVar('jform', array());
+                        $config = CBRequest::getVar('Form', array());
                     }
 
                     $full = $this->frontend ? contentbuilder::authorizeFe('fullarticle') : contentbuilder::authorize('fullarticle');
@@ -1779,7 +1781,7 @@ var contentbuilder = new function(){
         }
 
         // Load the users plugin group.
-        JPluginHelper::importPlugin('user');
+        PluginHelper::importPlugin('user');
 
         // Store the data.
         if (!$user->save()) {
@@ -1961,10 +1963,10 @@ var contentbuilder = new function(){
         $username = $user->get('username');
 
         $usersConfig = ComponentHelper::getParams('com_users');
-        $sitename = $mainframe->getCfg('sitename');
+        $sitename = $mainframe->get('sitename');
         $useractivation = $usersConfig->get('useractivation');
-        $mailfrom = $mainframe->getCfg('mailfrom');
-        $fromname = $mainframe->getCfg('fromname');
+        $mailfrom = $mainframe->get('mailfrom');
+        $fromname = $mainframe->get('fromname');
         $siteURL = Uri::base();
 
         $subject = sprintf(Text::_('Account details for'), $name, $sitename);
@@ -2116,7 +2118,7 @@ var contentbuilder = new function(){
             return;
         }
 
-        JPluginHelper::importPlugin('contentbuilder_listaction', $res['action']);
+        PluginHelper::importPlugin('contentbuilder_listaction', $res['action']);
         $items = CBRequest::getVar('cid', array(), 'request', 'array');
 
         $result = Factory::getApplication()->triggerEvent('onBeforeAction', array($this->_id, $items));
