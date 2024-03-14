@@ -17,6 +17,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\CMS\User\UserHelper;
 
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'joomla_compat.php');
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'modellegacy.php');
@@ -487,7 +488,7 @@ class ContentbuilderModelVerify extends CBModel
 
             // Compile the admin notification mail values.
             $data = $user->getProperties();
-            $data['activation'] = JApplicationHelper::getHash(JUserHelper::genRandomPassword());
+            $data['activation'] = JApplicationHelper::getHash(UserHelper::genRandomPassword());
             $user->set('activation', $data['activation']);
             $data['siteurl'] = Uri::root();
             $data['activate'] = Uri::root() . 'index.php?option=com_contentbuilder&controller=verify&token=' . $data['activation'] . '&verify_by_admin=1&format=raw';
