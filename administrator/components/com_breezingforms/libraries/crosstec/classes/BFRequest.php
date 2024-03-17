@@ -11,6 +11,7 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filter\InputFilter;
 use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Session\Session;
 
 /**
  * Create the request global object
@@ -466,7 +467,7 @@ class BFRequest
      * @return  boolean  True if found and valid, false otherwise.
      *
      * @since   1.5
-     * #deprecated  1.7 Use JSession::checkToken() instead. Note that 'default' has to become 'request'.
+     * #deprecated  1.7 Use Session::checkToken() instead. Note that 'default' has to become 'request'.
      */
     public static function checkToken($method = 'post')
     {
@@ -474,7 +475,7 @@ class BFRequest
             $method = 'request';
         }
 
-        return JSession::checkToken($method);
+        return Session::checkToken($method);
     }
 
     /**
