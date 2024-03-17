@@ -4,6 +4,7 @@
  * @version 1.9
  * @package BreezingForms
  * @copyright (C) 2008-2020 by Markus Bopp
+ * @copyright   (C) 2024 by XDA+GIL
  * @license Released under the terms of the GNU General Public License
  **/
 defined('_JEXEC') or die ('Direct Access to this location is not allowed.');
@@ -693,8 +694,8 @@ class QuickMode
 				// fix ids of copied elements
 
 				$this->db->setQuery("Select id From #__facileforms_elements Where name = " . $this->db->Quote($element['name']) . " And form = " . $this->db->Quote($form) . " ");
-				
-				$bError =false;
+
+				$bError = false;
 				try {
 					$elementCheck = $this->db->loadObjectList();
 				} catch (\InvalidArgumentException $e) {

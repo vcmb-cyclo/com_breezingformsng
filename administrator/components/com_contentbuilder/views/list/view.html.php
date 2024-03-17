@@ -4,21 +4,23 @@
  * @author      Markus Bopp
  * @link        https://www.crosstec.org
  * @copyright   (C) 2024 by XDA+GIL
+ * @copyright   (C) 2024 by XDA+GIL
  * @license     GNU/GPL
  */
 
 // no direct access
 
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die ('Restricted access');
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\CMS\MVC\View\HtmlView;
 
-require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'joomla_compat.php');
-require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'viewlegacy.php');
+require_once (JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'joomla_compat.php');
+require_once (JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'viewlegacy.php');
 
-class ContentbuilderViewList extends CBView
+class ContentbuilderViewList extends HtmlView
 {
     function display($tpl = null)
     {
@@ -48,7 +50,7 @@ class ContentbuilderViewList extends CBView
         $lists['limitstart'] = $state->get('limitstart');
 
         PluginHelper::importPlugin('contentbuilder_themes', $subject->theme_plugin);
-        
+
         $dispatcher = Factory::getApplication()->getDispatcher();
         $eventResult = $dispatcher->dispatch('onListViewCss', new Joomla\Event\Event('onListViewCss', array()));
         $results = $eventResult->getArgument('result') ?: [];
