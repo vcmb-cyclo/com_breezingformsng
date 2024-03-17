@@ -673,26 +673,35 @@ class QuickMode
 							)"
 				);
 
-				$this->db->execute();
-				if ($this->db->getErrormsg() == '') {
+
+				$bError = false;
+				try {
+					$this->db->execute();
+				} catch (\InvalidArgumentException $e) {
+					$bError = true;
+					//$encoded = $element['bfType']  . ' - ' . $element['bfType'] . ' - ' . $this->db->getErrormsg() . "\n";
+					//file_put_contents(JPATH_SITE.'/error.txt', $encoded, FILE_APPEND);
+				}
+
+				if ($bError == false) {
 					$elementId = $this->db->insertid();
 					$areas[0]['elements'][$elementCount]['dbId'] = $elementId;
 					$this->updateDbId($dataObject, $areas[0]['elements'][$elementCount]['qId'], $elementId);
-				} else {
-
-					//$encoded = $element['bfType']  . ' - ' . $element['bfType'] . ' - ' . $this->db->getErrormsg() . "\n";
-					//file_put_contents(JPATH_SITE.'/error.txt', $encoded, FILE_APPEND);
-
 				}
-
 			} else {
 
 				// fix ids of copied elements
 
 				$this->db->setQuery("Select id From #__facileforms_elements Where name = " . $this->db->Quote($element['name']) . " And form = " . $this->db->Quote($form) . " ");
-				$elementCheck = $this->db->loadObjectList();
+				
+				$bError =false;
+				try {
+					$elementCheck = $this->db->loadObjectList();
+				} catch (\InvalidArgumentException $e) {
+					$bError = true;
+				}
 
-				if ($this->db->getErrormsg() == '') {
+				if ($bError == false) {
 					foreach ($elementCheck as $check) {
 						if ($check->id != intval($element['dbId'])) {
 							$element['dbId'] = $check->id;
@@ -750,13 +759,14 @@ class QuickMode
 								id = " . $this->db->Quote($element['dbId']) . "
 							"
 				);
-				$this->db->execute();
 
-				if ($this->db->getErrormsg() != '') {
-
+				$bError = false;
+				try {
+					$this->db->execute();
+				} catch (\InvalidArgumentException $e) {
+					$bError = true;
 					//$encoded = $element['bfType']  . ' - ' . $element['bfType'] . ' - ' . $this->db->getErrormsg() . "\n";
 					//file_put_contents(JPATH_SITE.'/error.txt', $encoded, FILE_APPEND);
-
 				}
 
 				$elementId = $element['dbId'];
