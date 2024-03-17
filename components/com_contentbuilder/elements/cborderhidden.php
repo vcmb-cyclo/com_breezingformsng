@@ -12,8 +12,6 @@ defined('_JEXEC') or die ('Restricted access');
 jimport('joomla.html.html');
 
 
-use Joomla\Database\DatabaseInterface;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Form\FormField;
 
 class JFormFieldCborderhidden extends FormField
@@ -23,8 +21,6 @@ class JFormFieldCborderhidden extends FormField
 
     protected function getInput()
     {
-        $class = $this->element['class'] ? $this->element['class'] : "text_area";
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
         $out = '<input type="hidden" name="' . $this->name . '" id="' . $this->id . '" value="' . $this->value . '"/>' . "\n";
         $out .= '
                 <script type="text/javascript">

@@ -11,12 +11,13 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\MVC\Controller\BaseController;
 
 if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
 }
 
-$controller = JControllerLegacy::getInstance('Breezingforms');
+$controller = BaseController::getInstance('Breezingforms');
 $controller->execute('');
 $controller->redirect();
 
