@@ -160,7 +160,7 @@ class ContentbuilderModelVerify extends CBModel
         if (!CBRequest::getBool('verify', 0) && !CBRequest::getVar('token', '')) {
             $___now = $_now->toSql();
 
-            $verification_id = md5(uniqid(null, true) . mt_rand(0, mt_getrandmax()) . $user_id);
+            $verification_id = md5(uniqid("", true) . mt_rand(0, mt_getrandmax()) . $user_id);
             $this->_db->setQuery("
                     Insert Into #__contentbuilder_verifications
                     (
@@ -205,8 +205,9 @@ class ContentbuilderModelVerify extends CBModel
         }
 
         PluginHelper::importPlugin('contentbuilder_verify', $plugin);
-        $setup_result = $this->mainframe->getDispatcher()->dispatch('onSetup', array($this_page, $out));
 
+        $eventResult = $this->mainframe->getDispatcher()->dispatch('onSetup', new Joomla\Event\Event('onSetup', array($this_page, $out)));
+        $setup_result = $eventResult->getArgument('result') ?: [];
         if (!implode('', $setup_result)) {
 
             if (!CBRequest::getBool('verify', 0)) {
@@ -223,7 +224,8 @@ class ContentbuilderModelVerify extends CBModel
                     $this_page = $urlex[0] . '?' . http_build_query($data, '', '&') . '&verify=1&verification_id=' . $verification_id;
                 }
 
-                $forward_result = $this->mainframe->getDispatcher()->dispatch('onForward', array($this_page, $out));
+                $eventResult = $this->mainframe->getDispatcher()->dispatch('onForward', new Joomla\Event\Event('onForward', array($this_page, $out)));
+                $forward_result = $eventResult->getArgument('result') ?: [];
                 $forward = implode('', $forward_result);
 
                 if ($forward) {
@@ -234,8 +236,8 @@ class ContentbuilderModelVerify extends CBModel
                 if ($verification_id) {
 
                     $msg = '';
-
-                    $verify_result = $this->mainframe->getDispatcher()->dispatch('onVerify', array($this_page, $out));
+                    $eventResult = $this->mainframe->getDispatcher()->dispatch('onVerify', new Joomla\Event\Event('onVerify', array($this_page, $out)));
+                    $verify_result = $eventResult->getArgument('result') ?: [];
 
                     if (count($verify_result)) {
 
@@ -456,7 +458,7 @@ class ContentbuilderModelVerify extends CBModel
 
     public function activate($token)
     {
-        Factory::getApplication()->getLanguage()->load('com_users', JPATH_SITE);
+        $this->mainframe->getLanguage()->load('com_users', JPATH_SITE);
 
         $config = Factory::getConfig();
         $userParams = ComponentHelper::getParams('com_users');

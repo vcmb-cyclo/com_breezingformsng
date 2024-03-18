@@ -3458,8 +3458,7 @@ class QuickModeHtml
                 <?php echo $menutabcss; ?>
             }
         </style>
-        <?php
-        jimport('joomla.application.component.helper');
+        <?php 
         $default = ComponentHelper::getParams('com_languages')->get('site');
 
         Factory::getApplication()->getDocument()->addScriptDeclaration('
