@@ -11,10 +11,7 @@
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
-use Joomla\CMS\Factory;
-use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\Uri\Uri;
-use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Plugin\CMSPlugin;
 
@@ -40,6 +37,21 @@ if (!function_exists('cb_b64dec')) {
 
 class plgContentContentbuilder_verify extends CMSPlugin
 {
+/**
+     * Application object.
+     *
+     * @var    \Joomla\CMS\Application\CMSApplication
+     * @since  5.0.0
+     */
+    protected $app;
+
+    /**
+     * Database object.
+     *
+     * @var    \Joomla\Database\DatabaseDriver
+     * @since  5.0.0
+     */
+    protected $db;
 
     function __construct(&$subject, $params)
     {
@@ -84,11 +96,10 @@ class plgContentContentbuilder_verify extends CMSPlugin
     function onContentPrepare($context, &$article, &$params, $limitstart = 0)
     {
 
-        if (!$article || !isset($article->text) || !File::exists(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php')) {
+        if (!$article || !isset($article->text) || !file_exists(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php')) {
             return true;
         }
 
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
         $matches = array();
         preg_match_all("/\{CBVerify([^}]*)\}/i", $article->text, $matches);
 
@@ -168,15 +179,15 @@ class plgContentContentbuilder_verify extends CMSPlugin
 
                 if ($plugin && $verification_name && $verify_view) {
 
-                    $plugin_settings = 'return-site=' . ($return_site ? cb_b64enc($return_site) : '') . '&return-admin=' . ($return_admin ? cb_b64enc($return_admin) : '') . '&client=' . (Factory::getApplication()->isClient('site') ? 0 : 1) . '&plugin=' . $plugin . '&verification_msg=' . urlencode($verification_msg) . '&verification_name=' . urlencode($verification_name) . '&verify_view=' . $verify_view . '&verify_levels=' . $verify_levels . '&require_view=' . $require_view . '&plugin_options=' . cb_b64enc($this->buildStr($plugin_options));
+                    $plugin_settings = 'return-site=' . ($return_site ? cb_b64enc($return_site) : '') . '&return-admin=' . ($return_admin ? cb_b64enc($return_admin) : '') . '&client=' . ($this->app->isClient('site') ? 0 : 1) . '&plugin=' . $plugin . '&verification_msg=' . urlencode($verification_msg) . '&verification_name=' . urlencode($verification_name) . '&verify_view=' . $verify_view . '&verify_levels=' . $verify_levels . '&require_view=' . $require_view . '&plugin_options=' . cb_b64enc($this->buildStr($plugin_options));
 
-                    Factory::getApplication()->getSession()->clear($plugin . $verification_name, 'com_contentbuilder.verify.' . $plugin . $verification_name);
-                    Factory::getApplication()->getSession()->set($plugin . $verification_name, $plugin_settings, 'com_contentbuilder.verify.' . $plugin . $verification_name);
+                    $this->app->getSession()->clear($plugin . $verification_name, 'com_contentbuilder.verify.' . $plugin . $verification_name);
+                    $this->app->getSession()->set($plugin . $verification_name, $plugin_settings, 'com_contentbuilder.verify.' . $plugin . $verification_name);
 
                     $link = Uri::root(true) . '/index.php?option=com_contentbuilder&controller=verify&plugin=' . urlencode($plugin) . '&verification_name=' . urlencode($verification_name) . '&format=raw';
                     PluginHelper::importPlugin('contentbuilder_verify', $plugin);
                     
-                    $dispatcher = Factory::getApplication()->getDispatcher();
+                    $dispatcher = $this->app->getDispatcher();
                     $eventResult = $dispatcher->dispatch('onViewport', new Joomla\Event\Event('onViewport', array($link, $plugin_settings)));
                     $viewport_result = $eventResult->getArgument('result') ?: [];
                     $viewport_result = implode('', $viewport_result);

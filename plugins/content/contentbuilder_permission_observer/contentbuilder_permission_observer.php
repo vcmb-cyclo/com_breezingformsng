@@ -11,9 +11,6 @@
 defined( '_JEXEC' ) or die( 'Direct Access to this location is not allowed.' );
 
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\Factory;
-use Joomla\CMS\Filesystem\File;
-use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Plugin\CMSPlugin;
 
 if(!function_exists('cb_b64enc')){
@@ -35,6 +32,21 @@ if(!function_exists('cb_b64dec')){
 }
 
 class plgContentContentbuilder_permission_observer extends CMSPlugin {
+/**
+     * Application object.
+     *
+     * @var    \Joomla\CMS\Application\CMSApplication
+     * @since  5.0.0
+     */
+    protected $app;
+
+    /**
+     * Database object.
+     *
+     * @var    \Joomla\Database\DatabaseDriver
+     * @since  5.0.0
+     */
+    protected $db;
 
     function __construct( &$subject, $params )
     {
@@ -51,7 +63,7 @@ class plgContentContentbuilder_permission_observer extends CMSPlugin {
 
     function onContentPrepare($context, &$article, &$params, $limitstart = 0) {
         
-        if(!File::exists(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php'))
+        if(!file_exists(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php'))
         {
             return true;
         }
@@ -59,13 +71,12 @@ class plgContentContentbuilder_permission_observer extends CMSPlugin {
         if (isset($article->id) && $article->id) {
             
             $frontend = true;
-            if (Factory::getApplication()->isClient('administrator')) {
+            if ($this->app->isClient('administrator')) {
                 $frontend = false;
             }
             
-            $db = Factory::getContainer()->get(DatabaseInterface::class);
-            $db->setQuery("Select form.`reference_id`,article.`record_id`,article.`form_id`,form.`type`,form.`published_only`,form.`own_only`,form.`own_only_fe` From #__contentbuilder_articles As article, #__contentbuilder_forms As form Where form.`published` = 1 And form.id = article.`form_id` And article.`article_id` = " . $db->quote($article->id));
-            $data = $db->loadAssoc();
+            $this->db->setQuery("Select form.`reference_id`,article.`record_id`,article.`form_id`,form.`type`,form.`published_only`,form.`own_only`,form.`own_only_fe` From #__contentbuilder_articles As article, #__contentbuilder_forms As form Where form.`published` = 1 And form.id = article.`form_id` And article.`article_id` = " . $this->db->quote($article->id));
+            $data = $this->db->loadAssoc();
 
             require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
             $form = contentbuilder::getForm($data['type'], $data['reference_id']);
@@ -76,7 +87,7 @@ class plgContentContentbuilder_permission_observer extends CMSPlugin {
             
             if ($form && !( CBRequest::getVar('option','') == 'com_contentbuilder' && CBRequest::getVar('controller','') == 'edit' )) {
                 
-                Factory::getLanguage()->load('com_contentbuilder');
+                $this->app->getLanguage()->load('com_contentbuilder');
                 contentbuilder::setPermissions($data['form_id'], $data['record_id'], $frontend ? '_fe' : '');
                 
                 if(CBRequest::getCmd('view') == 'article'){

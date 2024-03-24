@@ -10,13 +10,28 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
-use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
-use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Plugin\CMSPlugin;
 
 class plgContentbuilder_listactionUntrash extends CMSPlugin
 {
+    /**
+     * Application object.
+     *
+     * @var    \Joomla\CMS\Application\CMSApplication
+     * @since  5.0.0
+     */
+    protected $app;
+
+
+    /**
+     * Database object.
+     *
+     * @var    \Joomla\Database\DatabaseDriver
+     * @since  5.0.0
+     */
+    protected $db;
+
     function __construct(&$subject, $params)
     {
         parent::__construct($subject, $params);
@@ -29,18 +44,16 @@ class plgContentbuilder_listactionUntrash extends CMSPlugin
      */
     function onBeforeAction($form_id, $record_ids)
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-
-        $lang = Factory::getLanguage();
+        $lang = $this->app->getLanguage();
         $lang->load('plg_contentbuilder_listaction_untrash', JPATH_ADMINISTRATOR);
 
         foreach ($record_ids as $record_id) {
 
-            $db->setQuery("Update #__content As content, #__contentbuilder_records As record, #__contentbuilder_articles As article Set content.state = record.published Where article.record_id = record.record_id And article.form_id = " . intval($form_id) . " And article.record_id = " . $db->Quote($record_id) . " And content.id = article.article_id");
-            $db->execute();
+            $this->db->setQuery("Update #__content As content, #__contentbuilder_records As record, #__contentbuilder_articles As article Set content.state = record.published Where article.record_id = record.record_id And article.form_id = " . intval($form_id) . " And article.record_id = " . $this->db->Quote($record_id) . " And content.id = article.article_id");
+            $this->db->execute();
         }
 
-        Factory::getApplication()->enqueueMessage(Text::_('COM_CONTENTBUILDER_UNTRASH_SUCCESSFULL'));
+        $this->app->enqueueMessage(Text::_('COM_CONTENTBUILDER_UNTRASH_SUCCESSFULL'));
 
         return ''; // no error
     }
@@ -69,7 +82,6 @@ class plgContentbuilder_listactionUntrash extends CMSPlugin
      */
     function onAfterArticleCreation($form_id, $record_id, $article_id)
     {
-
         return '';
     }
 }

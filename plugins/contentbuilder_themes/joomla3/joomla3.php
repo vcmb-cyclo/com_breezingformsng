@@ -15,14 +15,6 @@ use Joomla\CMS\Plugin\CMSPlugin;
 class plgContentbuilder_themesJoomla3 extends CMSPlugin
 {
     /**
-     * Application object.
-     *
-     * @var    \Joomla\CMS\Application\CMSApplication
-     * @since  5.0.0
-     */
-    protected $app;
-
-    /**
      * Database object.
      *
      * @var    \Joomla\Database\DatabaseDriver
@@ -88,7 +80,6 @@ class plgContentbuilder_themesJoomla3 extends CMSPlugin
      */
     function onEditableTemplateCss()
     {
-
         return $this->onContentTemplateCss();
     }
 
@@ -100,7 +91,6 @@ class plgContentbuilder_themesJoomla3 extends CMSPlugin
      */
     function onListViewCss()
     {
-
         return '';
     }
 

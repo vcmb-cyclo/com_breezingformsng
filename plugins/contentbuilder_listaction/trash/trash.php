@@ -11,12 +11,26 @@
 defined('_JEXEC') or die ('Restricted access');
 
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\Factory;
-use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Plugin\CMSPlugin;
 
 class plgContentbuilder_listactionTrash extends CMSPlugin
 {
+    /**
+     * Application object.
+     *
+     * @var    \Joomla\CMS\Application\CMSApplication
+     * @since  5.0.0
+     */
+    protected $app;
+
+    /**
+     * Database object.
+     *
+     * @var    \Joomla\Database\DatabaseDriver
+     * @since  5.0.0
+     */
+    protected $db;
+
     function __construct(&$subject, $params)
     {
         parent::__construct($subject, $params);
@@ -29,18 +43,16 @@ class plgContentbuilder_listactionTrash extends CMSPlugin
      */
     function onBeforeAction($form_id, $record_ids)
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-
-        $lang = Factory::getLanguage();
+        $lang = $this->app->getLanguage();
         $lang->load('plg_contentbuilder_listaction_trash', JPATH_ADMINISTRATOR);
 
         foreach ($record_ids as $record_id) {
 
-            $db->setQuery("Update #__content As content, #__contentbuilder_articles As article Set content.state = -2 Where article.form_id = " . intval($form_id) . " And article.record_id = " . $db->Quote($record_id) . " And content.id = article.article_id");
-            $db->execute();
+            $this->db->setQuery("Update #__content As content, #__contentbuilder_articles As article Set content.state = -2 Where article.form_id = " . intval($form_id) . " And article.record_id = " . $this->db->Quote($record_id) . " And content.id = article.article_id");
+            $this->db->execute();
         }
 
-        Factory::getApplication()->enqueueMessage(Text::_('COM_CONTENTBUILDER_TRASH_SUCCESSFULL'));
+        $this->app->enqueueMessage(Text::_('COM_CONTENTBUILDER_TRASH_SUCCESSFULL'));
 
         return ''; // no error
     }
@@ -71,14 +83,12 @@ class plgContentbuilder_listactionTrash extends CMSPlugin
      */
     function onAfterArticleCreation($form_id, $record_id, $article_id)
     {
-
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $db->setQuery("Select action From #__contentbuilder_list_records As lr, #__contentbuilder_list_states As ls Where lr.state_id = ls.id And lr.form_id = ls.form_id And lr.form_id = " . intval($form_id) . " And lr.record_id = " . $db->Quote($record_id));
-        $action = $db->loadResult();
+        $this->db->setQuery("Select action From #__contentbuilder_list_records As lr, #__contentbuilder_list_states As ls Where lr.state_id = ls.id And lr.form_id = ls.form_id And lr.form_id = " . intval($form_id) . " And lr.record_id = " . $this->db->Quote($record_id));
+        $action = $this->db->loadResult();
 
         if ($action == 'trash') {
-            $db->setQuery("Delete From #__content Where id = " . intval($article_id));
-            $db->execute();
+            $this->db->setQuery("Delete From #__content Where id = " . intval($article_id));
+            $this->db->execute();
         }
 
         return '';
