@@ -157,12 +157,13 @@ class plgContentContentbuilder_verify extends CMSPlugin
                                 break;
                             case 'verify-levels':
                                 $vl = explode(',', $this->getValueByLanguage($value));
+                                $verify_levelss = array();
                                 foreach ($vl as $l) {
                                     if (in_array(strtolower(trim($l)), array('new', 'edit', 'view'))) {
-                                        $verify_levels[] = strtolower(trim($l));
+                                        $verify_levelss[] = strtolower(trim($l));
                                     }
                                 }
-                                $verify_levels = implode(',', $verify_levels);
+                                $verify_levels = implode(',', $verify_levelss);
                                 break;
                             case 'require-view':
                                 $require_view = $this->getValueByLanguage($value);
