@@ -5,10 +5,20 @@
  * @package     BreezingForms
  * @author      Markus Bopp
  * @link        http://www.crosstec.de
+ * @copyright   Copyright (C) 2024 by XDA+GIL 
  * @license     GNU/GPL
  */
 
-defined( '_JEXEC' ) or die( 'Restricted access' );
+defined('_JEXEC') or die('Restricted access');
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Pagination\PaginationObject;
+
+defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 /**
  * Pagination Class. Provides a common interface for content pagination for the
@@ -101,13 +111,11 @@ class BFPagination
 		$this->limit = (int) max($limit, 0);
 		$this->prefix = $prefix;
 
-		if ($this->limit > $this->total)
-		{
+		if ($this->limit > $this->total) {
 			$this->limitstart = 0;
 		}
 
-		if (!$this->limit)
-		{
+		if (!$this->limit) {
 			$this->limit = $total;
 			$this->limitstart = 0;
 		}
@@ -116,14 +124,12 @@ class BFPagination
 		 * If limitstart is greater than total (i.e. we are asked to display records that don't exist)
 		 * then set limitstart to display the last natural page of results
 		 */
-		if ($this->limitstart > $this->total - $this->limit)
-		{
+		if ($this->limitstart > $this->total - $this->limit) {
 			$this->limitstart = max(0, (int) (ceil($this->total / $this->limit) - 1) * $this->limit);
 		}
 
 		// Set the total pages and current page values.
-		if ($this->limit > 0)
-		{
+		if ($this->limit > 0) {
 			$this->pagesTotal = ceil($this->total / $this->limit);
 			$this->pagesCurrent = ceil(($this->limitstart + 1) / $this->limit);
 		}
@@ -131,30 +137,22 @@ class BFPagination
 		// Set the pagination iteration loop values.
 		$displayedPages = 10;
 		$this->pagesStart = $this->pagesCurrent - ($displayedPages / 2);
-		if ($this->pagesStart < 1)
-		{
+		if ($this->pagesStart < 1) {
 			$this->pagesStart = 1;
 		}
-		if ($this->pagesStart + $displayedPages > $this->pagesTotal)
-		{
+		if ($this->pagesStart + $displayedPages > $this->pagesTotal) {
 			$this->pagesStop = $this->pagesTotal;
-			if ($this->pagesTotal < $displayedPages)
-			{
+			if ($this->pagesTotal < $displayedPages) {
 				$this->pagesStart = 1;
-			}
-			else
-			{
+			} else {
 				$this->pagesStart = $this->pagesTotal - $displayedPages + 1;
 			}
-		}
-		else
-		{
+		} else {
 			$this->pagesStop = $this->pagesStart + $displayedPages - 1;
 		}
 
 		// If we are viewing all records set the view all flag to true.
-		if ($limit == 0)
-		{
+		if ($limit == 0) {
 			$this->viewall = true;
 		}
 	}
@@ -176,12 +174,9 @@ class BFPagination
 		$result = isset($this->additionalUrlParams[$key]) ? $this->additionalUrlParams[$key] : null;
 
 		// If the passed parameter value is null unset the parameter, otherwise set it to the given value.
-		if ($value === null)
-		{
+		if ($value === null) {
 			unset($this->additionalUrlParams[$key]);
-		}
-		else
-		{
+		} else {
 			$this->additionalUrlParams[$key] = $value;
 		}
 
@@ -229,8 +224,7 @@ class BFPagination
 	public function getData()
 	{
 		static $data;
-		if (!is_object($data))
-		{
+		if (!is_object($data)) {
 			$data = $this->_buildDataObject();
 		}
 		return $data;
@@ -246,9 +240,8 @@ class BFPagination
 	public function getPagesCounter()
 	{
 		$html = null;
-		if ($this->pagesTotal > 1)
-		{
-			$html .= JText::sprintf('JLIB_HTML_PAGE_CURRENT_OF_TOTAL', $this->pagesCurrent, $this->pagesTotal);
+		if ($this->pagesTotal > 1) {
+			$html .= Text::sprintf('JLIB_HTML_PAGE_CURRENT_OF_TOTAL', $this->pagesCurrent, $this->pagesTotal);
 		}
 		return $html;
 	}
@@ -266,24 +259,18 @@ class BFPagination
 		$fromResult = $this->limitstart + 1;
 
 		// If the limit is reached before the end of the list.
-		if ($this->limitstart + $this->limit < $this->total)
-		{
+		if ($this->limitstart + $this->limit < $this->total) {
 			$toResult = $this->limitstart + $this->limit;
-		}
-		else
-		{
+		} else {
 			$toResult = $this->total;
 		}
 
 		// If there are results found.
-		if ($this->total > 0)
-		{
-			$msg = JText::sprintf('JLIB_HTML_RESULTS_OF', $fromResult, $toResult, $this->total);
+		if ($this->total > 0) {
+			$msg = Text::sprintf('JLIB_HTML_RESULTS_OF', $fromResult, $toResult, $this->total);
 			$html .= "\n" . $msg;
-		}
-		else
-		{
-			$html .= "\n" . JText::_('JLIB_HTML_NO_RECORDS_FOUND');
+		} else {
+			$html .= "\n" . Text::_('JLIB_HTML_NO_RECORDS_FOUND');
 		}
 
 		return $html;
@@ -298,7 +285,7 @@ class BFPagination
 	 */
 	public function getPagesLinks()
 	{
-		$app = JFactory::getApplication();
+		$app = Factory::getApplication();
 
 		// Build the page navigation list.
 		$data = $this->_buildDataObject();
@@ -309,102 +296,77 @@ class BFPagination
 		$itemOverride = false;
 		$listOverride = false;
 
-		if( JFile::exists(JPATH_SITE.DS.'media'.DS.'breezingforms'.DS.'misc'.DS.'pagination.php') ){
-                    $chromePath = JPATH_SITE.DS.'media'.DS.'breezingforms'.DS.'misc'.DS.'pagination.php';
-                }else{
-                    $chromePath = JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_breezingforms'.DS.'libraries'.DS.'crosstec'.DS.'classes'.DS.'BFPaginationChrome';
-                }
-            
-		if (file_exists($chromePath))
-		{
+		if (file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'misc' . DS . 'pagination.php')) {
+			$chromePath = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'misc' . DS . 'pagination.php';
+		} else {
+			$chromePath = JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'crosstec' . DS . 'classes' . DS . 'BFPaginationChrome';
+		}
+
+		if (file_exists($chromePath)) {
 			include_once $chromePath;
-			if (function_exists('bf_pagination_item_active') && function_exists('bf_pagination_item_inactive'))
-			{
+			if (function_exists('bf_pagination_item_active') && function_exists('bf_pagination_item_inactive')) {
 				$itemOverride = true;
 			}
-			if (function_exists('bf_pagination_list_render'))
-			{
+			if (function_exists('bf_pagination_list_render')) {
 				$listOverride = true;
 			}
 		}
 
 		// Build the select list
-		if ($data->all->base !== null)
-		{
+		if ($data->all->base !== null) {
 			$list['all']['active'] = true;
 			$list['all']['data'] = ($itemOverride) ? bf_pagination_item_active($data->all) : $this->_item_active($data->all);
-		}
-		else
-		{
+		} else {
 			$list['all']['active'] = false;
 			$list['all']['data'] = ($itemOverride) ? bf_pagination_item_inactive($data->all) : $this->_item_inactive($data->all);
 		}
 
-		if ($data->start->base !== null)
-		{
+		if ($data->start->base !== null) {
 			$list['start']['active'] = true;
 			$list['start']['data'] = ($itemOverride) ? bf_pagination_item_active($data->start) : $this->_item_active($data->start);
-		}
-		else
-		{
+		} else {
 			$list['start']['active'] = false;
 			$list['start']['data'] = ($itemOverride) ? bf_pagination_item_inactive($data->start) : $this->_item_inactive($data->start);
 		}
-		if ($data->previous->base !== null)
-		{
+		if ($data->previous->base !== null) {
 			$list['previous']['active'] = true;
 			$list['previous']['data'] = ($itemOverride) ? bf_pagination_item_active($data->previous) : $this->_item_active($data->previous);
-		}
-		else
-		{
+		} else {
 			$list['previous']['active'] = false;
 			$list['previous']['data'] = ($itemOverride) ? bf_pagination_item_inactive($data->previous) : $this->_item_inactive($data->previous);
 		}
 
 		// Make sure it exists
 		$list['pages'] = array();
-		foreach ($data->pages as $i => $page)
-		{
-			if ($page->base !== null)
-			{
+		foreach ($data->pages as $i => $page) {
+			if ($page->base !== null) {
 				$list['pages'][$i]['active'] = true;
 				$list['pages'][$i]['data'] = ($itemOverride) ? bf_pagination_item_active($page) : $this->_item_active($page);
-			}
-			else
-			{
+			} else {
 				$list['pages'][$i]['active'] = false;
 				$list['pages'][$i]['data'] = ($itemOverride) ? bf_pagination_item_inactive($page) : $this->_item_inactive($page);
 			}
 		}
 
-		if ($data->next->base !== null)
-		{
+		if ($data->next->base !== null) {
 			$list['next']['active'] = true;
 			$list['next']['data'] = ($itemOverride) ? bf_pagination_item_active($data->next) : $this->_item_active($data->next);
-		}
-		else
-		{
+		} else {
 			$list['next']['active'] = false;
 			$list['next']['data'] = ($itemOverride) ? bf_pagination_item_inactive($data->next) : $this->_item_inactive($data->next);
 		}
 
-		if ($data->end->base !== null)
-		{
+		if ($data->end->base !== null) {
 			$list['end']['active'] = true;
 			$list['end']['data'] = ($itemOverride) ? bf_pagination_item_active($data->end) : $this->_item_active($data->end);
-		}
-		else
-		{
+		} else {
 			$list['end']['active'] = false;
 			$list['end']['data'] = ($itemOverride) ? bf_pagination_item_inactive($data->end) : $this->_item_inactive($data->end);
 		}
 
-		if ($this->total > $this->limit)
-		{
-			return ($listOverride) ? bf_pagination_list_render($list) : $this->_list_render($list);
-		}
-		else
-		{
+		if ($this->total > $this->limit) {
+			return($listOverride) ? bf_pagination_list_render($list) : $this->_list_render($list);
+		} else {
 			return '';
 		}
 	}
@@ -418,7 +380,7 @@ class BFPagination
 	 */
 	public function getListFooter()
 	{
-		$app = JFactory::getApplication();
+		$app = Factory::getApplication();
 
 		$list = array();
 		$list['prefix'] = $this->prefix;
@@ -428,18 +390,16 @@ class BFPagination
 		$list['limitfield'] = $this->getLimitBox();
 		$list['pagescounter'] = $this->getPagesCounter();
 		$list['pageslinks'] = $this->getPagesLinks();
-                
-                if( JFile::exists(JPATH_SITE.DS.'media'.DS.'breezingforms'.DS.'misc'.DS.'pagination.php') ){
-                    $chromePath = JPATH_SITE.DS.'media'.DS.'breezingforms'.DS.'misc'.DS.'pagination.php';
-                }else{
-                    $chromePath = JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_breezingforms'.DS.'libraries'.DS.'crosstec'.DS.'classes'.DS.'BFPaginationChrome';
-                }
-                
-		if (file_exists($chromePath))
-		{
+
+		if (file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'misc' . DS . 'pagination.php')) {
+			$chromePath = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'misc' . DS . 'pagination.php';
+		} else {
+			$chromePath = JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'crosstec' . DS . 'classes' . DS . 'BFPaginationChrome';
+		}
+
+		if (file_exists($chromePath)) {
 			include_once $chromePath;
-			if (function_exists('bf_pagination_list_footer'))
-			{
+			if (function_exists('bf_pagination_list_footer')) {
 				return bf_pagination_list_footer($list);
 			}
 		}
@@ -455,24 +415,22 @@ class BFPagination
 	 */
 	public function getLimitBox()
 	{
-		$app = JFactory::getApplication();
+		$app = Factory::getApplication();
 		$limits = array();
 
 		// Make the option list.
-		for ($i = 5; $i <= 30; $i += 5)
-		{
-			$limits[] = JHtml::_('select.option', "$i");
+		for ($i = 5; $i <= 30; $i += 5) {
+			$limits[] = HTMLHelper::_('select.option', "$i");
 		}
-		$limits[] = JHtml::_('select.option', '50', JText::_('J50'));
-		$limits[] = JHtml::_('select.option', '100', JText::_('J100'));
-		$limits[] = JHtml::_('select.option', '0', JText::_('JALL'));
+		$limits[] = HTMLHelper::_('select.option', '50', Text::_('J50'));
+		$limits[] = HTMLHelper::_('select.option', '100', Text::_('J100'));
+		$limits[] = HTMLHelper::_('select.option', '0', Text::_('JALL'));
 
 		$selected = $this->viewall ? 0 : $this->limit;
 
 		// Build the select list.
-		if ($app->isAdmin())
-		{
-			$html = JHtml::_(
+		if ($app->isClient('administrator')) {
+			$html = HTMLHelper::_(
 				'select.genericlist',
 				$limits,
 				$this->prefix . 'limit',
@@ -481,10 +439,8 @@ class BFPagination
 				'text',
 				$selected
 			);
-		}
-		else
-		{
-			$html = JHtml::_(
+		} else {
+			$html = HTMLHelper::_(
 				'select.genericlist',
 				$limits,
 				$this->prefix . 'limit',
@@ -513,12 +469,9 @@ class BFPagination
 	 */
 	public function orderUpIcon($i, $condition = true, $task = 'orderup', $alt = 'JLIB_HTML_MOVE_UP', $enabled = true, $checkbox = 'cb')
 	{
-		if (($i > 0 || ($i + $this->limitstart > 0)) && $condition)
-		{
-			return JHtml::_('jgrid.orderUp', $i, $task, '', $alt, $enabled, $checkbox);
-		}
-		else
-		{
+		if (($i > 0 || ($i + $this->limitstart > 0)) && $condition) {
+			return HTMLHelper::_('jgrid.orderUp', $i, $task, '', $alt, $enabled, $checkbox);
+		} else {
 			return '&#160;';
 		}
 	}
@@ -540,12 +493,9 @@ class BFPagination
 	 */
 	public function orderDownIcon($i, $n, $condition = true, $task = 'orderdown', $alt = 'JLIB_HTML_MOVE_DOWN', $enabled = true, $checkbox = 'cb')
 	{
-		if (($i < $n - 1 || $i + $this->limitstart < $this->total - 1) && $condition)
-		{
-			return JHtml::_('jgrid.orderDown', $i, $task, '', $alt, $enabled, $checkbox);
-		}
-		else
-		{
+		if (($i < $n - 1 || $i + $this->limitstart < $this->total - 1) && $condition) {
+			return HTMLHelper::_('jgrid.orderDown', $i, $task, '', $alt, $enabled, $checkbox);
+		} else {
 			return '&#160;';
 		}
 	}
@@ -563,7 +513,7 @@ class BFPagination
 	{
 		$html = "<div class=\"list-footer\">\n";
 
-		$html .= "\n<div class=\"limit\">" . JText::_('JGLOBAL_DISPLAY_NUM') . $list['limitfield'] . "</div>";
+		$html .= "\n<div class=\"limit\">" . Text::_('JGLOBAL_DISPLAY_NUM') . $list['limitfield'] . "</div>";
 		$html .= $list['pageslinks'];
 		$html .= "\n<div class=\"counter\">" . $list['pagescounter'] . "</div>";
 
@@ -588,8 +538,7 @@ class BFPagination
 		$html = '<ul>';
 		$html .= '<li class="pagination-start">' . $list['start']['data'] . '</li>';
 		$html .= '<li class="pagination-prev">' . $list['previous']['data'] . '</li>';
-		foreach ($list['pages'] as $page)
-		{
+		foreach ($list['pages'] as $page) {
 			$html .= '<li>' . $page['data'] . '</li>';
 		}
 		$html .= '<li class="pagination-next">' . $list['next']['data'] . '</li>';
@@ -602,30 +551,24 @@ class BFPagination
 	/**
 	 * Method to create an active pagination link to the item
 	 *
-	 * @param   JPaginationObject  $item  The object with which to make an active link.
+	 * @param   PaginationObject  $item  The object with which to make an active link.
 	 *
 	 * @return   string  HTML link
 	 *
 	 * @since    11.1
 	 */
-	protected function _item_active(JPaginationObject $item)
+	protected function _item_active(PaginationObject $item)
 	{
-		$app = JFactory::getApplication();
-		if ($app->isAdmin())
-		{
-			if ($item->base > 0)
-			{
+		$app = Factory::getApplication();
+		if ($app->isClient('administrator')) {
+			if ($item->base > 0) {
 				return "<a title=\"" . $item->text . "\" onclick=\"document.adminForm." . $this->prefix . "limitstart.value=" . $item->base
 					. "; Joomla.submitform();return false;\">" . $item->text . "</a>";
-			}
-			else
-			{
+			} else {
 				return "<a title=\"" . $item->text . "\" onclick=\"document.adminForm." . $this->prefix
 					. "limitstart.value=0; Joomla.submitform();return false;\">" . $item->text . "</a>";
 			}
-		}
-		else
-		{
+		} else {
 			return "<a title=\"" . $item->text . "\" href=\"" . $item->link . "\" class=\"pagenav\">" . $item->text . "</a>";
 		}
 	}
@@ -633,21 +576,18 @@ class BFPagination
 	/**
 	 * Method to create an inactive pagination string
 	 *
-	 * @param   JPaginationObject  $item  The item to be processed
+	 * @param   PaginationObject  $item  The item to be processed
 	 *
 	 * @return  string
 	 *
 	 * @since   11.1
 	 */
-	protected function _item_inactive(JPaginationObject $item)
+	protected function _item_inactive(PaginationObject $item)
 	{
-		$app = JFactory::getApplication();
-		if ($app->isAdmin())
-		{
+		$app = Factory::getApplication();
+		if ($app->isClient('administrator')) {
 			return "<span>" . $item->text . "</span>";
-		}
-		else
-		{
+		} else {
 			return "<span class=\"pagenav\">" . $item->text . "</span>";
 		}
 	}
@@ -665,70 +605,61 @@ class BFPagination
 
 		// Build the additional URL parameters string.
 		$params = '';
-		if (!empty($this->additionalUrlParams))
-		{
-			foreach ($this->additionalUrlParams as $key => $value)
-			{
+		if (!empty($this->additionalUrlParams)) {
+			foreach ($this->additionalUrlParams as $key => $value) {
 				$params .= '&' . $key . '=' . $value;
 			}
 		}
 
-		$data->all = new JPaginationObject(JText::_('JLIB_HTML_VIEW_ALL'), $this->prefix);
-		if (!$this->viewall)
-		{
+		$data->all = new PaginationObject(Text::_('JLIB_HTML_VIEW_ALL'), $this->prefix);
+		if (!$this->viewall) {
 			$data->all->base = '0';
-			$data->all->link = JRoute::_($params . '&' . $this->prefix . 'limitstart=');
+			$data->all->link = Route::_($params . '&' . $this->prefix . 'limitstart=');
 		}
 
 		// Set the start and previous data objects.
-		$data->start = new JPaginationObject(JText::_('JLIB_HTML_START'), $this->prefix);
-		$data->previous = new JPaginationObject(JText::_('JPREV'), $this->prefix);
+		$data->start = new PaginationObject(Text::_('JLIB_HTML_START'), $this->prefix);
+		$data->previous = new PaginationObject(Text::_('JPREV'), $this->prefix);
 
-		if ($this->pagesCurrent > 1)
-		{
+		if ($this->pagesCurrent > 1) {
 			$page = ($this->pagesCurrent - 2) * $this->limit;
 
 			// Set the empty for removal from route
 			// @todo remove code: $page = $page == 0 ? '' : $page;
 
 			$data->start->base = '0';
-			$data->start->link = JRoute::_($params . '&' . $this->prefix . 'limitstart=0');
+			$data->start->link = Route::_($params . '&' . $this->prefix . 'limitstart=0');
 			$data->previous->base = $page;
-			$data->previous->link = JRoute::_($params . '&' . $this->prefix . 'limitstart=' . $page);
+			$data->previous->link = Route::_($params . '&' . $this->prefix . 'limitstart=' . $page);
 		}
 
 		// Set the next and end data objects.
-		$data->next = new JPaginationObject(JText::_('JNEXT'), $this->prefix);
-		$data->end = new JPaginationObject(JText::_('JLIB_HTML_END'), $this->prefix);
+		$data->next = new PaginationObject(Text::_('JNEXT'), $this->prefix);
+		$data->end = new PaginationObject(Text::_('JLIB_HTML_END'), $this->prefix);
 
-		if ($this->pagesCurrent < $this->pagesTotal)
-		{
+		if ($this->pagesCurrent < $this->pagesTotal) {
 			$next = $this->pagesCurrent * $this->limit;
 			$end = ($this->pagesTotal - 1) * $this->limit;
 
 			$data->next->base = $next;
-			$data->next->link = JRoute::_($params . '&' . $this->prefix . 'limitstart=' . $next);
+			$data->next->link = Route::_($params . '&' . $this->prefix . 'limitstart=' . $next);
 			$data->end->base = $end;
-			$data->end->link = JRoute::_($params . '&' . $this->prefix . 'limitstart=' . $end);
+			$data->end->link = Route::_($params . '&' . $this->prefix . 'limitstart=' . $end);
 		}
 
 		$data->pages = array();
 		$stop = $this->pagesStop;
-		for ($i = $this->pagesStart; $i <= $stop; $i++)
-		{
+		for ($i = $this->pagesStart; $i <= $stop; $i++) {
 			$offset = ($i - 1) * $this->limit;
 
 			// Set the empty for removal from route
 			// @todo remove code: $offset = $offset == 0 ? '' : $offset;
 
-			$data->pages[$i] = new JPaginationObject($i, $this->prefix);
-			if ($i != $this->pagesCurrent || $this->viewall)
-			{
+			$data->pages[$i] = new PaginationObject($i, $this->prefix);
+			if ($i != $this->pagesCurrent || $this->viewall) {
 				$data->pages[$i]->base = $offset;
-				$data->pages[$i]->link = JRoute::_($params . '&' . $this->prefix . 'limitstart=' . $offset);
-			}
-			elseif ($i = $this->pagesCurrent)
-			{
+				$data->pages[$i]->link = Route::_($params . '&' . $this->prefix . 'limitstart=' . $offset);
+			} elseif ($i = $this->pagesCurrent) {
 				$data->pages[$i]->active = true;
 			}
 		}
@@ -748,10 +679,9 @@ class BFPagination
 	 */
 	public function set($property, $value = null)
 	{
-		JLog::add('JPagination::set() is deprecated. Access the properties directly.', JLog::WARNING, 'deprecated');
+		Log::add('JPagination::set() is deprecated. Access the properties directly.', Log::WARNING, 'deprecated');
 
-		if (strpos($property, '.'))
-		{
+		if (strpos($property, '.')) {
 			$prop = explode('.', $property);
 			$prop[1] = ucfirst($prop[1]);
 			$property = implode($prop);
@@ -772,16 +702,14 @@ class BFPagination
 	 */
 	public function get($property, $default = null)
 	{
-		JLog::add('JPagination::get() is deprecated. Access the properties directly.', JLog::WARNING, 'deprecated');
+		Log::add('JPagination::get() is deprecated. Access the properties directly.', Log::WARNING, 'deprecated');
 
-		if (strpos($property, '.'))
-		{
+		if (strpos($property, '.')) {
 			$prop = explode('.', $property);
 			$prop[1] = ucfirst($prop[1]);
 			$property = implode($prop);
 		}
-		if (isset($this->$property))
-		{
+		if (isset($this->$property)) {
 			return $this->$property;
 		}
 		return $default;

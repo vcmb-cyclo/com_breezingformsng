@@ -23,7 +23,7 @@
       "attributes": {
         "type": "module"
       },
-      "version": "0a19b8"
+      "version": "2e2c65"
     },
     {
       "name": "com_languages.admin-override-edit-refresh-searchstring",
@@ -41,7 +41,7 @@
       "name": "com_languages.overrider",
       "type": "style",
       "uri": "com_languages/overrider.min.css",
-      "version": "ad1975"
+      "version": "d91526"
     },
     {
       "name": "com_languages.overrider",
@@ -53,7 +53,7 @@
       "attributes": {
         "type": "module"
       },
-      "version": "afbbb5"
+      "version": "30ce08"
     }
   ]
 }

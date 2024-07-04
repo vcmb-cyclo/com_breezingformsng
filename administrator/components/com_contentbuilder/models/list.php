@@ -3,18 +3,24 @@
  * @package     ContentBuilder
  * @author      Markus Bopp
  * @link        https://www.crosstec.org
+ * @copyright   (C) 2024 by XDA+GIL
  * @license     GNU/GPL
 */
 
 // No direct access
-
-use Joomla\CMS\Factory;
-
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
-require_once(JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_contentbuilder'.DS.'classes'.DS.'joomla_compat.php');
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\Registry\Registry;
+use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\CMS\Table\Table;
+use Joomla\CMS\Event\Content\ContentPrepareEvent;
 
-CBCompat::requireModel();
+require_once(JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_contentbuilder'.DS.'classes'.DS.'joomla_compat.php');
+require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'modellegacy.php');
 
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'classes' . DS . 'contentbuilder.php');
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'classes' . DS . 'contentbuilder_helpers.php');
@@ -52,13 +58,13 @@ class ContentbuilderModelList extends CBModel
     function  __construct($config) {
         parent::__construct($config);
 
-        $mainframe = JFactory::getApplication();
+        $mainframe = Factory::getApplication();
         $option = 'com_contentbuilder';
 
         $this->frontend = class_exists('cbFeMarker');
 
         if($this->frontend){
-            JFactory::getDocument()->addStyleSheet(JURI::root(true).'/components/com_contentbuilder/assets/css/system.css');
+            Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true).'/components/com_contentbuilder/assets/css/system.css');
         }
         
         if(CBRequest::getInt('Itemid',0)){
@@ -68,7 +74,7 @@ class ContentbuilderModelList extends CBModel
         $this->setId(CBRequest::getInt('id',0));
 
         // Get pagination request variables
-        $limit = $mainframe->getUserStateFromRequest('global.list.limit', 'limit', CBRequest::getInt('cb_list_limit', 0) > 0 ? CBRequest::getInt('cb_list_limit', 0) : $mainframe->getCfg('list_limit'), 'int');
+        $limit = $mainframe->getUserStateFromRequest('global.list.limit', 'limit', CBRequest::getInt('cb_list_limit', 0) > 0 ? CBRequest::getInt('cb_list_limit', 0) : $mainframe->get('list_limit'), 'int');
         $limitstart = CBRequest::getVar('limitstart', 0, '', 'int');
 
         // In case limit has been changed, adjust it
@@ -77,7 +83,7 @@ class ContentbuilderModelList extends CBModel
         $this->setState('limit', $limit);
         $this->setState('limitstart', $limitstart);
 
-        if(JFactory::getSession()->get($option.'formsd_id', 0) == 0 || JFactory::getSession()->get($option.'formsd_id', 0) == $this->_id ){
+        if (Factory::getApplication()->getSession()->get($option.'formsd_id', 0) == 0 || Factory::getApplication()->getSession()->get($option.'formsd_id', 0) == $this->_id ){
             $filter_order     = $mainframe->getUserStateFromRequest(  $option.'formsd_filter_order', 'filter_order', '', 'cmd' );
             $filter_order_Dir = $mainframe->getUserStateFromRequest( $option.'formsd_filter_order_Dir', 'filter_order_Dir', '', 'cmd' );
             $filter           = $mainframe->getUserStateFromRequest(  $option.'formsd_filter', 'filter', '', 'string' );
@@ -109,7 +115,7 @@ class ContentbuilderModelList extends CBModel
         if($this->frontend && CBRequest::getInt('Itemid',0)){
             
             // try menu item
-	        $menu = JFactory::getApplication()->getMenu();
+	        $menu = Factory::getApplication()->getMenu();
 	        $item = $menu->getActive();
 	        if (is_object($item)) {
 		        if($item->getParams()->get('show_page_heading', null) !== null){
@@ -160,7 +166,7 @@ class ContentbuilderModelList extends CBModel
         
         @natsort($this->_menu_filter_order);
         
-        JFactory::getSession()->set($option.'formsd_id', $this->_id);
+        Factory::getApplication()->getSession()->set($option.'formsd_id', $this->_id);
     }
 
     function setId($id) {
@@ -176,7 +182,7 @@ class ContentbuilderModelList extends CBModel
      */
 
     private function buildOrderBy() {
-        $mainframe = JFactory::getApplication();
+        $mainframe = Factory::getApplication();
         $option = 'com_contentbuilder';
 
         $orderby = '';
@@ -205,7 +211,7 @@ class ContentbuilderModelList extends CBModel
     */
     function getData()
     {
-        $mainframe = JFactory::getApplication();
+        $mainframe = Factory::getApplication();
         $option = 'com_contentbuilder';
         
         // Lets load the data if it doesn't already exist
@@ -215,14 +221,14 @@ class ContentbuilderModelList extends CBModel
             $this->_data = $this->_getList($query, 0, 1);
 
             if(!count($this->_data)){
-	            throw new Exception(JText::_('COM_CONTENTBUILDER_FORM_NOT_FOUND'), 404);
+	            throw new Exception(Text::_('COM_CONTENTBUILDER_FORM_NOT_FOUND'), 404);
             }
 
             foreach($this->_data As $data){
                 if(!$this->frontend && $data->display_in == 0){
-	                throw new Exception(JText::_('COM_CONTENTBUILDER_FORM_NOT_FOUND'), 404);
+	                throw new Exception(Text::_('COM_CONTENTBUILDER_FORM_NOT_FOUND'), 404);
                 }else if($this->frontend && $data->display_in == 1){
-	                throw new Exception(JText::_('COM_CONTENTBUILDER_FORM_NOT_FOUND'), 404);
+	                throw new Exception(Text::_('COM_CONTENTBUILDER_FORM_NOT_FOUND'), 404);
                 }
                 
                 // filter by category if requested by menu item
@@ -240,19 +246,19 @@ class ContentbuilderModelList extends CBModel
                 if($data->type && $data->reference_id){
                     $data->form = contentbuilder::getForm($data->type, $data->reference_id);
                     if(!$data->form->exists){
-	                    throw new Exception(JText::_('COM_CONTENTBUILDER_FORM_NOT_FOUND'), 404);
+	                    throw new Exception(Text::_('COM_CONTENTBUILDER_FORM_NOT_FOUND'), 404);
                     }
                     $data->page_title = '';
                     if(CBRequest::getInt('cb_prefix_in_title', 1)){
                         if(!$this->_menu_item){
                             $data->page_title = $data->use_view_name_as_title ? $data->name : $data->form->getPageTitle();
                         }else{
-                            $data->page_title = $data->use_view_name_as_title ? $data->name : JFactory::getDocument()->getTitle();
+                            $data->page_title = $data->use_view_name_as_title ? $data->name : Factory::getApplication()->getDocument()->getTitle();
                         }
                     }
                     
                     // enables the record randomizer
-                    $now = JFactory::getDate();
+                    $now = Factory::getDate();
                     $data->rand_update = intval($data->rand_update);
                     if($data->rand_update < 1){
                         $data->rand_update = 86400;
@@ -270,18 +276,18 @@ class ContentbuilderModelList extends CBModel
                     
                     if( CBRequest::getBool('filter_reset', false)  ){
                         
-                        JFactory::getSession()->clear('com_contentbuilder.filter_signal.'.$this->_id);
-                        JFactory::getSession()->clear('com_contentbuilder.filter.'.$this->_id);
-                        JFactory::getSession()->clear('com_contentbuilder.calendar_filter_from.'.$this->_id);
-                        JFactory::getSession()->clear('com_contentbuilder.calendar_filter_to.'.$this->_id);
-                        JFactory::getSession()->clear('com_contentbuilder.calendar_formats.'.$this->_id);
-                        JFactory::getSession()->clear('com_contentbuilder.filter_keywords.'.$this->_id);
-                        JFactory::getSession()->clear('com_contentbuilder.filter_article_categories.'.$this->_id);
+                        Factory::getApplication()->getSession()->clear('com_contentbuilder.filter_signal.'.$this->_id);
+                        Factory::getApplication()->getSession()->clear('com_contentbuilder.filter.'.$this->_id);
+                        Factory::getApplication()->getSession()->clear('com_contentbuilder.calendar_filter_from.'.$this->_id);
+                        Factory::getApplication()->getSession()->clear('com_contentbuilder.calendar_filter_to.'.$this->_id);
+                        Factory::getApplication()->getSession()->clear('com_contentbuilder.calendar_formats.'.$this->_id);
+                        Factory::getApplication()->getSession()->clear('com_contentbuilder.filter_keywords.'.$this->_id);
+                        Factory::getApplication()->getSession()->clear('com_contentbuilder.filter_article_categories.'.$this->_id);
                             
                     }
                     else if(
                             ( 
-                                JFactory::getSession()->get('com_contentbuilder.filter_signal.'.$this->_id, false) 
+                                Factory::getApplication()->getSession()->get('com_contentbuilder.filter_signal.'.$this->_id, false) 
                                 || 
                                 CBRequest::getBool('contentbuilder_filter_signal', false) 
                             )
@@ -309,23 +315,23 @@ class ContentbuilderModelList extends CBModel
                             $filters_to = CBRequest::getVar( 'cbListFilterCalendarTo', array(), 'POST', 'array' );
                             $calendar_formats = CBRequest::getVar( 'cb_filter_calendar_format', array(), 'POST', 'array' );
                         
-                            JFactory::getSession()->set('com_contentbuilder.filter_signal.'.$this->_id, true);
-                            JFactory::getSession()->set('com_contentbuilder.filter.'.$this->_id, $filters);
-                            JFactory::getSession()->set('com_contentbuilder.filter_keywords.'.$this->_id, CBRequest::getVar('cbListFilterKeywords',''));
-                            JFactory::getSession()->set('com_contentbuilder.filter_article_categories.'.$this->_id, CBRequest::getInt('cbListFilterArticleCategories',-1));
-                            JFactory::getSession()->set('com_contentbuilder.calendar_filter_from.'.$this->_id, $filters_from);
-                            JFactory::getSession()->set('com_contentbuilder.calendar_filter_to.'.$this->_id, $filters_to);
-                            JFactory::getSession()->set('com_contentbuilder.calendar_formats.'.$this->_id, $calendar_formats);
+                            Factory::getApplication()->getSession()->set('com_contentbuilder.filter_signal.'.$this->_id, true);
+                            Factory::getApplication()->getSession()->set('com_contentbuilder.filter.'.$this->_id, $filters);
+                            Factory::getApplication()->getSession()->set('com_contentbuilder.filter_keywords.'.$this->_id, CBRequest::getVar('cbListFilterKeywords',''));
+                            Factory::getApplication()->getSession()->set('com_contentbuilder.filter_article_categories.'.$this->_id, CBRequest::getInt('cbListFilterArticleCategories',-1));
+                            Factory::getApplication()->getSession()->set('com_contentbuilder.calendar_filter_from.'.$this->_id, $filters_from);
+                            Factory::getApplication()->getSession()->set('com_contentbuilder.calendar_filter_to.'.$this->_id, $filters_to);
+                            Factory::getApplication()->getSession()->set('com_contentbuilder.calendar_formats.'.$this->_id, $calendar_formats);
                         
                         // else pick from session
-                        } else if(JFactory::getSession()->get('com_contentbuilder.filter_signal.'.$this->_id, false)){
+                        } else if(Factory::getApplication()->getSession()->get('com_contentbuilder.filter_signal.'.$this->_id, false)){
                             
-                            $filters = JFactory::getSession()->get('com_contentbuilder.filter.'.$this->_id, array());
-                            $filters_from = JFactory::getSession()->get('com_contentbuilder.calendar_filter_from.'.$this->_id, array());
-                            $filters_to = JFactory::getSession()->get('com_contentbuilder.calendar_filter_to.'.$this->_id, array());
-                            $calendar_formats = JFactory::getSession()->get('com_contentbuilder.calendar_formats.'.$this->_id, array());
-                            $filter_keywords = JFactory::getSession()->get('com_contentbuilder.filter_keywords.'.$this->_id, '');
-                            $filter_cats = JFactory::getSession()->get('com_contentbuilder.filter_article_categories.'.$this->_id, -1);
+                            $filters = Factory::getApplication()->getSession()->get('com_contentbuilder.filter.'.$this->_id, array());
+                            $filters_from = Factory::getApplication()->getSession()->get('com_contentbuilder.calendar_filter_from.'.$this->_id, array());
+                            $filters_to = Factory::getApplication()->getSession()->get('com_contentbuilder.calendar_filter_to.'.$this->_id, array());
+                            $calendar_formats = Factory::getApplication()->getSession()->get('com_contentbuilder.calendar_formats.'.$this->_id, array());
+                            $filter_keywords = Factory::getApplication()->getSession()->get('com_contentbuilder.filter_keywords.'.$this->_id, '');
+                            $filter_cats = Factory::getApplication()->getSession()->get('com_contentbuilder.filter_article_categories.'.$this->_id, -1);
                             
                             if($filter_keywords != ''){
                                 $this->setState('formsd_filter', $filter_keywords);
@@ -397,15 +403,15 @@ class ContentbuilderModelList extends CBModel
                                     $val2 = $ex2[1];
                                   }
                                   if(strtolower(trim($ex[1])) == 'date'){
-                                      $val = JHTML::_('date', $ex2[0], JText::_('DATE_FORMAT_LC3'));
+                                      $val = HTMLHelper::_('date', $ex2[0], Text::_('DATE_FORMAT_LC3'));
                                       if(isset($ex2[1])){
-                                        $val2 = JHTML::_('date', $ex2[1], JText::_('DATE_FORMAT_LC3'));
+                                        $val2 = HTMLHelper::_('date', $ex2[1], Text::_('DATE_FORMAT_LC3'));
                                       }
                                   }
                                   if(count($ex2) == 2){
-                                      $out = (trim($ex2[0]) ? JText::_('COM_CONTENTBUILDER_FROM') . ' ' . trim($val) : '') . ' '.JText::_('COM_CONTENTBUILDER_TO').' ' . trim($val2);
+                                      $out = (trim($ex2[0]) ? Text::_('COM_CONTENTBUILDER_FROM') . ' ' . trim($val) : '') . ' '.Text::_('COM_CONTENTBUILDER_TO').' ' . trim($val2);
                                   }else if(count($ex2) > 0){
-                                      $out = JText::_('COM_CONTENTBUILDER_FROM2') . ' ' . trim($val);
+                                      $out = Text::_('COM_CONTENTBUILDER_FROM2') . ' ' . trim($val);
                                   }
                                   if($out){
                                     $this->_menu_filter[$order_key] = $ex;
@@ -422,7 +428,7 @@ class ContentbuilderModelList extends CBModel
                                     $i = 0;
                                     foreach($ex2 As $val){
                                        if($i + 1 < $size){
-                                           $out .= trim($val) . ' ' . JText::_('COM_CONTENTBUILDER_AND') . ' ';
+                                           $out .= trim($val) . ' ' . Text::_('COM_CONTENTBUILDER_AND') . ' ';
                                        }else{
                                            $out .= trim($val);
                                        }
@@ -447,7 +453,7 @@ class ContentbuilderModelList extends CBModel
 
 	                $custom_page_heading = '';
 
-	                if(!JFactory::getApplication()->isClient('administrator')) {
+	                if(!Factory::getApplication()->isClient('administrator')) {
 
 		                if ( $this->_show_page_heading && $this->_page_heading != '' ) {
 			                $data->page_title = $this->_page_heading;
@@ -500,11 +506,11 @@ class ContentbuilderModelList extends CBModel
                         $act_as_registration[$data->registration_email_field] = 'registration_email_field';
                     }
                     
-                    $data->items = $data->form->getListRecords($ids, $this->getState('formsd_filter'), $searchable_elements, $this->getState('limitstart'), $this->getState('limit'), $this->getState('formsd_filter_order'), $order_types, $this->getState('formsd_filter_order_Dir') ? $this->getState('formsd_filter_order_Dir') : $data->initial_order_dir, 0, $data->published_only, $this->frontend ? ( $data->own_only_fe ? JFactory::getUser()->get('id', 0) : -1 ) : ( $data->own_only ? JFactory::getUser()->get('id', 0) : -1 ), $this->getState('formsd_filter_state'), $this->getState('formsd_filter_publish'), $data->initial_sort_order == -1 ? -1 : 'col'. $data->initial_sort_order, $data->initial_sort_order2 == -1 ? -1 : 'col'. $data->initial_sort_order2, $data->initial_sort_order3 == -1 ? -1 : 'col'. $data->initial_sort_order3, $this->_menu_filter, $this->frontend ? $data->show_all_languages_fe : true, $this->getState('formsd_filter_language'), $act_as_registration, $data, $this->getState('article_category_filter'));
+                    $data->items = $data->form->getListRecords($ids, $this->getState('formsd_filter'), $searchable_elements, $this->getState('limitstart'), $this->getState('limit'), $this->getState('formsd_filter_order'), $order_types, $this->getState('formsd_filter_order_Dir') ? $this->getState('formsd_filter_order_Dir') : $data->initial_order_dir, 0, $data->published_only, $this->frontend ? ( $data->own_only_fe ? Factory::getUser()->get('id', 0) : -1 ) : ( $data->own_only ? Factory::getUser()->get('id', 0) : -1 ), $this->getState('formsd_filter_state'), $this->getState('formsd_filter_publish'), $data->initial_sort_order == -1 ? -1 : 'col'. $data->initial_sort_order, $data->initial_sort_order2 == -1 ? -1 : 'col'. $data->initial_sort_order2, $data->initial_sort_order3 == -1 ? -1 : 'col'. $data->initial_sort_order3, $this->_menu_filter, $this->frontend ? $data->show_all_languages_fe : true, $this->getState('formsd_filter_language'), $act_as_registration, $data, $this->getState('article_category_filter'));
                     
                     if($data->items === null){
                         $mainframe->setUserState($option.'formsd_filter_order', '');
-	                    throw new Exception(JText::_('Stale list setup detected. Please reload view.'), 500);
+	                    throw new Exception(Text::_('Stale list setup detected. Please reload view.'), 500);
                     }
                     $data->items = contentbuilder::applyItemWrappers($this->_id, $data->items, $data);
                     $this->_total = $data->form->getListRecordsTotal($ids, $this->getState('formsd_filter'), $searchable_elements);
@@ -545,16 +551,19 @@ class ContentbuilderModelList extends CBModel
                     // plugin call
                     $limitstart = CBRequest::getVar('limitstart', 0, '', 'int');
                     $start      = CBRequest::getVar('start', 0, '', 'int');
-                    $table = JTable::getInstance('content');
-                    $registry = new JRegistry;
+                    $table = Table::getInstance('content');
+                    $registry = new Registry;
 	                $registry->loadString($table->attribs);
-                    JPluginHelper::importPlugin('content');
+                    PluginHelper::importPlugin('content');
                     $table->text = $data->intro_text;
                     $table->text .= "<!-- workaround for J! pagebreak bug: class=\"system-pagebreak\" -->\n";
-	                Factory::getApplication()->triggerEvent('onContentPrepare', array ('com_content.article', &$table, &$registry, $limitstart ? $limitstart : $start));
+                    
+                    $dispatcher = Factory::getApplication()->getDispatcher();
+                    $dispatcher->dispatch('onContentPrepare', new ContentPrepareEvent('onContentPrepare', array ('com_content.article', &$table, &$registry, $limitstart ? $limitstart : $start)));
+
                     $data->intro_text = $table->text;
 
-                    if(JFactory::getApplication()->isClient('administrator')
+                    if(Factory::getApplication()->isClient('administrator')
                         && strpos($data->intro_text , '[[hide-admin-title]]') !== false){
 
                         $data->page_title = '';

@@ -22,7 +22,7 @@ $showGraphs = $this->isPro && $this->showstats;
 <div class="container pt-2 pb-3 px-2">
 	<div class="row align-items-start">
 		<div class="col-lg-<?= $showGraphs ? '6' : '12' ?>">
-			<?php if($this->isRescueMode): ?>
+			<?php if(($this->debugAllPanels ?? false) || $this->isRescueMode): ?>
 				<div class="alert alert-danger">
 					<h3 class="alert-heading">
 						<span class="icon-exclamation-triangle" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('ERROR'); ?></span>
@@ -31,7 +31,7 @@ $showGraphs = $this->isPro && $this->showstats;
 					<p>
 						<?=Text::_('COM_ADMINTOOLS_CONTROLPANEL_RESCUEMODE_MESSAGE'); ?>
 					</p>
-					<p>
+					<div class="d-flex flex-row gap-2 flex-wrap">
 						<a class="btn btn-info"
 						   href="https://www.akeeba.com/documentation/troubleshooter/atwafissues.html"
 						   target="_blank"
@@ -44,7 +44,7 @@ $showGraphs = $this->isPro && $this->showstats;
 							<span class="fa fa-flag-checkered"></span>
 							<?=Text::_('COM_ADMINTOOLS_CONTROLPANEL_RESCUEMODE_BTN_ENDRESCUE'); ?>
 						</a>
-					</p>
+					</div>
 				</div>
 			<?php else: ?>
 				<?= $this->loadAnyTemplate('Controlpanel/plugin_warning') ?>
@@ -115,9 +115,10 @@ $showGraphs = $this->isPro && $this->showstats;
 							CHANGELOG
 						</button>
 
-						<?php if ( ! ($this->isPro)): ?>
+						<?php if ( ($this->debugAllPanels ?? false) || ! ($this->isPro)): ?>
 							<div class="text-center mb-4">
 								<a href="https://www.paypal.com/donate?hosted_button_id=6ZLKK32UVEPWA"
+								   id="btndonation"
 								   class="btn btn-outline-primary">
 									<span class="fa fab fa-paypal"></span>
 									<?= Text::_('COM_ADMINTOOLS_CONTROLPANEL_LBL_DONATE') ?>

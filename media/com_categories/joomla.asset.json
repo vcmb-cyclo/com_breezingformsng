@@ -23,13 +23,13 @@
       "attributes": {
         "type": "module"
       },
-      "version": "04967a"
+      "version": "587c3d"
     },
     {
       "name": "com_categories.shared-categories-accordion",
       "type": "style",
       "uri": "com_categories/shared-categories-accordion.min.css",
-      "version": "8da3be"
+      "version": "0dc781"
     }
   ]
 }

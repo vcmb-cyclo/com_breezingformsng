@@ -1,3 +1,4 @@
+@charset "UTF-8";
 .com-apps-container .badge {
   margin: 1px;
 }
@@ -35,7 +36,7 @@
 
 .com-apps-container .com-apps-sidebar a:hover, .com-apps-container .com-apps-sidebar a.active {
   color: #fff;
-  background-color: #33608f;
+  background-color: var(--btn-primary-bg);
   text-decoration: none;
 }
 

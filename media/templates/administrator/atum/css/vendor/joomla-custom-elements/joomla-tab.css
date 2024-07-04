@@ -1,3 +1,4 @@
+@charset "UTF-8";
 joomla-tab {
   flex-direction: column;
   display: flex;
@@ -15,7 +16,7 @@ joomla-tab[orientation="horizontal"]:not([view="accordion"]) > div[role="tablist
 joomla-tab > div[role="tablist"] {
   white-space: nowrap;
   list-style: outside none none;
-  border-bottom: 1px solid var(--template-bg-dark-10);
+  border-bottom: var(--joomla-tablist-border-bottom);
   flex-flow: wrap;
   padding: 0;
   display: flex;
@@ -41,7 +42,7 @@ joomla-tab > div[role="tablist"] > button[role="tab"]:focus-visible {
 }
 
 joomla-tab > div[role="tablist"] > button[role="tab"][aria-expanded="true"], joomla-tab > div[role="tablist"] > button[role="tab"]:focus, joomla-tab > div[role="tablist"] > button[role="tab"]:hover {
-  color: var(--template-bg-dark-60);
+  color: var(--joomla-tab-btn-hvr);
   box-shadow: none;
   border: 0;
   border-radius: 0;
@@ -49,7 +50,7 @@ joomla-tab > div[role="tablist"] > button[role="tab"][aria-expanded="true"], joo
 
 joomla-tab > div[role="tablist"] > button[role="tab"][aria-expanded="true"]:after, joomla-tab > div[role="tablist"] > button[role="tab"]:focus:after, joomla-tab > div[role="tablist"] > button[role="tab"]:hover:after {
   content: "";
-  background-color: var(--template-link-color);
+  background-color: var(--btn-primary-bg);
   opacity: .8;
   height: 3px;
   position: absolute;
@@ -59,39 +60,23 @@ joomla-tab > div[role="tablist"] > button[role="tab"][aria-expanded="true"]:afte
 }
 
 joomla-tab > div[role="tablist"] > button[role="tab"][aria-expanded="true"] .text-muted, joomla-tab > div[role="tablist"] > button[role="tab"]:focus .text-muted, joomla-tab > div[role="tablist"] > button[role="tab"]:hover .text-muted {
-  color: var(--template-text-light) !important;
+  color: var(--text-muted-hvr-color);
 }
 
 joomla-tab > div[role="tablist"] > button[role="tab"][aria-expanded="true"] {
-  background: var(--template-bg-dark-3);
+  background: var(--joomla-tab-btn-aria-exp-bg);
   font-weight: 700;
 }
 
-@media (prefers-color-scheme: dark) {
-  joomla-tab > div[role="tablist"] > button[role="tab"][aria-expanded="true"], joomla-tab > div[role="tablist"] > button[role="tab"]:focus, joomla-tab > div[role="tablist"] > button[role="tab"]:hover {
-    color: var(--template-text-light);
-  }
-
-  joomla-tab > div[role="tablist"] > button[role="tab"][aria-expanded="true"] {
-    background: var(--template-bg-dark-60);
-  }
-}
-
 joomla-tab > div[role="tablist"] > button[role="tab"] .text-muted {
-  color: var(--template-text-dark) !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  joomla-tab > div[role="tablist"] > button[role="tab"] .text-muted {
-    color: var(--template-text-light) !important;
-  }
+  color: var(--text-muted-color);
 }
 
 joomla-tab > button[role="region"] {
   color: var(--template-text-light);
   text-align: start;
   background-color: var(--template-link-color);
-  border: 1px solid var(--template-bg-dark-3);
+  border: var(--joomla-tab-btn-region-border);
   border-top: 0;
   width: 100%;
   padding: .7rem;
@@ -103,13 +88,7 @@ joomla-tab > button[role="region"][aria-expanded="true"], joomla-tab > button[ro
 }
 
 joomla-tab > button[role="region"] .text-muted {
-  color: var(--template-text-light) !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  joomla-tab > button[role="region"] {
-    border-color: var(--template-bg-dark-70);
-  }
+  color: var(--text-muted-color);
 }
 
 joomla-tab > joomla-tab-element {
@@ -127,7 +106,7 @@ joomla-tab > joomla-tab-element[active] {
 }
 
 .main-card-columns > * > joomla-tab {
-  border-left: 1px solid var(--template-bg-dark-10);
+  border-left: var(--main-card-col-border-left);
   height: 100%;
 }
 
@@ -138,8 +117,8 @@ joomla-tab[orientation="vertical"] {
 }
 
 joomla-tab[orientation="vertical"] > div[role="tablist"] {
+  border: var(--joomla-tab-tablist-border);
   box-shadow: none;
-  border: 1px solid #dee2e6;
   border-radius: 0;
   flex-direction: column;
   flex: 0 0 25%;
@@ -163,8 +142,8 @@ joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"] {
 }
 
 joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"][aria-expanded="true"] {
-  color: var(--template-text-light);
-  background-color: var(--template-bg-dark-60);
+  color: var(--joomla-tablist-btn-aria-exp);
+  background-color: var(--joomla-tablist-btn-aria-exp-bg);
 }
 
 joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"]:last-of-type {
@@ -172,9 +151,9 @@ joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"]:la
 }
 
 joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"] {
-  box-shadow: none;
   border-top: 1px solid #0000;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: var(--joomla-tab-vert-border-bottom);
+  box-shadow: none;
   margin: -1px 0;
   padding: .75em 1em;
   text-decoration: none;
@@ -184,14 +163,14 @@ joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"] {
 
 joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"][aria-expanded="true"], joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"]:focus, joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"]:hover {
   color: var(--template-text-light);
-  background-color: var(--template-bg-dark-60);
+  background-color: var(--joomla-tablist-btn-aria-exp-bg);
   box-shadow: none;
   background-image: none;
   border-right: 0;
 }
 
 joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"][aria-expanded="true"]:after, joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"]:focus:after, joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"]:hover:after {
-  background-color: var(--template-bg-dark);
+  background-color: var(--joomla-tablist-btn-aria-exp-aft-bg);
   width: 5px;
   height: auto;
   top: 0;
@@ -200,17 +179,11 @@ joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"][ar
 }
 
 joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"][aria-expanded="true"] .text-muted, joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"]:focus .text-muted, joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"]:hover .text-muted {
-  color: var(--template-text-light) !important;
+  color: var(--text-muted-hvr-color);
 }
 
 joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"] .text-muted {
-  color: var(--template-text-dark) !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  joomla-tab[orientation="vertical"] > div[role="tablist"] > button[role="tab"] .text-muted {
-    color: var(--template-text-light) !important;
-  }
+  color: var(--text-muted-color);
 }
 
 joomla-tab[orientation="vertical"] > joomla-tab-element {
@@ -222,9 +195,9 @@ joomla-tab[orientation="vertical"] > joomla-tab-element {
 
 joomla-tab[view="accordion"] {
   white-space: normal;
+  box-shadow: var(--joomla-tab-accordion-box-shadow);
   border-radius: 0;
   flex-direction: column;
-  box-shadow: inset 0 1px #fff, 0 0 3px #0000000a;
 }
 
 joomla-tab[view="accordion"] > div[role="tablist"] {
@@ -234,9 +207,9 @@ joomla-tab[view="accordion"] > div[role="tablist"] {
 joomla-tab[view="accordion"] > div[role="tablist"] > button[role="tab"] {
   color: var(--template-text-light);
   text-align: start;
-  box-shadow: none;
   border: 0;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: var(--joomla-tab-vert-border-bottom);
+  box-shadow: none;
   padding: .75em 1em;
   text-decoration: none;
   display: block;
@@ -260,7 +233,7 @@ joomla-tab[view="accordion"] > joomla-tab-element {
 }
 
 joomla-tab[view="accordion"] > joomla-tab-element[active] {
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: var(--joomla-tab-vert-border-bottom);
   width: 100%;
   max-width: 100%;
   display: block;
@@ -317,10 +290,26 @@ joomla-tab[view="accordion"] #permissions-sliders > joomla-tab-element[active] {
   }
 
   joomla-tab[view="accordion"] #permissions-sliders > joomla-tab-element[active] .respTable td:last-child {
-    border-bottom: 1em var(--template-bg-dark-80) solid;
+    border-bottom: var(--respTable-border-bottom);
   }
 
   joomla-tab[view="accordion"] #permissions-sliders > joomla-tab-element[active] .oddCol {
-    background: var(--template-bg-light);
+    background: var(--permissions-sliders-oddCol);
   }
+}
+
+[data-bs-theme="dark"] joomla-tab > button[role="region"] {
+  color: var(--btn-primary-color);
+  background-color: var(--btn-primary-bg);
+  border: var(--btn-primary-border);
+}
+
+[data-bs-theme="dark"] joomla-tab > button[role="region"][aria-expanded="true"], [data-bs-theme="dark"] joomla-tab > button[role="region"]:hover, [data-bs-theme="dark"] joomla-tab > button[role="region"]:focus {
+  color: var(--btn-primary-color);
+  background-color: var(--btn-primary-bg-hvr);
+}
+
+[data-bs-theme="dark"] [dir="rtl"] joomla-tab div[role="tablist"] > button[role="tab"][aria-expanded="true"]:after {
+  left: 0;
+  right: auto;
 }

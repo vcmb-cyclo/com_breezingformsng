@@ -7,8 +7,8 @@
 
 <extension type="plugin" group="actionlog" method="upgrade">
 	<name>PLG_ACTIONLOG_ADMINTOOLS</name>
-	<version>7.4.8</version>
-	<creationDate>2024-01-08</creationDate>
+	<version>7.5.4</version>
+	<creationDate>2024-06-10</creationDate>
 	<author>Nicholas K. Dionysopoulos</author>
 	<authorEmail>nicholas@dionysopoulos.me</authorEmail>
 	<authorUrl>https://www.akeeba.com</authorUrl>

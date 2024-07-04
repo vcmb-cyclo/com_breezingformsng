@@ -4,11 +4,15 @@
  * @version 1.9
  * @package BreezingForms
  * @copyright (C) 2008-2020 by Markus Bopp
+ * @copyright Copyright (C) 2024 by XDA+GIL
  * @license Released under the terms of the GNU General Public License
  **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\Editor\Editor;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\HTML\HTMLHelper;
 
 class BFIntegratorHtml{
 
@@ -27,7 +31,7 @@ class BFIntegratorHtml{
         </script>
 
         <?php
-        JFactory::getDocument()->addScriptDeclaration('
+        Factory::getApplication()->getDocument()->addScriptDeclaration('
             Joomla.listItemTask = listItemTask;
         ');
         ?>
@@ -40,19 +44,19 @@ class BFIntegratorHtml{
                         <th style="width: 60px;" nowrap align="center"><input type="checkbox" name="toggle" value="" onclick="Joomla.checkAll(this);" /></th>
 
                         <th style="width: 20%;">
-                            <?php echo JText::_( 'Rulename' ); ?>
+                            <?php echo Text::_( 'Rulename' ); ?>
                         </th>
                         <th style="width: 20%;">
-                            <?php echo JText::_( 'Type' ); ?>
+                            <?php echo Text::_( 'Type' ); ?>
                         </th>
                         <th style="width: 20%;">
-                            <?php echo JText::_( 'Form' ); ?>
+                            <?php echo Text::_( 'Form' ); ?>
                         </th>
                         <th style="width: 20%;">
-                            <?php echo JText::_( 'Table' ); ?>
+                            <?php echo Text::_( 'Table' ); ?>
                         </th>
                         <th style="width: 20%;">
-                            <?php echo JText::_( 'published' ); ?>
+                            <?php echo Text::_( 'published' ); ?>
                         </th>
 
                     </tr>
@@ -62,7 +66,7 @@ class BFIntegratorHtml{
                     $cnt = count( $rules );
                     for($i=0; $i < $cnt; $i++){
                     $rule        = $rules[$i];
-                    $checked     = JHTML::_( 'grid.id', $i, $rule->id );
+                    $checked     = HTMLHelper::_( 'grid.id', $i, $rule->id );
                     ?>
 
                     <tr class="<?php echo "row$k"; ?>">
@@ -110,7 +114,7 @@ class BFIntegratorHtml{
         $formSelector[$showType] = 'selected="selected"';
         ?>
 
-        <h3><?php echo JText::_('Base Data') ?></h3>
+        <h3><?php echo Text::_('Base Data') ?></h3>
 
         <form action="index.php" method="post" name="adminForm" id="adminForm">
 
@@ -118,19 +122,19 @@ class BFIntegratorHtml{
 
                     <tr>
                         <th width="300">
-                            <?php echo JText::_( 'Rulename' ); ?>
+                            <?php echo Text::_( 'Rulename' ); ?>
                         </th>
                         <th width="200">
-                            <?php echo JText::_( 'Showing' ); ?>
+                            <?php echo Text::_( 'Showing' ); ?>
                         </th>
                         <th width="300">
-                            <?php echo JText::_( 'Form' ); ?>
+                            <?php echo Text::_( 'Form' ); ?>
                         </th>
                         <th width="300">
-                            <?php echo JText::_( 'Table' ); ?>
+                            <?php echo Text::_( 'Table' ); ?>
                         </th>
                         <th>
-                            <?php echo JText::_( 'Type' ); ?>
+                            <?php echo Text::_( 'Type' ); ?>
                         </th>
                     </tr>
                     <tr class="row0">
@@ -215,7 +219,7 @@ class BFIntegratorHtml{
                             if(isset($rule)){
                                 echo $rule->type;
                             } else {
-                                echo JText::_('Insert') . ' <input checked="checked" type="radio" name="type" value="insert"/> ' . JText::_('Update') . ' <input type="radio" name="type" value="update"/>';
+                                echo Text::_('Insert') . ' <input checked="checked" type="radio" name="type" value="insert"/> ' . Text::_('Update') . ' <input type="radio" name="type" value="update"/>';
                             }
                             ?>
                         </td>
@@ -237,7 +241,7 @@ class BFIntegratorHtml{
             ?>
 
             <br/>
-            <h3><?php echo JText::_('Data Integration') ?></h3>
+            <h3><?php echo Text::_('Data Integration') ?></h3>
 
             <script>
                 function listItemTask( id, task ) {
@@ -258,7 +262,7 @@ class BFIntegratorHtml{
             </script>
 
             <?php
-            JFactory::getDocument()->addScriptDeclaration('
+            Factory::getApplication()->getDocument()->addScriptDeclaration('
             Joomla.listItemTask = listItemTask;
             ');
             ?>
@@ -272,19 +276,19 @@ class BFIntegratorHtml{
 
                     <tr>
                         <th width="300">
-                            <?php echo JText::_( 'Form Element (incoming)' ); ?>
+                            <?php echo Text::_( 'Form Element (incoming)' ); ?>
                         </th>
                         <th width="300">
-                            <?php echo JText::_( 'Copy To' ); ?>
+                            <?php echo Text::_( 'Copy To' ); ?>
                         </th>
                         <th width="300">
-                            <?php echo JText::_( 'Database Field (outgoing)' ); ?>
+                            <?php echo Text::_( 'Database Field (outgoing)' ); ?>
                         </th>
                         <th width="300">
-                            <?php echo JText::_( '' ); ?>
+                            <?php echo Text::_( '' ); ?>
                         </th>
                         <th>
-                            <?php echo JText::_( 'Publish' ); ?>
+                            <?php echo Text::_( 'Publish' ); ?>
                         </th>
                     </tr>
 
@@ -314,14 +318,14 @@ class BFIntegratorHtml{
                                 ?>
                             </select>
                         </td>
-                        <td colspan="2"><a style="display: block;" href="javascript:document.addItemForm.submit();"><?php echo JText::_('add') ?></a></td>
+                        <td colspan="2"><a style="display: block;" href="javascript:document.addItemForm.submit();"><?php echo Text::_('add') ?></a></td>
                     </tr>
 
                     <?php
                     $k = 1;
 
                     foreach($items As $item){
-                        $published   = JHTML::_('grid.published', $item, $item->id );
+                        $published   = HTMLHelper::_('grid.published', $item, $item->id );
                         ?>
                         <tr class="<?php echo "row$k"; ?>">
 
@@ -340,11 +344,11 @@ class BFIntegratorHtml{
                                     ?>
 
                                     <br/>
-                                    <a style="display: block;" href="javascript:document.saveCodeForm.itemId.value=<?php echo $item->id ?>;document.saveCodeForm.code.value=Joomla.editors.instances['code<?php echo $item->id?>'].getValue();document.saveCodeForm.submit();"><?php echo JText::_('Save') ?></a>
+                                    <a style="display: block;" href="javascript:document.saveCodeForm.itemId.value=<?php echo $item->id ?>;document.saveCodeForm.code.value=Joomla.editors.instances['code<?php echo $item->id?>'].getValue();document.saveCodeForm.submit();"><?php echo Text::_('Save') ?></a>
                                 </div>
-                                <a style="display: block;" href="javascript:showCode<?php echo $item->id ?>()"><?php echo JText::_('Code') ?></a>
+                                <a style="display: block;" href="javascript:showCode<?php echo $item->id ?>()"><?php echo Text::_('Code') ?></a>
 
-                                <a style="display: block;" href="index.php?option=com_breezingforms&act=integrate&task=removeItem&itemId=<?php echo $item->id ?>&id=<?php echo $rule->id ?>"><?php echo JText::_('Remove') ?></a></td>
+                                <a style="display: block;" href="index.php?option=com_breezingforms&act=integrate&task=removeItem&itemId=<?php echo $item->id ?>&id=<?php echo $rule->id ?>"><?php echo Text::_('Remove') ?></a></td>
                                 <td valign="top" align="center"><?php
                                 if ($item->published == "1") {
                                     ?><a class="tbody-icon active" href="javascript:void(0);" onClick="return listItemTask('cb<?php echo $item->id; ?>','unpublish')"><span class="icon-publish" aria-hidden="true"></span></a><?php
@@ -385,7 +389,7 @@ class BFIntegratorHtml{
                 ?>
 
                 <br/>
-                <h3><?php echo JText::_('Update Criteria - Form') ?></h3>
+                <h3><?php echo Text::_('Update Criteria - Form') ?></h3>
 
                 <form action="index.php?option=com_breezingforms&act=integrate" method="post" name="addCriteriaForm">
                     <input type="hidden" name="publish_id" value="-1" />
@@ -395,19 +399,19 @@ class BFIntegratorHtml{
 
                         <tr>
                             <th width="300">
-                                <?php echo JText::_( 'Database Field Value' ); ?>
+                                <?php echo Text::_( 'Database Field Value' ); ?>
                             </th>
                             <th width="300">
-                                <?php echo JText::_( 'Operation' ); ?>
+                                <?php echo Text::_( 'Operation' ); ?>
                             </th>
                             <th width="300">
-                                <?php echo JText::_( 'Form Element Value' ); ?>
+                                <?php echo Text::_( 'Form Element Value' ); ?>
                             </th>
                             <th width="100">
-                                <?php echo JText::_( 'And/Or' ); ?>
+                                <?php echo Text::_( 'And/Or' ); ?>
                             </th>
                             <th>
-                                <?php echo JText::_( '' ); ?>
+                                <?php echo Text::_( '' ); ?>
                             </th>
                         </tr>
 
@@ -452,8 +456,8 @@ class BFIntegratorHtml{
                                     ?>
                                 </select>
                             </td>
-                            <td><?php echo JText::_('A N D') ?> <input type="radio" name="andor" value="AND" checked="checked" /> <?php echo JText::_('O R') ?> <input type="radio" name="andor" value="OR" /></td>
-                            <td colspan="2"><a href="javascript:document.addCriteriaForm.submit();"><?php echo JText::_('add') ?></a></td>
+                            <td><?php echo Text::_('A N D') ?> <input type="radio" name="andor" value="AND" checked="checked" /> <?php echo Text::_('O R') ?> <input type="radio" name="andor" value="OR" /></td>
+                            <td colspan="2"><a href="javascript:document.addCriteriaForm.submit();"><?php echo Text::_('add') ?></a></td>
                         </tr>
 
                         <?php
@@ -467,7 +471,7 @@ class BFIntegratorHtml{
                                 <td align="center"><?php echo htmlentities($criteria->operator, ENT_COMPAT, 'UTF-8') ?></td>
                                 <td><?php echo htmlentities($criteria->element_name, ENT_COMPAT, 'UTF-8') ?> (<?php echo htmlentities($criteria->element_type, ENT_COMPAT, 'UTF-8') ?>)</td>
                                 <td><?php echo htmlentities($criteria->andor, ENT_COMPAT, 'UTF-8') ?> </td>
-                                <td><a href="index.php?option=com_breezingforms&act=integrate&task=removeCriteria&criteriaId=<?php echo $criteria->id ?>&id=<?php echo $rule->id ?>"><?php echo JText::_('Remove') ?></a></td>
+                                <td><a href="index.php?option=com_breezingforms&act=integrate&task=removeCriteria&criteriaId=<?php echo $criteria->id ?>&id=<?php echo $rule->id ?>"><?php echo Text::_('Remove') ?></a></td>
                             </tr>
                             <?php
                             $k = 1 - $k;
@@ -477,7 +481,7 @@ class BFIntegratorHtml{
                 </form>
 
                 <br/>
-                <h3><?php echo JText::_('Update Criteria - Joomla!') ?></h3>
+                <h3><?php echo Text::_('Update Criteria - Joomla!') ?></h3>
 
                 <form action="index.php?option=com_breezingforms&act=integrate" method="post" name="addCriteriaJoomlaForm">
                     <input type="hidden" name="publish_id" value="-1" />
@@ -487,19 +491,19 @@ class BFIntegratorHtml{
 
                         <tr>
                             <th width="300">
-                                <?php echo JText::_( 'Database Field Value' ); ?>
+                                <?php echo Text::_( 'Database Field Value' ); ?>
                             </th>
                             <th width="300">
-                                <?php echo JText::_( 'Operation' ); ?>
+                                <?php echo Text::_( 'Operation' ); ?>
                             </th>
                             <th width="300">
-                                <?php echo JText::_( 'Joomla Object Value' ); ?>
+                                <?php echo Text::_( 'Joomla Object Value' ); ?>
                             </th>
                             <th width="100">
-                                <?php echo JText::_( 'And/Or' ); ?>
+                                <?php echo Text::_( 'And/Or' ); ?>
                             </th>
                             <th>
-                                <?php echo JText::_( '' ); ?>
+                                <?php echo Text::_( '' ); ?>
                             </th>
                         </tr>
 
@@ -534,15 +538,15 @@ class BFIntegratorHtml{
                             <td>
                                 <select name="joomla_object">
 
-                                    <option value="Userid"><?php echo JText::_('Userid') ?></option>
-                                    <option value="Username"><?php echo JText::_('Username') ?></option>
-                                    <option value="Language"><?php echo JText::_('Language') ?></option>
-                                    <option value="Date"><?php echo JText::_('Date') ?></option>
+                                    <option value="Userid"><?php echo Text::_('Userid') ?></option>
+                                    <option value="Username"><?php echo Text::_('Username') ?></option>
+                                    <option value="Language"><?php echo Text::_('Language') ?></option>
+                                    <option value="Date"><?php echo Text::_('Date') ?></option>
 
                                 </select>
                             </td>
-                            <td><?php echo JText::_('A N D') ?> <input type="radio" name="andor" value="AND" checked="checked" /> <?php echo JText::_('O R') ?> <input type="radio" name="andor" value="OR" /></td>
-                            <td colspan="2"><a href="javascript:document.addCriteriaJoomlaForm.submit();"><?php echo JText::_('add') ?></a></td>
+                            <td><?php echo Text::_('A N D') ?> <input type="radio" name="andor" value="AND" checked="checked" /> <?php echo Text::_('O R') ?> <input type="radio" name="andor" value="OR" /></td>
+                            <td colspan="2"><a href="javascript:document.addCriteriaJoomlaForm.submit();"><?php echo Text::_('add') ?></a></td>
                         </tr>
 
                         <?php
@@ -556,7 +560,7 @@ class BFIntegratorHtml{
                                 <td align="center"><?php echo htmlentities($criteria->operator, ENT_COMPAT, 'UTF-8') ?></td>
                                 <td><?php echo htmlentities($criteria->joomla_object, ENT_COMPAT, 'UTF-8') ?></td>
                                 <td><?php echo htmlentities($criteria->andor, ENT_COMPAT, 'UTF-8') ?> </td>
-                                <td><a href="index.php?option=com_breezingforms&act=integrate&task=removeCriteriaJoomla&criteriaId=<?php echo $criteria->id ?>&id=<?php echo $rule->id ?>"><?php echo JText::_('Remove') ?></a></td>
+                                <td><a href="index.php?option=com_breezingforms&act=integrate&task=removeCriteriaJoomla&criteriaId=<?php echo $criteria->id ?>&id=<?php echo $rule->id ?>"><?php echo Text::_('Remove') ?></a></td>
                             </tr>
                             <?php
                             $k = 1 - $k;
@@ -566,7 +570,7 @@ class BFIntegratorHtml{
                 </form>
 
                 <br/>
-                <h3><?php echo JText::_('Update Criteria - Fixed') ?></h3>
+                <h3><?php echo Text::_('Update Criteria - Fixed') ?></h3>
 
                 <form action="index.php?option=com_breezingforms&act=integrate" method="post" name="addCriteriaFixedForm">
                     <input type="hidden" name="publish_id" value="-1" />
@@ -576,19 +580,19 @@ class BFIntegratorHtml{
 
                         <tr>
                             <th width="300">
-                                <?php echo JText::_( 'Database Field Value' ); ?>
+                                <?php echo Text::_( 'Database Field Value' ); ?>
                             </th>
                             <th width="300">
-                                <?php echo JText::_( 'Operation' ); ?>
+                                <?php echo Text::_( 'Operation' ); ?>
                             </th>
                             <th width="300">
-                                <?php echo JText::_( 'Fixed Value' ); ?>
+                                <?php echo Text::_( 'Fixed Value' ); ?>
                             </th>
                             <th width="100">
-                                <?php echo JText::_( 'And/Or' ); ?>
+                                <?php echo Text::_( 'And/Or' ); ?>
                             </th>
                             <th>
-                                <?php echo JText::_( '' ); ?>
+                                <?php echo Text::_( '' ); ?>
                             </th>
                         </tr>
 
@@ -623,8 +627,8 @@ class BFIntegratorHtml{
                             <td>
                                 <input style="width:100%" type="text" name="fixed_value" value=""/>
                             </td>
-                            <td><?php echo JText::_('A N D') ?> <input type="radio" name="andor" value="AND" checked="checked" /> <?php echo JText::_('O R') ?> <input type="radio" name="andor" value="OR" /></td>
-                            <td colspan="2"><a href="javascript:document.addCriteriaFixedForm.submit();"><?php echo JText::_('add') ?></a></td>
+                            <td><?php echo Text::_('A N D') ?> <input type="radio" name="andor" value="AND" checked="checked" /> <?php echo Text::_('O R') ?> <input type="radio" name="andor" value="OR" /></td>
+                            <td colspan="2"><a href="javascript:document.addCriteriaFixedForm.submit();"><?php echo Text::_('add') ?></a></td>
                         </tr>
 
                         <?php
@@ -638,7 +642,7 @@ class BFIntegratorHtml{
                                 <td align="center"><?php echo htmlentities($criteria->operator, ENT_COMPAT, 'UTF-8') ?></td>
                                 <td><?php echo htmlentities($criteria->fixed_value, ENT_COMPAT, 'UTF-8') ?> </td>
                                 <td><?php echo htmlentities($criteria->andor, ENT_COMPAT, 'UTF-8') ?> </td>
-                                <td><a href="index.php?option=com_breezingforms&act=integrate&task=removeCriteriaFixed&criteriaId=<?php echo $criteria->id ?>&id=<?php echo $rule->id ?>"><?php echo JText::_('Remove') ?></a></td>
+                                <td><a href="index.php?option=com_breezingforms&act=integrate&task=removeCriteriaFixed&criteriaId=<?php echo $criteria->id ?>&id=<?php echo $rule->id ?>"><?php echo Text::_('Remove') ?></a></td>
                             </tr>
                             <?php
                             $k = 1 - $k;
@@ -654,7 +658,7 @@ class BFIntegratorHtml{
             ?>
 
             <br/>
-            <h3><?php echo JText::_('Finalize Code') ?></h3>
+            <h3><?php echo Text::_('Finalize Code') ?></h3>
 
             <form action="index.php?option=com_breezingforms&act=integrate" method="post" name="saveFinalizeCodeForm">
                 <input type="hidden" name="publish_id" value="-1" />
@@ -671,7 +675,7 @@ class BFIntegratorHtml{
 
                 <br/>
                 <br/>
-                <a href="javascript:document.saveFinalizeCodeForm.submit();"><?php echo JText::_('Save') ?></a>
+                <a href="javascript:document.saveFinalizeCodeForm.submit();"><?php echo Text::_('Save') ?></a>
             </form>
 
             <?php

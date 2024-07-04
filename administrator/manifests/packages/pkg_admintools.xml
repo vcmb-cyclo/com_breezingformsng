@@ -8,9 +8,9 @@
 <extension type="package" method="upgrade">
     <name>pkg_admintools</name>
     <author>Nicholas K. Dionysopoulos</author>
-    <creationDate>2024-01-08</creationDate>
+    <creationDate>2024-06-10</creationDate>
     <packagename>admintools</packagename>
-    <version>7.4.8</version>
+    <version>7.5.4</version>
     <url>https://www.akeeba.com</url>
     <packager>Akeeba Ltd</packager>
     <packagerurl>https://www.akeeba.com</packagerurl>

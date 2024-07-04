@@ -10,6 +10,9 @@
 /** ensure this file is being included by a parent file */
 defined( '_JEXEC' ) or die( 'Direct Access to this location is not allowed.' );
 
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Plugin\CMSPlugin;
+
 if(!function_exists('cb_b64enc')){
     
     function cb_b64enc($str){
@@ -28,9 +31,22 @@ if(!function_exists('cb_b64dec')){
     }
 }
 
-jimport( 'joomla.plugin.plugin' );
+class plgContentContentbuilder_permission_observer extends CMSPlugin {
+/**
+     * Application object.
+     *
+     * @var    \Joomla\CMS\Application\CMSApplication
+     * @since  5.0.0
+     */
+    protected $app;
 
-class plgContentContentbuilder_permission_observer extends JPlugin {
+    /**
+     * Database object.
+     *
+     * @var    \Joomla\Database\DatabaseDriver
+     * @since  5.0.0
+     */
+    protected $db;
 
     function __construct( &$subject, $params )
     {
@@ -47,10 +63,7 @@ class plgContentContentbuilder_permission_observer extends JPlugin {
 
     function onContentPrepare($context, &$article, &$params, $limitstart = 0) {
         
-        jimport('joomla.filesystem.file');
-        jimport('joomla.filesystem.folder');
-
-        if(!JFile::exists(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php'))
+        if(!file_exists(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php'))
         {
             return true;
         }
@@ -58,13 +71,12 @@ class plgContentContentbuilder_permission_observer extends JPlugin {
         if (isset($article->id) && $article->id) {
             
             $frontend = true;
-            if (JFactory::getApplication()->isClient('administrator')) {
+            if ($this->app->isClient('administrator')) {
                 $frontend = false;
             }
             
-            $db = CBFactory::getDbo();
-            $db->setQuery("Select form.`reference_id`,article.`record_id`,article.`form_id`,form.`type`,form.`published_only`,form.`own_only`,form.`own_only_fe` From #__contentbuilder_articles As article, #__contentbuilder_forms As form Where form.`published` = 1 And form.id = article.`form_id` And article.`article_id` = " . $db->quote($article->id));
-            $data = $db->loadAssoc();
+            $this->db->setQuery("Select form.`reference_id`,article.`record_id`,article.`form_id`,form.`type`,form.`published_only`,form.`own_only`,form.`own_only_fe` From #__contentbuilder_articles As article, #__contentbuilder_forms As form Where form.`published` = 1 And form.id = article.`form_id` And article.`article_id` = " . $this->db->quote($article->id));
+            $data = $this->db->loadAssoc();
 
             require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
             $form = contentbuilder::getForm($data['type'], $data['reference_id']);
@@ -75,19 +87,19 @@ class plgContentContentbuilder_permission_observer extends JPlugin {
             
             if ($form && !( CBRequest::getVar('option','') == 'com_contentbuilder' && CBRequest::getVar('controller','') == 'edit' )) {
                 
-                JFactory::getLanguage()->load('com_contentbuilder');
+                $this->app->getLanguage()->load('com_contentbuilder');
                 contentbuilder::setPermissions($data['form_id'], $data['record_id'], $frontend ? '_fe' : '');
                 
                 if(CBRequest::getCmd('view') == 'article'){
-                   contentbuilder::checkPermissions('view', JText::_('COM_CONTENTBUILDER_PERMISSIONS_VIEW_NOT_ALLOWED'), $frontend ? '_fe' : '');
+                   contentbuilder::checkPermissions('view', Text::_('COM_CONTENTBUILDER_PERMISSIONS_VIEW_NOT_ALLOWED'), $frontend ? '_fe' : '');
                 }else{
                     if($frontend){
                         if(!contentbuilder::authorizeFe('view')){
-                            $article->text = JText::_('COM_CONTENTBUILDER_PERMISSIONS_VIEW_NOT_ALLOWED');
+                            $article->text = Text::_('COM_CONTENTBUILDER_PERMISSIONS_VIEW_NOT_ALLOWED');
                         }
                     }else{
                         if(!contentbuilder::authorize('view')){
-                            $article->text = JText::_('COM_CONTENTBUILDER_PERMISSIONS_VIEW_NOT_ALLOWED');
+                            $article->text = Text::_('COM_CONTENTBUILDER_PERMISSIONS_VIEW_NOT_ALLOWED');
                         }
                     }
                 }

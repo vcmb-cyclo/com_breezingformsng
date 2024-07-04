@@ -15,7 +15,7 @@
       "attributes": {
         "type": "module"
       },
-      "version": "f95580"
+      "version": "8abe08"
     },
     {
       "name": "com_fields.admin-field-edit",
@@ -51,7 +51,7 @@
       "attributes": {
         "type": "module"
       },
-      "version": "fe3339"
+      "version": "eebfc6"
     },
     {
       "name": "com_fields.admin-fields-modal",

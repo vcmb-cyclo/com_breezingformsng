@@ -110,7 +110,7 @@ abstract class CBPluginHelper
 	/**
 	 * Loads the plugin file.
 	 *
-	 * @param   JPlugin      $plugin      The plugin.
+	 * @param   CMSPlugin      $plugin      The plugin.
 	 * @param   boolean      $autocreate  True to autocreate.
 	 * @param   JDispatcher  $dispatcher  Optionally allows the plugin to use a different dispatcher.
 	 *
@@ -178,8 +178,8 @@ abstract class CBPluginHelper
 			return $plugins;
 		}
 
-		$user	= JFactory::getUser();
-		$cache 	= JFactory::getCache('com_plugins', '');
+		$user	= Factory::getApplication()->getIdentity();
+		$cache 	= Factory::getCache('com_plugins', '');
 
 		$levels = implode(',', $user->getAuthorisedViewLevels());
 

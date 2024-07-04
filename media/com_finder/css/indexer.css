@@ -1,13 +1,14 @@
+@charset "UTF-8";
 #finder-progress-container {
   width: 350px;
   margin: 0 auto;
 }
 
 h1.finder-error {
-  color: #f00;
+  color: red;
 }
 
 p.finder-error {
+  color: red;
   font-weight: bold;
-  color: #f00;
 }

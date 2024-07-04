@@ -30,6 +30,8 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
  * @author Charles Sarrazin <charles@sarraz.in>
  * @author Robin Chalas <robin.chalas@gmail.com>
+ *
+ * @template-implements UserProviderInterface<LdapUser>
  */
 class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
@@ -43,7 +45,7 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
     private ?string $passwordAttribute;
     private array $extraFields;
 
-    public function __construct(LdapInterface $ldap, string $baseDn, string $searchDn = null, #[\SensitiveParameter] string $searchPassword = null, array $defaultRoles = [], string $uidKey = null, string $filter = null, string $passwordAttribute = null, array $extraFields = [])
+    public function __construct(LdapInterface $ldap, string $baseDn, ?string $searchDn = null, #[\SensitiveParameter] ?string $searchPassword = null, array $defaultRoles = [], ?string $uidKey = null, ?string $filter = null, ?string $passwordAttribute = null, array $extraFields = [])
     {
         $uidKey ??= 'sAMAccountName';
         $filter ??= '({uid_key}={user_identifier})';

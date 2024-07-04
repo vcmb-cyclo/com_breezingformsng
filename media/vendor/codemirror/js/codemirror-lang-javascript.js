@@ -354,7 +354,7 @@ const keywords = /*@__PURE__*/"break case const continue default delete export e
 const typescriptKeywords = /*@__PURE__*/keywords.concat(/*@__PURE__*/["declare", "implements", "private", "protected", "public"].map(kwCompletion));
 /**
 JavaScript support. Includes [snippet](https://codemirror.net/6/docs/ref/#lang-javascript.snippets)
-completion.
+and local variable completion.
 */
 function javascript(config = {}) {
     let lang = config.jsx ? (config.typescript ? tsxLanguage : jsxLanguage)
@@ -417,7 +417,7 @@ const autoCloseTags = /*@__PURE__*/EditorView.inputHandler.of((view, from, to, t
         }
         else if (text == ">") {
             let openTag = findOpenTag(around);
-            if (openTag &&
+            if (openTag && openTag.name == "JSXOpenTag" &&
                 !/^\/?>|^<\//.test(state.doc.sliceString(head, head + 2)) &&
                 (name = elementName(state.doc, openTag, head)))
                 return { range, changes: { from: head, insert: `</${name}>` } };

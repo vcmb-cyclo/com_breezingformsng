@@ -1,9 +1,10 @@
 <?php
 /**
  * BreezingForms - A Joomla Forms Application
- * @version 1.8
+ * @version 5.0
  * @package BreezingForms
  * @copyright (C) 2008-2012 by Markus Bopp
+ * @copyright Copyright (C) 2024 by XDA+GIL
  * @license Released under the terms of the GNU General Public License
  * */
 
@@ -11,23 +12,30 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Factory;
 use Joomla\Utilities\ArrayHelper;
+use Joomla\CMS\Uri\Uri;
+use Joomla\Filesystem\File;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\HTML\Helpers\Bootstrap;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\Table\Table;
 
-class bfRecordManagement {
+class bfRecordManagement
+{
 
-    private $version = '1.5';
     private $tz = 'UTC';
 
-    function __construct() {
+    function __construct()
+    {
         jimport('joomla.filesystem.file');
         jimport('joomla.filesystem.folder');
 
-        $this->version = $version->getShortVersion();
-        $this->tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
+        $this->tz = new DateTimeZone(Factory::getApplication()->get('offset'));
 
         // bfRecordsTableContainer
     }
 
-    function saveFilterState() {
+    function saveFilterState()
+    {
         @ob_end_clean();
 
         if (BFRequest::getInt('form_id') > 0) {
@@ -35,46 +43,41 @@ class bfRecordManagement {
             $db = BFFactory::getdbo();
 
             $db->setQuery("Update #__facileforms_forms Set filter_state = " . $db->quote(serialize($_POST)) . " Where id = " . $db->quote(BFRequest::getInt('form_id')));
-            $db->query();
+            $db->execute();
         }
         exit;
     }
 
-    function getAvailableFields() {
+    function getAvailableFields()
+    {
 
         @ob_end_clean();
-
         $out = array();
-
         $db = BFFactory::getdbo();
-
         $db->setQuery("Select * From #__facileforms_elements Where published = 1 And `name` <> 'bfFakeName' And `name` <> 'bfFakeName2' And `name` <> 'bfFakeName3' And `name` <> 'bfFakeName4' And `name` <> 'bfFakeName5' And  form = " . BFRequest::getInt('form_id', 0) . " Order By `ordering`");
-
         $out['fields'] = $db->loadAssocList();
-
         $db->setQuery("Select filter_state From #__facileforms_forms Where id = " . BFRequest::getInt('form_id', 0));
-
         $out['filter_state'] = @unserialize($db->loadResult());
-
         echo json_encode($out);
-
         exit;
     }
 
-    function setFlag() {
+    function setFlag()
+    {
         @ob_end_clean();
 
         $column = explode('bfrecord_', BFRequest::getCmd('column', ''));
         if (count($column) == 2) {
             $db = BFFactory::getdbo();
             $db->setQuery("Update #__facileforms_records Set `" . $column[1] . "` = " . $db->quote(BFRequest::getInt('flag', 0)) . " Where id = " . $db->quote(BFRequest::getInt('record_id')));
-            $db->query();
+            $db->execute();
         }
 
         exit;
     }
 
-    function setFlags($column) {
+    function setFlags($column)
+    {
         $db = BFFactory::getdbo();
 
         $ids = BFRequest::getVar('cid', array());
@@ -82,11 +85,12 @@ class bfRecordManagement {
         if (count($ids)) {
             $db = BFFactory::getdbo();
             $db->setQuery("Update #__facileforms_records Set `" . $column . "` = 1 Where id In (" . implode(',', $ids) . ")");
-            $db->query();
+            $db->execute();
         }
     }
 
-    function getTableBar() {
+    function getTableBar()
+    {
 
         $out = '';
 
@@ -100,7 +104,7 @@ class bfRecordManagement {
         $out = '<form onsubmit="return false;" style="display: inline;">';
         $out .= '<select name="form_selection" id="bfFormSelection">' . "\n";
         $out .= '<option value="0">' . htmlentities(BFText::_('COM_BREEZINGFORMS_ALL'), ENT_QUOTES, 'UTF-8') . '</option>' . "\n";
-        foreach ($forms As $form) {
+        foreach ($forms as $form) {
 
             $out .= '<option value="' . $form['id'] . '">' . htmlentities($form['title'], ENT_QUOTES, 'UTF-8') . ' (' . htmlentities($form['name'], ENT_QUOTES, 'UTF-8') . ')</option>' . "\n";
         }
@@ -180,11 +184,11 @@ class bfRecordManagement {
 
         $out .= '</td>';
 
-	    $out .= '<td>';
+        $out .= '<td>';
 
-	    $out .= '<input type="checkbox" value="1" name="bfrecordsearchinuntouched" id="bfrecordsearchinuntouched" /> <label for="bfrecordsearchinuntouched">' . htmlentities('untouched', ENT_QUOTES, 'UTF-8') . '</label> ';
+        $out .= '<input type="checkbox" value="1" name="bfrecordsearchinuntouched" id="bfrecordsearchinuntouched" /> <label for="bfrecordsearchinuntouched">' . htmlentities('untouched', ENT_QUOTES, 'UTF-8') . '</label> ';
 
-	    $out .= '</td>';
+        $out .= '</td>';
 
         $out .= '<td>';
 
@@ -261,23 +265,26 @@ class bfRecordManagement {
         return $out;
     }
 
-    function editRecord() {
+    function editRecord()
+    {
 
     }
 
-    function getCsvImport() {
+    function getCsvImport()
+    {
 
         global $ff_config;
 
         $form = BFRequest::getInt('form_selection');
-        JFactory::getSession()->set('form', $form);
+        Factory::getApplication()->getSession()->set('form', $form);
         if ($form == 0) {
             echo BFText::_('COM_BREEZINGFORMS_IMPORT_CSV_MSG');
             return;
         }
         ?>
 
-        <form action="index.php?option=com_breezingforms&act=managerecords&task=setcsvimport&tmpl=component" method="post" enctype="multipart/form-data">
+        <form action="index.php?option=com_breezingforms&act=managerecords&task=setcsvimport&tmpl=component" method="post"
+            enctype="multipart/form-data">
             <select name=encoding>
                 <option value="0">UTF-8</option>
                 <option selected="selected" value="UTF-16LE">UTF-16LE (BreezingForms default)</option>
@@ -324,14 +331,15 @@ class bfRecordManagement {
                 <option value="EUC-JP">EUC-JP</option>
             </select><br>
             <?php echo BFText::_('COM_BREEZINGFORMS_CSV_ENCODING_MSG') . '<br><br>'; ?>
-            <input type="hidden" name="form_id" value="<?php echo BFRequest::getInt('form_selection',0);?>" />
+            <input type="hidden" name="form_id" value="<?php echo BFRequest::getInt('form_selection', 0); ?>" />
             <?php echo BFText::_('COM_BREEZINGFORMS_UPLOAD_MSG'); ?> <input type="file" name="csv_file" accept=".csv" />
             <input type="submit" value="<?php echo BFText::_('COM_BREEZINGFORMS_UPLOAD_FILE_MSG'); ?>" />
         </form>
         <?php
     }
 
-    function utf8_fopen_read($fileName, $encoding) {
+    function utf8_fopen_read($fileName, $encoding)
+    {
         $fc = iconv($encoding, 'UTF-8//TRANSLIT', file_get_contents($fileName));
         $handle = fopen("php://memory", "rw");
         fwrite($handle, $fc);
@@ -339,7 +347,8 @@ class bfRecordManagement {
         return $handle;
     }
 
-    function closeSquBox() {
+    function closeSquBox()
+    {
         ?>
         <script type="text/javascript">
             window.top.location.href = "index.php?option=com_breezingforms&act=managerecords&task=";
@@ -347,11 +356,12 @@ class bfRecordManagement {
         <?php
     }
 
-    function setCsvImport() {
+    function setCsvImport()
+    {
 
         $db = BFFactory::getdbo();
 
-        $form = JFactory::getSession()->get('form');
+        $form = Factory::getApplication()->getSession()->get('form');
         $encoding = $_POST["encoding"];
         $file = $_FILES['csv_file']['tmp_name'];
 
@@ -407,7 +417,7 @@ class bfRecordManagement {
             return;
         }
 
-        $db->setQuery("Select `title`,`name` From #__facileforms_forms Where id = " . BFRequest::getInt('form_id',0));
+        $db->setQuery("Select `title`,`name` From #__facileforms_forms Where id = " . BFRequest::getInt('form_id', 0));
         $the_form = $db->loadObject();
 
         $recordcolumns = 'id, submitted, form, title, name, ip, browser, opsys, provider, viewed, exported, archived, user_id, username, user_full_name, paypal_tx_id, paypal_payment_date, paypal_testaccount, paypal_download_tries';
@@ -446,39 +456,49 @@ class bfRecordManagement {
 
                     $query = $query . $db->Quote($record[$j] ? 1 : 0);
 
-                }  else if ($columns[$i] === 'paypal_payment_date') {
+                } else if ($columns[$i] === 'paypal_payment_date') {
 
-                    $query = $query . $db->Quote(!$record[$j] || $record[$j] == '-' ? '1970-01-01 00:00:00' : $record[$j] );
+                    $query = $query . $db->Quote(!$record[$j] || $record[$j] == '-' ? '1970-01-01 00:00:00' : $record[$j]);
 
                 } else {
-                    if (in_array($columns[$i], $title) ) {
+                    if (in_array($columns[$i], $title)) {
                         if ($columns[$i] === 'bf_form_title') {
                             $j = array_search($columns[$i], $title);
                             $query = $query . $db->Quote($record[$j]);
                             // $i++;
-                        }
-                        else if ($columns[$i] === 'bf_form_name') {
+                        } else if ($columns[$i] === 'bf_form_name') {
                             $query = $query . $db->Quote($record[$j]);
                             $formname = $record[$j];
                             // $i++;
-                        }
-                        else {
+                        } else {
                             $j = array_search($columns[$i], $title);
                             $query = $query . $db->Quote($record[$j]);
                         }
                     } else {
 
                         $value = '';
-                        switch($columns[$i]){
-                            case 'bf_form_title': $value = $the_form->title; break;
-                            case 'bf_form_name': $value = $the_form->name; break;
-                            case 'submitted': $value = date('Y-m-d H:i:s'); break;
-                            case 'ip': $value = $_SERVER['REMOTE_ADDR']; break;
-                            case 'user_id': $value = JFactory::getUser()->get('id',0); break;
-                            case 'username': $value = JFactory::getUser()->get('username',''); break;
+                        switch ($columns[$i]) {
+                            case 'bf_form_title':
+                                $value = $the_form->title;
+                                break;
+                            case 'bf_form_name':
+                                $value = $the_form->name;
+                                break;
+                            case 'submitted':
+                                $value = date('Y-m-d H:i:s');
+                                break;
+                            case 'ip':
+                                $value = $_SERVER['REMOTE_ADDR'];
+                                break;
+                            case 'user_id':
+                                $value = Factory::getUser()->get('id', 0);
+                                break;
+                            case 'username':
+                                $value = Factory::getUser()->get('username', '');
+                                break;
                         }
 
-                        $query = $query . '"'.$value.'"';
+                        $query = $query . '"' . $value . '"';
                     }
                 }
 
@@ -488,7 +508,7 @@ class bfRecordManagement {
             $query = $query . ')';
 
             $db->setQuery($query);
-            $db->query();
+            $db->execute();
 
             if ($db->getErrorMsg() != '') {
                 echo 'Import Error: ' . $db->getErrorMsg();
@@ -525,7 +545,7 @@ class bfRecordManagement {
                 $query = $query . ')';
 
                 $db->setQuery($query);
-                $db->query();
+                $db->execute();
 
                 if ($db->getErrorMsg() != '') {
                     echo 'Import Error (subrecords): ' . $db->getErrorMsg();
@@ -544,84 +564,53 @@ class bfRecordManagement {
         foreach ($delID as $id) {
             $query = 'DELETE FROM #__facileforms_records WHERE id = ' . $db->Quote($id['id']);
             $db->setQuery($query);
-            $db->query();
+            $db->execute();
         }
         // End Cleanup
 
         $this->closeSquBox();
     }
 
-    function listRecords() {
+    function listRecords()
+    {
 
-        JHTML::_('behavior.keepalive');
+        HTMLHelper::_('behavior.keepalive');
 
 
-        if (version_compare($this->version, '3.0', '>=')) {
-            JToolBarHelper::custom('exportPdf', 'download', 'download', BFText::_('COM_BREEZINGFORMS_PDF'), false);
-            JToolBarHelper::custom('exportCsv', 'download', 'download', BFText::_('COM_BREEZINGFORMS_CSV'), false);
-            JToolBarHelper::custom('exportXml', 'download', 'download', BFText::_('COM_BREEZINGFORMS_XML'), false);
-            JToolBarHelper::custom('csvimport', 'upload', 'upload', BFText::_('COM_BREEZINGFORMS_CSV'), false);
-            JToolBarHelper::custom('viewed', 'eye-open', 'eye-open', BFText::_('COM_BREEZINGFORMS_TOOLBAR_VIEW'), false);
-            JToolBarHelper::custom('exported', 'share', 'share', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EXPORT'), false);
-            JToolBarHelper::custom('archived', 'archive', 'archive', BFText::_('COM_BREEZINGFORMS_TOOLBAR_ARCHIVE'), false);
-            JToolBarHelper::custom('remove', 'delete.png', 'delete_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_DELETE'), false);
-        } else {
-            JToolBarHelper::title('<img src="' . JURI::root() . 'administrator/components/com_breezingforms/libraries/jquery/themes/easymode/i/logo-breezingforms.png' . '" align="top"/>');
-            JToolBarHelper::custom('exportPdf', 'ff_download', 'ff_download_f2', BFText::_('COM_BREEZINGFORMS_PDF'), false);
-            JToolBarHelper::custom('exportCsv', 'ff_download', 'ff_download_f2', BFText::_('COM_BREEZINGFORMS_CSV'), false);
-            JToolBarHelper::custom('exportXml', 'ff_download', 'ff_download_f2', BFText::_('COM_BREEZINGFORMS_XML'), false);
-            JToolBarHelper::custom('csvimport', 'ff_upload', 'ff_upload_f2', BFText::_('COM_BREEZINGFORMS_CSV'), false);
-            JToolBarHelper::custom('viewed', 'ff_switch', 'ff_switch_f2', BFText::_('COM_BREEZINGFORMS_TOOLBAR_VIEW'), false);
-            JToolBarHelper::custom('exported', 'ff_switch', 'ff_switch_f2', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EXPORT'), false);
-            JToolBarHelper::custom('archived', 'ff_switch', 'ff_switch_f2', BFText::_('COM_BREEZINGFORMS_TOOLBAR_ARCHIVE'), false);
-            JToolBarHelper::custom('remove', 'delete.png', 'delete_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_DELETE'), false);
-            JFactory::getDocument()->addStyleDeclaration(
-                '
+        ToolBarHelper::custom('exportPdf', 'download', 'download', BFText::_('COM_BREEZINGFORMS_PDF'), false);
+        ToolBarHelper::custom('exportCsv', 'download', 'download', BFText::_('COM_BREEZINGFORMS_CSV'), false);
+        ToolBarHelper::custom('exportXml', 'download', 'download', BFText::_('COM_BREEZINGFORMS_XML'), false);
+        ToolBarHelper::custom('csvimport', 'upload', 'upload', BFText::_('COM_BREEZINGFORMS_CSV'), false);
+        ToolBarHelper::custom('viewed', 'eye-open', 'eye-open', BFText::_('COM_BREEZINGFORMS_TOOLBAR_VIEW'), false);
+        ToolBarHelper::custom('exported', 'share', 'share', BFText::_('COM_BREEZINGFORMS_TOOLBAR_EXPORT'), false);
+        ToolBarHelper::custom('archived', 'archive', 'archive', BFText::_('COM_BREEZINGFORMS_TOOLBAR_ARCHIVE'), false);
+        ToolBarHelper::custom('remove', 'delete.png', 'delete_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_DELETE'), false);
 
-                            .icon-32-ff_switch {
-                                    background-image:url(components/com_breezingforms/images/icons/switch.png);
-                            }
+        //Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jq.migrate.js');
+        //Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jq.min.js');
+        //Factory::getApplication()->getDocument()->addScriptDeclaration('jQuery.noConflict();' . "\n");
+        Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jq-ui.min.js');
+        Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jtable/jq.jtable.js');
 
-                            .icon-32-ff_switch_f2 {
-                                    background-image:url(components/com_breezingforms/images/icons/switch_f2.png);
-                            }
-
-                            .icon-32-ff_download {
-                                    background-image:url(components/com_breezingforms/images/icons/download.png);
-                            }
-
-                            .icon-32-ff_download_f2 {
-                                    background-image:url(components/com_breezingforms/images/icons/download_f2.png);
-                            }
-                            '
-            );
-        }
-
-        //JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/jq.migrate.js');
-        //JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/jq.min.js');
-        //JFactory::getDocument()->addScriptDeclaration('jQuery.noConflict();' . "\n");
-        JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/jq-ui.min.js');
-        JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/jtable/jq.jtable.js');
-
-        $lang = JFactory::getLanguage()->getTag();
+        $lang = Factory::getApplication()->getLanguage()->getTag();
         $lang = explode('-', $lang);
         $lang = strtolower($lang[0]);
-        if (JFile::exists(JPATH_SITE . '/components/com_breezingforms/libraries/jquery/jtable/localization/jquery.jtable.' . $lang . '.js')) {
-            JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/jtable/localization/jquery.jtable.' . $lang . '.js');
+        if (file_exists(JPATH_SITE . '/components/com_breezingforms/libraries/jquery/jtable/localization/jquery.jtable.' . $lang . '.js')) {
+            Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jtable/localization/jquery.jtable.' . $lang . '.js');
         }
 
-        JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/picker.js');
-        JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/picker.date.js');
-        JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/picker.time.js');
-        JFactory::getDocument()->addScript(JURI::root(true) . '/administrator/components/com_breezingforms/libraries/jquery/plugins/json.js');
+        Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/picker.js');
+        Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/picker.date.js');
+        Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/picker.time.js');
+        Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/administrator/components/com_breezingforms/libraries/jquery/plugins/json.js');
 
-        JFactory::getDocument()->addStyleSheet(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/jtable/themes/metro/jq.ui.css');
-        JFactory::getDocument()->addStyleSheet(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/jtable/themes/metro/blue/jtable.css');
-        JFactory::getDocument()->addStyleSheet(JURI::root() . 'administrator/components/com_breezingforms/admin/style.css');
+        Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jtable/themes/metro/jq.ui.css');
+        Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jtable/themes/metro/blue/jtable.css');
+        Factory::getApplication()->getDocument()->addStyleSheet(Uri::root() . 'administrator/components/com_breezingforms/admin/style.css');
 
-        JFactory::getDocument()->addStyleSheet(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/themes/default.css');
-        JFactory::getDocument()->addStyleSheet(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/themes/default.date.css');
-        JFactory::getDocument()->addStyleSheet(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/themes/default.time.css');
+        Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/themes/default.css');
+        Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/themes/default.date.css');
+        Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/themes/default.time.css');
         ?>
         <script type="text/javascript">
             function ct_quote(str) {
@@ -630,7 +619,7 @@ class bfRecordManagement {
         </script>
         <?php
 
-        echo JHtmlBootstrap::renderModal(
+        echo Bootstrap::renderModal(
             'bfCsvModal',
             array(
                 'url' => 'index.php',
@@ -642,7 +631,7 @@ class bfRecordManagement {
         // faking an existing adminform for the toolbar
         echo '<form name="adminForm" id="adminForm"><input type="hidden" name="task" value=""/></form>';
 
-        JFactory::getDocument()->addScriptDeclaration( '  
+        Factory::getApplication()->getDocument()->addScriptDeclaration('  
             Array.prototype.bfinsert = function (index, item) {
                 this.splice(index, 0, item);
             };
@@ -890,7 +879,7 @@ class bfRecordManagement {
                         display: function (detail_data) {
                         
                             //Create an image that will be used to open child table
-                            var $img = jQuery("<img style=\"width: 16px !important; min-width: 16px !important; max-width: 16px !important; cursor: pointer;opacity: 0.5;\" onmouseover=\"this.style.opacity=\'1.0\'\" onmouseout=\"this.style.opacity=\'0.5\'\" src=\"' . JURI::root() . '/components/com_breezingforms/libraries/jquery/jtable/themes/metro/list_metro.png' . '\" title=\"\" />");
+                            var $img = jQuery("<img style=\"width: 16px !important; min-width: 16px !important; max-width: 16px !important; cursor: pointer;opacity: 0.5;\" onmouseover=\"this.style.opacity=\'1.0\'\" onmouseout=\"this.style.opacity=\'0.5\'\" src=\"' . Uri::root() . '/components/com_breezingforms/libraries/jquery/jtable/themes/metro/list_metro.png' . '\" title=\"\" />");
                             
                             //Open child table when user clicks the image
                             $img.click(function () {
@@ -1739,7 +1728,8 @@ class bfRecordManagement {
 
     }
 
-    function getListRecords() {
+    function getListRecords()
+    {
 
         @ob_end_clean();
 
@@ -1752,7 +1742,7 @@ class bfRecordManagement {
             $db->setQuery("Select * From #__facileforms_elements Where published = 1 And `name` <> 'bfFakeName' And `name` <> 'bfFakeName2' And `name` <> 'bfFakeName3' And `name` <> 'bfFakeName4' And `name` <> 'bfFakeName5' And  form = " . intval($form) . " Order By `ordering`");
             $elements = $db->loadAssocList();
 
-            foreach ($elements As $element) {
+            foreach ($elements as $element) {
                 $value = BFRequest::getVar('bfrecord_custom_' . $element['name'], null, 'REQUEST', 'HTML', BFREQUEST_ALLOWHTML);
 
                 if ($value !== null) {
@@ -1761,16 +1751,16 @@ class bfRecordManagement {
                         $group_ids = $db->loadAssocList();
                         $values = explode(', ', $value);
                         $i = 0;
-                        foreach ($group_ids As $group_id) {
+                        foreach ($group_ids as $group_id) {
                             if (isset($values[$i])) {
                                 $db->setQuery("Update #__facileforms_subrecords Set value = " . $db->quote($values[$i]) . " Where id = " . $db->quote($group_id['id']));
-                                $db->query();
+                                $db->execute();
                             }
                             $i++;
                         }
                     } else {
                         $db->setQuery("Update #__facileforms_subrecords Set value = " . $db->quote($value) . " Where name = " . $db->quote($element['name']) . " And record = " . $record_id);
-                        $db->query();
+                        $db->execute();
                     }
                 }
             }
@@ -1789,56 +1779,33 @@ class bfRecordManagement {
         $searchterm = BFRequest::getVar('searchterm', '');
 
         // date search
-
-        jimport('joomla.version');
-        $version = new JVersion();
-        $_version = $version->getShortVersion();
         $tz = 'UTC';
-        if (version_compare($_version, '3.2', '>=')) {
-            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-        }
+        $tz = new DateTimeZone(Factory::getApplication()->get('offset'));
 
-        $now = JFactory::getDate();
-        if (version_compare($_version, '3.2', '>=')) {
-            $now = JFactory::getDate('now', $tz);
-        }
+        $now = Factory::getDate();
+        $now = Factory::getDate('now', $tz);
 
         $now_date = '';
-
-        if (version_compare($this->version, '3.0', '>=')) {
-            $now_date = $now->toSql();
-        } else {
-            $now_date = $now->toMySQL();
-        }
+        $now_date = $now->toSql();
 
         // from date / time
 
         $searchdatefrom = BFRequest::getVar('searchdatefrom', '');
         $searchtimefrom = BFRequest::getVar('searchtimefrom', '');
 
-        if (version_compare($_version, '3.2', '>=')) {
-            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
+        $tz = new DateTimeZone(Factory::getApplication()->get('offset'));
 
-            if ($searchdatefrom != '') {
-                $searchdatefrom = JFactory::getDate($searchdatefrom, $tz);
-                $searchdatefrom = $searchdatefrom->format('Y-m-d', true);
-            }
-
-            if ($searchtimefrom) {
-                $searchtimefrom = JFactory::getDate($searchtimefrom, $tz);
-                $searchtimefrom = $searchtimefrom->format('H:i:s', true);
-            }
-
-            $now_date = $now->format('Y-m-d', true);
-        } else {
-            if ($searchtimefrom != '') {
-                $searchtimefrom = date('H:i:s', strtotime('1970-01-01 ' . $searchtimefrom));
-            }
-
-            if ($searchdatefrom != '') {
-                $searchdatefrom = date('Y-m-d', strtotime($searchdatefrom));
-            }
+        if ($searchdatefrom != '') {
+            $searchdatefrom = Factory::getDate($searchdatefrom, $tz);
+            $searchdatefrom = $searchdatefrom->format('Y-m-d', true);
         }
+
+        if ($searchtimefrom) {
+            $searchtimefrom = Factory::getDate($searchtimefrom, $tz);
+            $searchtimefrom = $searchtimefrom->format('H:i:s', true);
+        }
+
+        $now_date = $now->format('Y-m-d', true);
 
         if ($searchdatefrom == '' && $searchtimefrom != '') {
             $searchdatefrom = $now_date . ' ' . $searchtimefrom;
@@ -1853,28 +1820,19 @@ class bfRecordManagement {
         $searchdateto = BFRequest::getVar('searchdateto', '');
         $searchtimeto = BFRequest::getVar('searchtimeto', '');
 
-        if (version_compare($_version, '3.2', '>=')) {
-            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
+        $tz = new DateTimeZone(Factory::getApplication()->get('offset'));
 
-            if ($searchdateto != '') {
-                $searchdateto = JFactory::getDate($searchdateto, $tz);
-                $searchdateto = $searchdateto->format('Y-m-d', true);
-            }
-
-            if ($searchtimeto != '') {
-                $searchtimeto = JFactory::getDate($searchtimeto, $tz);
-                $searchtimeto = $searchtimeto->format('H:i:s', true);
-            }
-
-            $now_date = $now->format('Y-m-d', true);
-        } else {
-            if ($searchtimeto != '') {
-                $searchtimeto = date('H:i:s', strtotime('1970-01-01 ' . $searchtimeto));
-            }
-            if ($searchdateto != '') {
-                $searchdateto = date('Y-m-d', strtotime($searchdateto));
-            }
+        if ($searchdateto != '') {
+            $searchdateto = Factory::getDate($searchdateto, $tz);
+            $searchdateto = $searchdateto->format('Y-m-d', true);
         }
+
+        if ($searchtimeto != '') {
+            $searchtimeto = Factory::getDate($searchtimeto, $tz);
+            $searchtimeto = $searchtimeto->format('H:i:s', true);
+        }
+
+        $now_date = $now->format('Y-m-d', true);
 
         if ($searchdateto == '' && $searchtimeto != '') {
             $searchdateto = $now_date . ' ' . $searchtimeto;
@@ -1885,7 +1843,7 @@ class bfRecordManagement {
         }
 
         $db->setQuery("SET SESSION group_concat_max_len = 9999999");
-        $db->query();
+        $db->execute();
 
         $db->setQuery("Select * From #__facileforms_elements Where published = 1 And `name` <> 'bfFakeName' And `name` <> 'bfFakeName2' And `name` <> 'bfFakeName3' And `name` <> 'bfFakeName4' And `name` <> 'bfFakeName5' And  form = " . BFRequest::getInt('form_selection', 0) . " Order By `ordering`");
         $elements = $db->loadAssocList();
@@ -1894,7 +1852,7 @@ class bfRecordManagement {
 
         $x = 0;
         $elements_size = count($elements);
-        foreach ($elements As $element) {
+        foreach ($elements as $element) {
 
             if ($element['type'] == 'Checkbox' || $element['type'] == 'Checkbox Group' || $element['type'] == 'Select List') {
                 $selectors .= "Trim( Both ', ' From GROUP_CONCAT( ( Case When subrecords.`name` = '{$element['name']}' Then subrecords.`value` Else '' End ) Order By subrecords.`id` SEPARATOR ', ' ) ) As `bfrecord_custom_{$element['name']}` ";
@@ -1922,7 +1880,8 @@ class bfRecordManagement {
         $the_search_term = '';
         $the_having_term = '';
 
-        if (BFRequest::getBool('searchintext', false) ||
+        if (
+            BFRequest::getBool('searchintext', false) ||
             BFRequest::getBool('searchinuserid', false) ||
             BFRequest::getBool('searchinusername', false) ||
             BFRequest::getBool('searchinuserfullname', false) ||
@@ -1931,12 +1890,12 @@ class bfRecordManagement {
             BFRequest::getBool('searchinviewed', false) ||
             BFRequest::getBool('searchinexported', false) ||
             BFRequest::getBool('searchinarchived', false) ||
-	        BFRequest::getBool('searchinuntouched', false) ||
+            BFRequest::getBool('searchinuntouched', false) ||
             BFRequest::getBool('searchinpayment', false) ||
             BFRequest::getBool('searchinopted', false)
         ) {
 
-            foreach ($elements As $element) {
+            foreach ($elements as $element) {
                 $the_having_term .= $searchterm && BFRequest::getBool('searchintext', false) ? " `bfrecord_custom_{$element['name']}` Like " . $db->quote('%' . $searchterm . '%') . " Or " : '';
             }
 
@@ -1948,7 +1907,7 @@ class bfRecordManagement {
             $the_search_term .= BFRequest::getBool('searchinviewed', false) ? " records.`viewed` = 1 Or " : '';
             $the_search_term .= BFRequest::getBool('searchinexported', false) ? " records.`exported` = 1 Or " : '';
             $the_search_term .= BFRequest::getBool('searchinarchived', false) ? " records.`archived` = 1 Or " : '';
-	        $the_search_term .= BFRequest::getBool('searchinuntouched', false) ? " ( records.`archived` = 0 And records.`archived` = 0 And records.`viewed` = 0 ) Or " : '';
+            $the_search_term .= BFRequest::getBool('searchinuntouched', false) ? " ( records.`archived` = 0 And records.`archived` = 0 And records.`viewed` = 0 ) Or " : '';
             $the_search_term .= BFRequest::getBool('searchinopted', false) ? " records.`opted` = 1 Or " : '';
             if ($searchterm && BFRequest::getBool('searchinpayment', false)) {
                 $the_search_term .= " records.`paypal_tx_id` Like " . $db->quote('%' . $searchterm . '%') . " Or ";
@@ -1969,17 +1928,17 @@ class bfRecordManagement {
         }
 
 
-        if ($searchdatefrom != '' && version_compare($this->version, '3.2', '>=')) {
-            $date_ = JFactory::getDate($searchdatefrom, $this->tz);
+        if ($searchdatefrom != '') {
+            $date_ = Factory::getDate($searchdatefrom, $this->tz);
             $searchdatefrom = $date_->format('Y-m-d H:i:s');
         }
 
-        if ($searchdateto != '' && version_compare($this->version, '3.2', '>=')) {
-            $date_ = JFactory::getDate($searchdateto, $this->tz);
+        if ($searchdateto != '') {
+            $date_ = Factory::getDate($searchdateto, $this->tz);
             $searchdateto = $date_->format('Y-m-d H:i:s');
         }
 
-        //$now__ = JFactory::getDate('now', $this->tz);
+        //$now__ = Factory::getDate('now', $this->tz);
         //echo $now__->format('Y-m-d H:i:s', true);
         //echo $searchdate;
 
@@ -2013,14 +1972,14 @@ class bfRecordManagement {
             . " records.id = subrecords.record "
             . " And "
             . " forms.id = records.form "
-            . ( $searchdatefrom ? " And records.submitted >= " . $db->quote($searchdatefrom) . " " : '' )
-            . ( $searchdateto ? " And records.submitted <= " . $db->quote($searchdateto) . " " : '' )
+            . ($searchdatefrom ? " And records.submitted >= " . $db->quote($searchdatefrom) . " " : '')
+            . ($searchdateto ? " And records.submitted <= " . $db->quote($searchdateto) . " " : '')
             . $the_search_term
-            . ( BFRequest::getInt('record_id', 0) > 0 ? " And records.id = " . BFRequest::getInt('record_id', 0) : "" )
-            . ( BFRequest::getInt('form_selection', 0) > 0 ? ' And records.form = ' . BFRequest::getInt('form_selection', 0) : '' )
+            . (BFRequest::getInt('record_id', 0) > 0 ? " And records.id = " . BFRequest::getInt('record_id', 0) : "")
+            . (BFRequest::getInt('form_selection', 0) > 0 ? ' And records.form = ' . BFRequest::getInt('form_selection', 0) : '')
             . " Group By subrecords.record "
             . $the_having_term
-            . " Order By `" . $order[0] . "` " . ( isset($order[1]) && strtolower($order[1]) == 'asc' ? 'Asc' : 'Desc' )
+            . " Order By `" . $order[0] . "` " . (isset($order[1]) && strtolower($order[1]) == 'asc' ? 'Asc' : 'Desc')
             . " Limit " . BFRequest::getInt('jtStartIndex', 0) . ", " . BFRequest::getInt('jtPageSize', 10)
         );
 
@@ -2036,9 +1995,9 @@ class bfRecordManagement {
             $result['Records'] = $db->loadAssocList();
             $i = 0;
 
-            foreach ($result['Records'] As $rec_key => $record) {
+            foreach ($result['Records'] as $rec_key => $record) {
                 $name = '';
-                foreach ($record As $key => $val) {
+                foreach ($record as $key => $val) {
                     $name = explode('bfrecord_custom_element_id_', $key);
                     if (isset($name[1])) {
                         $name = $name[1];
@@ -2053,7 +2012,7 @@ class bfRecordManagement {
                             $out .= '<div style="white-space: nowrap; overflow: auto; max-height: 300px; width: 100%;">';
                             $files = explode("\n", str_replace("\r", "", $record['bfrecord_custom_' . $name]));
                             $fileIdx = 0;
-                            foreach ($files As $file) {
+                            foreach ($files as $file) {
 
                                 if (strpos(strtolower($file), '{cbsite}') === 0) {
                                     $file = str_replace(array('{cbsite}', '{CBSite}'), array(JPATH_SITE, JPATH_SITE), $file);
@@ -2063,7 +2022,7 @@ class bfRecordManagement {
                                     $file = str_replace(array('{site}', '{site}'), array(JPATH_SITE, JPATH_SITE), $file);
                                 }
 
-                                if (!JFile::exists($file)) {
+                                if (!file_exists($file)) {
                                     $out .= 'file not found on server:<br/>' . basename($file) . '<br/>';
                                 } else {
                                     $out .= $this->renderFile($file, $record['bfrecord_id'], $record['bfrecord_custom_element_id_' . $name], $fileIdx);
@@ -2074,8 +2033,7 @@ class bfRecordManagement {
                             $out .= '</div>';
                             $result['Records'][$i]['bfrecord_custom_file_upload_raw_' . $name] = $result['Records'][$i]['bfrecord_custom_' . $name];
                             $result['Records'][$i]['bfrecord_custom_' . $name] = $out;
-                        }
-                        else
+                        } else
                             if ($record['bfrecord_custom_element_type_' . $name] == 'Signature' && trim($record['bfrecord_custom_' . $name])) {
                                 $out = '';
                                 $out .= '<div style="white-space: nowrap; overflow: auto; max-height: 300px; width: 100%;">';
@@ -2084,7 +2042,7 @@ class bfRecordManagement {
 
                                 $file = JPATH_SITE . '/media/breezingforms/signatures/' . $file;
 
-                                if (!JFile::exists($file)) {
+                                if (!file_exists($file)) {
                                     $out .= 'file not found on server:<br/>' . basename($file) . '<br/>';
                                 } else {
                                     $out .= $this->renderFile($file, $record['bfrecord_id'], $record['bfrecord_custom_element_id_' . $name], $fileIdx);
@@ -2096,17 +2054,15 @@ class bfRecordManagement {
                             }
                     }
                 }
-                if (version_compare($this->version, '3.2', '>=')) {
-                    $date_ = JFactory::getDate($result['Records'][$i]['bfrecord_submitted'], $this->tz);
-                    $offset = $date_->getOffsetFromGMT();
-                    if ($offset > 0) {
-                        $date_->add(new DateInterval('PT' . $offset . 'S'));
-                    } else if ($offset < 0) {
-                        $offset = $offset * -1;
-                        $date_->sub(new DateInterval('PT' . $offset . 'S'));
-                    }
-                    $result['Records'][$i]['bfrecord_submitted'] = $date_->format('Y-m-d H:i:s', true);
+                $date_ = Factory::getDate($result['Records'][$i]['bfrecord_submitted'], $this->tz);
+                $offset = $date_->getOffsetFromGMT();
+                if ($offset > 0) {
+                    $date_->add(new DateInterval('PT' . $offset . 'S'));
+                } else if ($offset < 0) {
+                    $offset = $offset * -1;
+                    $date_->sub(new DateInterval('PT' . $offset . 'S'));
                 }
+                $result['Records'][$i]['bfrecord_submitted'] = $date_->format('Y-m-d H:i:s', true);
                 $i++;
             }
         } catch (Exception $e) {
@@ -2120,7 +2076,7 @@ class bfRecordManagement {
 
         if (BFRequest::getInt('record_id', 0) > 0) {
             $db->setQuery("Update #__facileforms_records Set viewed = 1 Where id = " . BFRequest::getInt('record_id', 0));
-            $db->query();
+            $db->execute();
         }
 
         echo json_encode($result);
@@ -2128,7 +2084,8 @@ class bfRecordManagement {
         exit;
     }
 
-    function deleteRecord() {
+    function deleteRecord()
+    {
 
         @ob_end_clean();
 
@@ -2140,62 +2097,61 @@ class bfRecordManagement {
         jimport('joomla.filesystem.folder');
         jimport('joomla.database.table');
 
-        if (JFile::exists(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php')) {
+        if (file_exists(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php')) {
             $isContentBuilder = true;
         }
 
         $is15 = true;
-        if (version_compare($this->version, '1.6', '>=')) {
-            $is15 = false;
-        }
+        $is15 = false;
 
         if ($isContentBuilder) {
             $db->setQuery("Select `form`.id As form_id, `form`.reference_id, `form`.delete_articles From #__facileforms_records As r, #__contentbuilder_forms As form Where form.reference_id = r.form And r.id =  " . $db->Quote(BFRequest::getInt('bfrecord_id')));
             $cbRecords = $db->loadAssocList();
-            foreach ($cbRecords As $cbRecord) {
+            foreach ($cbRecords as $cbRecord) {
                 $db->setQuery("Delete From #__contentbuilder_list_records Where form_id = " . intval($cbRecord['form_id']) . " And record_id = " . $db->Quote(BFRequest::getInt('bfrecord_id')));
-                $db->query();
+                $db->execute();
                 $db->setQuery("Delete From #__contentbuilder_records Where `type` = 'com_breezingforms' And `reference_id` = " . $db->Quote($cbRecord['reference_id']) . " And record_id = " . $db->Quote(BFRequest::getInt('bfrecord_id')));
-                $db->query();
+                $db->execute();
                 if ($cbRecord['delete_articles']) {
                     $db->setQuery("Select article_id From #__contentbuilder_articles Where form_id = " . intval($cbRecord['form_id']) . " And record_id = " . $db->Quote(BFRequest::getInt('bfrecord_id')));
-	                $articles = $db->loadColumn();
+                    $articles = $db->loadColumn();
                     if (count($articles)) {
                         $article_items = array();
-                        foreach ($articles As $article) {
+                        foreach ($articles as $article) {
                             $article_items[] = $db->Quote('com_content.article.' . $article);
 
-                            $table = JTable::getInstance('content');
+                            $table = Table::getInstance('content');
 
                             // Trigger the onContentBeforeDelete event.
                             if ($table->load($article)) {
-                                Factory::getApplication()->triggerEvent('onContentBeforeDelete', array('com_content.article', $table));
+                                $dispatcher = Factory::getApplication()->getDispatcher();
+                                $dispatcher->dispatch('onContentBeforeDelete', new Joomla\Event\Event('onContentBeforeDelete', array('com_content.article', $table)));
                             }
 
                             $db->setQuery("Delete From #__content Where id = " . intval($article));
-                            $db->query();
+                            $db->execute();
                             // Trigger the onContentAfterDelete event.
                             $table->reset();
 
-                            Factory::getApplication()->triggerEvent('onContentAfterDelete', array('com_content.article', $table));
-
+                            $dispatcher = Factory::getApplication()->getDispatcher();
+                            $dispatcher->dispatch('onContentAfterDelete', new Joomla\Event\Event('onContentAfterDelete', array('com_content.article', $table)));
                         }
                         $db->setQuery("Delete From #__assets Where `name` In (" . implode(',', $article_items) . ")");
-                        $db->query();
+                        $db->execute();
                     }
                 }
 
                 $db->setQuery("Delete From #__contentbuilder_articles Where form_id = " . intval($cbRecord['form_id']) . " And record_id = " . $db->Quote(BFRequest::getInt('bfrecord_id')));
-                $db->query();
+                $db->execute();
             }
         }
         // CONTENTBUILDER END
 
         $db->setQuery("Delete From #__facileforms_records Where id = " . BFRequest::getInt('bfrecord_id'));
-        $db->query();
+        $db->execute();
 
         $db->setQuery("Delete From #__facileforms_subrecords Where record = " . BFRequest::getInt('bfrecord_id'));
-        $db->query();
+        $db->execute();
 
         $result = array();
         $result['Result'] = 'OK';
@@ -2205,7 +2161,8 @@ class bfRecordManagement {
         exit;
     }
 
-    function renderFile($file, $record_id, $element_id, $file_index) {
+    function renderFile($file, $record_id, $element_id, $file_index)
+    {
         if (BFRequest::getVar('renderFile', '') != '' && md5(basename($file) . $record_id . $element_id . $file_index) == BFRequest::getVar('renderFile', '')) {
             @ob_end_clean();
             $this->resizeFile($file, 300, 300, '#ffffff', 'simple');
@@ -2218,13 +2175,14 @@ class bfRecordManagement {
         }
         $image = @getimagesize($file);
         if ($image !== false) {
-            return '<a href="' . JURI::getInstance()->toString() . '&downloadFile=' . md5(basename($file) . $record_id . $element_id . $file_index) . '"><img src="' . JURI::getInstance()->toString() . '&renderFile=' . md5(basename($file) . $record_id . $element_id . $file_index) . '" border=\"0\"/></a><br/>';
+            return '<a href="' . Uri::getInstance()->toString() . '&downloadFile=' . md5(basename($file) . $record_id . $element_id . $file_index) . '"><img src="' . Uri::getInstance()->toString() . '&renderFile=' . md5(basename($file) . $record_id . $element_id . $file_index) . '" border=\"0\"/></a><br/>';
         } else {
-            return '<a href="' . JURI::getInstance()->toString() . '&downloadFile=' . md5(basename($file) . $record_id . $element_id . $file_index) . '">' . basename($file) . '</a><br />';
+            return '<a href="' . Uri::getInstance()->toString() . '&downloadFile=' . md5(basename($file) . $record_id . $element_id . $file_index) . '">' . basename($file) . '</a><br />';
         }
     }
 
-    public function downloadFile($filename) {
+    public function downloadFile($filename)
+    {
         header('Content-Type: application/octet-stream');
         header('Content-Disposition: inline; filename="' . basename($filename) . '"');
         header('Content-Length: ' . @filesize($filename));
@@ -2241,10 +2199,11 @@ class bfRecordManagement {
         return @fclose($handle);
     }
 
-    public function exifImageType($filename) {
+    public function exifImageType($filename)
+    {
         // some hosting providers think it is a good idea not to compile in exif with php...
         if (!function_exists('exif_imagetype')) {
-            if (( list($width, $height, $type, $attr) = getimagesize($filename) ) !== false) {
+            if ((list($width, $height, $type, $attr) = getimagesize($filename)) !== false) {
                 return $type;
             }
             return false;
@@ -2253,7 +2212,8 @@ class bfRecordManagement {
         }
     }
 
-    public function resizeFile($path, $width, $height, $bgcolor = '#ffffff', $type = '') {
+    public function resizeFile($path, $width, $height, $bgcolor = '#ffffff', $type = '')
+    {
 
         $image = @getimagesize($path);
 
@@ -2286,7 +2246,8 @@ class bfRecordManagement {
             $K64 = 65536;
             $TWEAKFACTOR = 1.5;
             $channels = isset($image['channels']) ? $image['channels'] : 0;
-            $memoryNeeded = round(( $image[0] * $image[1] * $image['bits'] * ($channels / 8) + $K64
+            $memoryNeeded = round(
+                ($image[0] * $image[1] * $image['bits'] * ($channels / 8) + $K64
                 ) * $TWEAKFACTOR
             );
 
@@ -2295,17 +2256,19 @@ class bfRecordManagement {
                 $ini = $this->returnBytes(ini_get('memory_limit'));
             }
             $memoryLimit = $ini;
-            if (function_exists('memory_get_usage') &&
-                memory_get_usage() + $memoryNeeded > $memoryLimit) {
+            if (
+                function_exists('memory_get_usage') &&
+                memory_get_usage() + $memoryNeeded > $memoryLimit
+            ) {
                 $memory = false;
             }
             if ($memory) {
                 switch ($exif_type) {
-                    case IMAGETYPE_JPEG2000 :
-                    case IMAGETYPE_JPEG :
+                    case IMAGETYPE_JPEG2000:
+                    case IMAGETYPE_JPEG:
                         $resource = @imagecreatefromjpeg($path);
                         if ($resource) {
-                            $resized = @$this->resize_image($resource, $width, $height, $type == 'crop' ? 1 : ( $type == 'simple' ? 3 : 2), $col_);
+                            $resized = @$this->resize_image($resource, $width, $height, $type == 'crop' ? 1 : ($type == 'simple' ? 3 : 2), $col_);
                             if ($resized) {
                                 ob_start();
                                 @imagejpeg($resized);
@@ -2323,10 +2286,10 @@ class bfRecordManagement {
                             @imagedestroy($resource);
                         }
                         break;
-                    case IMAGETYPE_GIF :
+                    case IMAGETYPE_GIF:
                         $resource = @imagecreatefromgif($path);
                         if ($resource) {
-                            $resized = @$this->resize_image($resource, $width, $height, $type == 'crop' ? 1 : ( $type == 'simple' ? 3 : 2), $col_);
+                            $resized = @$this->resize_image($resource, $width, $height, $type == 'crop' ? 1 : ($type == 'simple' ? 3 : 2), $col_);
                             if ($resized) {
                                 ob_start();
                                 @imagegif($resized);
@@ -2340,10 +2303,10 @@ class bfRecordManagement {
                             @imagedestroy($resource);
                         }
                         break;
-                    case IMAGETYPE_PNG :
+                    case IMAGETYPE_PNG:
                         $resource = @imagecreatefrompng($path);
                         if ($resource) {
-                            $resized = @$this->resize_image($resource, $width, $height, $type == 'crop' ? 1 : ( $type == 'simple' ? 3 : 2), $col_);
+                            $resized = @$this->resize_image($resource, $width, $height, $type == 'crop' ? 1 : ($type == 'simple' ? 3 : 2), $col_);
                             if ($resized) {
                                 ob_start();
                                 @imagepng($resized);
@@ -2362,7 +2325,8 @@ class bfRecordManagement {
         }
     }
 
-    public function resize_image($source_image, $destination_width, $destination_height, $type = 0, $bgcolor = array(0, 0, 0)) {
+    public function resize_image($source_image, $destination_width, $destination_height, $type = 0, $bgcolor = array(0, 0, 0))
+    {
         // $type (1=crop to fit, 2=letterbox)
         $source_width = imagesx($source_image);
         $source_height = imagesy($source_image);
@@ -2443,10 +2407,11 @@ class bfRecordManagement {
         return $destination_image;
     }
 
-    public function returnBytes($val) {
+    public function returnBytes($val)
+    {
         $val = trim($val);
         $last = strtolower($val[strlen($val) - 1]);
-        $val = str_replace($val[strlen($val) - 1],'',$val);
+        $val = str_replace($val[strlen($val) - 1], '', $val);
         switch ($last) {
             // The 'G' modifier is available since PHP 5.1.0
             case 'g':
@@ -2465,7 +2430,8 @@ class bfRecordManagement {
         return $val;
     }
 
-    function exportPdf() {
+    function exportPdf()
+    {
         global $ff_compath;
 
         $db = BFFactory::getdbo();
@@ -2474,7 +2440,7 @@ class bfRecordManagement {
         ArrayHelper::toInteger($ids);
 
         $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_custom_pdf.php';
-        if (!JFile::exists($file)) {
+        if (!file_exists($file)) {
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_pdf.php';
         }
 
@@ -2501,30 +2467,28 @@ class bfRecordManagement {
             $form_name = $recs[0]->name;
         }
 
-        if($form_name != ''){
+        if ($form_name != '') {
 
-            $file2 = JPATH_SITE . '/media/breezingforms/pdftpl/'.$form_name.'_export_pdf.php';
-            if (JFile::exists($file2)) {
-                $file = JPATH_SITE . '/media/breezingforms/pdftpl/'.$form_name.'_export_pdf.php';
+            $file2 = JPATH_SITE . '/media/breezingforms/pdftpl/' . $form_name . '_export_pdf.php';
+            if (file_exists($file2)) {
+                $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $form_name . '_export_pdf.php';
             }
         }
 
         $updIds = array();
 
         $i = 0;
-        foreach ($recs As $rec) {
+        foreach ($recs as $rec) {
             $updIds[] = $rec->id;
-            if (version_compare($this->version, '3.2', '>=')) {
-                $date_ = JFactory::getDate($rec->submitted, $this->tz);
-                $offset = $date_->getOffsetFromGMT();
-                if ($offset > 0) {
-                    $date_->add(new DateInterval('PT' . $offset . 'S'));
-                } else if ($offset < 0) {
-                    $offset = $offset * -1;
-                    $date_->sub(new DateInterval('PT' . $offset . 'S'));
-                }
-                $recs[$i]->submitted = $date_->format('Y-m-d H:i:s', true);
+            $date_ = Factory::getDate($rec->submitted, $this->tz);
+            $offset = $date_->getOffsetFromGMT();
+            if ($offset > 0) {
+                $date_->add(new DateInterval('PT' . $offset . 'S'));
+            } else if ($offset < 0) {
+                $offset = $offset * -1;
+                $date_->sub(new DateInterval('PT' . $offset . 'S'));
             }
+            $recs[$i]->submitted = $date_->format('Y-m-d H:i:s', true);
             $i++;
         }
 
@@ -2533,34 +2497,27 @@ class bfRecordManagement {
             $db->setQuery(
                 "update #__facileforms_records set exported=1 where id in ($updIds)"
             );
-            $db->query();
+            $db->execute();
         }
 
-        if(!class_exists('BFPDF')){
+        if (!class_exists('BFPDF')) {
 
             require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFPDF.php');
         }
 
-        jimport('joomla.version');
-        $version = new JVersion();
-        $_version = $version->getShortVersion();
         $tz = 'UTC';
-        if (version_compare($_version, '3.2', '>=')) {
-            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-        }
+        $tz = new DateTimeZone(Factory::getApplication()->get('offset'));
 
         $date_stamp = date('YmdHis');
-        if (version_compare($_version, '3.2', '>=')) {
-            $date_ = JFactory::getDate('now', $tz);
-            $offset = $date_->getOffsetFromGMT();
-            if ($offset > 0) {
-                $date_->add(new DateInterval('PT' . $offset . 'S'));
-            } else if ($offset < 0) {
-                $offset = $offset * -1;
-                $date_->sub(new DateInterval('PT' . $offset . 'S'));
-            }
-            $date_stamp = $date_->format('YmdHis', true);
+        $date_ = Factory::getDate('now', $tz);
+        $offset = $date_->getOffsetFromGMT();
+        if ($offset > 0) {
+            $date_->add(new DateInterval('PT' . $offset . 'S'));
+        } else if ($offset < 0) {
+            $offset = $offset * -1;
+            $date_->sub(new DateInterval('PT' . $offset . 'S'));
         }
+        $date_stamp = $date_->format('YmdHis', true);
 
         $pdf = new BFPDF();
         $pdf->setFormName($form_name);
@@ -2576,7 +2533,7 @@ class bfRecordManagement {
         $font_loaded = false;
         $ttf_name = '';
 
-        if (JFolder::exists(JPATH_SITE . '/media/breezingforms/pdftpl/fonts/')) {
+        if (is_dir(JPATH_SITE . '/media/breezingforms/pdftpl/fonts/')) {
 
             $sourcePath = JPATH_SITE . '/media/breezingforms/pdftpl/fonts/';
             if (@file_exists($sourcePath) && @is_readable($sourcePath) && @is_dir($sourcePath) && $handle = @opendir($sourcePath)) {
@@ -2602,10 +2559,10 @@ class bfRecordManagement {
                         if (count($active) > 1) {
                             unset($active[count($active) - 1]);
                             $font_name = '';
-                            if( $ttf_name != '' ){
+                            if ($ttf_name != '') {
                                 $font_name = $ttf_name;
-                            }else{
-                                $font_name = implode('_',$active);
+                            } else {
+                                $font_name = implode('_', $active);
                             }
                             $pdf->SetFont($font_name);
                             if ($font_loaded) {
@@ -2623,37 +2580,39 @@ class bfRecordManagement {
             $pdf->SetFont('verdana');
         }
 
-        if($pdf->getFooterTemplate() == '') {
+        if ($pdf->getFooterTemplate() == '') {
 
             $pdf->setPrintFooter(false);
 
-        }else{
+        } else {
 
             $pdf->setPrintFooter(true);
         }
 
-        if($pdf->getHeaderTemplate() == '') {
+        if ($pdf->getHeaderTemplate() == '') {
 
             $pdf->setPrintHeader(false);
 
-        }else{
+        } else {
 
             $pdf->setPrintHeader(true);
         }
 
         $pdf->AddPage();
         $pdf->writeHTML($c);
-        $pdfname = ( $form_name != '' ? $form_name . '-' : '' ).'ffexport-pdf-' . $date_stamp . '.pdf';
+        $pdfname = ($form_name != '' ? $form_name . '-' : '') . 'ffexport-pdf-' . $date_stamp . '.pdf';
         $pdf->lastPage();
         $pdf->Output($pdfname, "D");
         exit;
     }
 
-    function endsWith($haystack, $needle) {
+    function endsWith($haystack, $needle)
+    {
         return $needle === "" || substr($haystack, -strlen($needle)) === $needle;
     }
 
-    function getSubrecords($recordId) {
+    function getSubrecords($recordId)
+    {
         $db = BFFactory::getdbo();
         $db->setQuery(
             "select Distinct subs.* from #__facileforms_subrecords As subs, #__facileforms_elements as els where els.id=subs.element And subs.record = " . intval($recordId) . " order by els.ordering"
@@ -2661,7 +2620,8 @@ class bfRecordManagement {
         return $db->loadObjectList();
     }
 
-    function exportCsv() {
+    function exportCsv()
+    {
         // echo '<pre>';
         global $ff_config;
 
@@ -2696,7 +2656,7 @@ class bfRecordManagement {
             }
 
             $forms = array();
-            foreach ($recs As $rec) {
+            foreach ($recs as $rec) {
                 $forms[] = $rec->form;
             }
 
@@ -2711,7 +2671,7 @@ class bfRecordManagement {
             );
             $recs = $db->loadObjectList();
 
-            if(count($recs)){
+            if (count($recs)) {
                 $form_name = $recs[0]->name;
             }
 
@@ -2748,7 +2708,7 @@ class bfRecordManagement {
 
         $head_keys = array();
 
-        foreach ($element_fields As $element_field) {
+        foreach ($element_fields as $element_field) {
             if (!isset($fields[strip_tags($element_field->name)])) {
                 $field_key = md5(strip_tags($element_field->name));
                 $fields[$field_key] = true;
@@ -2761,19 +2721,15 @@ class bfRecordManagement {
 
             $rec = $recs[$r];
 
-
-
-            if (version_compare($this->version, '3.2', '>=')) {
-                $date_ = JFactory::getDate($rec->submitted, $this->tz);
-                $offset = $date_->getOffsetFromGMT();
-                if ($offset > 0) {
-                    $date_->add(new DateInterval('PT' . $offset . 'S'));
-                } else if ($offset < 0) {
-                    $offset = $offset * -1;
-                    $date_->sub(new DateInterval('PT' . $offset . 'S'));
-                }
-                $rec->submitted = $date_->format('Y-m-d H:i:s', true);
+            $date_ = Factory::getDate($rec->submitted, $this->tz);
+            $offset = $date_->getOffsetFromGMT();
+            if ($offset > 0) {
+                $date_->add(new DateInterval('PT' . $offset . 'S'));
+            } else if ($offset < 0) {
+                $offset = $offset * -1;
+                $date_->sub(new DateInterval('PT' . $offset . 'S'));
             }
+            $rec->submitted = $date_->format('Y-m-d H:i:s', true);
 
             $updIds[] = $rec->id;
 
@@ -2794,7 +2750,7 @@ class bfRecordManagement {
             $lines[$lineNum]['DOWNLOAD_TRIES'][] = $rec->paypal_download_tries;
             $lines[$lineNum]['DOUBLE_OPT_IN'][] = $rec->opted;
 
-            foreach ($fields As $fieldName => $null) {
+            foreach ($fields as $fieldName => $null) {
                 switch ($fieldName) {
                     case 'ID':
                     case 'SUBMITTED':
@@ -2828,8 +2784,8 @@ class bfRecordManagement {
             for ($s = 0; $s < $subsSize; $s++) {
                 $sub = $subs[$s];
                 if ($sub->name != 'bfFakeName' && $sub->name != 'bfFakeName2' && $sub->name != 'bfFakeName3' && $sub->name != 'bfFakeName4') {
-                    if (!isset($fields[ md5( strip_tags( $sub->name ) ) ])) {
-                        $fields[ md5( strip_tags( $sub->name ) ) ] = true;
+                    if (!isset($fields[md5(strip_tags($sub->name))])) {
+                        $fields[md5(strip_tags($sub->name))] = true;
                     }
                     if ($sub->type == 'File Upload' && strpos(strtolower($sub->value), '{cbsite}') === 0) {
                         $out = '';
@@ -2837,7 +2793,7 @@ class bfRecordManagement {
                         $_values = explode("\n", str_replace("\r", '', $sub->value));
                         $length = count($_values);
                         $i = 0;
-                        foreach ($_values As $_value) {
+                        foreach ($_values as $_value) {
                             if ($i + 1 < $length) {
                                 $nl = "\n";
                             } else {
@@ -2848,7 +2804,7 @@ class bfRecordManagement {
                         }
                         $sub->value = $out;
                     }
-                    $lines[$lineNum][md5( strip_tags( $sub->name ) )][] = $sub->value;
+                    $lines[$lineNum][md5(strip_tags($sub->name))][] = $sub->value;
                 }
             }
         }
@@ -2857,7 +2813,7 @@ class bfRecordManagement {
         //ksort($fields);
 
         $lineLength = count($lines);
-        foreach ($fields As $fieldName => $null) {
+        foreach ($fields as $fieldName => $null) {
             if ($inverted == false) {
 
                 $head .= $csvquote . (isset($head_keys[$fieldName]) ? $head_keys[$fieldName] : $fieldName) . $csvquote . $csvdelimiter;
@@ -2874,7 +2830,7 @@ class bfRecordManagement {
 
         $out = '';
         for ($i = 0; $i < $lineLength; $i++) {
-            foreach ($lines[$i] As $fieldName => $line) {
+            foreach ($lines[$i] as $fieldName => $line) {
 
                 if ($inverted == true) {
                     $out .= $csvquote . str_replace($csvquote, $csvquote . $csvquote, str_replace("\n", $cellnewline, str_replace("\r", "", $fieldName))) . $csvquote . $csvdelimiter;
@@ -2895,31 +2851,24 @@ class bfRecordManagement {
             }
         }
 
-        jimport('joomla.version');
-        $version = new JVersion();
-        $_version = $version->getShortVersion();
         $tz = 'UTC';
-        if (version_compare($_version, '3.2', '>=')) {
-            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-        }
+        $tz = new DateTimeZone(Factory::getApplication()->get('offset'));
 
         $date_stamp = date('YmdHis');
-        if (version_compare($_version, '3.2', '>=')) {
-            $date_ = JFactory::getDate('now', $tz);
-            $offset = $date_->getOffsetFromGMT();
-            if ($offset > 0) {
-                $date_->add(new DateInterval('PT' . $offset . 'S'));
-            } else if ($offset < 0) {
-                $offset = $offset * -1;
-                $date_->sub(new DateInterval('PT' . $offset . 'S'));
-            }
-            $date_stamp = $date_->format('YmdHis', true);
+        $date_ = Factory::getDate('now', $tz);
+        $offset = $date_->getOffsetFromGMT();
+        if ($offset > 0) {
+            $date_->add(new DateInterval('PT' . $offset . 'S'));
+        } else if ($offset < 0) {
+            $offset = $offset * -1;
+            $date_->sub(new DateInterval('PT' . $offset . 'S'));
         }
+        $date_stamp = $date_->format('YmdHis', true);
 
-        $csvname = JPATH_SITE . '/components/com_breezingforms/exports/'.( $form_name != '' ? $form_name . '-' : '' ).'ffexport-' . $date_stamp . '.csv';
-        JFile::makeSafe($csvname);
+        $csvname = JPATH_SITE . '/components/com_breezingforms/exports/' . ($form_name != '' ? $form_name . '-' : '') . 'ffexport-' . $date_stamp . '.csv';
+        File::makeSafe($csvname);
 
-        //if (!JFile::write($csvname,$headout = $head.$out)) {
+        //if (!File::write($csvname,$headout = $head.$out)) {
         //	echo "<script> alert('".addslashes(BFText::_('COM_BREEZINGFORMS_RECORDS_XMLNORWRTBL'))."'); window.history.go(-1);</script>\n";
         //	exit();
         //} // if
@@ -2931,7 +2880,7 @@ class bfRecordManagement {
                 "update #__facileforms_records set exported=1 where id in ($updIds)"
             );
 
-            $db->query();
+            $db->execute();
         }
         /*
           $data = BFFile::read($csvname);
@@ -2940,7 +2889,7 @@ class bfRecordManagement {
           $zip = JArchive::getAdapter('zip');
           $path = JPATH_SITE.'/components/com_breezingforms/exports/ffexport-csv-'.date('YmdHis').'.zip';
           $zip->create($path, $files);
-          JFile::delete($csvname);
+          File::delete($csvname);
          */
         @ob_end_clean();
 
@@ -2973,34 +2922,28 @@ class bfRecordManagement {
         exit;
     }
 
-    function exportXml() {
+    function exportXml()
+    {
         global $database, $ff_admsite, $ff_compath, $ff_version, $mosConfig_fileperms;
 
         $ids = BFRequest::getVar('cid', array());
         ArrayHelper::toInteger($ids);
 
-        jimport('joomla.version');
-        $version = new JVersion();
-        $_version = $version->getShortVersion();
         $tz = 'UTC';
-        if (version_compare($_version, '3.2', '>=')) {
-            $tz = new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
-        }
+        $tz = new DateTimeZone(Factory::getApplication()->get('offset'));
 
         $date_stamp = date('YmdHis');
         $date_file = date('Y-m-d H:i:s');
-        if (version_compare($_version, '3.2', '>=')) {
-            $date_ = JFactory::getDate('now', $tz);
-            $offset = $date_->getOffsetFromGMT();
-            if ($offset > 0) {
-                $date_->add(new DateInterval('PT' . $offset . 'S'));
-            } else if ($offset < 0) {
-                $offset = $offset * -1;
-                $date_->sub(new DateInterval('PT' . $offset . 'S'));
-            }
-            $date_stamp = $date_->format('YmdHis', true);
-            $date_file = $date_->format('Y-m-d H:i:s', true);
+        $date_ = Factory::getDate('now', $tz);
+        $offset = $date_->getOffsetFromGMT();
+        if ($offset > 0) {
+            $date_->add(new DateInterval('PT' . $offset . 'S'));
+        } else if ($offset < 0) {
+            $offset = $offset * -1;
+            $date_->sub(new DateInterval('PT' . $offset . 'S'));
         }
+        $date_stamp = $date_->format('YmdHis', true);
+        $date_file = $date_->format('Y-m-d H:i:s', true);
 
         $form_name = '';
 
@@ -3021,19 +2964,18 @@ class bfRecordManagement {
             );
         }
 
-        $recs = $database->loadObjectList();
+        try {
+            $recs = $database->loadObjectList();
+		} catch (\Exception $e) {
+			echo $e->getMessage();
+			return false;
+		} // try
 
         if (BFRequest::getInt('form_selection', 0) && count($recs)) {
-
             $form_name = $recs[0]->name;
         }
 
-        $xmlname = $ff_compath . '/exports/'.( $form_name != '' ? $form_name . '-' : '' ).'ffexport-' . $date_stamp . '.xml';
-
-        if ($database->getErrorNum()) {
-            echo $database->stderr();
-            return false;
-        } // if
+        $xmlname = $ff_compath . '/exports/' . ($form_name != '' ? $form_name . '-' : '') . 'ffexport-' . $date_stamp . '.xml';
 
         $xml = '<?xml version="1.0" encoding="utf-8" ?>' . nl() .
             '<FacileFormsExport type="records" version="' . $ff_version . '">' . nl() .
@@ -3043,17 +2985,15 @@ class bfRecordManagement {
         for ($r = 0; $r < count($recs); $r++) {
             $rec = $recs[$r];
 
-            if (version_compare($this->version, '3.2', '>=')) {
-                $date_ = JFactory::getDate($rec->submitted, $this->tz);
-                $offset = $date_->getOffsetFromGMT();
-                if ($offset > 0) {
-                    $date_->add(new DateInterval('PT' . $offset . 'S'));
-                } else if ($offset < 0) {
-                    $offset = $offset * -1;
-                    $date_->sub(new DateInterval('PT' . $offset . 'S'));
-                }
-                $rec->submitted = $date_->format('Y-m-d H:i:s', true);
+            $date_ = Factory::getDate($rec->submitted, $this->tz);
+            $offset = $date_->getOffsetFromGMT();
+            if ($offset > 0) {
+                $date_->add(new DateInterval('PT' . $offset . 'S'));
+            } else if ($offset < 0) {
+                $offset = $offset * -1;
+                $date_->sub(new DateInterval('PT' . $offset . 'S'));
             }
+            $rec->submitted = $date_->format('Y-m-d H:i:s', true);
 
             $updIds[] = $rec->id;
             $xml .= indent(1) . '<record id="' . $rec->id . '">' . nl() .
@@ -3088,7 +3028,7 @@ class bfRecordManagement {
                     $_values = explode("\n", str_replace("\r", '', $sub->value));
                     $length = count($_values);
                     $i = 0;
-                    foreach ($_values As $_value) {
+                    foreach ($_values as $_value) {
                         if ($i + 1 < $length) {
                             $nl = "\n";
                         } else {
@@ -3111,8 +3051,8 @@ class bfRecordManagement {
         } // for
         $xml .= '</FacileFormsExport>' . nl();
 
-        //$xmlname = JFile::makeSafe($xmlname);
-        //if (!JFile::write($xmlname,$xml)) {
+        //$xmlname = File::makeSafe($xmlname);
+        //if (!File::write($xmlname,$xml)) {
         //	echo "<script> alert('".addslashes(BFText::_('COM_BREEZINGFORMS_RECORDS_XMLNORWRTBL'))."'); window.history.go(-1);</script>\n";
         //	exit();
         //} // if
@@ -3122,7 +3062,7 @@ class bfRecordManagement {
             $database->setQuery(
                 "update #__facileforms_records set exported=1 where id in ($updIds)"
             );
-            $database->query();
+            $database->execute();
         }
 
         @ob_end_clean();
@@ -3140,13 +3080,15 @@ class bfRecordManagement {
         exit;
     }
 
-    function removeDangerousHtml($value){
+    function removeDangerousHtml($value)
+    {
 
-        if(trim($value) == '') return '';
+        if (trim($value) == '')
+            return '';
 
         $doc = new DOMDocument();
-        $ret = @$doc->loadHTML('<div>'.$value.'</div>');
-        if($ret) {
+        $ret = @$doc->loadHTML('<div>' . $value . '</div>');
+        if ($ret) {
             $script_tags = $doc->getElementsByTagName('script');
             $length = $script_tags->length;
             for ($ii = 0; $ii < $length; $ii++) {
@@ -3204,5 +3146,5 @@ class bfRecordManagement {
         return strip_tags($value);
     }
 
-// expxml
+    // expxml
 }

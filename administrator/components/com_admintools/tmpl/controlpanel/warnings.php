@@ -23,7 +23,7 @@ if (version_compare(JVERSION, '4.999.999', 'lt'))
 }
 
 ?>
-<?php if(isset($this->jwarnings) && !empty($this->jwarnings)): ?>
+<?php if(($this->debugAllPanels ?? false) || isset($this->jwarnings) && !empty($this->jwarnings)): ?>
 	<details class="alert alert-danger">
 		<summary class="alert-heading fs-4 h4 m-0 p-0">
 			<span class="icon-exclamation-triangle" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('ERROR'); ?></span>
@@ -33,7 +33,7 @@ if (version_compare(JVERSION, '4.999.999', 'lt'))
 	</details>
 <?php endif; ?>
 
-<?php if(isset($this->frontEndSecretWordIssue) && !empty($this->frontEndSecretWordIssue)): ?>
+<?php if(($this->debugAllPanels ?? false) || isset($this->frontEndSecretWordIssue) && !empty($this->frontEndSecretWordIssue)): ?>
 	<details class="alert alert-danger">
 		<summary class="alert-heading fs-4 h4 m-0 p-0">
 			<span class="icon-exclamation-triangle" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('ERROR'); ?></span>
@@ -59,7 +59,7 @@ if (version_compare(JVERSION, '4.999.999', 'lt'))
 	</details>
 <?php endif; ?>
 
-<?php if ($emptyRoot): ?>
+<?php if (($this->debugAllPanels ?? false) || $emptyRoot): ?>
 	<details class="alert alert-danger">
 		<summary class="alert-heading fs-4 h4 m-0 p-0">
 			<span class='icon-exclamation-triangle' aria-hidden='true'></span><span
@@ -73,7 +73,7 @@ if (version_compare(JVERSION, '4.999.999', 'lt'))
 	</details>
 <?php endif; ?>
 
-<?php if($this->needsdlid):
+<?php if(($this->debugAllPanels ?? false) || $this->needsdlid):
 	$updateSiteEditUrl = Route::_('index.php?option=com_installer&task=updatesite.edit&update_site_id=' . $this->updateSiteId)
 	?>
 	<details class="alert alert-info alert-dismissible">
@@ -87,13 +87,13 @@ if (version_compare(JVERSION, '4.999.999', 'lt'))
 		<p>
 			<?= Text::sprintf('COM_ADMINTOOLS_CONTROLPANEL_MSG_WHERETOENTERDLID', $updateSiteEditUrl) ?>
 		</p>
-		<p class="text-muted">
+		<p class="text-muted <?= version_compare(JVERSION, '5.0.999', 'gt') ? 'j51' : '' ?>">
 			<?= Text::_('COM_ADMINTOOLS_CONTROLPANEL_MSG_JOOMLABUGGYUPDATES') ?>
 		</p>
 	</details>
 <?php endif; ?>
 
-<?php if($this->serverConfigEdited): ?>
+<?php if(($this->debugAllPanels ?? false) || $this->serverConfigEdited): ?>
 	<details class="alert alert-warning">
 		<summary class="alert-heading fs-4 h4 m-0 p-0">
 			<?=Text::_('COM_ADMINTOOLS_CONTROLPANEL_LBL_SERVERCONFIGWARN_HEAD'); ?>

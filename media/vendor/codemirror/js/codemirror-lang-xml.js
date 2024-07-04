@@ -1,11 +1,13 @@
 import { parser } from '@lezer/xml';
 import { LRLanguage, indentNodeProp, foldNodeProp, bracketMatchingHandle, LanguageSupport, syntaxTree } from '@codemirror/language';
+import { EditorSelection } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
 
 function tagName(doc, tag) {
     let name = tag && tag.getChild("TagName");
     return name ? doc.sliceString(name.from, name.to) : "";
 }
-function elementName(doc, tree) {
+function elementName$1(doc, tree) {
     let tag = tree && tree.firstChild;
     return !tag || tag.name != "OpenTag" ? "" : tagName(doc, tag);
 }
@@ -134,7 +136,7 @@ function completeFromSchema(eltSpecs, attrSpecs) {
         let { type, from, context } = loc;
         if (type == "openTag") {
             let children = topElements;
-            let parentName = elementName(doc, context);
+            let parentName = elementName$1(doc, context);
             if (parentName) {
                 let parent = byName[parentName];
                 children = (parent === null || parent === void 0 ? void 0 : parent.children) || allElements;
@@ -146,7 +148,7 @@ function completeFromSchema(eltSpecs, attrSpecs) {
             };
         }
         else if (type == "closeTag") {
-            let parentName = elementName(doc, context);
+            let parentName = elementName$1(doc, context);
             return parentName ? {
                 from,
                 to: cx.pos + (doc.sliceString(cx.pos, cx.pos + 1) == ">" ? 1 : 0),
@@ -178,7 +180,7 @@ function completeFromSchema(eltSpecs, attrSpecs) {
             };
         }
         else if (type == "tag") {
-            let parentName = elementName(doc, context), parent = byName[parentName];
+            let parentName = elementName$1(doc, context), parent = byName[parentName];
             let closing = [], last = context && context.lastChild;
             if (parentName && (!last || last.name != "CloseTag" || tagName(doc, last) != parentName))
                 closing.push(parent ? parent.closeCompletion : { label: "</" + parentName + ">", type: "type", boost: 2 });
@@ -241,9 +243,67 @@ XML language support. Includes schema-based autocompletion when
 configured.
 */
 function xml(conf = {}) {
-    return new LanguageSupport(xmlLanguage, xmlLanguage.data.of({
-        autocomplete: completeFromSchema(conf.elements || [], conf.attributes || [])
-    }));
+    let support = [xmlLanguage.data.of({
+            autocomplete: completeFromSchema(conf.elements || [], conf.attributes || [])
+        })];
+    if (conf.autoCloseTags !== false)
+        support.push(autoCloseTags);
+    return new LanguageSupport(xmlLanguage, support);
 }
+function elementName(doc, tree, max = doc.length) {
+    if (!tree)
+        return "";
+    let tag = tree.firstChild;
+    let name = tag && tag.getChild("TagName");
+    return name ? doc.sliceString(name.from, Math.min(name.to, max)) : "";
+}
+/**
+Extension that will automatically insert close tags when a `>` or
+`/` is typed.
+*/
+const autoCloseTags = /*@__PURE__*/EditorView.inputHandler.of((view, from, to, text, insertTransaction) => {
+    if (view.composing || view.state.readOnly || from != to || (text != ">" && text != "/") ||
+        !xmlLanguage.isActiveAt(view.state, from, -1))
+        return false;
+    let base = insertTransaction(), { state } = base;
+    let closeTags = state.changeByRange(range => {
+        var _a, _b, _c;
+        let { head } = range;
+        let didType = state.doc.sliceString(head - 1, head) == text;
+        let after = syntaxTree(state).resolveInner(head, -1), name;
+        if (didType && text == ">" && after.name == "EndTag") {
+            let tag = after.parent;
+            if (((_b = (_a = tag.parent) === null || _a === void 0 ? void 0 : _a.lastChild) === null || _b === void 0 ? void 0 : _b.name) != "CloseTag" &&
+                (name = elementName(state.doc, tag.parent, head))) {
+                let to = head + (state.doc.sliceString(head, head + 1) === ">" ? 1 : 0);
+                let insert = `</${name}>`;
+                return { range, changes: { from: head, to, insert } };
+            }
+        }
+        else if (didType && text == "/" && after.name == "StartCloseTag") {
+            let base = after.parent;
+            if (after.from == head - 2 && ((_c = base.lastChild) === null || _c === void 0 ? void 0 : _c.name) != "CloseTag" &&
+                (name = elementName(state.doc, base, head))) {
+                let to = head + (state.doc.sliceString(head, head + 1) === ">" ? 1 : 0);
+                let insert = `${name}>`;
+                return {
+                    range: EditorSelection.cursor(head + insert.length, -1),
+                    changes: { from: head, to, insert }
+                };
+            }
+        }
+        return { range };
+    });
+    if (closeTags.changes.empty)
+        return false;
+    view.dispatch([
+        base,
+        state.update(closeTags, {
+            userEvent: "input.complete",
+            scrollIntoView: true
+        })
+    ]);
+    return true;
+});
 
-export { completeFromSchema, xml, xmlLanguage };
+export { autoCloseTags, completeFromSchema, xml, xmlLanguage };

@@ -1,9 +1,17 @@
 <?php
-if(!defined('_JEXEC')){
+ /**
+ * @package     ContentBuilder
+ * @copyright Copyright (C) 2024 by XDA+GIL
+ * @license     GNU/GPL
+*/ 
+ 
+if (!defined('_JEXEC')) {
 	define('_JEXEC', 1);
 }
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
+
+use Joomla\CMS\Factory;
 
 ob_start();
 
@@ -12,10 +20,10 @@ define('DS', DIRECTORY_SEPARATOR);
 require_once dirname(__FILE__) . '/../../../../includes/app.php';
 /* To use Joomla's Database Class */
 
-require_once( JPATH_SITE . DS . 'libraries' . DS . 'src' . DS . 'Factory.php' );
+require_once(JPATH_SITE . DS . 'libraries' . DS . 'src' . DS . 'Factory.php');
 
 // Instantiate the application.
-$app = JFactory::getApplication('administrator');
+$app = Factory::getApplication('administrator');
 
 ob_end_clean();
 

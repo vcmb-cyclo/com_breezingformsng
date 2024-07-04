@@ -3,70 +3,73 @@
  * @package     ContentBuilder
  * @author      Markus Bopp
  * @link        https://www.crosstec.org
+ * @copyright   (C) 2024 by XDA+GIL
  * @license     GNU/GPL
 */
 
 // no direct access
+defined( '_JEXEC' ) or die( 'Restricted access' );
 
 use Joomla\CMS\Factory;
-
-defined( '_JEXEC' ) or die( 'Restricted access' );
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\MVC\View\HtmlView;
 
 require_once(JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_contentbuilder'.DS.'classes'.DS.'joomla_compat.php');
 
 jimport('joomla.html.pane');
-
-CBCompat::requireView();
+require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'viewlegacy.php');
 
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'classes' . DS . 'contentbuilder.php');
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'classes' . DS . 'contentbuilder_helpers.php');
 
-class ContentbuilderViewStorage extends CBView
+class ContentbuilderViewStorage extends HtmlView
 {
     function display($tpl = null)
     {
 	    Factory::getApplication()->input->set('hidemainmenu', true);
 
-        $document = JFactory::getDocument();
-        $document->addScript( JURI::root(true) . '/administrator/components/com_contentbuilder/assets/js/jscolor/jscolor.js' );
+        $document = Factory::getApplication()->getDocument();
+        $document->addScript( Uri::root(true) . '/administrator/components/com_contentbuilder/assets/js/jscolor/jscolor.js' );
 
         echo '
         <style type="text/css">
         .icon-48-logo_left { background-image: url(../administrator/components/com_contentbuilder/views/logo_left.png); }
         </style>
         ';
-        echo '<link rel="stylesheet" href="'.JURI::root(true).'/administrator/components/com_contentbuilder/views/bluestork.fix.css" type="text/css" />';
+        echo '<link rel="stylesheet" href="'.Uri::root(true).'/administrator/components/com_contentbuilder/views/bluestork.fix.css" type="text/css" />';
         $tables     = $this->get('DbTables');
         $form     = $this->get('Storage');
         $elements  = $this->get('Data');
         $pagination   = $this->get('Pagination');
         $isNew        = ($form->id < 1);
 
-        $text = $isNew ? JText::_( 'COM_CONTENTBUILDER_NEW' ) : JText::_( 'COM_CONTENTBUILDER_EDIT' );
+        $text = $isNew ? Text::_( 'COM_CONTENTBUILDER_NEW' ) : Text::_( 'COM_CONTENTBUILDER_EDIT' );
 
-	    JToolBarHelper::title(   'ContentBuilder :: ' . ($isNew ? JText::_( 'COM_CONTENTBUILDER_STORAGES' ) : $form->title) .' : <small><small>[ ' . $text.' ]</small></small></span>', 'logo_left.png' );
+	    ToolBarHelper::title(   'ContentBuilder :: ' . ($isNew ? Text::_( 'COM_CONTENTBUILDER_STORAGES' ) : $form->title) .' : <small><small>[ ' . $text.' ]</small></small></span>', 'logo_left.png' );
         
-        JToolBarHelper::apply();
-        JToolBarHelper::save();
+        ToolBarHelper::apply();
+        ToolBarHelper::save();
         
         if(version_compare(CBJOOMLAVERSION, '3.0', '<')){
-            JToolBarHelper::customX('saveNew', 'save', '', JText::_('COM_CONTENTBUILDER_SAVENEW'), false);
-            JToolBarHelper::customX('listpublish', 'publish', '', JText::_('COM_CONTENTBUILDER_PUBLISH'), false);
-            JToolBarHelper::customX('listunpublish', 'unpublish', '', JText::_('COM_CONTENTBUILDER_UNPUBLISH'), false);
-            JToolBarHelper::customX('listdelete', 'delete', '', JText::_('COM_CONTENTBUILDER_DELETE_FIELDS'), false);
+            ToolBarHelper::customX('saveNew', 'save', '', Text::_('COM_CONTENTBUILDER_SAVENEW'), false);
+            ToolBarHelper::customX('listpublish', 'publish', '', Text::_('COM_CONTENTBUILDER_PUBLISH'), false);
+            ToolBarHelper::customX('listunpublish', 'unpublish', '', Text::_('COM_CONTENTBUILDER_UNPUBLISH'), false);
+            ToolBarHelper::customX('listdelete', 'delete', '', Text::_('COM_CONTENTBUILDER_DELETE_FIELDS'), false);
         } else {
-            JToolBarHelper::custom('saveNew', 'save', '', JText::_('COM_CONTENTBUILDER_SAVENEW'), false);
-            JToolBarHelper::custom('listpublish', 'publish', '', JText::_('COM_CONTENTBUILDER_PUBLISH'), false);
-            JToolBarHelper::custom('listunpublish', 'unpublish', '', JText::_('COM_CONTENTBUILDER_UNPUBLISH'), false);
-            JToolBarHelper::custom('listdelete', 'delete', '', JText::_('COM_CONTENTBUILDER_DELETE_FIELDS'), false);
+            ToolBarHelper::custom('saveNew', 'save', '', Text::_('COM_CONTENTBUILDER_SAVENEW'), false);
+            ToolBarHelper::custom('listpublish', 'publish', '', Text::_('COM_CONTENTBUILDER_PUBLISH'), false);
+            ToolBarHelper::custom('listunpublish', 'unpublish', '', Text::_('COM_CONTENTBUILDER_UNPUBLISH'), false);
+            ToolBarHelper::custom('listdelete', 'delete', '', Text::_('COM_CONTENTBUILDER_DELETE_FIELDS'), false);
         }
         
-        //JToolBarHelper::deleteList();
+        //ToolBarHelper::deleteList();
         if ($isNew) {
-            JToolBarHelper::cancel();
+            ToolBarHelper::cancel();
         } else {
             // for existing items the button is renamed `close`
-            JToolBarHelper::cancel( 'cancel', 'Close' );
+            ToolBarHelper::cancel( 'cancel', 'Close' );
         }
 
         $state = $this->get( 'state' );

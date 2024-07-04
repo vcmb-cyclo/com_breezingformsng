@@ -1,5 +1,7 @@
 <?php
 
+use Joomla\CMS\Factory;
+
 ob_start();
 
 define('_JEXEC', 1);
@@ -14,7 +16,7 @@ require_once dirname(__FILE__) . '/../../../../includes/app.php';
 require_once( JPATH_SITE . DS . 'libraries' . DS . 'src' . DS . 'Factory.php' );
 
 // Instantiate the application.
-$app = JFactory::getApplication('site');
+$app = Factory::getApplication('site');
 
 ob_end_clean();
 

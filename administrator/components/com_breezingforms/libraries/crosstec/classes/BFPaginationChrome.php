@@ -8,10 +8,14 @@
  * @license     GNU/GPL
  *
  * @copyright   Copyright (C) 2005 - 2012 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2024 by XDA+GIL 
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-defined( '_JEXEC' ) or die( 'Restricted access' );
+defined('_JEXEC') or die('Restricted access');
+
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Pagination\PaginationObject;
 
 /**
  * This is a file to add template specific chrome to pagination rendering.
@@ -97,21 +101,15 @@ function bf_pagination_list_render($list)
 	$currentPage = 1;
 	$range = 1;
 	$step = 5;
-	foreach ($list['pages'] as $k => $page)
-	{
-		if (!$page['active'])
-		{
+	foreach ($list['pages'] as $k => $page) {
+		if (!$page['active']) {
 			$currentPage = $k;
 		}
 	}
-	if ($currentPage >= $step)
-	{
-		if ($currentPage % $step == 0)
-		{
+	if ($currentPage >= $step) {
+		if ($currentPage % $step == 0) {
 			$range = ceil($currentPage / $step) + 1;
-		}
-		else
-		{
+		} else {
 			$range = ceil($currentPage / $step);
 		}
 	}
@@ -120,12 +118,9 @@ function bf_pagination_list_render($list)
 	$html .= $list['start']['data'];
 	$html .= $list['previous']['data'];
 
-	foreach($list['pages'] as $k => $page)
-	{
-		if (in_array($k, range($range * $step - ($step + 1), $range * $step)))
-		{
-			if (($k % $step == 0 || $k == $range * $step - ($step + 1)) && $k != $currentPage && $k != $range * $step - $step)
-			{
+	foreach ($list['pages'] as $k => $page) {
+		if (in_array($k, range($range * $step - ($step + 1), $range * $step))) {
+			if (($k % $step == 0 || $k == $range * $step - ($step + 1)) && $k != $currentPage && $k != $range * $step - $step) {
 				$page['data'] = preg_replace('#(<a.*?>).*?(</a>)#', '$1...$2', $page['data']);
 			}
 		}
@@ -143,7 +138,7 @@ function bf_pagination_list_render($list)
 /**
  * Renders an active item in the pagination block
  *
- * @param   JPaginationObject  $item  The current pagination object
+ * @param   PaginationObject  $item  The current pagination object
  *
  * @return  string  HTML markup for active item
  *
@@ -152,41 +147,33 @@ function bf_pagination_list_render($list)
 function bf_pagination_item_active(&$item)
 {
 	// Check for "Start" item
-	if ($item->text == JText::_('JLIB_HTML_START'))
-	{
+	if ($item->text == Text::_('JLIB_HTML_START')) {
 		$display = '<i class="icon-first"></i>';
 	}
 
 	// Check for "Prev" item
-	if ($item->text == JText::_('JPREV'))
-	{
+	if ($item->text == Text::_('JPREV')) {
 		$display = '<i class="icon-previous"></i>';
 	}
 
 	// Check for "Next" item
-	if ($item->text == JText::_('JNEXT'))
-	{
+	if ($item->text == Text::_('JNEXT')) {
 		$display = '<i class="icon-next"></i>';
 	}
 
 	// Check for "End" item
-	if ($item->text == JText::_('JLIB_HTML_END'))
-	{
+	if ($item->text == Text::_('JLIB_HTML_END')) {
 		$display = '<i class="icon-last"></i>';
 	}
 
 	// If the display object isn't set already, just render the item with its text
-	if (!isset($display))
-	{
+	if (!isset($display)) {
 		$display = $item->text;
 	}
 
-	if ($item->base > 0)
-	{
+	if ($item->base > 0) {
 		$limit = 'limitstart.value=' . $item->base;
-	}
-	else
-	{
+	} else {
 		$limit = 'limitstart.value=0';
 	}
 
@@ -196,7 +183,7 @@ function bf_pagination_item_active(&$item)
 /**
  * Renders an inactive item in the pagination block
  *
- * @param   JPaginationObject  $item  The current pagination object
+ * @param   PaginationObject  $item  The current pagination object
  *
  * @return  string  HTML markup for inactive item
  *
@@ -205,32 +192,27 @@ function bf_pagination_item_active(&$item)
 function bf_pagination_item_inactive(&$item)
 {
 	// Check for "Start" item
-	if ($item->text == JText::_('JLIB_HTML_START'))
-	{
+	if ($item->text == Text::_('JLIB_HTML_START')) {
 		return '<li class="disabled"><a><i class="icon-first"></i></a></li>';
 	}
 
 	// Check for "Prev" item
-	if ($item->text == JText::_('JPREV'))
-	{
+	if ($item->text == Text::_('JPREV')) {
 		return '<li class="disabled"><a><i class="icon-previous"></i></a></li>';
 	}
 
 	// Check for "Next" item
-	if ($item->text == JText::_('JNEXT'))
-	{
+	if ($item->text == Text::_('JNEXT')) {
 		return '<li class="disabled"><a><i class="icon-next"></i></a></li>';
 	}
 
 	// Check for "End" item
-	if ($item->text == JText::_('JLIB_HTML_END'))
-	{
+	if ($item->text == Text::_('JLIB_HTML_END')) {
 		return '<li class="disabled"><a><i class="icon-last"></i></a></li>';
 	}
 
 	// Check if the item is the active page
-	if (isset($item->active) && ($item->active))
-	{
+	if (isset($item->active) && ($item->active)) {
 		return '<li class="active"><a>' . $item->text . '</a></li>';
 	}
 

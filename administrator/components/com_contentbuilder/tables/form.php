@@ -3,13 +3,15 @@
  * @package     ContentBuilder
  * @author      Markus Bopp
  * @link        https://www.crosstec.org
+ * @copyright   (C) 2024 by XDA+GIL
  * @license     GNU/GPL
-*/
+ */
 
 // No direct access
 defined('_JEXEC') or die('Restricted access');
+use Joomla\CMS\Table\Table;
 
-class TableForm extends JTable
+class TableForm extends Table
 {
     public $id = 0;
     public $type = '';
@@ -24,7 +26,7 @@ class TableForm extends JTable
     public $details_prepare = '';
     public $editable_template = '';
     public $editable_prepare = '';
-    
+
     public $email_template = '';
     public $email_subject = '';
     public $email_alternative_from = '';
@@ -32,7 +34,7 @@ class TableForm extends JTable
     public $email_recipients = '';
     public $email_recipients_attach_uploads = '';
     public $email_html = '';
-    
+
     public $email_admin_template = '';
     public $email_admin_subject = '';
     public $email_admin_alternative_from = '';
@@ -40,7 +42,7 @@ class TableForm extends JTable
     public $email_admin_recipients = '';
     public $email_admin_recipients_attach_uploads = '';
     public $email_admin_html = '';
-    
+
     public $modified_by = '';
     public $print_button = 1;
     public $metadata = 1;
@@ -98,7 +100,7 @@ class TableForm extends JTable
     public $default_featured = 0;
     public $list_article = 0;
     public $list_author = 0;
-    
+
     public $act_as_registration = 0;
     public $registration_username_field = '';
     public $registration_password_field = '';
@@ -106,51 +108,54 @@ class TableForm extends JTable
     public $registration_email_field = '';
     public $registration_email_repeat_field = '';
     public $registration_name_field = '';
-    
+
     public $auto_publish = 0;
-    
+
     public $force_login = 0;
     public $force_url = '';
-    
+
     public $registration_bypass_plugin = '';
     public $registration_bypass_plugin_params = '';
     public $registration_bypass_verification_name = '';
     public $registration_bypass_verify_view = '';
-    
+
     public $theme_plugin = '';
-    
+
     public $rating_slots = 5;
-    
+
     public $rand_date_update = '0000-00-00 00:00:00';
     public $rand_update = '86400';
-    
+
     public $article_record_impact_publish = 0;
     public $article_record_impact_language = 0;
-    
+
     public $allow_external_filter = 0;
-    
+
     public $show_filter = 1;
-    
+
     public $show_records_per_page = 1;
-    
+
     public $initial_list_limit = 20;
-    
+
     public $save_button_title = '';
-    
+
     public $apply_button_title = '';
-    
+
     public $filter_exact_match = 0;
-    
+
     /**
      * Constructor
      *
      * @param object Database connector object
      */
-    function __construct( $db ) {
+    function __construct($db)
+    {
         parent::__construct('#__contentbuilder_forms', 'id', $db);
     }
 }
 
 
 // as of J! 2.5
-class formTableForm extends TableForm{}
+class formTableForm extends TableForm
+{
+}

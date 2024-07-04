@@ -25,6 +25,7 @@ use Joomla\Database\ParameterType;
 use Akeeba\Plugin\System\AdminTools\Extension\AdminTools;
 use Joomla\Utilities\IpHelper as Ip;
 use RuntimeException;
+use Throwable;
 
 #[\AllowDynamicProperties]
 class ControlpanelModel extends BaseDatabaseModel
@@ -49,6 +50,31 @@ class ControlpanelModel extends BaseDatabaseModel
 			$plugin = PluginHelper::getPlugin('system', 'admintools');
 
 			static::$pluginId = empty($plugin) ? null : $plugin->id;
+		}
+
+		// Joomla! 5 does not return the plugin IDs for disabled plugins. MAXIMUM EFFORT!
+		if (is_null(static::$pluginId))
+		{
+			$db               = $this->getDatabase();
+			$query            = $db->getQuery(true)
+				->select($db->quoteName('extension_id'))
+				->from($db->quoteName('#__extensions'))
+				->where(
+					[
+						$db->quoteName('type') . ' = ' . $db->quote('plugin'),
+						$db->quoteName('folder') . ' = ' . $db->quote('system'),
+						$db->quoteName('element') . ' = ' . $db->quote('admintools'),
+					]
+				);
+
+			try
+			{
+				static::$pluginId = $db->setQuery($query)->loadResult() ?: null;
+			}
+			catch (Throwable $e)
+			{
+				static::$pluginId = null;
+			}
 		}
 
 		return static::$pluginId;
@@ -202,8 +228,13 @@ class ControlpanelModel extends BaseDatabaseModel
 	 *
 	 * @return  string|bool  Warning message. Boolean FALSE if no warning is found.
 	 */
-	public function checkJoomlaConfiguration()
+	public function checkJoomlaConfiguration(bool $forceDisplayForDebug = false)
 	{
+		if ($forceDisplayForDebug)
+		{
+			return "This is a dummy string used for testing.";
+		}
+
 		// Get the absolute path to the site's root
 		$absoluteRoot = @realpath(JPATH_ROOT);
 		$siteRoot     = empty($absoluteRoot) ? JPATH_ROOT : $absoluteRoot;

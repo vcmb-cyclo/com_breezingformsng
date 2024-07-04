@@ -222,39 +222,38 @@ class Stack {
     /**
     @internal
     */
-    shift(action, next, nextEnd) {
-        let start = this.pos;
+    shift(action, type, start, end) {
         if (action & 131072 /* Action.GotoFlag */) {
             this.pushState(action & 65535 /* Action.ValueMask */, this.pos);
         }
         else if ((action & 262144 /* Action.StayFlag */) == 0) { // Regular shift
             let nextState = action, { parser } = this.p;
-            if (nextEnd > this.pos || next <= parser.maxNode) {
-                this.pos = nextEnd;
+            if (end > this.pos || type <= parser.maxNode) {
+                this.pos = end;
                 if (!parser.stateFlag(nextState, 1 /* StateFlag.Skipped */))
-                    this.reducePos = nextEnd;
+                    this.reducePos = end;
             }
             this.pushState(nextState, start);
-            this.shiftContext(next, start);
-            if (next <= parser.maxNode)
-                this.buffer.push(next, start, nextEnd, 4);
+            this.shiftContext(type, start);
+            if (type <= parser.maxNode)
+                this.buffer.push(type, start, end, 4);
         }
         else { // Shift-and-stay, which means this is a skipped token
-            this.pos = nextEnd;
-            this.shiftContext(next, start);
-            if (next <= this.p.parser.maxNode)
-                this.buffer.push(next, start, nextEnd, 4);
+            this.pos = end;
+            this.shiftContext(type, start);
+            if (type <= this.p.parser.maxNode)
+                this.buffer.push(type, start, end, 4);
         }
     }
     // Apply an action
     /**
     @internal
     */
-    apply(action, next, nextEnd) {
+    apply(action, next, nextStart, nextEnd) {
         if (action & 65536 /* Action.ReduceFlag */)
             this.reduce(action);
         else
-            this.shift(action, next, nextEnd);
+            this.shift(action, next, nextStart, nextEnd);
     }
     // Add a prebuilt (reused) node into the buffer.
     /**
@@ -354,6 +353,7 @@ class Stack {
             stack.pushState(s, this.pos);
             stack.storeNode(0 /* Term.Err */, stack.pos, stack.pos, 4, true);
             stack.shiftContext(nextStates[i], this.pos);
+            stack.reducePos = this.pos;
             stack.score -= 200 /* Recover.Insert */;
             result.push(stack);
         }
@@ -445,6 +445,7 @@ class Stack {
     state). @internal
     */
     restart() {
+        this.storeNode(0 /* Term.Err */, this.pos, this.pos, 4, true);
         this.state = this.stack[0];
         this.stack.length = 0;
     }
@@ -768,6 +769,13 @@ class InputStream {
         this.token.value = token;
         this.token.end = end;
     }
+    /**
+    Accept a token ending at a specific given position.
+    */
+    acceptTokenTo(token, endPos) {
+        this.token.value = token;
+        this.token.end = endPos;
+    }
     getChunk() {
         if (this.pos >= this.chunk2Pos && this.pos < this.chunk2Pos + this.chunk2.length) {
             let { chunk, chunkPos } = this;
@@ -982,7 +990,7 @@ function readToken(data, input, stack, group, precTable, precOffset) {
             }
         let next = input.next, low = 0, high = data[state + 2];
         // Special case for EOF
-        if (input.next < 0 && high > low && data[accEnd + high * 3 - 3] == 65535 /* Seq.End */ && data[accEnd + high * 3 - 3] == 65535 /* Seq.End */) {
+        if (input.next < 0 && high > low && data[accEnd + high * 3 - 3] == 65535 /* Seq.End */) {
             state = data[accEnd + high * 3 - 1];
             continue scan;
         }
@@ -1408,15 +1416,16 @@ class Parse {
                 console.log(base + this.stackID(stack) + ` (via always-reduce ${parser.getName(defaultReduce & 65535 /* Action.ValueMask */)})`);
             return true;
         }
-        if (stack.stack.length >= 15000 /* Rec.CutDepth */) {
-            while (stack.stack.length > 9000 /* Rec.CutTo */ && stack.forceReduce()) { }
+        if (stack.stack.length >= 8400 /* Rec.CutDepth */) {
+            while (stack.stack.length > 6000 /* Rec.CutTo */ && stack.forceReduce()) { }
         }
         let actions = this.tokens.getActions(stack);
         for (let i = 0; i < actions.length;) {
             let action = actions[i++], term = actions[i++], end = actions[i++];
             let last = i == actions.length || !split;
             let localStack = last ? stack : stack.split();
-            localStack.apply(action, term, end);
+            let main = this.tokens.mainToken;
+            localStack.apply(action, term, main ? main.start : localStack.pos, end);
             if (verbose)
                 console.log(base + this.stackID(localStack) + ` (via ${(action & 65536 /* Action.ReduceFlag */) == 0 ? "shift"
                     : `reduce of ${parser.getName(action & 65535 /* Action.ValueMask */)}`} for ${parser.getName(term)} @ ${start}${localStack == stack ? "" : ", split"})`);

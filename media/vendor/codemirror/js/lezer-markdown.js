@@ -68,7 +68,7 @@ var Type;
     Type[Type["HTMLTag"] = 30] = "HTMLTag";
     Type[Type["Comment"] = 31] = "Comment";
     Type[Type["ProcessingInstruction"] = 32] = "ProcessingInstruction";
-    Type[Type["URL"] = 33] = "URL";
+    Type[Type["Autolink"] = 33] = "Autolink";
     // Smaller tokens
     Type[Type["HeaderMark"] = 34] = "HeaderMark";
     Type[Type["QuoteMark"] = 35] = "QuoteMark";
@@ -80,6 +80,7 @@ var Type;
     Type[Type["CodeInfo"] = 41] = "CodeInfo";
     Type[Type["LinkTitle"] = 42] = "LinkTitle";
     Type[Type["LinkLabel"] = 43] = "LinkLabel";
+    Type[Type["URL"] = 44] = "URL";
 })(Type || (Type = {}));
 /// Data structure used to accumulate a block's content during [leaf
 /// block parsing](#BlockParser.leaf).
@@ -675,10 +676,16 @@ class BlockContext {
             return this.finish();
         let { line } = this;
         for (;;) {
-            while (line.depth < this.stack.length)
+            for (let markI = 0;;) {
+                let next = line.depth < this.stack.length ? this.stack[this.stack.length - 1] : null;
+                while (markI < line.markers.length && (!next || line.markers[markI].from < next.end)) {
+                    let mark = line.markers[markI++];
+                    this.addNode(mark.type, mark.from, mark.to);
+                }
+                if (!next)
+                    break;
                 this.finishContext();
-            for (let mark of line.markers)
-                this.addNode(mark.type, mark.from, mark.to);
+            }
             if (line.pos < line.text.length)
                 break;
             // Empty line
@@ -1261,8 +1268,14 @@ const DefaultInline = {
             return -1;
         let after = cx.slice(start + 1, cx.end);
         let url = /^(?:[a-z][-\w+.]+:[^\s>]+|[a-z\d.!#$%&'*+/=?^_`{|}~-]+@[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?(?:\.[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?)*)>/i.exec(after);
-        if (url)
-            return cx.append(elt(Type.URL, start, start + 1 + url[0].length));
+        if (url) {
+            return cx.append(elt(Type.Autolink, start, start + 1 + url[0].length, [
+                elt(Type.LinkMark, start, start + 1),
+                // url[0] includes the closing bracket, so exclude it from this slice
+                elt(Type.URL, start + 1, start + url[0].length),
+                elt(Type.LinkMark, start + url[0].length, start + 1 + url[0].length)
+            ]));
+        }
         let comment = /^!--[^>](?:-[^-]|[^-])*?-->/i.exec(after);
         if (comment)
             return cx.append(elt(Type.Comment, start, start + 1 + comment[0].length));
@@ -1287,7 +1300,7 @@ const DefaultInline = {
         let rightFlanking = !sBefore && (!pBefore || sAfter || pAfter);
         let canOpen = leftFlanking && (next == 42 || !rightFlanking || pBefore);
         let canClose = rightFlanking && (next == 42 || !leftFlanking || pAfter);
-        return cx.append(new InlineDelimiter(next == 95 ? EmphasisUnderscore : EmphasisAsterisk, start, pos, (canOpen ? 1 /* Mark.Open */ : 0) | (canClose ? 2 /* Mark.Close */ : 0)));
+        return cx.append(new InlineDelimiter(next == 95 ? EmphasisUnderscore : EmphasisAsterisk, start, pos, (canOpen ? 1 /* Mark.Open */ : 0 /* Mark.None */) | (canClose ? 2 /* Mark.Close */ : 0 /* Mark.None */)));
     },
     HardBreak(cx, next, start) {
         if (next == 92 /* '\\' */ && cx.char(start + 1) == 10 /* '\n' */)
@@ -1330,7 +1343,7 @@ const DefaultInline = {
                     for (let j = 0; j < i; j++) {
                         let p = cx.parts[j];
                         if (p instanceof InlineDelimiter && p.type == LinkStart)
-                            p.side = 0;
+                            p.side = 0 /* Mark.None */;
                     }
                 return link.to;
             }
@@ -1347,9 +1360,12 @@ function finishLink(cx, content, type, start, startPos) {
         let dest = parseURL(text, pos - cx.offset, cx.offset), title;
         if (dest) {
             pos = cx.skipSpace(dest.to);
-            title = parseLinkTitle(text, pos - cx.offset, cx.offset);
-            if (title)
-                pos = cx.skipSpace(title.to);
+            // The destination and title must be separated by whitespace
+            if (pos != dest.to) {
+                title = parseLinkTitle(text, pos - cx.offset, cx.offset);
+                if (title)
+                    pos = cx.skipSpace(title.to);
+            }
         }
         if (cx.char(pos) == 41 /* ')' */) {
             content.push(elt(Type.LinkMark, startPos, startPos + 1));
@@ -1479,7 +1495,7 @@ class InlineContext {
     /// or both. Returns the end of the delimiter, for convenient
     /// returning from [parse functions](#InlineParser.parse).
     addDelimiter(type, from, to, open, close) {
-        return this.append(new InlineDelimiter(type, from, to, (open ? 1 /* Mark.Open */ : 0) | (close ? 2 /* Mark.Close */ : 0)));
+        return this.append(new InlineDelimiter(type, from, to, (open ? 1 /* Mark.Open */ : 0 /* Mark.None */) | (close ? 2 /* Mark.Close */ : 0 /* Mark.None */)));
     }
     /// Add an inline element. Returns the end of the element.
     addElement(elt) {
@@ -1728,7 +1744,7 @@ const markdownHighlighting = styleTags({
     "OrderedList/... BulletList/...": tags.list,
     "BlockQuote/...": tags.quote,
     "InlineCode CodeText": tags.monospace,
-    URL: tags.url,
+    "URL Autolink": tags.url,
     "HeaderMark HardBreak QuoteMark ListMark LinkMark EmphasisMark CodeMark": tags.processingInstruction,
     "CodeInfo LinkLabel": tags.labelName,
     LinkTitle: tags.string,
@@ -1932,8 +1948,9 @@ const TaskList = {
         }]
 };
 const autolinkRE = /(www\.)|(https?:\/\/)|([\w.+-]+@)|(mailto:|xmpp:)/gy;
-const urlRE = /[\w-]+(\.\w+(\.\w+)?)(\/[^\s<]*)?/gy;
-const emailRE = /[\w.+-]+@[\w-]+\.[\w.-]+/gy;
+const urlRE = /[\w-]+(\.[\w-]+)+(\/[^\s<]*)?/gy;
+const lastTwoDomainWords = /[\w-]+\.[\w-]+($|\/)/;
+const emailRE = /[\w.+-]+@[\w-]+(\.[\w.-]+)+/gy;
 const xmppResourceRE = /\/[a-zA-Z\d@.]+/gy;
 function count(str, from, to, ch) {
     let result = 0;
@@ -1945,7 +1962,7 @@ function count(str, from, to, ch) {
 function autolinkURLEnd(text, from) {
     urlRE.lastIndex = from;
     let m = urlRE.exec(text);
-    if (!m)
+    if (!m || lastTwoDomainWords.exec(m[0])[0].indexOf("_") > -1)
         return -1;
     let end = from + m[0].length;
     for (;;) {

@@ -9,7 +9,7 @@
       "name": "com_finder.dates",
       "type": "style",
       "uri": "com_finder/dates.min.css",
-      "version": "e7901d"
+      "version": "e479b6"
     },
     {
       "name": "com_finder.debug",
@@ -39,7 +39,7 @@
       "name": "com_finder.finder",
       "type": "style",
       "uri": "com_finder/finder.min.css",
-      "version": "624068"
+      "version": "ab077f"
     },
     {
       "name": "com_finder.finder",
@@ -51,7 +51,7 @@
       "attributes": {
         "type": "module"
       },
-      "version": "bc972b"
+      "version": "5729ed"
     },
     {
       "name": "com_finder.finder-edit",
@@ -63,13 +63,13 @@
       "attributes": {
         "type": "module"
       },
-      "version": "6a2a02"
+      "version": "ad6ab5"
     },
     {
       "name": "com_finder.indexer",
       "type": "style",
       "uri": "com_finder/indexer.min.css",
-      "version": "2b8d6c"
+      "version": "d51495"
     },
     {
       "name": "com_finder.indexer",

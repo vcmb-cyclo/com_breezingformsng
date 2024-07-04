@@ -1,3 +1,4 @@
+@charset "UTF-8";
 .choices {
   margin-bottom: 24px;
   font-size: 16px;
@@ -459,8 +460,8 @@
 }
 
 .choices[data-type*="select-one"] .choices__button_joomla {
-  top: 50%;
   opacity: .5;
+  top: 50%;
   border-radius: 10em;
   width: 20px;
   height: 20px;

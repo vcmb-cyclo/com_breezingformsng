@@ -1,8 +1,4 @@
-/*!
- * Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com
- * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
- * Copyright 2023 Fonticons, Inc.
- */
+@charset "UTF-8";
 .fa {
   font-family: var(--fa-style-family, "Font Awesome 6 Free");
   font-weight: var(--fa-style, 900);
@@ -5623,7 +5619,7 @@
   content: "";
 }
 
-.fa-share:before, .fa-arrow-turn-right:before, .fa-mail-forward:before {
+.fa-share:before, .fa-mail-forward:before {
   content: "";
 }
 
@@ -5975,325 +5971,37 @@
   overflow: hidden;
 }
 
-.fa.fa-remove:before, .fa.fa-close:before {
-  content: "";
-}
-
-.fa.fa-repeat:before, .fa.fa-rotate-right:before {
-  content: "";
-}
-
-.fa.fa-eye, .fa.fa-eye-slash {
-  font-family: "Font Awesome 6 Free";
-  font-weight: 400;
-}
-
-.fa.fa-bar-chart:before, .fa.fa-bar-chart-o:before {
-  content: "";
-}
-
-.fa.fa-twitter, .fa.fa-facebook {
+.fa.fa-btc, .fa.fa-bitcoin, .fa.fa-youtube, .fa.fa-xing, .fa.fa-xing-square, .fa.fa-dropbox, .fa.fa-stack-overflow, .fa.fa-instagram, .fa.fa-flickr, .fa.fa-adn, .fa.fa-bitbucket, .fa.fa-bitbucket-square, .fa.fa-tumblr, .fa.fa-tumblr-square, .fa.fa-apple, .fa.fa-windows, .fa.fa-android, .fa.fa-linux, .fa.fa-dribbble, .fa.fa-skype, .fa.fa-foursquare, .fa.fa-trello, .fa.fa-gratipay, .fa.fa-gittip, .fa.fa-vk, .fa.fa-weibo, .fa.fa-renren, .fa.fa-pagelines, .fa.fa-stack-exchange {
   font-family: "Font Awesome 6 Brands";
   font-weight: 400;
 }
 
-.fa.fa-navicon:before, .fa.fa-reorder:before {
-  content: "";
-}
-
-.fa.fa-pinterest, .fa.fa-pinterest-square {
+.fa.fa-yahoo, .fa.fa-google, .fa.fa-reddit, .fa.fa-reddit-square, .fa.fa-stumbleupon-circle, .fa.fa-stumbleupon, .fa.fa-delicious, .fa.fa-digg, .fa.fa-pied-piper-pp, .fa.fa-pied-piper-alt, .fa.fa-drupal, .fa.fa-joomla, .fa.fa-behance, .fa.fa-behance-square, .fa.fa-steam, .fa.fa-steam-square, .fa.fa-spotify, .fa.fa-deviantart, .fa.fa-soundcloud, .fa.fa-vine, .fa.fa-codepen, .fa.fa-jsfiddle {
   font-family: "Font Awesome 6 Brands";
   font-weight: 400;
 }
 
-.fa.fa-tachometer:before, .fa.fa-dashboard:before {
-  content: "";
-}
-
-.fa.fa-mobile:before, .fa.fa-mobile-phone:before {
-  content: "";
-}
-
-.fa.fa-chain-broken:before, .fa.fa-unlink:before {
-  content: "";
-}
-
-.fa.fa-maxcdn, .fa.fa-html5, .fa.fa-css3 {
+.fa.fa-rebel, .fa.fa-ra, .fa.fa-empire, .fa.fa-ge, .fa.fa-git, .fa.fa-hacker-news, .fa.fa-y-combinator-square, .fa.fa-tencent-weibo, .fa.fa-qq, .fa.fa-weixin, .fa.fa-wechat, .fa.fa-slideshare, .fa.fa-twitch, .fa.fa-yelp, .fa.fa-paypal, .fa.fa-google-wallet, .fa.fa-cc-visa, .fa.fa-cc-mastercard, .fa.fa-cc-discover, .fa.fa-cc-amex, .fa.fa-cc-paypal, .fa.fa-cc-stripe, .fa.fa-lastfm, .fa.fa-lastfm-square, .fa.fa-ioxhost, .fa.fa-angellist {
   font-family: "Font Awesome 6 Brands";
   font-weight: 400;
 }
 
-.fa.fa-compass, .fa.fa-caret-square-o-down {
-  font-family: "Font Awesome 6 Free";
-  font-weight: 400;
-}
-
-.fa.fa-eur:before, .fa.fa-euro:before {
-  content: "";
-}
-
-.fa.fa-usd:before, .fa.fa-dollar:before {
-  content: "$";
-}
-
-.fa.fa-inr:before, .fa.fa-rupee:before {
-  content: "";
-}
-
-.fa.fa-jpy:before, .fa.fa-cny:before, .fa.fa-rmb:before, .fa.fa-yen:before {
-  content: "";
-}
-
-.fa.fa-rub:before, .fa.fa-ruble:before, .fa.fa-rouble:before {
-  content: "";
-}
-
-.fa.fa-krw:before, .fa.fa-won:before {
-  content: "";
-}
-
-.fa.fa-btc, .fa.fa-bitcoin {
+.fa.fa-pinterest-p, .fa.fa-whatsapp, .fa.fa-viacoin, .fa.fa-medium, .fa.fa-y-combinator, .fa.fa-yc, .fa.fa-optin-monster, .fa.fa-opencart, .fa.fa-expeditedssl {
   font-family: "Font Awesome 6 Brands";
   font-weight: 400;
 }
 
-.fa.fa-youtube, .fa.fa-xing, .fa.fa-xing-square {
+.fa.fa-cc-jcb, .fa.fa-cc-diners-club, .fa.fa-creative-commons, .fa.fa-gg, .fa.fa-gg-circle, .fa.fa-odnoklassniki, .fa.fa-odnoklassniki-square, .fa.fa-get-pocket, .fa.fa-wikipedia-w, .fa.fa-safari, .fa.fa-chrome, .fa.fa-firefox, .fa.fa-opera, .fa.fa-internet-explorer, .fa.fa-contao, .fa.fa-500px, .fa.fa-amazon, .fa.fa-houzz, .fa.fa-vimeo, .fa.fa-black-tie, .fa.fa-fonticons, .fa.fa-reddit-alien, .fa.fa-edge, .fa.fa-codiepie, .fa.fa-modx, .fa.fa-fort-awesome, .fa.fa-usb, .fa.fa-product-hunt, .fa.fa-mixcloud, .fa.fa-scribd, .fa.fa-bluetooth, .fa.fa-bluetooth-b, .fa.fa-gitlab, .fa.fa-wpbeginner, .fa.fa-wpforms, .fa.fa-envira, .fa.fa-wheelchair-alt {
   font-family: "Font Awesome 6 Brands";
   font-weight: 400;
 }
 
-.fa.fa-dropbox, .fa.fa-stack-overflow, .fa.fa-instagram, .fa.fa-flickr, .fa.fa-adn, .fa.fa-bitbucket, .fa.fa-bitbucket-square {
+.fa.fa-glide, .fa.fa-glide-g, .fa.fa-viadeo, .fa.fa-viadeo-square, .fa.fa-snapchat, .fa.fa-snapchat-ghost, .fa.fa-pied-piper, .fa.fa-first-order, .fa.fa-yoast, .fa.fa-themeisle, .fa.fa-google-plus-official, .fa.fa-font-awesome, .fa.fa-fa, .fa.fa-quora, .fa.fa-free-code-camp, .fa.fa-telegram {
   font-family: "Font Awesome 6 Brands";
   font-weight: 400;
 }
 
-.fa.fa-tumblr, .fa.fa-tumblr-square {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-apple, .fa.fa-windows, .fa.fa-android, .fa.fa-linux, .fa.fa-dribbble, .fa.fa-skype, .fa.fa-foursquare, .fa.fa-trello, .fa.fa-gratipay, .fa.fa-gittip {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-vk, .fa.fa-weibo, .fa.fa-renren, .fa.fa-pagelines, .fa.fa-stack-exchange {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-try:before, .fa.fa-turkish-lira:before {
-  content: "";
-}
-
-.fa.fa-slack, .fa.fa-wordpress, .fa.fa-openid {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-institution:before, .fa.fa-bank:before {
-  content: "";
-}
-
-.fa.fa-yahoo, .fa.fa-google, .fa.fa-reddit, .fa.fa-reddit-square {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-stumbleupon-circle, .fa.fa-stumbleupon, .fa.fa-delicious, .fa.fa-digg, .fa.fa-pied-piper-pp, .fa.fa-pied-piper-alt, .fa.fa-drupal, .fa.fa-joomla, .fa.fa-behance, .fa.fa-behance-square {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-steam, .fa.fa-steam-square {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-spotify, .fa.fa-deviantart, .fa.fa-soundcloud {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-vine, .fa.fa-codepen, .fa.fa-jsfiddle {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-life-bouy:before, .fa.fa-life-buoy:before, .fa.fa-life-saver:before, .fa.fa-support:before {
-  content: "";
-}
-
-.fa.fa-rebel, .fa.fa-ra {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-empire, .fa.fa-ge {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-git, .fa.fa-hacker-news, .fa.fa-y-combinator-square {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-tencent-weibo, .fa.fa-qq, .fa.fa-weixin, .fa.fa-wechat {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-slideshare, .fa.fa-twitch, .fa.fa-yelp {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-paypal, .fa.fa-google-wallet, .fa.fa-cc-visa, .fa.fa-cc-mastercard, .fa.fa-cc-discover, .fa.fa-cc-amex, .fa.fa-cc-paypal, .fa.fa-cc-stripe {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-lastfm, .fa.fa-lastfm-square {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-ioxhost, .fa.fa-angellist {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-ils:before, .fa.fa-shekel:before, .fa.fa-sheqel:before {
-  content: "";
-}
-
-.fa.fa-buysellads, .fa.fa-connectdevelop, .fa.fa-dashcube, .fa.fa-forumbee, .fa.fa-leanpub, .fa.fa-sellsy, .fa.fa-shirtsinbulk, .fa.fa-simplybuilt, .fa.fa-skyatlas {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-transgender:before, .fa.fa-intersex:before {
-  content: "";
-}
-
-.fa.fa-pinterest-p, .fa.fa-whatsapp {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-viacoin, .fa.fa-medium, .fa.fa-y-combinator, .fa.fa-yc {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-optin-monster, .fa.fa-opencart, .fa.fa-expeditedssl {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-battery-4:before, .fa.fa-battery:before {
-  content: "";
-}
-
-.fa.fa-object-group, .fa.fa-object-ungroup, .fa.fa-sticky-note-o {
-  font-family: "Font Awesome 6 Free";
-  font-weight: 400;
-}
-
-.fa.fa-cc-jcb, .fa.fa-cc-diners-club {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-creative-commons, .fa.fa-gg, .fa.fa-gg-circle, .fa.fa-odnoklassniki, .fa.fa-odnoklassniki-square {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-get-pocket, .fa.fa-wikipedia-w, .fa.fa-safari, .fa.fa-chrome, .fa.fa-firefox, .fa.fa-opera, .fa.fa-internet-explorer {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-contao, .fa.fa-500px, .fa.fa-amazon {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-houzz, .fa.fa-vimeo {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-black-tie, .fa.fa-fonticons, .fa.fa-reddit-alien, .fa.fa-edge {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-codiepie, .fa.fa-modx, .fa.fa-fort-awesome, .fa.fa-usb, .fa.fa-product-hunt, .fa.fa-mixcloud, .fa.fa-scribd {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-bluetooth, .fa.fa-bluetooth-b, .fa.fa-gitlab, .fa.fa-wpbeginner, .fa.fa-wpforms, .fa.fa-envira, .fa.fa-wheelchair-alt {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-deafness:before, .fa.fa-hard-of-hearing:before {
-  content: "";
-}
-
-.fa.fa-glide, .fa.fa-glide-g {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-viadeo, .fa.fa-viadeo-square {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-snapchat, .fa.fa-snapchat-ghost {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-pied-piper, .fa.fa-first-order, .fa.fa-yoast, .fa.fa-themeisle, .fa.fa-google-plus-official {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-font-awesome, .fa.fa-fa {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-quora, .fa.fa-free-code-camp, .fa.fa-telegram {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-thermometer-4:before, .fa.fa-thermometer:before {
-  content: "";
-}
-
-.fa.fa-bathtub:before, .fa.fa-s15:before {
-  content: "";
-}
-
-.fa.fa-window-maximize, .fa.fa-window-restore {
-  font-family: "Font Awesome 6 Free";
-  font-weight: 400;
-}
-
-.fa.fa-bandcamp, .fa.fa-grav, .fa.fa-etsy, .fa.fa-imdb, .fa.fa-ravelry, .fa.fa-eercast {
-  font-family: "Font Awesome 6 Brands";
-  font-weight: 400;
-}
-
-.fa.fa-superpowers, .fa.fa-wpexplorer, .fa.fa-meetup {
+.fa.fa-bandcamp, .fa.fa-grav, .fa.fa-etsy, .fa.fa-imdb, .fa.fa-ravelry, .fa.fa-eercast, .fa.fa-superpowers, .fa.fa-wpexplorer, .fa.fa-meetup {
   font-family: "Font Awesome 6 Brands";
   font-weight: 400;
 }
@@ -6308,7 +6016,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: block;
-  src: url("../../../../../../vendor/fontawesome-free/webfonts/fa-regular-400.woff2?v=747442") format("woff2"), url("../../../../../../vendor/fontawesome-free/webfonts/fa-regular-400.ttf?v=675809") format("truetype");
+  src: url("../../../../../../vendor/fontawesome-free/webfonts/fa-regular-400.woff2?v=023a4a") format("woff2"), url("../../../../../../vendor/fontawesome-free/webfonts/fa-regular-400.ttf?v=a0cc1c") format("truetype");
 }
 
 .far, .fa-regular {
@@ -6325,7 +6033,7 @@
   font-style: normal;
   font-weight: 900;
   font-display: block;
-  src: url("../../../../../../vendor/fontawesome-free/webfonts/fa-solid-900.woff2?v=d5e647") format("woff2"), url("../../../../../../vendor/fontawesome-free/webfonts/fa-solid-900.ttf?v=0248ab") format("truetype");
+  src: url("../../../../../../vendor/fontawesome-free/webfonts/fa-solid-900.woff2?v=6c4eee") format("woff2"), url("../../../../../../vendor/fontawesome-free/webfonts/fa-solid-900.ttf?v=25914c") format("truetype");
 }
 
 .fas, [class^="icon-"], [class*=" icon-"], .fa-solid {
@@ -6342,7 +6050,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: block;
-  src: url("../../../../../../vendor/fontawesome-free/webfonts/fa-brands-400.woff2?v=005c9a") format("woff2"), url("../../../../../../vendor/fontawesome-free/webfonts/fa-brands-400.ttf?v=bb8cd0") format("truetype");
+  src: url("../../../../../../vendor/fontawesome-free/webfonts/fa-brands-400.woff2?v=b6356c") format("woff2"), url("../../../../../../vendor/fontawesome-free/webfonts/fa-brands-400.ttf?v=193142") format("truetype");
 }
 
 .fab, .icon-joomla, .fa-brands {
@@ -6395,6 +6103,10 @@
 
 .fa-ups:before {
   content: "";
+}
+
+.fa-pixiv:before {
+  content: "";
 }
 
 .fa-wpexplorer:before {
@@ -6527,6 +6239,10 @@
 
 .fa-deskpro:before {
   content: "";
+}
+
+.fa-brave:before {
+  content: "";
 }
 
 .fa-sistrix:before {
@@ -6733,6 +6449,10 @@
   content: "";
 }
 
+.fa-opensuse:before {
+  content: "";
+}
+
 .fa-pied-piper-alt:before {
   content: "";
 }
@@ -6909,6 +6629,10 @@
   content: "";
 }
 
+.fa-square-letterboxd:before {
+  content: "";
+}
+
 .fa-sticker-mule:before {
   content: "";
 }
@@ -6951,6 +6675,10 @@
 
 .fa-confluence:before {
   content: "";
+}
+
+.fa-shoelace:before {
+  content: "";
 }
 
 .fa-mdb:before {
@@ -7095,6 +6823,10 @@
 
 .fa-envira:before {
   content: "";
+}
+
+.fa-google-scholar:before {
+  content: "";
 }
 
 .fa-square-gitlab:before, .fa-gitlab-square:before {
@@ -7261,6 +6993,10 @@
   content: "";
 }
 
+.fa-signal-messenger:before {
+  content: "";
+}
+
 .fa-paypal:before {
   content: "";
 }
@@ -7305,6 +7041,10 @@
   content: "";
 }
 
+.fa-mintbit:before {
+  content: "";
+}
+
 .fa-ethereum:before {
   content: "";
 }
@@ -7335,6 +7075,10 @@
 
 .fa-bimobject:before {
   content: "";
+}
+
+.fa-brave-reverse:before {
+  content: "";
 }
 
 .fa-facebook-f:before {
@@ -7463,6 +7207,10 @@
 
 .fa-tencent-weibo:before {
   content: "";
+}
+
+.fa-letterboxd:before {
+  content: "";
 }
 
 .fa-symfony:before {
@@ -7631,6 +7379,10 @@
 
 .fa-cmplid:before {
   content: "";
+}
+
+.fa-upwork:before {
+  content: "";
 }
 
 .fa-facebook:before {
@@ -7851,6 +7603,10 @@
 
 .fa-supple:before {
   content: "";
+}
+
+.fa-webflow:before {
+  content: "";
 }
 
 .fa-rebel:before {
@@ -11640,4 +11396,14 @@
 
 html[dir="rtl"] .float-right {
   float: left;
+}
+
+input .icon-check-square:before {
+  color: var(--icon-check-square-bg);
+  background: var(--icon-check-square-color);
+}
+
+input .icon-square:before {
+  color: var(--icon-square-bg);
+  background: var(--icon-square-color);
 }

@@ -260,11 +260,10 @@ class Dropdown extends BaseComponent {
       ...execute(this._config.popperConfig, [defaultBsPopperConfig])
     };
   }
-  _selectMenuItem(_ref) {
-    let {
-      key,
-      target
-    } = _ref;
+  _selectMenuItem({
+    key,
+    target
+  }) {
     const items = SelectorEngine.find(SELECTOR_VISIBLE_ITEMS, this._menu).filter(element => isVisible(element));
     if (!items.length) {
       return;

@@ -9,6 +9,8 @@
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use \Joomla\CMS\Filesystem\File;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 class BFFactory {
 
@@ -44,7 +46,7 @@ class BFDbo  {
 
     function __construct()
     {
-        $this->dbo = JFactory::getDbo();
+        $this->dbo = Factory::getContainer()->get(DatabaseInterface::class);
     }
 
     public function setQuery($query, $offset = 0, $limit = 0){

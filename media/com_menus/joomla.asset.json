@@ -15,13 +15,13 @@
       "attributes": {
         "type": "module"
       },
-      "version": "2739c2"
+      "version": "23b63d"
     },
     {
       "name": "com_menus.admin-item-edit-container",
       "type": "style",
       "uri": "com_menus/admin-item-edit_container.min.css",
-      "version": "b86c54"
+      "version": "67209f"
     },
     {
       "name": "com_menus.admin-item-edit-container",
@@ -33,7 +33,7 @@
       "attributes": {
         "type": "module"
       },
-      "version": "1f917f"
+      "version": "47c6ca"
     },
     {
       "name": "com_menus.admin-item-edit-modules",
@@ -45,7 +45,7 @@
       "attributes": {
         "type": "module"
       },
-      "version": "613534"
+      "version": "bc3cea"
     },
     {
       "name": "com_menus.admin-item-modal",
@@ -73,7 +73,7 @@
       },
       "deprecated": true,
       "deprecatedMsg": "Replaced with [modal-content-select-field] asset. To be removed in Joomla 6.",
-      "version": "181a48"
+      "version": "18f50c"
     },
     {
       "name": "com_menus.admin-menus",
@@ -85,7 +85,7 @@
       "attributes": {
         "type": "module"
       },
-      "version": "4d0b5d"
+      "version": "8c28f6"
     },
     {
       "name": "com_menus.batch-body",

@@ -214,11 +214,6 @@ const historyConfig = /*@__PURE__*/Facet.define({
         });
     }
 });
-function changeEnd(changes) {
-    let end = 0;
-    changes.iterChangedRanges((_, to) => end = to);
-    return end;
-}
 const historyField_ = /*@__PURE__*/StateField.define({
     create() {
         return HistoryState.empty;
@@ -227,8 +222,7 @@ const historyField_ = /*@__PURE__*/StateField.define({
         let config = tr.state.facet(historyConfig);
         let fromHist = tr.annotation(fromHistory);
         if (fromHist) {
-            let selection = tr.docChanged ? EditorSelection.single(changeEnd(tr.changes)) : undefined;
-            let item = HistEvent.fromTransaction(tr, selection), from = fromHist.side;
+            let item = HistEvent.fromTransaction(tr, fromHist.selection), from = fromHist.side;
             let other = from == 0 /* BranchName.Done */ ? state.undone : state.done;
             if (item)
                 other = updateBranch(other, other.length, config.minDepth, item);
@@ -509,15 +503,15 @@ class HistoryState {
     addMapping(mapping) {
         return new HistoryState(addMappingToBranch(this.done, mapping), addMappingToBranch(this.undone, mapping), this.prevTime, this.prevUserEvent);
     }
-    pop(side, state, selection) {
+    pop(side, state, onlySelection) {
         let branch = side == 0 /* BranchName.Done */ ? this.done : this.undone;
         if (branch.length == 0)
             return null;
-        let event = branch[branch.length - 1];
-        if (selection && event.selectionsAfter.length) {
+        let event = branch[branch.length - 1], selection = event.selectionsAfter[0] || state.selection;
+        if (onlySelection && event.selectionsAfter.length) {
             return state.update({
                 selection: event.selectionsAfter[event.selectionsAfter.length - 1],
-                annotations: fromHistory.of({ side, rest: popSelection(branch) }),
+                annotations: fromHistory.of({ side, rest: popSelection(branch), selection }),
                 userEvent: side == 0 /* BranchName.Done */ ? "select.undo" : "select.redo",
                 scrollIntoView: true
             });
@@ -533,7 +527,7 @@ class HistoryState {
                 changes: event.changes,
                 selection: event.startSelection,
                 effects: event.effects,
-                annotations: fromHistory.of({ side, rest }),
+                annotations: fromHistory.of({ side, rest, selection }),
                 filter: false,
                 userEvent: side == 0 /* BranchName.Done */ ? "undo" : "redo",
                 scrollIntoView: true
@@ -566,7 +560,7 @@ function setSel(state, selection) {
 }
 function moveSel({ state, dispatch }, how) {
     let selection = updateSel(state.selection, how);
-    if (selection.eq(state.selection))
+    if (selection.eq(state.selection, true))
         return false;
     dispatch(setSel(state, selection));
     return true;
@@ -1014,12 +1008,15 @@ syntax tree.
 const selectParentSyntax = ({ state, dispatch }) => {
     let selection = updateSel(state.selection, range => {
         var _a;
-        let context = syntaxTree(state).resolveInner(range.head, 1);
-        while (!((context.from < range.from && context.to >= range.to) ||
-            (context.to > range.to && context.from <= range.from) ||
-            !((_a = context.parent) === null || _a === void 0 ? void 0 : _a.parent)))
-            context = context.parent;
-        return EditorSelection.range(context.to, context.from);
+        let stack = syntaxTree(state).resolveStack(range.from, 1);
+        for (let cur = stack; cur; cur = cur.next) {
+            let { node } = cur;
+            if (((node.from < range.from && node.to >= range.to) ||
+                (node.to > range.to && node.from <= range.from)) &&
+                ((_a = node.parent) === null || _a === void 0 ? void 0 : _a.parent))
+                return EditorSelection.range(node.to, node.from);
+        }
+        return range;
     });
     dispatch(setSel(state, selection));
     return true;
@@ -1047,7 +1044,7 @@ function deleteBy(target, by) {
     let changes = state.changeByRange(range => {
         let { from, to } = range;
         if (from == to) {
-            let towards = by(from);
+            let towards = by(range);
             if (towards < from) {
                 event = "delete.backward";
                 towards = skipAtomic(target, towards, false);
@@ -1063,7 +1060,7 @@ function deleteBy(target, by) {
             from = skipAtomic(target, from, false);
             to = skipAtomic(target, to, true);
         }
-        return from == to ? { range } : { changes: { from, to }, range: EditorSelection.cursor(from) };
+        return from == to ? { range } : { changes: { from, to }, range: EditorSelection.cursor(from, from < range.head ? -1 : 1) };
     });
     if (changes.changes.empty)
         return false;
@@ -1083,8 +1080,8 @@ function skipAtomic(target, pos, forward) {
             });
     return pos;
 }
-const deleteByChar = (target, forward) => deleteBy(target, pos => {
-    let { state } = target, line = state.doc.lineAt(pos), before, targetPos;
+const deleteByChar = (target, forward) => deleteBy(target, range => {
+    let pos = range.from, { state } = target, line = state.doc.lineAt(pos), before, targetPos;
     if (!forward && pos > line.from && pos < line.from + 200 &&
         !/[^ \t]/.test(before = line.text.slice(0, pos - line.from))) {
         if (before[before.length - 1] == "\t")
@@ -1098,6 +1095,8 @@ const deleteByChar = (target, forward) => deleteBy(target, pos => {
         targetPos = findClusterBreak(line.text, pos - line.from, forward, forward) + line.from;
         if (targetPos == pos && line.number != (forward ? state.doc.lines : 1))
             targetPos += forward ? 1 : -1;
+        else if (!forward && /[\ufe00-\ufe0f]/.test(line.text.slice(targetPos - line.from, pos - line.from)))
+            targetPos = findClusterBreak(line.text, targetPos - line.from, false, false) + line.from;
     }
     return targetPos;
 });
@@ -1110,12 +1109,12 @@ const deleteCharBackward = view => deleteByChar(view, false);
 Delete the selection or the character after the cursor.
 */
 const deleteCharForward = view => deleteByChar(view, true);
-const deleteByGroup = (target, forward) => deleteBy(target, start => {
-    let pos = start, { state } = target, line = state.doc.lineAt(pos);
+const deleteByGroup = (target, forward) => deleteBy(target, range => {
+    let pos = range.head, { state } = target, line = state.doc.lineAt(pos);
     let categorize = state.charCategorizer(pos);
     for (let cat = null;;) {
         if (pos == (forward ? line.to : line.from)) {
-            if (pos == start && line.number != (forward ? state.doc.lines : 1))
+            if (pos == range.head && line.number != (forward ? state.doc.lines : 1))
                 pos += forward ? 1 : -1;
             break;
         }
@@ -1124,7 +1123,7 @@ const deleteByGroup = (target, forward) => deleteBy(target, start => {
         let nextCat = categorize(nextChar);
         if (cat != null && nextCat != cat)
             break;
-        if (nextChar != " " || pos != start)
+        if (nextChar != " " || pos != range.head)
             cat = nextCat;
         pos = next;
     }
@@ -1145,18 +1144,34 @@ Delete the selection, or, if it is a cursor selection, delete to
 the end of the line. If the cursor is directly at the end of the
 line, delete the line break after it.
 */
-const deleteToLineEnd = view => deleteBy(view, pos => {
-    let lineEnd = view.lineBlockAt(pos).to;
-    return pos < lineEnd ? lineEnd : Math.min(view.state.doc.length, pos + 1);
+const deleteToLineEnd = view => deleteBy(view, range => {
+    let lineEnd = view.lineBlockAt(range.head).to;
+    return range.head < lineEnd ? lineEnd : Math.min(view.state.doc.length, range.head + 1);
 });
 /**
 Delete the selection, or, if it is a cursor selection, delete to
 the start of the line. If the cursor is directly at the start of the
 line, delete the line break before it.
 */
-const deleteToLineStart = view => deleteBy(view, pos => {
-    let lineStart = view.lineBlockAt(pos).from;
-    return pos > lineStart ? lineStart : Math.max(0, pos - 1);
+const deleteToLineStart = view => deleteBy(view, range => {
+    let lineStart = view.lineBlockAt(range.head).from;
+    return range.head > lineStart ? lineStart : Math.max(0, range.head - 1);
+});
+/**
+Delete the selection, or, if it is a cursor selection, delete to
+the start of the line or the next line wrap before the cursor.
+*/
+const deleteLineBoundaryBackward = view => deleteBy(view, range => {
+    let lineStart = view.moveToLineBoundary(range, false).head;
+    return range.head > lineStart ? lineStart : Math.max(0, range.head - 1);
+});
+/**
+Delete the selection, or, if it is a cursor selection, delete to
+the end of the line or the next line wrap after the cursor.
+*/
+const deleteLineBoundaryForward = view => deleteBy(view, range => {
+    let lineStart = view.moveToLineBoundary(range, true).head;
+    return range.head < lineStart ? lineStart : Math.min(view.state.doc.length, range.head + 1);
 });
 /**
 Delete all whitespace directly before a line end from the
@@ -1527,8 +1542,8 @@ property changed to `mac`.)
  - Delete: [`deleteCharForward`](https://codemirror.net/6/docs/ref/#commands.deleteCharForward)
  - Ctrl-Backspace (Alt-Backspace on macOS): [`deleteGroupBackward`](https://codemirror.net/6/docs/ref/#commands.deleteGroupBackward)
  - Ctrl-Delete (Alt-Delete on macOS): [`deleteGroupForward`](https://codemirror.net/6/docs/ref/#commands.deleteGroupForward)
- - Cmd-Backspace (macOS): [`deleteToLineStart`](https://codemirror.net/6/docs/ref/#commands.deleteToLineStart).
- - Cmd-Delete (macOS): [`deleteToLineEnd`](https://codemirror.net/6/docs/ref/#commands.deleteToLineEnd).
+ - Cmd-Backspace (macOS): [`deleteLineBoundaryBackward`](https://codemirror.net/6/docs/ref/#commands.deleteLineBoundaryBackward).
+ - Cmd-Delete (macOS): [`deleteLineBoundaryForward`](https://codemirror.net/6/docs/ref/#commands.deleteLineBoundaryForward).
 */
 const standardKeymap = /*@__PURE__*/[
     { key: "ArrowLeft", run: cursorCharLeft, shift: selectCharLeft, preventDefault: true },
@@ -1555,8 +1570,8 @@ const standardKeymap = /*@__PURE__*/[
     { key: "Delete", run: deleteCharForward },
     { key: "Mod-Backspace", mac: "Alt-Backspace", run: deleteGroupBackward },
     { key: "Mod-Delete", mac: "Alt-Delete", run: deleteGroupForward },
-    { mac: "Mod-Backspace", run: deleteToLineStart },
-    { mac: "Mod-Delete", run: deleteToLineEnd }
+    { mac: "Mod-Backspace", run: deleteLineBoundaryBackward },
+    { mac: "Mod-Delete", run: deleteLineBoundaryForward }
 ].concat(/*@__PURE__*/emacsStyleKeymap.map(b => ({ mac: b.key, run: b.run, shift: b.shift })));
 /**
 The default keymap. Includes all bindings from
@@ -1607,4 +1622,4 @@ this.
 */
 const indentWithTab = { key: "Tab", run: indentMore, shift: indentLess };
 
-export { blockComment, blockUncomment, copyLineDown, copyLineUp, cursorCharBackward, cursorCharForward, cursorCharLeft, cursorCharRight, cursorDocEnd, cursorDocStart, cursorGroupBackward, cursorGroupForward, cursorGroupLeft, cursorGroupRight, cursorLineBoundaryBackward, cursorLineBoundaryForward, cursorLineBoundaryLeft, cursorLineBoundaryRight, cursorLineDown, cursorLineEnd, cursorLineStart, cursorLineUp, cursorMatchingBracket, cursorPageDown, cursorPageUp, cursorSubwordBackward, cursorSubwordForward, cursorSyntaxLeft, cursorSyntaxRight, defaultKeymap, deleteCharBackward, deleteCharForward, deleteGroupBackward, deleteGroupForward, deleteLine, deleteToLineEnd, deleteToLineStart, deleteTrailingWhitespace, emacsStyleKeymap, history, historyField, historyKeymap, indentLess, indentMore, indentSelection, indentWithTab, insertBlankLine, insertNewline, insertNewlineAndIndent, insertTab, invertedEffects, isolateHistory, lineComment, lineUncomment, moveLineDown, moveLineUp, redo, redoDepth, redoSelection, selectAll, selectCharBackward, selectCharForward, selectCharLeft, selectCharRight, selectDocEnd, selectDocStart, selectGroupBackward, selectGroupForward, selectGroupLeft, selectGroupRight, selectLine, selectLineBoundaryBackward, selectLineBoundaryForward, selectLineBoundaryLeft, selectLineBoundaryRight, selectLineDown, selectLineEnd, selectLineStart, selectLineUp, selectMatchingBracket, selectPageDown, selectPageUp, selectParentSyntax, selectSubwordBackward, selectSubwordForward, selectSyntaxLeft, selectSyntaxRight, simplifySelection, splitLine, standardKeymap, toggleBlockComment, toggleBlockCommentByLine, toggleComment, toggleLineComment, transposeChars, undo, undoDepth, undoSelection };
+export { blockComment, blockUncomment, copyLineDown, copyLineUp, cursorCharBackward, cursorCharForward, cursorCharLeft, cursorCharRight, cursorDocEnd, cursorDocStart, cursorGroupBackward, cursorGroupForward, cursorGroupLeft, cursorGroupRight, cursorLineBoundaryBackward, cursorLineBoundaryForward, cursorLineBoundaryLeft, cursorLineBoundaryRight, cursorLineDown, cursorLineEnd, cursorLineStart, cursorLineUp, cursorMatchingBracket, cursorPageDown, cursorPageUp, cursorSubwordBackward, cursorSubwordForward, cursorSyntaxLeft, cursorSyntaxRight, defaultKeymap, deleteCharBackward, deleteCharForward, deleteGroupBackward, deleteGroupForward, deleteLine, deleteLineBoundaryBackward, deleteLineBoundaryForward, deleteToLineEnd, deleteToLineStart, deleteTrailingWhitespace, emacsStyleKeymap, history, historyField, historyKeymap, indentLess, indentMore, indentSelection, indentWithTab, insertBlankLine, insertNewline, insertNewlineAndIndent, insertTab, invertedEffects, isolateHistory, lineComment, lineUncomment, moveLineDown, moveLineUp, redo, redoDepth, redoSelection, selectAll, selectCharBackward, selectCharForward, selectCharLeft, selectCharRight, selectDocEnd, selectDocStart, selectGroupBackward, selectGroupForward, selectGroupLeft, selectGroupRight, selectLine, selectLineBoundaryBackward, selectLineBoundaryForward, selectLineBoundaryLeft, selectLineBoundaryRight, selectLineDown, selectLineEnd, selectLineStart, selectLineUp, selectMatchingBracket, selectPageDown, selectPageUp, selectParentSyntax, selectSubwordBackward, selectSubwordForward, selectSyntaxLeft, selectSyntaxRight, simplifySelection, splitLine, standardKeymap, toggleBlockComment, toggleBlockCommentByLine, toggleComment, toggleLineComment, transposeChars, undo, undoDepth, undoSelection };

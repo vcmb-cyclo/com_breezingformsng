@@ -3,13 +3,15 @@
  * @package     ContentBuilder
  * @author      Markus Bopp
  * @link        https://www.crosstec.org
+ * @copyright   (C) 2024 by XDA+GIL
  * @license     GNU/GPL
 */
 
 // No direct access
 defined('_JEXEC') or die('Restricted access');
+use Joomla\CMS\Table\Table;
 
-class TableCbuser extends JTable
+class TableCbuser extends Table
 {
     public $id = 0;
     public $userid = 0;

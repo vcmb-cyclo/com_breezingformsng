@@ -6,13 +6,12 @@
  * @license     GNU/GPL
 */
 
-use Joomla\CMS\Factory;
-use Joomla\Database\DatabaseInterface;
-
 // No direct access
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
-
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+use Joomla\CMS\Language\Text;
 
 if( !defined( 'DS' ) ){
     define('DS', DIRECTORY_SEPARATOR);
@@ -36,15 +35,13 @@ if(!function_exists('cb_b64dec')){
     }
 }
 
-if( ( CBRequest::getCmd('controller','') == 'elementoptions' || CBRequest::getCmd('controller','') == 'storages' || CBRequest::getCmd('controller','') == 'forms' || CBRequest::getCmd('controller','') == 'users' ) && !Factory::getUser()->authorise('contentbuilder.manage', 'com_contentbuilder') ){
-
-	Factory::getApplication()->enqueueMessage(JText::_('JERROR_ALERTNOAUTHOR'), 'warning');
-
+if( ( CBRequest::getCmd('controller','') == 'elementoptions' || CBRequest::getCmd('controller','') == 'storages' || CBRequest::getCmd('controller','') == 'forms' || CBRequest::getCmd('controller','') == 'users' ) && !Factory::getApplication()->getIdentity()->authorise('contentbuilder.manage', 'com_contentbuilder') ){
+	Factory::getApplication()->enqueueMessage(Text::_('JERROR_ALERTNOAUTHOR'), 'warning');
 }
 
-if ( !( CBRequest::getCmd('controller','') == 'elementoptions' || CBRequest::getCmd('controller','') == 'storages' || CBRequest::getCmd('controller','') == 'forms' || CBRequest::getCmd('controller','') == 'users' ) && !Factory::getUser()->authorise('contentbuilder.admin', 'com_contentbuilder'))
+if ( !( CBRequest::getCmd('controller','') == 'elementoptions' || CBRequest::getCmd('controller','') == 'storages' || CBRequest::getCmd('controller','') == 'forms' || CBRequest::getCmd('controller','') == 'users' ) && !Factory::getApplication()->getIdentity()->authorise('contentbuilder.admin', 'com_contentbuilder'))
 {
-	Factory::getApplication()->enqueueMessage(JText::_('JERROR_ALERTNOAUTHOR'), 'warning');
+	Factory::getApplication()->enqueueMessage(Text::_('JERROR_ALERTNOAUTHOR'), 'warning');
 }
 
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');

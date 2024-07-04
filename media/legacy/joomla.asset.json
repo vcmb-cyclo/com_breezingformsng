@@ -13,18 +13,6 @@
       ],
       "uri": "legacy/jquery-noconflict.min.js",
       "version": "504da4"
-    },
-    {
-      "name": "joomla.treeselectmenu",
-      "type": "script",
-      "dependencies": [
-        "jquery"
-      ],
-      "uri": "legacy/treeselectmenu.min.js",
-      "attributes": {
-        "defer": true
-      },
-      "version": "c80ebd"
     }
   ]
 }

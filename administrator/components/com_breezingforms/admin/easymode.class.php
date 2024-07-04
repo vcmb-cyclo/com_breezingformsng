@@ -8,6 +8,9 @@
 **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 class EasyMode{
 	
 	/**
@@ -16,7 +19,7 @@ class EasyMode{
 	private $db = null;
 	
 	function __construct(){
-		$this->db = BFFactory::getDbo();
+		$this->db = Factory::getContainer()->get(DatabaseInterface::class);
 	}
 	
 	public function save($form, $formName, $formTitle, array $formOptions, $templateCode, array $areas, $pages = 1){
@@ -56,7 +59,7 @@ class EasyMode{
 						)"
 			);
 			
-			$this->db->query();
+			$this->db->execute();
 			$form = $this->db->insertid();
 			
 		} else {
@@ -75,7 +78,7 @@ class EasyMode{
 						"
 			);
 			
-			$this->db->query();
+			$this->db->execute();
 		}
 
 		$notRemoveIds = '';
@@ -183,7 +186,7 @@ class EasyMode{
 							)"
 					);
 					
-					$this->db->query();
+					$this->db->execute();
 					$elementId = $this->db->insertid();
 					$areas[$i]['elements'][$elementCount]['dbId'] = $elementId;
 					
@@ -249,7 +252,7 @@ class EasyMode{
 								id = ".$this->db->Quote($element['dbId'])."
 							"
 					);
-					$this->db->query();
+					$this->db->execute();
 					$elementId = $element['dbId'];
 				}
 				
@@ -276,10 +279,10 @@ class EasyMode{
 		
 		if(strlen($notRemoveIds) != 0){
 			$this->db->setQuery("Delete From #__facileforms_elements Where " . $notRemoveIds . " form = ".$this->db->Quote($form)." ");
-			$this->db->query();
+			$this->db->execute();
 		} else {
 			$this->db->setQuery("Delete From #__facileforms_elements Where form = ".$this->db->Quote($form)." ");
-			$this->db->query();
+			$this->db->execute();
 		}
 		
 		$this->db->setQuery(
@@ -293,7 +296,7 @@ class EasyMode{
 						"
 			);
 			
-		$this->db->query();
+		$this->db->execute();
 		
 		return $form;
 	}

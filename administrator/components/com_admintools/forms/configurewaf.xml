@@ -53,11 +53,17 @@
         />
 
         <field
-                name="adminpw_warning"
-                type="note"
-                description="COM_ADMINTOOLS_CONFIGUREWAF_LBL_OPT_ADMINPW_TIP_LONG"
-                class="alert alert-warning w-100"
-        />
+                name="adminpw_action"
+                type="list"
+                label="COM_ADMINTOOLS_CONFIGUREWAF_LBL_ADMINPW_ACTION"
+                description="COM_ADMINTOOLS_CONFIGUREWAF_LBL_ADMINPW_ACTION_TIP"
+                default="redirect"
+                validate="options"
+                showon="adminpw!:"
+        >
+            <option value="redirect">COM_ADMINTOOLS_CONFIGUREWAF_LBL_ADMINPW_ACTION_REDIRECT</option>
+            <option value="block">COM_ADMINTOOLS_CONFIGUREWAF_LBL_ADMINPW_ACTION_BLOCK</option>
+        </field>
 
         <field
                 name="adminpw_cookie"
@@ -776,6 +782,7 @@
                 label="COM_ADMINTOOLS_CONFIGUREWAF_LBL_NOPWONWEBAUTHN"
                 description="COM_ADMINTOOLS_CONFIGUREWAF_LBL_NOPWONWEBAUTHN_TIP"
                 default="0"
+                validate="options"
         >
             <option value="0">COM_ADMINTOOLS_CONFIGUREWAF_LBL_NOPWONWEBAUTHN_OPT_ALLOWED</option>
             <option value="5">COM_ADMINTOOLS_CONFIGUREWAF_LBL_NOPWONWEBAUTHN_OPT_USERDECIDES</option>
@@ -940,6 +947,7 @@
                 max="255"
                 step="1"
                 showon="httpblenable:1"
+                validate="number"
         />
 
         <field
@@ -952,6 +960,7 @@
                 max="3650"
                 step="1"
                 showon="httpblenable:1"
+                validate="number"
         />
 
         <field
@@ -995,6 +1004,13 @@
                         required="true"
                         recursive="true"
                 />
+                <field
+                        name="description"
+                        type="text"
+                        label="COM_ADMINTOOLS_CONFIGUREWAF_LBL_COMMON_DESCRIPTION"
+                        required="false"
+                        recursive="true"
+                />
             </form>
         </field>
 
@@ -1017,6 +1033,13 @@
                         type="text"
                         label="COM_ADMINTOOLS_CONFIGUREWAF_LBL_COMMON_DOMAIN"
                         required="true"
+                        recursive="true"
+                />
+                <field
+                        name="description"
+                        type="text"
+                        label="COM_ADMINTOOLS_CONFIGUREWAF_LBL_COMMON_DESCRIPTION"
+                        required="false"
                         recursive="true"
                 />
             </form>
@@ -1052,6 +1075,7 @@
                 max="100"
                 step="1"
                 showon="tsrenable:1"
+                validate="number"
         />
 
         <field
@@ -1061,9 +1085,10 @@
                 description="COM_ADMINTOOLS_CONFIGUREWAF_LBL_TSRNUMFREQ_TIP"
                 default="10"
                 min="1"
-                max="100000"
+                max="40000"
                 step="1"
                 showon="tsrenable:1"
+                validate="number"
         />
 
         <field
@@ -1091,6 +1116,7 @@
                 max="100000"
                 step="1"
                 showon="tsrenable:1"
+                validate="number"
         />
 
         <field
@@ -1132,6 +1158,7 @@
                 max="1000"
                 step="1"
                 showon="tsrenable:1[AND]permaban:1"
+                validate="number"
         />
 
         <field
@@ -1165,6 +1192,7 @@
                 label="COM_ADMINTOOLS_CONFIGUREWAF_LBL_OPT_EMAILPHPEXCEPTIONS"
                 description="COM_ADMINTOOLS_CONFIGUREWAF_LBL_OPT_EMAILPHPEXCEPTIONS_TIP"
                 default=""
+                validate="email"
         />
 
         <field
@@ -1214,6 +1242,7 @@
                 multiple="true"
                 default="ipbl"
                 showon="logbreaches:1"
+                validate="options"
         >
             <option value="404shield">COM_ADMINTOOLS_LOG_LBL_REASON_404SHIELD</option>
             <option value="admindir">COM_ADMINTOOLS_LOG_LBL_REASON_ADMINDIR</option>
@@ -1273,6 +1302,7 @@
                 label="COM_ADMINTOOLS_CONFIGUREWAF_LBL_OPT_EMAILBREACHES"
                 description="COM_ADMINTOOLS_CONFIGUREWAF_LBL_OPT_EMAILBREACHES_TIP"
                 default=""
+                validate="email"
         />
 
         <field
@@ -1283,6 +1313,7 @@
                 layout="joomla.form.field.list-fancy-select"
                 multiple="true"
                 default="ipbl"
+                validate="options"
         >
             <option value="404shield">COM_ADMINTOOLS_LOG_LBL_REASON_404SHIELD</option>
             <option value="admindir">COM_ADMINTOOLS_LOG_LBL_REASON_ADMINDIR</option>
@@ -1319,6 +1350,7 @@
                 label="COM_ADMINTOOLS_CONFIGUREWAF_LBL_OPT_EMAILADMINLOGIN"
                 description="COM_ADMINTOOLS_CONFIGUREWAF_LBL_OPT_EMAILADMINLOGIN_TIP"
                 default=""
+                validate="email"
         />
 
         <field
@@ -1327,6 +1359,7 @@
                 label="COM_ADMINTOOLS_CONFIGUREWAF_LBL_OPT_EMAILADMINFAILEDLOGIN"
                 description="COM_ADMINTOOLS_CONFIGUREWAF_LBL_OPT_EMAILADMINFAILEDLOGIN_TIP"
                 default=""
+                validate="email"
         />
 
     </fieldset>

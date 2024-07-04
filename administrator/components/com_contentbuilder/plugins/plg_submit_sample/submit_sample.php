@@ -3,15 +3,16 @@
  * @package     ContentBuilder
  * @author      Markus Bopp
  * @link        https://www.crosstec.org
+ * @copyright   Copyright (C) 2024 by XDA+GIL
  * @license     GNU/GPL
 */
 
 // no direct access
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
-jimport( 'joomla.plugin.plugin' );
+use Joomla\CMS\Plugin\CMSPlugin;
 
-class plgContentbuilder_submitSubmit_sample extends JPlugin
+class plgContentbuilder_submitSubmit_sample extends CMSPlugin
 {
         function __construct( &$subject, $params )
         {

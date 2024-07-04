@@ -8,14 +8,14 @@
     {
       "name": "com_modules.admin-module-edit",
       "type": "script",
-      "uri": "com_modules/admin-module-edit.min.js",
+      "uri": "",
       "dependencies": [
         "core"
       ],
       "attributes": {
         "type": "module"
       },
-      "version": "3209d6"
+      "deprecated": true
     },
     {
       "name": "com_modules.admin-module-edit-assignment",
@@ -39,7 +39,7 @@
       "attributes": {
         "type": "module"
       },
-      "version": "b297ae"
+      "version": "e6aea4"
     },
     {
       "name": "com_modules.admin-modules-modal",
@@ -65,7 +65,7 @@
       "attributes": {
         "type": "module"
       },
-      "version": "e4f906"
+      "version": "4dd1dc"
     }
   ]
 }

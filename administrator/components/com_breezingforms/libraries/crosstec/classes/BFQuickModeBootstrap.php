@@ -1,22 +1,30 @@
 <?php
 /**
  * BreezingForms - A Joomla Forms Application
- * @version 1.9
- * @package BreezingForms
+ * @version   5.0
+ * @package   BreezingForms
  * @copyright (C) 2008-2020 by Markus Bopp
- * @license Released under the terms of the GNU General Public License
+ * @copyright (C) 2024 by XDA+GIL
+ * @license   Released under the terms of the GNU General Public License
  * */
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Editor\Editor;
+use Joomla\CMS\Component\ComponentHelper;
 
 jimport('joomla.filesystem.file');
 
 require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Decoder.php');
 require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Encoder.php');
 
-use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\Editor\Editor;
 
-class BFQuickModeBootstrap {
+
+class BFQuickModeBootstrap
+{
 
     /**
      * @var HTML_facileFormsProcessor
@@ -45,7 +53,8 @@ class BFQuickModeBootstrap {
     private $bsClasses = array();
     private $bsClassPrefix = '';
 
-    function bsClass($key) {
+    function bsClass($key)
+    {
 
         if ($this->bsVersion == '') {
 
@@ -56,23 +65,19 @@ class BFQuickModeBootstrap {
 
         return $this->bsClasses[$ver][$key];
     }
-    
-    public static function getEditorContent($editor) {
+
+    public static function getEditorContent($editor)
+    {
 
         return 'Joomla.editors.instances[' . json_encode($editor) . '].getValue()';
     }
 
-    function __construct(HTML_facileFormsProcessor $p) {
+    function __construct(HTML_facileFormsProcessor $p)
+    {
+        $default = ComponentHelper::getParams('com_languages')->get('site');
+        $this->language_tag = Factory::getApplication()->getLanguage()->getTag() != $default ? Factory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
 
-        jimport('joomla.version');
-        $version = new JVersion();
-
-        if (version_compare($version->getShortVersion(), '2.5', '>=')) {
-            $default = JComponentHelper::getParams('com_languages')->get('site');
-            $this->language_tag = JFactory::getApplication()->getLanguage()->getTag() != $default ? JFactory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
-        }
-
-        JFactory::getDocument()->addScriptDeclaration('<!--');
+        Factory::getApplication()->getDocument()->addScriptDeclaration('<!--');
 
         $this->p = $p;
         $this->dataObject = Zend_Json::decode(bf_b64dec($this->p->formrow->template_code));
@@ -153,7 +158,7 @@ class BFQuickModeBootstrap {
             /* translatables */
             if (isset($this->rootMdata['title_translation' . $this->language_tag]) && $this->rootMdata['title_translation' . $this->language_tag] != '') {
                 $this->rootMdata['title'] = $this->rootMdata['title_translation' . $this->language_tag];
-                JFactory::getDocument()->setTitle($this->rootMdata['title']);
+                Factory::getApplication()->getDocument()->setTitle($this->rootMdata['title']);
             }
             /* translatables end */
         }
@@ -174,17 +179,18 @@ class BFQuickModeBootstrap {
             $this->bsVersion = '5';
         }
 
-        $this->cancelImagePath = JURI::root(true) . '/components/com_breezingforms/themes/quickmode-bootstrap' . $this->bsVersion . '/cancel.png';
-        $this->uploadImagePath = JURI::root(true) . '/components/com_breezingforms/themes/quickmode-bootstrap' . $this->bsVersion . '/upload.png';
+        $this->cancelImagePath = Uri::root(true) . '/components/com_breezingforms/themes/quickmode-bootstrap' . $this->bsVersion . '/cancel.png';
+        $this->uploadImagePath = Uri::root(true) . '/components/com_breezingforms/themes/quickmode-bootstrap' . $this->bsVersion . '/upload.png';
         if (isset($this->rootMdata['themebootstrap']) && @file_exists(JPATH_SITE . '/media/breezingforms/themes-bootstrap' . $this->bsVersion . '/' . $this->rootMdata['themebootstrap'] . '/images/cancel.png')) {
-            $this->cancelImagePath = JURI::root(true) . '/media/breezingforms/themes-bootstrap' . $this->bsVersion . '/' . $this->rootMdata['themebootstrap'] . '/images/cancel.png';
+            $this->cancelImagePath = Uri::root(true) . '/media/breezingforms/themes-bootstrap' . $this->bsVersion . '/' . $this->rootMdata['themebootstrap'] . '/images/cancel.png';
         }
         if (isset($this->rootMdata['themebootstrap']) && @file_exists(JPATH_SITE . '/media/breezingforms/themes-bootstrap' . $this->bsVersion . '/' . $this->rootMdata['themebootstrap'] . '/images/upload.png')) {
-            $this->uploadImagePath = JURI::root(true) . '/media/breezingforms/themes-bootstrap' . $this->bsVersion . '/' . $this->rootMdata['themebootstrap'] . '/images/upload.png';
+            $this->uploadImagePath = Uri::root(true) . '/media/breezingforms/themes-bootstrap' . $this->bsVersion . '/' . $this->rootMdata['themebootstrap'] . '/images/upload.png';
         }
     }
 
-    public function parseToggleFields($code) {
+    public function parseToggleFields($code)
+    {
         /*
           example codes:
 
@@ -223,7 +229,8 @@ class BFQuickModeBootstrap {
         return "[" . rtrim($parsed, ",") . "]";
     }
 
-    public function render() {
+    public function render()
+    {
 
         if (isset($this->rootMdata['themebootstrapUseProgress']) && $this->rootMdata['themebootstrapUseProgress']) {
             echo '<div class="' . $this->bsClass('progress') . '"><div id="bfProgressBar" class="' . $this->bsClass('bar') . '"></div></div>
@@ -251,26 +258,26 @@ class BFQuickModeBootstrap {
         $this->headers();
 
         if ($this->hasResponsiveDatePicker) {
-            JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/picker.js');
-            JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/picker.date.js');
+            Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/picker.js');
+            Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/picker.date.js');
 
-            $lang = JFactory::getApplication()->getLanguage()->getTag();
+            $lang = Factory::getApplication()->getLanguage()->getTag();
             $lang = explode('-', $lang);
             $lang = strtolower($lang[0]);
-            if (JFile::exists(JPATH_SITE . '/components/com_breezingforms/libraries/jquery/pickadate/translations/' . $lang . '.js')) {
-                JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/translations/' . $lang . '.js');
+            if (file_exists(JPATH_SITE . '/components/com_breezingforms/libraries/jquery/pickadate/translations/' . $lang . '.js')) {
+                Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/translations/' . $lang . '.js');
             }
 
-            JFactory::getDocument()->addStyleSheet(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/themes/default.css');
-            JFactory::getDocument()->addStyleSheet(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/themes/default.date.css');
+            Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/themes/default.css');
+            Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/themes/default.date.css');
         }
 
         // we must make sure that everything mootools related is included after moxie and plupload
-        if (isset(JFactory::getDocument()->_scripts)) {
-            foreach (JFactory::getDocument()->_scripts As $script_name => $script_value) {
+        if (isset(Factory::getApplication()->getDocument()->_scripts)) {
+            foreach (Factory::getApplication()->getDocument()->_scripts as $script_name => $script_value) {
                 if (basename($script_name) != 'moxie.js' && basename($script_name) != 'plupload.js' && basename($script_name) != 'calendar.js' && basename($script_name) != 'calendar-setup.js') {
-                    unset(JFactory::getDocument()->_scripts[$script_name]);
-                    JFactory::getDocument()->_scripts[$script_name] = $script_value;
+                    unset(Factory::getApplication()->getDocument()->_scripts[$script_name]);
+                    Factory::getApplication()->getDocument()->_scripts[$script_name] = $script_value;
                 }
             }
         }
@@ -284,7 +291,7 @@ class BFQuickModeBootstrap {
                 $htmltextarea = $this->htmltextareas[$i];
                 $dbId = $this->htmltextareasDbIds[$i];
                 $htmltextarea_out .= 'JQuery("[name=\"' . $htmltextarea . '\"]").val(JQuery.trim(JQuery("[name=\"' . $htmltextarea . '\"]").val())+" ");' . "\n";
-                $htmltextarea_out .= 'bf_htmltextareas.push(' . $this->getEditorContent($dbId)  . ')' . "\n";
+                $htmltextarea_out .= 'bf_htmltextareas.push(' . $this->getEditorContent($dbId) . ')' . "\n";
                 $htmltextarea_out .= 'bf_htmltextareanames.push("' . $htmltextarea . '")' . "\n";
             }
             echo '<script type="text/javascript">
@@ -300,12 +307,12 @@ class BFQuickModeBootstrap {
         }
 
         if ($this->hasFlashUpload) {
-            $tickets = JFactory::getSession()->get('bfFlashUploadTickets', array());
+            $tickets = Factory::getApplication()->getSession()->get('bfFlashUploadTickets', array());
             $tickets[$this->flashUploadTicket] = array(); // stores file info for later processing
-            JFactory::getSession()->set('bfFlashUploadTickets', $tickets);
+            Factory::getApplication()->getSession()->set('bfFlashUploadTickets', $tickets);
             echo '<input type="hidden" name="bfFlashUploadTicket" value="' . $this->flashUploadTicket . '"/>' . "\n";
-            JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/center.js');
-            JFactory::getDocument()->addScriptDeclaration('
+            Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/center.js');
+            Factory::getApplication()->getDocument()->addScriptDeclaration('
                         var bfUploaders = [];
                         var bfUploaderErrorElements = [];
 			var bfFlashUploadInterval = null;
@@ -376,10 +383,11 @@ class BFQuickModeBootstrap {
             echo "<div style=\"visibility:hidden;display:none;\" id=\"bfSubmitMessage\">" . BFText::_('COM_BREEZINGFORMS_SUBMIT_MESSAGE') . "</div>";
         }
         echo '<noscript>Please turn on javascript to submit your data. Thank you!</noscript>' . "\n";
-        JFactory::getDocument()->addScriptDeclaration('//-->');
+        Factory::getApplication()->getDocument()->addScriptDeclaration('//-->');
     }
 
-    public function process(&$dataObject, $parent = null, $parentPage = null, $index = 0, $childrenLength = 0, $parentFull = null) {
+    public function process(&$dataObject, $parent = null, $parentPage = null, $index = 0, $childrenLength = 0, $parentFull = null)
+    {
         if (isset($dataObject['attributes']) && isset($dataObject['properties'])) {
 
             HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
@@ -402,8 +410,8 @@ class BFQuickModeBootstrap {
 
             if ($parentFull != null && isset($parentFull['children'])) {
                 $parentFullChildrenLength = count($parentFull['children']);
-                foreach ($parentFull['children'] As $child) {
-                    if (!isset($child['properties']) || ( isset($child['properties']) && isset($child['properties']['bfType']) && $child['properties']['bfType'] == 'bfHidden' ) || (isset($child['properties']) && $child['properties']['type'] != 'element' && $child['properties']['type'] != 'section')) {
+                foreach ($parentFull['children'] as $child) {
+                    if (!isset($child['properties']) || (isset($child['properties']) && isset($child['properties']['bfType']) && $child['properties']['bfType'] == 'bfHidden') || (isset($child['properties']) && $child['properties']['type'] != 'element' && $child['properties']['type'] != 'section')) {
                         $reduce++;
                     }
                     //if(isset($child['properties']) && isset($child['properties']['off']) && $child['properties']['off'] && $child['properties']['type'] == 'section'){
@@ -415,15 +423,20 @@ class BFQuickModeBootstrap {
             $span = '';
             if (($parentFullChildrenLength - $reduce) > 0 && $parentInline) {
                 switch (12 / ($parentFullChildrenLength - $reduce)) {
-                    case 6: $span = ' ' . $this->bsClass('span6');
+                    case 6:
+                        $span = ' ' . $this->bsClass('span6');
                         break;
-                    case 4: $span = ' ' . $this->bsClass('span4');
+                    case 4:
+                        $span = ' ' . $this->bsClass('span4');
                         break;
-                    case 3: $span = ' ' . $this->bsClass('span3');
+                    case 3:
+                        $span = ' ' . $this->bsClass('span3');
                         break;
-                    case 2.4: $span = ' ' . $this->bsClass('span2');
+                    case 2.4:
+                        $span = ' ' . $this->bsClass('span2');
                         break;
-                    case 2: $span = ' ' . $this->bsClass('span2');
+                    case 2:
+                        $span = ' ' . $this->bsClass('span2');
                         break;
                 }
             }
@@ -463,22 +476,16 @@ class BFQuickModeBootstrap {
 
                     preg_match_all($regex, $introtext, $matches, PREG_SET_ORDER);
 
-                    jimport('joomla.version');
-                    $version = new JVersion();
+                    $document = Factory::getApplication()->getDocument();
+                    $renderer = $document->loadRenderer('modules');
+                    $options = array('style' => 'xhtml');
 
-                    if ($matches && version_compare($version->getShortVersion(), '1.6', '>=')) {
+                    foreach ($matches as $match) {
 
-                        $document = JFactory::getDocument();
-                        $renderer = $document->loadRenderer('modules');
-                        $options = array('style' => 'xhtml');
-
-                        foreach ($matches as $match) {
-
-                            $matcheslist = explode(',', $match[1]);
-                            $position = trim($matcheslist[0]);
-                            $output = $renderer->render($position, $options, null);
-                            $introtext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
-                        }
+                        $matcheslist = explode(',', $match[1]);
+                        $position = trim($matcheslist[0]);
+                        $output = $renderer->render($position, $options, null);
+                        $introtext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
                     }
 
                     echo $introtext . "\n";
@@ -534,12 +541,9 @@ class BFQuickModeBootstrap {
 
                     preg_match_all($regex, $introtext, $matches, PREG_SET_ORDER);
 
-                    jimport('joomla.version');
-                    $version = new JVersion();
+                    if ($matches) {
 
-                    if ($matches && version_compare($version->getShortVersion(), '1.6', '>=')) {
-
-                        $document = JFactory::getDocument();
+                        $document = Factory::getApplication()->getDocument();
                         $renderer = $document->loadRenderer('modules');
                         $options = array('style' => 'xhtml');
 
@@ -596,7 +600,7 @@ class BFQuickModeBootstrap {
                         $badge = str_replace('invisible_', '', trim($mdata['theme']));
                     }
 
-                    if (!( $mdata['bfType'] == 'bfReCaptcha' && isset($mdata['invisibleCaptcha']) && $mdata['invisibleCaptcha'] && $badge != 'inline')) {
+                    if (!($mdata['bfType'] == 'bfReCaptcha' && isset($mdata['invisibleCaptcha']) && $mdata['invisibleCaptcha'] && $badge != 'inline')) {
 
                         $maxlengthCounter = '';
                         if ($mdata['bfType'] == 'bfTextarea' && isset($mdata['maxlength']) && $mdata['maxlength'] > 0 && isset($mdata['showMaxlengthCounter']) && $mdata['showMaxlengthCounter']) {
@@ -616,18 +620,20 @@ class BFQuickModeBootstrap {
                         $tipClose = '';
                         $labelText = trim($mdata['label']) . str_replace("***", "\"", $maxlengthCounter);
                         if (trim($mdata['hint']) != '') {
-                            jimport('joomla.version');
-                            $version = new JVersion();
-                            if (version_compare($version->getShortVersion(), '3.0', '<') || ( version_compare($version->getShortVersion(), '3.0', '>=') && isset($this->rootMdata['joomlaHint']) && $this->rootMdata['joomlaHint'] )) {
-	                            HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
+                            if (isset($this->rootMdata['joomlaHint']) && $this->rootMdata['joomlaHint']) {
+                                HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
                                 $content = trim($mdata['hint']);
-                                $tipOpen = '<span title="' . addslashes(trim($mdata['label'])) . '::' . str_replace(array(
-                                            "\n",
-                                            "\r"
-                                                ), array(
-                                            "",
-                                            ""
-                                                ), htmlentities($content, ENT_QUOTES, 'UTF-8')) . '" class="editlinktip hasTooltip">';
+                                $tipOpen = '<span title="' . addslashes(trim($mdata['label'])) . '::' . str_replace(
+                                    array(
+                                        "\n",
+                                        "\r"
+                                    ),
+                                    array(
+                                        "",
+                                        ""
+                                    ),
+                                    htmlentities($content, ENT_QUOTES, 'UTF-8')
+                                ) . '" class="editlinktip hasTooltip">';
                                 $tipClose = '</span>';
                             } else {
                                 $content = trim($mdata['hint']);
@@ -636,7 +642,7 @@ class BFQuickModeBootstrap {
                                 if (count($explodeHint) > 1 && trim($explodeHint[0]) != '') {
                                     $content = trim($explodeHint[1]);
                                 }
-                                $tipOpen = '<span class="hasTooltip" title="' . JHtml::tooltipText($content) . '">';
+                                $tipOpen = '<span class="hasTooltip" title="' . HTMLHelper::tooltipText($content) . '">';
                                 $tipClose = '</span>';
                             }
                         }
@@ -646,16 +652,17 @@ class BFQuickModeBootstrap {
                         }
 
                         $for = '';
-                        if ($mdata['bfType'] == 'bfTextfield' ||
-                                $mdata['bfType'] == 'bfTextarea' ||
-                                $mdata['bfType'] == 'bfCheckbox' ||
-                                $mdata['bfType'] == 'bfCheckboxGroup' ||
-                                $mdata['bfType'] == 'bfCalendar' ||
-                                $mdata['bfType'] == 'bfCalendarResponsive' ||
-                                $mdata['bfType'] == 'bfSelect' ||
-                                $mdata['bfType'] == 'bfRadioGroup' ||
-                                $mdata['bfType'] == 'bfNumberInput' ||
-                                ( $mdata['bfType'] == 'bfFile' && ( (!isset($mdata['flashUploader']) && !isset($mdata['html5']) ) || ( isset($mdata['flashUploader']) && !$mdata['flashUploader'] ) && ( isset($mdata['html5']) && !$mdata['html5'] ) ) )
+                        if (
+                            $mdata['bfType'] == 'bfTextfield' ||
+                            $mdata['bfType'] == 'bfTextarea' ||
+                            $mdata['bfType'] == 'bfCheckbox' ||
+                            $mdata['bfType'] == 'bfCheckboxGroup' ||
+                            $mdata['bfType'] == 'bfCalendar' ||
+                            $mdata['bfType'] == 'bfCalendarResponsive' ||
+                            $mdata['bfType'] == 'bfSelect' ||
+                            $mdata['bfType'] == 'bfRadioGroup' ||
+                            $mdata['bfType'] == 'bfNumberInput' ||
+                            ($mdata['bfType'] == 'bfFile' && ((!isset($mdata['flashUploader']) && !isset($mdata['html5'])) || (isset($mdata['flashUploader']) && !$mdata['flashUploader']) && (isset($mdata['html5']) && !$mdata['html5'])))
                         ) {
                             $for = 'for="ff_elem' . $mdata['dbId'] . '"';
                         }
@@ -669,7 +676,7 @@ class BFQuickModeBootstrap {
                         if ($mdata['required']) {
                             $required = ' <i class="' . $this->bsClass('icon-asterisk') . '"></i> ' . "\n";
                         }
-                        $label = '<label class="' . $this->bsClass('control-label') . ( isset($this->rootMdata['themebootstrapLabelTop']) && $this->rootMdata['themebootstrapLabelTop'] ? ' bfLabelBlock' : '' ) . '" id="bfLabel' . $mdata['dbId'] . '" ' . $for . '>' . $tipOpen . str_replace("***", "\"", $labelText) . $tipClose . $required . '</label>' . "\n";
+                        $label = '<label class="' . $this->bsClass('control-label') . (isset($this->rootMdata['themebootstrapLabelTop']) && $this->rootMdata['themebootstrapLabelTop'] ? ' bfLabelBlock' : '') . '" id="bfLabel' . $mdata['dbId'] . '" ' . $for . '>' . $tipOpen . str_replace("***", "\"", $labelText) . $tipClose . $required . '</label>' . "\n";
                     }
                 }
 
@@ -687,8 +694,9 @@ class BFQuickModeBootstrap {
                     $row = $this->p->rows[$i];
                     if ($mdata['bfName'] == $row->name) {
 
-                        if (( isset($mdata['value']) || isset($mdata['list']) || isset($mdata['group'])) &&
-                                (
+                        if (
+                            (isset($mdata['value']) || isset($mdata['list']) || isset($mdata['group'])) &&
+                            (
                                 $mdata['bfType'] == 'bfTextfield' ||
                                 $mdata['bfType'] == 'bfTextarea' ||
                                 $mdata['bfType'] == 'bfCheckbox' ||
@@ -700,7 +708,7 @@ class BFQuickModeBootstrap {
                                 $mdata['bfType'] == 'bfCalendarResponsive' ||
                                 $mdata['bfType'] == 'bfSelect' ||
                                 $mdata['bfType'] == 'bfRadioGroup'
-                                )
+                            )
                         ) {
 
                             if (isset($mdata['value_translation' . $this->language_tag]) && $mdata['value_translation' . $this->language_tag] != '') {
@@ -1013,9 +1021,9 @@ class BFQuickModeBootstrap {
                         echo '<div class="' . $this->bsClass('form-group') . ' ' . $this->bsClass('other-form-group') . '">';
                         echo $label;
                         echo '<span class="' . $this->bsClass('nonform-control') . '">';
-                        if (( isset($mdata['flashUploader']) && $mdata['flashUploader'] ) || ( isset($mdata['html5']) && $mdata['html5'] )) {
+                        if ((isset($mdata['flashUploader']) && $mdata['flashUploader']) || (isset($mdata['html5']) && $mdata['html5'])) {
 
-                            $base = explode('/', JURI::base());
+                            $base = explode('/', Uri::base());
                             if (isset($base[count($base) - 2]) && $base[count($base) - 2] == 'administrator') {
                                 unset($base[count($base) - 2]);
                                 $base = array_merge($base);
@@ -1073,15 +1081,15 @@ class BFQuickModeBootstrap {
                                                                 var iOS = ( navigator.userAgent.match(/(iPad|iPhone|iPod)/i) ? true : false );
                                                                 var uploader = new plupload.Uploader({
                                                                         max_retries: 10,
-                                                                        multi_selection: " . ( isset($mdata['flashUploaderMulti']) && $mdata['flashUploaderMulti'] ? 'true' : 'false' ) . ",
+                                                                        multi_selection: " . (isset($mdata['flashUploaderMulti']) && $mdata['flashUploaderMulti'] ? 'true' : 'false') . ",
                                                                         unique_names: iOS,
                                                                         chunk_size: '100kb',
-                                                                        runtimes : '" . ( isset($mdata['html5']) && $mdata['html5'] ? 'html5,' : '' ) . ( isset($mdata['flashUploader']) && $mdata['flashUploader'] ? 'flash,' : '') . "html4',
+                                                                        runtimes : '" . (isset($mdata['html5']) && $mdata['html5'] ? 'html5,' : '') . (isset($mdata['flashUploader']) && $mdata['flashUploader'] ? 'flash,' : '') . "html4',
                                                                         browse_button : 'bfPickFiles" . $mdata['dbId'] . "',
                                                                         container: 'bfUploadContainer" . $mdata['dbId'] . "',
                                                                         file_data_name: 'Filedata',
                                                                         multipart_params: { form: " . $this->p->form . ", itemName : '" . $mdata['bfName'] . "', bfFlashUploadTicket: '" . $this->flashUploadTicket . "', option: 'com_breezingforms', format: 'html', flashUpload: 'true', Itemid: 0 },
-                                                                        url : '" . $base . (BFJoomlaConfig::get('config.sef') && !BFJoomlaConfig::get('config.sef_rewrite') ? 'index.php/' : '') . (BFRequest::getCmd('lang', '') && BFJoomlaConfig::get('config.sef') ? ( BFJoomlaConfig::get('config.sef_rewrite') ? 'index.php' : '' ) : 'index.php') . "',
+                                                                        url : '" . $base . (BFJoomlaConfig::get('config.sef') && !BFJoomlaConfig::get('config.sef_rewrite') ? 'index.php/' : '') . (BFRequest::getCmd('lang', '') && BFJoomlaConfig::get('config.sef') ? (BFJoomlaConfig::get('config.sef_rewrite') ? 'index.php' : '') : 'index.php') . "',
                                                                         flash_swf_url : '" . $base . "components/com_breezingforms/libraries/jquery/plupload/Moxie.swf',
                                                                         filters : [
                                                                                 {title : '" . addslashes(BFText::_('COM_BREEZINGFORMS_CHOOSE_FILE')) . "', extensions : '" . $exts . "'}
@@ -1127,7 +1135,7 @@ class BFQuickModeBootstrap {
                                                                                             bfUploaders_[i].start();
                                                                                         }
                                                                                         // re-enable button if there is none left
-                                                                                        if( " . ( isset($mdata['flashUploaderMulti']) && $mdata['flashUploaderMulti'] ? 'true' : 'false' ) . " == false ){
+                                                                                        if( " . (isset($mdata['flashUploaderMulti']) && $mdata['flashUploaderMulti'] ? 'true' : 'false') . " == false ){
                                                                                             var the_size = JQuery('#bfFlashFileQueue" . $mdata['dbId'] . " .bfFileQueueItem').size();
                                                                                             if( the_size == 0 ){
                                                                                                 JQuery('#bfPickFiles" . $mdata['dbId'] . "').prop('disabled',false);
@@ -1162,7 +1170,7 @@ class BFQuickModeBootstrap {
                                                                             }
                                                                         }
                                                                         // disable the button if no multi upload
-                                                                        if( " . ( isset($mdata['flashUploaderMulti']) && $mdata['flashUploaderMulti'] ? 'true' : 'false' ) . " == false ){
+                                                                        if( " . (isset($mdata['flashUploaderMulti']) && $mdata['flashUploaderMulti'] ? 'true' : 'false') . " == false ){
                                                                             var the_size = JQuery('#bfFlashFileQueue" . $mdata['dbId'] . " .bfFileQueueItem').size();
                                                                             if( the_size > 0 ){
                                                                                 JQuery('#bfPickFiles" . $mdata['dbId'] . "').prop('disabled',true);
@@ -1292,7 +1300,7 @@ class BFQuickModeBootstrap {
 
                                 $lang = BFRequest::getVar('lang', '');
 
-                                $getLangTag = JFactory::getApplication()->getLanguage()->getTag();
+                                $getLangTag = Factory::getApplication()->getLanguage()->getTag();
                                 $getLangSlug = explode('-', $getLangTag);
                                 $reCaptchaLang = 'hl=' . $getLangSlug[0];
 
@@ -1306,7 +1314,7 @@ class BFQuickModeBootstrap {
                                     $normal = 'normal';
                                     $size = json_encode($normal);
                                 }
-                                JFactory::getDocument()->addScript($http . '://www.google.com/recaptcha/api.js?' . $reCaptchaLang . '&onload=onloadBFNewRecaptchaCallback&render=explicit', $type = "text/javascript", array('data-usercentrics' => 'reCAPTCHA'));
+                                Factory::getApplication()->getDocument()->addScript($http . '://www.google.com/recaptcha/api.js?' . $reCaptchaLang . '&onload=onloadBFNewRecaptchaCallback&render=explicit', $type = "text/javascript", array('data-usercentrics' => 'reCAPTCHA'));
 
                                 echo '
                                                     <div style="display: inline-block !important; vertical-align: middle;">
@@ -1337,72 +1345,74 @@ class BFQuickModeBootstrap {
                                                     -->
                                                   </script>';
                             } else
-                            if (isset($mdata['invisibleCaptcha']) && $mdata['invisibleCaptcha']) {
+                                if (isset($mdata['invisibleCaptcha']) && $mdata['invisibleCaptcha']) {
 
-                                $http = 'https';
+                                    $http = 'https';
 
-                                $lang = BFRequest::getVar('lang', '');
-                                if ($lang != '') {
-                                    $lang = ',lang: ' . json_encode($lang) . '';
-                                }
+                                    $lang = BFRequest::getVar('lang', '');
+                                    if ($lang != '') {
+                                        $lang = ',lang: ' . json_encode($lang) . '';
+                                    }
 
-                                $callSubmit = 'ff_validate_submit(this, \'click\')';
-                                if ($this->hasFlashUpload) {
-                                    $callSubmit = 'if(typeof bfAjaxObject101 == \'undefined\' && typeof bfReCaptchaLoaded == \'undefined\'){bfDoFlashUpload()}else{ff_validate_submit(this, \'click\')}';
-                                }
+                                    $callSubmit = 'ff_validate_submit(this, \'click\')';
+                                    if ($this->hasFlashUpload) {
+                                        $callSubmit = 'if(typeof bfAjaxObject101 == \'undefined\' && typeof bfReCaptchaLoaded == \'undefined\'){bfDoFlashUpload()}else{ff_validate_submit(this, \'click\')}';
+                                    }
 
-                                $badge = str_replace('invisible_', '', trim($mdata['theme']));
+                                    $badge = str_replace('invisible_', '', trim($mdata['theme']));
 
-                                if ($badge == 'inline') {
-                                    ?>
-                                    <div style="display: inline-block !important; vertical-align: middle;">
-                                        <div class="<?php echo $this->bsClass('control-group'); ?>">
-                                            <div class="<?php echo $this->bsClass('controls') ?>">
+                                    if ($badge == 'inline') {
+                                        ?>
+                                                <div style="display: inline-block !important; vertical-align: middle;">
+                                                    <div class="<?php echo $this->bsClass('control-group'); ?>">
+                                                        <div class="<?php echo $this->bsClass('controls') ?>">
+                                                            <div id="bfInvisibleReCaptchaContainer"></div>
+                                                            <div id="bfInvisibleReCaptcha"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                        <?php
+                                    } else {
+                                        ?>
                                                 <div id="bfInvisibleReCaptchaContainer"></div>
                                                 <div id="bfInvisibleReCaptcha"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <?php
-                                } else {
+                                        <?php
+                                    }
                                     ?>
-                                    <div id="bfInvisibleReCaptchaContainer"></div>
-                                    <div id="bfInvisibleReCaptcha"></div>
+
+                                            <script data-usercentrics="reCAPTCHA" type="text/javascript">
+                                                bfInvisibleRecaptcha = true;
+                                                var onloadBFNewRecaptchaCallback = function () {
+                                                    grecaptcha.render('bfInvisibleReCaptchaContainer', {
+                                                        'sitekey': '<?php echo $mdata['pubkey'] ?>',
+                                                        'expired-callback': recaptchaExpiredCallback,
+                                                        'callback': recaptchaCheckedCallback,
+                                                        "badge": "<?php echo $badge == 'red' ? '' : $badge; ?>",
+                                                        'size': 'invisible'
+                                                    });
+                                                };
+
+                                                function recaptchaCheckedCallback(token) {
+                                                    if (token != '') {
+                                                        bfInvisibleRecaptcha = false;
+                                                    }
+                                                    if (typeof bf_htmltextareainit != 'undefined') {
+                                                        bf_htmltextareainit();
+                                                    }
+                                            <?php echo $callSubmit; ?>;
+                                                }
+                                                ;
+
+                                                function recaptchaExpiredCallback() {
+                                                    grecaptcha.reset();
+                                                }
+                                                ;
+                                            </script>
+                                            <script data-usercentrics="reCAPTCHA"
+                                                src="https://www.google.com/recaptcha/api.js?onload=onloadBFNewRecaptchaCallback&render=explicit" async
+                                                defer></script>
                                     <?php
                                 }
-                                ?>
-
-                                <script data-usercentrics="reCAPTCHA" type="text/javascript">
-                                    bfInvisibleRecaptcha = true;
-                                    var onloadBFNewRecaptchaCallback = function () {
-                                        grecaptcha.render('bfInvisibleReCaptchaContainer', {
-                                            'sitekey': '<?php echo $mdata['pubkey'] ?>',
-                                            'expired-callback': recaptchaExpiredCallback,
-                                            'callback': recaptchaCheckedCallback,
-                                            "badge": "<?php echo $badge == 'red' ? '' : $badge; ?>",
-                                            'size': 'invisible'
-                                        });
-                                    };
-
-                                    function recaptchaCheckedCallback(token) {
-                                        if (token != '') {
-                                            bfInvisibleRecaptcha = false;
-                                        }
-                                        if (typeof bf_htmltextareainit != 'undefined') {
-                                            bf_htmltextareainit();
-                                        }
-                                <?php echo $callSubmit; ?>;
-                                    }
-                                    ;
-
-                                    function recaptchaExpiredCallback() {
-                                        grecaptcha.reset();
-                                    }
-                                    ;
-                                </script>
-                                <script data-usercentrics="reCAPTCHA" src="https://www.google.com/recaptcha/api.js?onload=onloadBFNewRecaptchaCallback&render=explicit" async defer></script>
-                                <?php
-                            }
                         } else {
                             echo '<span class="bfCaptcha">' . "\n";
                             echo 'WARNING: No public key given for ReCaptcha element!';
@@ -1422,18 +1432,18 @@ class BFQuickModeBootstrap {
                         echo $label;
                         echo '<span class="' . $this->bsClass('nonform-control') . '">';
 
-                        if (JFactory::getApplication()->isClient('site')) {
-                            $captcha_url = JURI::root(true) . '/components/com_breezingforms/images/captcha/securimage_show.php';
+                        if (Factory::getApplication()->isClient('site')) {
+                            $captcha_url = Uri::root(true) . '/components/com_breezingforms/images/captcha/securimage_show.php';
                         } else {
-                            $captcha_url = JURI::root(true) . '/administrator/components/com_breezingforms/images/captcha/securimage_show.php';
+                            $captcha_url = Uri::root(true) . '/administrator/components/com_breezingforms/images/captcha/securimage_show.php';
                         }
 
                         echo '<div style="display: inline-block;">';
 
-                        echo '<img alt="" ' . (isset($mdata['width']) && intval($mdata['width']) > 0 ? ' style="width: ' . intval($mdata['width']) . 'px !important;min-width: ' . intval($mdata['width']) . 'px !important;max-width: ' . intval($mdata['width']) . 'px !important;"' : 'style="width: 230px !important;min-width: 230px !important;max-width: 230px !important;"' ) . ' id="ff_capimgValue" class="ff_capimg ' . $this->bsClass('img-polaroid') . '" src="' . $captcha_url . '"/>' . "\n";
+                        echo '<img alt="" ' . (isset($mdata['width']) && intval($mdata['width']) > 0 ? ' style="width: ' . intval($mdata['width']) . 'px !important;min-width: ' . intval($mdata['width']) . 'px !important;max-width: ' . intval($mdata['width']) . 'px !important;"' : 'style="width: 230px !important;min-width: 230px !important;max-width: 230px !important;"') . ' id="ff_capimgValue" class="ff_capimg ' . $this->bsClass('img-polaroid') . '" src="' . $captcha_url . '"/>' . "\n";
                         echo '<div style="height: 10px;"></div>';
                         echo '<div class="' . $this->bsClass('input-append') . '">';
-                        echo '<input ' . (isset($mdata['width']) && intval($mdata['width']) > 0 ? ' style="width:' . (intval($mdata['width']) - 45) . 'px !important;min-width:' . (intval($mdata['width']) - 45) . 'px !important;max-width:' . (intval($mdata['width']) - 45) . 'px !important;"' : '' ) . ' autocomplete="off" class="' . $this->bsClass('form-control') . ' ' . $this->bsClass('custom-form-control') . ' ff_elem bfCaptchaField" type="text" name="bfCaptchaEntry" id="bfCaptchaEntry" />' . "\n";
+                        echo '<input ' . (isset($mdata['width']) && intval($mdata['width']) > 0 ? ' style="width:' . (intval($mdata['width']) - 45) . 'px !important;min-width:' . (intval($mdata['width']) - 45) . 'px !important;max-width:' . (intval($mdata['width']) - 45) . 'px !important;"' : '') . ' autocomplete="off" class="' . $this->bsClass('form-control') . ' ' . $this->bsClass('custom-form-control') . ' ff_elem bfCaptchaField" type="text" name="bfCaptchaEntry" id="bfCaptchaEntry" />' . "\n";
                         echo '<span type="button" class="ff_elem ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . ' button" onclick="document.getElementById(\'bfCaptchaEntry\').value=\'\';document.getElementById(\'bfCaptchaEntry\').focus();document.getElementById(\'ff_capimgValue\').src = \'' . $captcha_url . '?bfMathRandom=\' + Math.random(); return false"><i class="' . $this->bsClass('icon-refresh') . '"></i></button>' . "\n";
                         echo '</div>';
                         echo '</div>';
@@ -1490,7 +1500,7 @@ class BFQuickModeBootstrap {
                             'firstDay' => (isset($mdata['firstDay']) && $mdata['firstDay'] != '') ? $mdata['firstDay'] : '7',
                         ];
 
-                        echo JHTML::_('calendar', $left, "ff_nm_" . $mdata['bfName'] . "[]", "ff_elem" . $mdata['dbId'], $mdata['format'], $calAttr);
+                        echo HTMLHelper::_('calendar', $left, "ff_nm_" . $mdata['bfName'] . "[]", "ff_elem" . $mdata['dbId'], $mdata['format'], $calAttr);
 
                         echo '</span>';
                         echo '</div>';
@@ -1549,48 +1559,48 @@ class BFQuickModeBootstrap {
                         if (!$this->hasResponsiveDatePicker) {
                             ob_start();
                             ?>
-                            <script type="text/javascript">
-                                                <!--
-                                    function bf_add_yearscroller(fieldname) {
-                                                    if (!JQuery("#bfCalExt" + fieldname).length) {
-                                                        // prev
-                                                        if (JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").get(0).selectedIndex > 0) {
-                                                            JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").before('<img id="bfCalExt' + fieldname + '" onclick="JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex=JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex-1;JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').trigger(\'change\')" border="0" src="<?php echo Juri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/minusyear.png' ?>" style="width: 30px; vertical-align: top; cursor:pointer;" />');
-                                                        }
-                                                        // next
-                                                        if (JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").get(0).selectedIndex + 1 < JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").get(0).options.length) {
-                                                            JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").after('<img id="bfCalExt' + fieldname + '" onclick="JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex=JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex+1;JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').trigger(\'change\')" border="0" src="<?php echo Juri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/plusyear.png' ?>" style="width: 30px; vertical-align: top; cursor:pointer;" />');
-                                                        }
+                                    <script type="text/javascript">
+                                                                                                                                                                                                <!--
+                                                                                                                                                                                    function bf_add_yearscroller(fieldname) {
+                                                                                                                                                                                                    if (!JQuery("#bfCalExt" + fieldname).length) {
+                                                                                                                                                                                                        // prev
+                                                                                                                                                                                                        if (JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").get(0).selectedIndex > 0) {
+                                                                                                                                                                                                            JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").before('<img id="bfCalExt' + fieldname + '" onclick="JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex=JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex-1;JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').trigger(\'change\')" border="0" src="<?php echo Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/minusyear.png' ?>" style="width: 30px; vertical - align: top; cursor: pointer; " />');
+                                                                                                                                                                                                        }
+                                        // next
+                                        if (JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").get(0).selectedIndex + 1 < JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").get(0).options.length) {
+                                            JQuery(".bfCalendarResponsiveContainer" + fieldname + " .picker__select--year").after('<img id="bfCalExt' + fieldname + '" onclick="JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex=JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').get(0).selectedIndex+1;JQuery(\'.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year\').trigger(\'change\')" border="0" src="<?php echo Uri::root(true) . '/components/com_breezingforms/libraries/jquery/pickadate/plusyear.png' ?>" style="width: 30px; vertical-align: top; cursor:pointer;" />');
+                                        }
 
-                                                        JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').on('change', function () {
-                                                            bf_add_yearscroller(fieldname);
-                                                        });
-                                                        JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').on('change', function () {
-                                                            bf_add_yearscroller(fieldname);
-                                                        });
+                                        JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').on('change', function () {
+                                            bf_add_yearscroller(fieldname);
+                                        });
+                                        JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').on('change', function () {
+                                            bf_add_yearscroller(fieldname);
+                                        });
 
-                                                        var myVal = JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').val();
-                                                        var myInterval = setInterval(function () {
-                                                            if (myVal != JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').val()) {
-                                                                clearInterval(myInterval);
-                                                                bf_add_yearscroller(fieldname);
-                                                            }
-                                                        }, 200);
+                                        var myVal = JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').val();
+                                        var myInterval = setInterval(function () {
+                                            if (myVal != JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').val()) {
+                                                clearInterval(myInterval);
+                                                bf_add_yearscroller(fieldname);
+                                            }
+                                        }, 200);
 
-                                                        var myVal = JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').val();
-                                                        var myInterval = setInterval(function () {
-                                                            if (myVal != JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').val()) {
-                                                                clearInterval(myInterval);
-                                                                bf_add_yearscroller(fieldname);
-                                                            }
-                                                        }, 200);
-                                                    }
-                                                }
-                                                //-->
-                            </script>
-                            <?php
-                            $c = ob_get_contents();
-                            ob_end_clean();
+                                        var myVal = JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').val();
+                                        var myInterval = setInterval(function () {
+                                            if (myVal != JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').val()) {
+                                                clearInterval(myInterval);
+                                                bf_add_yearscroller(fieldname);
+                                            }
+                                        }, 200);
+                                                                                                                                                                                                    }
+                                                                                                                                                                                                }
+                                        //-->
+                                    </script>
+                                <?php
+                                $c = ob_get_contents();
+                                ob_end_clean();
                         }
 
                         echo $c;
@@ -1633,8 +1643,8 @@ class BFQuickModeBootstrap {
 
                         $base = 'ba' . 'se' . '64';
 
-                        JFactory::getDocument()->addScript(Juri::root(true) . '/components/com_breezingforms/libraries/js/signature.js');
-                        JFactory::getDocument()->addScriptDeclaration('
+                        Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/js/signature.js');
+                        Factory::getApplication()->getDocument()->addScriptDeclaration('
 						var bf_signaturePad' . $mdata['dbId'] . ' = null;
 						var bf_canvas' . $mdata['dbId'] . ' = null;
 
@@ -1697,7 +1707,7 @@ class BFQuickModeBootstrap {
                         echo '<span class="' . $this->bsClass('nonform-control') . '">';
 
                         echo '<div class="bfSignature" id="bfSignature' . $mdata['dbId'] . '"><div class="bfSignatureCanvasBorder"><canvas></canvas></div>' . "\n";
-                        echo '<button onclick="bf_Signature' . $mdata['dbId'] . 'Reset(bf_signaturePad' . $mdata['dbId'] . ');" class="bfSignatureResetButton button ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . '"><span>' . JText::_('COM_BREEZINGFORMS_SIGNATURE_RESET_BUTTON') . '</span></button>' . "\n";
+                        echo '<button onclick="bf_Signature' . $mdata['dbId'] . 'Reset(bf_signaturePad' . $mdata['dbId'] . ');" class="bfSignatureResetButton button ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . '"><span>' . Text::_('COM_BREEZINGFORMS_SIGNATURE_RESET_BUTTON') . '</span></button>' . "\n";
                         echo '</div>';
                         echo '</span>';
                         echo '</div>';
@@ -1904,19 +1914,20 @@ class BFQuickModeBootstrap {
         }
     }
 
-    function headers() {
+    function headers()
+    {
 
         // keep IE8 compatbility
         if (preg_match('/(?i)msie [1-8]/', $_SERVER['HTTP_USER_AGENT'])) {
-            JFactory::getDocument()->addScript('https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js');
+            Factory::getApplication()->getDocument()->addScript('https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js');
         }
 
         if ($this->hasFlashUpload) {
-            JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/plupload/moxie.js');
-            JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/plupload/plupload.js');
+            Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/plupload/moxie.js');
+            Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/plupload/plupload.js');
         }
 
-        JFactory::getDocument()->addStyleDeclaration('
+        Factory::getApplication()->getDocument()->addStyleDeclaration('
 
 .bfClearfix:after {
 content: ".";
@@ -1931,36 +1942,31 @@ display:none;
 }
 ');
 
-        jimport('joomla.version');
-        $version = new JVersion();
-        if (version_compare($version->getShortVersion(), '3.1', '>=')) {
-
-            // force jquery to be loaded after mootools but before any other js (since J! 3.4)
-            JHtml::_('bootstrap.framework');
-            JHtml::_('jquery.framework');
-            HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
-            JFactory::getDocument()->addScriptDeclaration('
-                    jQuery(document).ready(function()
-                    {
-                            jQuery(".hasTooltip").tooltip({"html": true,"container": "body"});
-                    });');
-        }
+        // force jquery to be loaded after mootools but before any other js (since J! 3.4)
+        HTMLHelper::_('bootstrap.framework');
+        HTMLHelper::_('jquery.framework');
+        HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
+        Factory::getApplication()->getDocument()->addScriptDeclaration('
+                jQuery(document).ready(function()
+                {
+                        jQuery(".hasTooltip").tooltip({"html": true,"container": "body"});
+                });');
 
         $jQuery = '';
         if (isset($this->rootMdata['disableJQuery']) && $this->rootMdata['disableJQuery']) {
             $jQuery = 'var JQuery = jQuery;' . "\n";
         } else {
-            JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/jq.min.js');
+            Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jq.min.js');
         }
 
         if ($this->useErrorAlerts) {
-            JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/js/sweetalert.min.js');
+            Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/js/sweetalert.min.js');
         }
 
         if ($this->useBalloonErrors) {
-            JFactory::getDocument()->addStyleSheet(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/validationEngine.jquery.css');
-            JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/jquery.validationEngine-en.js');
-            JFactory::getDocument()->addScript(JURI::root(true) . '/components/com_breezingforms/libraries/jquery/jquery.validationEngine.js');
+            Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/validationEngine.jquery.css');
+            Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jquery.validationEngine-en.js');
+            Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jquery.validationEngine.js');
         }
 
         $toggleCode = '';
@@ -2354,8 +2360,8 @@ function bfTriggerRules() {
 ';
         }
 
-        JFactory::getDocument()->addScriptDeclaration(
-                $jQuery . '
+        Factory::getApplication()->getDocument()->addScriptDeclaration(
+            $jQuery . '
 			var inlineErrorElements = new Array();
 			var bfSummarizers = new Array();
 			var bfDeactivateField = new Array();
@@ -2521,7 +2527,8 @@ function bfTriggerRules() {
 					}
 				}
 			}
-');
+'
+        );
 
         if ($this->fading || !$this->useErrorAlerts || $this->rollover) {
             if (!$this->useErrorAlerts) {
@@ -2538,8 +2545,8 @@ function bfTriggerRules() {
 					JQuery(".bfErrorMessage").html(allErrors);
 					JQuery(".bfErrorMessage").css("display","");';
                 }
-                JFactory::getDocument()->addScriptDeclaration('var bfUseErrorAlerts = false;' . "\n");
-                JFactory::getDocument()->addScriptDeclaration('
+                Factory::getApplication()->getDocument()->addScriptDeclaration('var bfUseErrorAlerts = false;' . "\n");
+                Factory::getApplication()->getDocument()->addScriptDeclaration('
 				function bfShowErrors(error){
                                         ' . $defaultErrors . '
 
@@ -2611,7 +2618,7 @@ function bfTriggerRules() {
             if ($this->fading) {
                 $this->fadingClass = ' bfFadingClass';
                 $this->fadingCall = 'bfFade();';
-                JFactory::getDocument()->addScriptDeclaration('
+                Factory::getApplication()->getDocument()->addScriptDeclaration('
 					function bfFade(){
 						JQuery(".bfPageIntro").fadeIn(1000);
 						var size = 0;
@@ -2632,7 +2639,7 @@ function bfTriggerRules() {
                 // removed in bootstrap
             }
         }
-        JFactory::getDocument()->addScriptDeclaration('
+        Factory::getApplication()->getDocument()->addScriptDeclaration('
 		    bfToggleFieldsLoaded = false;
 		    bfSectionFieldsDeactivated = false;
 			JQuery(document).ready(function() {
@@ -2668,11 +2675,11 @@ function bfTriggerRules() {
 			});
 		');
         // loading system css
-        if (method_exists($obj = JFactory::getDocument(), 'addCustomTag')) {
+        if (method_exists($obj = Factory::getApplication()->getDocument(), 'addCustomTag')) {
 
             // loading theme
-            $stylelink = '<link rel="stylesheet" href="' . JURI::root(true) . '/components/com_breezingforms/themes/quickmode-bootstrap' . $this->bsVersion . '/system.css" />' . "\n";
-            JFactory::getDocument()->addCustomTag($stylelink);
+            $stylelink = '<link rel="stylesheet" href="' . Uri::root(true) . '/components/com_breezingforms/themes/quickmode-bootstrap' . $this->bsVersion . '/system.css" />' . "\n";
+            Factory::getApplication()->getDocument()->addCustomTag($stylelink);
 
             if (isset($this->rootMdata['themebootstrap'])) {
 
@@ -2686,25 +2693,25 @@ function bfTriggerRules() {
                 $scriptjs_path = JPATH_SITE . '/media/breezingforms/themes-bootstrap' . $this->bsVersion . '/' . $this->rootMdata['themebootstrap'] . '/script.js';
                 $scriptphp_path = JPATH_SITE . '/media/breezingforms/themes-bootstrap' . $this->bsVersion . '/' . $this->rootMdata['themebootstrap'] . '/script.php';
 
-                if ($this->rootMdata['themebootstrap'] != '' && $this->rootMdata['themebootstrap'] != 'none' && JFile::exists($themecss_path)) {
+                if ($this->rootMdata['themebootstrap'] != '' && $this->rootMdata['themebootstrap'] != 'none' && file_exists($themecss_path)) {
 
 
-                    if (JFile::exists($vars_path)) {
+                    if (file_exists($vars_path)) {
                         $vars = BFFile::read($vars_path);
                     }
-                    if (JFile::exists($themecss_path)) {
+                    if (file_exists($themecss_path)) {
                         $themecss = BFFile::read($themecss_path);
                     }
-                    if (JFile::exists($scriptphp_path)) {
+                    if (file_exists($scriptphp_path)) {
                         require_once($scriptphp_path);
                     }
-                    if (JFile::exists($scriptjs_path)) {
+                    if (file_exists($scriptjs_path)) {
                         $scriptjs = BFFile::read($scriptjs_path);
                     }
 
                     $vars = str_replace("\r", '', $vars);
                     $vars = explode("\n", $vars);
-                    foreach ($vars As $var) {
+                    foreach ($vars as $var) {
                         if (trim($var)) {
                             $keyvalue = explode('=', $var);
                             if (count($keyvalue) == 2) {
@@ -2714,9 +2721,9 @@ function bfTriggerRules() {
                     }
 
                     $style = '<style type="text/css">/** BreezingForms Bootstap Theme ' . strip_tags($this->rootMdata['themebootstrap']) . ' **/' . "\n" . $themecss . "\n" . '</style>' . "\n";
-                    JFactory::getDocument()->addCustomTag($style);
+                    Factory::getApplication()->getDocument()->addCustomTag($style);
                     if ($scriptjs) {
-                        JFactory::getDocument()->addCustomTag('<script type="text/javascript">' . "\n" . $scriptjs . "\n" . '</script>');
+                        Factory::getApplication()->getDocument()->addCustomTag('<script type="text/javascript">' . "\n" . $scriptjs . "\n" . '</script>');
                     }
                 }
             }

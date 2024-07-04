@@ -21,6 +21,7 @@ const parser = LRParser.deserialize({
   nodeNames: "⚠ JsonText True False Null Number String } { Object Property PropertyName ] [ Array",
   maxTerm: 25,
   nodeProps: [
+    ["isolate", -2,6,11,""],
     ["openedBy", 7,"{",12,"["],
     ["closedBy", 8,"}",13,"]"]
   ],

@@ -11,17 +11,23 @@ defined('_JEXEC') or die('Restricted access');
 jimport('joomla.html.html');
 jimport('joomla.form.formfield');
 
-class JFormFieldCategories extends JFormField {
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
+class JFormFieldCategories extends JFormField
+{
 
     protected $type = 'Forms';
 
-    protected function getInput() {
+    protected function getInput()
+    {
         $class = $this->element['class'] ? $this->element['class'] : "text_area";
-        
+
         // Initialise variables.
         $options = array();
 
-        $db = CBFactory::getDbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
         $query = $db->getQuery(true);
 
         $query->select('a.id AS value, a.title AS text, a.level');
@@ -38,25 +44,25 @@ class JFormFieldCategories extends JFormField {
         // Get the options.
         $db->setQuery($query);
 
-        $options = $db->loadObjectList();
-
         // Check for a database error.
-        if ($db->getErrorNum()) {
-            Factory::getApplication()->enqueueMessage($db->getErrorMsg(), 'error');
-        }
+        try {
+            $options = $db->loadObjectList();
+		} catch (\Exception $e) {
+            Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+		} // try
 
         // Pad the option text with spaces using depth level as a multiplier.
         for ($i = 0, $n = count($options); $i < $n; $i++) {
             // Translate ROOT
             if ($options[$i]->level == 0) {
-                $options[$i]->text = JText::_('JGLOBAL_ROOT_PARENT');
+                $options[$i]->text = Text::_('JGLOBAL_ROOT_PARENT');
             }
 
             $options[$i]->text = str_repeat('- ', $options[$i]->level) . $options[$i]->text;
         }
 
         // Initialise variables.
-        $user = JFactory::getUser();
+        $user = Factory::getApplication()->getIdentity();
 
         if (empty($id)) {
             // New item, only have to check core.create.
@@ -88,23 +94,23 @@ class JFormFieldCategories extends JFormField {
         if (isset($row) && !isset($options[0])) {
             if ($row->parent_id == '1') {
                 $parent = new stdClass();
-                $parent->text = JText::_('JGLOBAL_ROOT_PARENT');
+                $parent->text = Text::_('JGLOBAL_ROOT_PARENT');
                 array_unshift($options, $parent);
             }
         }
 
         // Merge any additional options in the XML definition.
         //$options = array_merge(parent::getOptions(), $options);
-        
+
         $out = '<select style="max-width: 200px;" name="' . $this->name . '" id="' . $this->id . '" class="' . $this->element['class'] . '">' . "\n";
-        
-        $out .= '<option value="-2">'.JText::_('COM_CONTENTBUILDER_INHERIT').'</option>'."\n";
-        
-        foreach ($options As $category) {
-            $out .= '<option '.($this->value == $category->value  ? ' selected="selected"' : '').'value="'.$category->value.'">'.htmlentities($category->text, ENT_QUOTES, 'UTF-8').'</option>'."\n";
+
+        $out .= '<option value="-2">' . Text::_('COM_CONTENTBUILDER_INHERIT') . '</option>' . "\n";
+
+        foreach ($options as $category) {
+            $out .= '<option ' . ($this->value == $category->value ? ' selected="selected"' : '') . 'value="' . $category->value . '">' . htmlentities($category->text, ENT_QUOTES, 'UTF-8') . '</option>' . "\n";
         }
         $out .= '</select>' . "\n";
-        
+
         return $out;
     }
 }

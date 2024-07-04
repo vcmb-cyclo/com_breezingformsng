@@ -1,124 +1,125 @@
 <?php
 /**
-* BreezingForms - A Joomla Forms Application
-* @version 1.9
-* @package BreezingForms
-* @copyright (C) 2008-2020 by Markus Bopp
-* @license Released under the terms of the GNU General Public License
-**/
+ * BreezingForms - A Joomla Forms Application
+ * @version 1.9
+ * @package BreezingForms
+ * @copyright (C) 2008-2020 by Markus Bopp
+ * @license Released under the terms of the GNU General Public License
+ **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
-require_once($ff_admpath.'/admin/quickmode.html.php');
-require_once($ff_admpath.'/admin/quickmode.class.php');
-require_once($ff_admpath.'/libraries/Zend/Json/Decoder.php');
-require_once($ff_admpath.'/libraries/Zend/Json/Encoder.php');
+use Joomla\Filesystem\File;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
+require_once($ff_admpath . '/admin/quickmode.html.php');
+require_once($ff_admpath . '/admin/quickmode.class.php');
+require_once($ff_admpath . '/libraries/Zend/Json/Decoder.php');
+require_once($ff_admpath . '/libraries/Zend/Json/Encoder.php');
 $iconBase = '../administrator/components/com_breezingforms/libraries/jquery/themes/quickmode/i/';
 
 $quickMode = new QuickMode();
 
 $form = BFRequest::getInt('form', 0);
 
-switch($task){
+switch ($task) {
 
-        case 'doAjaxSave':
-            
-            $chunksLength = BFRequest::getInt('chunksLength',0);
-            $form = BFRequest::getInt('form',0);
-            $chunkIdx = BFRequest::getInt('chunkIdx',0);
-            $rndAdd = BFRequest::getVar('rndAdd',0);
-            $_dest = JPATH_SITE . '/media/breezingforms/ajax_cache/ajaxsave_' . $chunkIdx . '_' . $rndAdd . '.txt';
-            $_chunk = BFRequest::getVar('chunk','');
-            @JFile::write($_dest, $_chunk);
-            @ob_end_clean();
+	case 'doAjaxSave':
 
-            if($chunkIdx == $chunksLength - 1){
+		$chunksLength = BFRequest::getInt('chunksLength', 0);
+		$form = BFRequest::getInt('form', 0);
+		$chunkIdx = BFRequest::getInt('chunkIdx', 0);
+		$rndAdd = BFRequest::getVar('rndAdd', 0);
+		$_dest = JPATH_SITE . '/media/breezingforms/ajax_cache/ajaxsave_' . $chunkIdx . '_' . $rndAdd . '.txt';
+		$_chunk = BFRequest::getVar('chunk', '');
+		@File::write($_dest, $_chunk);
+		@ob_end_clean();
 
-                $contents = '';
-                for($i = 0; $i < $chunksLength;$i++){
-                    $contents .= @BFFile::read(JPATH_SITE . '/media/breezingforms/ajax_cache/ajaxsave_' . $i . '_' . $rndAdd . '.txt');
-                    @JFile::delete(JPATH_SITE . '/media/breezingforms/ajax_cache/ajaxsave_' . $i . '_' . $rndAdd . '.txt');
-                }
+		if ($chunkIdx == $chunksLength - 1) {
 
-                $formId = 0;
-                @ob_end_clean();
-                
-                $formId = $quickMode->save(
-                    $form,
-                    Zend_Json::decode( bf_b64dec( $contents ))
-		        );
-                
-                ob_start();
+			$contents = '';
+			for ($i = 0; $i < $chunksLength; $i++) {
+				$contents .= @BFFile::read(JPATH_SITE . '/media/breezingforms/ajax_cache/ajaxsave_' . $i . '_' . $rndAdd . '.txt');
+				@File::delete(JPATH_SITE . '/media/breezingforms/ajax_cache/ajaxsave_' . $i . '_' . $rndAdd . '.txt');
+			}
 
-                // CONTENTBUILDER
-                jimport('joomla.filesystem.file');
-                jimport('joomla.filesystem.folder');
-                if(JFile::exists(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php'))
-                {
-                    require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
-                    $cbForm = contentbuilder::getForm('com_breezingforms', $formId);
-                    $db = JFactory::getDbo();
-                    $db->setQuery("Select id From #__contentbuilder_forms Where `type` = 'com_breezingforms' And `reference_id` = " . intval($formId));
-                    jimport('joomla.version');
-                    $version = new JVersion();
-	                $cbForms = $db->loadColumn();
-                    if(is_object($cbForm) && count($cbForms)){
-                        require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'tables' . DS . 'elements.php');
-                        foreach($cbForms As $dataId){
-                            contentbuilder::synchElements($dataId, $cbForm);
-                            $elements_table = new TableElements($db);
-                            $elements_table->reorder('form_id='.$dataId);
-                        }
-                    }
-                }
-                ob_end_clean();
-                
-                echo $formId;
-                exit;
-                // CONTENTBUILDER END
-            }
+			$formId = 0;
+			@ob_end_clean();
 
-            exit;
-            break;
+			$formId = $quickMode->save(
+				$form,
+				Zend_Json::decode(bf_b64dec($contents))
+			);
+
+			ob_start();
+
+			// CONTENTBUILDER
+			jimport('joomla.filesystem.file');
+			jimport('joomla.filesystem.folder');
+			if (file_exists(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php')) {
+				require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
+				$cbForm = contentbuilder::getForm('com_breezingforms', $formId);
+				$db = Factory::getContainer()->get(DatabaseInterface::class);
+				$db->setQuery("Select id From #__contentbuilder_forms Where `type` = 'com_breezingforms' And `reference_id` = " . intval($formId));
+				$cbForms = $db->loadColumn();
+				if (is_object($cbForm) && count($cbForms)) {
+					require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'tables' . DS . 'elements.php');
+					foreach ($cbForms as $dataId) {
+						contentbuilder::synchElements($dataId, $cbForm);
+						$elements_table = new TableElements($db);
+						$elements_table->reorder('form_id=' . $dataId);
+					}
+				}
+			}
+			ob_end_clean();
+
+			echo $formId;
+			exit;
+			// CONTENTBUILDER END
+		}
+
+		exit;
+		break;
 
 	case 'save':
 
-		$formId = BFRequest::getInt('form',0);
+		$formId = BFRequest::getInt('form', 0);
 
 		$fOptions = $quickMode->getFormOptions($formId);
 
-		if($fOptions == null){
-			$formName = 'QuickForm'.mt_rand(0, mt_getrandmax());
+		if ($fOptions == null) {
+			$formName = 'QuickForm' . mt_rand(0, mt_getrandmax());
 			$formTitle = $formName;
 			$formEmailntf = 1;
 			$formEmailadr = '';
 			$formDesc = '';
 		} else {
-			$formName      = $fOptions->name;
-			$formTitle     = $fOptions->title;
-			$formEmailntf  = $fOptions->emailntf;
-			$formEmailadr  = $fOptions->emailadr;
-			$formDesc      = $fOptions->description;
+			$formName = $fOptions->name;
+			$formTitle = $fOptions->title;
+			$formEmailntf = $fOptions->emailntf;
+			$formEmailadr = $fOptions->emailadr;
+			$formDesc = $fOptions->description;
 		}
 
-                echo QuickModeHtml::showApplication($formId, $formName, $formTitle, $formDesc, $formEmailntf, $formEmailadr, $quickMode->getTemplateCode($formId), $quickMode->getElementScripts(), $quickMode->getThemes(), $quickMode->getThemesBootstrap(), $quickMode->getThemesBootstrap4());
+		echo QuickModeHtml::showApplication($formId, $formName, $formTitle, $formDesc, $formEmailntf, $formEmailadr, $quickMode->getTemplateCode($formId), $quickMode->getElementScripts(), $quickMode->getThemes(), $quickMode->getThemesBootstrap(), $quickMode->getThemesBootstrap4());
 		break;
 
 	default:
 
 		$fOptions = $quickMode->getFormOptions($form);
 
-		if($fOptions == null){
-			$formName = 'QuickForm'.mt_rand(0, mt_getrandmax());
+		if ($fOptions == null) {
+			$formName = 'QuickForm' . mt_rand(0, mt_getrandmax());
 			$formTitle = $formName;
 			$formEmailntf = 1;
 			$formEmailadr = '';
 			$formDesc = '';
 		} else {
-			$formName      = $fOptions->name;
-			$formTitle     = $fOptions->title;
-			$formEmailntf  = $fOptions->emailntf;
-			$formEmailadr  = $fOptions->emailadr;
-			$formDesc      = $fOptions->description;
+			$formName = $fOptions->name;
+			$formTitle = $fOptions->title;
+			$formEmailntf = $fOptions->emailntf;
+			$formEmailadr = $fOptions->emailadr;
+			$formDesc = $fOptions->description;
 		}
 
 		$root = "{
@@ -134,7 +135,7 @@ switch($task){
 			      	properties:
 			      		{
 			      			type : 'root',
-			      			title: '".addslashes($formName)."',
+			      			title: '" . addslashes($formName) . "',
 			      			name: '',
 			      			rollover: true,
 			      			rolloverColor : '#ffc',
@@ -173,11 +174,11 @@ switch($task){
 			   		}
 			      	,
 			      	state: 'open',
-			      	data: { title: '".addslashes($formName)."', icon: '".$iconBase . 'icon_form.png'."'},
+			      	data: { title: '" . addslashes($formName) . "', icon: '" . $iconBase . 'icon_form.png' . "'},
 			      	children : []
 			      	}";
 		$o = $root;
-		if($form != 0){
+		if ($form != 0) {
 			$o = $quickMode->getTemplateCode(BFRequest::getInt('form', ''));
 		}
 

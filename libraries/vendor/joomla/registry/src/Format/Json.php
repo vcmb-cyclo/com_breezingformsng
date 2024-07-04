@@ -52,8 +52,8 @@ class Json implements FormatInterface
      */
     public function stringToObject($data, array $options = ['processSections' => false])
     {
-        $data = $data ? \trim($data) : null;
-        // XDA-GIL   $data = \trim($data);
+        $data = \trim($data);
+
         if (empty($data)) {
             return new \stdClass();
         }

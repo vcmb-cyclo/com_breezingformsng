@@ -11,6 +11,7 @@ defined('_JEXEC') or die;
 
 use Akeeba\Component\AdminTools\Administrator\Model\ControlpanelModel;
 use Akeeba\Plugin\System\AdminTools\Utility\RescueUrl;
+use Joomla\CMS\Plugin\PluginHelper;
 
 trait ViewSystemPluginExistsTrait
 {
@@ -70,7 +71,7 @@ trait ViewSystemPluginExistsTrait
 		}
 
 		// Is the plugin enabled in the database?
-		$this->pluginActive = (int) $cPanelModel->getPluginID() != 0;
+		$this->pluginActive = PluginHelper::isEnabled('system', 'admintools');
 
 		if (!$this->pluginActive)
 		{

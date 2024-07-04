@@ -15,7 +15,7 @@
       "attributes": {
         "type": "module"
       },
-      "version": "8402e3"
+      "version": "0480c2"
     },
     {
       "name": "com_templates.admin-template-toggle-switch",
@@ -33,7 +33,7 @@
       "name": "com_templates.admin-templates",
       "type": "style",
       "uri": "com_templates/admin-templates-default.min.css",
-      "version": "e10ac3"
+      "version": "09765e"
     },
     {
       "name": "com_templates.admin-templates",
@@ -45,7 +45,7 @@
       "attributes": {
         "type": "module"
       },
-      "version": "060b32"
+      "version": "f515a4"
     }
   ]
 }

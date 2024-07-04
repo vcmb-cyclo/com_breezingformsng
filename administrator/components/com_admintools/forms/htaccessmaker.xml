@@ -9,6 +9,10 @@
         addfieldprefix="Akeeba\Component\AdminTools\Administrator\Field"
         addruleprefix="Akeeba\Component\AdminTools\Administrator\Rule"
 >
+    <config>
+        <inlinehelp button="show"/>
+    </config>
+
     <fieldset name="basic_security"
               label="COM_ADMINTOOLS_HTACCESSMAKER_LBL_BASICSEC"
     >

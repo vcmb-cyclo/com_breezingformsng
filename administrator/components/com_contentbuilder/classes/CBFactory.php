@@ -7,6 +7,8 @@
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
 
 if(!class_exists('CBFactory'))
 {
@@ -41,7 +43,7 @@ if(!class_exists('CBDbo'))
 
 		function __construct()
 		{
-			$this->dbo = JFactory::getDbo();
+			$this->dbo = Factory::getContainer()->get(DatabaseInterface::class);
 		}
 
 		public function setQuery($query, $offset = 0, $limit = 0){

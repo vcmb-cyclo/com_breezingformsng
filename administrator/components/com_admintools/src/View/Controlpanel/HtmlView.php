@@ -185,6 +185,8 @@ class HtmlView extends BaseHtmlView
 	 */
 	public $formattedChangelog = '';
 
+	public bool $debugAllPanels = false;
+
 	/**
 	 * Did the user manually changed the server configuration file (ie .htaccess)? If so, let's warn the user that he
 	 * should use the custom rule fields inside the Makers or their settings could be lost.
@@ -262,7 +264,7 @@ class HtmlView extends BaseHtmlView
 		// Pro version secret word setup
 		if (defined('ADMINTOOLS_PRO') && ADMINTOOLS_PRO)
 		{
-			$this->jwarnings               = $controlPanelModel->checkJoomlaConfiguration();
+			$this->jwarnings               = $controlPanelModel->checkJoomlaConfiguration($this->debugAllPanels);
 			$this->frontEndSecretWordIssue = $controlPanelModel->getFrontendSecretWordError();
 			$this->newSecretWord           = $session->get('admintools.cpanel.newSecretWord', null);
 		}

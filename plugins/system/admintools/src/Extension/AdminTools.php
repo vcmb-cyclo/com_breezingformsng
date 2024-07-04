@@ -46,14 +46,14 @@ class AdminTools extends CMSPlugin implements SubscriberInterface, DatabaseAware
 	 * @since 7.0.0
 	 */
 	private static $featureClasses = [
+		Feature\EmailOnPHPException::class,
 		Feature\FixApache401::class,
+		Feature\EnforceIPAutoBan::class,
+		Feature\IPDenyList::class,
 		Feature\AllowedDomains::class,
 		Feature\ItemidShield::class,
 		Feature\SuspiciousCoreParams::class,
 		Feature\Shield404::class,
-		Feature\EmailOnPHPException::class,
-		Feature\EnforceIPAutoBan::class,
-		Feature\IPDenyList::class,
 		Feature\WAFDenyList::class,
 		Feature\CustomAdminFolder::class,
 		Feature\AdminIPExclusiveAllow::class,

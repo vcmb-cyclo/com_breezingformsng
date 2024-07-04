@@ -1,8 +1,9 @@
+@charset "UTF-8";
 table.phpdebugbar-widgets-languageStrings {
   width: 100%;
   margin-top: 5px;
   margin-left: 5px;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
   line-height: 1.3em;
 }
 
@@ -11,12 +12,12 @@ table.phpdebugbar-widgets-languageStrings th {
 }
 
 table.phpdebugbar-widgets-languageStrings table.phpdebugbar-widgets-callstack {
-  display: none;
-  width: 100%;
-  margin: 10px;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
   border-collapse: collapse;
   border: 1px solid #ddd;
+  width: 100%;
+  margin: 10px;
+  font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
+  display: none;
 }
 
 table.phpdebugbar-widgets-languageStrings table.phpdebugbar-widgets-callstack tr.caller {
@@ -31,10 +32,9 @@ table.phpdebugbar-widgets-languageStrings table.phpdebugbar-widgets-callstack th
   font-weight: bold;
 }
 
-table.phpdebugbar-widgets-languageStrings span.phpdebugbar-widgets-eye,
-table.phpdebugbar-widgets-languageStrings span.phpdebugbar-widgets-eye-dash {
-  margin-left: 8px;
+table.phpdebugbar-widgets-languageStrings span.phpdebugbar-widgets-eye, table.phpdebugbar-widgets-languageStrings span.phpdebugbar-widgets-eye-dash {
   color: #888;
+  margin-left: 8px;
 }
 
 table.phpdebugbar-widgets-languageStrings span.phpdebugbar-widgets-eye-dash {
@@ -42,17 +42,15 @@ table.phpdebugbar-widgets-languageStrings span.phpdebugbar-widgets-eye-dash {
   background-color: #eee;
 }
 
-table.phpdebugbar-widgets-languageStrings span.phpdebugbar-widgets-eye:before,
-table.phpdebugbar-widgets-languageStrings span.phpdebugbar-widgets-eye-dash:before {
+table.phpdebugbar-widgets-languageStrings span.phpdebugbar-widgets-eye:before, table.phpdebugbar-widgets-languageStrings span.phpdebugbar-widgets-eye-dash:before {
   margin-right: 4px;
   font-family: "Font Awesome 6 Free";
-  /*font-size: 12px;*/
 }
 
 table.phpdebugbar-widgets-languageStrings span.phpdebugbar-widgets-eye:before {
-  content: "\f06e";
+  content: "";
 }
 
 table.phpdebugbar-widgets-languageStrings span.phpdebugbar-widgets-eye-dash:before {
-  content: "\f070";
+  content: "";
 }

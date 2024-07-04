@@ -3,17 +3,20 @@
  * @package     ContentBuilder
  * @author      Markus Bopp
  * @link        https://www.crosstec.org
+ * @copyright   Copyright (C) 2024 by XDA+GIL
  * @license     GNU/GPL
 */
 
 // no direct access
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
-jimport( 'joomla.plugin.plugin' );
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Plugin\CMSPlugin;
 
 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder_helpers.php');
 
-class plgContentbuilder_validationEqual extends JPlugin
+class plgContentbuilder_validationEqual extends CMSPlugin
 {
         function __construct( &$subject, $params )
         {
@@ -22,7 +25,7 @@ class plgContentbuilder_validationEqual extends JPlugin
         
         function onValidate($field, $fields, $record_id, $form, $value){
             
-            $lang = JFactory::getLanguage();
+            $lang = Factory::getLanguage();
             $lang->load('plg_contentbuilder_validation_equal', JPATH_ADMINISTRATOR);
 
             foreach($fields As $other_field){
@@ -51,7 +54,7 @@ class plgContentbuilder_validationEqual extends JPlugin
                     if( $value == $other_value ){
                         return '';
                     } else {
-                        return JText::_('COM_CONTENTBUILDER_VALIDATION_NOT_EQUAL') . ': ' . $field['label'] . ' / ' . $other_field['label'];
+                        return Text::_('COM_CONTENTBUILDER_VALIDATION_NOT_EQUAL') . ': ' . $field['label'] . ' / ' . $other_field['label'];
                     }
                 }
             }

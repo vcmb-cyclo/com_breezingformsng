@@ -8,7 +8,11 @@
 **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
-$database = BFFactory::getDbo();
+use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
+$database = Factory::getContainer()->get(DatabaseInterface::class);
 
 /*
 ob_start();
@@ -56,7 +60,7 @@ $task    = BFRequest::getVar('ff_task','view');
 if ($inframe) {
 	// create url for the frame
 	$url =
-		$ff_mossite = JURI::root().'index.php'
+		$ff_mossite = Uri::root().'index.php'
 			.'?option=com_breezingforms'
                         .'&amp;tmpl=component'
 			.'&amp;Itemid=0'
@@ -97,7 +101,7 @@ if ($inframe) {
 	/**
 	 * @var JUser
 	 */
-	$myUser = JFactory::getUser();
+	$myUser = Factory::getApplication()->getIdentity();
 	
 	$database->setQuery("select id from #__users where lower(username)=lower('".$myUser->get('username','')."')");
 	$id = $database->loadResult();

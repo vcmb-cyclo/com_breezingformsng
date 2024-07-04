@@ -468,7 +468,7 @@ function htmlCompletionFor(schema, context) {
     else if (tree.name == "StartCloseTag" || tree.name == "IncompleteCloseTag") {
         return completeCloseTag(state, tree, pos, pos);
     }
-    else if (context.explicit && (tree.name == "OpenTag" || tree.name == "SelfClosingTag") || tree.name == "AttributeName") {
+    else if (tree.name == "OpenTag" || tree.name == "SelfClosingTag" || tree.name == "AttributeName") {
         return completeAttrName(state, schema, tree, tree.name == "AttributeName" ? tree.from : pos, pos);
     }
     else if (tree.name == "Is" || tree.name == "AttributeValue" || tree.name == "UnquotedAttributeValue") {
@@ -510,7 +510,9 @@ const defaultNesting = [
         attrs: attrs => attrs.type == "text/typescript-jsx",
         parser: tsxLanguage.parser },
     { tag: "script",
-        attrs: attrs => attrs.type == "importmap" || attrs.type == "speculationrules",
+        attrs(attrs) {
+            return /^(importmap|speculationrules|application\/(.+\+)?json)$/i.test(attrs.type);
+        },
         parser: jsonParser },
     { tag: "script",
         attrs(attrs) {

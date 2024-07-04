@@ -177,10 +177,10 @@ class ActionlogsHelper
      */
     public static function getHumanReadableLogMessage($log, $generateLinks = true)
     {
+        static::loadActionLogPluginsLanguage();
         static $links = [];
-
-        $message     = Text::_($log->message_language_key);
-        $messageData = json_decode($log->message, true);
+        $message      = Text::_($log->message_language_key);
+        $messageData  = json_decode($log->message, true);
 
         // Special handling for translation extension name
         if (isset($messageData['extension_name'])) {
@@ -196,6 +196,12 @@ class ActionlogsHelper
         // Translating type
         if (isset($messageData['type'])) {
             $messageData['type'] = Text::_($messageData['type']);
+        }
+
+        // Remove links from the message template, if we should not generate links.
+        if (!$generateLinks) {
+            $message = preg_replace('/<a href=["\'].+?["\']>/', '', $message);
+            $message = str_replace('</a>', '', $message);
         }
 
         $linkMode = Factory::getApplication()->get('force_ssl', 0) >= 1 ? Route::TLS_FORCE : Route::TLS_IGNORE;

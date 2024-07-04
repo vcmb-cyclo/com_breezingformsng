@@ -47,7 +47,7 @@ class LintState {
         let markedDiagnostics = diagnostics;
         let diagnosticFilter = state.facet(lintConfig).markerFilter;
         if (diagnosticFilter)
-            markedDiagnostics = diagnosticFilter(markedDiagnostics);
+            markedDiagnostics = diagnosticFilter(markedDiagnostics, state);
         let ranges = Decoration.set(markedDiagnostics.map((d) => {
             // For zero-length ranges or ranges covering only a line break, create a widget
             return d.from == d.to || (d.from == d.to - 1 && state.doc.lineAt(d.from).to == d.from)
@@ -57,7 +57,8 @@ class LintState {
                 }).range(d.from)
                 : Decoration.mark({
                     attributes: { class: "cm-lintRange cm-lintRange-" + d.severity + (d.markClass ? " " + d.markClass : "") },
-                    diagnostic: d
+                    diagnostic: d,
+                    inclusive: true
                 }).range(d.from, d.to);
         }), true);
         return new LintState(ranges, panel, findDiagnostic(ranges));
@@ -133,7 +134,7 @@ function diagnosticCount(state) {
     let lint = state.field(lintState, false);
     return lint ? lint.diagnostics.size : 0;
 }
-const activeMark = /*@__PURE__*/Decoration.mark({ class: "cm-lintRange cm-lintRange-active" });
+const activeMark = /*@__PURE__*/Decoration.mark({ class: "cm-lintRange cm-lintRange-active", inclusive: true });
 function lintTooltip(view, pos, side) {
     let { diagnostics } = view.state.field(lintState);
     let found = [], stackStart = 2e8, stackEnd = 0;
@@ -147,7 +148,7 @@ function lintTooltip(view, pos, side) {
     });
     let diagnosticFilter = view.state.facet(lintConfig).tooltipFilter;
     if (diagnosticFilter)
-        found = diagnosticFilter(found);
+        found = diagnosticFilter(found, view.state);
     if (!found.length)
         return null;
     return {
@@ -252,11 +253,12 @@ const lintPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
         else {
             this.set = false;
             let { state } = this.view, { sources } = state.facet(lintConfig);
-            Promise.all(sources.map(source => Promise.resolve(source(this.view)))).then(annotations => {
-                let all = annotations.reduce((a, b) => a.concat(b));
-                if (this.view.state.doc == state.doc)
-                    this.view.dispatch(setDiagnostics(this.view.state, all));
-            }, error => { logException(this.view.state, error); });
+            if (sources.length)
+                Promise.all(sources.map(source => Promise.resolve(source(this.view)))).then(annotations => {
+                    let all = annotations.reduce((a, b) => a.concat(b));
+                    if (this.view.state.doc == state.doc)
+                        this.view.dispatch(setDiagnostics(this.view.state, all));
+                }, error => { logException(this.view.state, error); });
         }
     }
     update(update) {
@@ -282,7 +284,7 @@ const lintPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
 });
 const lintConfig = /*@__PURE__*/Facet.define({
     combine(input) {
-        return Object.assign({ sources: input.map(i => i.source) }, combineConfig(input.map(i => i.config), {
+        return Object.assign({ sources: input.map(i => i.source).filter(x => x != null) }, combineConfig(input.map(i => i.config), {
             delay: 750,
             markerFilter: null,
             tooltipFilter: null,
@@ -295,7 +297,8 @@ const lintConfig = /*@__PURE__*/Facet.define({
 /**
 Given a diagnostic source, this function returns an extension that
 enables linting with that source. It will be called whenever the
-editor is idle (after its content changed).
+editor is idle (after its content changed). If `null` is given as
+source, this only configures the lint extension.
 */
 function linter(source, config = {}) {
     return [
@@ -492,10 +495,11 @@ class LintPanel {
                 key: this,
                 read: () => ({ sel: newSelectedItem.dom.getBoundingClientRect(), panel: this.list.getBoundingClientRect() }),
                 write: ({ sel, panel }) => {
+                    let scaleY = panel.height / this.list.offsetHeight;
                     if (sel.top < panel.top)
-                        this.list.scrollTop -= panel.top - sel.top;
+                        this.list.scrollTop -= (panel.top - sel.top) / scaleY;
                     else if (sel.bottom > panel.bottom)
-                        this.list.scrollTop += sel.bottom - panel.bottom;
+                        this.list.scrollTop += (sel.bottom - panel.bottom) / scaleY;
                 }
             });
         }
@@ -652,7 +656,7 @@ class LintGutterMarker extends GutterMarker {
         let diagnostics = this.diagnostics;
         let diagnosticsFilter = view.state.facet(lintGutterConfig).tooltipFilter;
         if (diagnosticsFilter)
-            diagnostics = diagnosticsFilter(diagnostics);
+            diagnostics = diagnosticsFilter(diagnostics, view.state);
         if (diagnostics.length)
             elt.onmouseover = () => gutterMarkerMouseOver(view, elt, diagnostics);
         return elt;
@@ -731,7 +735,7 @@ const lintGutterMarkers = /*@__PURE__*/StateField.define({
             if (effect.is(setDiagnosticsEffect)) {
                 let diagnostics = effect.value;
                 if (diagnosticFilter)
-                    diagnostics = diagnosticFilter(diagnostics || []);
+                    diagnostics = diagnosticFilter(diagnostics || [], tr.state);
                 markers = markersForDiagnostics(tr.state.doc, diagnostics.slice(0));
             }
         }

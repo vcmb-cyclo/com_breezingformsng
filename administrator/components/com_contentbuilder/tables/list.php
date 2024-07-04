@@ -3,13 +3,15 @@
  * @package     ContentBuilder
  * @author      Markus Bopp
  * @link        https://www.crosstec.org
+ * @copyright   (C) 2024 by XDA+GIL
  * @license     GNU/GPL
-*/
+ */
 
 // No direct access
 defined('_JEXEC') or die('Restricted access');
+use Joomla\CMS\Table\Table;
 
-class TableList extends JTable
+class TableList extends Table
 {
     public $id = 0;
     public $type = '';
@@ -36,10 +38,13 @@ class TableList extends JTable
      *
      * @param object Database connector object
      */
-    function __construct( $db ) {
+    function __construct($db)
+    {
         parent::__construct('#__contentbuilder_forms', 'id', $db);
     }
 }
 
 // as of J! 2.5
-class listTableList extends TableList{}
+class listTableList extends TableList
+{
+}

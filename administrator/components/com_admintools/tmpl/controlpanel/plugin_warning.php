@@ -23,12 +23,12 @@ $returnUrl = base64_encode('index.php?option=com_admintools&view=' . $this->getN
 		<?=Text::_('COM_ADMINTOOLS_CONFIGUREWAF_ERR_NOPLUGINEXISTS'); ?>
 	</div>
 <?php elseif(!$this->pluginActive): ?>
-	<div class="alert alert-danger small row align-items-baseline">
-		<span class="col-md-8">
+	<div class="alert alert-danger small">
+		<p>
 			<span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
 			<?=Text::_('COM_ADMINTOOLS_CONFIGUREWAF_ERR_NOPLUGINACTIVE'); ?>
-		</span>
-		<a class="btn btn-outline-primary small col-md-4"
+		</p>
+		<a class="btn btn-primary text-light small"
 		   href="<?= Route::_('index.php?option=com_plugins&task=plugin.edit&extension_id=' . $this->pluginid) ?>">
 			<?=Text::_('COM_ADMINTOOLS_CONFIGUREWAF_ERR_NOPLUGINACTIVE_DOIT'); ?>
 		</a>
@@ -39,7 +39,7 @@ $returnUrl = base64_encode('index.php?option=com_admintools&view=' . $this->getN
 			<span class="fa fa-exclamation-triangle" aria-hidden="true"></span>
 			<?=Text::sprintf('COM_ADMINTOOLS_CONFIGUREWAF_ERR_MAINPHPRENAMED_KNOWN', $this->mainPhpRenamedTo); ?>
 		</p>
-		<a class="btn btn-outline-primary small"
+		<a class="btn btn-primary small text-light"
 		   href="<?= Route::_(sprintf('index.php?option=com_admintools&view=Controlpanel&task=renameMainPhp&%s=1', Factory::getApplication()->getFormToken())) ?>">
 			<?=Text::_('COM_ADMINTOOLS_CONFIGUREWAF_ERR_MAINPHPRENAMED_DOIT'); ?>
 		</a>

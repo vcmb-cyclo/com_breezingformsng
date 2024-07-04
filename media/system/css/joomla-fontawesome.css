@@ -1,8 +1,4 @@
-/*!
- * Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com
- * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
- * Copyright 2023 Fonticons, Inc.
- */
+@charset "UTF-8";
 .fa {
   font-family: var(--fa-style-family, "Font Awesome 6 Free");
   font-weight: var(--fa-style, 900);
@@ -5623,7 +5619,7 @@
   content: "";
 }
 
-.fa-share:before, .fa-arrow-turn-right:before, .fa-mail-forward:before {
+.fa-share:before, .fa-mail-forward:before {
   content: "";
 }
 
@@ -8042,7 +8038,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: block;
-  src: url("../../../media/vendor/fontawesome-free/webfonts/fa-regular-400.woff2?v=747442") format("woff2"), url("../../../media/vendor/fontawesome-free/webfonts/fa-regular-400.ttf?v=675809") format("truetype");
+  src: url("../../../media/vendor/fontawesome-free/webfonts/fa-regular-400.woff2?v=023a4a") format("woff2"), url("../../../media/vendor/fontawesome-free/webfonts/fa-regular-400.ttf?v=a0cc1c") format("truetype");
 }
 
 .far, .fa-regular {
@@ -8059,7 +8055,7 @@
   font-style: normal;
   font-weight: 900;
   font-display: block;
-  src: url("../../../media/vendor/fontawesome-free/webfonts/fa-solid-900.woff2?v=d5e647") format("woff2"), url("../../../media/vendor/fontawesome-free/webfonts/fa-solid-900.ttf?v=0248ab") format("truetype");
+  src: url("../../../media/vendor/fontawesome-free/webfonts/fa-solid-900.woff2?v=6c4eee") format("woff2"), url("../../../media/vendor/fontawesome-free/webfonts/fa-solid-900.ttf?v=25914c") format("truetype");
 }
 
 .fas, [class^="icon-"], [class*=" icon-"], .fa-solid {
@@ -8076,7 +8072,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: block;
-  src: url("../../../media/vendor/fontawesome-free/webfonts/fa-brands-400.woff2?v=005c9a") format("woff2"), url("../../../media/vendor/fontawesome-free/webfonts/fa-brands-400.ttf?v=bb8cd0") format("truetype");
+  src: url("../../../media/vendor/fontawesome-free/webfonts/fa-brands-400.woff2?v=b6356c") format("woff2"), url("../../../media/vendor/fontawesome-free/webfonts/fa-brands-400.ttf?v=193142") format("truetype");
 }
 
 .fab, .icon-joomla, .fa-brands {
@@ -8129,6 +8125,10 @@
 
 .fa-ups:before {
   content: "";
+}
+
+.fa-pixiv:before {
+  content: "";
 }
 
 .fa-wpexplorer:before {
@@ -8261,6 +8261,10 @@
 
 .fa-deskpro:before {
   content: "";
+}
+
+.fa-brave:before {
+  content: "";
 }
 
 .fa-sistrix:before {
@@ -8467,6 +8471,10 @@
   content: "";
 }
 
+.fa-opensuse:before {
+  content: "";
+}
+
 .fa-pied-piper-alt:before {
   content: "";
 }
@@ -8643,6 +8651,10 @@
   content: "";
 }
 
+.fa-square-letterboxd:before {
+  content: "";
+}
+
 .fa-sticker-mule:before {
   content: "";
 }
@@ -8685,6 +8697,10 @@
 
 .fa-confluence:before {
   content: "";
+}
+
+.fa-shoelace:before {
+  content: "";
 }
 
 .fa-mdb:before {
@@ -8829,6 +8845,10 @@
 
 .fa-envira:before {
   content: "";
+}
+
+.fa-google-scholar:before {
+  content: "";
 }
 
 .fa-square-gitlab:before, .fa-gitlab-square:before {
@@ -8995,6 +9015,10 @@
   content: "";
 }
 
+.fa-signal-messenger:before {
+  content: "";
+}
+
 .fa-paypal:before {
   content: "";
 }
@@ -9039,6 +9063,10 @@
   content: "";
 }
 
+.fa-mintbit:before {
+  content: "";
+}
+
 .fa-ethereum:before {
   content: "";
 }
@@ -9069,6 +9097,10 @@
 
 .fa-bimobject:before {
   content: "";
+}
+
+.fa-brave-reverse:before {
+  content: "";
 }
 
 .fa-facebook-f:before {
@@ -9197,6 +9229,10 @@
 
 .fa-tencent-weibo:before {
   content: "";
+}
+
+.fa-letterboxd:before {
+  content: "";
 }
 
 .fa-symfony:before {
@@ -9365,6 +9401,10 @@
 
 .fa-cmplid:before {
   content: "";
+}
+
+.fa-upwork:before {
+  content: "";
 }
 
 .fa-facebook:before {
@@ -9585,6 +9625,10 @@
 
 .fa-supple:before {
   content: "";
+}
+
+.fa-webflow:before {
+  content: "";
 }
 
 .fa-rebel:before {

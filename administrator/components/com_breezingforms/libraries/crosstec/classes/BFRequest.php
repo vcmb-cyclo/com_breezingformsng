@@ -2,10 +2,16 @@
 /**
  *
  * @copyright   Copyright (C) 2005 - 2020 Open Source Matters, Inc. All rights reserved.
+ * @copyright   (C) 2024 by XDA+GIL
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\Filter\InputFilter;
+use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Session\Session;
 
 /**
  * Create the request global object
@@ -15,8 +21,8 @@ $GLOBALS['_BFREQUEST'] = array();
 /**
  * Set the available masks for cleaning variables
  */
-const BFREQUEST_NOTRIM    = 1;
-const BFREQUEST_ALLOWRAW  = 2;
+const BFREQUEST_NOTRIM = 1;
+const BFREQUEST_ALLOWRAW = 2;
 const BFREQUEST_ALLOWHTML = 4;
 
 /**
@@ -41,7 +47,7 @@ class BFRequest
      */
     public static function getUri()
     {
-        $uri = JUri::getInstance();
+        $uri = Uri::getInstance();
 
         return $uri->toString(array('path', 'query'));
     }
@@ -81,7 +87,7 @@ class BFRequest
      * @param   string   $name     Variable name.
      * @param   mixed    $default  Default value if the variable does not exist.
      * @param   string   $hash     Where the var should come from (POST, GET, FILES, COOKIE, METHOD).
-     * @param   string   $type     Return type for the variable, for valid values see {@link JFilterInput::clean()}.
+     * @param   string   $type     Return type for the variable, for valid values see {@link InputFilter::clean()}.
      * @param   integer  $mask     Filter mask for the variable.
      *
      * @return  mixed  Requested variable.
@@ -94,8 +100,7 @@ class BFRequest
         // Ensure hash and type are uppercase
         $hash = strtoupper($hash);
 
-        if ($hash === 'METHOD')
-        {
+        if ($hash === 'METHOD') {
             $hash = strtoupper($_SERVER['REQUEST_METHOD']);
         }
 
@@ -103,8 +108,7 @@ class BFRequest
         $sig = $hash . $type . $mask;
 
         // Get the input hash
-        switch ($hash)
-        {
+        switch ($hash) {
             case 'GET':
                 $input = &$_GET;
                 break;
@@ -129,33 +133,23 @@ class BFRequest
                 break;
         }
 
-        if (isset($GLOBALS['_BFREQUEST'][$name]['SET.' . $hash]) && ($GLOBALS['_BFREQUEST'][$name]['SET.' . $hash] === true))
-        {
+        if (isset($GLOBALS['_BFREQUEST'][$name]['SET.' . $hash]) && ($GLOBALS['_BFREQUEST'][$name]['SET.' . $hash] === true)) {
             // Get the variable from the input hash
             $var = (isset($input[$name]) && $input[$name] !== null) ? $input[$name] : $default;
             $var = self::_cleanVar($var, $mask, $type);
-        }
-        elseif (!isset($GLOBALS['_BFREQUEST'][$name][$sig]))
-        {
-            if (isset($input[$name]))
-            {
+        } elseif (!isset($GLOBALS['_BFREQUEST'][$name][$sig])) {
+            if (isset($input[$name])) {
                 // Get the variable from the input hash and clean it
                 $var = self::_cleanVar($input[$name], $mask, $type);
 
                 $GLOBALS['_BFREQUEST'][$name][$sig] = $var;
-            }
-            elseif ($default !== null)
-            {
+            } elseif ($default !== null) {
                 // Clean the default value
                 $var = self::_cleanVar($default, $mask, $type);
-            }
-            else
-            {
+            } else {
                 $var = $default;
             }
-        }
-        else
-        {
+        } else {
             $var = $GLOBALS['_BFREQUEST'][$name][$sig];
         }
 
@@ -329,8 +323,7 @@ class BFRequest
     public static function setVar($name, $value = null, $hash = 'method', $overwrite = true)
     {
         // If overwrite is true, makes sure the variable hasn't been set yet
-        if (!$overwrite && array_key_exists($name, $_REQUEST))
-        {
+        if (!$overwrite && array_key_exists($name, $_REQUEST)) {
             return $_REQUEST[$name];
         }
 
@@ -340,15 +333,13 @@ class BFRequest
         // Get the request hash value
         $hash = strtoupper($hash);
 
-        if ($hash === 'METHOD')
-        {
+        if ($hash === 'METHOD') {
             $hash = strtoupper($_SERVER['REQUEST_METHOD']);
         }
 
         $previous = array_key_exists($name, $_REQUEST) ? $_REQUEST[$name] : null;
 
-        switch ($hash)
-        {
+        switch ($hash) {
             case 'GET':
                 $_GET[$name] = $value;
                 $_REQUEST[$name] = $value;
@@ -410,13 +401,11 @@ class BFRequest
     {
         $hash = strtoupper($hash);
 
-        if ($hash === 'METHOD')
-        {
+        if ($hash === 'METHOD') {
             $hash = strtoupper($_SERVER['REQUEST_METHOD']);
         }
 
-        switch ($hash)
-        {
+        switch ($hash) {
             case 'GET':
                 $input = $_GET;
                 break;
@@ -463,8 +452,7 @@ class BFRequest
      */
     public static function set($array, $hash = 'default', $overwrite = true)
     {
-        foreach ($array as $key => $value)
-        {
+        foreach ($array as $key => $value) {
             self::setVar($key, $value, $hash, $overwrite);
         }
     }
@@ -472,23 +460,22 @@ class BFRequest
     /**
      * Checks for a form token in the request.
      *
-     * Use in conjunction with JHtml::_('form.token').
+     * Use in conjunction with HTMLHelper::_('form.token').
      *
      * @param   string  $method  The request method in which to look for the token key.
      *
      * @return  boolean  True if found and valid, false otherwise.
      *
      * @since   1.5
-     * #deprecated  1.7 Use JSession::checkToken() instead. Note that 'default' has to become 'request'.
+     * #deprecated  1.7 Use Session::checkToken() instead. Note that 'default' has to become 'request'.
      */
     public static function checkToken($method = 'post')
     {
-        if ($method === 'default')
-        {
+        if ($method === 'default') {
             $method = 'request';
         }
 
-        return JSession::checkToken($method);
+        return Session::checkToken($method);
     }
 
     /**
@@ -501,7 +488,7 @@ class BFRequest
      *                           2 = allow_raw: If set, no more filtering is performed, higher bits are ignored.
      *                           4 = allow_html: HTML is allowed, but passed through a safe HTML filter first. If set, no more filtering
      *                               is performed. If no bits other than the 1 bit is set, a strict filter is applied.
-     * @param   string   $type  The variable type {@see JFilterInput::clean()}.
+     * @param   string   $type  The variable type {@see InputFilter::clean()}.
      *
      * @return  mixed  Same as $var
      *
@@ -513,28 +500,22 @@ class BFRequest
         $mask = (int) $mask;
 
         // If the no trim flag is not set, trim the variable
-        if (!($mask & 1) && is_string($var))
-        {
+        if (!($mask & 1) && is_string($var)) {
             $var = trim($var);
         }
 
         // Now we handle input filtering
-        if ($mask & 2)
-        {
+        if ($mask & 2) {
 
             // If the allow raw flag is set, do not modify the variable
-        }
-        elseif ($mask & 4)
-        {
+        } elseif ($mask & 4) {
             // If the allow HTML flag is set, apply a safe HTML filter to the variable
-            $safeHtmlFilter = JFilterInput::getInstance(array(), array(), 1, 1);
+            $safeHtmlFilter = InputFilter::getInstance(array(), array(), 1, 1);
             $var = $safeHtmlFilter->clean($var, $type);
-        }
-        else
-        {
+        } else {
             // Since no allow flags were set, we will apply the most strict filter to the variable
             // $tags, $attr, $tag_method, $attr_method, $xss_auto use defaults.
-            $noHtmlFilter = JFilterInput::getInstance();
+            $noHtmlFilter = InputFilter::getInstance();
             $var = $noHtmlFilter->clean($var, $type);
         }
 
@@ -542,7 +523,7 @@ class BFRequest
     }
 }
 
-$bf_request = JFactory::getApplication()->input->getArray(array(), null, 'RAW');
+$bf_request = Factory::getApplication()->input->getArray(array(), null, 'RAW');
 foreach ($bf_request as $bf_request_item_key => $bf_request_item_value) {
     BFRequest::setVar($bf_request_item_key, $bf_request_item_value);
 }

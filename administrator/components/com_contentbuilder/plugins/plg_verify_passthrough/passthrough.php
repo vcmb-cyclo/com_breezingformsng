@@ -3,18 +3,19 @@
  * @package     ContentBuilder
  * @author      Markus Bopp
  * @link        https://www.crosstec.org
+ * @copyright   Copyright (C) 2024 by XDA+GIL
  * @license     GNU/GPL
-*/
+ */
 
 // no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
+defined('_JEXEC') or die ('Restricted access');
+use Joomla\CMS\Plugin\CMSPlugin;
 
-jimport( 'joomla.plugin.plugin' );
 
-class plgContentbuilder_verifyPassthrough extends JPlugin
+class plgContentbuilder_verifyPassthrough extends CMSPlugin
 {
 
-    function __construct( &$subject, $params )
+    function __construct(&$subject, $params)
     {
         parent::__construct($subject, $params);
     }
@@ -29,11 +30,12 @@ class plgContentbuilder_verifyPassthrough extends JPlugin
      * @param string $plugin_settings The raw query string with the plugin options
      * @return string empty for nothing (default) or a string to render instead of the default
      */
-    function onViewport($link, $plugin_settings){
-        
+    function onViewport($link, $plugin_settings)
+    {
+
         return '';
     }
-    
+
     /**
      * Will always be called by the verifier
      * 
@@ -41,8 +43,9 @@ class plgContentbuilder_verifyPassthrough extends JPlugin
      * @param type $options
      * @return string empty if everything is ok, else a message describing the problem 
      */
-    function onSetup($return_url, $options){
-        
+    function onSetup($return_url, $options)
+    {
+
         return '';
     }
 
@@ -52,7 +55,8 @@ class plgContentbuilder_verifyPassthrough extends JPlugin
      * @param string $return_url
      * @param array $options 
      */
-    function onForward($return_url, $options){
+    function onForward($return_url, $options)
+    {
         return $return_url;
     }
 
@@ -63,12 +67,13 @@ class plgContentbuilder_verifyPassthrough extends JPlugin
      * @param array $options
      * @return mixed boolean false on errors or an array with optional verification data (msg[string], is_test[0/1], data [array])
      */
-    function onVerify($return_url, $options){
-        
+    function onVerify($return_url, $options)
+    {
+
         return array(
-                    'msg' => '', 
-                    'is_test' => 0,
-                    'data' => array()
-                );
+            'msg' => '',
+            'is_test' => 0,
+            'data' => array()
+        );
     }
 }

@@ -1,5 +1,3 @@
-// FIXME profile adding a per-Tree TreeNode cache, validating it by
-// parent pointer
 /**
 The default maximum length of a `TreeBuffer` node.
 */
@@ -67,6 +65,22 @@ types that represent an expression could be tagged with an
 */
 NodeProp.group = new NodeProp({ deserialize: str => str.split(" ") });
 /**
+Attached to nodes to indicate these should be
+[displayed](https://codemirror.net/docs/ref/#language.syntaxTree)
+in a bidirectional text isolate, so that direction-neutral
+characters on their sides don't incorrectly get associated with
+surrounding text. You'll generally want to set this for nodes
+that contain arbitrary text, like strings and comments, and for
+nodes that appear _inside_ arbitrary text, like HTML tags. When
+not given a value, in a grammar declaration, defaults to
+`"auto"`.
+*/
+NodeProp.isolate = new NodeProp({ deserialize: value => {
+        if (value && value != "rtl" && value != "ltr" && value != "auto")
+            throw new RangeError("Invalid value for isolate: " + value);
+        return value || "auto";
+    } });
+/**
 The hash of the [context](#lr.ContextTracker.constructor)
 that the node was parsed in, if any. Used to limit reuse of
 contextual nodes.
@@ -113,6 +127,12 @@ class MountedTree {
         this.tree = tree;
         this.overlay = overlay;
         this.parser = parser;
+    }
+    /**
+    @internal
+    */
+    static get(tree) {
+        return tree && tree.props && tree.props[NodeProp.mounted.id];
     }
 }
 const noProps = Object.create(null);
@@ -369,7 +389,7 @@ class Tree {
     @internal
     */
     toString() {
-        let mounted = this.prop(NodeProp.mounted);
+        let mounted = MountedTree.get(this);
         if (mounted && !mounted.overlay)
             return mounted.tree.toString();
         let children = "";
@@ -439,6 +459,16 @@ class Tree {
         let node = resolveNode(CachedInnerNode.get(this) || this.topNode, pos, side, true);
         CachedInnerNode.set(this, node);
         return node;
+    }
+    /**
+    In some situations, it can be useful to iterate through all
+    nodes around a position, including those in overlays that don't
+    directly cover the position. This method gives you an iterator
+    that will produce all nodes, from small to big, around the given
+    position.
+    */
+    resolveStack(pos, side = 0) {
+        return stackIterator(this, pos, side);
     }
     /**
     Iterate over the tree and its children, calling `enter` for any
@@ -619,22 +649,6 @@ function checkSide(side, pos, from, to) {
         case 4 /* Side.DontCare */: return true;
     }
 }
-function enterUnfinishedNodesBefore(node, pos) {
-    let scan = node.childBefore(pos);
-    while (scan) {
-        let last = scan.lastChild;
-        if (!last || last.to != scan.to)
-            break;
-        if (last.type.isError && last.from == last.to) {
-            node = scan;
-            scan = last.prevSibling;
-        }
-        else {
-            scan = last;
-        }
-    }
-    return node;
-}
 function resolveNode(node, pos, side, overlays) {
     var _a;
     // Move up to a node that actually holds the position, if possible
@@ -660,10 +674,48 @@ function resolveNode(node, pos, side, overlays) {
         node = inner;
     }
 }
-class TreeNode {
+class BaseNode {
+    cursor(mode = 0) { return new TreeCursor(this, mode); }
+    getChild(type, before = null, after = null) {
+        let r = getChildren(this, type, before, after);
+        return r.length ? r[0] : null;
+    }
+    getChildren(type, before = null, after = null) {
+        return getChildren(this, type, before, after);
+    }
+    resolve(pos, side = 0) {
+        return resolveNode(this, pos, side, false);
+    }
+    resolveInner(pos, side = 0) {
+        return resolveNode(this, pos, side, true);
+    }
+    matchContext(context) {
+        return matchNodeContext(this, context);
+    }
+    enterUnfinishedNodesBefore(pos) {
+        let scan = this.childBefore(pos), node = this;
+        while (scan) {
+            let last = scan.lastChild;
+            if (!last || last.to != scan.to)
+                break;
+            if (last.type.isError && last.from == last.to) {
+                node = scan;
+                scan = last.prevSibling;
+            }
+            else {
+                scan = last;
+            }
+        }
+        return node;
+    }
+    get node() { return this; }
+    get next() { return this.parent; }
+}
+class TreeNode extends BaseNode {
     constructor(_tree, from, 
     // Index in parent node, set to -1 if the node is not a direct child of _parent.node (overlay)
     index, _parent) {
+        super();
         this._tree = _tree;
         this.from = from;
         this.index = index;
@@ -687,8 +739,7 @@ class TreeNode {
                 }
                 else if ((mode & IterMode.IncludeAnonymous) || (!next.type.isAnonymous || hasChild(next))) {
                     let mounted;
-                    if (!(mode & IterMode.IgnoreMounts) &&
-                        next.props && (mounted = next.prop(NodeProp.mounted)) && !mounted.overlay)
+                    if (!(mode & IterMode.IgnoreMounts) && (mounted = MountedTree.get(next)) && !mounted.overlay)
                         return new TreeNode(mounted.tree, start, i, parent);
                     let inner = new TreeNode(next, start, i, parent);
                     return (mode & IterMode.IncludeAnonymous) || !inner.type.isAnonymous ? inner
@@ -712,7 +763,7 @@ class TreeNode {
     childBefore(pos) { return this.nextChild(this._tree.children.length - 1, -1, pos, -2 /* Side.Before */); }
     enter(pos, side, mode = 0) {
         let mounted;
-        if (!(mode & IterMode.IgnoreOverlays) && (mounted = this._tree.prop(NodeProp.mounted)) && mounted.overlay) {
+        if (!(mode & IterMode.IgnoreOverlays) && (mounted = MountedTree.get(this._tree)) && mounted.overlay) {
             let rPos = pos - this.from;
             for (let { from, to } of mounted.overlay) {
                 if ((side > 0 ? from <= rPos : from < rPos) &&
@@ -737,38 +788,23 @@ class TreeNode {
     get prevSibling() {
         return this._parent && this.index >= 0 ? this._parent.nextChild(this.index - 1, -1, 0, 4 /* Side.DontCare */) : null;
     }
-    cursor(mode = 0) { return new TreeCursor(this, mode); }
     get tree() { return this._tree; }
     toTree() { return this._tree; }
-    resolve(pos, side = 0) {
-        return resolveNode(this, pos, side, false);
-    }
-    resolveInner(pos, side = 0) {
-        return resolveNode(this, pos, side, true);
-    }
-    enterUnfinishedNodesBefore(pos) { return enterUnfinishedNodesBefore(this, pos); }
-    getChild(type, before = null, after = null) {
-        let r = getChildren(this, type, before, after);
-        return r.length ? r[0] : null;
-    }
-    getChildren(type, before = null, after = null) {
-        return getChildren(this, type, before, after);
-    }
     /**
     @internal
     */
     toString() { return this._tree.toString(); }
-    get node() { return this; }
-    matchContext(context) { return matchNodeContext(this, context); }
 }
 function getChildren(node, type, before, after) {
     let cur = node.cursor(), result = [];
     if (!cur.firstChild())
         return result;
     if (before != null)
-        while (!cur.type.is(before))
+        for (let found = false; !found;) {
+            found = cur.type.is(before);
             if (!cur.nextSibling())
                 return result;
+        }
     for (;;) {
         if (after != null && cur.type.is(after))
             return result;
@@ -798,11 +834,12 @@ class BufferContext {
         this.start = start;
     }
 }
-class BufferNode {
+class BufferNode extends BaseNode {
     get name() { return this.type.name; }
     get from() { return this.context.start + this.context.buffer.buffer[this.index + 1]; }
     get to() { return this.context.start + this.context.buffer.buffer[this.index + 2]; }
     constructor(context, _parent, index) {
+        super();
         this.context = context;
         this._parent = _parent;
         this.index = index;
@@ -844,7 +881,6 @@ class BufferNode {
             return this.externalSibling(-1);
         return new BufferNode(this.context, this._parent, buffer.findChild(parentStart, this.index, -1, 0, 4 /* Side.DontCare */));
     }
-    cursor(mode = 0) { return new TreeCursor(this, mode); }
     get tree() { return null; }
     toTree() {
         let children = [], positions = [];
@@ -857,26 +893,55 @@ class BufferNode {
         }
         return new Tree(this.type, children, positions, this.to - this.from);
     }
-    resolve(pos, side = 0) {
-        return resolveNode(this, pos, side, false);
-    }
-    resolveInner(pos, side = 0) {
-        return resolveNode(this, pos, side, true);
-    }
-    enterUnfinishedNodesBefore(pos) { return enterUnfinishedNodesBefore(this, pos); }
     /**
     @internal
     */
     toString() { return this.context.buffer.childString(this.index); }
-    getChild(type, before = null, after = null) {
-        let r = getChildren(this, type, before, after);
-        return r.length ? r[0] : null;
+}
+function iterStack(heads) {
+    if (!heads.length)
+        return null;
+    let pick = 0, picked = heads[0];
+    for (let i = 1; i < heads.length; i++) {
+        let node = heads[i];
+        if (node.from > picked.from || node.to < picked.to) {
+            picked = node;
+            pick = i;
+        }
     }
-    getChildren(type, before = null, after = null) {
-        return getChildren(this, type, before, after);
+    let next = picked instanceof TreeNode && picked.index < 0 ? null : picked.parent;
+    let newHeads = heads.slice();
+    if (next)
+        newHeads[pick] = next;
+    else
+        newHeads.splice(pick, 1);
+    return new StackIterator(newHeads, picked);
+}
+class StackIterator {
+    constructor(heads, node) {
+        this.heads = heads;
+        this.node = node;
     }
-    get node() { return this; }
-    matchContext(context) { return matchNodeContext(this, context); }
+    get next() { return iterStack(this.heads); }
+}
+function stackIterator(tree, pos, side) {
+    let inner = tree.resolveInner(pos, side), layers = null;
+    for (let scan = inner instanceof TreeNode ? inner : inner.context.parent; scan; scan = scan.parent) {
+        if (scan.index < 0) { // This is an overlay root
+            let parent = scan.parent;
+            (layers || (layers = [inner])).push(parent.resolve(pos, side));
+            scan = parent;
+        }
+        else {
+            let mount = MountedTree.get(scan.tree);
+            // Relevant overlay branching off
+            if (mount && mount.overlay && mount.overlay[0].from <= pos && mount.overlay[mount.overlay.length - 1].to >= pos) {
+                let root = new TreeNode(mount.tree, mount.overlay[0].from + scan.from, -1, scan);
+                (layers || (layers = [inner])).push(resolveNode(root, pos, side, false));
+            }
+        }
+    }
+    return layers ? iterStack(layers) : inner;
 }
 /**
 A tree cursor object focuses on a given node in a syntax tree, and
@@ -935,6 +1000,9 @@ class TreeCursor {
         this.to = start + buffer.buffer[index + 2];
         return true;
     }
+    /**
+    @internal
+    */
     yield(node) {
         if (!node)
             return false;
@@ -1200,7 +1268,7 @@ function buildTree(data) {
     let cursor = Array.isArray(buffer) ? new FlatBufferCursor(buffer, buffer.length) : buffer;
     let types = nodeSet.types;
     let contextHash = 0, lookAhead = 0;
-    function takeNode(parentStart, minPos, children, positions, inRepeat) {
+    function takeNode(parentStart, minPos, children, positions, inRepeat, depth) {
         let { id, start, end, size } = cursor;
         let lookAheadAtStart = lookAhead;
         while (size < 0) {
@@ -1249,8 +1317,11 @@ function buildTree(data) {
                     }
                     cursor.next();
                 }
+                else if (depth > 2500 /* CutOff.Depth */) {
+                    takeFlatNode(start, endPos, localChildren, localPositions);
+                }
                 else {
-                    takeNode(start, endPos, localChildren, localPositions, localInRepeat);
+                    takeNode(start, endPos, localChildren, localPositions, localInRepeat, depth + 1);
                 }
             }
             if (localInRepeat >= 0 && lastGroup > 0 && lastGroup < localChildren.length)
@@ -1267,6 +1338,38 @@ function buildTree(data) {
         }
         children.push(node);
         positions.push(startPos);
+    }
+    function takeFlatNode(parentStart, minPos, children, positions) {
+        let nodes = []; // Temporary, inverted array of leaf nodes found, with absolute positions
+        let nodeCount = 0, stopAt = -1;
+        while (cursor.pos > minPos) {
+            let { id, start, end, size } = cursor;
+            if (size > 4) { // Not a leaf
+                cursor.next();
+            }
+            else if (stopAt > -1 && start < stopAt) {
+                break;
+            }
+            else {
+                if (stopAt < 0)
+                    stopAt = end - maxBufferLength;
+                nodes.push(id, start, end);
+                nodeCount++;
+                cursor.next();
+            }
+        }
+        if (nodeCount) {
+            let buffer = new Uint16Array(nodeCount * 4);
+            let start = nodes[nodes.length - 2];
+            for (let i = nodes.length - 3, j = 0; i >= 0; i -= 3) {
+                buffer[j++] = nodes[i];
+                buffer[j++] = nodes[i + 1] - start;
+                buffer[j++] = nodes[i + 2] - start;
+                buffer[j++] = j;
+            }
+            children.push(new TreeBuffer(buffer, nodes[2] - start, nodeSet));
+            positions.push(start - parentStart);
+        }
     }
     function makeBalanced(type) {
         return (children, positions, length) => {
@@ -1378,7 +1481,7 @@ function buildTree(data) {
     }
     let children = [], positions = [];
     while (cursor.pos > 0)
-        takeNode(data.start || 0, data.bufferStart || 0, children, positions, -1);
+        takeNode(data.start || 0, data.bufferStart || 0, children, positions, -1, 0);
     let length = (_a = data.length) !== null && _a !== void 0 ? _a : (children.length ? positions[0] + children[0].length : 0);
     return new Tree(types[data.topID], children.reverse(), positions.reverse(), length);
 }
@@ -1659,15 +1762,17 @@ function parseMixed(nest) {
     return (parse, input, fragments, ranges) => new MixedParse(parse, nest, input, fragments, ranges);
 }
 class InnerParse {
-    constructor(parser, parse, overlay, target, ranges) {
+    constructor(parser, parse, overlay, target, from) {
         this.parser = parser;
         this.parse = parse;
         this.overlay = overlay;
         this.target = target;
-        this.ranges = ranges;
-        if (!ranges.length || ranges.some(r => r.from >= r.to))
-            throw new RangeError("Invalid inner parse ranges given: " + JSON.stringify(ranges));
+        this.from = from;
     }
+}
+function checkRanges(ranges) {
+    if (!ranges.length || ranges.some(r => r.from >= r.to))
+        throw new RangeError("Invalid inner parse ranges given: " + JSON.stringify(ranges));
 }
 class ActiveOverlay {
     constructor(parser, predicate, mounts, index, start, target, prev) {
@@ -1731,7 +1836,7 @@ class MixedParse {
             return 0;
         let pos = this.input.length;
         for (let i = this.innerDone; i < this.inner.length; i++) {
-            if (this.inner[i].ranges[0].from < pos)
+            if (this.inner[i].from < pos)
                 pos = Math.min(pos, this.inner[i].parse.parsedPos);
         }
         return pos;
@@ -1749,9 +1854,12 @@ class MixedParse {
         let overlay = null;
         let covered = null;
         let cursor = new TreeCursor(new TreeNode(this.baseTree, this.ranges[0].from, 0, null), IterMode.IncludeAnonymous | IterMode.IgnoreMounts);
-        scan: for (let nest, isCovered; this.stoppedAt == null || cursor.from < this.stoppedAt;) {
+        scan: for (let nest, isCovered;;) {
             let enter = true, range;
-            if (fragmentCursor.hasNode(cursor)) {
+            if (this.stoppedAt != null && cursor.from >= this.stoppedAt) {
+                enter = false;
+            }
+            else if (fragmentCursor.hasNode(cursor)) {
                 if (overlay) {
                     let match = overlay.mounts.find(m => m.frag.from <= cursor.from && m.frag.to >= cursor.to && m.mount.overlay);
                     if (match)
@@ -1766,7 +1874,8 @@ class MixedParse {
             else if (covered && (isCovered = checkCover(covered.ranges, cursor.from, cursor.to))) {
                 enter = isCovered != 2 /* Cover.Full */;
             }
-            else if (!cursor.type.isAnonymous && cursor.from < cursor.to && (nest = this.nest(cursor, this.input))) {
+            else if (!cursor.type.isAnonymous && (nest = this.nest(cursor, this.input)) &&
+                (cursor.from < cursor.to || !nest.overlay)) {
                 if (!cursor.tree)
                     materialize(cursor);
                 let oldMounts = fragmentCursor.findMounts(cursor.from, nest.parser);
@@ -1774,9 +1883,13 @@ class MixedParse {
                     overlay = new ActiveOverlay(nest.parser, nest.overlay, oldMounts, this.inner.length, cursor.from, cursor.tree, overlay);
                 }
                 else {
-                    let ranges = punchRanges(this.ranges, nest.overlay || [new Range(cursor.from, cursor.to)]);
+                    let ranges = punchRanges(this.ranges, nest.overlay ||
+                        (cursor.from < cursor.to ? [new Range(cursor.from, cursor.to)] : []));
                     if (ranges.length)
-                        this.inner.push(new InnerParse(nest.parser, nest.parser.startParse(this.input, enterFragments(oldMounts, ranges), ranges), nest.overlay ? nest.overlay.map(r => new Range(r.from - cursor.from, r.to - cursor.from)) : null, cursor.tree, ranges));
+                        checkRanges(ranges);
+                    if (ranges.length || !nest.overlay)
+                        this.inner.push(new InnerParse(nest.parser, ranges.length ? nest.parser.startParse(this.input, enterFragments(oldMounts, ranges), ranges)
+                            : nest.parser.startParse(""), nest.overlay ? nest.overlay.map(r => new Range(r.from - cursor.from, r.to - cursor.from)) : null, cursor.tree, ranges.length ? ranges[0].from : cursor.from));
                     if (!nest.overlay)
                         enter = false;
                     else if (ranges.length)
@@ -1803,8 +1916,10 @@ class MixedParse {
                         break scan;
                     if (overlay && !--overlay.depth) {
                         let ranges = punchRanges(this.ranges, overlay.ranges);
-                        if (ranges.length)
-                            this.inner.splice(overlay.index, 0, new InnerParse(overlay.parser, overlay.parser.startParse(this.input, enterFragments(overlay.mounts, ranges), ranges), overlay.ranges.map(r => new Range(r.from - overlay.start, r.to - overlay.start)), overlay.target, ranges));
+                        if (ranges.length) {
+                            checkRanges(ranges);
+                            this.inner.splice(overlay.index, 0, new InnerParse(overlay.parser, overlay.parser.startParse(this.input, enterFragments(overlay.mounts, ranges), ranges), overlay.ranges.map(r => new Range(r.from - overlay.start, r.to - overlay.start)), overlay.target, ranges[0].from));
+                        }
                         overlay = overlay.prev;
                     }
                     if (covered && !--covered.depth)
@@ -1838,39 +1953,38 @@ function sliceBuf(buf, startI, endI, nodes, positions, off) {
 // parse that was ran via the mix parser, and thus aren't shared with
 // any other code, making violations of the immutability safe.
 function materialize(cursor) {
-    let { node } = cursor, depth = 0;
+    let { node } = cursor, stack = [];
+    let buffer = node.context.buffer;
     // Scan up to the nearest tree
     do {
+        stack.push(cursor.index);
         cursor.parent();
-        depth++;
     } while (!cursor.tree);
     // Find the index of the buffer in that tree
-    let i = 0, base = cursor.tree, off = 0;
-    for (;; i++) {
-        off = base.positions[i] + cursor.from;
-        if (off <= node.from && off + base.children[i].length >= node.to)
-            break;
-    }
-    let buf = base.children[i], b = buf.buffer;
+    let base = cursor.tree, i = base.children.indexOf(buffer);
+    let buf = base.children[i], b = buf.buffer, newStack = [i];
     // Split a level in the buffer, putting the nodes before and after
     // the child that contains `node` into new buffers.
-    function split(startI, endI, type, innerOffset, length) {
-        let i = startI;
-        while (b[i + 2] + off <= node.from)
-            i = b[i + 3];
+    function split(startI, endI, type, innerOffset, length, stackPos) {
+        let targetI = stack[stackPos];
         let children = [], positions = [];
-        sliceBuf(buf, startI, i, children, positions, innerOffset);
-        let from = b[i + 1], to = b[i + 2];
-        let isTarget = from + off == node.from && to + off == node.to && b[i] == node.type.id;
-        children.push(isTarget ? node.toTree() : split(i + 4, b[i + 3], buf.set.types[b[i]], from, to - from));
+        sliceBuf(buf, startI, targetI, children, positions, innerOffset);
+        let from = b[targetI + 1], to = b[targetI + 2];
+        newStack.push(children.length);
+        let child = stackPos
+            ? split(targetI + 4, b[targetI + 3], buf.set.types[b[targetI]], from, to - from, stackPos - 1)
+            : node.toTree();
+        children.push(child);
         positions.push(from - innerOffset);
-        sliceBuf(buf, b[i + 3], endI, children, positions, innerOffset);
+        sliceBuf(buf, b[targetI + 3], endI, children, positions, innerOffset);
         return new Tree(type, children, positions, length);
     }
-    base.children[i] = split(0, b.length, NodeType.none, 0, buf.length);
+    base.children[i] = split(0, b.length, NodeType.none, 0, buf.length, stack.length - 1);
     // Move the cursor back to the target node
-    for (let d = 0; d <= depth; d++)
-        cursor.childAfter(node.from);
+    for (let index of newStack) {
+        let tree = cursor.tree.children[index], pos = cursor.tree.positions[index];
+        cursor.yield(new TreeNode(tree, pos + cursor.from, index, cursor._tree));
+    }
 }
 class StructureCursor {
     constructor(root, offset) {

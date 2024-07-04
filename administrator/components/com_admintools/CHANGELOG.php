@@ -1,4 +1,41 @@
 <?php die() ?>
+Admin Tools 7.5.4
+================================================================================
++ Improved support for Joomla! 5.1's backend colour schemes
++ You can now choose the action for an invalid administrator secret URL parameter
++ Components sidebar menu item to open the appropriate server config maker for your site
+~ Remove Itemid from Suspicious Core Parameters, it has its own feature (ItemidShield)
+~ Re-arrange order of execution to process IP blocks before request blocking features
+
+Admin Tools 7.5.3
+================================================================================
+~ Allow empty Itemid even when Suspicious Core Parameters feature is enabled
+# [MEDIUM] Server configuration maker: Fixed fatal error when web servers different than Apache are used
+# [MEDIUM] Joomla does not return the plugin ID when it's disabled, leading to broken links in the UI
+
+Admin Tools 7.5.2
+================================================================================
+! Joomla-recommended .htaccess code was breaking the site
+
+Admin Tools 7.5.1
+================================================================================
+! Detecting PHP handlers can break if there is no .htaccess file yet
+! Error in version.php breaks the control panel interface
+
+Admin Tools 7.5.0
+================================================================================
++ Improved support for Joomla! 5.1 dark mode
++ Detect and import PHP version directives into the .htaccess Maker
+~ Reintroduce old value format workarounds for people being late to upgrading from Joomla! 3.x
+# [LOW] Admin Tools Core showed an (unsupported) URL Redirection menu item
+# [LOW] Some numeric Configure WAF options did not have their limits enforced
+# [LOW] Double Gzip/Brotli compression for some core Joomla! files when both compression algorithms are supported
+
+Admin Tools 7.4.9
+================================================================================
++ Optional description field on “Never block these IPs” and “Never blocked domains”
+# [MEDIUM] Suspicious Core Parameter always applied the cmd filter, leading to false positives
+
 Admin Tools 7.4.8
 ================================================================================
 ~ Added more options to the not log and not email for the reasons options

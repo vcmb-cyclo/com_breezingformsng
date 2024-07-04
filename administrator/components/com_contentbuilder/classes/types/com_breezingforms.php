@@ -4,11 +4,14 @@
  * @author      Markus Bopp
  * @link        https://www.crosstec.org
  * @license     GNU/GPL
+ * @copyright   Copyright (C) 2024 by XDA+GIL 
 */
 
 use Joomla\CMS\Factory;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Utilities\ArrayHelper;
+use Joomla\Filesystem\File;
+use Joomla\CMS\Environment\Browser;
 
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
@@ -895,13 +898,12 @@ class contentbuilder_com_breezingforms{
         if(!$record_id){
             $username = '-';
             $user_full_name = '-';
-            if(JFactory::getUser()->get('id',0) > 0){
-                $username = JFactory::getUser()->get('username','');
-                $user_full_name = JFactory::getUser()->get('name','');
+            if(Factory::getApplication()->getIdentity()->get('id',0) > 0){
+                $username = Factory::getApplication()->getIdentity()->get('username','');
+                $user_full_name = Factory::getApplication()->getIdentity()->get('name','');
             }
             jimport('joomla.environment.browser');
-            $date = JFactory::getDate();
-            $now = $date->toSql();
+            $now = Factory::getDate()->toSql();
             $db->setQuery("Insert Into #__facileforms_records (
                 `submitted`,
                 `form`,
@@ -919,9 +921,9 @@ class contentbuilder_com_breezingforms{
                 ".$db->Quote($this->properties->title).",
                 ".$db->Quote($this->properties->name).",
                 ".$db->Quote($_SERVER['REMOTE_ADDR']).",
-                ".$db->Quote(JBrowser::getInstance()->getAgentString()).",
-                ".$db->Quote(JBrowser::getInstance()->getPlatform()).",
-                ".$db->Quote(JFactory::getUser()->get('id',0)).",
+                ".$db->Quote(Browser::getInstance()->getAgentString()).",
+                ".$db->Quote(Browser::getInstance()->getPlatform()).",
+                ".$db->Quote(Factory::getApplication()->getIdentity()->get('id',0)).",
                 ".$db->Quote($username).",
                 ".$db->Quote($user_full_name)."
             )");
@@ -1064,8 +1066,8 @@ class contentbuilder_com_breezingforms{
                     if(strpos(strtolower($_value), '{cbsite}') === 0){
                         $_value = str_replace(array('{cbsite}','{CBSite}'), array(JPATH_SITE, JPATH_SITE), $_value);
                     }
-                    if(JFile::exists($_value)){
-                        JFile::delete($_value);
+                    if(file_exists($_value)){
+                        File::delete($_value);
                     }
                 }
             }

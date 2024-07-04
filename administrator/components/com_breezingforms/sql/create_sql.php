@@ -8,6 +8,9 @@
 **/
 defined( '_JEXEC' ) or die( 'Direct Access to this location is not allowed.' );
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 $_1 = "DROP TABLE IF EXISTS `#__facileforms_config`;";
 
 $_2 = "CREATE TABLE `#__facileforms_config` (
@@ -434,146 +437,146 @@ $_52 = "ALTER TABLE `#__facileforms_scripts`
 $_53 = "ALTER TABLE `#__facileforms_subrecords`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT";
 
-$db = BFFactory::getDbo();
+$db = Factory::getContainer()->get(DatabaseInterface::class);
 
 $db->setQuery($_1);
-$db->query();
+$db->execute();
 
 $db->setQuery($_2);
-$db->query();
+$db->execute();
 
 $db->setQuery($_3);
-$db->query();
+$db->execute();
 
 $db->setQuery($_4);
-$db->query();
+$db->execute();
 
 $db->setQuery($_5);
-$db->query();
+$db->execute();
 
 $db->setQuery($_6);
-$db->query();
+$db->execute();
 
 $db->setQuery($_7);
-$db->query();
+$db->execute();
 
 $db->setQuery($_8);
-$db->query();
+$db->execute();
 
 $db->setQuery($_9);
-$db->query();
+$db->execute();
 
 $db->setQuery($_10);
-$db->query();
+$db->execute();
 
 $db->setQuery($_11);
-$db->query();
+$db->execute();
 
 $db->setQuery($_12);
-$db->query();
+$db->execute();
 
 $db->setQuery($_13);
-$db->query();
+$db->execute();
 
 $db->setQuery($_14);
-$db->query();
+$db->execute();
 
 $db->setQuery($_15);
-$db->query();
+$db->execute();
 
 $db->setQuery($_16);
-$db->query();
+$db->execute();
 
 $db->setQuery($_17);
-$db->query();
+$db->execute();
 
 $db->setQuery($_18);
-$db->query();
+$db->execute();
 
 $db->setQuery($_19);
-$db->query();
+$db->execute();
 
 $db->setQuery($_20);
-$db->query();
+$db->execute();
 
 $db->setQuery($_21);
-$db->query();
+$db->execute();
 
 $db->setQuery($_22);
-$db->query();
+$db->execute();
 
 $db->setQuery($_23);
-$db->query();
+$db->execute();
 
 $db->setQuery($_24);
-$db->query();
+$db->execute();
 
 $db->setQuery($_25);
-$db->query();
+$db->execute();
 
 $db->setQuery($_26);
-$db->query();
+$db->execute();
 
 $db->setQuery($_27);
-$db->query();
+$db->execute();
 
 $db->setQuery($_28);
-$db->query();
+$db->execute();
 
 $db->setQuery($_29);
-$db->query();
+$db->execute();
 
 $db->setQuery($_9_1);
-$db->query();
+$db->execute();
 
 $db->setQuery($_9_2);
-$db->query();
+$db->execute();
 
 $db->setQuery($_30);
-$db->query();
+$db->execute();
 $db->setQuery($_31);
-$db->query();
+$db->execute();
 $db->setQuery($_32);
-$db->query();
+$db->execute();
 $db->setQuery($_33);
-$db->query();
+$db->execute();
 $db->setQuery($_34);
-$db->query();
+$db->execute();
 $db->setQuery($_35);
-$db->query();
+$db->execute();
 $db->setQuery($_36);
-$db->query();
+$db->execute();
 $db->setQuery($_37);
-$db->query();
+$db->execute();
 $db->setQuery($_38);
-$db->query();
+$db->execute();
 $db->setQuery($_39);
-$db->query();
+$db->execute();
 $db->setQuery($_40);
-$db->query();
+$db->execute();
 $db->setQuery($_41);
-$db->query();
+$db->execute();
 $db->setQuery($_42);
-$db->query();
+$db->execute();
 $db->setQuery($_43);
-$db->query();
+$db->execute();
 $db->setQuery($_44);
-$db->query();
+$db->execute();
 $db->setQuery($_45);
-$db->query();
+$db->execute();
 $db->setQuery($_46);
-$db->query();
+$db->execute();
 $db->setQuery($_47);
-$db->query();
+$db->execute();
 $db->setQuery($_48);
-$db->query();
+$db->execute();
 $db->setQuery($_49);
-$db->query();
+$db->execute();
 $db->setQuery($_50);
-$db->query();
+$db->execute();
 $db->setQuery($_51);
-$db->query();
+$db->execute();
 $db->setQuery($_52);
-$db->query();
+$db->execute();
 $db->setQuery($_53);
-$db->query();
+$db->execute();

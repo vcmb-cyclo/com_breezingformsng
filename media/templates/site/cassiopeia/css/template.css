@@ -1,3 +1,4 @@
+@charset "UTF-8";
 :root, [data-bs-theme="light"] {
   --blue: #010156;
   --black: #000;
@@ -2218,7 +2219,6 @@ progress {
 }
 
 .form-control::file-selector-button {
-  margin: -.6rem -1rem;
   color: var(--body-color);
   background-color: var(--tertiary-bg);
   pointer-events: none;
@@ -2226,6 +2226,7 @@ progress {
   border-style: solid;
   border-width: 0;
   border-inline-end-width: var(--border-width);
+  margin: -.6rem -1rem;
   border-radius: 0;
   margin-inline-end: 1rem;
   padding: .6rem 1rem;
@@ -2330,7 +2331,7 @@ textarea.form-control-lg {
 }
 
 .form-select, .custom-select {
-  --form-select-bg-img: url("../images/select-bg.svg");
+  --form-select-bg-img: url("../images/select-bg.svg?v=5ebba0");
   color: var(--body-color);
   appearance: none;
   background-color: #eaedf0;
@@ -13116,6 +13117,10 @@ a {
   color: var(--link-color);
 }
 
+a:hover {
+  color: var(--link-hover-color);
+}
+
 a:not([class]) {
   text-decoration: underline;
 }
@@ -13300,17 +13305,17 @@ meter {
 }
 
 .back-to-top-link {
-  inset-inline-end: 1rem;
   z-index: 10000;
   color: var(--cassiopeia-color-primary, #112855);
   pointer-events: all;
   background-color: var(--white, #fff);
   border: 1px solid var(--cassiopeia-color-primary, #112855);
   opacity: 0;
+  inset-inline-end: 1rem;
   border-radius: .25rem;
   padding: .5em;
   transition: opacity .2s ease-in;
-  position: absolute;
+  position: fixed;
   bottom: 1rem;
 }
 
@@ -13539,6 +13544,72 @@ fieldset > * {
 .com-users-profile__edit #jform_privacyconsent_privacy .radio, .com-users-profile__edit #jform_profile_tos .radio, .com-users-profile__edit #jform_terms_terms .radio, .com-users-registration #jform_privacyconsent_privacy .radio, .com-users-registration #jform_profile_tos .radio, .com-users-registration #jform_terms_terms .radio {
   gap: 1rem;
   display: inline-flex;
+}
+
+div.subform-repeatable-group {
+  border: var(--border-width) solid #ced4da;
+  border-radius: .25rem;
+  margin-top: 20px;
+  margin-left: 32px;
+  padding: 32px 32px 16px 28px;
+  position: relative;
+}
+
+div.subform-repeatable-group > .control-group {
+  margin-top: 0;
+}
+
+div.subform-repeatable-group > .btn-toolbar .btn-group {
+  margin: 0;
+  position: static;
+}
+
+div.subform-repeatable-group > .btn-toolbar .btn {
+  position: absolute;
+}
+
+div.subform-repeatable-group > .btn-toolbar .btn.group-add {
+  border-radius: .25rem 0;
+  bottom: -1px;
+  right: -1px;
+}
+
+div.subform-repeatable-group > .btn-toolbar .btn.group-remove {
+  border-radius: 0 .25rem;
+  top: -1px;
+  right: -1px;
+}
+
+div.subform-repeatable-group > .btn-toolbar .btn.group-move {
+  border-radius: .25rem 0 0 .25rem;
+  padding: 0;
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
+}
+
+div.subform-repeatable-group > .btn-toolbar .btn.group-move span {
+  padding: 1.5rem .5rem;
+}
+
+div.subform-repeatable-group > .btn-toolbar .btn.group-move-up {
+  border-radius: 0;
+  margin-top: -45px;
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
+}
+
+div.subform-repeatable-group > .btn-toolbar .btn.group-move-down {
+  border-radius: 0;
+  margin-top: 45px;
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
+}
+
+.subform-repeatable-group[draggable="true"], .subform-repeatable-group[draggable="true"] > td {
+  background-color: #5abfdd;
 }
 
 .btn.jmodedit {

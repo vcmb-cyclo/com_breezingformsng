@@ -292,8 +292,8 @@ class CBPluginHelper
         function _load16(){
             static $plugins;
 
-		$user	= JFactory::getUser();
-		$cache 	= JFactory::getCache('com_plugins', '');
+		$user	= Factory::getApplication()->getIdentity();
+		$cache 	= Factory::getCache('com_plugins', '');
 
 		$levels = implode(',', $user->getAuthorisedViewLevels());
 

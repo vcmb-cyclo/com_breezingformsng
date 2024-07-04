@@ -6,6 +6,7 @@
  * @license     GNU/GPL
  */
 defined( '_JEXEC' ) or die( 'Restricted access' );
+use Joomla\CMS\Language\Text;
 
 @ob_end_clean();
 
@@ -19,7 +20,7 @@ $objPHPExcel->getProperties()->setCreator("ContentBuilder")
 
 if($this->data->show_id_column){
     $objPHPExcel->setActiveSheetIndex(0)
-        ->setCellValue('A1', JText::_('COM_CONTENTBUILDER_ID'));
+        ->setCellValue('A1', Text::_('COM_CONTENTBUILDER_ID'));
 
 
     $c='B';
@@ -92,7 +93,7 @@ $cell_length = 0;
 for($col='A';$col<$ch;$col++){
     for($row=1;$row<$i;$row++){
         $cell="$col"."$row";
-        $length = strlen($objPHPExcel->getActiveSheet()->getCell($cell)->getValue());
+        $length = strlen($objPHPExcel->getActiveSheet()->getCell($cell)->getValue() ?? '');
         if($length > $cell_length){
             $cell_length = $length;
         }

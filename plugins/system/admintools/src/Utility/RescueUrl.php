@@ -21,6 +21,7 @@ use Joomla\CMS\User\UserHelper;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Registry\Registry;
 use RuntimeException;
+use Throwable;
 
 class RescueUrl
 {
@@ -303,11 +304,31 @@ class RescueUrl
 	 *
 	 * @return Registry
 	 */
-	private static function getPluginParams()
+	private static function getPluginParams(): Registry
 	{
-		$plugin = PluginHelper::getPlugin('system', 'admintools');
+		// On Joomla! 5 we can't use PluginHelper::getPlugin when the plugin is disabled. MAXIMUM EFFORT!
+		$db    = Factory::getContainer()->get(DatabaseInterface::class);
+		$query = $db->getQuery(true)
+			->select($db->quoteName('params'))
+			->from($db->quoteName('#__extensions'))
+			->where(
+				[
+					$db->quoteName('type') . ' = ' . $db->quote('plugin'),
+					$db->quoteName('folder') . ' = ' . $db->quote('system'),
+					$db->quoteName('element') . ' = ' . $db->quote('admintools'),
+				]
+			);
 
-		return new Registry($plugin->params);
+		try
+		{
+			$params = $db->setQuery($query)->loadResult() ?: null;
+		}
+		catch (Throwable $e)
+		{
+			$params = null;
+		}
+
+		return new Registry($params ?: '{}');
 	}
 
 	/**

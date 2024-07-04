@@ -48,26 +48,25 @@
         "type": "module",
         "defer": true
       },
-      "version": "27a347"
+      "version": "00d001"
     },
     {
       "name": "com_associations.sidebyside",
       "type": "style",
       "uri": "com_associations/sidebyside.min.css",
-      "version": "3d03a8"
+      "version": "579941"
     },
     {
       "name": "com_associations.sidebyside",
       "type": "script",
       "uri": "com_associations/sidebyside.min.js",
       "dependencies": [
-        "core",
-        "jquery"
+        "core"
       ],
       "attributes": {
-        "defer": true
+        "type": "module"
       },
-      "version": "d01e3e"
+      "version": "dafb01"
     }
   ]
 }

@@ -76,11 +76,16 @@ class ControlpanelController extends BaseController
 		$view->setModel($this->getModel('Adminpassword', 'Administrator'));
 		$view->setModel($this->getModel('Mainpassword', 'Administrator'));
 		$view->setModel($this->getModel('UsageStatistics', 'Administrator'));
+
 		if (defined('ADMINTOOLS_PRO') && ADMINTOOLS_PRO)
 		{
 			$view->setModel($this->getModel('Blockedrequestslogs', 'Administrator', ['ignore_request' => true]));
 		}
+
 		$view->setModel($this->getModel('Updates', 'Administrator'));
+
+		// Special toggle to display all panels
+		$view->debugAllPanels = $this->input->getBool('_tp', false);
 	}
 
 	public function login()
@@ -239,5 +244,23 @@ class ControlpanelController extends BaseController
 
 		$returnUrl = Route::_('index.php?option=com_admintools&view=Controlpanel', false);
 		$this->setRedirect($returnUrl, $msg, $msgType);
+	}
+
+	public function serverConfigMaker()
+	{
+		if (ServerTechnology::isWebConfigSupported())
+		{
+			$view = 'webconfigmaker';
+		}
+		elseif (ServerTechnology::isNginxSupported())
+		{
+			$view = 'nginxconfmaker';
+		}
+		else
+		{
+			$view = 'htaccessmaker';
+		}
+
+		$this->setRedirect(sprintf('index.php?option=com_admintools&view=%s', $view));
 	}
 }

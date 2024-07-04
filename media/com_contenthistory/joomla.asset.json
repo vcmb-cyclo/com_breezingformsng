@@ -22,12 +22,13 @@
       "type": "script",
       "uri": "com_contenthistory/admin-compare-compare.min.js",
       "dependencies": [
-        "core"
+        "core",
+        "diff"
       ],
       "attributes": {
         "type": "module"
       },
-      "version": "907a40"
+      "version": "a8bb66"
     },
     {
       "name": "com_contenthistory.admin-history-modal",

@@ -1,34 +1,30 @@
-/**
- * @copyright   (C) 2017 Open Source Matters, Inc. <https://www.joomla.org>
- * @license     GNU General Public License version 2 or later; see LICENSE.txt
- */
-
+@charset "UTF-8";
 #loading {
+  opacity: .8;
+  background-color: #fffc;
+  background-image: url("../../system/images/ajax-loader.gif?v=144b8c");
+  background-position: center;
+  background-repeat: no-repeat;
   position: fixed;
   overflow: hidden;
-  background-color: rgba(255, 255, 255, .8);
-  background-image: url("../../system/images/ajax-loader.gif?v=144b8c");
-  background-repeat: no-repeat;
-  background-position: center center;
-  opacity: .8;
 }
 
 #dragarea {
   box-sizing: border-box;
-  width: 100%;
-  padding: 5% 0;
   background-color: var(--body-bg);
   border: 1px dashed #999;
-  transition: all .2s ease 0s;
+  width: 100%;
+  padding: 5% 0;
+  transition: all .2s;
 }
 
 #upload-icon {
+  color: #999;
   width: auto;
   height: auto;
   margin: 0;
   font-size: 48px;
   line-height: 175%;
-  color: #999;
   transition: all .2s;
 }
 
@@ -37,15 +33,17 @@
   border-color: #666;
 }
 
-#dragarea.hover #upload-icon,
-#dragarea p.lead {
+#dragarea.hover #upload-icon, #dragarea p.lead {
   color: #666;
 }
 
-@media (prefers-color-scheme: dark) {
-  #dragarea p.lead {
-    color: #999;
-  }
+[data-color-scheme="dark"] #dragarea.hover #upload-icon, [data-color-scheme="dark"] #dragarea p.lead {
+  color: #eee;
+}
+
+[data-color-scheme="dark"] #dragarea.hover {
+  background-color: #666;
+  border-color: #eee;
 }
 
 .upload-progress, .install-progress {
@@ -53,36 +51,13 @@
   margin: 5px auto;
 }
 
-/* Default transition (.3s) is too slow, progress will not run to 100% */
 .upload-progress .progress .bar {
-  /* stylelint-disable */
+  -o-transition: width .1s;
   -webkit-transition: width .1s;
   -moz-transition: width .1s;
-  -o-transition: width .1s;
-  /* stylelint-enable */
   transition: width .1s;
 }
 
-#dragarea[data-state=pending] .upload-progress {
-  display: none;
-}
-
-#dragarea[data-state=pending] .install-progress {
-  display: none;
-}
-
-#dragarea[data-state=uploading] .install-progress {
-  display: none;
-}
-
-#dragarea[data-state=uploading] .upload-actions {
-  display: none;
-}
-
-#dragarea[data-state=installing] .upload-progress {
-  display: none;
-}
-
-#dragarea[data-state=installing] .upload-actions {
+#dragarea[data-state="pending"] .upload-progress, #dragarea[data-state="pending"] .install-progress, #dragarea[data-state="uploading"] .install-progress, #dragarea[data-state="uploading"] .upload-actions, #dragarea[data-state="installing"] .upload-progress, #dragarea[data-state="installing"] .upload-actions {
   display: none;
 }

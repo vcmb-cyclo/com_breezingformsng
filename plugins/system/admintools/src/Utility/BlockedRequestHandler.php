@@ -678,17 +678,20 @@ class BlockedRequestHandler implements DatabaseAwareInterface
 	 */
 	private function isSafeIP()
 	{
-		$safeIPs = $this->wafParams->getValue('neverblockips', '');
+		$safeIPs = $this->wafParams->getValue('neverblockips', '') ?: [];
 
-		if (!empty($safeIPs))
+		if (is_string($safeIPs))
 		{
-			if (Filter::IPinList($safeIPs))
-			{
-				return true;
-			}
+			$safeIPs = array_map('trim', explode(',', $safeIPs));
 		}
 
-		return false;
+		$safeIPs = array_map(
+			function ($x) {
+				return is_array($x) ? $x[0] : $x;
+			}, is_array($safeIPs) ? $safeIPs : []
+		);
+
+		return !empty($safeIPs) && Filter::IPinList($safeIPs) ? true : false;
 	}
 
 	/**
@@ -741,27 +744,38 @@ class BlockedRequestHandler implements DatabaseAwareInterface
 	 */
 	private function isWhitelistedDomain($ip)
 	{
-		static $whitelist_domains = null;
+		static $whitelistDomains = null;
 
-		if (is_null($whitelist_domains))
+		if (is_null($whitelistDomains))
 		{
-			$whitelist_domains = $this->wafParams->getValue('whitelist_domains', []);
+			$whitelistDomains = $this->wafParams->getValue('whitelist_domains', []);
+
+			if (is_string($whitelistDomains))
+			{
+				$whitelistDomains = array_map('trim', explode(',', $whitelistDomains));
+			}
+
+			$whitelistDomains = array_map(function($x) {
+				return is_array($x) ? $x[0] : $x;
+			}, is_array($whitelistDomains) ? $whitelistDomains : []);
 		}
 
-		if (!empty($whitelist_domains))
+		if (!empty($whitelistDomains))
 		{
 			$remote_domain = @gethostbyaddr($ip);
 
-			if (!empty($remote_domain))
+			if (empty($remote_domain))
 			{
-				foreach ($whitelist_domains as $domain)
-				{
-					$domain = trim($domain);
+				return false;
+			}
 
-					if (strrpos($remote_domain, $domain) === strlen($remote_domain) - strlen($domain))
-					{
-						return true;
-					}
+			foreach ($whitelistDomains as $domain)
+			{
+				$domain = trim($domain);
+
+				if (strrpos($remote_domain, $domain) === strlen($remote_domain) - strlen($domain))
+				{
+					return true;
 				}
 			}
 		}

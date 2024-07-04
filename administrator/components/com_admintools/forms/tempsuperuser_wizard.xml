@@ -6,6 +6,9 @@
   -->
 
 <form addfieldprefix="Akeeba\Component\AdminTools\Administrator\Field">
+    <config>
+        <inlinehelp button="show"/>
+    </config>
     <fieldset name="expiration">
         <field
                 name="expiration"

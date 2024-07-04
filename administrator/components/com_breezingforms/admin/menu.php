@@ -8,6 +8,9 @@
 **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+
 require_once($ff_admpath.'/admin/menu.class.php');
 
 $pkg = getMenuPackage();
@@ -72,7 +75,7 @@ function getMenuPackage()
 	else {
 		$ok = _ff_selectValue(
 			"select count(*) from `#__facileforms_compmenus` ".
-			"where package =  ".BFFactory::getDbo()->Quote($pkg)
+			"where package =  ".Factory::getContainer()->get(DatabaseInterface::class)->Quote($pkg)
 		);
 		if (!$ok) $pkg = $ff_config->menupkg;
 	} // if

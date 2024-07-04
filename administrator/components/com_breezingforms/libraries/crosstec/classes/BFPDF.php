@@ -44,7 +44,7 @@ class BFPDF extends TCPDF{
 
         $active_found = '';
 
-        if( JFolder::exists(JPATH_SITE.'/media/breezingforms/pdftpl/fonts/') ){
+        if( is_dir(JPATH_SITE.'/media/breezingforms/pdftpl/fonts/') ){
 
             $sourcePath = JPATH_SITE.'/media/breezingforms/pdftpl/fonts/';
             if (@file_exists($sourcePath) && @is_readable($sourcePath) && @is_dir($sourcePath) && $handle = @opendir($sourcePath)) {
@@ -110,7 +110,7 @@ class BFPDF extends TCPDF{
 
         $active_found = '';
 
-        if( JFolder::exists(JPATH_SITE.'/media/breezingforms/pdftpl/fonts/') ){
+        if( is_dir(JPATH_SITE.'/media/breezingforms/pdftpl/fonts/') ){
 
             $sourcePath = JPATH_SITE.'/media/breezingforms/pdftpl/fonts/';
             if (@file_exists($sourcePath) && @is_readable($sourcePath) && @is_dir($sourcePath) && $handle = @opendir($sourcePath)) {
@@ -178,17 +178,17 @@ class BFPDF extends TCPDF{
 
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_pdf_attachment_header.php';
 
-            if (!JFile::exists($file)) {
+            if (!file_exists($file)) {
                 $file = JPATH_SITE . '/media/breezingforms/pdftpl/pdf_attachment_header.php';
             }
 
             if ($this->mailback) {
                 $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_pdf_mailback_attachment_header.php';
-                if (JFile::exists($mb_file)) {
+                if (file_exists($mb_file)) {
                     $file = $mb_file;
                 } else {
                     $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/pdf_mailback_attachment_header.php';
-                    if (JFile::exists($mb_file)) {
+                    if (file_exists($mb_file)) {
                         $file = $mb_file;
                     }
                 }
@@ -197,14 +197,14 @@ class BFPDF extends TCPDF{
         else if($this->which == 'export'){
 
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_custom_header_pdf.php';
-            if (!JFile::exists($file)) {
+            if (!file_exists($file)) {
                 $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_header_pdf.php';
             }
 
             if($this->form_name != ''){
 
                 $file2 = JPATH_SITE . '/media/breezingforms/pdftpl/'.$this->form_name.'_export_header_pdf.php';
-                if (JFile::exists($file2)) {
+                if (file_exists($file2)) {
                     $file = JPATH_SITE . '/media/breezingforms/pdftpl/'.$this->form_name.'_export_header_pdf.php';
                 }
             }
@@ -226,17 +226,17 @@ class BFPDF extends TCPDF{
 
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_pdf_attachment_footer.php';
 
-            if (!JFile::exists($file)) {
+            if (!file_exists($file)) {
                 $file = JPATH_SITE . '/media/breezingforms/pdftpl/pdf_attachment_footer.php';
             }
 
             if ($this->mailback) {
                 $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_pdf_mailback_attachment_footer.php';
-                if (JFile::exists($mb_file)) {
+                if (file_exists($mb_file)) {
                     $file = $mb_file;
                 } else {
                     $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/pdf_mailback_attachment_footer.php';
-                    if (JFile::exists($mb_file)) {
+                    if (file_exists($mb_file)) {
                         $file = $mb_file;
                     }
                 }
@@ -244,14 +244,14 @@ class BFPDF extends TCPDF{
         }else if($this->which == 'export'){
 
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_custom_footer_pdf.php';
-            if (!JFile::exists($file)) {
+            if (!file_exists($file)) {
                 $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_footer_pdf.php';
             }
 
             if($this->form_name != ''){
 
                 $file2 = JPATH_SITE . '/media/breezingforms/pdftpl/'.$this->form_name.'_export_footer_pdf.php';
-                if (JFile::exists($file2)) {
+                if (file_exists($file2)) {
                     $file = JPATH_SITE . '/media/breezingforms/pdftpl/'.$this->form_name.'_export_footer_pdf.php';
                 }
             }

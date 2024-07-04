@@ -9,10 +9,12 @@
 // no direct access
 
 defined( '_JEXEC' ) or die( 'Restricted access' );
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
 
 require_once(JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_contentbuilder'.DS.'classes'.DS.'joomla_compat.php');
 
-CBCompat::requireController();
+require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'controllerlegacy.php');
 
 class ContentbuilderControllerUsers extends CBController
 {
@@ -149,7 +151,7 @@ class ContentbuilderControllerUsers extends CBController
             $model->setPublished();
         }
 
-        $this->setRedirect( JRoute::_('index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart='.CBRequest::getInt('limitstart'), false), JText::_('COM_CONTENTBUILDER_PUBLISHED') );
+        $this->setRedirect( Route::_('index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart='.CBRequest::getInt('limitstart'), false), Text::_('COM_CONTENTBUILDER_PUBLISHED') );
     }
     
     function unpublish() {
@@ -166,7 +168,7 @@ class ContentbuilderControllerUsers extends CBController
             $model->setUnpublished();
         }
 
-        $this->setRedirect( JRoute::_('index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart='.CBRequest::getInt('limitstart'), false), JText::_('COM_CONTENTBUILDER_UNPUBLISHED') );
+        $this->setRedirect( Route::_('index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart='.CBRequest::getInt('limitstart'), false), Text::_('COM_CONTENTBUILDER_UNPUBLISHED') );
     }
     
     function save($keep_task = false)
@@ -175,9 +177,9 @@ class ContentbuilderControllerUsers extends CBController
         $id = $model->store();
         
         if ($id) {
-            $msg = JText::_( 'COM_CONTENTBUILDER_SAVED' );
+            $msg = Text::_( 'COM_CONTENTBUILDER_SAVED' );
         } else {
-            $msg = JText::_( 'COM_CONTENTBUILDER_ERROR' );
+            $msg = Text::_( 'COM_CONTENTBUILDER_ERROR' );
         }
 
         $limit = 0;
@@ -191,13 +193,13 @@ class ContentbuilderControllerUsers extends CBController
 
         // Check the table in so it can be edited.... we are done with it anyway
         $link = 'index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart='.$limit.$additionalParams;
-        $this->setRedirect(JRoute::_($link, false), $msg);
+        $this->setRedirect(Route::_($link, false), $msg);
     }
 
     function cancel()
     {
-        $msg = JText::_( 'COM_CONTENTBUILDER_CANCELLED' );
-        $this->setRedirect( JRoute::_('index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart=0', false), $msg );
+        $msg = Text::_( 'COM_CONTENTBUILDER_CANCELLED' );
+        $this->setRedirect( Route::_('index.php?option=com_contentbuilder&controller=users&form_id='.CBRequest::getInt('form_id',0).'&tmpl='.CBRequest::getCmd('tmpl','').'&limitstart=0', false), $msg );
     }
 
     function display($cachable = false, $urlparams = array())
