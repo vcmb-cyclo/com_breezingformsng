@@ -5,6 +5,17 @@ BreezingForms V5 for Joomla 5.0.
 
 ## Getting Started
 
+## Migration
+The alias Joomla have been removed to prepare Joomla 6.
+
+| Before      | After     |
+| ------------- | ------------- |
+| JFactory::getDbo() | Factory::getContainer()->get(DatabaseInterface::class) |
+| ->query();     | ->execute(); |
+| JFactory::getUser() | Factory::getApplication()->getIdentity() |
+
+
+
 ## Installation
 
     Clone the repo
