@@ -508,12 +508,12 @@ class bfRecordManagement
             $query = $query . ')';
 
             $db->setQuery($query);
-            $db->execute();
-
-            if ($db->getErrorMsg() != '') {
-                echo 'Import Error: ' . $db->getErrorMsg();
+			try {
+				$db->execute();
+			} catch (RuntimeException $e) {
+                echo 'Import Error: ' . $e->getMessage();
                 return;
-            }
+			}
 
             //Insert Subrecord
             $query = 'SELECT MAX(id) AS lastentry FROM #__facileforms_records';
@@ -545,10 +545,10 @@ class bfRecordManagement
                 $query = $query . ')';
 
                 $db->setQuery($query);
-                $db->execute();
-
-                if ($db->getErrorMsg() != '') {
-                    echo 'Import Error (subrecords): ' . $db->getErrorMsg();
+                try {
+                    $db->execute();
+                } catch (RuntimeException $e) {
+                    echo 'Import Error (subrecords): ' . $e->getMessage();
                     return;
                 }
 

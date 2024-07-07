@@ -129,8 +129,12 @@ class BFIntegrate
 			Order By crit.id Desc
 		");
 
-        $ret = $this->db->loadObjectList();
-        echo $this->db->getErrorMsg();
+        try {
+            $ret = $this->db->loadObjectList();
+		} catch (\Exception $e) {
+            echo $e->getMessage();
+		} // try
+
         return $ret;
     }
 

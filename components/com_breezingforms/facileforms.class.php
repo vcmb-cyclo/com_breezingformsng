@@ -342,10 +342,12 @@ class facileFormsConf
 				"where id = " . $database->Quote($prop) . ""
 			);
 
-			if (!$database->execute()) {
-				echo "<br/>" . $database->getErrorMsg();
+			try {
+				$database->execute();
+			} catch (RuntimeException $e) {
+				echo "<br/>" . $e->getMessage();
 				exit;
-			} // if
+			}
 
 			$database->setQuery(
 				"select count(*) from #__facileforms_config " .
@@ -357,10 +359,13 @@ class facileFormsConf
 					"insert into #__facileforms_config (id, value) " .
 					"values (" . $database->Quote($prop) . ", " . $database->Quote($val) . ")"
 				);
-				if (!$database->execute()) {
-					echo "<br/>" . $database->getErrorMsg();
+				try {
+					$database->execute();
+				} catch (RuntimeException $e) {
+					echo "<br/>" . $e->getMessage();
 					exit;
-				} // if
+				}
+
 			} // if
 		} // while
 		$config .= "?>\n";

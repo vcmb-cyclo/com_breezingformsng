@@ -70,7 +70,7 @@ $task = BFRequest::getCmd('task');
 jimport('joomla.filesystem.file');
 jimport('joomla.filesystem.folder');
 
-if (!Factory::getUser()->authorise('core.manage', 'com_breezingforms')) {
+if (!Factory::getApplication()->getIdentity()->authorise('core.manage', 'com_breezingforms')) {
     Factory::getApplication()->enqueueMessage(Text::_('JERROR_ALERTNOAUTHOR'), 'error');
     Factory::getApplication()->redirect('index.php', 403);
     return;

@@ -414,13 +414,17 @@ class facileFormsForm
         if (count($ids)) {
             $ids = implode(',', $ids);
             $database->setQuery("delete from #__facileforms_elements where form in ($ids)");
-            if (!$database->execute()) {
-                echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
-            } // if
+            try {
+                $database->execute();
+            } catch (RuntimeException $e) {
+                echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
+            }
             $database->setQuery("delete from #__facileforms_forms where id in ($ids)");
-            if (!$database->execute()) {
-                echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
-            } // if
+            try {
+                $database->execute();
+            } catch (RuntimeException $e) {
+                echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
+            }
         } // if
         Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&pkg=$pkg");
     }
@@ -449,10 +453,12 @@ class facileFormsForm
         $database->setQuery(
             "update #__facileforms_forms set published='$publish' where id in ($ids)"
         );
-        if (!$database->execute()) {
-            echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
+        try {
+            $database->execute();
+        } catch (RuntimeException $e) {
+            echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
             exit();
-        } // if
+        }
         Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&pkg=$pkg");
     }
 

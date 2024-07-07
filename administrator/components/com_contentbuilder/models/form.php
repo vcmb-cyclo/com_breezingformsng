@@ -476,7 +476,7 @@ class ContentbuilderModelForm extends CBModel
             $options = $db->loadObjectList();
         } catch (Exception $e) {
             // Check for a database error.
-            Factory::getApplication()->enqueueMessage($db->getErrorMsg(), 'error : ' . $e->getMessage());
+            Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
         }
 
         // Pad the option text with spaces using depth level as a multiplier.

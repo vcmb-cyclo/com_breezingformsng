@@ -83,9 +83,11 @@ class facileFormsPiece
 		if (count($ids)) {
 			$ids = implode(',', $ids);
 			$database->setQuery("delete from #__facileforms_pieces where id in ($ids)");
-			if (!$database->execute()) {
-				echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
-			} // if
+            try {
+                $database->execute();
+            } catch (RuntimeException $e) {
+                echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
+            }
 		} // if
 		Factory::getApplication()->redirect("index.php?option=$option&act=managepieces&pkg=$pkg");
 	} // del
@@ -98,10 +100,13 @@ class facileFormsPiece
 		$database->setQuery(
 			"update #__facileforms_pieces set published='$publish' where id in ($ids)"
 		);
-		if (!$database->execute()) {
-			echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
-			exit();
-		} // if
+		try {
+			$database->execute();
+		} catch (RuntimeException $e) {
+			echo "<script> alert('".$e->getMessage()."'); window.history.go(-1); </script>\n";
+			return;
+		}
+
 		Factory::getApplication()->redirect( "index.php?option=$option&act=managepieces&pkg=$pkg" );
 	} // publish
 

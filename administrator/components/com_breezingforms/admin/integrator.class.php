@@ -11,25 +11,28 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\CMS\Factory;
 use Joomla\Database\DatabaseInterface;
 
-class BFIntegrator {
+class BFIntegrator
+{
 
-    /**
-     *
-     * @var JDatabase
-     */
-    private $db = null;
+	/**
+	 *
+	 * @var JDatabase
+	 */
+	private $db = null;
 
-    function __construct(){
-        $this->db = Factory::getContainer()->get(DatabaseInterface::class);
-    }
+	function __construct()
+	{
+		$this->db = Factory::getContainer()->get(DatabaseInterface::class);
+	}
 
-    function getRules(){
+	function getRules()
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 			Select
 				rules.*,
 				rules.id As id,
-				concat('".$this->db->getPrefix()."', rules.reference_table) As reference_table,
+				concat('" . $this->db->getPrefix() . "', rules.reference_table) As reference_table,
 				forms.name As form_name,
 				forms.id As form_id
 			From
@@ -43,16 +46,17 @@ class BFIntegrator {
 				rules.id
 			");
 
-        return $this->db->loadObjectList();
-    }
+		return $this->db->loadObjectList();
+	}
 
-    public function getRule($id){
+	public function getRule($id)
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 			Select
 				rules.*,
 				rules.id As id,
-				concat('".$this->db->getPrefix()."', rules.reference_table) As reference_table,
+				concat('" . $this->db->getPrefix() . "', rules.reference_table) As reference_table,
 				forms.name As form_name,
 				forms.id As form_id
 			From
@@ -61,21 +65,22 @@ class BFIntegrator {
 			Where
 				rules.form_id = forms.id
 			And
-				rules.id = ".$this->db->Quote($id)."
+				rules.id = " . $this->db->Quote($id) . "
 			Group By
 				rules.id
 			Order By
 				rules.id
 			");
 
-        $res = $this->db->loadObjectList();
+		$res = $this->db->loadObjectList();
 
-        return  count($res) == 1 ? $res[0] : null;
-    }
+		return count($res) == 1 ? $res[0] : null;
+	}
 
-    public function getItems($ruleId){
+	public function getItems($ruleId)
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 			Select
 				items.*,
@@ -85,41 +90,43 @@ class BFIntegrator {
 				#__facileforms_integrator_items As items,
 				#__facileforms_elements As elements
 			Where
-				items.rule_id = ".$this->db->Quote($ruleId)."
+				items.rule_id = " . $this->db->Quote($ruleId) . "
 			And
 				elements.id = items.element_id
 			Group By items.id
 			Order By items.id Desc
 		");
 
-        $ret = $this->db->loadObjectList();
+		$ret = $this->db->loadObjectList();
 
-        return $ret;
-    }
+		return $ret;
+	}
 
-    public function getTableFields($tables, $typeOnly = true)
-    {
-        $results = array();
+	public function getTableFields($tables, $typeOnly = true)
+	{
+		$results = array();
 
-        settype($tables, 'array');
+		settype($tables, 'array');
 
-        foreach ($tables as $table)
-        {
-            try{
-                $results[$table] = Factory::getContainer()->get(DatabaseInterface::class)->getTableColumns($table, $typeOnly);
-            }catch(Exception $e){  }
-        }
+		foreach ($tables as $table) {
+			try {
+				$results[$table] = Factory::getContainer()->get(DatabaseInterface::class)->getTableColumns($table, $typeOnly);
+			} catch (Exception $e) {
+			}
+		}
 
-        return $results;
-    }
+		return $results;
+	}
 
-    public function getTables(){
-        return $this->getTableFields( $this->db->getTableList() );
-    }
+	public function getTables()
+	{
+		return $this->getTableFields($this->db->getTableList());
+	}
 
-    public function getForms(){
+	public function getForms()
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 		Select
 		id, name, published
@@ -128,12 +135,13 @@ class BFIntegrator {
 
 		");
 
-        return $this->db->loadObjectList();
-    }
-    // CUSTOM
-    public function getPublishedForms() {
+		return $this->db->loadObjectList();
+	}
+	// CUSTOM
+	public function getPublishedForms()
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 		Select
 		id, name
@@ -144,12 +152,13 @@ class BFIntegrator {
 
 		");
 
-        return $this->db->loadObjectList();
-    }
+		return $this->db->loadObjectList();
+	}
 
-    public function getUnpublishedForms() {
+	public function getUnpublishedForms()
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 		Select
 		id, name
@@ -160,32 +169,34 @@ class BFIntegrator {
 
 		");
 
-        return $this->db->loadObjectList();
-    }
-    // END
+		return $this->db->loadObjectList();
+	}
+	// END
 
-    public function getFormElements($formId){
+	public function getFormElements($formId)
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 			Select
 				id, name, type
 			From
 				#__facileforms_elements
 			Where
-				form = ".$this->db->Quote($formId)."
+				form = " . $this->db->Quote($formId) . "
 
 		");
 
-        return $this->db->loadObjectList();
-    }
+		return $this->db->loadObjectList();
+	}
 
-    public function saveRule(){
-        $refTab = BFRequest::getVar('reference_table', '');
-        $pfx    = $this->db->getPrefix();
-        $tab = $this->str_replace_first($refTab, $pfx, '');
+	public function saveRule()
+	{
+		$refTab = BFRequest::getVar('reference_table', '');
+		$pfx = $this->db->getPrefix();
+		$tab = $this->str_replace_first($refTab, $pfx, '');
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 			Insert
 			Into
@@ -198,24 +209,25 @@ class BFIntegrator {
 			)
 			Values
 			(
-				".$this->db->Quote(BFRequest::getVar('rule_name')).",
-				".$this->db->Quote(BFRequest::getVar('form_id')).",
-				".$this->db->Quote($tab).",
-				".$this->db->Quote(BFRequest::getVar('type'))."
+				" . $this->db->Quote(BFRequest::getVar('rule_name')) . ",
+				" . $this->db->Quote(BFRequest::getVar('form_id')) . ",
+				" . $this->db->Quote($tab) . ",
+				" . $this->db->Quote(BFRequest::getVar('type')) . "
 			)
 
 		");
-        $this->db->execute();
+		$this->db->execute();
 
-        $ruleId = $this->db->insertid();
+		$ruleId = $this->db->insertid();
 
 
-        return $ruleId;
-    }
+		return $ruleId;
+	}
 
-    public function getCriteria($ruleId){
+	public function getCriteria($ruleId)
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 			Select
 				crit.*,
@@ -225,21 +237,27 @@ class BFIntegrator {
 				#__facileforms_integrator_criteria_form As crit,
 				#__facileforms_elements As elements
 			Where
-				crit.rule_id = ".$this->db->Quote($ruleId)."
+				crit.rule_id = " . $this->db->Quote($ruleId) . "
 			And
 				elements.id = crit.element_id
 			Group By crit.id
 			Order By crit.id Desc
 		");
 
-        $ret = $this->db->loadObjectList();
-        echo $this->db->getErrorMsg();
-        return $ret;
-    }
+		try {
+			// If it fails, it will throw a RuntimeException
+			$ret = $this->db->loadObjectList();
+		} catch (RuntimeException $e) {
+			Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+			return false;
+		}
+		return $ret;
+	}
 
-    public function addCriteria(){
+	public function addCriteria()
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 			Insert
 			Into
@@ -253,46 +271,53 @@ class BFIntegrator {
 			)
 			Values
 			(
-				".$this->db->Quote(BFRequest::getInt('id',-1)).",
-				".$this->db->Quote($_REQUEST['operator']).",
-				".$this->db->Quote(BFRequest::getVar('reference_column','')).",
-				".$this->db->Quote(BFRequest::getInt('element_id','')).",
-				".$this->db->Quote(BFRequest::getVar('andor',''))."
+				" . $this->db->Quote(BFRequest::getInt('id', -1)) . ",
+				" . $this->db->Quote($_REQUEST['operator']) . ",
+				" . $this->db->Quote(BFRequest::getVar('reference_column', '')) . ",
+				" . $this->db->Quote(BFRequest::getInt('element_id', '')) . ",
+				" . $this->db->Quote(BFRequest::getVar('andor', '')) . "
 			)
 
 		");
-        $this->db->execute();
-        echo $this->db->getErrorMsg();
-    }
+		try {
+			// If it fails, it will throw a RuntimeException
+			$this->db->execute();
+		} catch (RuntimeException $e) {
+			Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+		}
+	}
 
-    public function removeCriteria(){
+	public function removeCriteria()
+	{
 
-        $this->db->setQuery("Delete From #__facileforms_integrator_criteria_form Where id = ".BFRequest::getInt('criteriaId',-1)."");
-        $this->db->execute();
+		$this->db->setQuery("Delete From #__facileforms_integrator_criteria_form Where id = " . BFRequest::getInt('criteriaId', -1) . "");
+		$this->db->execute();
 
-    }
+	}
 
-    public function getCriteriaJoomla($ruleId){
+	public function getCriteriaJoomla($ruleId)
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 			Select
 				crit.*
 			From
 				#__facileforms_integrator_criteria_joomla As crit
 			Where
-				crit.rule_id = ".$this->db->Quote($ruleId)."
+				crit.rule_id = " . $this->db->Quote($ruleId) . "
 			Group By crit.id
 			Order By crit.id Desc
 		");
 
-        $ret = $this->db->loadObjectList();
-        return $ret;
-    }
+		$ret = $this->db->loadObjectList();
+		return $ret;
+	}
 
-    public function addCriteriaJoomla(){
+	public function addCriteriaJoomla()
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 			Insert
 			Into
@@ -306,46 +331,52 @@ class BFIntegrator {
 			)
 			Values
 			(
-				".$this->db->Quote(BFRequest::getInt('id',-1)).",
-				".$this->db->Quote($_REQUEST['operator']).",
-				".$this->db->Quote(BFRequest::getVar('reference_column','')).",
-				".$this->db->Quote(BFRequest::getVar('joomla_object','')).",
-				".$this->db->Quote(BFRequest::getVar('andor',''))."
+				" . $this->db->Quote(BFRequest::getInt('id', -1)) . ",
+				" . $this->db->Quote($_REQUEST['operator']) . ",
+				" . $this->db->Quote(BFRequest::getVar('reference_column', '')) . ",
+				" . $this->db->Quote(BFRequest::getVar('joomla_object', '')) . ",
+				" . $this->db->Quote(BFRequest::getVar('andor', '')) . "
 			)
 
 		");
-        $this->db->execute();
-        echo $this->db->getErrorMsg();
-    }
+		try {
+			$this->db->execute();
+		} catch (RuntimeException $e) {
+			Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+		}
+	}
 
-    public function removeCriteriaJoomla(){
+	public function removeCriteriaJoomla()
+	{
 
-        $this->db->setQuery("Delete From #__facileforms_integrator_criteria_joomla Where id = ".BFRequest::getInt('criteriaId',-1)."");
-        $this->db->execute();
+		$this->db->setQuery("Delete From #__facileforms_integrator_criteria_joomla Where id = " . BFRequest::getInt('criteriaId', -1) . "");
+		$this->db->execute();
 
-    }
+	}
 
-    public function getCriteriaFixed($ruleId){
+	public function getCriteriaFixed($ruleId)
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 			Select
 				crit.*
 			From
 				#__facileforms_integrator_criteria_fixed As crit
 			Where
-				crit.rule_id = ".$this->db->Quote($ruleId)."
+				crit.rule_id = " . $this->db->Quote($ruleId) . "
 			Group By crit.id
 			Order By crit.id Desc
 		");
 
-        $ret = $this->db->loadObjectList();
-        return $ret;
-    }
+		$ret = $this->db->loadObjectList();
+		return $ret;
+	}
 
-    public function addCriteriaFixed(){
+	public function addCriteriaFixed()
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 			Insert
 			Into
@@ -359,28 +390,33 @@ class BFIntegrator {
 			)
 			Values
 			(
-				".$this->db->Quote(BFRequest::getInt('id',-1)).",
-				".$this->db->Quote($_REQUEST['operator']).",
-				".$this->db->Quote(BFRequest::getVar('reference_column','')).",
-				".$this->db->Quote(BFRequest::getVar('fixed_value','')).",
-				".$this->db->Quote(BFRequest::getVar('andor',''))."
+				" . $this->db->Quote(BFRequest::getInt('id', -1)) . ",
+				" . $this->db->Quote($_REQUEST['operator']) . ",
+				" . $this->db->Quote(BFRequest::getVar('reference_column', '')) . ",
+				" . $this->db->Quote(BFRequest::getVar('fixed_value', '')) . ",
+				" . $this->db->Quote(BFRequest::getVar('andor', '')) . "
 			)
 
 		");
-        $this->db->execute();
-        echo $this->db->getErrorMsg();
-    }
+		try {
+			$this->db->execute();
+		} catch (RuntimeException $e) {
+			Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+		}
+	}
 
-    public function removeCriteriaFixed(){
+	public function removeCriteriaFixed()
+	{
 
-        $this->db->setQuery("Delete From #__facileforms_integrator_criteria_fixed Where id = ".BFRequest::getInt('criteriaId',-1)."");
-        $this->db->execute();
+		$this->db->setQuery("Delete From #__facileforms_integrator_criteria_fixed Where id = " . BFRequest::getInt('criteriaId', -1) . "");
+		$this->db->execute();
 
-    }
+	}
 
-    public function addItem(){
+	public function addItem()
+	{
 
-        $this->db->setQuery("
+		$this->db->setQuery("
 
 			Insert
 			Into
@@ -392,79 +428,90 @@ class BFIntegrator {
 			)
 			Values
 			(
-				".$this->db->Quote(BFRequest::getInt('id',-1)).",
-				".$this->db->Quote(BFRequest::getInt('element_id',-1)).",
-				".$this->db->Quote(BFRequest::getVar('reference_column',''))."
+				" . $this->db->Quote(BFRequest::getInt('id', -1)) . ",
+				" . $this->db->Quote(BFRequest::getInt('element_id', -1)) . ",
+				" . $this->db->Quote(BFRequest::getVar('reference_column', '')) . "
 			)
 
 		");
-        $this->db->execute();
-        echo $this->db->getErrorMsg();
-    }
+		try {
+			$this->db->execute();
+		} catch (RuntimeException $e) {
+			Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+		}
+	}
 
-    public function removeItem(){
+	public function removeItem()
+	{
 
-        $this->db->setQuery("Delete From #__facileforms_integrator_items Where id = ".BFRequest::getInt('itemId',-1)."");
-        $this->db->execute();
+		$this->db->setQuery("Delete From #__facileforms_integrator_items Where id = " . BFRequest::getInt('itemId', -1) . "");
+		$this->db->execute();
 
-    }
+	}
 
-    public function saveCode(){
-        $this->db->setQuery("Update #__facileforms_integrator_items Set code = ".$this->db->Quote($_REQUEST['code'])." Where id = ".BFRequest::getInt('itemId',-1)." And rule_id = ".BFRequest::getInt('id',-1)."");
-        $this->db->execute();
-    }
+	public function saveCode()
+	{
+		$this->db->setQuery("Update #__facileforms_integrator_items Set code = " . $this->db->Quote($_REQUEST['code']) . " Where id = " . BFRequest::getInt('itemId', -1) . " And rule_id = " . BFRequest::getInt('id', -1) . "");
+		$this->db->execute();
+	}
 
-    public function saveFinalizeCode(){
-        $this->db->setQuery("Update #__facileforms_integrator_rules Set finalize_code = ".$this->db->Quote($_REQUEST['finalizeCode'])." Where id = ".BFRequest::getInt('id',-1)."");
-        $this->db->execute();
-    }
+	public function saveFinalizeCode()
+	{
+		$this->db->setQuery("Update #__facileforms_integrator_rules Set finalize_code = " . $this->db->Quote($_REQUEST['finalizeCode']) . " Where id = " . BFRequest::getInt('id', -1) . "");
+		$this->db->execute();
+	}
 
-    public function publishRule(){
-        $this->db->setQuery("Update #__facileforms_integrator_rules Set published = 1 Where id = ".BFRequest::getInt('publish_id',-1)."");
-        $this->db->execute();
-    }
+	public function publishRule()
+	{
+		$this->db->setQuery("Update #__facileforms_integrator_rules Set published = 1 Where id = " . BFRequest::getInt('publish_id', -1) . "");
+		$this->db->execute();
+	}
 
-    public function unpublishRule(){
-        $this->db->setQuery("Update #__facileforms_integrator_rules Set published = 0 Where id = ".BFRequest::getInt('publish_id',-1)."");
-        $this->db->execute();
-    }
+	public function unpublishRule()
+	{
+		$this->db->setQuery("Update #__facileforms_integrator_rules Set published = 0 Where id = " . BFRequest::getInt('publish_id', -1) . "");
+		$this->db->execute();
+	}
 
-    public function removeRules(){
-        foreach(BFRequest::getVar('cid', array()) As $id){
+	public function removeRules()
+	{
+		foreach (BFRequest::getVar('cid', array()) as $id) {
 
-            $this->db->setQuery("Delete From #__facileforms_integrator_rules Where id = ".$id."");
-            $this->db->execute();
-            $this->db->setQuery("Delete From #__facileforms_integrator_items Where rule_id = ".$id."");
-            $this->db->execute();
-            $this->db->setQuery("Delete From #__facileforms_integrator_criteria_form Where rule_id = ".$id."");
-            $this->db->execute();
-            $this->db->setQuery("Delete From #__facileforms_integrator_criteria_joomla Where rule_id = ".$id."");
-            $this->db->execute();
-            $this->db->setQuery("Delete From #__facileforms_integrator_criteria_fixed Where rule_id = ".$id."");
-            $this->db->execute();
-        }
-    }
+			$this->db->setQuery("Delete From #__facileforms_integrator_rules Where id = " . $id . "");
+			$this->db->execute();
+			$this->db->setQuery("Delete From #__facileforms_integrator_items Where rule_id = " . $id . "");
+			$this->db->execute();
+			$this->db->setQuery("Delete From #__facileforms_integrator_criteria_form Where rule_id = " . $id . "");
+			$this->db->execute();
+			$this->db->setQuery("Delete From #__facileforms_integrator_criteria_joomla Where rule_id = " . $id . "");
+			$this->db->execute();
+			$this->db->setQuery("Delete From #__facileforms_integrator_criteria_fixed Where rule_id = " . $id . "");
+			$this->db->execute();
+		}
+	}
 
-    public function publishItem(){
-        $this->db->setQuery("Update #__facileforms_integrator_items Set published = 1 Where id = ".BFRequest::getInt('publish_id',-1)."");
-        $this->db->execute();
-    }
+	public function publishItem()
+	{
+		$this->db->setQuery("Update #__facileforms_integrator_items Set published = 1 Where id = " . BFRequest::getInt('publish_id', -1) . "");
+		$this->db->execute();
+	}
 
-    public function unpublishItem(){
-        $this->db->setQuery("Update #__facileforms_integrator_items Set published = 0 Where id = ".BFRequest::getInt('publish_id',-1)."");
-        $this->db->execute();
-    }
+	public function unpublishItem()
+	{
+		$this->db->setQuery("Update #__facileforms_integrator_items Set published = 0 Where id = " . BFRequest::getInt('publish_id', -1) . "");
+		$this->db->execute();
+	}
 
-    private function str_replace_first($or_string,$string_to_rep,$rep_with){
-        $mylen=strlen($string_to_rep);
-        $pos=strpos($or_string,$string_to_rep);
-        if($pos===FALSE){
-            return FALSE;
-        }
-        else{
-            $mystr=substr_replace($or_string,$rep_with,$pos,$mylen);
-            return $mystr;
-        }
-    }
+	private function str_replace_first($or_string, $string_to_rep, $rep_with)
+	{
+		$mylen = strlen($string_to_rep);
+		$pos = strpos($or_string, $string_to_rep);
+		if ($pos === FALSE) {
+			return FALSE;
+		} else {
+			$mystr = substr_replace($or_string, $rep_with, $pos, $mylen);
+			return $mystr;
+		}
+	}
 
 }

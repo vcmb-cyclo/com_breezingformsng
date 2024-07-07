@@ -342,13 +342,20 @@ class facileFormsElement
 		$ids = implode(',', $quoted_ids);
 
 		$database->setQuery("delete from #__facileforms_elements where form=$form and page=$page and id in ($ids)");
-		if (!$database->execute()) {
-			echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
-		} // if
+
+		try {
+			$database->execute();
+		} catch (RuntimeException $e) {
+			echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
+		}
+
 		//$database->setQuery("delete from #__facileforms_forms where id in ($forms)");
-		//if (!$database->execute()) {
-		//	echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
-		//} // if
+		// try {
+		// 	$database->execute();
+		//} catch (RuntimeException $e) {
+		//	echo "<script> alert('".$e->getMessage()."'); window.history.go(-1); </script>\n";
+		//}
+		
 		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
 	} // del
 
@@ -532,10 +539,13 @@ class facileFormsElement
 		$database->setQuery(
 			"update #__facileforms_elements set published=$publish where form=$form and page=$page and id in ($ids)"
 		);
-		if (!$database->execute()) {
-			echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
+		try {
+			$database->execute();
+		} catch (RuntimeException $e) {
+			echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
 			exit();
-		} // if
+		}
+
 		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
 	} // publish
 
@@ -606,10 +616,13 @@ class facileFormsElement
 			$database->setQuery(
 				"update #__facileforms_elements set page=page+1 where form=$form and page>$page"
 			);
-			if (!$database->execute()) {
-				echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
+
+			try {
+				$database->execute();
+			} catch (RuntimeException $e) {
+				echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
 				exit();
-			} // if
+			}
 		} // if
 		$row->pages++;
 		$row->store();
@@ -626,10 +639,12 @@ class facileFormsElement
 		$database->setQuery(
 			"update #__facileforms_elements set page=page+1 where form=$form and page>=$page"
 		);
-		if (!$database->execute()) {
-			echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
+		try {
+			$database->execute();
+		} catch (RuntimeException $e) {
+			echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
 			exit();
-		} // if
+		}
 		$row->pages++;
 		$row->store();
 		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
@@ -644,17 +659,23 @@ class facileFormsElement
 		$database->setQuery(
 			"delete from #__facileforms_elements where form=$form and page=$page"
 		);
-		if (!$database->execute()) {
-			echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
+		try {
+			$database->execute();
+		} catch (RuntimeException $e) {
+			echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
 			exit();
-		} // if
+		}
+
 		$database->setQuery(
 			"update #__facileforms_elements set page=page-1 where form=$form and page>$page"
 		);
-		if (!$database->execute()) {
-			echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
+		try {
+			$database->execute();
+		} catch (RuntimeException $e) {
+			echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
 			exit();
-		} // if
+		}
+
 		$row->pages--;
 		$row->store();
 		if ($page > $row->pages)
@@ -693,10 +714,12 @@ class facileFormsElement
 			$database->setQuery(
 				"update #__facileforms_elements set page=0 where form=$form and page=$page"
 			);
-			if (!$database->execute()) {
-				echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
+			try {
+				$database->execute();
+			} catch (RuntimeException $e) {
+				echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
 				exit();
-			} // if
+			}
 			if ($newpage > $page) {
 				$database->setQuery(
 					"update #__facileforms_elements set page=page-1 where form=$form and page>$page and page<=$newpage"
@@ -706,17 +729,23 @@ class facileFormsElement
 					"update #__facileforms_elements set page=page+1 where form=$form and page>=$newpage and page<$page"
 				);
 			} // if
-			if (!$database->execute()) {
-				echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
+			try {
+				$database->execute();
+			} catch (RuntimeException $e) {
+				echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
 				exit();
-			} // if
+			}
+
 			$database->setQuery(
 				"update #__facileforms_elements set page=$newpage where form=$form and page=0"
 			);
-			if (!$database->execute()) {
-				echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
+			try {
+				$database->execute();
+			} catch (RuntimeException $e) {
+				echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
 				exit();
-			} // if
+			}
+
 			$page = $newpage;
 		} // if
 		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");

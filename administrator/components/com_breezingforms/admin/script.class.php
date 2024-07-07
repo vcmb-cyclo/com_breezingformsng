@@ -82,9 +82,11 @@ class facileFormsScript
 		if (count($ids)) {
 			$ids = implode(',', $ids);
 			$database->setQuery("delete from #__facileforms_scripts where id in ($ids)");
-			if (!$database->execute()) {
-				echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
-			} // if
+			try {
+				$database->execute();
+			} catch (RuntimeException $e) {
+				echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
+			}
 		} // if
 		Factory::getApplication()->redirect("index.php?option=$option&act=managescripts&pkg=$pkg");
 	} // del
@@ -97,10 +99,13 @@ class facileFormsScript
 		$database->setQuery(
 			"update #__facileforms_scripts set published=".$database->Quote($publish)." where id in ($ids)"
 		);
-		if (!$database->execute()) {
-			echo "<script> alert('".$database->getErrorMsg()."'); window.history.go(-1); </script>\n";
+		try {
+			$database->execute();
+		} catch (RuntimeException $e) {
+			echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
 			exit();
-		} // if
+		}
+
 		Factory::getApplication()->redirect( "index.php?option=$option&act=managescripts&pkg=$pkg" );
 	} // publish
 

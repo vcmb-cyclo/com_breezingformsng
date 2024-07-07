@@ -682,9 +682,14 @@ class contentbuilder_com_breezingforms{
                 r.archived = 0
             Group By s.record $search ".($order ? " Order By `".($order == 'colRating' && $form !== null && $form->rating_slots == 1 ? 'colRatingCount' : $order)."` " : ' Order By '.($init_order_by == -1 ? 'colRecord' : "`".$init_order_by."`" ).' '.($init_order_by2 == -1 ? '' : ',' . "`".$init_order_by2."`").' '.($init_order_by3 == -1 ? '' : ',' . "`".$init_order_by3."`").' '.( $order_Dir ? ( strtolower($order_Dir) == 'asc' ? 'asc' : 'desc') : 'asc' ).' ')." ".( $order ? ( strtolower($order_Dir) == 'asc' ? 'asc' : 'desc') : '' )."
         ", $limitstart, $limit  );
-        $return = $db->loadObjectList();
-        //echo $db->getErrorMsg();
-        //exit;
+
+        try {
+            $return = $db->loadObjectList();
+        } catch (RuntimeException $e) {
+            echo "<br/>" . $e->getMessage();
+            exit;
+        }
+
         $db->setQuery('SELECT FOUND_ROWS();');
         $this->total = $db->loadResult();
         return $return;

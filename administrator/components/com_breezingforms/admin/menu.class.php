@@ -246,13 +246,17 @@ class facileFormsMenu
 		if (count($ids)) {
 			$ids = implode(',', $ids);
 			$database->setQuery("delete from #__facileforms_compmenus where parent in ($ids)");
-			if (!$database->execute()) {
-				echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
-			} // if
+			try {
+                $database->execute();
+            } catch (RuntimeException $e) {
+                echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
+            }
 			$database->setQuery("delete from #__facileforms_compmenus where id in ($ids)");
-			if (!$database->execute()) {
-				echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
-			} // if
+            try {
+                $database->execute();
+            } catch (RuntimeException $e) {
+                echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
+            }
 		} // if
 		updateComponentMenus();
 		Factory::getApplication()->redirect("index.php?option=$option&act=managemenus&pkg=$pkg");
@@ -277,10 +281,13 @@ class facileFormsMenu
 		$database->setQuery(
 			"update #__facileforms_compmenus set published='$publish' where id in ($ids)"
 		);
-		if (!$database->execute()) {
-			echo "<script> alert('" . $database->getErrorMsg() . "'); window.history.go(-1); </script>\n";
+		try {
+			$database->execute();
+		} catch (RuntimeException $e) {
+			echo "<script> alert('" . $e->getMessage() . "'); window.history.go(-1); </script>\n";
 			exit();
-		} // if
+		}
+
 		updateComponentMenus();
 		Factory::getApplication()->redirect("index.php?option=$option&act=managemenus&pkg=$pkg");
 	} // publish
