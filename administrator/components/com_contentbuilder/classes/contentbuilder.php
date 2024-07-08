@@ -1697,10 +1697,9 @@ class contentbuilder
             return $template . $the_init_scripts . "\n" . '//-->' . '</script>' . "\n";
 
         } else {
-
-            throw new Exception(Text::_('COM_CONTENTBUILDER_TEMPLATE_NOT_FOUND'), 404);
-
-            //JError::raiseError(404, Text::_('COM_CONTENTBUILDER_TEMPLATE_NOT_FOUND'));
+            // JError::raiseError(404, Text::_('COM_CONTENTBUILDER_TEMPLATE_NOT_FOUND'));
+            // throw new Exception(Text::_('COM_CONTENTBUILDER_TEMPLATE_NOT_FOUND'), 404);
+            Factory::getApplication()->enqueueMessage(Text::_('COM_CONTENTBUILDER_TEMPLATE_NOT_FOUND'), 'warning');
         }
 
         return '';

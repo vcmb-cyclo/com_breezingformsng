@@ -26,7 +26,6 @@ require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'classes' . DS . 'contentbuild
 
 class ContentbuilderViewEdit extends HtmlView
 {
-
 	protected $sectioncategories;
 	protected $lists;
 	protected $row;
@@ -181,13 +180,19 @@ class ContentbuilderViewEdit extends HtmlView
 		$this->limited_options = $subject->limited_options;
 		$this->edit_by_type = $subject->edit_by_type;
 		$this->frontend = $subject->frontend;
-		$this->sectioncategories = $subject->sectioncategories;
+
+		if (isset($subject->sectioncategories))
+			$this->sectioncategories = $subject->sectioncategories;
 
 		$this->ais15 = $subject->is15;
-		$this->lists = $subject->lists; // special for 1.5
-		$this->row = $subject->row; // special for 1.5
-		$this->article_settings = $subject->article_settings;
-		$this->article_options = $subject->article_options;
+		if (isset($subject->lists))
+			$this->lists = $subject->lists; // special for 1.5
+		if (isset($subject->row))
+			$this->row = $subject->row; // special for 1.5
+		if (isset($subject->article_settings))
+			$this->article_settings = $subject->article_settings;
+		if (isset($subject->article_options))
+			$this->article_options = $subject->article_options;
 		$this->create_articles = $subject->create_articles;
 		$this->record_id = $subject->record_id;
 		$this->id = $subject->id;
