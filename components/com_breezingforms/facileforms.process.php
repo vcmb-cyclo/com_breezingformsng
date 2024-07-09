@@ -1315,8 +1315,9 @@ class HTML_facileFormsProcessor
             $this->traceEval($name);
             try {
                 $ret = eval($code);
-            } catch (ParseError $e) {
-                $this->app->enqueueMessage($e->getMessage() + "in $name.", 'error');
+            } catch (Error $e) {
+                // $this->app->enqueueMessage($e->getMessage(), 'error');
+                $this->app->enqueueMessage($e->getMessage() . " in $name.", 'error');
                 // Report error somehow
             }
         } // if
