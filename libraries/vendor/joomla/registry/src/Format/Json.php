@@ -4,7 +4,6 @@
  * Part of the Joomla Framework Registry Package
  *
  * @copyright  Copyright (C) 2013 Open Source Matters, Inc.
- * @copyright   (C) 2024 by XDA+GIL
  * @license    GNU General Public License version 2 or later; see LICENSE
  */
 
@@ -33,7 +32,7 @@ class Json implements FormatInterface
     public function objectToString($object, array $options = [])
     {
         $bitMask = $options['bitmask'] ?? 0;
-        $depth = $options['depth'] ?? 512;
+        $depth   = $options['depth'] ?? 512;
 
         return \json_encode($object, $bitMask, $depth);
     }
@@ -53,7 +52,7 @@ class Json implements FormatInterface
      */
     public function stringToObject($data, array $options = ['processSections' => false])
     {
-        $data = \trim($data ?? '');
+        $data = \trim($data);
 
         if (empty($data)) {
             return new \stdClass();
