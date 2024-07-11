@@ -2135,8 +2135,8 @@ var contentbuilder = new function(){
 
         $dispatcher = Factory::getApplication()->getDispatcher();
         $dispatcher->dispatch('onBeforeAction', new Joomla\Event\Event('onBeforeAction', array($this->_id, $items)));
-        $results = $eventResult->getArgument('result') ?: [];
-        $error = implode('', $result);
+        $results = isset($eventResult) ? ($eventResult->getArgument('result') ?: []) : [];
+        $error = implode('', $results);
 
         if ($error) {
             Factory::getApplication()->enqueueMessage($error);
