@@ -13,3 +13,7 @@ facileforms.config.php
 .htaccess
 
 administrator/.htaccess
+
+# Exclusion.
+error_log
+administrator/error_log
