@@ -53,6 +53,13 @@ if ($this->data->list_state) {
     array_push($reserved_labels, Text::_('COM_CONTENTBUILDER_EDIT_STATE'));
 }
 
+// Case of publish true -> column reserved.
+$col_publish = 0;
+if ($this->data->list_publish) {
+    $col_publish = ++$colreserved;
+    array_push($reserved_labels, Text::_('PUBLISH'));
+}
+
 $labels = array_merge($reserved_labels, $labels);
 
 $col = 1;
@@ -94,6 +101,16 @@ foreach ($this->data->items as $item) {
         }*/
 
         $spreadsheet->setActiveSheetIndex(0)->setCellValue([$i++, $raw], $result[0]);
+    }
+
+    // Published
+    if ($col_publish > 0) {
+        $database = Factory::getDBO();
+        // Select data from DB
+        $sql = "SELECT `state` FROM `#__content` WHERE id = (SELECT article_id FROM `#__contentbuilder_articles` WHERE id = $item->colRecord)";
+        $database->setQuery($sql);
+        $result = $database->loadRow();
+        $spreadsheet->setActiveSheetIndex(0)->setCellValue([$i++, $raw], ($result == 1) ? 'Yes' : 'No');
     }
 
     foreach ($item as $key => $value) {
