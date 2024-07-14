@@ -17,3 +17,8 @@ administrator/.htaccess
 # Exclusion.
 error_log
 administrator/error_log
+
+
+# Directories
+cache/
+libraries/ 
