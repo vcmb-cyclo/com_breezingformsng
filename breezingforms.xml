@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--~
+  ~ @Plug-in Breezinforms
+  ~ @author: XDA/GIL (Joomla! 5, 2024) | Markus Bopp | until FacileForms v1.4.7: Peter Koch
+  ~ @copyright Copyright (c)2012-2024
+  ~ @license GNU General Public License version 2, or later
+  -->
+
 <extension type="plugin" group="content" version="1.5.0" method="upgrade">
 	<name>BreezingForms</name>
-	<creationDate>August 2012</creationDate>
-	<author>Markus Bopp - Crosstec Solutions | Until Version 1.4.7: Peter Koch</author>
+	<creationDate>July 2024</creationDate>
+	<author>XDA/GIL(J5)</author>
 	<copyright>This Joomla! component is released under the GNU/GPL license</copyright>
-	<authorEmail>markus.bopp@crosstec.de</authorEmail>
-	<authorUrl>www.crosstec.de</authorUrl>
-	<version>1.8</version>
+	<authorEmail>no-reply@vcmb.fr</authorEmail>
+	<authorUrl>breezingform.vcmb.fr</authorUrl>
+	<version>5.0.0-RC1</version>
 	<administration></administration>
 	<description>
 	<![CDATA[
