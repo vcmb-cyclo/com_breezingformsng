@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<extension type="plugin" group="content" version="1.5.0" method="upgrade">
+<extension type="plugin" group="content" version="5.0.0" method="upgrade">
 	<name>BreezingForms</name>
-	<creationDate>August 2012</creationDate>
-	<author>Markus Bopp - Crosstec Solutions | Until Version 1.4.7: Peter Koch</author>
+	<creationDate>2024-07-15</creationDate>
+	<author>XDA+GIL| Until 2023 Markus Bopp | Until FacileForms Version 1.4.7: Peter Koch</author>
 	<copyright>This Joomla! component is released under the GNU/GPL license</copyright>
-	<authorEmail>markus.bopp@crosstec.de</authorEmail>
-	<authorUrl>www.crosstec.de</authorUrl>
-	<version>1.8</version>
+        <license>GNU/GPLv2 http://www.gnu.org/licenses/gpl-2.0.html</license>
+	<authorEmail>noreply@vcmb.fr</authorEmail>
+	<authorUrl>breezingforms.vcmb.fr</authorUrl>
+	<version>5.0.0</version>
+	<description>Installation successful. Next find BreezingForms in the Components menu, and finish the installation process.</description>
+	<installfile>install.php</installfile>
+        <uninstallfile>uninstall.php</uninstallfile>
 	<administration></administration>
 	<description>
 	<![CDATA[
