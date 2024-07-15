@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--~
+  ~ @component Breezinforms
+  ~ @author: XDA/GIL (Joomla! 5, 2024) | Markus Bopp | until FacileForms v1.4.7: Peter Koch
+  ~ @copyright Copyright (c)20xx-2024
+  ~ @license GNU General Public License version 2, or later
+  -->
+  
 <extension type="component" version="5.0" method="upgrade">
 	<name>COM_BREEZINGFORMS</name>
 	<creationDate>2024-07-14</creationDate>
-	<author>XDA/GIL (Joomla! 5, 2024) | Markus Bopp | Until FacileForms v1.4.7: Peter Koch</author>
+	<author>XDA/GIL (J5)</author>
 	<copyright>This Joomla! component is released under the GNU/GPL license</copyright>
         <license>GNU/GPLv2 http://www.gnu.org/licenses/gpl-2.0.html</license>
 	<authorEmail>no-reply@vcmb.fr</authorEmail>
@@ -87,25 +94,25 @@
 
 		<languages folder="admin">
 			<language tag="de-DE">languages/de-DE/admin/de-DE.com_breezingforms.ini</language>
-                        <language tag="de-DE">languages/de-DE/admin/de-DE.com_breezingforms.sys.ini</language>
+            		<language tag="de-DE">languages/de-DE/admin/de-DE.com_breezingforms.sys.ini</language>
 
-                        <language tag="en-GB">languages/en-GB/admin/en-GB.com_breezingforms.ini</language>
-                        <language tag="en-GB">languages/en-GB/admin/en-GB.com_breezingforms.sys.ini</language>
+            		<language tag="en-GB">languages/en-GB/admin/en-GB.com_breezingforms.ini</language>
+            		<language tag="en-GB">languages/en-GB/admin/en-GB.com_breezingforms.sys.ini</language>
 
 			<language tag="hu-HU">languages/hu-HU/admin/hu-HU.com_breezingforms.ini</language>
-                        <language tag="hu-HU">languages/hu-HU/admin/hu-HU.com_breezingforms.sys.ini</language>
+            		<language tag="hu-HU">languages/hu-HU/admin/hu-HU.com_breezingforms.sys.ini</language>
 
-                        <language tag="tr-TR">languages/tr-TR/admin/tr-TR.com_breezingforms.ini</language>
-                        <language tag="tr-TR">languages/tr-TR/admin/tr-TR.com_breezingforms.sys.ini</language>
+            		<language tag="tr-TR">languages/tr-TR/admin/tr-TR.com_breezingforms.ini</language>
+            		<language tag="tr-TR">languages/tr-TR/admin/tr-TR.com_breezingforms.sys.ini</language>
 
-                        <language tag="fr-FR">languages/fr-FR/admin/fr-FR.com_breezingforms.ini</language>
-                        <language tag="fr-FR">languages/fr-FR/admin/fr-FR.com_breezingforms.sys.ini</language>
+            		<language tag="fr-FR">languages/fr-FR/admin/fr-FR.com_breezingforms.ini</language>
+            		<language tag="fr-FR">languages/fr-FR/admin/fr-FR.com_breezingforms.sys.ini</language>
 
 			<language tag="es-ES">languages/es-ES/admin/es-ES.com_breezingforms.ini</language>
-                        <language tag="es-ES">languages/es-ES/admin/es-ES.com_breezingforms.sys.ini</language>
+            		<language tag="es-ES">languages/es-ES/admin/es-ES.com_breezingforms.sys.ini</language>
 
 			<language tag="nl-NL">languages/nl-NL/admin/nl-NL.com_breezingforms.ini</language>
-                        <language tag="nl-NL">languages/nl-NL/admin/nl-NL.com_breezingforms.sys.ini</language>
+            		<language tag="nl-NL">languages/nl-NL/admin/nl-NL.com_breezingforms.sys.ini</language>
 		</languages>
 
 	</administration>
