@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="module" version="1.5.0" client="site" method="upgrade">
+    <name>BreezingForms</name>
+    <creationDate>November 2013</creationDate>
+    <author>Markus Bopp - Crosstec Solutions | Until Version 1.4.7: Peter Koch</author>
+    <copyright>This Joomla! component is released under the GNU/GPL license</copyright>
+    <license>GNU/GPLv2 http://www.gnu.org/licenses/gpl-2.0.html</license>
+    <authorEmail>markus.bopp@crosstec.de</authorEmail>
+    <authorUrl>www.crosstec.de</authorUrl>
+    <version>1.8.4</version>
+    <administration></administration>
+    <description>
+		Enter the form name for displaying in the desired module position.
+    </description>
+    <files>
+        <filename module="mod_breezingforms">mod_breezingforms.php</filename>
+    </files>
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+            <field name="ff_mod_name" type="text" default="" label="Form Name" description="Enter the name of the form here" />
+            <field name="ff_mod_page" type="text" default="1" label="Page Number" description="Enter the starting page number here" />
+            <field name="ff_mod_editable" type="radio" default="0" label="Submission editable by user?" description="Should the form be editable by the user?">
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+            </field>
+            <field name="ff_mod_editable_override" type="radio" default="0" label="Remove existing submissions?" description="If submission is editable: Should previous submission for this form removed?">
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+            </field>
+            <field name="ff_mod_frame" type="radio" default="0" label="Run in iframe" description="Run the form in an iframe">
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+            </field>
+            <field name="ff_mod_border" type="radio" default="0" label="Border" description="Select border mode">
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+            </field>
+            <field name="ff_mod_align" type="list" default="1" label="Horizontal align" description="Choose the horizontal align here">
+                <option value="0">Left</option>
+                <option value="1">Center</option>
+                <option value="2">Right</option>
+                <option value="3">Position</option>
+            </field>
+            <field name="ff_mod_left" type="text" default="0" label="Left position (pixels)" description="Left position in pixels (when Horizontal align=Position)" />
+            <field name="ff_mod_top" type="text" default="0" label="Top position (pixels)" description="Top position in pixels" />
+            <field name="ff_mod_parprv" type="text" default="" label="Private parameters" description="Parameters private to main form. Example: &amp;ff_param_foo=1&amp;ff_param_xy=blah" />
+            <field name="ff_mod_parpub" type="text" default="" label="Public parameters" description="Parameters inherited by subforms. Example: &amp;ff_param_foo=1&amp;ff_param_xy=blah" />
+            <field name="moduleclass_sfx" type="text" default="" label="CSS class suffix" description="Suffix to append to every CSS class name" />
+            <field name="owncache" type="radio" default="0" label="Caching Enabled" description="Disable caching for this module">
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+            </field>
+            </fieldset>
+        </fields>
+    </config>
+    <!-- J! 1.5 compatibility -->
+    <params name="ff_mod_params" description="FacileForms - Parameter Settings">
+        <param name="ff_mod_name" type="text" default="" label="Form Name" description="Enter the name of the form here" />
+        <param name="ff_mod_page" type="text" default="1" label="Page Number" description="Enter the starting page number here" />
+        <param name="ff_mod_editable" type="radio" default="0" label="Submission editable by user?" description="Should the form be editable by the user?">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+        </param>
+        <param name="ff_mod_editable_override" type="radio" default="0" label="Remove existing submissions?" description="If submission is editable: Should previous submission for this form removed?">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+        </param>
+        <param name="ff_mod_frame" type="radio" default="0" label="Run in iframe" description="Run the form in an iframe">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+        </param>
+        <param name="ff_mod_border" type="radio" default="0" label="Border" description="Select border mode">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+        </param>
+        <param name="ff_mod_align" type="list" default="1" label="Horizontal align" description="Choose the horizontal align here">
+            <option value="0">Left</option>
+            <option value="1">Center</option>
+            <option value="2">Right</option>
+            <option value="3">Position</option>
+        </param>
+        <param name="ff_mod_left" type="text" default="0" label="Left position (pixels)" description="Left position in pixels (when Horizontal align=Position)" />
+        <param name="ff_mod_top" type="text" default="0" label="Top position (pixels)" description="Top position in pixels" />
+        <param name="ff_mod_parprv" type="text" default="" label="Private parameters" description="Parameters private to main form. Example: &amp;ff_param_foo=1&amp;ff_param_xy=blah" />
+        <param name="ff_mod_parpub" type="text" default="" label="Public parameters" description="Parameters inherited by subforms. Example: &amp;ff_param_foo=1&amp;ff_param_xy=blah" />
+        <param name="moduleclass_sfx" type="text" default="" label="CSS class suffix" description="Suffix to append to every CSS class name" />
+        <param name="owncache" type="radio" default="0" label="Caching Enabled" description="Disable caching for this module">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+        </param>
+    </params>
+</extension>
