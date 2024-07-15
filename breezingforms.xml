@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--~
+  ~ @Plug-in Breezinforms
+  ~ @author: XDA/GIL (Joomla! 5, 2024) | Markus Bopp | until FacileForms v1.4.7: Peter Koch
+  ~ @copyright Copyright (c)2012-2024
+  ~ @license GNU General Public License version 2, or later
+  -->
 <extension type="plugin" group="content" version="5.0.0" method="upgrade">
 	<name>BreezingForms</name>
 	<creationDate>2024-07-15</creationDate>
@@ -7,7 +13,7 @@
         <license>GNU/GPLv2 http://www.gnu.org/licenses/gpl-2.0.html</license>
 	<authorEmail>noreply@vcmb.fr</authorEmail>
 	<authorUrl>breezingforms.vcmb.fr</authorUrl>
-	<version>5.0.0</version>
+	<version>5.0.0-RC1</version>
 	<description>Installation successful. Next find BreezingForms in the Components menu, and finish the installation process.</description>
 	<installfile>install.php</installfile>
         <uninstallfile>uninstall.php</uninstallfile>
