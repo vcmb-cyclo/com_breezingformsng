@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="content" version="1.5.0" method="upgrade">
+	<name>BreezingForms</name>
+	<creationDate>August 2012</creationDate>
+	<author>Markus Bopp - Crosstec Solutions | Until Version 1.4.7: Peter Koch</author>
+	<copyright>This Joomla! component is released under the GNU/GPL license</copyright>
+	<authorEmail>markus.bopp@crosstec.de</authorEmail>
+	<authorUrl>www.crosstec.de</authorUrl>
+	<version>1.8</version>
+	<administration></administration>
+	<description>
+	<![CDATA[
+<h3>BreezingForms</h3>
+											<h2>BreezingForms Plugin: Displays forms inline in articles</h2>
+<h3>Requirements:</h3><ul>
+
+<li>The BreezingForms component must also be installed (same version)</li>
+<li>The bot must be published</li>
+</ul>
+<h3>Pattern syntax:</h3><code><pre>
+	{ BreezingForms : <em>formname</em> [, <em>page</em>, <em>border</em>, <em>urlparams</em>, <em>suffix</em> ] }
+
+</pre></code><h3>Parameter description:</h3><code><pre>
+	BreezingForms : This tag must be present literally and in exact upper/lowercase.
+	<em>formname</em>    : The name of the form to include, also in exact upper/lowercase.
+	<em>page</em>        : The starting page number.   Defaults to 1 when omitted.
+	<em>border</em>      : 0=no border, 1=with border. Defaults to 1 when omitted.
+	<em>urlparams</em>   : Parameters to pass in URL style (no commas or closing brackets allowed).
+	<em>suffix</em>      : Suffix appended to all CSS class names in the form.
+
+</pre></code><h3>Examples:</h3><code><pre>
+	{ BreezingForms : SampleContactForm }
+	{ BreezingForms : MyVeryForm, 2 }
+	{ BreezingForms : AnotherForm, 1, 0, &amp;amp;ff_param_xy=123&amp;amp;ff_param_foo=bar }
+	{BreezingForms:testform,,,&amp;amp;ff_param_foo=bar,mysuffix}
+</pre></code>But attention with the following one. Basicly it would work, but when
+using a WYSIWYG editor, it will insert linebreaks as <code>&lt;br/&gt;</code>
+and the bot will no longer recognize the pattern:<code><pre>
+	{
+		BreezingForms:
+
+			AnotherForm,
+			1,
+			0,
+			&amp;amp;ff_param_xy=123&amp;amp;ff_param_foo=bar
+	}
+</pre></code>
+
+]]>
+    </description>
+    <files>
+        <filename plugin="breezingforms">breezingforms.php</filename>
+    </files>
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field name="load_in_iframe" type="radio" default="0" label="Use IFrames">
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                </field>
+            </fieldset>
+        </fields>
+    </config>
+    <!--  J! 1.5 compatibility -->
+    <params>
+        <param name="load_in_iframe" type="radio" default="1" label="Use IFrames">
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+        </param>
+    </params>
+</extension>
