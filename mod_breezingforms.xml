@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<extension type="module" version="1.5.0" client="site" method="upgrade">
-    <name>BreezingForms</name>
-    <creationDate>November 2013</creationDate>
-    <author>Markus Bopp - Crosstec Solutions | Until Version 1.4.7: Peter Koch</author>
+<extension type="module" version="5.0.0" client="site" method="upgrade">
+   <name>BreezingForms</name>
+    <creationDate>18/07/2024</creationDate>
+    <author>XDA + GIL | Until Version 1.8.4 Markus Bopp - Crosstec Solutions | Until Version 1.4.7: Peter Koch</author>
     <copyright>This Joomla! component is released under the GNU/GPL license</copyright>
     <license>GNU/GPLv2 http://www.gnu.org/licenses/gpl-2.0.html</license>
-    <authorEmail>markus.bopp@crosstec.de</authorEmail>
-    <authorUrl>www.crosstec.de</authorUrl>
-    <version>1.8.4</version>
+	<authorUrl>breezingforms.vcmb.fr</authorUrl>
+    <version>5.0.0-RC1/version>
     <administration></administration>
     <description>
 		Enter the form name for displaying in the desired module position.
