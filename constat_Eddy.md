@@ -3,10 +3,10 @@ Constat Eddy
 #########
 
 Installation de BreezingForms 5.0.0-RC1 -> OK<br />
-Mise à jour automatique vers RC2 -> OK
-Désactivation du plusgin de compatibilité -> Provoque une erreur "0 Class "JPlugin" not found"
+Mise à jour automatique vers RC2 -> OK<br />
+Désactivation du plusgin de compatibilité -> Provoque une erreur "0 Class "JPlugin" not found"<br />
 
-Rapport d'erreur:
+Rapport d'erreur:<br />
 
 # 	Function 	Location
 1 	() 	JROOT/plugins/content/breezingforms/breezingforms.php:31
