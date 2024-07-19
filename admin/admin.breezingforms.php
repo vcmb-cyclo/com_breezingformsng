@@ -17,6 +17,7 @@ use Joomla\CMS\Factory;
 use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Log\Log;
+use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 
 require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFFactory.php');
 require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFRequest.php');
@@ -296,6 +297,7 @@ if (BFRequest::getBool('checkCaptcha')) {
 
 $mainframe = Factory::getApplication();
 
+# $cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)->createCacheController('callback', ['defaultgroup' => 'com_content']);
 $cache = Factory::getCache('com_content');
 $cache->clean();
 
@@ -355,7 +357,9 @@ $my = Factory::getApplication()->getIdentity();
 if (!isset($ff_compath)) { // joomla!
     // get paths
     $comppath = '/components/com_breezingforms';
-    $ff_admpath = dirname(__FILE__);
+#    $ff_admpath = dirname(__FILE__);
+    $ff_admpath = JPATH_ADMINISTRATOR . '/components/com_breezingforms';
+
     $ff_mospath = str_replace('\\', '/', dirname(dirname(dirname($ff_admpath))));
     $ff_admpath = str_replace('\\', '/', $ff_admpath);
     $ff_compath = $ff_mospath . $comppath;

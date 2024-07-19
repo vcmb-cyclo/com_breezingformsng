@@ -888,7 +888,7 @@ function bfTriggerRules() {
 
 		// will make sure mootools loads first, important 4 jquery
         $default = ComponentHelper::getParams( 'com_languages' )->get( 'site' );
-        $this->language_tag = Factory::getApplication()->getLanguage()->getTag() != $default ? Factory->getLanguage()->getTag() : 'zz-ZZ';
+        $this->language_tag = Factory::getApplication()->getLanguage()->getTag() != $default ? Factory::getLanguage()->getTag() : 'zz-ZZ';
 
 		Factory::getApplication()->getDocument()->addScriptDeclaration('<!--');
 
