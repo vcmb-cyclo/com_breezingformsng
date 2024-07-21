@@ -1,9 +1,9 @@
 <?php
 /**
  * BreezingForms - A Joomla Forms Application
- * @version 1.9
+ * @version 5.0.0
  * @package BreezingForms
- * @copyright (C) 2008-2020 by Markus Bopp
+ * @copyright   Copyright (C) 2024 by XDA+GIL | 2008-2020 by Markus Bopp
  * @license Released under the terms of the GNU General Public License
  **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
@@ -155,8 +155,10 @@ function ff_reserved($p, $ff_param = true)
 	$p = strtolower($p);
 	if (substr($p, 0, 3) != 'ff_')
 		return false;
+
 	if ($ff_param && substr($p, 0, 9) == 'ff_param_')
 		return true;
+
 	if (count($ff_resnames))
 		foreach ($ff_resnames as $n)
 			if ($p == $n)
@@ -242,42 +244,42 @@ function initFacileForms()
 
 class facileFormsConf
 {
-	var $stylesheet = 1;        // backend frame preview no/yes
-	var $wysiwyg = 0;        // use wysiwyg editor for static text
-	var $areasmall = 4;        // small textarea lines
-	var $areamedium = 12;       // medium textarea lines
-	var $arealarge = 20;       // large textarea lines
-	var $limitdesc = 100;      // listview description limit
-	var $emailadr = 'Enter your email address here';                  // default email notify address
-	var $images = '{mossite}/components/com_breezingforms/images';    // {ff_images} path
-	var $uploads = '{mospath}/media/breezingforms/uploads';   // {ff_uploads} path
-	var $movepixels = 10;       // pixelmover stepping
-	var $compress = 1;        // compress output
-	var $livesite = 0;        // use $mosConfig_live_site as site url
-	var $getprovider = 0;        // get provider with gethostbyaddr
-	var $gridshow = 1;        // show grid in preview
-	var $gridsize = 10;       // grid size
-	var $gridcolor1 = '#e0e0ff';// grid color even lines
-	var $gridcolor2 = '#ffe0e0';// grid color odd lines
+	public $stylesheet = 1;        	// backend frame preview no/yes
+	public $wysiwyg = 0;        	// use wysiwyg editor for static text
+	public $areasmall = 4;        	// small textarea lines
+	public $areamedium = 12;       	// medium textarea lines
+	public $arealarge = 20;       	// large textarea lines
+	public $limitdesc = 100;      	// listview description limit
+	public $emailadr = 'Enter your email address here';                  // default email notify address
+	public $images = '{mossite}/components/com_breezingforms/images';    // {ff_images} path
+	public $uploads = '{mospath}/media/breezingforms/uploads';   // {ff_uploads} path
+	public $movepixels = 10;       	// pixelmover stepping
+	public $compress = 1;        	// compress output
+	public $livesite = 0;        	// use $mosConfig_live_site as site url
+	public $getprovider = 0;        // get provider with gethostbyaddr
+	public $gridshow = 1;        	// show grid in preview
+	public $gridsize = 10;       	// grid size
+	public $gridcolor1 = '#e0e0ff';	// grid color even lines
+	public $gridcolor2 = '#ffe0e0';	// grid color odd lines
 
 	// record manager settings
-	var $viewed = 0;        // default viewed filter setting
-	var $exported = 0;        // default exported filter setting
-	var $archived = 0;        // default archived filter setting
-	var $formname = '';       // default formname filter setting
+	public $viewed = 0;        		// default viewed filter setting
+	public $exported = 0;        	// default exported filter setting
+	public $archived = 0;        	// default archived filter setting
+	public $formname = '';       	// default formname filter setting
 
-	var $menupkg = '';       // last selected menu package
-	var $formpkg = '';       // last selected form package
-	var $scriptpkg = '';       // last selected script package
-	var $piecepkg = '';       // last selected piece package
+	public $menupkg = '';       	// last selected menu package
+	public $formpkg = '';       	// last selected form package
+	public $scriptpkg = '';       	// last selected script package
+	public $piecepkg = '';       	// last selected piece package
 
-	var $csvdelimiter = ";";
-	var $csvquote = '"';
-	var $cellnewline = 1;
+	public $csvdelimiter = ";";
+	public $csvquote = '"';
+	public $cellnewline = 1;
 
-	var $enable_classic = 0;
+	public $enable_classic = 0;
 
-	var $disable_ip = 0;
+	public $disable_ip = 0;
 
 	function __construct()
 	{
@@ -292,7 +294,7 @@ class facileFormsConf
 
 		$configfile = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'facileforms.config.php';
 		if (file_exists($configfile)) {
-			include($configfile);
+			include ($configfile);
 		} else {
 			$arr = get_object_vars($this);
 			$ids = array();
@@ -376,21 +378,21 @@ class facileFormsConf
 		}
 
 		/**
-	  $existed = file_exists($configfile);
-	  if ($fp = fopen($configfile, "w")) {
-		  fputs($fp, $config, strlen($config));
-		  fclose($fp);
-		  if (!$existed) {
-			  $filemode = NULL;
-			  if (isset($mosConfig_fileperms)) {
-				  if ($mosConfig_fileperms!='')
-					  $filemode = octdec($mosConfig_fileperms);
-			  } else
-				  $filemode = 0644;
-			  if (isset($filemode)) @chmod($configfile, $filemode);
-		  } // if
-	  } // if
-			  */
+			$existed = file_exists($configfile);
+			if ($fp = fopen($configfile, "w")) {
+				fputs($fp, $config, strlen($config));
+				fclose($fp);
+				if (!$existed) {
+					$filemode = NULL;
+					if (isset($mosConfig_fileperms)) {
+						if ($mosConfig_fileperms!='')
+							$filemode = octdec($mosConfig_fileperms);
+					} else
+						$filemode = 0644;
+					if (isset($filemode)) @chmod($configfile, $filemode);
+				} // if
+			} // if
+					*/
 	} // store
 
 	function bindRequest($request)
@@ -403,18 +405,18 @@ class facileFormsConf
 
 class facileFormsMenus extends Table
 {
-	var $id = null;     // identifier
-	var $package = null;     // package name
-	var $parent = 0;        // parent id
-	var $ordering = 0;        // ordering
-	var $published = 1;        // is published
-	var $img = '';       // menu icon image
-	var $title = '';       // displayed menu name
-	var $name = '';       // form name (identifier)
-	var $page = 1;        // starting page
-	var $frame = 0;        // run in iframe
-	var $border = 0;        // show a border
-	var $params = null;     // additional parameters
+	public $id = null;     // identifier
+	public $package = null;     // package name
+	public $parent = 0;        // parent id
+	public $ordering = 0;        // ordering
+	public $published = 1;        // is published
+	public $img = '';       // menu icon image
+	public $title = '';       // displayed menu name
+	public $name = '';       // form name (identifier)
+	public $page = 1;        // starting page
+	public $frame = 0;        // run in iframe
+	public $border = 0;        // show a border
+	public $params = null;     // additional parameters
 
 	function __construct(&$db)
 	{
@@ -442,93 +444,93 @@ class facileFormsMenus extends Table
 
 class facileFormsForms extends Table
 {
-	var $id = null;     // identifier
-	var $package = null;     // package name
-	var $ordering = null;     // ordering
-	var $published = null;     // no/yes
-	var $runmode = null;     // 0-any/1-foreground/2-background
-	var $name = null;     // form name (identifier)
-	var $title = null;     // fancy name
-	var $description = null;     // form description
-	var $class1 = null;     // css class for <div>
-	var $class2 = null;     // css class for <form>
-	var $width = null;     // form width in px
-	var $widthmode = null;     // 0=px 1=%
-	var $height = null;     // form height in px
-	var $heightmode = null;     // 0=px 1=auto
-	var $pages = null;     // # of pages
-	var $emailntf = null;     // none/default/custom
-	var $mb_emailntf = null;     // none/default/custom
-	var $emaillog = null;     // header only/nonempty values/all
-	var $mb_emaillog = null;     // header only/nonempty values/all
-	var $emailxml = null;     // xml attachment no/nonempty values/all
-	var $mb_emailxml = null;     // xml attachment no/nonempty values/all
-	var $emailadr = null;     // custom email address
-	var $dblog = null;     // no/nonempty values/all
-	var $script1cond = null;     // init: none/library/custom
-	var $script1id = null;     // library function id
-	var $script1code = null;     // custom code ff_{form}_init()
-	var $script2cond = null;     // submitted: none/library/custom
-	var $script2id = null;     // library function id
-	var $script2code = null;     // custom code ff_{form}_submitted(status='success','failed')
-	var $piece1cond = null;     // Before form: none/library/custom
-	var $piece1id = null;     // library function id
-	var $piece1code = null;     // custom code
-	var $piece2cond = null;     // After form: none/library/custom
-	var $piece2id = null;     // library function id
-	var $piece2code = null;     // custom code
-	var $piece3cond = null;     // Begin submit: none/library/custom
-	var $piece3id = null;     // library function id
-	var $piece3code = null;     // custom code
-	var $piece4cond = null;     // End submit: none/library/custom
-	var $piece4id = null;     // library function id
-	var $piece4code = null;     // custom code
-	var $prevmode = null;     // preview mode 0-none 1-below 2-overlay
-	var $prevwidth = null;     // preview width px in case of widthmode=1
-	var $template_code_processed = null; // the processed templated easymode form html code
-	var $template_code = null;
-	var $template_areas = null;
-	var $custom_mail_subject = null;
-	var $mb_custom_mail_subject = null;
-	var $alt_mailfrom = null;
-	var $mb_alt_mailfrom = null;
-	var $alt_fromname = null;
-	var $mb_alt_fromname = null;
-	var $mailchimp_email_field = null;
-	var $mailchimp_api_key = null;
-	var $mailchimp_list_id = null;
-	var $mailchimp_double_optin = null;
-	var $mailchimp_mergevars = null;
-	var $mailchimp_checkbox_field = null;
-	var $mailchimp_text_html_mobile_field = null;
-	var $mailchimp_send_errors = null;
-	var $mailchimp_update_existing = null;
-	var $mailchimp_replace_interests = null;
-	var $mailchimp_send_welcome = null;
-	var $mailchimp_default_type = null;
-	var $mailchimp_unsubscribe_field = null;
-	var $mailchimp_send_notify = null;
-	var $mailchimp_send_goodbye = null;
-	var $mailchimp_delete_member = null;
-	var $salesforce_token = null;
-	var $salesforce_username = null;
-	var $salesforce_password = null;
-	var $salesforce_type = null;
-	var $salesforce_fields = null;
-	var $salesforce_enabled = null;
-	var $email_type = null;
-	var $mb_email_type = null;
-	var $email_custom_template = null;
-	var $mb_email_custom_template = null;
-	var $email_custom_html = null;
-	var $mb_email_custom_html = null;
-	var $dropbox_email = '';
-	var $dropbox_password = '';
-	var $dropbox_folder = '';
-	var $dropbox_submission_enabled = 0;
-	var $dropbox_submission_types = 'pdf';
-	var $double_opt = '';
-	var $opt_mail = '';
+	public $id = null;     // identifier
+	public $package = null;     // package name
+	public $ordering = null;     // ordering
+	public $published = null;     // no/yes
+	public $runmode = null;     // 0-any/1-foreground/2-background
+	public $name = null;     // form name (identifier)
+	public $title = null;     // fancy name
+	public $description = null;     // form description
+	public $class1 = null;     // css class for <div>
+	public $class2 = null;     // css class for <form>
+	public $width = null;     // form width in px
+	public $widthmode = null;     // 0=px 1=%
+	public $height = null;     // form height in px
+	public $heightmode = null;     // 0=px 1=auto
+	public $pages = null;     // # of pages
+	public $emailntf = null;     // none/default/custom
+	public $mb_emailntf = null;     // none/default/custom
+	public $emaillog = null;     // header only/nonempty values/all
+	public $mb_emaillog = null;     // header only/nonempty values/all
+	public $emailxml = null;     // xml attachment no/nonempty values/all
+	public $mb_emailxml = null;     // xml attachment no/nonempty values/all
+	public $emailadr = null;     // custom email address
+	public $dblog = null;     // no/nonempty values/all
+	public $script1cond = null;     // init: none/library/custom
+	public $script1id = null;     // library function id
+	public $script1code = null;     // custom code ff_{form}_init()
+	public $script2cond = null;     // submitted: none/library/custom
+	public $script2id = null;     // library function id
+	public $script2code = null;     // custom code ff_{form}_submitted(status='success','failed')
+	public $piece1cond = null;     // Before form: none/library/custom
+	public $piece1id = null;     // library function id
+	public $piece1code = null;     // custom code
+	public $piece2cond = null;     // After form: none/library/custom
+	public $piece2id = null;     // library function id
+	public $piece2code = null;     // custom code
+	public $piece3cond = null;     // Begin submit: none/library/custom
+	public $piece3id = null;     // library function id
+	public $piece3code = null;     // custom code
+	public $piece4cond = null;     // End submit: none/library/custom
+	public $piece4id = null;     // library function id
+	public $piece4code = null;     // custom code
+	public $prevmode = null;     // preview mode 0-none 1-below 2-overlay
+	public $prevwidth = null;     // preview width px in case of widthmode=1
+	public $template_code_processed = null; // the processed templated easymode form html code
+	public $template_code = null;
+	public $template_areas = null;
+	public $custom_mail_subject = null;
+	public $mb_custom_mail_subject = null;
+	public $alt_mailfrom = null;
+	public $mb_alt_mailfrom = null;
+	public $alt_fromname = null;
+	public $mb_alt_fromname = null;
+	public $mailchimp_email_field = null;
+	public $mailchimp_api_key = null;
+	public $mailchimp_list_id = null;
+	public $mailchimp_double_optin = null;
+	public $mailchimp_mergevars = null;
+	public $mailchimp_checkbox_field = null;
+	public $mailchimp_text_html_mobile_field = null;
+	public $mailchimp_send_errors = null;
+	public $mailchimp_update_existing = null;
+	public $mailchimp_replace_interests = null;
+	public $mailchimp_send_welcome = null;
+	public $mailchimp_default_type = null;
+	public $mailchimp_unsubscribe_field = null;
+	public $mailchimp_send_notify = null;
+	public $mailchimp_send_goodbye = null;
+	public $mailchimp_delete_member = null;
+	public $salesforce_token = null;
+	public $salesforce_username = null;
+	public $salesforce_password = null;
+	public $salesforce_type = null;
+	public $salesforce_fields = null;
+	public $salesforce_enabled = null;
+	public $email_type = null;
+	public $mb_email_type = null;
+	public $email_custom_template = null;
+	public $mb_email_custom_template = null;
+	public $email_custom_html = null;
+	public $mb_email_custom_html = null;
+	public $dropbox_email = '';
+	public $dropbox_password = '';
+	public $dropbox_folder = '';
+	public $dropbox_submission_enabled = 0;
+	public $dropbox_submission_types = 'pdf';
+	public $double_opt = '';
+	public $opt_mail = '';
 
 	function __construct(&$db)
 	{
@@ -565,14 +567,14 @@ class facileFormsForms extends Table
 
 class facileFormsElements extends Table
 {
-	var $id = null;     // general parameters
-	var $form = null;     // form id
-	var $page = null;     // page number
-	var $ordering = null;     // ordering index
-	var $published = null;     // publish status
-	var $name = null;     // identifier
-	var $title = null;     // fancy name
-	var $type = null;     // element type
+	public $id = null;     // general parameters
+	public $form = null;     // form id
+	public $page = null;     // page number
+	public $ordering = null;     // ordering index
+	public $published = null;     // publish status
+	public $name = null;     // identifier
+	public $title = null;     // fancy name
+	public $type = null;     // element type
 /*
 -----------------------------------------Element Parameter Cross Reference-------------------------------------------
 Element             logging posx posy width height flag1    flag2    data1   data2     data3  script1 script2 script3
@@ -596,48 +598,48 @@ Hidden Input        yes     -    -     -     -     -        -        value   -  
 
 Query List Settings: border / cellspacing / cellpadding / <tr(h)>class / <tr(1)>class / <tr(2)>class
 */
-	var $class1 = null;     // css class for <div>
-	var $class2 = null;     // css class for <element>
+	public $class1 = null;     // css class for <div>
+	public $class2 = null;     // css class for <element>
 
-	var $logging = null;     // element is logged in email/database no/yes
+	public $logging = null;     // element is logged in email/database no/yes
 
-	var $posx = null;     // horizontal position in px or %
-	var $posxmode = null;     // 0-px 1-%
-	var $posy = null;     // vertical position in px or %
-	var $posymode = null;     // 0-px 1-%
-	var $width = null;     // width in % or px
-	var $widthmode = null;     // 0-px 1-%
-	var $height = null;     // height in px
-	var $heightmode = null;     // 0-fixed px 1-auto 2-automax
+	public $posx = null;     // horizontal position in px or %
+	public $posxmode = null;     // 0-px 1-%
+	public $posy = null;     // vertical position in px or %
+	public $posymode = null;     // 0-px 1-%
+	public $width = null;     // width in % or px
+	public $widthmode = null;     // 0-px 1-%
+	public $height = null;     // height in px
+	public $heightmode = null;     // 0-fixed px 1-auto 2-automax
 
-	var $flag1 = null;     // element specific data, see xref
-	var $flag2 = null;
-	var $data1 = null;
-	var $data2 = null;
-	var $data3 = null;
+	public $flag1 = null;     // element specific data, see xref
+	public $flag2 = null;
+	public $data1 = null;
+	public $data2 = null;
+	public $data3 = null;
 
-	var $script1cond = null;     // init script
-	var $script1flag1 = null;     // condition 1 = on form entry no/yes
-	var $script1flag2 = null;     // condition 2 = on page entry
-	var $script1id = null;     // script id
-	var $script1code = null;     // custom code
+	public $script1cond = null;     // init script
+	public $script1flag1 = null;     // condition 1 = on form entry no/yes
+	public $script1flag2 = null;     // condition 2 = on page entry
+	public $script1id = null;     // script id
+	public $script1code = null;     // custom code
 
-	var $script2cond = null;     // action script
-	var $script2flag1 = null;     // action 1 = Click
-	var $script2flag2 = null;     // action 2 = Blur
-	var $script2flag3 = null;     // action 3 = Change
-	var $script2flag4 = null;     // action 4 = Focus
-	var $script2flag5 = null;     // action 5 = Select
-	var $script2id = null;     // script id
-	var $script2code = null;     // custom code
+	public $script2cond = null;     // action script
+	public $script2flag1 = null;     // action 1 = Click
+	public $script2flag2 = null;     // action 2 = Blur
+	public $script2flag3 = null;     // action 3 = Change
+	public $script2flag4 = null;     // action 4 = Focus
+	public $script2flag5 = null;     // action 5 = Select
+	public $script2id = null;     // script id
+	public $script2code = null;     // custom code
 
-	var $script3cond = null;     // validation script
-	var $script3id = null;     // script id
-	var $script3msg = null;     // message
-	var $script3code = null;     // custom code
+	public $script3cond = null;     // validation script
+	public $script3id = null;     // script id
+	public $script3msg = null;     // message
+	public $script3code = null;     // custom code
 
-	var $mailback = null;
-	var $mailbackfile = null;
+	public $mailback = null;
+	public $mailbackfile = null;
 
 	function __construct(&$db)
 	{
@@ -665,14 +667,14 @@ Query List Settings: border / cellspacing / cellpadding / <tr(h)>class / <tr(1)>
 
 class facileFormsScripts extends Table
 {
-	var $id = null;     // identifier
-	var $published = null;     // is published
-	var $package = null;     // package name
-	var $name = null;     // function name
-	var $title = null;     // fancy name
-	var $description = null;     // description
-	var $type = null;     // type name
-	var $code = null;     // the code
+	public $id = null;     // identifier
+	public $published = null;     // is published
+	public $package = null;     // package name
+	public $name = null;     // function name
+	public $title = null;     // fancy name
+	public $description = null;     // description
+	public $type = null;     // type name
+	public $code = null;     // the code
 
 	function __construct(&$db)
 	{
@@ -707,14 +709,14 @@ class facileFormsScripts extends Table
 
 class facileFormsPieces extends Table
 {
-	var $id = null;     // identifier
-	var $published = null;     // is published
-	var $package = null;     // package name
-	var $name = null;     // function name
-	var $title = null;     // fancy name
-	var $description = null;     // description
-	var $type = null;     // type name
-	var $code = null;     // the code
+	public $id = null;     			// identifier
+	public $published = null;   	// is published
+	public $package = null;     	// package name
+	public $name = null;     		// function name
+	public $title = null;     		// fancy name
+	public $description = null; 	// description
+	public $type = null;     		// type name
+	public $code = null;     		// the code
 
 	function __construct(&$db)
 	{
@@ -735,11 +737,6 @@ class facileFormsPieces extends Table
 					@$this->$prop = $row->$prop;
 				}
 			}
-			// Deprecated in PHP 7.2 version so code above is used
-
-			// while (list($prop, $val) = each($arr))
-			// 	if ($prop[0] != '_')
-			// 		$this->$prop = $row->$prop;
 			return true;
 		} // if
 		return false;
@@ -749,22 +746,22 @@ class facileFormsPieces extends Table
 
 class facileFormsRecords extends Table
 {
-	var $id = null;     // identifier
-	var $submitted = null;     // date and time
-	var $form = null;     // form id
-	var $title = null;     // form title
-	var $name = null;     // form name
-	var $ip = null;     // submitters ip
-	var $browser = null;     // browser
-	var $opsys = null;     // operating system
-	var $provider = null;     // provider
-	var $viewed = null;     // view status
-	var $exported = null;     // export status
-	var $archived = null;     // archive status
-	var $paypal_tx_id = null;
-	var $paypal_payment_date = null;
-	var $paypal_testaccount = null;
-	var $paypal_download_tries = null;
+	public $id = null;     		// identifier
+	public $submitted = null;   // date and time
+	public $form = null;     	// form id
+	public $title = null;     	// form title
+	public $name = null;     	// form name
+	public $ip = null;     		// submitters ip
+	public $browser = null;     // browser
+	public $opsys = null;     	// operating system
+	public $provider = null;    // provider
+	public $viewed = null;     	// view status
+	public $exported = null;    // export status
+	public $archived = null;    // archive status
+	public $paypal_tx_id = null;
+	public $paypal_payment_date = null;
+	public $paypal_testaccount = null;
+	public $paypal_download_tries = null;
 
 	function __construct(&$db)
 	{
@@ -792,12 +789,12 @@ class facileFormsRecords extends Table
 
 class facileFormsSubrecords extends Table
 {
-	var $id = null;     // identifier
-	var $record = null;     // record id
-	var $element = null;     // element id
-	var $name = null;     // element name
-	var $type = null;     // data type
-	var $value = null;     // data value
+	public $id = null;     // identifier
+	public $record = null;     // record id
+	public $element = null;     // element id
+	public $name = null;     // element name
+	public $type = null;     // data type
+	public $value = null;     // data value
 
 	function __construct(&$db)
 	{
@@ -825,17 +822,17 @@ class facileFormsSubrecords extends Table
 
 class facileFormsQuerycols
 {
-	var $title = null;     // column title
-	var $name = null;     // column name
-	var $class1 = null;     // class for th
-	var $class2 = null;     // class for td(1)
-	var $class3 = null;     // class for td(2)
-	var $thspan = null;     // th span
-	var $align = null;     // 0-left 1-center 2-right
-	var $valign = null;     // 0-top 1-middle 2-bottom 3-baseline
-	var $wrap = null;     // 0-nowrap 1-wrap
-	var $value = null;     // value field (php allowed)
-	var $comp = null;     // complied value: array of array(type, value/code)
+	public $title = null;     // column title
+	public $name = null;     // column name
+	public $class1 = null;     // class for th
+	public $class2 = null;     // class for td(1)
+	public $class3 = null;     // class for td(2)
+	public $thspan = null;     // th span
+	public $align = null;     // 0-left 1-center 2-right
+	public $valign = null;     // 0-top 1-middle 2-bottom 3-baseline
+	public $wrap = null;     // 0-nowrap 1-wrap
+	public $value = null;     // value field (php allowed)
+	public $comp = null;     // complied value: array of array(type, value/code)
 
 	function __construct()
 	{

@@ -1,16 +1,16 @@
 <?php
 /**
-* BreezingForms - A Joomla Forms Application
-* @version 1.4.4
-* @package BreezingForms
-* @copyright (C) 2004 by Peter Koch
-* @license Released under the terms of the GNU General Public License
-**/
+ * BreezingForms - A Joomla Forms Application
+ * @version 5.0.0
+ * @package BreezingForms
+ * @copyright   Copyright (C) 2024 by XDA+GIL | until 1.4.4 2004 by Peter Koch
+ * @license Released under the terms of the GNU General Public License
+ **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
-$caller =  BFRequest::getVar( 'caller_url', '');
-$pkg = BFRequest::getVar( 'pkg', '');
-switch($task) {
+$caller = BFRequest::getVar('caller_url', '');
+$pkg = BFRequest::getVar('pkg', '');
+switch ($task) {
 	case 'edit':
 		$ff_config->edit($option, $caller, $pkg);
 		break;

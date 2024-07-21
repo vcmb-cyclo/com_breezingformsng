@@ -17,11 +17,12 @@ $_ff_xmlPackage = array();
 
 class ff_xmlPackage
 {
-	var $parser     = NULL;     // xml parser id
-	var $doc        = NULL;     // document structure
-	var $error      = NULL;     // error message
-	var $element    = NULL;     // element stack
-	var $params     = NULL;     // parameters
+	public $parser     = NULL;     // xml parser id
+	public $doc        = NULL;     // document structure
+	public $error      = NULL;     // error message
+	public $element    = NULL;     // element stack
+	public $params     = NULL;     // parameters
+	public $filename   = NULL;
 
 	function __construct()
 	{
@@ -102,7 +103,7 @@ class ff_xmlPackage
 
 	function getSqlText($p, $tag, $def = '')
 	{
-            $db = \Factory::getContainer()->get(DatabaseInterface::class);
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
             return $db->quote($this->getText($p, $tag, $def));
 	} // getSqlText
 

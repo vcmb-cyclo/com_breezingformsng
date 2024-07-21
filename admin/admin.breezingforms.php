@@ -1,7 +1,7 @@
 <?php
 /**
  * BreezingForms - A Joomla Forms Application
- * @version     1.9
+ * @version     5.0.0
  * @package     BreezingForms
  * @copyright   (C) 2008-2020 by Markus Bopp
  * @copyright   Copyright (C) 2024 by XDA+GIL 
@@ -666,37 +666,39 @@ function updateComponentMenus($copy = false)
 
 function dropPackage($id)
 {
-    // drop package settings
-    _ff_query("delete from #__facileforms_packages where id = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($id) . "");
+    $db = Factory::getContainer()->get(DatabaseInterface::class);
 
-    // drop backend menus
-    $rows = _ff_select("select id from #__facileforms_compmenus where package = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($id) . "");
+    // Drop package settings
+    _ff_query("delete from #__facileforms_packages where id = " . $db->Quote($id) . "");
+
+    // Drop backend menus
+    $rows = _ff_select("select id from #__facileforms_compmenus where package = " . $db->Quote($id) . "");
     if (count($rows))
         foreach ($rows as $row)
             _ff_query("delete from #__facileforms_compmenus where id=$row->id or parent=$row->id");
     updateComponentMenus();
 
-    // drop forms
-    $rows = _ff_select("select id from #__facileforms_forms where package = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($id) . "");
+    // Drop forms
+    $rows = _ff_select("select id from #__facileforms_forms where package = " . $db->Quote($id) . "");
     if (count($rows))
         foreach ($rows as $row) {
             _ff_query("delete from #__facileforms_elements where form = $row->id");
             _ff_query("delete from #__facileforms_forms where id = $row->id");
         } // if
 
-    // drop scripts
-    _ff_query("delete from #__facileforms_scripts where package =  " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($id) . "");
+    // Drop scripts
+    _ff_query("delete from #__facileforms_scripts where package =  " . $db->Quote($id) . "");
 
-    // drop pieces
-    _ff_query("delete from #__facileforms_pieces where package =  " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($id) . "");
+    // Drop pieces
+    _ff_query("delete from #__facileforms_pieces where package =  " . $db->Quote($id) . "");
 } // dropPackage
 
 function savePackage($id, $name, $title, $version, $created, $author, $email, $url, $description, $copyright)
 {
     $db = Factory::getContainer()->get(DatabaseInterface::class);
-    $cnt = _ff_selectValue("select count(*) from #__facileforms_packages where id=" . Factory::getContainer()->get(DatabaseInterface::class)->Quote($id) . "");
-    if (!$cnt) {
+    $cnt = _ff_selectValue("select count(*) from #__facileforms_packages where id=" . $db->Quote($id) . "");
 
+    if (!$cnt) {
         _ff_query(
             "insert into #__facileforms_packages " .
             "(id, name, title, version, created, author, " .
@@ -716,9 +718,10 @@ function savePackage($id, $name, $title, $version, $created, $author, $email, $u
 
 function relinkScripts(&$oldscripts)
 {
+    $db = Factory::getContainer()->get(DatabaseInterface::class);
     if ($oldscripts != null && @count($oldscripts))
         foreach ($oldscripts as $row) {
-            $newid = _ff_selectValue("select max(id) from #__facileforms_scripts where name = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($row->name) . "");
+            $newid = _ff_selectValue("select max(id) from #__facileforms_scripts where name = " . $db->Quote($row->name) . "");
             if ($newid) {
                 _ff_query("update #__facileforms_forms set script1id=$newid where script1id=$row->id");
                 _ff_query("update #__facileforms_forms set script2id=$newid where script2id=$row->id");
@@ -731,9 +734,10 @@ function relinkScripts(&$oldscripts)
 
 function relinkPieces(&$oldpieces)
 {
+    $db = Factory::getContainer()->get(DatabaseInterface::class);
     if ($oldpieces != null && @count($oldpieces))
         foreach ($oldpieces as $row) {
-            $newid = _ff_selectValue("select max(id) from #__facileforms_pieces where name = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($row->name) . "");
+            $newid = _ff_selectValue("select max(id) from #__facileforms_pieces where name = " . $db->Quote($row->name) . "");
             if ($newid) {
                 _ff_query("update #__facileforms_forms set piece1id=$newid where piece1id=$row->id");
                 _ff_query("update #__facileforms_forms set piece2id=$newid where piece2id=$row->id");

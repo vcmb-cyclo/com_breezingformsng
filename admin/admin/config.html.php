@@ -483,7 +483,7 @@ class HTML_facileFormsConf
 								<?php echo BFText::_('COM_BREEZINGFORMS_INSTALLER_CPYRT'); ?>
 							</strong>
 						</td>
-						<td nowrap valign="top" align="left">
+						<td wrap valign="top" align="left" >
 							<br />
 							<?php echo htmlspecialchars($row->title); ?><br />
 							<?php echo htmlspecialchars($row->description); ?><br />

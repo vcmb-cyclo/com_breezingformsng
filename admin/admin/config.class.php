@@ -1,10 +1,9 @@
 <?php
 /**
  * BreezingForms - A Joomla Forms Application
- * @version 1.9
+ * @version 5.0.0
  * @package BreezingForms
- * @copyright (C) 2008-2020 by Markus Bopp
- * @copyright   Copyright (C) 2024 by XDA+GIL 
+ * @copyright   Copyright (C) 2024 by XDA+GIL | 2008-2020 by Markus Bopp
  * @license Released under the terms of the GNU General Public License
  **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
@@ -34,9 +33,7 @@ class facileFormsConfig extends facileFormsConf
 	function save($option, $caller, $pkg)
 	{
 		if (isset($_REQUEST['updatekey'])) {
-
 			try {
-
 				$db = Factory::getContainer()->get(DatabaseInterface::class);
 				$db->setQuery("Update #__update_sites Set last_check_timestamp = 0, extra_query = " . $db->quote('key=' . $_REQUEST['updatekey']) . " Where `name` = 'BreezingForms Pro' And `type` = 'extension'");
 				$db->execute();
@@ -46,14 +43,11 @@ class facileFormsConfig extends facileFormsConf
 
 				$db->setQuery("Delete From #__updates Where `update_site_id` = " . $db->quote($update_site_id));
 				$db->execute();
-
-
 			} catch (Exception $e) {
-
+				Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
 			} catch (Error $e) {
-
+				Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
 			}
-
 			unset($_REQUEST['updatekey']);
 		}
 
@@ -200,9 +194,10 @@ class facileFormsConfig extends facileFormsConf
 		$xmlname = $ff_admpath . '/packages/' . $name . '.xml';
 		$existed = file_exists($xmlname);
 		if ($existed)
-			if (!is_writable($xmlname))
+			if (!is_writable($xmlname)) {
+				// $this->app->enqueueMessage("XML file '$xmlname' is not writable!", 'Error');
 				die('XML file is not writable!');
-
+			}
 		$file = fopen($xmlname, "w");
 
 		$xml = '<?xml version="1.0" encoding="utf-8" ?>' . nl() .
@@ -236,8 +231,8 @@ class facileFormsConfig extends facileFormsConf
 				foreach ($rows as $row)
 					$ids[] = $row->id;
 		} // if
-		if (count($ids) > 0) {
 
+		if (count($ids) > 0) {
 			$quoted_ids = array();
 
 			foreach ($ids as $the_id) {
@@ -283,8 +278,8 @@ class facileFormsConfig extends facileFormsConf
 				foreach ($rows as $row)
 					$ids[] = $row->id;
 		} // if
-		if (count($ids) > 0) {
 
+		if (count($ids) > 0) {
 			$quoted_ids = array();
 
 			foreach ($ids as $the_id) {
@@ -300,18 +295,24 @@ class facileFormsConfig extends facileFormsConf
 				$xml .= indent(1) . '<piece id="' . $piece->id . '">' . nl();
 				if ($piece->published != 1)
 					$xml .= indent(2) . '<published>' . $piece->published . '</published>' . nl();
+
 				if ($piece->package != '')
 					$xml .= indent(2) . '<package>' . expstring($piece->package) . '</package>' . nl();
 				$xml .= indent(2) . '<name>' . expstring($piece->name) . '</name>' . nl() .
 					indent(2) . '<title>' . expstring($piece->title) . '</title>' . nl();
+
 				if ($piece->type != 'Untyped')
 					$xml .= indent(2) . '<type>' . expstring($piece->type) . '</type>' . nl();
+
 				$piece->description = trim($piece->description);
 				if ($piece->description != '')
 					$xml .= indent(2) . '<description>' . expstring($piece->description) . '</description>' . nl();
+
 				$piece->code = trim($piece->code);
+
 				if ($piece->code != '')
 					$xml .= indent(2) . '<code>' . expstring($piece->code) . '</code>' . nl();
+				
 				$xml .= indent(1) . '</piece>' . nl();
 			} // for
 		} // if
@@ -356,26 +357,36 @@ class facileFormsConfig extends facileFormsConf
 					$xml .= indent(2) . '<description>' . expstring($form->description) . '</description>' . nl();
 				if ($form->class1 != '')
 					$xml .= indent(2) . '<class1>' . expstring($form->class1) . '</class1>' . nl();
+				
 				if ($form->class2 != '')
 					$xml .= indent(2) . '<class2>' . expstring($form->class2) . '</class2>' . nl();
+
 				$xml .= indent(2) . '<width>' . $form->width . '</width>' . nl();
 				if ($form->widthmode != 0)
 					$xml .= indent(2) . '<widthmode>' . $form->widthmode . '</widthmode>' . nl();
 				$xml .= indent(2) . '<height>' . $form->height . '</height>' . nl();
+
 				if ($form->heightmode != 0)
 					$xml .= indent(2) . '<heightmode>' . $form->heightmode . '</heightmode>' . nl();
+
 				if ($form->pages != 1)
 					$xml .= indent(2) . '<pages>' . $form->pages . '</pages>' . nl();
+				
 				if ($form->emailntf != 1)
 					$xml .= indent(2) . '<emailntf>' . $form->emailntf . '</emailntf>' . nl();
+
 				if ($form->emaillog != 1)
 					$xml .= indent(2) . '<emaillog>' . $form->emaillog . '</emaillog>' . nl();
+
 				if ($form->emailxml != 0)
 					$xml .= indent(2) . '<emailxml>' . $form->emailxml . '</emailxml>' . nl();
+
 				if ($form->double_opt != 0)
 					$xml .= indent(2) . '<double_opt>' . $form->double_opt . '</double_opt>' . nl();
+
 				if ($form->opt_mail != '')
 					$xml .= indent(2) . '<opt_mail>' . $form->opt_mail . '</opt_mail>' . nl();
+
 				if ($form->emailntf == 2) {
 					$form->emailadr = expstring($form->emailadr);
 					if ($form->emailadr != '')
@@ -471,6 +482,7 @@ class facileFormsConfig extends facileFormsConf
 						if ($elem->logging != 1)
 							$xml .= indent(3) . '<logging>' . $elem->logging . '</logging>' . nl();
 					} // if
+
 					if (isVisibleElement($elem->type)) {
 						if ($elem->posx != NULL)
 							$xml .= indent(3) . '<posx>' . $elem->posx . '</posx>' . nl();
@@ -489,6 +501,7 @@ class facileFormsConfig extends facileFormsConf
 						if ($elem->height != NULL && $elem->heightmode != 0)
 							$xml .= indent(3) . '<heightmode>' . $elem->heightmode . '</heightmode>' . nl();
 					} // if
+
 					$xml .= indent(3) . '<mailback>' . $elem->mailback . '</mailback>' . nl();
 					$xml .= indent(3) . '<mailbackfile>' . $elem->mailbackfile . '</mailbackfile>' . nl();
 					if ($elem->flag1)
@@ -504,6 +517,7 @@ class facileFormsConfig extends facileFormsConf
 					$elem->data3 = expstring($elem->data3);
 					if ($elem->data3 != '')
 						$xml .= indent(3) . '<data3>' . $elem->data3 . '</data3>' . nl();
+
 					$this->exportScript(
 						'script1',
 						'#__facileforms_scripts',
@@ -519,6 +533,7 @@ class facileFormsConfig extends facileFormsConf
 						if ($elem->script1flag2)
 							$xml .= indent(3) . '<script1flag2>' . $elem->script1flag2 . '</script1flag2>' . nl();
 					} // if
+
 					$this->exportScript(
 						'script2',
 						'#__facileforms_scripts',
@@ -528,6 +543,7 @@ class facileFormsConfig extends facileFormsConf
 						3,
 						$xml
 					);
+
 					if ($elem->script2cond > 0) {
 						if ($elem->script2flag1)
 							$xml .= indent(3) . '<script2flag1>' . $elem->script2flag1 . '</script2flag1>' . nl();
@@ -540,6 +556,7 @@ class facileFormsConfig extends facileFormsConf
 						if ($elem->script2flag5)
 							$xml .= indent(3) . '<script2flag5>' . $elem->script2flag5 . '</script2flag5>' . nl();
 					} // if
+
 					$this->exportScript(
 						'script3',
 						'#__facileforms_scripts',
@@ -549,10 +566,12 @@ class facileFormsConfig extends facileFormsConf
 						3,
 						$xml
 					);
+
 					if ($elem->script3cond > 0) {
 						if ($elem->script3msg != '')
 							$xml .= indent(3) . '<script3msg>' . expstring($elem->script3msg) . '</script3msg>' . nl();
 					} // if
+
 					$xml .= indent(2) . '</element>' . nl();
 				} // for
 				$xml .= indent(1) . '</form>' . nl();
@@ -595,15 +614,20 @@ class facileFormsConfig extends facileFormsConf
 					$xml .= indent(2) . '<package>' . expstring($menu->package) . '</package>' . nl();
 				$xml .= indent(2) . '<title>' . expstring($menu->title) . '</title>' . nl();
 				$menu->name = trim($menu->name);
+
 				if ($menu->name != '')
 					$xml .= indent(2) . '<name>' . expstring($menu->name) . '</name>' . nl();
+
 				if ($menu->page != 1 && $menu->page != '')
 					$xml .= indent(2) . '<page>' . $menu->page . '</page>' . nl();
+
 				if ($menu->frame != 0)
 					$xml .= indent(2) . '<frame>' . $menu->frame . '</frame>' . nl();
+
 				if ($menu->border != 0)
 					$xml .= indent(2) . '<border>' . $menu->border . '</border>' . nl();
 				$menu->params = trim($menu->params);
+
 				if ($menu->params != '')
 					$xml .= indent(2) . '<params>' . expstring($menu->params) . '</params>' . nl();
 
@@ -723,22 +747,28 @@ class facileFormsConfig extends facileFormsConf
 		global $ff_admpath, $mosConfig_fileperms;
 
 		$baseDir = Path::clean($ff_admpath . '/packages');
+
 		if (!file_exists($baseDir))
 			return BFText::_('COM_BREEZINGFORMS_INSTALLER_UPLOADNODIR');
+
 		if (!is_writable($baseDir))
 			return BFText::_('COM_BREEZINGFORMS_INSTALLER_UPLOADDIRNOTWRT');
+
 		$path = $baseDir . '/' . $userfile_name;
 		if (!move_uploaded_file($filename, $path))
 			return BFText::_('COM_BREEZINGFORMS_INSTALLER_MOVEFAILED');
+
 		$filemode = NULL;
 		if (isset($mosConfig_fileperms)) {
 			if ($mosConfig_fileperms != '')
 				$filemode = octdec($mosConfig_fileperms);
 		} else
 			$filemode = 0644;
+
 		if (isset($filemode))
 			if (!@chmod($path, $filemode))
 				return BFText::_('COM_BREEZINGFORMS_INSTALLER_CHMODFAILED');
+			
 		return '';
 	} // uploadfile
 
@@ -747,6 +777,7 @@ class facileFormsConfig extends facileFormsConf
 		if (count($ids))
 			foreach ($ids as $id)
 				dropPackage($id);
+
 		HTML_facileFormsConf::message(
 			$option,
 			$caller,
