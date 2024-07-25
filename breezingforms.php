@@ -1,10 +1,9 @@
 <?php
 /**
  * BreezingForms - A Joomla Forms Application
- * @version 1.9
+ * @version 5.0.0
  * @package BreezingForms
- * @copyright (C) 2008-2020 by Markus Bopp
- * @copyright   Copyright (C) 2024 by XDA+GIL 
+ * @copyright Copyright (C) 2024 by XDA+GIL | Until 2008-2020 by Markus Bopp 
  * @license Released under the terms of the GNU General Public License
  **/
 
@@ -29,14 +28,6 @@ class plgContentBreezingforms extends CMSPlugin
 	function __construct(&$subject, $params)
 	{
 		parent::__construct($subject, $params);
-	}
-
-	/**
-	 * Joomla 1.5 compatibility
-	 */
-	function onPrepareContent(&$article, &$params, $limitstart = 0)
-	{
-		$this->onContentPrepare('', $article, $params, $limitstart);
 	}
 
 	function onContentPrepare($context, &$article, &$params, $limitstart = 0)
@@ -147,7 +138,7 @@ function botBreezingForms_replacer(&$matches)
 		return '';
 
 	// get paths
-	$ff_mospath = str_replace('\\', '/', dirname(dirname(dirname(__FILE__))));
+	$ff_mospath = str_replace('\\', '/', dirname(dirname(dirname($_SERVER["SCRIPT_FILENAME"]))));
 	$ff_compath = JPATH_SITE . '/components/com_breezingforms';
 
 	// load config
@@ -289,7 +280,6 @@ function botBreezingForms_replacer(&$matches)
 	$mode = $pluginParams->def('load_in_iframe', 1);
 
 	if (($isContentBuilder || $mode == '0') && BFRequest::getVar('option') != 'com_tags') {
-
 		// NON-IFRAME		
 		$tmpParams = $params;
 
@@ -311,7 +301,7 @@ function botBreezingForms_replacer(&$matches)
 			BFRequest::setVar($prop, $val);
 		BFRequest::setVar('ff_target', 2);
 
-		$ff_modpath = str_replace('\\', '/', dirname(__FILE__));
+		$ff_modpath = str_replace('\\', '/', dirname($_SERVER["SCRIPT_FILENAME"]));
 		$ff_compath = JPATH_SITE . '/components/com_breezingforms';
 		$option = BFRequest::getVar('option', '');
 		$ff_applic = 'plg_facileforms';
