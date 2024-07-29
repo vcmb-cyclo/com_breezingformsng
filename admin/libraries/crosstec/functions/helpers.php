@@ -384,7 +384,7 @@ function bf_createMail($from, $fromname, $subject, $body, $alt_sender = '')
 	$_mailfrom = Factory::getConfig()->get('mailfrom', '');
 	$_fromname = Factory::getConfig()->get('fromname', '');
 
-	$mail = Factoryailer();
+	$mail = Factory::getMailer();
 
 	/*
 				try {
