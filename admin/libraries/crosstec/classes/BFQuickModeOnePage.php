@@ -2793,9 +2793,9 @@ function bfTriggerRules() {
         }
 
         if ($this->hasFlashUpload) {
-            $tickets = FactorytSession()->get('bfFlashUploadTickets', array());
+            $tickets = Factory::getSession()->get('bfFlashUploadTickets', array());
             $tickets[$this->flashUploadTicket] = array(); // stores file info for later processing
-            FactorytSession()->set('bfFlashUploadTickets', $tickets);
+	    Factory::getSession()->set('bfFlashUploadTickets', $tickets);
             echo '<input type="hidden" name="bfFlashUploadTicket" value="' . $this->flashUploadTicket . '"/>' . "\n";
             Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/center.js');
             Factory::getApplication()->getDocument()->addScriptDeclaration('
