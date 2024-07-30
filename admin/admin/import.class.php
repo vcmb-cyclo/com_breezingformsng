@@ -441,9 +441,21 @@ class ff_importPackage extends ff_xmlPackage
 
 		// save new row
 		$row = new facileFormsScripts($database);
+
+		$row = new facileFormsPieces($database);
+		$package = $this->getText(1, 'package');
+		$name = $this->getText(1, 'name', BFText::_('COM_BREEZINGFORMS_INSTALLER_UNKNOWN'));
+
+		// Find previous piece version.
+		$id = _ff_selectValue("select id from #__facileforms_scripts where name = " .$database->Quote($name) ." and package = " .$database->Quote($package));
+
+		if (! $this->hasErrors() && !empty($id)) {
+			$row->load($id);
+		}
+
 		$row->published = $this->getInt(1, 'published', 1);
-		$row->package = $this->getText(1, 'package');
-		$row->name = $this->getText(1, 'name', BFText::_('COM_BREEZINGFORMS_INSTALLER_UNKNOWN'));
+		$row->package = $package;
+		$row->name = $name;
 		$row->title = $this->getText(1, 'title', BFText::_('COM_BREEZINGFORMS_INSTALLER_UNKNOWN'));
 		$row->description = $this->getText(1, 'description');
 		$row->type = $this->getText(1, 'type', 'Untyped');
@@ -471,7 +483,6 @@ class ff_importPackage extends ff_xmlPackage
 		// Sanity check
 		if ($this->hasErrors())
 			return;
-
 
 		$row = new facileFormsPieces($database);
 		$package = $this->getText(1, 'package');
@@ -715,7 +726,8 @@ class ff_importPackage extends ff_xmlPackage
 		// sanity check
 		if ($this->hasErrors())
 			return;
-		// save new row
+
+		// Save new row
 		$row = new facileFormsElements($database);
 		$row->form = $this->params[1]['form_id'];
 		$row->ordering = ++$this->params[1]['elem_ord'];
