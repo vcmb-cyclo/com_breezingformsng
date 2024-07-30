@@ -115,3 +115,25 @@ function ff_returnHome()
 {
 	ff_redirectParent(ff_processor.homepage);
 } // ff_returnHome
+
+// Ajout d'un span après un élément de type "Range"
+
+document.addEventListener('DOMContentLoaded', function() {
+    ff_range();
+});
+
+function ff_range(element) {
+    const sliders = document.querySelectorAll('input[type="range"]');
+
+    sliders.forEach((slider) => {
+        slider.parentNode.classList.add('range');
+
+        const spanElement = document.createElement('span');
+        slider.parentNode.insertBefore(spanElement, slider.nextSibling);
+        spanElement.innerHTML = slider.value;
+
+        slider.addEventListener('input', function() {
+            spanElement.innerHTML = slider.value;
+        });
+    });
+}
