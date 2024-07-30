@@ -441,8 +441,6 @@ class ff_importPackage extends ff_xmlPackage
 
 		// save new row
 		$row = new facileFormsScripts($database);
-
-		$row = new facileFormsPieces($database);
 		$package = $this->getText(1, 'package');
 		$name = $this->getText(1, 'name', BFText::_('COM_BREEZINGFORMS_INSTALLER_UNKNOWN'));
 
