@@ -9,10 +9,11 @@
  */
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
-use Joomla\CMS\Filesystem\File;
-use Joomla\CMS\Factory;
-use Joomla\Database\DatabaseInterface;
-use Joomla\CMS\Installer\Installer;
+use \Joomla\CMS\Filesystem\File;
+use \Joomla\CMS\Factory;
+use \Joomla\Database\DatabaseInterface;
+use \Joomla\CMS\Installer\Installer;
+use \Joomla\CMS\Filesystem\Folder;
 
 class BFFactory
 {
@@ -325,12 +326,9 @@ class BFDbo
         try {
             return $this->dbo->loadResult();
         } catch (Exception $e) {
-
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
-
         } catch (Error $e) {
-
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
         }
@@ -482,10 +480,10 @@ class com_breezingformsInstallerScript
         $base_path = JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'plugins';
 
         if (file_exists($base_path)) {
-            $folders = @JFolder::folders($base_path);
+            $folders = @Folder::folders($base_path);
 
             if (count($folders) != 0) {
-                $installer = new JInstaller();
+                $installer = new Installer();
                 foreach ($folders as $folder) {
                     $installer->install($base_path . DS . $folder);
                 }
