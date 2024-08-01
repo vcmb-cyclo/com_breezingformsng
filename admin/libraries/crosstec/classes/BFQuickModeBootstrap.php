@@ -4,7 +4,7 @@
  * @version   5.0
  * @package   BreezingForms
  * @copyright (C) 2008-2020 by Markus Bopp
- * @copyright (C) 2024 by XDA+GIL
+ * @copyright (C) 2024 by XDA+GIL - EVH
  * @license   Released under the terms of the GNU General Public License
  * */
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
