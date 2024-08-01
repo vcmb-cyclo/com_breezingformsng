@@ -270,6 +270,7 @@
 
 .bfQuickMode .bfElemWrap .form-inline input[type="text"], 
 .bfQuickMode .bfElemWrap .form-inline input[type="number"],
+.bfQuickMode .bfElemWrap .form-inline input[type="range"],
 .bfQuickMode .bfElemWrap .form-inline textarea, 
 .bfQuickMode .bfElemWrap .form-inline select{
     
@@ -285,10 +286,60 @@
 }
 
 .bfQuickMode .bfElemWrap .bfLabelBlock + input[type="text"], 
+.bfQuickMode .bfElemWrap .bfLabelBlock + input[type="number"], 
+.bfQuickMode .bfElemWrap .bfLabelBlock + input[type="range"],
 .bfQuickMode .bfElemWrap .bfLabelBlock + textarea, 
 .bfQuickMode .bfElemWrap .bfLabelBlock + select{
     
     max-width: 100%;
+}
+
+.bfQuickMode .bfElemWrap div.range {
+    display: flex;
+    flex-wrap:wrap;
+    align-items:center;
+}
+.bfQuickMode .bfElemWrap .bfLabelBlock {
+  width: 100%;
+}
+
+
+.bfQuickMode .bfElemWrap input[type="range"] {
+    appearance:auto;
+    box-shadow:none;
+    accent-color:deepskyblue;
+    cursor:ew-resize;
+    margin-left:5px;
+    width:calc(70% - 75px);
+}
+
+.bfQuickMode .bfElemWrap .bfLabelBlock + input[type="range"] {
+    width:calc(100% - 75px) !important;
+    margin-left:0;
+}
+
+.bfQuickMode .bfElemWrap input[type="range"] + span {
+    position: relative;
+    font-weight: 600;
+    width: 55px;
+    margin-left: 20px;
+    background: grey;
+    color: white;
+    border-radius: 0.15rem;
+    text-align: center;
+    line-height: 32px;
+}
+  
+.bfQuickMode .bfElemWrap input[type="range"] + span:after {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 10px solid grey;
+    top: 8px;
+    left: -10px;
+    CONTENT: "";
 }
 
 .bfQuickMode .bfElemWrap label{
