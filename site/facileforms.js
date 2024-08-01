@@ -3,6 +3,7 @@
 * @version 1.4.4
 * @package BreezingForms
 * @copyright (C) 2004-2005 by Peter Koch
+* @copyright (C) 2024 by EVH
 * @license Released under the terms of the GNU General Public License
 **/
 function swal(msg){
