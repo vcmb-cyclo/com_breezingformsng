@@ -739,6 +739,10 @@ class BFQuickModeBootstrap
 
                     case 'bfNumberInput':
                         $type = 'number';
+
+					if ($mdata['range') {
+						$type = 'range';
+					}
                         $maxlength = '';
                         if (is_numeric($mdata['maxLength'])) {
                             $maxlength = 'max="' . intval($mdata['maxLength']) . '" ';
