@@ -4,7 +4,7 @@
  * @version 5.0
  * @package     BreezingForms
  * @copyright   (C) 2008-2020 by Markus Bopp
- * @copyright   (C) 2024 by XDA+GIL
+ * @copyright   (C) 2024 by XDA+GIL - EVH
  * @license     Released under the terms of the GNU General Public License
  * */
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
@@ -416,6 +416,7 @@ class QuickModeHtml
                     mdata['placeholder_translation<?php echo $active_language_code; ?>'] = JQuery('#bfElementTypeNumberInputPlaceholderTrans').val();
                     mdata.bfName = JQuery('#bfElementName').val();
                     mdata.logging = JQuery('#bfElementNumberInputAdvancedLogging').attr('checked');
+                    mdata.range = JQuery('#bfElementNumberInputAdvancedRange').attr('checked');
                     mdata.label = JQuery('#bfElementLabel').val();
                     mdata['label_translation<?php echo $active_language_code; ?>'] = JQuery('#bfElementLabelTrans').val();
                     mdata.maxLength = JQuery('#bfElementTypeNumberInputMaxLength').val();
@@ -455,11 +456,14 @@ class QuickModeHtml
                     JQuery('#bfElementLabel').val(mdata.label);
                     JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation<?php echo $active_language_code; ?>'] != "undefined" ? mdata['label_translation<?php echo $active_language_code; ?>'] : "");
                     JQuery('#bfElementNumberInputAdvancedLogging').attr('checked', mdata.logging);
+                    JQuery('#bfElementNumberInputAdvancedRange').attr('checked', mdata.range);
                     JQuery('#bfElementTypeNumberInputMaxLength').val(mdata.maxLength);
 
                     JQuery('#bfElementTypeNumberInputHint').val(mdata.hint);
                     JQuery('#bfElementTypeNumberInputHintTrans').val(typeof mdata['hint_translation<?php echo $active_language_code; ?>'] != "undefined" ? mdata['hint_translation<?php echo $active_language_code; ?>'] : "");
 
+                    JQuery('bfElementType').attr('checked', mdata.range); // EVH Champ de type Range
+        
                     JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
                     JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
                     JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
@@ -5913,6 +5917,16 @@ class QuickModeHtml
                                                     <input checked="checked" type="checkbox" value=""
                                                         id="bfElementNumberInputAdvancedLogging" />
                                                 </div>
+                                            <!-- Begin option Range -->
+                                                <div class="bfPropertyWrap"> 
+                                                    <label class="bfPropertyLabel hasTooltip"
+                                                        title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_ELEMENT_RANGE')); ?>"
+                                                        for="bfElementNumberInputAdvancedRange">
+                                                        <?php echo BFText::_('COM_BREEZINGFORMS_RANGE'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value=""
+                                                        id="bfElementNumberInputAdvancedRange" />
+                                            <!-- End option Range -->
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
                                                         title="<?php echo bf_tooltipText(BFText::_('COM_BREEZINGFORMS_QM_NUMBER_INPUT_STEP_TOOLTIP')); ?>"

@@ -4,7 +4,7 @@
  * @version 1.9
  * @package BreezingForms
  * @copyright (C) 2008-2020 by Markus Bopp
- * @copyright Copyright (C) 2024 by XDA+GIL
+ * @copyright Copyright (C) 2024 by XDA+GIL - EVH
  * @license Released under the terms of the GNU General Public License
  * */
 
@@ -1253,6 +1253,10 @@ function bfTriggerRules() {
 
 					case 'bfNumberInput':
 						$type = 'number';
+
+						if ($mdata['range']) {
+							$type = 'range';
+						}
 						$maxlength = '';
 						if(is_numeric($mdata['maxLength'])){
 							$maxlength = 'max="'.intval($mdata['maxLength']).'" ';
