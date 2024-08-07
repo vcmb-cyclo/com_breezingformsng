@@ -209,7 +209,7 @@
 		<title>Security code ok</title>
 		<type>Element Validation</type>
 		<description>Check that a valid security code was entered.</description>
-		<code>function ff_securitycode_ok(element\x2C message)\r\n{\r\n\x3C?php\r\n    global $ff_seccode\x3B\r\n    if (!isset($ff_seccode)) { \r\n        mt_srand((double)microtime()*1000000)\x3B\r\n        $ff_seccode = mt_rand(10000\x2C 99999)\x3B\r\n        JFactory::getSession()-\x3Eset(\x27ff_seccode\x27\x2C $ff_seccode)\x3B\r\n    } // if\r\n    $enc = array()\x3B\r\n    mt_srand((double)microtime()*1000000)\x3B\r\n    for ($i = 0\x3B $i \x3C 256\x3B $i++) $enc[] = mt_rand(0\x2C 255)\x3B\r\n    $seccode = (string)$ff_seccode\x3B\r\n    $hash = \x27\x27\x3B\r\n    $ini = $ff_seccode % 240\x3B\r\n    for ($i = 0\x3B $i \x3C 5\x3B $i++) {\r\n        $d = $ini+intval($seccode{$i})\x3B\r\n        for ($j = 0\x3B $j \x3C 7\x3B $j++) $d = $enc[$d]\x3B\r\n        $hash .= $d\x3B\r\n        $ini = ($ini+$d) % 240\x3B\r\n    } // for\r\n    return\r\n        \x22var enc = \x22.$this-\x3EexpJsValue($enc).\x22\x3B\x5Cn\x22.\r\n        \x22var seccode = new String(element.value)\x3B\x5Cn\x22.\r\n        \x22if (seccode.length==5) {\x5Cn\x22.\r\n        \x22    var hash = \x27\x27\x3B\x5Cn\x22.\r\n        \x22    var ini = parseInt(element.value) % 240\x3B\x5Cn\x22.\r\n        \x22    var i\x2C j\x3B\x5Cn\x22.\r\n        \x22    for (i = 0\x3B i \x3C 5\x3B i++) {\x5Cn\x22.\r\n        \x22        var d = ini+parseInt(seccode.charAt(i))\x3B\x5Cn\x22.\r\n        \x22        for (j = 0\x3B j \x3C 7\x3B j++) d = enc[d]\x3B\x5Cn\x22.\r\n        \x22        hash += d\x3B\x5Cn\x22.\r\n        \x22        ini = (ini+d) % 240\x3B\x5Cn\x22.\r\n        \x22    } // for\x5Cn\x22.\r\n        \x22    if (hash == \x27$hash\x27) return \x27\x27\x3B\x5Cn\x22. \r\n        \x22} // if\x5Cn\x22.\r\n        \x22if (message==\x27\x27) message = \x5C\x22Security code is missing or wrong.\x5C\x5Cn\x5C\x22\x3B\x5Cn\x22.\r\n        \x22ff_validationFocus(element.name)\x3B\x5Cn\x22.\r\n        \x22return message\x3B\x5Cn\x22\x3B\r\n?\x3E\r\n} // ff_securitycode_ok</code>
+		<code>function ff_securitycode_ok(element\x2C message)\r\n{\r\n\x3C?php\r\n    global $ff_seccode\x3B\r\n    if (!isset($ff_seccode)) { \r\n        mt_srand((double)microtime()*1000000)\x3B\r\n        $ff_seccode = mt_rand(10000\x2C 99999)\x3B\r\n        Joomla\x5CCMS\x5CFactory::getSession()-\x3Eset(\x27ff_seccode\x27\x2C $ff_seccode)\x3B\r\n    } // if\r\n    $enc = array()\x3B\r\n    mt_srand((double)microtime()*1000000)\x3B\r\n    for ($i = 0\x3B $i \x3C 256\x3B $i++) $enc[] = mt_rand(0\x2C 255)\x3B\r\n    $seccode = (string)$ff_seccode\x3B\r\n    $hash = \x27\x27\x3B\r\n    $ini = $ff_seccode % 240\x3B\r\n    for ($i = 0\x3B $i \x3C 5\x3B $i++) {\r\n        $d = $ini+intval($seccode{$i})\x3B\r\n        for ($j = 0\x3B $j \x3C 7\x3B $j++) $d = $enc[$d]\x3B\r\n        $hash .= $d\x3B\r\n        $ini = ($ini+$d) % 240\x3B\r\n    } // for\r\n    return\r\n        \x22var enc = \x22.$this-\x3EexpJsValue($enc).\x22\x3B\x5Cn\x22.\r\n        \x22var seccode = new String(element.value)\x3B\x5Cn\x22.\r\n        \x22if (seccode.length==5) {\x5Cn\x22.\r\n        \x22    var hash = \x27\x27\x3B\x5Cn\x22.\r\n        \x22    var ini = parseInt(element.value) % 240\x3B\x5Cn\x22.\r\n        \x22    var i\x2C j\x3B\x5Cn\x22.\r\n        \x22    for (i = 0\x3B i \x3C 5\x3B i++) {\x5Cn\x22.\r\n        \x22        var d = ini+parseInt(seccode.charAt(i))\x3B\x5Cn\x22.\r\n        \x22        for (j = 0\x3B j \x3C 7\x3B j++) d = enc[d]\x3B\x5Cn\x22.\r\n        \x22        hash += d\x3B\x5Cn\x22.\r\n        \x22        ini = (ini+d) % 240\x3B\x5Cn\x22.\r\n        \x22    } // for\x5Cn\x22.\r\n        \x22    if (hash == \x27$hash\x27) return \x27\x27\x3B\x5Cn\x22. \r\n        \x22} // if\x5Cn\x22.\r\n        \x22if (message==\x27\x27) message = \x5C\x22Security code is missing or wrong.\x5C\x5Cn\x5C\x22\x3B\x5Cn\x22.\r\n        \x22ff_validationFocus(element.name)\x3B\x5Cn\x22.\r\n        \x22return message\x3B\x5Cn\x22\x3B\r\n?\x3E\r\n} // ff_securitycode_ok</code>
 	</script>
 	<script id="27">
 		<package>FF</package>
@@ -486,7 +486,7 @@
 		<title>Add custom CSS File</title>
 		<type>Before Form</type>
 		<description>Adds a custom css file to the form. To choose a css file\x2C execute this piece and call the function ff_addCustomCSSFile(\x27path/to/css/file\x27) with the RELATIVE (not full!) path to your joomla installation.\r\nDo not forget to call $this-\x3EexecPieceByName(\x27ff_InitLib\x27) before!\r\n\r\nExample:\r\n\r\nglobal $mainframe\x3B\r\n\r\n$this-\x3EexecPieceByName(\x27ff_InitLib\x27)\x3B\r\n$this-\x3EexecPieceByName(\x27ff_addCustomCSSFile\x27)\x3B\r\n\r\nff_addCustomCSSFile(\x27templates/\x27 . $mainframe-\x3EgetTemplate() . \x27/css/template.css\x27)\x3B</description>
-		<code>function ff_addCustomCSSFile($path){\r\n	if (file_exists(JPATH_SITE . \x27/\x27 . $path)){\r\n		JFactory::getDocument()-\x3EaddStyleSheet(JURI::root() . $path)\x3B\r\n	}\r\n}</code>
+		<code>function ff_addCustomCSSFile($path){\r\n	if (file_exists(JPATH_SITE . \x27/\x27 . $path)){\r\n		Joomla\x5CCMS\x5CFactory::getDocument()-\x3EaddStyleSheet(Joomla\x5CCMS\x5CUri\x5CUri::root() . $path)\x3B\r\n	}\r\n}</code>
 	</piece>
 	<piece id="2">
 		<package>FF</package>
@@ -690,14 +690,6 @@
 		<description>Set value of a Static Text\x2C Text\x2C Textarea or Hidden Input. \r\n\r\nCall: \r\n    ff_setValue(\x27name\x27\x2C \x27value\x27)\x3B</description>
 		<code>function ff_setValue($name\x2C $value)\r\n{\r\n    global $ff_processor\x3B\r\n    for ($r = 0\x3B $r \x3C $ff_processor-\x3Erowcount\x3B $r++) {\r\n        $row =\x26 $ff_processor-\x3Erows[$r]\x3B\r\n        if ($row-\x3Ename==$name)\r\n            $row-\x3Edata1 = $value\x3B\r\n        unset($row)\x3B\r\n    } // for\r\n} // ff_setValue</code>
 	</piece>
-	<piece id="86">
-		<package>GN</package>
-		<name>gn_annuler_cyclo</name>
-		<title>Annuler \x26 Cyclo Home Page</title>
-		<type>Element Action</type>
-		<description>Cancel and go to site \x22VCMB Cyclo\x22 Home page</description>
-		<code>function gn_annuler_cyclo(element\x2C action)\r\n{\r\n  eval(\x27document.\x27+ff_processor.form_id).reset()\x3B\r\n  window.location.href = \x22https://cyclo.vcmb.fr\x22\x3B\r\n \r\n} // gn_annuler_cyclo</code>
-	</piece>
 	<piece id="30">
 		<package>GN</package>
 		<name>gn_countRecords</name>
@@ -707,152 +699,82 @@
 	</piece>
 	<piece id="31">
 		<package>GN</package>
-		<name>gn_countRecords</name>
-		<title>count records</title>
-		<description>Count the records (rows) of a form.\r\n* $formName : form name.</description>
-		<code>function gn_countRecords($formName) {\r\n\r\n    $db = BFFactory::getDbo()\x3B\r\n    $sql = \x27SELECT COUNT(1) FROM #__facileforms_records WHERE `name`=\x27.$db-\x3EQuote($formName)\x3B\r\n\r\n    $db-\x3EsetQuery($sql)\x3B\r\n\r\n    $nb_countRecords = $db-\x3EloadResult()\x3B\r\n\r\n    return $nb_countRecords\x3B\r\n}</code>
+		<name>gn_getDBField</name>
+		<title>get DB field</title>
+		<description>Return name item or \x22UNKNOWN\x22 text.\r\n\r\n* $name  : field name\r\n* $recid : current record id.</description>
+		<code>function gn_getDBField($name\x2C $recid) {\r\n    $db = \x26BFFactory::getDbo()\x3B\r\n    $sql = \x22SELECT value from #__facileforms_subrecords WHERE record=$recid AND `name`=\x27$name\x27\x22\x3B \r\n    return ff_selectValue($sql\x2C \x27UNKNOWN\x27)\x3B\r\n}</code>
 	</piece>
 	<piece id="32">
-		<package>GN</package>
-		<name>gn_getDBField</name>
-		<title>get DB field</title>
-		<description>Return name item or \x22UNKNOWN\x22 text.\r\n\r\n* $name  : field name\r\n* $recid : current record id.</description>
-		<code>function gn_getDBField($name\x2C $recid) {\r\n    $db = \x26BFFactory::getDbo()\x3B\r\n    $sql = \x22SELECT value from #__facileforms_subrecords WHERE record=$recid AND `name`=\x27$name\x27\x22\x3B \r\n    return ff_selectValue($sql\x2C \x27UNKNOWN\x27)\x3B\r\n}</code>
-	</piece>
-	<piece id="33">
-		<package>GN</package>
-		<name>gn_getDBField</name>
-		<title>get DB field</title>
-		<description>Return name item or \x22UNKNOWN\x22 text.\r\n\r\n* $name  : field name\r\n* $recid : current record id.</description>
-		<code>function gn_getDBField($name\x2C $recid) {\r\n    $db = \x26BFFactory::getDbo()\x3B\r\n    $sql = \x22SELECT value from #__facileforms_subrecords WHERE record=$recid AND `name`=\x27$name\x27\x22\x3B \r\n    return ff_selectValue($sql\x2C \x27UNKNOWN\x27)\x3B\r\n}</code>
-	</piece>
-	<piece id="34">
 		<package>GN</package>
 		<name>gn_getDBFieldsDefaultValue</name>
 		<title>get DB fields default value (user)</title>
 		<description>Retrieves the default value identified by its name of a User \x3E Fields.\r\n\r\nPrerequisite: requires loading gn_initLib :\r\n * either like this: \x3C?php $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B return gn_getDBFieldsDefaultValue(\x27club-ffvelo\x27)\x3B ?\x3E\r\n * or in \r\n  * *** begin form \x3E $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B\r\n  * *** \x3C?php return gn_getDBFieldsDefaultValue(\x27club-ffvelo\x27)\x3B ?\x3E\r\n\r\nparameter alias = alias of the field name (example : \x27club-ffvelo\x27)\r\n\r\nExample: \r\n\r\n\x3C?php $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B return gn_getDBFieldsDefaultValue(\x27club-ffvelo\x27)\x3B ?\x3E\r\n\r\nIn the database\x2C the table #__fields contains all default values.</description>
 		<code>function gn_getDBFieldsDefaultValue($name) {\r\n    $userid = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27id\x27\x2C \x27\x27)\x3B\r\n    if ($userid \x3E 0) {\r\n        $db = BFFactory::getDBO()\x3B\r\n        $db-\x3EsetQuery(\x22SELECT default_value FROM #__fields WHERE name = \x27$name\x27\x22)\x3B\r\n        \r\n        // DEBUG $db-\x3EsetQuery(\x22SELECT * FROM #__fields WHERE name = \x27club-ffvelo\x27\x22)\x3B\r\n        // DEBUG return var_dump($db-\x3ELoadObjectList())\x3B\r\n        \r\n        return $db-\x3ELoadResult()\x3B\r\n    }\r\n}</code>
 	</piece>
-	<piece id="35">
-		<package>GN</package>
-		<name>gn_getDBFieldsDefaultValue</name>
-		<title>get DB fields default value (user)</title>
-		<description>Retrieves the default value identified by its alias (name).\r\nPrerequisite: requires loading gn_initLib :\r\n * either like this: \x3C?php $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B return gn_getDBFieldsDefaultValue(\x27club-ffvelo\x27)\x3B ?\x3E\r\n * or in \r\n  * *** begin form \x3E $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B\r\n  * *** \x3C?php return gn_getDBFieldsDefaultValue(\x27club-ffvelo\x27)\x3B ?\x3E\r\n\r\nparameter alias = alias of the field name (example : \x27club-ffvelo\x27)\r\n\r\nExample: \r\n\r\n\x3C?php $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B return gn_getDBFieldsDefaultValue(\x27club-ffvelo\x27)\x3B ?\x3E\r\n\r\nIn the database\x2C the table #__fields contains all default values.</description>
-		<code>function gn_getDBFieldsDefaultValue($alias) {\r\n    $userid = JFactory::getUser()-\x3Eid\x3B\r\n    if ($userid \x3E0) {\r\n        $db = BFFactory::getDBO()\x3B\r\n        $db-\x3EsetQuery(\x22SELECT default_value FROM #__fields WHERE name = \x27$alias\x27\x22)\x3B\r\n        \r\n        // DEBUG $db-\x3EsetQuery(\x22SELECT * FROM #__fields WHERE name = \x27club-ffvelo\x27\x22)\x3B\r\n        // DEBUG return var_dump($db-\x3ELoadObjectList())\x3B\r\n        \r\n        return $db-\x3ELoadResult()\x3B\r\n    }\r\n}</code>
-	</piece>
-	<piece id="36">
+	<piece id="33">
 		<package>GN</package>
 		<name>gn_getDBStripeId</name>
 		<title>get DB Stripe Id</title>
 		<description>Retrieves StripeId value.\r\nStripeId is not stored as a standard value.\r\n* $recid : record number.</description>
 		<code>function gn_getDBStripeId($recid) {\r\n    if (isset($recid)) {\r\n        $sql = \x22SELECT paypal_tx_id FROM #__facileforms_records WHERE id=$recid\x22\x3B\r\n        $stripe_id = ff_selectValue($sql\x2C \x27FAILED\x27)\x3B\r\n\r\n        // A AMELIORER \r\n        // $db = BFFactory::getDBO()\x3B\r\n        // $db-\x3EsetQuery($sql)\x3B\r\n        // $stripe_id = $db-\x3ELoadResult()\x3B        \r\n        // if (ŝtripe_id == null) { stripe_id = \x27FAILED\x27}\r\n    }\r\n    else {\r\n        $stripe_id = \x27$recid not defined\x27\x3B\r\n    }\r\n\r\n    return $stripe_id\x3B\r\n}</code>
 	</piece>
-	<piece id="37">
-		<package>GN</package>
-		<name>gn_getDBStripeId</name>
-		<title>get DB Stripe Id</title>
-		<description>Retrieves StripeId value.\r\nStripeId is not stored as a standard value.\r\n* $recid : record number.</description>
-		<code>function gn_getDBStripeId($recid) {\r\n    if (isset($recid)) {\r\n        $sql = \x22SELECT paypal_tx_id FROM #__facileforms_records WHERE id=$recid\x22\x3B\r\n        $stripe_id = ff_selectValue($sql\x2C \x27FAILED\x27)\x3B\r\n\r\n        // A AMELIORER \r\n        // $db = BFFactory::getDBO()\x3B\r\n        // $db-\x3EsetQuery($sql)\x3B\r\n        // $stripe_id = $db-\x3ELoadResult()\x3B        \r\n        // if (ŝtripe_id == null) { stripe_id = \x27FAILED\x27}\r\n    }\r\n    else {\r\n        $stripe_id = \x27$recid not defined\x27\x3B\r\n    }\r\n\r\n    return $stripe_id\x3B\r\n}</code>
-	</piece>
-	<piece id="38">
+	<piece id="34">
 		<package>GN</package>
 		<name>gn_getFormFromFormName</name>
 		<title>get form data with name</title>
 		<description>Gives information with the name of the form.\r\nThe most interesting ones:\r\n$form-\x3Eid = 51\r\n$form-\x3Ename = \x22SystemDashboard\x22\r\n$form-\x3Etitle = \x22Tableau de bord\x22\r\n$form-\x3Epublished =0/1\r\n$form-\x3Edescription</description>
 		<code>function gn_getFormFromFormName($formname = \x27SystemDashboard\x27) {\r\n    $form = \x27NOT FOUND\x27\x3B\r\n    if ($formname != null) {\r\n        $database = \x26BFFactory::getDbo()\x3B\r\n        \r\n        $sql = \x3C\x3C\x3CSQL\r\n        SELECT\r\n            *\r\n            from\r\n            #__facileforms_forms\r\n            WHERE name=\x27$formname\x27 and published=1\r\n            order by ordering\x2C id\r\n        SQL\x3B\r\n                \r\n        $database-\x3EsetQuery($sql)\x3B\r\n        $forms = $database-\x3EloadObjectList()\x3B\r\n        if (count($forms) \x3C 1) {\r\n            echo \x27[Form \x27.htmlentities($formname\x2C ENT_QUOTES\x2C \x27UTF-8\x27).\x27 not found!]\x27\x3B\r\n            $ok = false\x3B\r\n        } else\r\n            $form = $forms[0]\x3B\r\n    } else {\r\n        Joomla\x5CCMS\x5CFactory::getApplication()-\x3EenqueueMessage(\x27No form name provided!\x27\x2C \x27error\x27)\x3B\r\n        $ok = false\x3B\r\n    } // if\r\n\r\n    return $form\x3B\r\n}</code>
 	</piece>
-	<piece id="39">
-		<package>GN</package>
-		<name>gn_getFormFromFormName</name>
-		<title>get form data with name</title>
-		<description>Gives information with the name of the form.\r\nThe most interesting ones:\r\n$form-\x3Eid = 51\r\n$form-\x3Ename = \x22SystemDashboard\x22\r\n$form-\x3Etitle = \x22Tableau de bord\x22\r\n$form-\x3Epublished =0/1\r\n$form-\x3Edescription</description>
-		<code>function gn_getFormFromFormName($formname = \x27SystemDashboard\x27) {\r\n    $form = \x27NOT FOUND\x27\x3B\r\n    if ($formname != null) {\r\n        $database = \x26BFFactory::getDbo()\x3B\r\n        \r\n        $sql = \x3C\x3C\x3CSQL\r\n        SELECT\r\n            *\r\n            from\r\n            #__facileforms_forms\r\n            WHERE name=\x27$formname\x27 and published=1\r\n            order by ordering\x2C id\r\n        SQL\x3B\r\n                \r\n        $database-\x3EsetQuery($sql)\x3B\r\n        $forms = $database-\x3EloadObjectList()\x3B\r\n        if (count($forms) \x3C 1) {\r\n            echo \x27[Form \x27.htmlentities($formname\x2C ENT_QUOTES\x2C \x27UTF-8\x27).\x27 not found!]\x27\x3B\r\n            $ok = false\x3B\r\n        } else\r\n            $form = $forms[0]\x3B\r\n    } else {\r\n        JError::raiseError(404\x2C \x27No form name provided!\x27)\x3B\r\n        $ok = false\x3B\r\n    } // if\r\n\r\n    return $form\x3B\r\n}</code>
-	</piece>
-	<piece id="40">
+	<piece id="35">
 		<package>GN</package>
 		<name>gn_getNbInscrit</name>
 		<title>count value</title>
 		<description>Count specific text occurrences in a form list.\r\n\r\n* $form: form number.\r\n* $element_parcours : field name where to search the text.\r\n* $element_path: specific text to count</description>
 		<code>function gn_getNbInscrit($form\x2C $element_parcours\x2C $distance) {\r\n    $db = BFFactory::getDbo()\x3B\r\n    $sql = \x22SELECT COUNT(1) FROM #__facileforms_subrecords AS s  INNER JOIN #__facileforms_records AS r ON r.id = s.record WHERE r.form = \x22 . $db-\x3EQuote($form) . \x22 AND s.`name`=\x22 . $db-\x3EQuote($element_parcours) .\x22 AND s.value =\x27\x22 . $distance  .  \x22\x27\x22\x3B \r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $nb_parcours = $db-\x3EloadResult()\x3B\r\n\r\n    return $nb_parcours\x3B\r\n}</code>
 	</piece>
-	<piece id="41">
-		<package>GN</package>
-		<name>gn_getNbInscrit</name>
-		<title>count value</title>
-		<description>Count specific text occurrences in a form list.\r\n\r\n* $form: form number.\r\n* $element_parcours : field name where to search the text.\r\n* $element_path: specific text to count</description>
-		<code>function gn_getNbInscrit($form\x2C $element_parcours\x2C $distance) {\r\n    $db = BFFactory::getDbo()\x3B\r\n    $sql = \x22SELECT COUNT(1) FROM #__facileforms_subrecords AS s  INNER JOIN #__facileforms_records AS r ON r.id = s.record WHERE r.form = \x22 . $db-\x3EQuote($form) . \x22 AND s.`name`=\x22 . $db-\x3EQuote($element_parcours) .\x22 AND s.value =\x27\x22 . $distance  .  \x22\x27\x22\x3B \r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $nb_parcours = $db-\x3EloadResult()\x3B\r\n\r\n    return $nb_parcours\x3B\r\n}</code>
-	</piece>
-	<piece id="42">
+	<piece id="36">
 		<package>GN</package>
 		<name>gn_getNextNumDossard</name>
 		<title>get next</title>
 		<description>Returns the next competitor number of a form \r\n* $form : the number of the current form.\r\n* $field_dossard: the name of the element which contains the competitor number (FIELD_DOSSARD field)\x2C\r\n* $first_dossard: the first competitor number to be assigned (FIRST_DOSSARD).\r\n\r\n  // Principle: search in the database in the #__facileforms_subrecords table for the largest competitor number already assigned for this form.\r\n    // The table #__facileforms_subrecords (list of each element value) has :\r\n    // * a value text field containing the data\x2C\r\n    // * a text field `name` containing the name of the element\x2C\r\n    // \x22 an integer field record containing the id of the record (\x3C=\x3E record_id).\r\n\r\n    // The table #__facileforms_records (list of records) has:\r\n    // \x22 an integer field id containing the id of the record (\x3C=\x3E record_id).\r\n    // * an integer field form containing the form number (\x3C=\x3E form_id</description>
 		<code>function gn_getNextNumDossard($form\x2C $field_dossard\x2C $first_dossard) {\r\n    $db = \x26BFFactory::getDbo()\x3B\r\n      $sql = \x22SELECT MAX(CAST(s.value as UNSIGNED)) FROM #__facileforms_subrecords AS s INNER JOIN #__facileforms_records AS r ON r.id = s.record WHERE r.form = \x22 . $db-\x3EQuote($form) . \x22 AND s.`name`=\x22 . $db-\x3EQuote($field_dossard)\x3B\r\n\r\n    // Marche aussi\x2C mais sans message d\x27erreur clair.\r\n    // $dossard = ff_selectValue($sql\x2C $first_dossard-1)+1\x3B\r\n\r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $dossard = $db-\x3EloadResult()\x3B\r\n                \r\n    // Sécurité.\r\n    if (!isset($dossard) || ($dossard \x3C $first_dossard)) {\r\n        $dossard = $first_dossard-1\x3B\r\n    }\r\n\r\n    return $dossard+1\x3B\r\n}</code>
 	</piece>
-	<piece id="43">
+	<piece id="37">
 		<package>GN</package>
 		<name>gn_getNextNumDossard</name>
 		<title>get next</title>
 		<description>Returns the next competitor number of a form \r\n* $form : the number of the current form.\r\n* $field_dossard: the name of the element which contains the competitor number (FIELD_DOSSARD field)\x2C\r\n* $first_dossard: the first competitor number to be assigned (FIRST_DOSSARD).\r\n\r\n  // Principle: search in the database in the #__facileforms_subrecords table for the largest competitor number already assigned for this form.\r\n    // The table #__facileforms_subrecords (list of each element value) has :\r\n    // * a value text field containing the data\x2C\r\n    // * a text field `name` containing the name of the element\x2C\r\n    // \x22 an integer field record containing the id of the record (\x3C=\x3E record_id).\r\n\r\n    // The table #__facileforms_records (list of records) has:\r\n    // \x22 an integer field id containing the id of the record (\x3C=\x3E record_id).\r\n    // * an integer field form containing the form number (\x3C=\x3E form_id</description>
 		<code>function gn_getNextNumDossard($form\x2C $field_dossard\x2C $first_dossard) {\r\n    $db = \x26BFFactory::getDbo()\x3B\r\n      $sql = \x22SELECT MAX(CAST(s.value as UNSIGNED)) FROM #__facileforms_subrecords AS s INNER JOIN #__facileforms_records AS r ON r.id = s.record WHERE r.form = \x22 . $db-\x3EQuote($form) . \x22 AND s.`name`=\x22 . $db-\x3EQuote($field_dossard)\x3B\r\n\r\n    // Marche aussi\x2C mais sans message d\x27erreur clair.\r\n    // $dossard = ff_selectValue($sql\x2C $first_dossard-1)+1\x3B\r\n\r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $dossard = $db-\x3EloadResult()\x3B\r\n                \r\n    // Sécurité.\r\n    if (!isset($dossard) || ($dossard \x3C $first_dossard)) {\r\n        $dossard = $first_dossard-1\x3B\r\n    }\r\n\r\n    return $dossard+1\x3B\r\n}</code>
 	</piece>
-	<piece id="44">
+	<piece id="38">
 		<package>GN</package>
 		<name>gn_getSubFormsFromFormId</name>
 		<title>new BF internal</title>
 		<description>Internal use of new BF functions (here: gn_getSubFormsFromFormId).</description>
 		<code>function gn_getSubFormsFromFormId($formid = 51) {\r\n    $subforms = \x27NOT FOUND\x27\x3B\r\n    if ($formid != null) {\r\n        $database = \x26BFFactory::getDbo()\x3B\r\n        \r\n        $sql = \x3C\x3C\x3CSQL\r\n        SELECT\r\n            *\r\n            from\r\n            #__facileforms_elements e \r\n            WHERE \r\n            e.form=$formid \r\n            AND e.published = 1 \r\n            AND e.logging = 1\r\n            ORDER BY ordering\x2C id\r\n        SQL\x3B\r\n                \r\n        $database-\x3EsetQuery($sql)\x3B\r\n        $subforms = $database-\x3EloadObjectList()\x3B\r\n        if (count($subforms) \x3C 1) {\r\n            echo \x27[Form \x27.htmlentities($formid\x2C ENT_QUOTES\x2C \x27UTF-8\x27).\x27 not found!]\x27\x3B\r\n            $ok = false\x3B\r\n        } \r\n    } else {\r\n        Joomla\x5CCMS\x5CFactory::getApplication()-\x3EenqueueMessage(\x27No form name provided!\x27\x2C \x27error\x27)\x3B\r\n        $ok = false\x3B\r\n    } // if\r\n\r\n    return $subforms\x3B\r\n}</code>
 	</piece>
-	<piece id="45">
-		<package>GN</package>
-		<name>gn_getSubFormsFromFormId</name>
-		<title>new BF internal</title>
-		<description>Internal use of new BF functions (here: gn_getSubFormsFromFormId).</description>
-		<code>function gn_getSubFormsFromFormId($formid = 51) {\r\n    $subforms = \x27NOT FOUND\x27\x3B\r\n    if ($formid != null) {\r\n        $database = \x26BFFactory::getDbo()\x3B\r\n        \r\n        $sql = \x3C\x3C\x3CSQL\r\n        SELECT\r\n            *\r\n            from\r\n            #__facileforms_elements e \r\n            WHERE \r\n            e.form=$formid \r\n            AND e.published = 1 \r\n            AND e.logging = 1\r\n            ORDER BY ordering\x2C id\r\n        SQL\x3B\r\n                \r\n        $database-\x3EsetQuery($sql)\x3B\r\n        $subforms = $database-\x3EloadObjectList()\x3B\r\n        if (count($subforms) \x3C 1) {\r\n            echo \x27[Form \x27.htmlentities($formid\x2C ENT_QUOTES\x2C \x27UTF-8\x27).\x27 not found!]\x27\x3B\r\n            $ok = false\x3B\r\n        } \r\n    } else {\r\n        JError::raiseError(404\x2C \x27No form name provided!\x27)\x3B\r\n        $ok = false\x3B\r\n    } // if\r\n\r\n    return $subforms\x3B\r\n}</code>
-	</piece>
-	<piece id="46">
+	<piece id="39">
 		<package>GN</package>
 		<name>gn_InitLib</name>
 		<title>Init Library</title>
 		<description>A collection of useful functions for use in form pieces. \r\n\r\nInclude by: \r\n    $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B</description>
 		<code>//+trace high none\r\n// if (!defined(\x27GN_DIE\x27))                    $this-\x3EexecPieceByName(\x27gn_Constants\x27)\x3B\r\nif (!function_exists(\x27gn_getDBFieldsDefaultValue\x27))      $this-\x3EexecPieceByName(\x27gn_getDBFieldsDefaultValue\x27)\x3B\r\nif (!function_exists(\x27gn_updateDBField\x27))      $this-\x3EexecPieceByName(\x27gn_updateDBField\x27)\x3B\r\nif (!function_exists(\x27gn_getDBField\x27))      $this-\x3EexecPieceByName(\x27gn_getDBField\x27)\x3B\r\nif (!function_exists(\x27gn_getDBStripeId\x27))      $this-\x3EexecPieceByName(\x27gn_getDBStripeId\x27)\x3B\r\nif (!function_exists(\x27gn_getNextNumDossard\x27))      $this-\x3EexecPieceByName(\x27gn_getNextNumDossard\x27)\x3B\r\nif (!function_exists(\x27gn_setMemoryData\x27))      $this-\x3EexecPieceByName(\x27gn_setMemoryData\x27)\x3B\r\nif (!function_exists(\x27gn_getNbInscrit\x27))      $this-\x3EexecPieceByName(\x27gn_getNbInscrit\x27)\x3B\r\n\r\nif (!function_exists(\x27gn_getFormFromFormName\x27))      $this-\x3EexecPieceByName(\x27gn_getFormFromFormName\x27)\x3B\r\nif (!function_exists(\x27gn_newRecord\x27))      $this-\x3EexecPieceByName(\x27gn_newRecord\x27)\x3B\r\nif (!function_exists(\x27gn_newSubRecord\x27))      $this-\x3EexecPieceByName(\x27gn_newSubRecord\x27)\x3B\r\nif (!function_exists(\x27gn_getSubFormsFromFormId\x27))      $this-\x3EexecPieceByName(\x27gn_getSubFormsFromFormId\x27)\x3B\r\n\r\nif (!function_exists(\x27gn_countRecords\x27))      $this-\x3EexecPieceByName(\x27gn_countRecords\x27)\x3B</code>
 	</piece>
-	<piece id="47">
-		<package>GN</package>
-		<name>gn_InitLib</name>
-		<title>Init Library</title>
-		<description>A collection of useful functions for use in form pieces. \r\n\r\nInclude by: \r\n    $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B</description>
-		<code>//+trace high none\r\n// if (!defined(\x27GN_DIE\x27))                    $this-\x3EexecPieceByName(\x27gn_Constants\x27)\x3B\r\nif (!function_exists(\x27gn_getDBFieldsDefaultValue\x27))      $this-\x3EexecPieceByName(\x27gn_getDBFieldsDefaultValue\x27)\x3B\r\nif (!function_exists(\x27gn_updateDBField\x27))      $this-\x3EexecPieceByName(\x27gn_updateDBField\x27)\x3B\r\nif (!function_exists(\x27gn_getDBField\x27))      $this-\x3EexecPieceByName(\x27gn_getDBField\x27)\x3B\r\nif (!function_exists(\x27gn_getDBStripeId\x27))      $this-\x3EexecPieceByName(\x27gn_getDBStripeId\x27)\x3B\r\nif (!function_exists(\x27gn_getNextNumDossard\x27))      $this-\x3EexecPieceByName(\x27gn_getNextNumDossard\x27)\x3B\r\nif (!function_exists(\x27gn_setMemoryData\x27))      $this-\x3EexecPieceByName(\x27gn_setMemoryData\x27)\x3B\r\nif (!function_exists(\x27gn_getNbInscrit\x27))      $this-\x3EexecPieceByName(\x27gn_getNbInscrit\x27)\x3B\r\n\r\nif (!function_exists(\x27gn_getFormFromFormName\x27))      $this-\x3EexecPieceByName(\x27gn_getFormFromFormName\x27)\x3B\r\nif (!function_exists(\x27gn_newRecord\x27))      $this-\x3EexecPieceByName(\x27gn_newRecord\x27)\x3B\r\nif (!function_exists(\x27gn_newSubRecord\x27))      $this-\x3EexecPieceByName(\x27gn_newSubRecord\x27)\x3B\r\nif (!function_exists(\x27gn_getSubFormsFromFormId\x27))      $this-\x3EexecPieceByName(\x27gn_getSubFormsFromFormId\x27)\x3B\r\n\r\nif (!function_exists(\x27gn_countRecords\x27))      $this-\x3EexecPieceByName(\x27gn_countRecords\x27)\x3B</code>
-	</piece>
-	<piece id="48">
+	<piece id="40">
 		<package>GN</package>
 		<name>gn_newRecord</name>
 		<title>new BF record</title>
 		<description>Creates a new BF record (without subrecord).\r\nIt will be in the table\x2C but not visible without a subrecord.\r\n\r\nExample:\r\n$record = gn_newRecord(\x27SystemDashboard\x27)\x3B // creates the new record for the SystemDashboard form.\r\ngn_newSubRecord($record\x2C \x27Element\x27\x2C $this-\x3Eformrow-\x3Ename)\x3B // creates an entry in the row.\r\ngn_newSubRecord($record\x2C \x27Value\x27\x2C \x22This is a value\x22)\x3B\r\ngn_newSubRecord($record\x2C \x27Comment\x27\x2C \x22This is a comment\x22)\x3B</description>
 		<code>function gn_newRecord($form_name = \x27SystemDashboard\x27) {\r\n    // Initialisation\r\n    $jinput = Joomla\x5CCMS\x5CFactory::getApplication()-\x3Einput\x3B\r\n    $ip = $jinput-\x3Eserver-\x3Eget(\x27REMOTE_ADDR\x27\x2C \x27\x27\x2C \x27\x27)\x3B\r\n    \r\n    $jbrowserInstance = Joomla\x5CCMS\x5CEnvironment\x5CBrowser::getInstance()\x3B\r\n    $browser = $jbrowserInstance-\x3EgetAgentString()\x3B\r\n    $platform = $jbrowserInstance-\x3EgetPlatform()\x3B\r\n    $form = gn_getFormFromFormName($form_name)\x3B\r\n    \r\n    $database = \x26BFFactory::getDbo()\x3B\r\n    \r\n    $record = new facileFormsRecords($database)\x3B\r\n    $record-\x3Esubmitted = Joomla\x5CCMS\x5CFactory::getDate(\x27now\x27)-\x3Eformat(\x27Y-m-d H:i:s\x27\x2C true)\x3B\r\n    $record-\x3Eform = $form-\x3Eid\x3B\r\n    $record-\x3Etitle = $form-\x3Etitle\x3B\r\n    $record-\x3Ename = $form-\x3Ename\x3B\r\n    $record-\x3Eip = $ip\x3B\r\n    $record-\x3Ebrowser = $browser\x3B\r\n    $record-\x3Eopsys = $platform\x3B\r\n    $record-\x3Eprovider = \x22\x22\x3B\r\n    $record-\x3Eviewed = 0\x3B\r\n    $record-\x3Eexported = 0\x3B\r\n    $record-\x3Earchived = 0\x3B\r\n    if (Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27id\x27\x2C 0) \x3E 0) {\r\n        $record-\x3Euser_id = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27id\x27\x2C 0)\x3B\r\n        $record-\x3Eusername = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27username\x27\x2C \x27\x27)\x3B\r\n        $record-\x3Euser_full_name = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27name\x27\x2C \x27\x27)\x3B\r\n    } else {\r\n        $record-\x3Euser_id = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27id\x27\x2C 0)\x3B\r\n        $record-\x3Eusername = \x27-\x27\x3B\r\n        $record-\x3Euser_full_name = \x27-\x27\x3B\r\n    }\r\n    \r\n    // echo \x22\x3CBR\x3E\x5Cn\x3CBR\x3E\x5CnRECORD ID=\x22 . var_dump($record)\x3B\r\n    // echo \x22\x3CBR\x3E\x5Cn\x3CBR\x3E\x5Cn\x22\x3B\r\n    if (!$record-\x3Estore()) {\r\n        echo \x22\x3CBR\x3E\x5Cn\x3CBR\x3E\x5CnERROR=\x22 .$record-\x3EgetError()\x3B\r\n        return\x3B\r\n    }\r\n    \r\n    return $record\x3B\r\n}</code>
 	</piece>
-	<piece id="49">
-		<package>GN</package>
-		<name>gn_newRecord</name>
-		<title>new BF record</title>
-		<description>Creates a new BF record (without subrecord).\r\nIt will be in the table\x2C but not visible without a subrecord.\r\n\r\nExample:\r\n$record = gn_newRecord(\x27SystemDashboard\x27)\x3B // creates the new record for the SystemDashboard form.\r\ngn_newSubRecord($record\x2C \x27Element\x27\x2C $this-\x3Eformrow-\x3Ename)\x3B // creates an entry in the row.\r\ngn_newSubRecord($record\x2C \x27Value\x27\x2C \x22This is a value\x22)\x3B\r\ngn_newSubRecord($record\x2C \x27Comment\x27\x2C \x22This is a comment\x22)\x3B</description>
-		<code>function gn_newRecord($form_name = \x27SystemDashboard\x27) {\r\n    // Initialisation\r\n    $jinput = JFactory::getApplication()-\x3Einput\x3B\r\n    $ip = $jinput-\x3Eserver-\x3Eget(\x27REMOTE_ADDR\x27\x2C \x27\x27\x2C \x27\x27)\x3B\r\n    \r\n    $jbrowserInstance = JBrowser::getInstance()\x3B\r\n    $browser = $jbrowserInstance-\x3EgetAgentString()\x3B\r\n    $platform = $jbrowserInstance-\x3EgetPlatform()\x3B\r\n    $form = gn_getFormFromFormName($form_name)\x3B\r\n    \r\n    $database = \x26BFFactory::getDbo()\x3B\r\n    \r\n    $record = new facileFormsRecords($database)\x3B\r\n    $record-\x3Esubmitted = JFactory::getDate(\x27now\x27)-\x3Eformat(\x27Y-m-d H:i:s\x27\x2C true)\x3B\r\n    $record-\x3Eform = $form-\x3Eid\x3B\r\n    $record-\x3Etitle = $form-\x3Etitle\x3B\r\n    $record-\x3Ename = $form-\x3Ename\x3B\r\n    $record-\x3Eip = $ip\x3B\r\n    $record-\x3Ebrowser = $browser\x3B\r\n    $record-\x3Eopsys = $platform\x3B\r\n    $record-\x3Eprovider = \x22\x22\x3B\r\n    $record-\x3Eviewed = 0\x3B\r\n    $record-\x3Eexported = 0\x3B\r\n    $record-\x3Earchived = 0\x3B\r\n    if (JFactory::getUser()-\x3Eget(\x27id\x27\x2C 0) \x3E 0) {\r\n        $record-\x3Euser_id = JFactory::getUser()-\x3Eget(\x27id\x27\x2C 0)\x3B\r\n        $record-\x3Eusername = JFactory::getUser()-\x3Eget(\x27username\x27\x2C \x27\x27)\x3B\r\n        $record-\x3Euser_full_name = JFactory::getUser()-\x3Eget(\x27name\x27\x2C \x27\x27)\x3B\r\n    } else {\r\n        $record-\x3Euser_id = JFactory::getUser()-\x3Eget(\x27id\x27\x2C 0)\x3B\r\n        $record-\x3Eusername = \x27-\x27\x3B\r\n        $record-\x3Euser_full_name = \x27-\x27\x3B\r\n    }\r\n    \r\n    // echo \x22\x3CBR\x3E\x5Cn\x3CBR\x3E\x5CnRECORD ID=\x22 . var_dump($record)\x3B\r\n    // echo \x22\x3CBR\x3E\x5Cn\x3CBR\x3E\x5Cn\x22\x3B\r\n    if (!$record-\x3Estore()) {\r\n        echo \x22\x3CBR\x3E\x5Cn\x3CBR\x3E\x5CnERROR=\x22 .$record-\x3EgetError()\x3B\r\n        return\x3B\r\n    }\r\n    \r\n    return $record\x3B\r\n}</code>
-	</piece>
-	<piece id="50">
+	<piece id="41">
 		<package>GN</package>
 		<name>gn_newSubRecord</name>
 		<title>new BF sub record</title>
 		<description>Set a new entry in a BF record.\r\n\r\n* $record : record to complete\r\n* $name  : field name\r\n* $value : value to set to the field of the record.\r\n\r\nWarning: only do this on a new record or check that this entry does not already exist.\r\nThe value must not be already setted.\r\n\r\nExample:\r\n$record = gn_newRecord(\x27SystemDashboard\x27)\x3B // creates the new record for the SystemDashboard form.\r\ngn_newSubRecord($record\x2C \x27Element\x27\x2C $this-\x3Eformrow-\x3Ename)\x3B // creates an new entry (value) for the record\r\ngn_newSubRecord($record\x2C \x27Value\x27\x2C \x22This is a value\x22)\x3B\r\ngn_newSubRecord($record\x2C \x27Comment\x27\x2C \x22This is a comment\x22)\x3B</description>
 		<code>function gn_newSubRecord($record\x2C $name\x2C $value) {\r\n    $subrecords = gn_getSubFormsFromFormId($record-\x3Eform)\x3B\r\n    foreach ($subrecords as $sr) {\r\n        if ($sr-\x3Ename == $name) {\r\n            $database = \x26BFFactory::getDbo()\x3B\r\n            $subrecord = new facileFormsSubrecords($database)\x3B\r\n            //    $subrecord-\x3Eid // identifier (to be created)\r\n            $subrecord-\x3Erecord = $record-\x3Eid\x3B // record id\r\n            $subrecord-\x3Eelement = $sr-\x3Eid\x3B // element id\r\n            $subrecord-\x3Ename = $sr-\x3Ename\x3B // element name\r\n            $subrecord-\x3Etype = $sr-\x3Etype\x3B // data type\r\n            $subrecord-\x3Evalue = $value\x3B // data value\r\n            $subrecord-\x3Estore()\x3B\r\n            break\x3B\r\n        }\r\n    }\r\n}</code>
 	</piece>
-	<piece id="51">
-		<package>GN</package>
-		<name>gn_newSubRecord</name>
-		<title>new BF sub record</title>
-		<description>Set a new entry in a BF record.\r\n\r\n* $record : record to complete\r\n* $name  : field name\r\n* $value : value to set to the field of the record.\r\n\r\nWarning: only do this on a new record or check that this entry does not already exist.\r\nThe value must not be already setted.\r\n\r\nExample:\r\n$record = gn_newRecord(\x27SystemDashboard\x27)\x3B // creates the new record for the SystemDashboard form.\r\ngn_newSubRecord($record\x2C \x27Element\x27\x2C $this-\x3Eformrow-\x3Ename)\x3B // creates an new entry (value) for the record\r\ngn_newSubRecord($record\x2C \x27Value\x27\x2C \x22This is a value\x22)\x3B\r\ngn_newSubRecord($record\x2C \x27Comment\x27\x2C \x22This is a comment\x22)\x3B</description>
-		<code>function gn_newSubRecord($record\x2C $name\x2C $value) {\r\n    $subrecords = gn_getSubFormsFromFormId($record-\x3Eform)\x3B\r\n    foreach ($subrecords as $sr) {\r\n        if ($sr-\x3Ename == $name) {\r\n            $database = \x26BFFactory::getDbo()\x3B\r\n            $subrecord = new facileFormsSubrecords($database)\x3B\r\n            //    $subrecord-\x3Eid // identifier (to be created)\r\n            $subrecord-\x3Erecord = $record-\x3Eid\x3B // record id\r\n            $subrecord-\x3Eelement = $sr-\x3Eid\x3B // element id\r\n            $subrecord-\x3Ename = $sr-\x3Ename\x3B // element name\r\n            $subrecord-\x3Etype = $sr-\x3Etype\x3B // data type\r\n            $subrecord-\x3Evalue = $value\x3B // data value\r\n            $subrecord-\x3Estore()\x3B\r\n            break\x3B\r\n        }\r\n    }\r\n}</code>
-	</piece>
-	<piece id="87">
+	<piece id="42">
 		<package>GN</package>
 		<name>gn_page_fin</name>
 		<title>Page FIN (Last - 1)</title>
@@ -860,7 +782,7 @@
 		<description>Go to last page - 1 (Submit page\x2C before Thanks Page)</description>
 		<code>function gn_page_fin(element\x2C action)\r\n{\r\n    ff_switchpage(ff_lastpage-1)\x3B\r\n} // gn_page_fin</code>
 	</piece>
-	<piece id="88">
+	<piece id="43">
 		<package>GN</package>
 		<name>gn_page4</name>
 		<title>Page 4</title>
@@ -868,35 +790,21 @@
 		<description>Switches to page 4.</description>
 		<code>function gn_page4(element\x2C action)\r\n{\r\n    if (ff_lastpage \x3E= 4) ff_switchpage(4)\x3B\r\n} // gn_page4</code>
 	</piece>
-	<piece id="52">
+	<piece id="44">
 		<package>GN</package>
 		<name>gn_setMemoryData</name>
 		<title>set data in memory</title>
 		<description>Updates the element field provided that the field pre-exists.\r\nSet a non-zero default value in BF\x2C for example the - character\x2C\r\nto force its creation in data arrays in memory.\r\n* $that : put $this\r\n* $element : the name of the element (ex : \x27Dossard\x27).\r\n* $value : the value to replace in the element (ex : 508).</description>
 		<code>function gn_setMemoryData(\x26$that\x2C $element\x2C $value) {\r\n    // Write into maildata table for mailing data.\r\n    foreach ($that-\x3Emaildata as \x26$entry) {\r\n        if ($entry[_FF_DATA_NAME] == $element) {\r\n            $entry[_FF_DATA_VALUE] = $value\x3B\r\n            break\x3B\r\n    	}\r\n    }\r\n\r\n    // Write into savedata table for database data.\r\n    foreach ($that-\x3Esavedata as \x26$entry) {\r\n        if ($entry[_FF_DATA_NAME] == $element) {\r\n            $entry[_FF_DATA_VALUE] = $value\x3B\r\n            break\x3B\r\n    	}\r\n    }\r\n}</code>
 	</piece>
-	<piece id="53">
-		<package>GN</package>
-		<name>gn_setMemoryData</name>
-		<title>set data in memory</title>
-		<description>Updates the element field provided that the field pre-exists.\r\nSet a non-zero default value in BF\x2C for example the - character\x2C\r\nto force its creation in data arrays in memory.\r\n* $that : put $this\r\n* $element : the name of the element (ex : \x27Dossard\x27).\r\n* $value : the value to replace in the element (ex : 508).</description>
-		<code>function gn_setMemoryData(\x26$that\x2C $element\x2C $value) {\r\n    // Write into maildata table for mailing data.\r\n    foreach ($that-\x3Emaildata as \x26$entry) {\r\n        if ($entry[_FF_DATA_NAME] == $element) {\r\n            $entry[_FF_DATA_VALUE] = $value\x3B\r\n            break\x3B\r\n    	}\r\n    }\r\n\r\n    // Write into savedata table for database data.\r\n    foreach ($that-\x3Esavedata as \x26$entry) {\r\n        if ($entry[_FF_DATA_NAME] == $element) {\r\n            $entry[_FF_DATA_VALUE] = $value\x3B\r\n            break\x3B\r\n    	}\r\n    }\r\n}</code>
-	</piece>
-	<piece id="54">
+	<piece id="45">
 		<package>GN</package>
 		<name>gn_updateDBField</name>
 		<title>update DB field</title>
 		<description>Updates the name element in base provided that the field pre-exists.\r\n\r\nIN COMMENT\x2C because the update in base has been replaced by an update in memory in Submit Pieces \x3E Begin Submit \x3E Custom.\r\nwith gn_setMemoryData.\r\n \r\nNB : Put a non-null default value in BF\x2C for example the character -.\r\n* $name : the name of the field\r\n* $recid : the current record id.\r\n* $value : the value to fill in the database.</description>
 		<code>function gn_updateDBField($name\x2C $recid\x2C $value) {\r\n    $db = \x26BFFactory::getDbo()\x3B\r\n    $sql = \x27UPDATE #__facileforms_subrecords SET value = \x27 . $db-\x3Equote($value) . \x22 WHERE record=$recid AND `name`=\x27$name\x27\x22\x3B \r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $db-\x3Eexecute()\x3B\r\n}</code>
 	</piece>
-	<piece id="55">
-		<package>GN</package>
-		<name>gn_updateDBField</name>
-		<title>update DB field</title>
-		<description>Updates the name element in base provided that the field pre-exists.\r\n\r\nIN COMMENT\x2C because the update in base has been replaced by an update in memory in Submit Pieces \x3E Begin Submit \x3E Custom.\r\nwith gn_setMemoryData.\r\n \r\nNB : Put a non-null default value in BF\x2C for example the character -.\r\n* $name : the name of the field\r\n* $recid : the current record id.\r\n* $value : the value to fill in the database.</description>
-		<code>function gn_updateDBField($name\x2C $recid\x2C $value) {\r\n    $db = \x26BFFactory::getDbo()\x3B\r\n    $sql = \x27UPDATE #__facileforms_subrecords SET value = \x27 . $db-\x3Equote($value) . \x22 WHERE record=$recid AND `name`=\x27$name\x27\x22\x3B \r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $db-\x3Eexecute()\x3B\r\n}</code>
-	</piece>
-	<piece id="89">
+	<piece id="46">
 		<package>GN</package>
 		<name>gn_validate_page_fin</name>
 		<title>Validate and FIN page</title>
@@ -904,12 +812,20 @@
 		<description>Validates the current page\x2C and if everything is ok is switches to Submit page (Last -1)\x2C before Thanks you page.</description>
 		<code>function gn_validate_page_fin(element\x2C action)\r\n{\r\n    if(typeof bfUseErrorAlerts != \x27undefined\x27){\r\n     JQuery(\x22.bfErrorMessage\x22).html(\x27\x27)\x3B\r\n     JQuery(\x22.bfErrorMessage\x22).css(\x22display\x22\x2C\x22none\x22)\x3B\r\n    }\r\n\r\n    error = ff_validation(ff_currentpage)\x3B\r\n    if (error != \x27\x27) {\r\n       if(typeof bfUseErrorAlerts == \x27undefined\x27){\r\n           swal(error)\x3B\r\n        } else {\r\n           bfShowErrors(error)\x3B\r\n        }\r\n        ff_validationFocus(\x27\x27)\x3B\r\n    } else {\r\n        ff_switchpage(ff_lastpage-1)\x3B\r\n        self.scrollTo(0\x2C0)\x3B   \r\n    }\r\n} // gn_validate_page_fin</code>
 	</piece>
-	<piece id="90">
+	<piece id="47">
 		<package>GN</package>
 		<name>gn_validate_submit</name>
 		<title>Validate and submit form (SPAM)</title>
 		<type>Element Action</type>
 		<description>Add ANTI-SPAM test before to validate the form. \r\nTest if Nom = Prenom. before submitting the form.\r\nIf NOM = PRENOM \x3E\x3E Attaques classique des .ru (2021)\r\nMise à jour sept. 2021 (Gil)</description>
 		<code>function gn_validate_submit(element\x2C action)\r\n{\r\n    if(typeof bfUseErrorAlerts != \x27undefined\x27){\r\n     JQuery(\x22.bfErrorMessage\x22).html(\x27\x27)\x3B\r\n     JQuery(\x22.bfErrorMessage\x22).css(\x22display\x22\x2C\x22none\x22)\x3B\r\n    }\r\n    error = ff_validation(0)\x3B\r\n    if (error != \x27\x27) {\r\n\r\n        if(typeof bfUseErrorAlerts == \x27undefined\x27){\r\n           alert(error)\x3B\r\n        } else {\r\n           bfShowErrors(error)\x3B\r\n        }\r\n        ff_validationFocus()\x3B\r\n    } else {\r\n	// Vérif SPAM si le NOM et PRENOM sont différents = OK\r\n	nom = ff_getElementByName(\x22Nom\x22).value \x3B\r\n	prenom = ff_getElementByName(\x22Prenom\x22).value \x3B\r\n		\r\n	// Minuscule\x2C puis enlève les espaces de Début et de Fin\r\n	nom =nom.toLowerCase().trim() \x3B\r\n	prenom = prenom.toLowerCase().trim() \x3B\r\n\r\n	// SPAM si le Nom = Prénom ou si le Prénom commence par le Nom (Gil \x3E Gil-André)\r\n	if ( prenom.search(nom) == 0 ){\r\n		// Tentative de SPAM\x2C Sortie Page d\x27accueil Cyclo\r\n		gn_annuler_cyclo() \x3B\r\n	} else {\r\n		// Nom et Prénom OK\x2C Submit Formulaire\r\n		ff_submitForm() \x3B \r\n		}\r\n	}	\r\n} // gn_validate_submit</code>
+	</piece>
+	<piece id="48">
+		<package>GN</package>
+		<name>gn_annuler_cyclo</name>
+		<title>Annuler \x26 Cyclo Home Page</title>
+		<type>Element Action</type>
+		<description>Cancel and go to site \x22VCMB Cyclo\x22 Home page</description>
+		<code>function gn_annuler_cyclo(element\x2C action)\r\n{\r\n  eval(\x27document.\x27+ff_processor.form_id).reset()\x3B\r\n  window.location.href = \x22https://cyclo.vcmb.fr\x22\x3B\r\n \r\n} // gn_annuler_cyclo</code>
 	</piece>
 </FacileFormsPackage>

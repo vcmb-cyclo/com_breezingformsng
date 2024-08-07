@@ -21,7 +21,6 @@ class BreezingformsViewBreezingforms extends HtmlView
 
     public function display($tpl = null)
     {
-
         ToolbarHelper::title('BreezingForms');
         $doc = Factory::getApplication()->getDocument();
         $doc->setTitle("BreezingForms");
@@ -90,12 +89,10 @@ class BreezingformsViewBreezingforms extends HtmlView
 
 
         Factory::getApplication()->getDocument()->addScriptDeclaration('
-            
             jQuery(document).ready(function(){
             
                 jQuery("#bf-sidebar").appendTo("#wrapper");
             });
-            
             ');
 
         parent::display($tpl);
