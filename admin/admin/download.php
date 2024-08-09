@@ -15,10 +15,6 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 $path = '';
 if (is_string($_POST['filename'])) {
     $_path = trim($_POST['filename']);
-    if (function_exists('get_magic_quotes_gpc') && @get_magic_quotes_gpc()) {
-        $_path = str_replace(basename($_path),'',$_path);
-        $_path = $_path . stripslashes(basename(trim($_POST['filename'])));
-    }
 
     $admpath = dirname(dirname(__FILE__));
     $compath = str_replace('\\','/',dirname(dirname(dirname($admpath))));
