@@ -487,8 +487,7 @@ THE SOFTWARE.
                     success: function (data) {
                         completeReload(data);
                     },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.log(jqXHR);
+                    error: function () {
                         self._hideBusy();
                         self._showError(self.options.messages.serverCommunicationError);
                     }
