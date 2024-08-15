@@ -48,7 +48,6 @@ class bfRecordManagement
 
     function getAvailableFields()
     {
-
         @ob_end_clean();
         $out = array();
         $db = BFFactory::getdbo();
@@ -103,7 +102,6 @@ class bfRecordManagement
         $out .= '<select name="form_selection" id="bfFormSelection">' . "\n";
         $out .= '<option value="0">' . htmlentities(BFText::_('COM_BREEZINGFORMS_ALL'), ENT_QUOTES, 'UTF-8') . '</option>' . "\n";
         foreach ($forms as $form) {
-
             $out .= '<option value="' . $form['id'] . '">' . htmlentities($form['title'], ENT_QUOTES, 'UTF-8') . ' (' . htmlentities($form['name'], ENT_QUOTES, 'UTF-8') . ')</option>' . "\n";
         }
 
@@ -637,7 +635,6 @@ class bfRecordManagement
             jQuery(document).ready(function(){
             
                 jQuery("#adminForm").get(0).onsubmit = function(){ return false; };
-            
                 jQuery("joomla-toolbar-button").click( function(e){
 
                     e.preventDefault();
@@ -650,7 +647,6 @@ class bfRecordManagement
                         case "csvimport":
 
                             jQuery("#adminForm").get(0).onsubmit = function(){ return false; };
-
                             jQuery("#bfCsvModal").modal("show");
                             
                             let new_url = "index.php?option=com_breezingforms&act=managerecords&task=csvimport&form_selection="+form_selection+"&tmpl=component";
@@ -819,7 +815,6 @@ class bfRecordManagement
                     }
                 
                     if(!searchOpen){
-                    
                         // hiding available fields if search is open
                         jQuery("#bfAvailableFields").css("display","none");
                         jQuery("#bfAvailableFieldsOpen").html(openOrigText+" +");
@@ -876,7 +871,7 @@ class bfRecordManagement
                         listClass: "bfrecord-details-button",
                         display: function (detail_data) {
                         
-                            //Create an image that will be used to open child table
+                            // Create an image that will be used to open child table
                             var $img = jQuery("<img style=\"width: 16px !important; min-width: 16px !important; max-width: 16px !important; cursor: pointer;opacity: 0.5;\" onmouseover=\"this.style.opacity=\'1.0\'\" onmouseout=\"this.style.opacity=\'0.5\'\" src=\"' . Uri::root() . '/components/com_breezingforms/libraries/jquery/jtable/themes/metro/list_metro.png' . '\" title=\"\" />");
                             
                             //Open child table when user clicks the image

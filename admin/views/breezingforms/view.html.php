@@ -90,7 +90,6 @@ class BreezingformsViewBreezingforms extends HtmlView
 
         Factory::getApplication()->getDocument()->addScriptDeclaration('
             jQuery(document).ready(function(){
-            
                 jQuery("#bf-sidebar").appendTo("#wrapper");
             });
             ');

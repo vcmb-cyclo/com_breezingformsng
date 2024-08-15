@@ -475,8 +475,8 @@ function _ff_query($sql, $insert = 0)
     global $database, $errors;
     $database = Factory::getContainer()->get(DatabaseInterface::class);
     $id = null;
-    $database->setQuery($sql);
 
+    $database->setQuery($sql);
     $database->execute();
 
     try {
@@ -536,7 +536,6 @@ function _ff_selectValue($sql)
 
 function protectedComponentIds()
 {
-
     $rows = _ff_select(
         "select id, parent_id As parent from #__menu " .
         "where " .

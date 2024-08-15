@@ -538,13 +538,11 @@ class facileFormsForm
 
     static function getPagination($total, $limit, $limitstart)
     {
-
         static $pagination;
 
         // Load the content if it doesn't already exist
         if (empty($pagination)) {
-
-            // using a different chrome to bypass problems with pagination in frontend 
+            // Using a different chrome to bypass problems with pagination in frontend 
             if (Factory::getApplication()->isClient('site')) {
                 require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'crosstec' . DS . 'classes' . DS . 'BFPagination.php');
                 $pagination = new BFPagination($total, $limitstart, $limit);

@@ -1941,6 +1941,7 @@ class HTML_facileFormsForm
 
                 jQuery('#pkgsel').on('change', function(){
                     document.adminForm.pkg.value = document.adminForm.pkgsel.value;
+                    document.adminForm.limitstart.value = 0;
                     document.adminForm.task.value = '';
                     document.adminForm.submit();
                 });
@@ -2015,7 +2016,7 @@ class HTML_facileFormsForm
             } // listItemTask
             //-->
         </script>
-        <form action="index.php?format=html" method="post" name="adminForm" id="adminForm" onsubmit="return false;">
+        <form action="index.php?format=html" method="post" name="adminForm" id="adminForm">
             <label class="bfPackageSelector">
                 <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_PACKAGE'); ?>
                 <select id="pkgsel" name="pkgsel" class="inputbox" size="1">

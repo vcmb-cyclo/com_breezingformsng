@@ -286,7 +286,6 @@ class BFPagination
 	public function getPagesLinks()
 	{
 		$app = Factory::getApplication();
-
 		// Build the page navigation list.
 		$data = $this->_buildDataObject();
 
@@ -302,6 +301,7 @@ class BFPagination
 			$chromePath = JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'crosstec' . DS . 'classes' . DS . 'BFPaginationChrome';
 		}
 
+		
 		if (file_exists($chromePath)) {
 			include_once $chromePath;
 			if (function_exists('bf_pagination_item_active') && function_exists('bf_pagination_item_inactive')) {
@@ -365,7 +365,7 @@ class BFPagination
 		}
 
 		if ($this->total > $this->limit) {
-			return($listOverride) ? bf_pagination_list_render($list) : $this->_list_render($list);
+			return ($listOverride) ? bf_pagination_list_render($list) : $this->_list_render($list);
 		} else {
 			return '';
 		}
