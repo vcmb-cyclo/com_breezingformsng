@@ -193,7 +193,7 @@
 		<title>Reset form</title>
 		<type>Element Action</type>
 		<description>Reset all form inputs to the initial values.</description>
-		<code>function ff_resetForm(element\x2C action)\r\n{\r\n    eval(\x27document.\x27+ff_processor.form_id).reset()\x3B\r\n} // ff_resetForm</code>
+		<code>function ff_resetForm(element\x2C action) {\r\n    // Accéder au formulaire directement par son ID sans utiliser eval\r\n    var form = document.getElementById(ff_processor.form_id)\x3B\r\n    \r\n    // Si le formulaire est trouvé\x2C le réinitialiser\r\n    if (form) {\r\n        form.reset()\x3B\r\n    } else {\r\n        console.error(\x27Formulaire non trouvé avec l\x5C\x27ID:\x27\x2C ff_processor.form_id)\x3B\r\n    }\r\n}\r\n// Changelog\r\n// v1.1 (20/08/2024) : suppress eval ()</code>
 	</script>
 	<script id="25">
 		<package>FF</package>
