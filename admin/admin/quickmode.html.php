@@ -5926,6 +5926,7 @@ class QuickModeHtml
                                                     </label>
                                                     <input type="checkbox" value=""
                                                         id="bfElementNumberInputAdvancedRange" />
+                                                </div>
                                             <!-- End option Range -->
                                                 <div class="bfPropertyWrap">
                                                     <label class="bfPropertyLabel hasTooltip"
