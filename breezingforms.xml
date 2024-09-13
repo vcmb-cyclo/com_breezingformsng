@@ -8,13 +8,13 @@
   
 <extension type="component" version="5.1" method="upgrade">
 	<name>COM_BREEZINGFORMS</name>
-	<creationDate>2024-09-10</creationDate>
+	<creationDate>2024-09-13</creationDate>
 	<author>XDA/GIL (J5)</author>
 	<copyright>This Joomla! component is released under the GNU/GPL license</copyright>
         <license>GNU/GPLv2 http://www.gnu.org/licenses/gpl-2.0.html</license>
 	<authorEmail>no-reply@vcmb.fr</authorEmail>
 	<authorUrl>https://breezingforms.vcmb.fr</authorUrl>
-	<version>5.0.0-RC4</version>
+	<version>5.0.0-RC5</version>
 	<description>Installation successful. Next find BreezingForms in the Components menu, and finish the installation process.</description>
 	<installfile>install.php</installfile>
         <uninstallfile>uninstall.php</uninstallfile>
