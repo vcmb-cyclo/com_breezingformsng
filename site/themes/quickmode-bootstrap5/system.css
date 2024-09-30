@@ -87,9 +87,12 @@
     background-color:rgb(55,103,214);
 }
 .bfQuickMode input[type=checkbox].switcher:checked:before {
-    transform:translateX(100%);
+    left:calc(100% - 4px);
+    transform:translateX(-100%);
 }
-
+.bfQuickMode input[type="checkbox"].switcher:active::before {
+    width:25px;
+}
 /* END CHECKBOX DESIGN TOGGLE */
 
 /* DESIGN INVALID EMAIL BEGIN */
