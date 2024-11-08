@@ -2488,7 +2488,6 @@ class bfRecordManagement
         }
 
         if (!class_exists('BFPDF')) {
-
             require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFPDF.php');
         }
 

@@ -403,7 +403,17 @@ switch ($act) {
         require_once ($ff_admpath . '/admin/menu.php');
         break;
     case 'manageforms':
-        require_once ($ff_admpath . '/admin/form.php');
+        switch ($task) {
+            case 'manageforms':
+                require_once ($ff_admpath . '/admin/quickmode.php');
+                break;
+            case 'quickmode_editor':
+                require_once ($ff_admpath . '/admin/quickmode-editor.php');
+                break;
+            default:
+                require_once ($ff_admpath . '/admin/form.php');
+                break;
+        }
         break;
     case 'editpage':
         require_once ($ff_admpath . '/admin/element.php');
@@ -417,15 +427,9 @@ switch ($act) {
     case 'run':
         require_once ($ff_admpath . '/admin/run.php');
         break;
-    case 'easymode':
-        require_once ($ff_admpath . '/admin/easymode.php');
-        break;
-    case 'quickmode':
-        require_once ($ff_admpath . '/admin/quickmode.php');
-        break;
-    case 'quickmode_editor':
-        require_once ($ff_admpath . '/admin/quickmode-editor.php');
-        break;
+    //case 'easymode':
+    //    require_once ($ff_admpath . '/admin/easymode.php');
+    //    break;
     case 'integrate':
         require_once ($ff_admpath . '/admin/integrator.php');
         break;

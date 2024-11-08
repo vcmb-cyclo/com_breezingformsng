@@ -317,11 +317,7 @@ class facileFormsForm
                 $caller = "index.php?option=$option&act=manageforms&pkg=$pkg";
             Factory::getApplication()->redirect($caller);
         } else {
-            if (!$quickmode) {
-                Factory::getApplication()->redirect('index.php?option=com_breezingforms&format=html&act=easymode&formName=' . BFRequest::getVar('name', '') . '&form=' . BFRequest::getInt('id', 0));
-            } else {
                 Factory::getApplication()->redirect('index.php?option=com_breezingforms&act=quickmode&formName=' . BFRequest::getVar('name', '') . '&form=' . BFRequest::getInt('id', 0));
-            }
         }
     }
 

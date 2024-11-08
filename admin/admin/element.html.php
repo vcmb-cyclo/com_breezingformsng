@@ -3263,10 +3263,10 @@ class HTML_facileFormsElement
 					{
 						var form = document.adminForm;
 						switch (pressbutton) {
-												case 'close':
-													location.href="index.php?option=com_breezingforms&act=manageforms";
-													return;
-													break;
+							case 'close':
+								location.href="index.php?option=com_breezingforms&act=manageforms";
+								return;
+								break;
 							case 'copy':
 							case 'move':
 							case 'publish':
@@ -3274,11 +3274,11 @@ class HTML_facileFormsElement
 							case 'remove':
 								if (form.boxchecked.value==0) {
 									alert("<?php echo BFText::_('COM_BREEZINGFORMS_ELEMENTS_SELELEMENTS'); ?>");
-			return;
+									return;
 								} // if
-			break;
+							break;
 							default:
-			break;
+								break;
 						} // switch
 			switch (pressbutton) {
 				case 'share':
@@ -3488,7 +3488,7 @@ class HTML_facileFormsElement
 						var fd = ff_prevframe.document;
 					<?php } else { ?>
 						var fd = document;
-					<?php } // endif  ?>
+					<?php } // endif ?>
 					var i;
 					var pos = '';
 					for (i = 0; i < <?php echo count($rows); ?>; i++)

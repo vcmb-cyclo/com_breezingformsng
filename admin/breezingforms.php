@@ -30,7 +30,7 @@ Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/admi
 
 
 $recs = BFRequest::getVar('act', '') == 'managerecs' || BFRequest::getVar('act', '') == 'recordmanagement' || BFRequest::getVar('act', '') == '';
-$mgforms = BFRequest::getVar('act', '') == 'manageforms' || BFRequest::getVar('act', '') == 'easymode' || BFRequest::getVar('act', '') == 'quickmode';
+$mgforms = BFRequest::getVar('act', '') == 'manageforms' || BFRequest::getVar('act', '') == 'quickmode';
 $mgscripts = BFRequest::getVar('act', '') == 'managescripts';
 $mgpieces = BFRequest::getVar('act', '') == 'managepieces';
 $mgintegrate = BFRequest::getVar('act', '') == 'integrate';

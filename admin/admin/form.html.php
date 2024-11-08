@@ -1946,6 +1946,14 @@ class HTML_facileFormsForm
                     document.adminForm.submit();
                 });
 
+                // Désactivez le bouton spécifique de la barre d'outils
+                jQuery('.joomla-toolbar-button button').each(function() {
+                    JQuery(this).off('click');
+                    // Remplacez 'votre-task' par la tâche spécifique du bouton que vous voulez désactiver
+                    jQuery(this).prop('disabled', true); // Désactive le bouton
+                    jQuery(this).find('span').css('color', 'black'); // Change la couleur du <span> en noir
+                });
+
                 jQuery('joomla-toolbar-button').on('click', function(e){
 
                     e.preventDefault();
@@ -1970,8 +1978,9 @@ class HTML_facileFormsForm
                         if (!confirm(" . json_encode(BFText::_('COM_BREEZINGFORMS_FORMS_ASKDEL')) . ")) return;
                     if (pressbutton == '' && form.pkgsel.value == '')
                         form.pkg.value = '- blank -';
-                    if (pressbutton == 'easymode')
-                        form.act.value = 'easymode'
+
+                    /*if (pressbutton == 'easymode')
+                        form.act.value = 'easymode'*/
                     if (pressbutton == 'quickmode')
                         form.act.value = 'quickmode'
                     else
