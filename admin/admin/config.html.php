@@ -47,7 +47,7 @@ class HTML_facileFormsConf
 					$db = Factory::getContainer()->get(DatabaseInterface::class);
 					$db->setQuery("Select extra_query From #__update_sites Where `name` = 'BreezingForms Pro'");
 					$update_key = $db->loadResult();
-					$update_key = explode('=', $update_key ? '');
+					$update_key = explode('=', $update_key ?? '');
 					if (isset($update_key[1])) {
 						$update_key = $update_key[1];
 					} else {
