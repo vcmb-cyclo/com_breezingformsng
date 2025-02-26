@@ -153,6 +153,7 @@ class facileFormsConfig extends facileFormsConf
 			if ($cond == 1) {
 				if ($id) {
 					$xml .= indent($ind) . '<' . $name . 'id>' . $id . '</' . $name . 'id>' . nl();
+					$db = Factory::getContainer()->get(DatabaseInterface::class);
 					$funcname = _ff_selectValue('select name from `' . $table . '` where id=' . $db->Quote($id));
 					if ($funcname && $funcname != '')
 						$xml .= indent($ind) . '<' . $name . 'name>' . $funcname . '</' . $name . 'name>' . nl();
