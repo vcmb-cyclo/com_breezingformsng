@@ -411,7 +411,7 @@ if (
             if ($form->autoheight == 1) {
                 Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jq.min.js');
                 Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jq.iframeautoheight.js');
-                Factory::getApplication()->getDocument()->addScriptDeclaration("<!--
+                Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript("<!--
                             JQuery(document).ready(function() {
                                 //JQuery(\".breezingforms_iframe\").css(\"width\",\"100%\");
                                 JQuery(\".breezingforms_iframe\").iframeAutoHeight({heightOffset: 15, debug: false, diagnostics: false});

@@ -72,7 +72,7 @@ class BFQuickModeOnePage
         $default = ComponentHelper::getParams('com_languages')->get('site');
         $this->language_tag = Factory::getApplication()->getLanguage()->getTag() != $default ? Factory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
 
-        Factory::getApplication()->getDocument()->addScriptDeclaration('<!--');
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('<!--');
 
         $this->p = $p;
         $this->dataObject = Zend_Json::decode(bf_b64dec($this->p->formrow->template_code));
@@ -216,7 +216,7 @@ display:none;
         HTMLHelper::_('bootstrap.framework');
         HTMLHelper::_('jquery.framework');
         HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
-        Factory::getApplication()->getDocument()->addScriptDeclaration('
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
                 jQuery(document).ready(function()
                 {
                         jQuery(".hasTooltip").tooltip({"html": true,"container": "body"});
@@ -639,7 +639,7 @@ function bfTriggerRules() {
             Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/remodal/remodal.css');
             Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/remodal/remodal-default-theme.css');
             Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/remodal/remodal.min.js');
-            Factory::getApplication()->getDocument()->addScriptDeclaration("\n" . '
+            Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript("\n" . '
                    function bf_remodal_close(){
                         if(typeof crbc_cart_url != "undefined"){
                             location.href = crbc_cart_url;
@@ -655,7 +655,7 @@ function bfTriggerRules() {
         Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/ladda/ladda.min.js');
         Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/ladda/ladda.jq.min.js');
 
-        Factory::getApplication()->getDocument()->addScriptDeclaration(
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript(
             $jQuery . '
 			var inlineErrorElements = new Array();
 			var bfSummarizers = new Array();
@@ -986,8 +986,8 @@ function bfTriggerRules() {
 					}
 					JQuery(".bfErrorMessage").html(allErrors);';
                 }
-                Factory::getApplication()->getDocument()->addScriptDeclaration('var bfUseErrorAlerts = false;' . "\n");
-                Factory::getApplication()->getDocument()->addScriptDeclaration('
+                Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('var bfUseErrorAlerts = false;' . "\n");
+                Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
 				function bfShowErrors(error){
                                         ' . $defaultErrors . '
 
@@ -1059,7 +1059,7 @@ function bfTriggerRules() {
             if ($this->fading) {
                 $this->fadingClass = ' bfFadingClass';
                 $this->fadingCall = 'bfFade();';
-                Factory::getApplication()->getDocument()->addScriptDeclaration('
+                Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
 					function bfFade(){
 						JQuery(".bfPageIntro").fadeIn(1000);
 						var size = 0;
@@ -1080,7 +1080,7 @@ function bfTriggerRules() {
                 // removed in bootstrap
             }
         }
-        Factory::getApplication()->getDocument()->addScriptDeclaration('
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
 		    bfToggleFieldsLoaded = false;
 		    bfSectionFieldsDeactivated = false;
 			JQuery(document).ready(function() {
@@ -2443,7 +2443,7 @@ function bfTriggerRules() {
                         $base = 'ba' . 'se' . '64';
 
                         Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/js/signature.js');
-                        Factory::getApplication()->getDocument()->addScriptDeclaration('
+                        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
 						var bf_signaturePad' . $mdata['dbId'] . ' = null;
 						var bf_canvas' . $mdata['dbId'] . ' = null;
 
@@ -2803,7 +2803,7 @@ function bfTriggerRules() {
 	    Factory::getSession()->set('bfFlashUploadTickets', $tickets);
             echo '<input type="hidden" name="bfFlashUploadTicket" value="' . $this->flashUploadTicket . '"/>' . "\n";
             Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/center.js');
-            Factory::getApplication()->getDocument()->addScriptDeclaration('
+            Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
                         var bfUploaders = [];
                         var bfUploaderErrorElements = [];
 			var bfFlashUploadInterval = null;
@@ -2907,7 +2907,7 @@ function bfTriggerRules() {
                       </script>
                     ';
         }
-        Factory::getApplication()->getDocument()->addScriptDeclaration('//-->');
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('//-->');
     }
 
     public function parseToggleFields($code)

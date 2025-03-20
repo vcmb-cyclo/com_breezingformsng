@@ -15,7 +15,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 
 if (BFRequest::getVar('task') == 'editor_saved') {
-    Factory::getApplication()->getDocument()->addScriptDeclaration('
+    Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
     parent.jQuery(".modal-header .close").trigger("click");
     ');
 }

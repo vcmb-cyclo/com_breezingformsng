@@ -584,7 +584,7 @@ class bfRecordManagement
 
         //Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jq.migrate.js');
         //Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jq.min.js');
-        //Factory::getApplication()->getDocument()->addScriptDeclaration('jQuery.noConflict();' . "\n");
+        //Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('jQuery.noConflict();' . "\n");
         Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jq-ui.min.js');
         Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/jtable/jq.jtable.js');
 
@@ -627,7 +627,7 @@ class bfRecordManagement
         // faking an existing adminform for the toolbar
         echo '<form name="adminForm" id="adminForm"><input type="hidden" name="task" value=""/></form>';
 
-        Factory::getApplication()->getDocument()->addScriptDeclaration('  
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('  
             Array.prototype.bfinsert = function (index, item) {
                 this.splice(index, 0, item);
             };

@@ -3471,7 +3471,7 @@ class HTML_facileFormsProcessor
             require_once(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
             $cbNonEditableFields = contentbuilder::getListNonEditableElements($cbResult['data']['id']);
             if (count($cbNonEditableFields)) {
-                Factory::getApplication()->getDocument()->addScriptDeclaration('<!--' . nl() . 'var bfDeactivateField = new Array();' . nl() . '//-->');
+                Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('<!--' . nl() . 'var bfDeactivateField = new Array();' . nl() . '//-->');
                 echo '<script type="text/javascript">' . nl();
                 echo '<!--' . nl();
                 echo 'function bfDisableContentBuilderFields(){' . nl();

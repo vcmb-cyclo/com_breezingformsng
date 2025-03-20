@@ -301,7 +301,7 @@ class facileFormsConf
 
 			foreach ($arr as $prop => $val)
 				$ids[] = "'" . $prop . "'";
-			\Joomla\Utilities\ArrayHelper::toInteger($ids);
+			Joomla\Utilities\ArrayHelper::toInteger($ids);
 
 			$rows = array();
 

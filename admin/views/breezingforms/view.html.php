@@ -88,7 +88,7 @@ class BreezingformsViewBreezingforms extends HtmlView
         $this->sidebar = '<div id="bf-sidebar">' . Sidebar::render() . '</div>';
 
 
-        Factory::getApplication()->getDocument()->addScriptDeclaration('
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
             jQuery(document).ready(function(){
                 jQuery("#bf-sidebar").appendTo("#wrapper");
             });

@@ -31,7 +31,9 @@ class BFIntegratorHtml{
         </script>
 
         <?php
-        Factory::getApplication()->getDocument()->addScriptDeclaration('
+        $app = Joomla\CMS\Factory::getApplication();
+        $wa = $app->getDocument()->getWebAssetManager();
+        $wa->addInlineScript('
             Joomla.listItemTask = listItemTask;
         ');
         ?>
@@ -262,7 +264,7 @@ class BFIntegratorHtml{
             </script>
 
             <?php
-            Factory::getApplication()->getDocument()->addScriptDeclaration('
+            Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
             Joomla.listItemTask = listItemTask;
             ');
             ?>

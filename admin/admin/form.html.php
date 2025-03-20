@@ -144,7 +144,7 @@ class HTML_facileFormsForm
     ";
 
     
-        Factory::getApplication()->getDocument()->addScriptDeclaration($jquery);
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript($jquery);
         ?>
 
             function checkNumber(value, msg1, msg2) {
@@ -1992,7 +1992,7 @@ class HTML_facileFormsForm
             });
             ";
 
-                Factory::getApplication()->getDocument()->addScriptDeclaration($jquery);
+                Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript($jquery);
 
                 if ($ff_config->enable_classic == 1) {
                     ToolbarHelper::custom('quickmode', 'new.png', 'new_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE'), false);

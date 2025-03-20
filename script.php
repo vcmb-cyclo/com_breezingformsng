@@ -4,16 +4,16 @@
  * @version     5.0.0
  * @author      Markus Bopp
  * @link        http://breezings.vcmb.fr
- * @copyright   Copyright (C) 2024 by XDA+GIL | Until 2020 - Markus Bopp
+ * @copyright   Copyright (C) 2025 by XDA+GIL | Until 2020 - Markus Bopp
  * @license     GNU/GPL
  */
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
-use \Joomla\CMS\Filesystem\File;
-use \Joomla\CMS\Factory;
-use \Joomla\Database\DatabaseInterface;
-use \Joomla\CMS\Installer\Installer;
-use \Joomla\CMS\Filesystem\Folder;
+use Joomla\Filesystem\File;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseInterface;
+use Joomla\CMS\Installer\Installer;
+use Joomla\Filesystem\Folder;
 
 class BFFactory
 {

@@ -3465,14 +3465,14 @@ class QuickModeHtml
         <?php 
         $default = ComponentHelper::getParams('com_languages')->get('site');
 
-        Factory::getApplication()->getDocument()->addScriptDeclaration('
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
         jQuery(document).ready(function () {
             jQuery(\'.bfTrans\').css("display", "none");
         });
         ');
         if ($formId > 0 && count(LanguageHelper::getLanguages()) > 1) {
             if ($active_language_code != '' && $active_language_code != $default) {
-                Factory::getApplication()->getDocument()->addScriptDeclaration('
+                Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
                 jQuery(document).ready(function () {
                     jQuery(\'.bfTrans\').css("display", "block");
                 });

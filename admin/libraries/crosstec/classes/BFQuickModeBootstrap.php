@@ -74,7 +74,7 @@ class BFQuickModeBootstrap
         $default = ComponentHelper::getParams('com_languages')->get('site');
         $this->language_tag = Factory::getApplication()->getLanguage()->getTag() != $default ? Factory::getApplication()->getLanguage()->getTag() : 'zz-ZZ';
 
-        Factory::getApplication()->getDocument()->addScriptDeclaration('<!--');
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('<!--');
 
         $this->p = $p;
         $this->dataObject = Zend_Json::decode(bf_b64dec($this->p->formrow->template_code));
@@ -309,7 +309,7 @@ class BFQuickModeBootstrap
             Factory::getApplication()->getSession()->set('bfFlashUploadTickets', $tickets);
             echo '<input type="hidden" name="bfFlashUploadTicket" value="' . $this->flashUploadTicket . '"/>' . "\n";
             Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/center.js');
-            Factory::getApplication()->getDocument()->addScriptDeclaration('
+            Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
                         var bfUploaders = [];
                         var bfUploaderErrorElements = [];
 			var bfFlashUploadInterval = null;
@@ -380,7 +380,7 @@ class BFQuickModeBootstrap
             echo "<div style=\"visibility:hidden;display:none;\" id=\"bfSubmitMessage\">" . BFText::_('COM_BREEZINGFORMS_SUBMIT_MESSAGE') . "</div>";
         }
         echo '<noscript>Please turn on javascript to submit your data. Thank you!</noscript>' . "\n";
-        Factory::getApplication()->getDocument()->addScriptDeclaration('//-->');
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('//-->');
     }
 
     public function process(&$dataObject, $parent = null, $parentPage = null, $index = 0, $childrenLength = 0, $parentFull = null)
@@ -1645,7 +1645,7 @@ class BFQuickModeBootstrap
                         $base = 'ba' . 'se' . '64';
 
                         Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/js/signature.js');
-                        Factory::getApplication()->getDocument()->addScriptDeclaration('
+                        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
 						var bf_signaturePad' . $mdata['dbId'] . ' = null;
 						var bf_canvas' . $mdata['dbId'] . ' = null;
 
@@ -1947,7 +1947,7 @@ display:none;
         HTMLHelper::_('bootstrap.framework');
         HTMLHelper::_('jquery.framework');
         HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
-        Factory::getApplication()->getDocument()->addScriptDeclaration('
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
                 jQuery(document).ready(function()
                 {
                         jQuery(".hasTooltip").tooltip({"html": true,"container": "body"});
@@ -2361,7 +2361,7 @@ function bfTriggerRules() {
 ';
         }
 
-        Factory::getApplication()->getDocument()->addScriptDeclaration(
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript(
             $jQuery . '
 			var inlineErrorElements = new Array();
 			var bfSummarizers = new Array();
@@ -2546,8 +2546,8 @@ function bfTriggerRules() {
 					JQuery(".bfErrorMessage").html(allErrors);
 					JQuery(".bfErrorMessage").css("display","");';
                 }
-                Factory::getApplication()->getDocument()->addScriptDeclaration('var bfUseErrorAlerts = false;' . "\n");
-                Factory::getApplication()->getDocument()->addScriptDeclaration('
+                Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('var bfUseErrorAlerts = false;' . "\n");
+                Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
 				function bfShowErrors(error){
                                         ' . $defaultErrors . '
 
@@ -2619,7 +2619,7 @@ function bfTriggerRules() {
             if ($this->fading) {
                 $this->fadingClass = ' bfFadingClass';
                 $this->fadingCall = 'bfFade();';
-                Factory::getApplication()->getDocument()->addScriptDeclaration('
+                Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
 					function bfFade(){
 						JQuery(".bfPageIntro").fadeIn(1000);
 						var size = 0;
@@ -2640,7 +2640,7 @@ function bfTriggerRules() {
                 // removed in bootstrap
             }
         }
-        Factory::getApplication()->getDocument()->addScriptDeclaration('
+        Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
 		    bfToggleFieldsLoaded = false;
 		    bfSectionFieldsDeactivated = false;
 			JQuery(document).ready(function() {
