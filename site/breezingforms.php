@@ -28,10 +28,6 @@ use Joomla\CMS\HTML\HTMLHelper;
 require_once (JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFFactory.php');
 require_once (JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFRequest.php');
 
-if (!defined('DS')) {
-    define('DS', DIRECTORY_SEPARATOR);
-}
-
 if (!function_exists('bf_b64enc')) {
 
     function bf_b64enc($str)
@@ -54,7 +50,7 @@ if (!function_exists('bf_b64dec')) {
 
 }
 
-require_once (JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'crosstec' . DS . 'classes' . DS . 'BFJoomlaConfig.php');
+require_once (JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFJoomlaConfig.php');
 
 $mainframe = Factory::getApplication();
 
@@ -1814,7 +1810,7 @@ if (
                     Factory::getApplication()->getSession()->set('secure_ticket', $secureTicket, 'com_breezingforms');
                 }
 
-                $targetFile = str_replace('//', '/', $targetPath) . 'chunks' . DS . BFRequest::getInt('offset', 0) . '_' . bf_sanitizeFilename(BFRequest::getVar('name', 'unknown')) . '_' . BFRequest::getVar('itemName', '') . '_' . BFRequest::getVar('bfFlashUploadTicket') . '_' . $secureTicket . '_chunktmp';
+                $targetFile = str_replace('//', '/', $targetPath) . 'chunks/' . BFRequest::getInt('offset', 0) . '_' . bf_sanitizeFilename(BFRequest::getVar('name', 'unknown')) . '_' . BFRequest::getVar('itemName', '') . '_' . BFRequest::getVar('bfFlashUploadTicket') . '_' . $secureTicket . '_chunktmp';
                 $finaltargetFile = str_replace('//', '/', $targetPath) . bf_sanitizeFilename(BFRequest::getVar('name', 'unknown')) . '_' . BFRequest::getVar('itemName', '') . '_' . BFRequest::getVar('bfFlashUploadTicket') . '_' . $secureTicket . '_flashtmp';
 
                 if (@File::upload($tempFile, $targetFile)) {

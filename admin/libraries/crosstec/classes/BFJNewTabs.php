@@ -15,7 +15,7 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 
 // shouldn't be required no longer in Joomla 3.0 Stable
-require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'crosstec' . DS . 'classes' . DS . 'BFBehaviorTabs.php');
+require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFBehaviorTabs.php');
 
 class BFTabs
 {

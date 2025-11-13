@@ -295,10 +295,10 @@ class BFPagination
 		$itemOverride = false;
 		$listOverride = false;
 
-		if (file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'misc' . DS . 'pagination.php')) {
-			$chromePath = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'misc' . DS . 'pagination.php';
+		if (file_exists(JPATH_SITE . '/media/breezingforms/misc/pagination.php')) {
+			$chromePath = JPATH_SITE . '/media/breezingforms/misc/pagination.php';
 		} else {
-			$chromePath = JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'crosstec' . DS . 'classes' . DS . 'BFPaginationChrome';
+			$chromePath = JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFPaginationChrome';
 		}
 
 		
@@ -391,10 +391,10 @@ class BFPagination
 		$list['pagescounter'] = $this->getPagesCounter();
 		$list['pageslinks'] = $this->getPagesLinks();
 
-		if (file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'misc' . DS . 'pagination.php')) {
-			$chromePath = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'misc' . DS . 'pagination.php';
+		if (file_exists(JPATH_SITE . '/media/breezingforms/misc/pagination.php')) {
+			$chromePath = JPATH_SITE . '/media/breezingforms/misc/pagination.php';
 		} else {
-			$chromePath = JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'crosstec' . DS . 'classes' . DS . 'BFPaginationChrome';
+			$chromePath = JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFPaginationChrome';
 		}
 
 		if (file_exists($chromePath)) {

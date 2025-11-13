@@ -151,7 +151,7 @@ class facileFormsForm
 
         if ($row->salesforce_enabled && $ids[0]) {
             try {
-                define("BF_SOAP_CLIENT_BASEDIR", JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'salesforce');
+                define("BF_SOAP_CLIENT_BASEDIR", JPATH_SITE . '/administrator/components/com_breezingforms/libraries/salesforce');
                 if (!class_exists('SforcePartnerClient')) {
                     require_once(BF_SOAP_CLIENT_BASEDIR . '/SforcePartnerClient.php');
                 }
@@ -540,7 +540,7 @@ class facileFormsForm
         if (empty($pagination)) {
             // Using a different chrome to bypass problems with pagination in frontend 
             if (Factory::getApplication()->isClient('site')) {
-                require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'crosstec' . DS . 'classes' . DS . 'BFPagination.php');
+                require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFPagination.php');
                 $pagination = new BFPagination($total, $limitstart, $limit);
             } else {
                 $pagination = new Pagination($total, $limitstart, $limit);

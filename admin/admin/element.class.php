@@ -296,15 +296,15 @@ class facileFormsElement
 		$row->reorder("form=$form and page=$page");
 
 		// CONTENTBUILDER
-		if (file_exists(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php')) {
+		if (file_exists(JPATH_SITE . '/administrator/components/com_contentbuilder/classes/contentbuilder.php')) {
 			$formId = $form;
-			require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
+			require_once(JPATH_SITE . '/administrator/components/com_contentbuilder/classes/contentbuilder.php');
 			$cbForm = contentbuilder::getForm('com_breezingforms', $formId);
 			$db = Factory::getContainer()->get(DatabaseInterface::class);
 			$db->setQuery("Select id From #__contentbuilder_forms Where `type` = 'com_breezingforms' And `reference_id` = " . intval($formId));
 			$cbForms = $db->loadColumn();
 			if (is_object($cbForm) && count($cbForms)) {
-				require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'tables' . DS . 'elements.php');
+				require_once(JPATH_SITE . '/administrator/components/com_contentbuilder/tables/elements.php');
 				foreach ($cbForms as $dataId) {
 					contentbuilder::synchElements($dataId, $cbForm);
 					$elements_table = new TableElements($db);

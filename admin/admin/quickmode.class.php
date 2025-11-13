@@ -174,7 +174,7 @@ class QuickMode
 						$folder = 'themes-bootstrap3';
 					}
 
-					$themepath = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . $folder . DS . $mdata['themebootstrap'] . DS;
+					$themepath = JPATH_SITE . '/media/breezingforms/' . $folder . '/' . $mdata['themebootstrap'] . '/';
 					$themevarspath = $themepath . 'vars.txt';
 					if (file_exists($themevarspath)) {
 						File::write($themevarspath, $mdata['themebootstrapvars']);

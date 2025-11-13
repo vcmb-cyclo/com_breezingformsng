@@ -35,7 +35,7 @@ $ff_compatible = true;
 if ($ff_compatible) {
 	// check for post installation tasks
 	if ($act != 'installation')
-		$ff_install = !file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS .'facileforms.config.php');
+		$ff_install = !file_exists(JPATH_SITE . '/media/breezingforms/' .'facileforms.config.php');
 
 	if (!$ff_install)
 		switch ($act) {

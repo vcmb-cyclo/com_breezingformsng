@@ -5740,7 +5740,7 @@ class QuickModeHtml
                                                     if (isset($dbObject['properties']['themebootstrapUse3']) && $dbObject['properties']['themebootstrapUse3']) {
                                                         $folder = 'themes-bootstrap3';
                                                     }
-                                                    $themesbootstrap_path = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . $folder . DS . $themeboostrapfolder . DS;
+                                                    $themesbootstrap_path = JPATH_SITE . '/media/breezingforms/' . $folder . DS . $themeboostrapfolder . DS;
                                                     if (is_dir($themesbootstrap_path) && file_exists($themesbootstrap_path . 'vars.txt')) {
                                                         $varscontent = htmlentities(BFFile::read($themesbootstrap_path . 'vars.txt'), ENT_QUOTES, 'UTF-8');
                                                         if ($varscontent) {

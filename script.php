@@ -361,11 +361,6 @@ class BFDbo
 
 
 
-
-if (!defined('DS')) {
-    define('DS', DIRECTORY_SEPARATOR);
-}
-
 class com_breezingformsInstallerScript
 {
     /**
@@ -454,8 +449,8 @@ class com_breezingformsInstallerScript
             }
         }
 
-        if (BFFile::exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'facileforms.config.php')) {
-            BFFile::delete(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'facileforms.config.php');
+        if (BFFile::exists(JPATH_SITE . '/media/breezingforms/facileforms.config.php')) {
+            BFFile::delete(JPATH_SITE . '/media/breezingforms/facileforms.config.php');
         }
     }
 
@@ -478,7 +473,7 @@ class com_breezingformsInstallerScript
     {
         $db = BFFactory::getDbo();
         $plugins = $this->getPlugins();
-        $base_path = JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'plugins';
+        $base_path = JPATH_SITE . '/administrator/components/com_breezingforms/plugins';
 
         if (file_exists($base_path)) {
             $folders = @Folder::folders($base_path);
@@ -487,7 +482,7 @@ class com_breezingformsInstallerScript
                 $installer = new Installer();
                 $installer->setDatabase($db->getConnection());
                 foreach ($folders as $folder) {
-                    $installer->install($base_path . DS . $folder);
+                    $installer->install($base_path . /' . . $folder);
                 }
 
                 foreach ($plugins as $folder => $subplugs) {

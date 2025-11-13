@@ -20,7 +20,7 @@ define('DS', DIRECTORY_SEPARATOR);
 require_once dirname(__FILE__) . '/../../../../includes/app.php';
 /* To use Joomla's Database Class */
 
-require_once( JPATH_BASE . DS . 'libraries' . DS . 'src' . DS . 'Factory.php' );
+require_once( JPATH_BASE . '/libraries/src/Factory.php' );
 
 // Instantiate the application.
 $app = Factory::getApplication('site');
@@ -29,7 +29,7 @@ ob_end_clean();
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
-include JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'images' . DS . 'captcha' . DS . 'securimage.php';
+include JPATH_SITE . '/components/com_breezingforms/images/captcha/securimage.php';
 
 $img = new securimage();
 
@@ -51,4 +51,4 @@ $img->use_wordlist = true;
 
 http_response_code(200);
 
-$img->show(JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'images' . DS . 'captcha' . DS . 'backgrounds' . DS . 'bg6.jpg');
+$img->show(JPATH_SITE . '/components/com_breezingforms/images/captcha/backgrounds/bg6.jpg');

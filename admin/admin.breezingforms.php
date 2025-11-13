@@ -47,7 +47,7 @@ if (!function_exists('bf_b64dec')) {
     }
 }
 
-require_once (JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'crosstec' . DS . 'classes' . DS . 'BFJoomlaConfig.php');
+require_once (JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFJoomlaConfig.php');
 
 function bf_getTableFields($tables, $typeOnly = true)
 {
@@ -74,7 +74,7 @@ if (!Factory::getApplication()->getIdentity()->authorise('core.manage', 'com_bre
 }
 
 // purge ajax save
-$sourcePath = JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'exports' . DS;
+$sourcePath = JPATH_SITE . '/components/com_breezingforms/exports/';
 if (@file_exists($sourcePath) && @is_readable($sourcePath) && @is_dir($sourcePath) && $handle = @opendir($sourcePath)) {
     while (false !== ($file = @readdir($handle))) {
         if ($file != "." && $file != ".." && $file != "index.html") {
@@ -84,7 +84,7 @@ if (@file_exists($sourcePath) && @is_readable($sourcePath) && @is_dir($sourcePat
     @closedir($handle);
 }
 
-$sourcePath = JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'packages' . DS;
+$sourcePath = JPATH_SITE . '/administrator/components/com_breezingforms/packages/';
 if (@file_exists($sourcePath) && @is_readable($sourcePath) && @is_dir($sourcePath) && $handle = @opendir($sourcePath)) {
     while (false !== ($file = @readdir($handle))) {
         if ($file != "." && $file != ".." && $file != "index.html" && $file != "stdlib.english.xml") {
@@ -94,184 +94,184 @@ if (@file_exists($sourcePath) && @is_readable($sourcePath) && @is_dir($sourcePat
     @closedir($handle);
 }
 
-if (!is_dir(JPATH_SITE . DS . 'media' . DS . 'breezingforms')) {
-    Folder::create(JPATH_SITE . DS . 'media' . DS . 'breezingforms');
+if (!is_dir(JPATH_SITE . '/media/breezingforms')) {
+    Folder::create(JPATH_SITE . '/media/breezingforms');
 }
 
-if (!file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'index.html')) {
+if (!file_exists(JPATH_SITE . '/media/breezingforms/index.html')) {
     File::copy(
-        JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'index.html',
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'index.html'
+        JPATH_SITE . '/components/com_breezingforms/index.html',
+        JPATH_SITE . '/media/breezingforms/index.html'
     );
 }
 
 #### MAIL TEMPLATES
 
-if (!is_dir(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'mailtpl')) {
+if (!is_dir(JPATH_SITE . '/media/breezingforms/mailtpl')) {
     Folder::copy(
-        JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_breezingforms' . DS . 'mailtpl' . DS,
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'mailtpl' . DS
+        JPATH_ADMINISTRATOR . '/components/com_breezingforms/mailtpl/',
+        JPATH_SITE . '/media/breezingforms/mailtpl/'
     );
 }
 
 #### PDF TEMPLATES
 
-if (!is_dir(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'pdftpl')) {
+if (!is_dir(JPATH_SITE . '/media/breezingforms/pdftpl')) {
     Folder::copy(
-        JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_breezingforms' . DS . 'pdftpl' . DS,
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'pdftpl' . DS
+        JPATH_ADMINISTRATOR . '/components/com_breezingforms/pdftpl/',
+        JPATH_SITE . '/media/breezingforms/pdftpl/'
     );
 }
 
-Folder::create(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'pdftpl' . DS . 'fonts');
+Folder::create(JPATH_SITE . '/media/breezingforms/pdftpl/fonts');
 
 #### DOWNLOAD TEMPLATES
 
-if (!is_dir(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'downloadtpl')) {
+if (!is_dir(JPATH_SITE . '/media/breezingforms/downloadtpl')) {
     Folder::copy(
-        JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'downloadtpl' . DS,
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'downloadtpl' . DS
+        JPATH_SITE . '/components/com_breezingforms/downloadtpl/',
+        JPATH_SITE . '/media/breezingforms/downloadtpl/'
     );
 }
 
-if (!file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'downloadtpl' . DS . 'stripe_download.php')) {
+if (!file_exists(JPATH_SITE . '/media/breezingforms/downloadtpl/stripe_download.php')) {
     File::copy(
-        JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'downloadtpl' . DS . 'stripe_download.php',
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'downloadtpl' . DS . 'stripe_download.php'
+        JPATH_SITE . '/components/com_breezingforms/downloadtpl/stripe_download.php',
+        JPATH_SITE . '/media/breezingforms/downloadtpl/stripe_download.php'
     );
 }
 
 #### UPLOADS
 
-if (!is_dir(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'uploads')) {
-    Folder::create(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'uploads');
+if (!is_dir(JPATH_SITE . '/media/breezingforms/uploads')) {
+    Folder::create(JPATH_SITE . '/media/breezingforms/uploads');
     File::copy(
-        JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'uploads' . DS . 'index.html',
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'uploads' . DS . 'index.html'
+        JPATH_SITE . '/components/com_breezingforms/uploads/index.html',
+        JPATH_SITE . '/media/breezingforms/uploads/index.html'
     );
 }
 
 // Default upload folder is now htaccess protected 2016-02-16
 
-if (!file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'uploads' . DS . '.htaccess')) {
+if (!file_exists(JPATH_SITE . '/media/breezingforms/uploads/.htaccess')) {
     $def = 'deny from all';
-    File::write(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'uploads' . DS . '.htaccess', $def);
+    File::write(JPATH_SITE . '/media/breezingforms/uploads/.htaccess', $def);
 }
 
 #### PAYMENT CACHE
 
-if (!is_dir(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'payment_cache')) {
-    Folder::create(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'payment_cache');
+if (!is_dir(JPATH_SITE . '/media/breezingforms/payment_cache')) {
+    Folder::create(JPATH_SITE . '/media/breezingforms/payment_cache');
 
 }
 
-if (!file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'payment_cache' . DS . '.htaccess')) {
+if (!file_exists(JPATH_SITE . '/media/breezingforms/payment_cache/.htaccess')) {
     $def = 'deny from all';
-    File::write(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'payment_cache' . DS . '.htaccess', $def);
+    File::write(JPATH_SITE . '/media/breezingforms/payment_cache/.htaccess', $def);
 }
 
 #### DROPBOX CUSTOM KEYS
 
-if (!is_dir(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'dropbox')) {
-    Folder::create(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'dropbox');
+if (!is_dir(JPATH_SITE . '/media/breezingforms/dropbox')) {
+    Folder::create(JPATH_SITE . '/media/breezingforms/dropbox');
     $def = 'deny from all';
-    File::write(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'dropbox' . DS . '.htaccess', $def);
+    File::write(JPATH_SITE . '/media/breezingforms/dropbox/.htaccess', $def);
     File::copy(
-        JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'dropbox' . DS . 'config.json',
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'dropbox' . DS . 'config.json'
+        JPATH_SITE . '/administrator/components/com_breezingforms/libraries/dropbox/config.json',
+        JPATH_SITE . '/media/breezingforms/dropbox/config.json'
     );
 }
 
 #### THEMES
 
-if (!is_dir(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes')) {
+if (!is_dir(JPATH_SITE . '/media/breezingforms/themes')) {
     Folder::copy(
-        JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'themes' . DS . 'quickmode' . DS,
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'quickmode' . DS
+        JPATH_SITE . '/components/com_breezingforms/themes/quickmode/',
+        JPATH_SITE . '/media/breezingforms/quickmode/'
     );
     Folder::move(
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'quickmode' . DS,
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS
+        JPATH_SITE . '/media/breezingforms/quickmode/',
+        JPATH_SITE . '/media/breezingforms/themes/'
     );
 }
 
-if (!is_dir(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes-bootstrap4')) {
+if (!is_dir(JPATH_SITE . '/media/breezingforms/themes-bootstrap4')) {
     Folder::copy(
-        JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'themes' . DS . 'quickmode-bootstrap4' . DS,
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'quickmode-bootstrap4' . DS
+        JPATH_SITE . '/components/com_breezingforms/themes/quickmode-bootstrap4/',
+        JPATH_SITE . '/media/breezingforms/quickmode-bootstrap4/'
     );
     Folder::move(
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'quickmode-bootstrap4' . DS,
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes-bootstrap4' . DS
+        JPATH_SITE . '/media/breezingforms/quickmode-bootstrap4/',
+        JPATH_SITE . '/media/breezingforms/themes-bootstrap4/'
     );
 }
 
-if (!is_dir(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes-bootstrap5')) {
+if (!is_dir(JPATH_SITE . '/media/breezingforms/themes-bootstrap5')) {
     Folder::copy(
-        JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'themes' . DS . 'quickmode-bootstrap5' . DS,
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'quickmode-bootstrap5' . DS
+        JPATH_SITE . '/components/com_breezingforms/themes/quickmode-bootstrap5/',
+        JPATH_SITE . '/media/breezingforms/quickmode-bootstrap5/'
     );
     Folder::move(
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'quickmode-bootstrap5' . DS,
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes-bootstrap5' . DS
+        JPATH_SITE . '/media/breezingforms/quickmode-bootstrap5/',
+        JPATH_SITE . '/media/breezingforms/themes-bootstrap5/'
     );
 }
 
-if (!is_dir(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'images')) {
+if (!is_dir(JPATH_SITE . '/media/breezingforms/themes/images')) {
     Folder::copy(
-        JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'themes' . DS . 'quickmode' . DS . 'images' . DS,
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'images' . DS
+        JPATH_SITE . '/components/com_breezingforms/themes/quickmode/images/',
+        JPATH_SITE . '/media/breezingforms/themes/images/'
     );
 }
 
-if (!is_dir(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'images' . DS . 'icons-png' . DS)) {
+if (!is_dir(JPATH_SITE . '/media/breezingforms/themes/images/icons-png/')) {
     Folder::copy(
-        JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'themes' . DS . 'quickmode' . DS . 'images' . DS . 'icons-png' . DS,
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'images' . DS . 'icons-png' . DS
+        JPATH_SITE . '/components/com_breezingforms/themes/quickmode/images/icons-png/',
+        JPATH_SITE . '/media/breezingforms/themes/images/icons-png/'
     );
 }
 
-if (!file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'jq.mobile.1.4.5.min.css')) {
+if (!file_exists(JPATH_SITE . '/media/breezingforms/themes/jq.mobile.1.4.5.min.css')) {
     File::copy(
-        JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'themes' . DS . 'quickmode' . DS . 'jq.mobile.1.4.5.min.css',
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'jq.mobile.1.4.5.min.css'
+        JPATH_SITE . '/components/com_breezingforms/themes/quickmode/jq.mobile.1.4.5.min.css',
+        JPATH_SITE . '/media/breezingforms/themes/jq.mobile.1.4.5.min.css'
     );
 }
 
-if (!file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'jq.mobile.1.4.5.icons.min.css')) {
+if (!file_exists(JPATH_SITE . '/media/breezingforms/themes/jq.mobile.1.4.5.icons.min.css')) {
     File::copy(
-        JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'themes' . DS . 'quickmode' . DS . 'jq.mobile.1.4.5.icons.min.css',
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'jq.mobile.1.4.5.icons.min.css'
+        JPATH_SITE . '/components/com_breezingforms/themes/quickmode/jq.mobile.1.4.5.icons.min.css',
+        JPATH_SITE . '/media/breezingforms/themes/jq.mobile.1.4.5.icons.min.css'
     );
 }
 
-if (!file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'ajax-loader.gif')) {
+if (!file_exists(JPATH_SITE . '/media/breezingforms/themes/ajax-loader.gif')) {
     File::copy(
-        JPATH_SITE . DS . 'components' . DS . 'com_breezingforms' . DS . 'themes' . DS . 'quickmode' . DS . 'ajax-loader.gif',
-        JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'ajax-loader.gif'
+        JPATH_SITE . '/components/com_breezingforms/themes/quickmode/ajax-loader.gif',
+        JPATH_SITE . '/media/breezingforms/themes/ajax-loader.gif'
     );
 }
 
 #### DELETE SYSTEM THEMES FILES FROM MEDIA FOLDER (the ones in the original themes path are being used)
 
-if (file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'system.css')) {
-    File::delete(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'system.css');
+if (file_exists(JPATH_SITE . '/media/breezingforms/themes/system.css')) {
+    File::delete(JPATH_SITE . '/media/breezingforms/themes/system.css');
 }
 
-if (file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'system.ie7.css')) {
-    File::delete(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'system.ie7.css');
+if (file_exists(JPATH_SITE . '/media/breezingforms/themes/system.ie7.css')) {
+    File::delete(JPATH_SITE . '/media/breezingforms/themes/system.ie7.css');
 }
 
-if (file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'system.ie6.css')) {
-    File::delete(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'system.ie6.css');
+if (file_exists(JPATH_SITE . '/media/breezingforms/themes/system.ie6.css')) {
+    File::delete(JPATH_SITE . '/media/breezingforms/themes/system.ie6.css');
 }
 
-if (file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'system.ie.css')) {
-    File::delete(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes' . DS . 'system.ie.css');
+if (file_exists(JPATH_SITE . '/media/breezingforms/themes/system.ie.css')) {
+    File::delete(JPATH_SITE . '/media/breezingforms/themes/system.ie.css');
 }
 
-if (file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes-bootstrap' . DS . 'system.css')) {
-    File::delete(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'themes-bootstrap' . DS . 'system.css');
+if (file_exists(JPATH_SITE . '/media/breezingforms/themes-bootstrap/system.css')) {
+    File::delete(JPATH_SITE . '/media/breezingforms/themes-bootstrap/system.css');
 }
 
 /**
@@ -304,7 +304,7 @@ $cache->clean();
 HTMLHelper::_('jquery.framework');
 
 // purge ajax save
-$sourcePath = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'ajax_cache' . DS;
+$sourcePath = JPATH_SITE . '/media/breezingforms/ajax_cache/';
 if (@file_exists($sourcePath) && @is_readable($sourcePath) && @is_dir($sourcePath) && $handle = @opendir($sourcePath)) {
     while (false !== ($file = @readdir($handle))) {
         if ($file != "." && $file != "..") {

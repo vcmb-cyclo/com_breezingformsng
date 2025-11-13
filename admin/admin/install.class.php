@@ -222,7 +222,7 @@ class facileFormsInstaller
 		switch ($instmode) {
 			case 0: // New install: create tables
 				// new install w/o dynamic chunking, hopefully this will fix problems for some people
-				require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'sql' . DS . 'create_sql.php');
+				require_once(JPATH_SITE . '/administrator/components/com_breezingforms/sql/create_sql.php');
 				$ff_config = new facileFormsConfig();
 				break;
 			case 1: // Reinstall: no db change

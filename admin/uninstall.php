@@ -21,8 +21,8 @@ function com_uninstall()
     $db->setQuery("Delete From #__menu Where `alias` Like 'BreezingForms' And `path` Like 'breezingforms'");
     $db->execute();
 
-    if (file_exists(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'facileforms.config.php')) {
-        File::delete(JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'facileforms.config.php');
+    if (file_exists(JPATH_SITE . '/media/breezingforms/facileforms.config.php')) {
+        File::delete(JPATH_SITE . '/media/breezingforms/facileforms.config.php');
     }
 
     if (file_exists(JPATH_SITE . "/components/com_sh404sef/sef_ext/com_breezingforms.php")) {

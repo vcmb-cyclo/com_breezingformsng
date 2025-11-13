@@ -2254,12 +2254,12 @@ class HTML_facileFormsProcessor
 
         $after = str_replace('|', '', stristr($path, '|'));
         $path = stristr($path, '|', true) . '|';
-        $path = str_replace('|', DS, $path);
+        $path = str_replace('|', '/', $path);
 
         foreach ($rows as $row) {
             $value = BFRequest::getVar('ff_nm_' . $row->name, array(), 'POST', 'HTML', BFREQUEST_ALLOWHTML);
 
-            $value = implode(DS, $value);
+            $value = implode('/', $value);
             if (trim($value) == '') {
                 $value = '_empty_';
             }
@@ -2301,11 +2301,11 @@ class HTML_facileFormsProcessor
 
         $endpath = $this->makeSafeFolder($path);
 
-        $parts = explode(DS, $endpath);
+        $parts = explode('/', $endpath);
         $inner_path = '';
         foreach ($parts as $part) {
             if (!is_dir($inner_path . $part)) {
-                $inner_path .= DS;
+                $inner_path .= '/';
             }
             Folder::create($inner_path . $part);
             $inner_path .= $part;
@@ -2315,7 +2315,7 @@ class HTML_facileFormsProcessor
 
     function makeSafeFolder($path)
     {
-        //$ds = (DS == '\\') ? '\\/' : DS;
+        //$ds = ('/' == '\\') ? '\\/' : '/';
         $regex = array('#[^A-Za-z0-9{}\.:_\\\/-]#');
         return preg_replace($regex, '_', $path);
     }
@@ -2330,7 +2330,7 @@ class HTML_facileFormsProcessor
         $cbFrontend = true;
         $cbFull = false;
 
-        if (file_exists(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'contentbuilder.xml')) {
+        if (file_exists(JPATH_ADMINISTRATOR . '/components/com_contentbuilder/contentbuilder.xml')) {
 
             if ($this->app->isClient('administrator')) {
                 $cbFrontend = false;
@@ -2339,12 +2339,12 @@ class HTML_facileFormsProcessor
             if ($cbFrontend) {
                 $this->app->getLanguage()->load('com_contentbuilder');
             } else {
-                $this->app->getLanguage()->load('com_contentbuilder', JPATH_SITE . DS . 'administrator');
+                $this->app->getLanguage()->load('com_contentbuilder', JPATH_SITE . '/administrator');
             }
 
             $db = Factory::getContainer()->get(DatabaseInterface::class);
 
-            require_once(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
+            require_once(JPATH_ADMINISTRATOR . '/components/com_contentbuilder/classes/contentbuilder.php');
 
             $db->setQuery("Select `id` From #__contentbuilder_forms Where `type` = 'com_breezingforms' And `reference_id` = " . intval($this->form) . " And published = 1");
 
@@ -3272,7 +3272,7 @@ class HTML_facileFormsProcessor
 
         if ($cbRecord !== null) {
 
-            require_once(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
+            require_once(JPATH_ADMINISTRATOR . '/components/com_contentbuilder/classes/contentbuilder.php');
             $cbNonEditableFields = contentbuilder::getListNonEditableElements($cbResult['data']['id']);
             $cbFlashUploadValidationOverride = '';
             foreach ($cbRecord as $cbEntry) {
@@ -3305,7 +3305,7 @@ class HTML_facileFormsProcessor
                                             ';
                                 }
 
-                                require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder_helpers.php');
+                                require_once(JPATH_SITE . '/administrator/components/com_contentbuilder/classes/contentbuilder_helpers.php');
                                 $cbOut = '';
                                 $cbFiles = explode("\n", str_replace("\r", "", $cbEntry->recValue));
                                 $i = 0;
@@ -3468,7 +3468,7 @@ class HTML_facileFormsProcessor
 
         $cbNonEditableFields = array();
         if ($cbForm !== null) {
-            require_once(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
+            require_once(JPATH_ADMINISTRATOR . '/components/com_contentbuilder/classes/contentbuilder.php');
             $cbNonEditableFields = contentbuilder::getListNonEditableElements($cbResult['data']['id']);
             if (count($cbNonEditableFields)) {
                 Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('<!--' . nl() . 'var bfDeactivateField = new Array();' . nl() . '//-->');
@@ -4549,7 +4549,7 @@ class HTML_facileFormsProcessor
 
             $record_return = $record->id;
 
-            if ($record_return && file_exists(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'contentbuilder.xml')) {
+            if ($record_return && file_exists(JPATH_ADMINISTRATOR . '/components/com_contentbuilder/contentbuilder.xml')) {
                 $last_update = Factory::getDate();
                 $last_update = $last_update->toSql();
                 $db = Factory::getContainer()->get(DatabaseInterface::class);
@@ -4677,7 +4677,7 @@ class HTML_facileFormsProcessor
                     }
                 } else {
 
-                    require_once(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_contentbuilder' . DS . 'classes' . DS . 'contentbuilder.php');
+                    require_once(JPATH_ADMINISTRATOR . '/components/com_contentbuilder/classes/contentbuilder.php');
                     $cbNonEditableFields = contentbuilder::getListNonEditableElements($cbResult['data']['id']);
 
                     if (!in_array($data[_FF_DATA_ID], $cbNonEditableFields)) {
@@ -6649,7 +6649,7 @@ class HTML_facileFormsProcessor
             return;
         }
 
-        define("BF_SOAP_CLIENT_BASEDIR", JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'salesforce');
+        define("BF_SOAP_CLIENT_BASEDIR", JPATH_SITE . '/administrator/components/com_breezingforms/libraries/salesforce');
 
         if (!class_exists('SforcePartnerClient')) {
             require_once(BF_SOAP_CLIENT_BASEDIR . '/SforcePartnerClient.php');
@@ -6887,11 +6887,11 @@ class HTML_facileFormsProcessor
 
         //if ($timestamp)
         //	$userfile_name = $date_stamp . '_' . $userfile_name;
-        $path = $baseDir . DS . $userfile_name;
+        $path = $baseDir . '/' . $userfile_name;
         //if ($timestamp) $path .= '.'.date('YmdHis');
         if (file_exists($path) && $this->app->getSession()->get('bfFileUploadOverride', true)) {
             $rnd = md5(mt_rand(0, mt_getrandmax()));
-            $path = $baseDir . DS . $rnd . '_' . $userfile_name;
+            $path = $baseDir . '/' . $rnd . '_' . $userfile_name;
             //if ($timestamp) $path .= '.'.date('YmdHis');
             if (file_exists($path)) {
                 $this->status = _FF_STATUS_UPLOAD_FAILED;
@@ -7395,11 +7395,11 @@ class HTML_facileFormsProcessor
 
                                                                 //if ($row->flag1)
                                                                 //	$userfile_name = $date_stamp . '_' . $userfile_name;
-                                                                $path = $baseDir . DS . $userfile_name;
+                                                                $path = $baseDir . '/' . $userfile_name;
                                                                 //if ($row->flag1) $path .= '.'.date('YmdHis');
                                                                 if (file_exists($path) && $this->app->getSession()->get('bfFileUploadOverride', true)) {
                                                                     $rnd = md5(mt_rand(0, mt_getrandmax()));
-                                                                    $path = $baseDir . DS . $rnd . '_' . $userfile_name;
+                                                                    $path = $baseDir . '/' . $rnd . '_' . $userfile_name;
                                                                     //if ($row->flag1) $path .= '.'.date('YmdHis');
                                                                     if (file_exists($path)) {
                                                                         $this->status = _FF_STATUS_UPLOAD_FAILED;

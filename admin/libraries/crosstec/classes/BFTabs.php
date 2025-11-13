@@ -9,4 +9,4 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
  * @license Released under the terms of the GNU General Public License
  **/
 
-require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'libraries' . DS . 'crosstec' . DS . 'classes' . DS . 'BFJNewTabs.php');
+require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFJNewTabs.php');

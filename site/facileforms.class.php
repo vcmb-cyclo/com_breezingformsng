@@ -292,7 +292,7 @@ class facileFormsConf
 
 		$database = Factory::getContainer()->get(DatabaseInterface::class);
 
-		$configfile = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'facileforms.config.php';
+		$configfile = JPATH_SITE . '/media/breezingforms/facileforms.config.php';
 		if (file_exists($configfile)) {
 			include ($configfile);
 		} else {
@@ -327,7 +327,7 @@ class facileFormsConf
 		global $ff_compath, $database, $mosConfig_fileperms;
 
 		$database = Factory::getContainer()->get(DatabaseInterface::class);
-		$configfile = JPATH_SITE . DS . 'media' . DS . 'breezingforms' . DS . 'facileforms.config.php';
+		$configfile = JPATH_SITE . '/media/breezingforms/facileforms.config.php';
 
 		// prepare output
 		$config = "<?php\n";

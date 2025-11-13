@@ -13,15 +13,11 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\MVC\Controller\BaseController;
 
-if (!defined('DS')) {
-    define('DS', DIRECTORY_SEPARATOR);
-}
-
 $controller = BaseController::getInstance('Breezingforms');
 $controller->execute('');
 $controller->redirect();
 
-require_once(JPATH_SITE . DS . 'administrator' . DS . 'components' . DS . 'com_breezingforms' . DS . 'admin.breezingforms.php');
+require_once(JPATH_SITE . '/administrator/components/com_breezingforms/admin.breezingforms.php');
 
 Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/administrator/components/com_breezingforms/assets/js/custom.js');
 Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/administrator/components/com_breezingforms/assets/css/custom.css');
