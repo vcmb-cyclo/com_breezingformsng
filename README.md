@@ -1,7 +1,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-Component BreezingForms V5 for Joomla 5.0.
+Component BreezingForms for Joomla 6.
 
 ## Getting Started
 
