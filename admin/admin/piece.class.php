@@ -37,26 +37,42 @@ class facileFormsPiece
 		HTML_facileFormsPiece::edit($option, $pkg, $row, $typelist);
 	} // edit
 
+
+	// ✅ FORCER le champ code en RAW (conserve < et >)
 	static function save($option, $pkg)
 	{
-		$database = Factory::getContainer()->get(DatabaseInterface::class);
-		$row = new facileFormsPieces($database);
-		// bind it to the table
+		$app = Factory::getApplication();
 
+		// Lire le body brut
+		$rawBody = file_get_contents('php://input');
+
+		// Parser comme application/x-www-form-urlencoded
+		$post = [];
+		parse_str($rawBody, $post);
+
+		// Récupérer code tel qu'envoyé
+		$code = $post['code'] ?? '';
+
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
+		$row      = new facileFormsPieces($database);
+
+		// bind du reste
 		if (!$row->bind($_POST)) {
 			echo "<script> alert('" . $row->getError() . "'); window.history.go(-1); </script>\n";
 			exit();
-		} // if
+		}
 
-		// store it in the db
+		// Forcer code non filtré
+		$row->code = $code;
+
 		if (!$row->store()) {
 			echo "<script> alert('" . $row->getError() . "'); window.history.go(-1); </script>\n";
 			exit();
-		} // if
+		}
 
-		Factory::getApplication()->redirect("index.php?option=$option&act=managepieces&pkg=$pkg");
-	} // save
-
+		$app->enqueueMessage(BFText::_('COM_BREEZINGFORMS_PIECES_SAVED'));
+		$app->redirect("index.php?option=$option&act=managepieces&pkg=$pkg");
+	}
 
 	static function cancel($option, $pkg)
 	{

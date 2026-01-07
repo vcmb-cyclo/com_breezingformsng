@@ -1,34 +1,35 @@
 <?php
+
 /**
-* BreezingForms - A Joomla Forms Application
-* @version 1.9
-* @package BreezingForms
-* @copyright (C) 2008-2020 by Markus Bopp
-* @license Released under the terms of the GNU General Public License
-**/
+ * BreezingForms - A Joomla Forms Application
+ * @version 1.9
+ * @package BreezingForms
+ * @copyright (C) 2008-2020 by Markus Bopp
+ * @license Released under the terms of the GNU General Public License
+ **/
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\Utilities\ArrayHelper;
 use Joomla\CMS\Factory;
 use Joomla\Database\DatabaseInterface;
 
-require_once($ff_admpath.'/admin/script.html.php');
+require_once($ff_admpath . '/admin/script.html.php');
 
 class facileFormsScript
 {
 	static function edit($option, $pkg, $ids)
 	{
 		$database = Factory::getContainer()->get(DatabaseInterface::class);
-                ArrayHelper::toInteger($ids);
+		ArrayHelper::toInteger($ids);
 		$typelist = array();
-		$typelist[] = array('Untyped',BFText::_('COM_BREEZINGFORMS_SCRIPTS_UNTYPED'));
-		$typelist[] = array('Element Init',BFText::_('COM_BREEZINGFORMS_SCRIPTS_ELEMENTINIT'));
-		$typelist[] = array('Element Action',BFText::_('COM_BREEZINGFORMS_SCRIPTS_ELEMENTACTION'));
-		$typelist[] = array('Element Validation',BFText::_('COM_BREEZINGFORMS_SCRIPTS_ELEMENTVALID'));
-		$typelist[] = array('Form Init',BFText::_('COM_BREEZINGFORMS_SCRIPTS_FORMINIT'));
-		$typelist[] = array('Form Submitted',BFText::_('COM_BREEZINGFORMS_SCRIPTS_FORMSUBMIT'));
+		$typelist[] = array('Untyped', BFText::_('COM_BREEZINGFORMS_SCRIPTS_UNTYPED'));
+		$typelist[] = array('Element Init', BFText::_('COM_BREEZINGFORMS_SCRIPTS_ELEMENTINIT'));
+		$typelist[] = array('Element Action', BFText::_('COM_BREEZINGFORMS_SCRIPTS_ELEMENTACTION'));
+		$typelist[] = array('Element Validation', BFText::_('COM_BREEZINGFORMS_SCRIPTS_ELEMENTVALID'));
+		$typelist[] = array('Form Init', BFText::_('COM_BREEZINGFORMS_SCRIPTS_FORMINIT'));
+		$typelist[] = array('Form Submitted', BFText::_('COM_BREEZINGFORMS_SCRIPTS_FORMSUBMIT'));
 		$row = new facileFormsScripts($database);
-		if (count($ids)){
+		if (count($ids)) {
 			$row->load($ids[0]);
 		} else {
 			$row->type = $typelist[0];
@@ -38,24 +39,43 @@ class facileFormsScript
 		HTML_facileFormsScript::edit($option, $pkg, $row, $typelist);
 	} // edit
 
+
+	// ✅ FORCER le champ code en RAW (conserve < et >)
 	static function save($option, $pkg)
 	{
+		$app = Factory::getApplication();
+
+		// Lire le body brut
+		$rawBody = file_get_contents('php://input');
+
+		// Parser comme application/x-www-form-urlencoded
+		$post = [];
+		parse_str($rawBody, $post);
+
+		// Récupérer code tel qu'envoyé
+		$code = $post['code'] ?? '';
+
 		$database = Factory::getContainer()->get(DatabaseInterface::class);
-		$row = new facileFormsScripts($database);
-		// bind it to the table
+		$row      = new facileFormsScripts($database);
+
+		// bind du reste
 		if (!$row->bind($_POST)) {
-			echo "<script> alert('".$row->getError()."'); window.history.go(-1); </script>\n";
+			echo "<script> alert('" . $row->getError() . "'); window.history.go(-1); </script>\n";
 			exit();
-		} // if
-		// store it in the db
+		}
+
+		// Forcer code non filtré
+		$row->code = $code;
+
 		if (!$row->store()) {
-			echo "<script> alert('".$row->getError()."'); window.history.go(-1); </script>\n";
+			echo "<script> alert('" . $row->getError() . "'); window.history.go(-1); </script>\n";
 			exit();
-		} // if
-        Factory::getApplication()->enqueueMessage(BFText::_('COM_BREEZINGFORMS_SCRIPTS_SAVED'));
-		Factory::getApplication()->redirect(
-			"index.php?option=$option&act=managescripts&pkg=$pkg");
-	} // save
+		}
+
+		$app->enqueueMessage(BFText::_('COM_BREEZINGFORMS_SCRIPTS_SAVED'));
+		$app->redirect("index.php?option=$option&act=managescripts&pkg=$pkg");
+	}
+
 
 	static function cancel($option, $pkg)
 	{
@@ -72,7 +92,7 @@ class facileFormsScript
 			$row->id       = NULL;
 			$row->store();
 		} // foreach
-		$msg = $total.' '.BFText::_('COM_BREEZINGFORMS_SCRIPTS_SUCCOPIED');
+		$msg = $total . ' ' . BFText::_('COM_BREEZINGFORMS_SCRIPTS_SUCCOPIED');
 		Factory::getApplication()->redirect("index.php?option=$option&act=managescripts&pkg=$pkg&mosmsg=$msg");
 	} // copy
 
@@ -94,10 +114,10 @@ class facileFormsScript
 	static function publish($option, $pkg, $ids, $publish)
 	{
 		$database = Factory::getContainer()->get(DatabaseInterface::class);
-                ArrayHelper::toInteger($ids);
-		$ids = implode( ',', $ids );
+		ArrayHelper::toInteger($ids);
+		$ids = implode(',', $ids);
 		$database->setQuery(
-			"update #__facileforms_scripts set published=".$database->Quote($publish)." where id in ($ids)"
+			"update #__facileforms_scripts set published=" . $database->Quote($publish) . " where id in ($ids)"
 		);
 		try {
 			$database->execute();
@@ -106,7 +126,7 @@ class facileFormsScript
 			exit();
 		}
 
-		Factory::getApplication()->redirect( "index.php?option=$option&act=managescripts&pkg=$pkg" );
+		Factory::getApplication()->redirect("index.php?option=$option&act=managescripts&pkg=$pkg");
 	} // publish
 
 	static function listitems($option, $pkg)
@@ -114,33 +134,36 @@ class facileFormsScript
 		$database = Factory::getContainer()->get(DatabaseInterface::class);
 
 		$database->setQuery(
-			"select distinct  package as name ".
-			"from #__facileforms_scripts ".
-			"where package is not null and package!='' ".
-			"order by name"
+			"select distinct  package as name " .
+				"from #__facileforms_scripts " .
+				"where package is not null and package!='' " .
+				"order by name"
 		);
 
-        try {
+		try {
 			$pkgs = $database->loadObjectList();
 		} catch (\Exception $e) {
 			echo $e->getMessage();
 			return false;
 		} // try
 
-		$pkgok = $pkg=='';
-		if (!$pkgok && count($pkgs)) foreach ($pkgs as $p) if ($p->name==$pkg) { $pkgok = true; break; }
+		$pkgok = $pkg == '';
+		if (!$pkgok && count($pkgs)) foreach ($pkgs as $p) if ($p->name == $pkg) {
+			$pkgok = true;
+			break;
+		}
 		if (!$pkgok) $pkg = '';
 		$pkglist = array();
-		$pkglist[] = array($pkg=='', '');
-		if (count($pkgs)) foreach ($pkgs as $p) $pkglist[] = array($p->name==$pkg, $p->name);
+		$pkglist[] = array($pkg == '', '');
+		if (count($pkgs)) foreach ($pkgs as $p) $pkglist[] = array($p->name == $pkg, $p->name);
 
 		$database->setQuery(
-			"select * from #__facileforms_scripts ".
-			"where package =  ".$database->Quote($pkg)." ".
-			"order by type, name, id desc"
+			"select * from #__facileforms_scripts " .
+				"where package =  " . $database->Quote($pkg) . " " .
+				"order by type, name, id desc"
 		);
-		
-        try {
+
+		try {
 			$rows = $database->loadObjectList();
 		} catch (\Exception $e) {
 			echo $e->getMessage();
@@ -152,4 +175,3 @@ class facileFormsScript
 	} // listitems
 
 } // class facileFormsScript
-?>

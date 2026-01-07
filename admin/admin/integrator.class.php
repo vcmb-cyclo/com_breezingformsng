@@ -449,11 +449,28 @@ class BFIntegrator
 
 	}
 
-	public function saveCode()
+	public function saveCode(): void
 	{
-		$this->db->setQuery("Update #__facileforms_integrator_items Set code = " . $this->db->Quote($_REQUEST['code']) . " Where id = " . BFRequest::getInt('itemId', -1) . " And rule_id = " . BFRequest::getInt('id', -1) . "");
-		$this->db->execute();
+		$app = Factory::getApplication();
+
+		// Lire STRICTEMENT depuis POST en RAW pour conserver < et >
+		$code = $app->input->post->getRaw('code');
+
+		$itemId = BFRequest::getInt('itemId', -1);
+		$ruleId = BFRequest::getInt('id', -1);
+
+		$db = $this->db;
+
+		$query = $db->getQuery(true)
+			->update($db->quoteName('#__facileforms_integrator_items'))
+			->set($db->quoteName('code') . ' = ' . $db->quote($code))
+			->where($db->quoteName('id') . ' = ' . (int) $itemId)
+			->where($db->quoteName('rule_id') . ' = ' . (int) $ruleId);
+
+		$db->setQuery($query);
+		$db->execute();
 	}
+
 
 	public function saveFinalizeCode()
 	{
