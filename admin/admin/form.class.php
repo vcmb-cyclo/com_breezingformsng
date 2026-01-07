@@ -250,11 +250,27 @@ class facileFormsForm
     }
 
     // edit
-
     static function save($option, $pkg, $caller, $nonclassic, $quickmode)
     {
         global $database;
         $database = Factory::getContainer()->get(DatabaseInterface::class);
+
+		// Lire le body brut
+		$rawBody = file_get_contents('php://input');
+
+		// Parser comme application/x-www-form-urlencoded
+		$post = [];
+		parse_str($rawBody, $post);
+
+		// Récupérer codes tel qu'envoyés
+		$piece1code = $post['piece1code'] ?? '';
+		$piece2code = $post['piece2code'] ?? '';
+		$piece3code = $post['piece3code'] ?? '';
+		$piece4code = $post['piece4code'] ?? '';
+		$script1code = $post['script1code'] ?? '';
+		$script2code = $post['script2code'] ?? '';
+		$script3code = $post['script3code'] ?? '';
+
         $row = new facileFormsForms($database);
 
         if (isset($_POST['salesforce_fields']) && is_array($_POST['salesforce_fields'])) {
@@ -288,7 +304,17 @@ class facileFormsForm
             echo "<script> alert('" . $row->getError() . "'); window.history.go(-1); </script>\n";
             exit();
         } // if
-        // store it in the db
+        
+		// Force not filtered codes
+		$row->piece1code = $piece1code;
+		$row->piece2code = $piece2code;
+		$row->piece3code = $piece3code;
+		$row->piece4code = $piece4code;
+		$row->script1code = $script1code;
+		$row->script2code = $script2code;
+		$row->script3code = $script3code;
+
+        // Store it in the db
         if (!$row->store()) {
             echo "<script> alert('" . $row->getError() . "'); window.history.go(-1); </script>\n";
             exit();
@@ -308,8 +334,7 @@ class facileFormsForm
         Factory::getApplication()->redirect('index.php?option=com_breezingforms&task=editform&act=editpage&form=' . intval($_POST['id']) . ($quickmode ? '&pkg=QuickModeForms' : ''));
     }
 
-    // save
-
+    // Cancel
     static function cancel($option, $pkg, $caller, $nonclassic, $quickmode)
     {
         if (!$nonclassic) {
