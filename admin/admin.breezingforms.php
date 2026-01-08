@@ -383,6 +383,8 @@ foreach ($_REQUEST as $prop => $val) {
         $ff_request[$prop] = $val;
 }
 
+
+// To display installation menu.
 if ($ff_install) {
     $act = 'installation';
     $task = 'step2';

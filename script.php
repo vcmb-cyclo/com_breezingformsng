@@ -266,6 +266,7 @@ class com_breezingformsInstallerScript
 
         $this->installPlugins();
         $this->removeOldUpdateSite();
+        $this->cleanupOldConfig();
 
         $this->log('BreezingForms installation/update process finished successfully.');
     }

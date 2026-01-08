@@ -107,7 +107,7 @@ class facileFormsInstaller
 	{
 		global $ff_mospath, $ff_admpath, $ff_compath, $mosConfig_fileperms;
 
-		// remove erraneous by installer created dirs
+		// Remove erraneous by installer created dirs
 		@rmdir($ff_admpath . '/exports');
 		@rmdir($ff_admpath . '/images/pizzashop');
 		@rmdir($ff_admpath . '/uploads');
@@ -116,7 +116,7 @@ class facileFormsInstaller
 		@rmdir($ff_compath . '/packages');
 		@rmdir($ff_compath . '/sql');
 
-		// change file permissions
+		// Change file permissions
 		if (!isset($mosConfig_fileperms)) {
 			// pre 4.5.2, need to chmod myself
 			$filemode = 0644;
@@ -133,8 +133,9 @@ class facileFormsInstaller
 			facileFormsInstaller::chmodRecursive($ff_botpath . '/bot_breezingforms.xml', $filemode, $dirmode);
 		} // if
 
-		// detect release
-		$release = '1.4';
+		// Detect release with database check
+		// 1.4+
+		$release = '1.4+';
 		if (!facileFormsInstaller::testdb('#__facileforms_forms', 'package')) {
 			$release = '1.3';
 			if (!facileFormsInstaller::testdb('#__facileforms_forms', 'runmode')) {
@@ -160,7 +161,6 @@ class facileFormsInstaller
 		$instmode = intval(BFRequest::getVar('ff_installmode', 1));
 		$instsamp = intval(BFRequest::getVar('ff_instsamples', 0));
 		$instqmsamp = intval(BFRequest::getVar('ff_instqmsamples', 0));
-		$instold = intval(BFRequest::getVar('ff_instoldlib', 0));
 
 		// list of sample forms before 1.4
 		$sampleforms =
@@ -215,7 +215,7 @@ class facileFormsInstaller
 			"'ff_setChecked'," .
 			"'ff_setValue'";
 
-		// database update
+		// Database update
 		$sql_path = $ff_admpath . '/sql';
 		$errors = array();
 		$errmode = 'log';
@@ -231,33 +231,29 @@ class facileFormsInstaller
 				break;
 		} // switch
 
-		// get xref to old samples
+		// Get xref to old samples
 		$oldscripts = NULL;
 		$oldpieces = NULL;
-		if ($instmode >= 2 && $instmode <= 5) { // upgrades until 1.4
-			// get old xref tables
+
+		// 10 to deactivate. Now, Scripts and Pieces are updates, not recreated.
+		if ($instmode >= 10) { // upgrades until 1.4.
+			// Get old xref tables
 			$oldscripts = _ff_select("select id, name from #__facileforms_scripts where name in ($stdscripts)");
 			$oldpieces = _ff_select("select id, name from #__facileforms_pieces where name in ($stdpieces)");
-			// drop old std scripts & pieces
+			// Drop old std scripts & pieces
 			_ff_query("delete from #__facileforms_scripts where name in ($stdscripts)");
 			_ff_query("delete from #__facileforms_pieces where name in ($stdpieces)");
 		} // if
 
-		// call installer to load new std libraries
+		// Call installer to load new std libraries
 		$xmlfile = $ff_admpath . '/packages/stdlib.english.xml';
 
 		$inst = new ff_importPackage();
 		$inst->import($xmlfile);
 
-		if (intval($instold) == 1) {
-			// call installer to load backward compatibility library
-			//$xmlfile = $ff_admpath.'/packages/oldlib.english.xml';
-			//$inst->import($xmlfile);
-		} // if
-
-
+		// Examples.
 		if (intval($instsamp) == 1) {
-			if ($instmode >= 2 && $instmode <= 5) { // upgrades until 1.4
+			if ($instmode >= 1) { // upgrades until 1.4
 				// drop old sample forms
 				$rows = _ff_select("select id from #__facileforms_forms where name in ($sampleforms)");
 				if (count($rows))

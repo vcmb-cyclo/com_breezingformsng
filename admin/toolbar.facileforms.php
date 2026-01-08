@@ -33,7 +33,7 @@ require_once($ff_admpath.'/toolbar.facileforms.html.php');
 
 $ff_compatible = true;
 if ($ff_compatible) {
-	// check for post installation tasks
+	// Check for post installation tasks
 	if ($act != 'installation')
 		$ff_install = !file_exists(JPATH_SITE . '/media/breezingforms/' .'facileforms.config.php');
 
