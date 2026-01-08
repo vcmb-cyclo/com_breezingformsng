@@ -12,7 +12,7 @@
 	<author>XDA/GIL (J6)</author>
 	<copyright>This Joomla! component is released under the GNU/GPL license</copyright>
         <license>GNU/GPLv2 http://www.gnu.org/licenses/gpl-2.0.html</license>
-	<authorEmail>no-reply@vcmb.fr</authorEmail>
+	<authorEmail>breezingforms@vcmb.fr</authorEmail>
 	<authorUrl>https://breezingforms.vcmb.fr</authorUrl>
 	<version>6.0.0</version>
 	<description>Installation successful. Next find BreezingForms in the Components menu, and finish the installation process.</description>
@@ -123,4 +123,5 @@
 	</administration>
 
 </extension>
+
 
