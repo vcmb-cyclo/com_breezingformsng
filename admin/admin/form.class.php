@@ -270,6 +270,8 @@ class facileFormsForm
 		$script1code = $post['script1code'] ?? '';
 		$script2code = $post['script2code'] ?? '';
 		$script3code = $post['script3code'] ?? '';
+        $email_custom_template = $post['email_custom_template'] ?? '';
+        $mb_email_custom_template = $post['mb_email_custom_template'] ?? '';
 
         $row = new facileFormsForms($database);
 
@@ -313,6 +315,9 @@ class facileFormsForm
 		$row->script1code = $script1code;
 		$row->script2code = $script2code;
 		$row->script3code = $script3code;
+		$row->email_custom_template = $email_custom_template;
+		$row->mb_email_custom_template = $mb_email_custom_template;
+
 
         // Store it in the db
         if (!$row->store()) {
