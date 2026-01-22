@@ -12,7 +12,7 @@ jQuery(document).ready(function () {
 
     jQuery('#submenu').addClass('wraplist');
 
-    jQuery('#toolbar').prepend('<div class="btn-wrapper menu-button"><button onclick="" class="btn btn-small"><i class="fa fa-bars" aria-hidden="true"></i></button></div>');
+    jQuery('#toolbar').prepend('<div class="btn-wrapper menu-button"><button onclick="" class="btn btn-sm"><i class="fa fa-bars" aria-hidden="true"></i></button></div>');
 
     /*
     toggle fullscreen
@@ -74,7 +74,7 @@ jQuery(document).ready(function () {
         jQuery("main").addClass(sessionStorage.toggle2);
         jQuery("main").addClass(sessionStorage.toggle3);
 
-        jQuery('.menu-button .btn-small').click(function () {
+        jQuery('.menu-button .btn-sm').click(function () {
 
             if (sessionStorage.toggle != "min-menu") {
                 jQuery(".sidebar").toggleClass("min-menu", true);
@@ -102,7 +102,7 @@ jQuery(document).ready(function () {
             }
         });
     } else {
-        jQuery('.menu-button .btn-small').click(function () {
+        jQuery('.menu-button .btn-sm').click(function () {
             jQuery(".sidebar").toggleClass('min-menu');
             jQuery("main").toggleClass('main-content-toggle');
             jQuery("main").addClass('main-content-toggle-out');
@@ -115,7 +115,7 @@ jQuery(document).ready(function () {
         jQuery("#sidebar").css("transition", "none");
         jQuery("main").css("transition", "none");
 
-        jQuery('.menu-button .btn-small').click(function () {
+        jQuery('.menu-button .btn-sm').click(function () {
             jQuery("#sidebar").css("transition", "width 600ms ease 0s");
             jQuery("main").css("transition", "all 600ms ease 0s");
         });

@@ -1313,9 +1313,9 @@ main input[onclick="Joomla.submitbutton('cancel');"]:focus{
     border: 1px solid #d5d5d5;
 }
 
-main .input-append .add-on:last-child,
-.input-append .btn:last-child,
-.input-append .btn-group:last-child > .dropdown-toggle {
+main .input-group .input-group-text:last-child,
+.input-group .btn:last-child,
+.input-group .btn-group:last-child > .dropdown-toggle {
     border-radius: 0 3px 3px 0;
     margin-right: 10px;
     padding: 7px;
@@ -2261,4 +2261,3 @@ Mobile view
             display: none !important;
         }
     }
-

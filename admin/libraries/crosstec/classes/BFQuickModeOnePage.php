@@ -107,29 +107,29 @@ class BFQuickModeOnePage
             'span10' => $this->bsClassPrefix . 'col-md-10',
             'span11' => $this->bsClassPrefix . 'col-md-11',
             'span12' => $this->bsClassPrefix . 'col-md-12',
-            'control-group' => '',
+            'control-group' => 'mb-3',
             'control-label' => $this->bsClassPrefix . 'form-label',
             'row-fluid' => $this->bsClassPrefix . 'row',
             'icon-asterisk' => $this->bsClassPrefix . 'fas ' . $this->bsClassPrefix . 'fa-asterisk',
             'icon-question-sign' => $this->bsClassPrefix . 'fas ' . $this->bsClassPrefix . 'fa-question-circle',
-            'form-actions' => $this->bsClassPrefix . 'form-group',
-            'form-actions-buttons' => '',
+            'form-actions' => 'mt-3',
+            'form-actions-buttons' => 'd-flex flex-wrap gap-2',
             'btn' => $this->bsClassPrefix . 'btn',
             'btn-primary' => $this->bsClassPrefix . 'btn-primary',
             'btn-secondary' => $this->bsClassPrefix . 'btn-secondary',
             'alert' => $this->bsClassPrefix . 'alert',
             'alert-error' => $this->bsClassPrefix . 'alert-danger',
             'controls' => '',
-            'form-inline' => $this->bsClassPrefix . 'form-inline',
+            'form-inline' => 'bfbs5-form-inline',
             'form-group' => $this->bsClassPrefix . 'form-group',
             'well' => $this->bsClassPrefix . 'card',
-            'well-small' => $this->bsClassPrefix . 'card-body bg-light',
-            'hero-unit' => $this->bsClassPrefix . 'jumbotron',
-            'pull-left' => $this->bsClassPrefix . 'float-left',
-            'pull-right' => $this->bsClassPrefix . 'float-right',
-            'radio' => $this->bsClassPrefix . 'radio-inline',
-            'checkbox' => $this->bsClassPrefix . 'checkbox-inline',
-            'inline' => $this->bsClassPrefix . 'inline',
+            'well-small' => $this->bsClassPrefix . 'card-body',
+            'hero-unit' => 'bfbs5-hero-unit',
+            'pull-left' => $this->bsClassPrefix . 'float-start',
+            'pull-right' => $this->bsClassPrefix . 'float-end',
+            'radio' => $this->bsClassPrefix . 'form-check-label',
+            'checkbox' => $this->bsClassPrefix . 'form-check-label',
+            'inline' => $this->bsClassPrefix . 'form-check-inline',
             'radio-form-group' => $this->bsClassPrefix . 'radio-form-group',
             'checkbox-form-group' => $this->bsClassPrefix . 'checkbox-form-group',
             'input-append' => $this->bsClassPrefix . 'input-group',
@@ -1661,9 +1661,11 @@ function bfTriggerRules() {
                                 $iEx = explode(";", $gEx[$i]);
                                 $iCnt = count($iEx);
                                 if ($iCnt == 3) {
-                                    echo '<label ' . ($mdata['wrap'] ? 'style="display: block;" ' : 'style="vertical-align: baseline;" ') . 'class="' . $this->bsClass('radio') . '' . (!$mdata['wrap'] ? ' ' . $this->bsClass('inline') . ' ' : '') . '" id="bfGroupLabel' . $mdata['dbId'] . $idExt . '" for="ff_elem' . $mdata['dbId'] . $idExt . '">';
-                                    echo '<input ' . ($iEx[0] == 1 ? 'checked="checked" ' : '') . ' class="ff_elem" ' . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . ($readonly ? ' disabled="disabled" ' : '') . 'type="radio" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($iEx[2]), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . $idExt . '"/>' . "\n";
-                                    echo trim($iEx[1]) . '</label>' . ($i + 1 < $lines && $mdata['wrap'] ? '<div style="clear:both;"></div>' : '');
+                                    $inlineClass = $mdata['wrap'] ? '' : ' ' . $this->bsClass('inline');
+                                    echo '<div class="form-check' . $inlineClass . '">';
+                                    echo '<input ' . ($iEx[0] == 1 ? 'checked="checked" ' : '') . ' class="ff_elem form-check-input" ' . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . ($readonly ? ' disabled="disabled" ' : '') . 'type="radio" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($iEx[2]), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . $idExt . '"/>' . "\n";
+                                    echo '<label class="' . $this->bsClass('radio') . '" id="bfGroupLabel' . $mdata['dbId'] . $idExt . '" for="ff_elem' . $mdata['dbId'] . $idExt . '">' . trim($iEx[1]) . '</label>';
+                                    echo '</div>';
                                 }
                             }
                             if ($mdata['wrap']) {
@@ -1699,9 +1701,11 @@ function bfTriggerRules() {
                                 $iEx = explode(";", $gEx[$i]);
                                 $iCnt = count($iEx);
                                 if ($iCnt == 3) {
-                                    echo '<label ' . ($mdata['wrap'] ? 'style="display: block;" ' : 'style="vertical-align: baseline;" ') . 'class="' . $this->bsClass('checkbox') . '' . (!$mdata['wrap'] ? ' ' . $this->bsClass('inline') . ' ' : '') . '" id="bfGroupLabel' . $mdata['dbId'] . $idExt . '">';
-                                    echo '<input ' . ($iEx[0] == 1 ? 'checked="checked" ' : '') . ' class="ff_elem" ' . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . ($readonly ? ' disabled="disabled" ' : '') . 'type="checkbox" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($iEx[2]), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . $idExt . '"/>' . "\n";
-                                    echo trim($iEx[1]) . '</label>' . ($i + 1 < $lines && $mdata['wrap'] ? '<div style="clear:both;"></div>' : '');
+                                    $inlineClass = $mdata['wrap'] ? '' : ' ' . $this->bsClass('inline');
+                                    echo '<div class="form-check' . $inlineClass . '">';
+                                    echo '<input ' . ($iEx[0] == 1 ? 'checked="checked" ' : '') . ' class="ff_elem form-check-input" ' . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . ($readonly ? ' disabled="disabled" ' : '') . 'type="checkbox" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($iEx[2]), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . $idExt . '"/>' . "\n";
+                                    echo '<label class="' . $this->bsClass('checkbox') . '" id="bfGroupLabel' . $mdata['dbId'] . $idExt . '" for="ff_elem' . $mdata['dbId'] . $idExt . '">' . trim($iEx[1]) . '</label>';
+                                    echo '</div>';
                                 }
                             }
                             if ($mdata['wrap']) {
@@ -1719,7 +1723,7 @@ function bfTriggerRules() {
                         echo '<div class="' . $this->bsClass('form-group') . '">';
                         echo $label;
                         echo '<span class="' . $this->bsClass('nonform-control') . '">';
-                        echo '<input style="vertical-align: baseline;" class="ff_elem" ' . ($mdata['checked'] ? 'checked="checked" ' : '') . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . ($readonly ? ' disabled="disabled" ' : '') . 'type="checkbox" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($mdata['value']), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . '"/>' . "\n";
+                        echo '<input class="ff_elem form-check-input" ' . ($mdata['checked'] ? 'checked="checked" ' : '') . $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . ($readonly ? ' disabled="disabled" ' : '') . 'type="checkbox" name="ff_nm_' . $mdata['bfName'] . '[]" value="' . htmlentities(trim($mdata['value']), ENT_QUOTES, 'UTF-8') . '" id="ff_elem' . $mdata['dbId'] . '"/>' . "\n";
                         echo '</span>';
                         echo '</div>';
                         echo '</div>';
@@ -2678,7 +2682,7 @@ function bfTriggerRules() {
                   $this->rootMdata['pagingPrevLabel'] = $this->rootMdata['pagingPrevLabel_translation'.$this->language_tag];
                   }
 
-                  echo '<button type="button" class="bfPrevButton btn btn-primary pull-left button'.$this->fadingClass.'" type="submit" onclick="bf_validate_prevpage('.($dataObject['properties']['pageNumber'] - 1).');populateSummarizers();if(typeof bfRefreshAll != \'undefined\'){bfRefreshAll();}" value="'.htmlentities(trim($this->rootMdata['pagingPrevLabel']), ENT_QUOTES, 'UTF-8').'"><span>'.htmlentities(trim($this->rootMdata['pagingPrevLabel']), ENT_QUOTES, 'UTF-8').'</span></button>'."\n";
+                  echo '<button type="button" class="bfPrevButton ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . ' ' . $this->bsClass('pull-left') . ' button' . $this->fadingClass . '" type="submit" onclick="bf_validate_prevpage(' . ($dataObject['properties']['pageNumber'] - 1) . ');populateSummarizers();if(typeof bfRefreshAll != \'undefined\'){bfRefreshAll();}" value="' . htmlentities(trim($this->rootMdata['pagingPrevLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['pagingPrevLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
                   } */
 
                 if ($this->rootMdata['pagingInclude'] && $dataObject['properties']['pageNumber'] < count($this->dataObject['children']) - $last) {

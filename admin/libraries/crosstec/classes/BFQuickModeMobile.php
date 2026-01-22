@@ -1931,8 +1931,8 @@ function bfTriggerRules() {
 							}
 						}
 						/* translatables end */
-						echo '<div class="form-inline">';
-						echo '<div class="form-group other-form-group">';
+						echo '<div class="d-flex flex-wrap align-items-center gap-2">';
+						echo '<div class="mb-0 other-form-group">';
 						echo '<span class="nonform-control">';
 
 						$size = '';

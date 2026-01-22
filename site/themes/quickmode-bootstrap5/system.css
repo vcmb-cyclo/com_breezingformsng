@@ -265,13 +265,15 @@
     min-height: 32px;
 }
 
-.bfQuickMode .bfbs5-form-inline .bfbs5-form-group, .bfQuickMode .form-inline .form-group {
+.bfQuickMode .bfbs5-form-inline .form-group {
     width: 100%;
 }
 
-.bfQuickMode .bfbs5-jumbotron, .bfQuickMode .jumbotron {
-    padding-left: 30px;
-    padding-right: 30px;
+.bfQuickMode .bfbs5-hero-unit {
+    background-color: #f8f9fa;
+    border-radius: 0.3rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
 }
 
 .bfQuickMode textarea {
@@ -279,8 +281,7 @@
 }
 
 
-.bfQuickMode .form-inline .form-group, .bfQuickMode .form-inline label,
-.bfQuickMode .bfbs5-form-inline .bfbs5-form-group, .bfQuickMode .bfbs5-form-inline label{
+.bfQuickMode .bfbs5-form-inline .form-group, .bfQuickMode .bfbs5-form-inline label{
     display: inline-block;
     margin-right: 10px;
     vertical-align: middle;
@@ -298,7 +299,7 @@
         min-width: 100%;
     }
 
-    .bfQuickMode .bfbs5-form-inline .bfbs5-col-form-label, .bfQuickMode .form-inline .col-form-label {
+    .bfQuickMode .bfbs5-form-inline .col-form-label {
         max-width: 90% !important;
         min-width: 90% !important;
         width: 90% !important;
@@ -309,27 +310,25 @@
         display: block;
     }
 
-    .bfQuickMode .bfbs5-input-group input, .bfQuickMode .input-group {
+    .bfQuickMode .bfbs5-input-group input, .bfQuickMode .input-group input {
         width: 185px;
         min-width: 185px;
         max-width: 185px;
     }
 }
 
-.bfQuickMode .bfElemWrap .form-inline input[type="text"], 
-.bfQuickMode .bfElemWrap .form-inline input[type="number"],
-.bfQuickMode .bfElemWrap .form-inline input[type="range"],
-.bfQuickMode .bfElemWrap .form-inline textarea, 
-.bfQuickMode .bfElemWrap .form-inline select{
+.bfQuickMode .bfElemWrap .bfbs5-form-inline input[type="text"], 
+.bfQuickMode .bfElemWrap .bfbs5-form-inline input[type="number"],
+.bfQuickMode .bfElemWrap .bfbs5-form-inline input[type="range"],
+.bfQuickMode .bfElemWrap .bfbs5-form-inline textarea, 
+.bfQuickMode .bfElemWrap .bfbs5-form-inline select{
     
     display: inline-block;
     max-width: 70%;
     vertical-align: middle;
 }
 
-.bfQuickMode .bfElemWrap .form-inline label, 
-.bfQuickMode .bfElemWrap .form-inline label, 
-.bfQuickMode .bfElemWrap .form-inline label{
+.bfQuickMode .bfElemWrap .bfbs5-form-inline label{
     min-width: 25%;
 }
 
