@@ -6,7 +6,7 @@
   ~ @license GNU General Public License version 2, or later
   -->
   
-<extension type="component" version="6.0.0" method="upgrade">
+<extension type="component" version="6.0.1" method="upgrade">
 	<name>COM_BREEZINGFORMS</name>
 	<creationDate>2026-01-22</creationDate>
 	<author>XDA/GIL</author>
@@ -14,7 +14,7 @@
         <license>GNU/GPLv2 http://www.gnu.org/licenses/gpl-2.0.html</license>
 	<authorEmail>breezingforms@vcmb.fr</authorEmail>
 	<authorUrl>https://breezingforms.vcmb.fr</authorUrl>
-	<version>6.0.0</version>
+	<version>6.0.1</version>
 	<description>Installation successful. Next find BreezingForms in the Components menu, and finish the installation process.</description>
 	<installfile>install.php</installfile>
         <uninstallfile>uninstall.php</uninstallfile>
@@ -123,6 +123,7 @@
 	</administration>
 
 </extension>
+
 
 
 
