@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="2.5" type="plugin" group="system" method="upgrade">
 	<name>sysbreezingforms</name>
-	<author>Markus Bopp</author>
-	<creationDate>March 2017</creationDate>
-	<copyright>Copyright (C) 2015 - Markus Bopp</copyright>
-	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-	<authorEmail>markus.bopp@crosstec.org</authorEmail>
-	<authorUrl>crosstec.org</authorUrl>
-	<version>1.0.0</version>
+	<author>XDA/GIL</author>
+	<creationDate>2026-01-11</creationDate>
+	<copyright>This Joomla! component is released under the GNU/GPL license</copyright>
+        <license>GNU/GPLv2 http://www.gnu.org/licenses/gpl-2.0.html</license>
+	<authorEmail>breezingforms@vcmb.fr</authorEmail>
+	<authorUrl>https://breezingforms.vcmb.fr</authorUrl>
+	<version>6.0.0</version>
 	<description>System plugin required by the BreezingForms component</description>
 	<updateservers>
-		<server type="extension" name="sysbreezingforms" priority="1">https://crosstec.org/updates/breezingforms/sysbreezingforms_update.xml</server>
+		<server type="extension" name="sysbreezingforms" priority="1">https://breezingforms.vcmb.fr/download/com_breezingforms_update.xml</server>
 	</updateservers>
 	<files>
 		<filename plugin="sysbreezingforms">sysbreezingforms.php</filename>
