@@ -18,6 +18,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\HTML\Helpers\Bootstrap;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Table\Table;
+use Joomla\Database\DatabaseInterface;
 
 class bfRecordManagement
 {
@@ -38,7 +39,8 @@ class bfRecordManagement
 
         if (BFRequest::getInt('form_id') > 0) {
 
-            $db = BFFactory::getdbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
+
 
             $db->setQuery("Update #__facileforms_forms Set filter_state = " . $db->quote(serialize($_POST)) . " Where id = " . $db->quote(BFRequest::getInt('form_id')));
             $db->execute();
@@ -50,7 +52,7 @@ class bfRecordManagement
     {
         @ob_end_clean();
         $out = array();
-        $db = BFFactory::getdbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
         $db->setQuery("Select * From #__facileforms_elements Where published = 1 And `name` <> 'bfFakeName' And `name` <> 'bfFakeName2' And `name` <> 'bfFakeName3' And `name` <> 'bfFakeName4' And `name` <> 'bfFakeName5' And  form = " . BFRequest::getInt('form_id', 0) . " Order By `ordering`");
         $out['fields'] = $db->loadAssocList();
         $db->setQuery("Select filter_state From #__facileforms_forms Where id = " . BFRequest::getInt('form_id', 0));
@@ -65,7 +67,7 @@ class bfRecordManagement
 
         $column = explode('bfrecord_', BFRequest::getCmd('column', ''));
         if (count($column) == 2) {
-            $db = BFFactory::getdbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
             $db->setQuery("Update #__facileforms_records Set `" . $column[1] . "` = " . $db->quote(BFRequest::getInt('flag', 0)) . " Where id = " . $db->quote(BFRequest::getInt('record_id')));
             $db->execute();
         }
@@ -75,12 +77,12 @@ class bfRecordManagement
 
     function setFlags($column)
     {
-        $db = BFFactory::getdbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
 
         $ids = BFRequest::getVar('cid', array());
         ArrayHelper::toInteger($ids);
         if (count($ids)) {
-            $db = BFFactory::getdbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
             $db->setQuery("Update #__facileforms_records Set `" . $column . "` = 1 Where id In (" . implode(',', $ids) . ")");
             $db->execute();
         }
@@ -91,7 +93,7 @@ class bfRecordManagement
 
         $out = '';
 
-        $db = BFFactory::getdbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
 
         // available forms
 
@@ -355,7 +357,7 @@ class bfRecordManagement
     function setCsvImport()
     {
 
-        $db = BFFactory::getdbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
 
         $form = Factory::getApplication()->getSession()->get('form');
         $encoding = $_POST["encoding"];
@@ -1727,10 +1729,10 @@ class bfRecordManagement
         @ob_end_clean();
 
         if (BFRequest::getInt('update', 0) == 1 && BFRequest::getInt('record_id', 0) > 0) {
-            $db = BFFactory::getdbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
             $record_id = BFRequest::getInt('record_id', 0);
             $form = BFRequest::getInt('form_selection', 0);
-            $db = BFFactory::getdbo();
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
 
             $db->setQuery("Select * From #__facileforms_elements Where published = 1 And `name` <> 'bfFakeName' And `name` <> 'bfFakeName2' And `name` <> 'bfFakeName3' And `name` <> 'bfFakeName4' And `name` <> 'bfFakeName5' And  form = " . intval($form) . " Order By `ordering`");
             $elements = $db->loadAssocList();
@@ -1763,7 +1765,7 @@ class bfRecordManagement
         header('Pragma: no-cache'); // HTTP 1.0.
         header('Expires: 0');
 
-        $db = BFFactory::getdbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
 
         $order = explode(" ", str_replace("`", "", BFRequest::getVar('jtSorting', 'submitted Desc')));
         BFRequest::setVar('cbrecord_order_by', $order[0]);
@@ -2079,7 +2081,7 @@ class bfRecordManagement
 
         @ob_end_clean();
 
-        $db = BFFactory::getdbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
 
         // CONTENTBUILDER
         $isContentBuilder = false;
@@ -2421,7 +2423,7 @@ class bfRecordManagement
     {
         global $ff_compath;
 
-        $db = BFFactory::getdbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
 
         $ids = BFRequest::getVar('cid', array());
         ArrayHelper::toInteger($ids);
@@ -2599,7 +2601,7 @@ class bfRecordManagement
 
     function getSubrecords($recordId)
     {
-        $db = BFFactory::getdbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
         $db->setQuery(
             "select Distinct subs.* from #__facileforms_subrecords As subs, #__facileforms_elements as els where els.id=subs.element And subs.record = " . intval($recordId) . " order by els.ordering"
         );
@@ -2613,7 +2615,7 @@ class bfRecordManagement
 
         $inverted = isset($ff_config->csvinverted) ? $ff_config->csvinverted : false;
 
-        $db = BFFactory::getdbo();
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
 
         $ids = BFRequest::getVar('cid', array());
         ArrayHelper::toInteger($ids);
@@ -2933,7 +2935,7 @@ class bfRecordManagement
 
         $form_name = '';
 
-        $database = BFFactory::getdbo();
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
 
         if (isset($ids[0])) {
             $ids = implode(',', $ids);
