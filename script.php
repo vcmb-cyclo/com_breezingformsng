@@ -175,6 +175,8 @@ class com_breezingformsInstallerScript
 
         $recordsTable = $prefix . 'facileforms_records';
         $formsTable   = $prefix . 'facileforms_forms';
+        $scriptsTable = $prefix . 'facileforms_scripts';
+        $piecesTable  = $prefix . 'facileforms_pieces';
 
         if (isset($tables[$recordsTable])) {
             $columns = $tables[$recordsTable];
@@ -182,7 +184,7 @@ class com_breezingformsInstallerScript
             $newColumns = [
                 'opted'     => "TINYINT(1) NOT NULL DEFAULT '0' AFTER `paypal_download_tries`",
                 'opt_ip'    => "VARCHAR(255) NOT NULL DEFAULT '' AFTER `opted`",
-                'opt_date'  => "DATETIME NOT NULL DEFAULT NULL AFTER `opt_ip`",
+                'opt_date'  => "DATETIME NULL DEFAULT NULL AFTER `opt_ip`",
                 'opt_token' => "VARCHAR(255) NOT NULL DEFAULT '' AFTER `opt_date`",
             ];
 
@@ -191,6 +193,11 @@ class com_breezingformsInstallerScript
                     $db->setQuery("ALTER TABLE `{$recordsTable}` ADD `{$col}` {$def}, ADD INDEX (`{$col}`)")->execute();
                     $this->log("Added column {$col} to facileforms_records.");
                 }
+            }
+
+            if (isset($columns['opt_date'])) {
+                $db->setQuery("ALTER TABLE `{$recordsTable}` MODIFY `opt_date` DATETIME NULL DEFAULT NULL")->execute();
+                $this->log('Updated opt_date column definition in facileforms_records.');
             }
         }
 
@@ -207,6 +214,36 @@ class com_breezingformsInstallerScript
                     $db->setQuery("ALTER TABLE `{$formsTable}` ADD `{$col}` {$def}, ADD INDEX (`{$col}`)")->execute();
                     $this->log("Added column {$col} to facileforms_forms.");
                 }
+            }
+        }
+
+        $auditColumns = [
+            'created'     => "DATETIME NULL DEFAULT NULL AFTER `code`",
+            'created_by'  => "VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' AFTER `created`",
+            'modified'    => "DATETIME NULL DEFAULT NULL AFTER `created_by`",
+            'modified_by' => "VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' AFTER `modified`",
+        ];
+
+        foreach ([$scriptsTable, $piecesTable] as $tableName) {
+            if (!isset($tables[$tableName])) {
+                continue;
+            }
+
+            $columns = $tables[$tableName];
+            foreach ($auditColumns as $col => $def) {
+                if (!isset($columns[$col])) {
+                    $db->setQuery("ALTER TABLE `{$tableName}` ADD `{$col}` {$def}")->execute();
+                    $this->log("Added column {$col} to {$tableName}.");
+                }
+            }
+
+            if (isset($columns['created_by'])) {
+                $db->setQuery("ALTER TABLE `{$tableName}` MODIFY `created_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''")->execute();
+                $this->log("Updated created_by column definition in {$tableName}.");
+            }
+            if (isset($columns['modified_by'])) {
+                $db->setQuery("ALTER TABLE `{$tableName}` MODIFY `modified_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''")->execute();
+                $this->log("Updated modified_by column definition in {$tableName}.");
             }
         }
 

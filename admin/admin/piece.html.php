@@ -20,6 +20,11 @@ class HTML_facileFormsPiece
 	{
 		global $ff_mossite, $ff_admsite, $ff_config;
 		$action = $row->id ? BFText::_('COM_BREEZINGFORMS_PIECES_EDITPIECE') : BFText::_('COM_BREEZINGFORMS_PIECES_ADDPIECE');
+		if ($row->id) {
+			ToolBarHelper::custom('prev', 'arrow-left', '', 'Precedent', false);
+			ToolBarHelper::custom('next', 'arrow-right', '', 'Suivant', false);
+			ToolBarHelper::custom('test', 'eye', '', 'Test', false);
+		}
 		ToolBarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_SAVE'), false);
 		ToolBarHelper::custom('cancel', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false);
 		?>
@@ -41,7 +46,7 @@ class HTML_facileFormsPiece
 			function submitbutton(pressbutton) {
 				var form = document.adminForm;
 				var error = '';
-				if (pressbutton != 'cancel') {
+				if (pressbutton != 'cancel' && pressbutton != 'test' && pressbutton != 'prev' && pressbutton != 'next') {
 					error += checkIdentifier(form.name.value, 'name');
 					if (form.title.value == '') error += "<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_ENTTITLE'); ?>\n";
 				} // if
@@ -193,9 +198,19 @@ class HTML_facileFormsPiece
 		return '???';
 	} // typeName
 
-	static function listitems($option, &$rows, &$pkglist)
+	static function listitems($option, &$rows, &$pkglist, $pkg, $showInternal)
 	{
 		global $ff_config, $ff_version;
+		$sort = BFRequest::getCmd('sort', 'name');
+		$dir = strtoupper(BFRequest::getCmd('dir', 'ASC'));
+		$dir = $dir === 'DESC' ? 'DESC' : 'ASC';
+		$baseQuery = 'index.php?option=' . $option . '&act=managepieces&pkg=' . urlencode($pkg) . '&show_internal=' . (int) $showInternal;
+		$toggleDir = function ($column) use ($sort, $dir) {
+			if ($sort === $column) {
+				return $dir === 'ASC' ? 'DESC' : 'ASC';
+			}
+			return 'ASC';
+		};
 		?>
 		<script type="text/javascript">
 							<!--
@@ -207,6 +222,7 @@ class HTML_facileFormsPiece
 									case 'publish':
 									case 'unpublish':
 									case 'remove':
+									case 'test':
 										if (form.boxchecked.value==0) {
 											alert("<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_SELPIECESFIRST'); ?>");
 			return;
@@ -230,6 +246,7 @@ class HTML_facileFormsPiece
 			ToolBarHelper::custom('copy', 'copy.png', 'copy_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_COPY'), false);
 			ToolBarHelper::custom('publish', 'publish.png', 'publish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_PUBLISH'), false);
 			ToolBarHelper::custom('unpublish', 'unpublish.png', 'unpublish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_UNPUBLISH'), false);
+			ToolBarHelper::custom('test', 'eye', '', 'Test', false);
 			ToolBarHelper::custom('remove', 'delete.png', 'delete_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_DELETE'), false);
 			?>
 
@@ -266,27 +283,51 @@ class HTML_facileFormsPiece
 					?>
 				</select>
 			</label>
+			<label class="bfPackageSelector">
+				<input type="hidden" name="show_internal" value="0" />
+				<input type="checkbox" name="show_internal" value="1" onchange="submitbutton('');"
+					<?php echo $showInternal ? 'checked' : ''; ?> />
+				Afficher les fonctions internes (_)
+			</label>
 
 			<table cellpadding="4" cellspacing="0" border="0" width="100%" class="adminlist table table-striped">
 				<tr>
-					<th style="width: 25px;" nowrap align="right">ID</th>
+					<th style="width: 25px;" nowrap align="right">
+						<a href="<?php echo $baseQuery . '&sort=id&dir=' . $toggleDir('id'); ?>">ID</a>
+					</th>
 					<th style="width: 25px;" nowrap align="center"><input type="checkbox" name="toggle" value=""
 							onclick="Joomla.checkAll(this);" /></th>
 					<th align="left">
-						<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_TITLE'); ?>
+						<a href="<?php echo $baseQuery . '&sort=title&dir=' . $toggleDir('title'); ?>">
+							<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_TITLE'); ?>
+						</a>
 					</th>
 					<th align="left">
-						<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_NAME'); ?>
+						<a href="<?php echo $baseQuery . '&sort=name&dir=' . $toggleDir('name'); ?>">
+							<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_NAME'); ?>
+						</a>
 					</th>
 					<th align="left">
-						<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_TYPE'); ?>
+						<a href="<?php echo $baseQuery . '&sort=type&dir=' . $toggleDir('type'); ?>">
+							<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_TYPE'); ?>
+						</a>
 					</th>
 					<th align="left">
-						<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_DESCRIPTION'); ?>
+						<a href="<?php echo $baseQuery . '&sort=description&dir=' . $toggleDir('description'); ?>">
+							<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_DESCRIPTION'); ?>
+						</a>
+					</th>
+					<th align="left">
+						<a href="<?php echo $baseQuery . '&sort=modified&dir=' . $toggleDir('modified'); ?>">
+							<?php echo BFText::_('JGLOBAL_MODIFIED'); ?>
+						</a>
 					</th>
 					<th align="center">
-						<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_PUBLISHED'); ?>
+						<a href="<?php echo $baseQuery . '&sort=published&dir=' . $toggleDir('published'); ?>">
+							<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_PUBLISHED'); ?>
+						</a>
 					</th>
+					<th align="center">Test</th>
 				</tr>
 				<?php
 				$k = 0;
@@ -314,6 +355,12 @@ class HTML_facileFormsPiece
 						<td valign="top" align="left">
 							<?php echo htmlspecialchars($desc, ENT_QUOTES); ?>
 						</td>
+						<td valign="top" align="left">
+							<?php
+							$lastModified = $row->modified ?: $row->created;
+							echo $lastModified ? HTMLHelper::date($lastModified, 'Y-m-d H:i') : '-';
+							?>
+						</td>
 						<td valign="top" align="center">
 							<?php
 							if ($row->published == "1") {
@@ -329,6 +376,11 @@ class HTML_facileFormsPiece
 							} // if
 							?>
 						</td>
+						<td valign="top" align="center">
+							<a class="tbody-icon" href="javascript:void(0);"
+								onClick="return listItemTask('cb<?php echo $i; ?>','test')"><span class="icon-eye"
+									aria-hidden="true"></span></a>
+						</td>
 					</tr>
 					<?php
 					$k = 1 - $k;
@@ -343,6 +395,211 @@ class HTML_facileFormsPiece
 		</form>
 		<?php
 	} // listitems
+
+	static function test($option, $pkg, &$row, $functionName, $paramNames, $paramDefaults, $paramValues = array(), $result = null, $output = '', $error = '', $safeMode = 1, $autoRun = false, $errorDetails = array())
+	{
+		ToolBarHelper::custom('testrun', 'eye', '', 'Lancer', false);
+		ToolBarHelper::custom('edit', 'cancel.png', 'cancel_f2.png', 'Retour', false);
+		ToolBarHelper::custom('prev', 'arrow-left', '', 'Precedent', false);
+		ToolBarHelper::custom('next', 'arrow-right', '', 'Suivant', false);
+		ToolBarHelper::custom('cancel', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false);
+		?>
+		<?php if ($autoRun) { ?>
+			<script type="text/javascript">
+				window.addEventListener('load', function () {
+					document.getElementById('adminForm').submit();
+				});
+			</script>
+		<?php } ?>
+		<form action="index.php" method="post" name="adminForm" id="adminForm" class="adminForm">
+			<h3><?php echo htmlspecialchars($row->title, ENT_QUOTES); ?></h3>
+			<div class="card mb-3 bg-light">
+				<div class="card-body">
+					<div class="row">
+						<div class="col-sm-6 col-md-4">
+							<strong>Piece ID:</strong> <?php echo (int) $row->id; ?>
+						</div>
+						<div class="col-sm-6 col-md-4">
+							<strong>Package:</strong> <?php echo htmlspecialchars($row->package, ENT_QUOTES); ?>
+						</div>
+						<div class="col-sm-6 col-md-4">
+							<strong>Function:</strong> <?php echo htmlspecialchars($functionName, ENT_QUOTES); ?>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="card mb-3 bg-light">
+				<div class="card-body">
+					<div class="row">
+						<div class="col-sm-6 col-md-3">
+							<strong>Created:</strong> <?php echo htmlspecialchars((string) $row->created, ENT_QUOTES); ?>
+						</div>
+						<div class="col-sm-6 col-md-3">
+							<strong>Created by:</strong> <?php echo htmlspecialchars((string) $row->created_by, ENT_QUOTES); ?>
+						</div>
+						<div class="col-sm-6 col-md-3">
+							<strong>Modified:</strong> <?php echo htmlspecialchars((string) $row->modified, ENT_QUOTES); ?>
+						</div>
+						<div class="col-sm-6 col-md-3">
+							<strong>Modified by:</strong> <?php echo htmlspecialchars((string) $row->modified_by, ENT_QUOTES); ?>
+						</div>
+					</div>
+				</div>
+			</div>
+			<?php if (!empty($row->description)) { ?>
+				<div class="card mb-3">
+					<div class="card-header">Description</div>
+					<div class="card-body">
+						<div class="form-control bg-light" style="white-space: pre-wrap;">
+							<?php echo htmlspecialchars($row->description, ENT_QUOTES); ?>
+						</div>
+					</div>
+				</div>
+			<?php } ?>
+			<div class="accordion" id="bfPieceCodeAccordion">
+				<div class="accordion-item">
+					<h2 class="accordion-header" id="bfPieceCodeHeading">
+						<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+							data-bs-target="#bfPieceCodeCollapse" aria-expanded="false" aria-controls="bfPieceCodeCollapse">
+							Piece code
+						</button>
+					</h2>
+					<div id="bfPieceCodeCollapse" class="accordion-collapse collapse" aria-labelledby="bfPieceCodeHeading"
+						data-bs-parent="#bfPieceCodeAccordion">
+						<div class="accordion-body">
+							<pre><?php echo htmlspecialchars($row->code, ENT_QUOTES); ?></pre>
+						</div>
+					</div>
+				</div>
+
+				<?php if (empty($functionName)) { ?>
+				<p>Unable to detect a function signature in this piece.</p>
+			<?php } else { ?>
+				<table cellpadding="4" cellspacing="1" border="0" class="adminform" style="width:100%;">
+					<tr>
+						<th align="left">Parameter</th>
+						<th align="left">Value</th>
+					</tr>
+					<?php
+					if (!count($paramNames)) {
+						?>
+						<tr>
+							<td>NO parameter</td>
+							<td>-</td>
+							<td></td>
+						</tr>
+						<?php
+					} else {
+						$lastParamIndex = count($paramNames) - 1;
+						for ($i = 0; $i < count($paramNames); $i++) {
+							$name = $paramNames[$i];
+							$default = isset($paramDefaults[$i]) ? $paramDefaults[$i] : '';
+							$value = isset($paramValues[$i]) ? $paramValues[$i] : $default;
+							?>
+							<tr>
+								<td><?php echo htmlspecialchars($name, ENT_QUOTES); ?> :</td>
+								<td>
+									<input type="hidden" name="test_param_names[]" value="<?php echo htmlspecialchars($name, ENT_QUOTES); ?>" />
+									<input type="hidden" name="test_param_defaults[]" value="<?php echo htmlspecialchars($default, ENT_QUOTES); ?>" />
+									<input type="text" name="test_param_values[]" value="<?php echo htmlspecialchars($value, ENT_QUOTES); ?>" class="inputbox" />
+								</td>
+								<td>
+									<?php if ($i === $lastParamIndex) { ?>
+										<button type="submit" class="btn btn-primary">
+											<span class="icon-eye" aria-hidden="true"></span>
+											Lancer
+										</button>
+									<?php } ?>
+								</td>
+							</tr>
+							<?php
+						}
+					}
+					?>
+				</table>
+			<?php } ?>
+
+			<?php
+			$isEmptyResult = $result === '';
+			$isSuccess = $result !== false && $result !== null && !$isEmptyResult;
+			?>
+			<?php if ($error !== '') { ?>
+				<div class="alert alert-danger">
+					<span class="icon-times text-danger" aria-hidden="true"></span>
+					Invalide: <?php echo htmlspecialchars($error, ENT_QUOTES); ?>
+					<?php if ($output !== '') { ?>
+						<div><strong>Output:</strong></div>
+						<pre><?php echo htmlspecialchars($output, ENT_QUOTES); ?></pre>
+					<?php } ?>
+					<?php if ($result !== null) { ?>
+						<div><strong>Result:</strong></div>
+						<pre><?php echo htmlspecialchars(var_export($result, true), ENT_QUOTES); ?></pre>
+					<?php } ?>
+					<?php if (!empty($errorDetails)) { ?>
+						<div><strong>Exception:</strong></div>
+						<pre><?php echo htmlspecialchars(print_r($errorDetails, true), ENT_QUOTES); ?></pre>
+					<?php } ?>
+					<div><strong>Parameters:</strong></div>
+					<pre><?php echo htmlspecialchars(print_r(array_combine($paramNames, $paramValues), true), ENT_QUOTES); ?></pre>
+					<div class="accordion" id="bfPieceCodeAccordion">
+						<div class="accordion-item">
+							<h2 class="accordion-header" id="bfPieceCodeHeading">
+								<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+									data-bs-target="#bfPieceCodeCollapse" aria-expanded="false" aria-controls="bfPieceCodeCollapse">
+									Piece code
+								</button>
+							</h2>
+							<div id="bfPieceCodeCollapse" class="accordion-collapse collapse" aria-labelledby="bfPieceCodeHeading"
+								data-bs-parent="#bfPieceCodeAccordion">
+								<div class="accordion-body">
+									<pre><?php echo htmlspecialchars($row->code, ENT_QUOTES); ?></pre>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			<?php } ?>
+			<?php if ($error === '' && $output !== '') { ?>
+				<p><strong>Output:</strong></p>
+				<pre><?php echo htmlspecialchars($output, ENT_QUOTES); ?></pre>
+			<?php } ?>
+			<?php if ($error === '' && $result !== null) { ?>
+				<div class="alert <?php echo $isEmptyResult ? 'alert-warning' : ($isSuccess ? 'alert-success' : 'alert-danger'); ?>">
+					<strong>Result:</strong>
+					<pre><?php echo htmlspecialchars(var_export($result, true), ENT_QUOTES); ?></pre>
+					<?php if ($isEmptyResult) { ?>
+						<div>
+							<span class="icon-warning text-warning" aria-hidden="true"></span>
+							Warning: resultat vide
+						</div>
+					<?php } elseif ($isSuccess) { ?>
+						<div>
+							<span class="icon-check text-success" aria-hidden="true"></span>
+							Valide
+						</div>
+					<?php } else { ?>
+						<div>
+							<span class="icon-times text-danger" aria-hidden="true"></span>
+							Invalide: resultat faux
+						</div>
+					<?php } ?>
+					<?php if (!$isSuccess && !$isEmptyResult) { ?>
+						<div><strong>Parameters:</strong></div>
+						<pre><?php echo htmlspecialchars(print_r(array_combine($paramNames, $paramValues), true), ENT_QUOTES); ?></pre>
+					<?php } ?>
+				</div>
+			<?php } ?>
+
+			<input type="hidden" name="option" value="<?php echo $option; ?>" />
+			<input type="hidden" name="task" value="testrun" />
+			<input type="hidden" name="act" value="managepieces" />
+			<input type="hidden" name="pkg" value="<?php echo $pkg; ?>" />
+			<input type="hidden" name="ids[]" value="<?php echo $row->id; ?>" />
+			<input type="hidden" name="test_function" value="<?php echo htmlspecialchars($functionName, ENT_QUOTES); ?>" />
+			<input type="hidden" name="test_context" value="1" />
+		</form>
+		<?php
+	} // test
 
 } // class HTML_facileFormsPiece
 ?>

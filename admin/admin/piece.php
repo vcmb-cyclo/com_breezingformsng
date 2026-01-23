@@ -40,6 +40,18 @@ switch ($task) {
 	case 'unpublish':
 		facileFormsPiece::publish($option, $pkg, $ids, '0');
 		break;
+	case 'prev':
+		facileFormsPiece::prev($option, $pkg, $ids);
+		break;
+	case 'next':
+		facileFormsPiece::next($option, $pkg, $ids);
+		break;
+	case 'test':
+		facileFormsPiece::test($option, $pkg, $ids);
+		break;
+	case 'testrun':
+		facileFormsPiece::testrun($option, $pkg, $ids);
+		break;
 	case 'config':
 		$ff_config->edit(
 			$option,

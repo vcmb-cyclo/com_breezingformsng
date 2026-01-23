@@ -309,9 +309,19 @@ class HTML_facileFormsScript
 		return '???';
 	} // typeName
 
-	static function listitems($option, &$rows, &$pkglist)
+	static function listitems($option, &$rows, &$pkglist, $pkg)
 	{
 		global $ff_config, $ff_version;
+		$sort = BFRequest::getCmd('sort', 'name');
+		$dir = strtoupper(BFRequest::getCmd('dir', 'ASC'));
+		$dir = $dir === 'DESC' ? 'DESC' : 'ASC';
+		$baseQuery = 'index.php?option=' . $option . '&act=managescripts&pkg=' . urlencode($pkg);
+		$toggleDir = function ($column) use ($sort, $dir) {
+			if ($sort === $column) {
+				return $dir === 'ASC' ? 'DESC' : 'ASC';
+			}
+			return 'ASC';
+		};
 		?>
 		<script type="text/javascript">
 							<!--
@@ -391,23 +401,40 @@ class HTML_facileFormsScript
 
 			<table cellpadding="4" cellspacing="0" border="0" width="100%" class="adminlist table table-striped">
 				<tr>
-					<th style="width: 25px;" nowrap align="right">ID</th>
+					<th style="width: 25px;" nowrap align="right">
+						<a href="<?php echo $baseQuery . '&sort=id&dir=' . $toggleDir('id'); ?>">ID</a>
+					</th>
 					<th style="width: 25px;" nowrap align="center"><input type="checkbox" name="toggle" value=""
 							onclick="Joomla.checkAll(this);" /></th>
 					<th align="left">
-						<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_TITLE'); ?>
+						<a href="<?php echo $baseQuery . '&sort=title&dir=' . $toggleDir('title'); ?>">
+							<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_TITLE'); ?>
+						</a>
 					</th>
 					<th align="left">
-						<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_NAME'); ?>
+						<a href="<?php echo $baseQuery . '&sort=name&dir=' . $toggleDir('name'); ?>">
+							<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_NAME'); ?>
+						</a>
 					</th>
 					<th align="left">
-						<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_TYPE'); ?>
+						<a href="<?php echo $baseQuery . '&sort=type&dir=' . $toggleDir('type'); ?>">
+							<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_TYPE'); ?>
+						</a>
 					</th>
 					<th align="left">
-						<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_DESCRIPTION'); ?>
+						<a href="<?php echo $baseQuery . '&sort=description&dir=' . $toggleDir('description'); ?>">
+							<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_DESCRIPTION'); ?>
+						</a>
+					</th>
+					<th align="left">
+						<a href="<?php echo $baseQuery . '&sort=modified&dir=' . $toggleDir('modified'); ?>">
+							<?php echo BFText::_('JGLOBAL_MODIFIED'); ?>
+						</a>
 					</th>
 					<th align="center">
-						<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_PUBLISHED'); ?>
+						<a href="<?php echo $baseQuery . '&sort=published&dir=' . $toggleDir('published'); ?>">
+							<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_PUBLISHED'); ?>
+						</a>
 					</th>
 				</tr>
 				<?php
@@ -435,6 +462,12 @@ class HTML_facileFormsScript
 						</td>
 						<td valign="top" align="left">
 							<?php echo htmlspecialchars($desc, ENT_QUOTES); ?>
+						</td>
+						<td valign="top" align="left">
+							<?php
+							$lastModified = $row->modified ?: $row->created;
+							echo $lastModified ? HTMLHelper::date($lastModified, 'Y-m-d H:i') : '-';
+							?>
 						</td>
 						<td valign="top" align="center">
 							<?php

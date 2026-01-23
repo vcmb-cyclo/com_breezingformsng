@@ -229,7 +229,11 @@ $_13 = "CREATE TABLE `#__facileforms_scripts` (
   `title` varchar(50) NOT NULL DEFAULT '',
   `description` text,
   `type` varchar(30) NOT NULL DEFAULT '',
-  `code` longtext
+  `code` longtext,
+  `created` datetime NULL DEFAULT NULL,
+  `created_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `modified` datetime NULL DEFAULT NULL,
+  `modified_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
 
 $_14 = "DROP TABLE IF EXISTS `#__facileforms_pieces`";
@@ -242,7 +246,11 @@ $_15 = "CREATE TABLE `#__facileforms_pieces` (
   `title` varchar(255) NOT NULL DEFAULT '',
   `description` text,
   `type` varchar(30) NOT NULL DEFAULT '',
-  `code` longtext
+  `code` longtext,
+  `created` datetime NULL DEFAULT NULL,
+  `created_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `modified` datetime NULL DEFAULT NULL,
+  `modified_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
 
 $_16 = "DROP TABLE IF EXISTS `#__facileforms_records`";
@@ -269,7 +277,7 @@ $_17 = "CREATE TABLE `#__facileforms_records` (
   `paypal_download_tries` int(11) NOT NULL DEFAULT '0',
   `opted` tinyint(1) NOT NULL DEFAULT '0',
   `opt_ip` varchar(255) NOT NULL DEFAULT '',
-  `opt_date` datetime NOT NULL DEFAULT '1970-01-01 00:00:00',
+  `opt_date` datetime NULL DEFAULT NULL,
   `opt_token` varchar(255) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
 

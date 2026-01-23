@@ -67,6 +67,21 @@ class facileFormsScript
 		// Forcer code non filtré
 		$row->code = $code;
 
+		$now = Factory::getDate()->toSql();
+		$userId = (string) Factory::getApplication()->getIdentity()->username;
+
+		if (empty($row->id)) {
+			if (empty($row->created)) {
+				$row->created = $now;
+			}
+			if (empty($row->created_by)) {
+				$row->created_by = $userId;
+			}
+		}
+
+		$row->modified = $now;
+		$row->modified_by = $userId;
+
 		if (!$row->store()) {
 			echo "<script> alert('" . $row->getError() . "'); window.history.go(-1); </script>\n";
 			exit();
@@ -90,6 +105,10 @@ class facileFormsScript
 		if (count($ids)) foreach ($ids as $id) {
 			$row->load(intval($id));
 			$row->id       = NULL;
+			$row->created = Factory::getDate()->toSql();
+			$row->created_by = (string) Factory::getApplication()->getIdentity()->username;
+			$row->modified = $row->created;
+			$row->modified_by = $row->created_by;
 			$row->store();
 		} // foreach
 		$msg = $total . ' ' . BFText::_('COM_BREEZINGFORMS_SCRIPTS_SUCCOPIED');
@@ -131,6 +150,8 @@ class facileFormsScript
 
 	static function listitems($option, $pkg)
 	{
+		$app = Factory::getApplication();
+		$session = $app->getSession();
 		$database = Factory::getContainer()->get(DatabaseInterface::class);
 
 		$database->setQuery(
@@ -157,10 +178,37 @@ class facileFormsScript
 		$pkglist[] = array($pkg == '', '');
 		if (count($pkgs)) foreach ($pkgs as $p) $pkglist[] = array($p->name == $pkg, $p->name);
 
+		$sortReq = BFRequest::getVar('sort', null);
+		$dirReq = BFRequest::getVar('dir', null);
+		if ($sortReq === null) {
+			$sort = (string) $session->get('bf.scripts_sort', 'name');
+		} else {
+			$sort = (string) $sortReq;
+			$session->set('bf.scripts_sort', $sort);
+		}
+		if ($dirReq === null) {
+			$dir = strtoupper((string) $session->get('bf.scripts_dir', 'ASC'));
+		} else {
+			$dir = strtoupper((string) $dirReq);
+			$session->set('bf.scripts_dir', $dir);
+		}
+		$allowedSorts = array(
+			'id' => 'id',
+			'title' => 'title',
+			'name' => 'name',
+			'type' => 'type',
+			'description' => 'description',
+			'modified' => 'modified',
+			'published' => 'published',
+		);
+		$sortField = isset($allowedSorts[$sort]) ? $allowedSorts[$sort] : 'name';
+		$dir = $dir === 'DESC' ? 'DESC' : 'ASC';
+		$orderBy = "order by {$sortField} {$dir}, id desc";
+
 		$database->setQuery(
 			"select * from #__facileforms_scripts " .
 				"where package =  " . $database->Quote($pkg) . " " .
-				"order by type, name, id desc"
+				$orderBy
 		);
 
 		try {
@@ -171,7 +219,7 @@ class facileFormsScript
 		} // try
 
 
-		HTML_facileFormsScript::listitems($option, $rows, $pkglist);
+		HTML_facileFormsScript::listitems($option, $rows, $pkglist, $pkg);
 	} // listitems
 
 } // class facileFormsScript

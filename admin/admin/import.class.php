@@ -335,41 +335,45 @@ class ff_importPackage extends ff_xmlPackage
 			require_once (JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Decoder.php');
 			require_once (JPATH_SITE . '/administrator/components/com_breezingforms/libraries/Zend/Json/Encoder.php');
 
-			foreach ($this->forms as $form_id) {
-				$db->setQuery("Select template_areas, template_code_processed, template_code From #__facileforms_forms Where id = " . intval($form_id));
-				$row = $db->loadObject();
-				if (trim($row->template_code) != '') {
-					$areas = Zend_Json::decode(bf_b64dec($row->template_areas));
-					$i = 0;
-					foreach ($areas as $area) {
-						$j = 0;
-						foreach ($area['elements'] as $element) {
-							$areas[$i]['elements'][$j]['dbId'] = 0;
-							$j++;
+			if (!empty($this->forms) && is_array($this->forms)) {
+				foreach ($this->forms as $form_id) {
+					$db->setQuery("Select template_areas, template_code_processed, template_code From #__facileforms_forms Where id = " . intval($form_id));
+					$row = $db->loadObject();
+					if (trim($row->template_code) != '') {
+						$areas = Zend_Json::decode(bf_b64dec($row->template_areas));
+						$i = 0;
+						foreach ($areas as $area) {
+							$j = 0;
+							foreach ($area['elements'] as $element) {
+								$areas[$i]['elements'][$j]['dbId'] = 0;
+								$j++;
+							}
+							$i++;
 						}
-						$i++;
-					}
 
-					$template_areas = Zend_Json::encode($areas);
-					$template_code = $row->template_code;
+						$template_areas = Zend_Json::encode($areas);
+						$template_code = $row->template_code;
 
-					if ($row->template_code_processed == 'QuickMode') {
-						$dataObject = Zend_Json::decode(bf_b64dec($row->template_code));
-						$this->resetQuickModeDbId($dataObject);
-						$template_code = bf_b64enc(Zend_Json::encode($dataObject));
-					}
+						if ($row->template_code_processed == 'QuickMode') {
+							$dataObject = Zend_Json::decode(bf_b64dec($row->template_code));
+							$this->resetQuickModeDbId($dataObject);
+							$template_code = bf_b64enc(Zend_Json::encode($dataObject));
+						}
 
-					$db->setQuery("Update #__facileforms_forms Set template_code = " . $db->Quote($template_code) . ", template_areas = " . $db->Quote($template_areas) . " Where id = " . intval($form_id));
-					$db->execute();
+						$db->setQuery("Update #__facileforms_forms Set template_code = " . $db->Quote($template_code) . ", template_areas = " . $db->Quote($template_areas) . " Where id = " . intval($form_id));
+						$db->execute();
 
-					if ($row && $row->template_code_processed == 'QuickMode') {
-						$quickMode = new QuickMode();
-						$quickMode->save(
-							$form_id,
-							Zend_Json::decode(bf_b64dec($template_code))
-						);
+						if ($row && $row->template_code_processed == 'QuickMode') {
+							$quickMode = new QuickMode();
+							$quickMode->save(
+								$form_id,
+								Zend_Json::decode(bf_b64dec($template_code))
+							);
+						}
 					}
 				}
+			} else {
+				$this->warnings[] = 'No forms imported, QuickMode templates were not processed.';
 			}
 		} // if
 		return $ok;
@@ -459,6 +463,19 @@ class ff_importPackage extends ff_xmlPackage
 		$row->type = $this->getText(1, 'type', 'Untyped');
 		$row->code = $this->getText(1, 'code');
 
+		$now = Factory::getDate()->toSql();
+		$userName = (string) Factory::getApplication()->getIdentity()->username;
+		if (empty($row->id)) {
+			if (empty($row->created)) {
+				$row->created = $now;
+			}
+			if (empty($row->created_by)) {
+				$row->created_by = $userName;
+			}
+		}
+		$row->modified = $now;
+		$row->modified_by = $userName;
+
 		if (!$row->store()) {
 			$this->setError($row->getError(), true);
 			return;
@@ -500,6 +517,19 @@ class ff_importPackage extends ff_xmlPackage
 		$row->description = $this->getText(1, 'description');
 		$row->type = $this->getText(1, 'type', 'Untyped');
 		$row->code = $this->getText(1, 'code');
+
+		$now = Factory::getDate()->toSql();
+		$userName = (string) Factory::getApplication()->getIdentity()->username;
+		if (empty($row->id)) {
+			if (empty($row->created)) {
+				$row->created = $now;
+			}
+			if (empty($row->created_by)) {
+				$row->created_by = $userName;
+			}
+		}
+		$row->modified = $now;
+		$row->modified_by = $userName;
 
 		if (!$row->store()) {
 			$this->setError($row->getError(), true);
@@ -584,6 +614,19 @@ class ff_importPackage extends ff_xmlPackage
 			$this->getScriptPiece(1, $row, '#__facileforms_pieces', 'piece4', $this->xpieces);
 			if ($this->hasErrors())
 				return;
+
+			$now = Factory::getDate()->toSql();
+			$userName = (string) Factory::getApplication()->getIdentity()->username;
+			if (empty($row->id)) {
+				if (empty($row->created)) {
+					$row->created = $now;
+				}
+				if (empty($row->created_by)) {
+					$row->created_by = $userName;
+				}
+			}
+			$row->modified = $now;
+			$row->modified_by = $userName;
 
 			if (!$row->store()) {
 				$this->setError($row->getError(), true);

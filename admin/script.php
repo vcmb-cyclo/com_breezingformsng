@@ -14,407 +14,6 @@ use Joomla\CMS\Factory;
 use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Installer\Installer;
 
-class BFFactory
-{
-    private static $dbo = null;
-
-    public static function getDbo()
-    {
-        if (static::$dbo == null) {
-            static::$dbo = new BFDbo();
-        }
-
-        return static::$dbo;
-    }
-
-}
-
-class BFFile extends File
-{
-
-    public static function read($file)
-    {
-
-        return file_get_contents($file);
-    }
-}
-
-class BFDbo
-{
-
-    private $errNo = 0;
-    private $errMsg = '';
-    private $dbo = null;
-    private $last_query = true;
-    private $last_failed_query = '';
-
-    function __construct()
-    {
-        $this->dbo = Factory::getContainer()->get(DatabaseInterface::class);
-    }
-
-    public function setQuery($query, $offset = 0, $limit = 0)
-    {
-
-        try {
-            $this->dbo->setQuery($query, $offset, $limit);
-        } catch (Exception $e) {
-            $this->last_query = false;
-            $this->last_failed_query = $query;
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        }
-
-    }
-
-    public function loadObjectList()
-    {
-
-        if (!$this->last_query)
-            return array();
-
-        $this->errNo = 0;
-        $this->errMsg = '';
-
-        try {
-
-            return $this->dbo->loadObjectList();
-
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        }
-
-        return array();
-    }
-
-    public function loadObject($class = 'stdClass')
-    {
-        if (!$this->last_query)
-            return null;
-
-        $this->errNo = 0;
-        $this->errMsg = '';
-
-        try {
-
-            return $this->dbo->loadObject($class);
-
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        }
-
-        return null;
-    }
-
-    public function loadColumn($offset = 0)
-    {
-        if (!$this->last_query)
-            return null;
-
-        $this->errNo = 0;
-        $this->errMsg = '';
-
-        try {
-
-            return $this->dbo->loadColumn($offset);
-
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        }
-
-        return null;
-    }
-
-    public function loadAssocList($key = null, $column = null)
-    {
-        if (!$this->last_query)
-            return array();
-
-        $this->errNo = 0;
-        $this->errMsg = '';
-
-        try {
-
-            return $this->dbo->loadAssocList($key, $column);
-
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        }
-
-        return array();
-    }
-
-    public function loadAssoc()
-    {
-        if (!$this->last_query)
-            return null;
-
-        $this->errNo = 0;
-        $this->errMsg = '';
-
-        try {
-
-            return $this->dbo->loadAssoc();
-
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        }
-
-        return null;
-    }
-
-    public function query()
-    {
-
-        return $this->execute();
-    }
-
-    public function execute()
-    {
-        $this->errNo = 0;
-        $this->errMsg = '';
-
-        try {
-
-            return $this->dbo->execute();
-
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        }
-
-        return false;
-    }
-
-    public function updateObject($table, &$object, $key, $nulls = false)
-    {
-        $this->errNo = 0;
-        $this->errMsg = '';
-
-        try {
-
-            return $this->dbo->updateObject($table, $object, $key, $nulls);
-
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        }
-
-        return false;
-    }
-
-    public function insertObject($table, &$object, $key = null)
-    {
-        $this->errNo = 0;
-        $this->errMsg = '';
-
-        try {
-
-            return $this->dbo->insertObject($table, $object, $key);
-
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        }
-
-        return false;
-    }
-
-    public function quote($query, $esc = true)
-    {
-        return $this->dbo->quote($query, $esc);
-    }
-
-    public function getQuery($new = false)
-    {
-        if (!$this->last_query)
-            return $this->last_failed_query;
-
-        return $this->dbo->getQuery($new);
-    }
-
-    public function getPrefix()
-    {
-        return $this->dbo->getPrefix();
-    }
-
-    public function getNullDate()
-    {
-        return $this->dbo->getNullDate();
-    }
-
-    public function getNumRows()
-    {
-        if (!$this->last_query)
-            return 0;
-        return $this->dbo->getNumRows();
-    }
-
-    public function getCount()
-    {
-        if (!$this->last_query)
-            return 0;
-        return $this->dbo->getCount();
-    }
-
-    public function getConnection()
-    {
-        return $this->dbo;
-    }
-
-    public function getAffectedRows()
-    {
-        if (!$this->last_query)
-            return array();
-        return $this->dbo->getAffectedRows();
-    }
-
-    public function getTableColumns($table, $typeOnly = true)
-    {
-        $this->errNo = 0;
-        $this->errMsg = '';
-
-        try {
-            return $this->dbo->getTableColumns($table, $typeOnly);
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        }
-
-        return array();
-    }
-
-    public function getTableList()
-    {
-        $this->errNo = 0;
-        $this->errMsg = '';
-
-        try {
-            return $this->dbo->getTableList();
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        }
-
-        return array();
-    }
-
-    public function loadResult()
-    {
-        if (!$this->last_query)
-            return null;
-
-        $this->errNo = 0;
-        $this->errMsg = '';
-
-        try {
-            return $this->dbo->loadResult();
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        }
-
-        return null;
-    }
-
-    public function getErrorNum()
-    {
-        return $this->errNo;
-    }
-
-    public function getErrorMsg()
-    {
-        return $this->errMsg;
-    }
-
-    public function stderr()
-    {
-
-        return $this->errMsg;
-    }
-
-    public function insertid()
-    {
-
-        if (!$this->last_query)
-            return 0;
-        return $this->dbo->insertid();
-    }
-}
-
-
 class com_breezingformsInstallerScript
 {
     /**
@@ -452,7 +51,7 @@ class com_breezingformsInstallerScript
 
         if (isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_records'])) {
             if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_records']['opt_date'])) {
-                $db->setQuery("ALTER TABLE `#__facileforms_records` ADD `opt_date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00' AFTER `opt_ip`, ADD INDEX (`opt_date`)");
+                $db->setQuery("ALTER TABLE `#__facileforms_records` ADD `opt_date` DATETIME NULL DEFAULT NULL AFTER `opt_ip`, ADD INDEX (`opt_date`)");
                 $db->execute();
             }
         }
@@ -460,6 +59,12 @@ class com_breezingformsInstallerScript
         if (isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_records'])) {
             if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_records']['opt_token'])) {
                 $db->setQuery("ALTER TABLE `#__facileforms_records` ADD `opt_token` VARCHAR(255) NOT NULL DEFAULT '' AFTER `opt_date`, ADD INDEX (`opt_token`)");
+                $db->execute();
+            }
+        }
+        if (isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_records'])) {
+            if (isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_records']['opt_date'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_records` MODIFY `opt_date` DATETIME NULL DEFAULT NULL");
                 $db->execute();
             }
         }
@@ -474,6 +79,60 @@ class com_breezingformsInstallerScript
         if (isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_forms'])) {
             if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_forms']['opt_mail'])) {
                 $db->setQuery("ALTER TABLE `#__facileforms_forms` ADD `opt_mail` VARCHAR(128) NOT NULL DEFAULT '' AFTER `double_opt`, ADD INDEX (`opt_mail`)");
+                $db->execute();
+            }
+        }
+
+        if (isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_scripts'])) {
+            if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_scripts']['created'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_scripts` ADD `created` DATETIME NULL DEFAULT NULL AFTER `code`");
+                $db->execute();
+            }
+            if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_scripts']['created_by'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_scripts` ADD `created_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' AFTER `created`");
+                $db->execute();
+            }
+            if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_scripts']['modified'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_scripts` ADD `modified` DATETIME NULL DEFAULT NULL AFTER `created_by`");
+                $db->execute();
+            }
+            if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_scripts']['modified_by'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_scripts` ADD `modified_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' AFTER `modified`");
+                $db->execute();
+            }
+            if (isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_scripts']['created_by'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_scripts` MODIFY `created_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''");
+                $db->execute();
+            }
+            if (isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_scripts']['modified_by'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_scripts` MODIFY `modified_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''");
+                $db->execute();
+            }
+        }
+
+        if (isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_pieces'])) {
+            if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_pieces']['created'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_pieces` ADD `created` DATETIME NULL DEFAULT NULL AFTER `code`");
+                $db->execute();
+            }
+            if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_pieces']['created_by'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_pieces` ADD `created_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' AFTER `created`");
+                $db->execute();
+            }
+            if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_pieces']['modified'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_pieces` ADD `modified` DATETIME NULL DEFAULT NULL AFTER `created_by`");
+                $db->execute();
+            }
+            if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_pieces']['modified_by'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_pieces` ADD `modified_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' AFTER `modified`");
+                $db->execute();
+            }
+            if (isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_pieces']['created_by'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_pieces` MODIFY `created_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''");
+                $db->execute();
+            }
+            if (isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_pieces']['modified_by'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_pieces` MODIFY `modified_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''");
                 $db->execute();
             }
         }
@@ -492,7 +151,7 @@ class com_breezingformsInstallerScript
         $plugins = $this->getPlugins();
 
         $installer = new Installer();
-        $installer->setDatabase($db->getConnection());
+        $installer->setDatabase($db);
 
         foreach ($plugins as $folder => $subplugs) {
 
@@ -510,8 +169,8 @@ class com_breezingformsInstallerScript
             }
         }
 
-        if (BFFile::exists(JPATH_SITE . '/media/breezingforms/facileforms.config.php')) {
-            BFFile::delete(JPATH_SITE . '/media/breezingforms/facileforms.config.php');
+        if (File::exists(JPATH_SITE . '/media/breezingforms/facileforms.config.php')) {
+            File::delete(JPATH_SITE . '/media/breezingforms/facileforms.config.php');
         }
     }
 
@@ -545,7 +204,7 @@ class com_breezingformsInstallerScript
             if (count($folders) != 0) {
 
                 $installer = new Installer();
-                $installer->setDatabase($db->getConnection());
+                $installer->setDatabase($db);
                 
                 foreach ($folders as $folder) {
                     $installer->install($base_path . '/' . $folder);
@@ -589,12 +248,12 @@ class com_breezingformsInstallerScript
         $results = array();
 
         settype($tables, 'array');
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
 
         foreach ($tables as $table) {
-            $results[$table] = Factory::getContainer()->get(DatabaseInterface::class)->getTableColumns($table, $typeOnly);
+            $results[$table] = $db->getTableColumns($table, $typeOnly);
         }
 
         return $results;
     }
 }
-

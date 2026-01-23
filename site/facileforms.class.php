@@ -674,6 +674,10 @@ class facileFormsScripts extends Table
 	public $description = null; // description
 	public $type = null;     	// type name
 	public $code = null;     	// the code
+	public $created = null;
+	public $created_by = null;
+	public $modified = null;
+	public $modified_by = null;
 
 	function __construct(&$db)
 	{
@@ -716,6 +720,10 @@ class facileFormsPieces extends Table
 	public $description = null; 	// description
 	public $type = null;     		// type name
 	public $code = null;     		// the code
+	public $created = null;
+	public $created_by = null;
+	public $modified = null;
+	public $modified_by = null;
 
 	function __construct(&$db)
 	{
