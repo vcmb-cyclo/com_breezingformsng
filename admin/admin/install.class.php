@@ -329,6 +329,10 @@ class facileFormsInstaller
 
 		$ff_config->store();
 
+		$reinstallFlag = JPATH_SITE . '/media/breezingforms/.bf_reinstall';
+		if (file_exists($reinstallFlag)) {
+			@unlink($reinstallFlag);
+		}
 
 		HTML_facileFormsInstaller::step3($option, $errors);
 	} // step3

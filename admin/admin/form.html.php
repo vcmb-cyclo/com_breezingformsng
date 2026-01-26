@@ -1927,9 +1927,19 @@ class HTML_facileFormsForm
 
     // edit
 
-    static function listitems($option, &$rows, &$pkglist, $total = 0)
+    static function listitems($option, &$rows, &$pkglist, $total = 0, $sort = 'ordering', $dir = 'ASC', $pkg = '')
     {
         global $ff_config, $ff_version;
+        $sort = $sort ?: 'ordering';
+        $dir = strtoupper($dir ?: 'ASC');
+        $dir = $dir === 'DESC' ? 'DESC' : 'ASC';
+        $baseQuery = 'index.php?option=' . $option . '&act=manageforms&pkg=' . urlencode($pkg);
+        $toggleDir = function ($column) use ($sort, $dir) {
+            if ($sort === $column) {
+                return $dir === 'ASC' ? 'DESC' : 'ASC';
+            }
+            return 'ASC';
+        };
         ?>
         
         <script type="text/javascript">
@@ -1946,19 +1956,15 @@ class HTML_facileFormsForm
                     document.adminForm.submit();
                 });
 
-                // Désactivez le bouton spécifique de la barre d'outils
-                jQuery('.joomla-toolbar-button button').each(function() {
-                    JQuery(this).off('click');
-                    // Remplacez 'votre-task' par la tâche spécifique du bouton que vous voulez désactiver
-                    jQuery(this).prop('disabled', true); // Désactive le bouton
-                    jQuery(this).find('span').css('color', 'black'); // Change la couleur du <span> en noir
-                });
-
-                jQuery('joomla-toolbar-button').on('click', function(e){
+                jQuery(document).on('click', 'joomla-toolbar-button button', function(e){
 
                     e.preventDefault();
+                    e.stopPropagation();
 
-                    let pressbutton = jQuery(this).attr('task');
+                    let pressbutton = jQuery(this).closest('joomla-toolbar-button').attr('task');
+                    if (!pressbutton) {
+                        pressbutton = jQuery(this).data('task') || jQuery(this).attr('task') || '';
+                    }
 
                     var form = document.adminForm;
                     switch (pressbutton) {
@@ -2043,27 +2049,41 @@ class HTML_facileFormsForm
             <table cellpadding="4" cellspacing="0" border="0" width="100%" class="adminlist table table-striped">
                 <tr>
                     <th style="width: 25px;" nowrap align="right">
-                        <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_SCRIPTID'); ?>
+                        <a href="<?php echo $baseQuery . '&sort=id&dir=' . $toggleDir('id'); ?>">
+                            <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_SCRIPTID'); ?>
+                        </a>
                     </th>
                     <th style="width: 25px;" nowrap align="center"><input type="checkbox" name="toggle" value=""
                             onclick="Joomla.checkAll(this);" /></th>
                     <th align="left">
-                        <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_TITLE'); ?>
+                        <a href="<?php echo $baseQuery . '&sort=title&dir=' . $toggleDir('title'); ?>">
+                            <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_TITLE'); ?>
+                        </a>
                     </th>
                     <th align="left">
-                        <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_NAME'); ?>
+                        <a href="<?php echo $baseQuery . '&sort=name&dir=' . $toggleDir('name'); ?>">
+                            <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_NAME'); ?>
+                        </a>
                     </th>
                     <th align="left">
-                        <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_PAGES'); ?>
+                        <a href="<?php echo $baseQuery . '&sort=pages&dir=' . $toggleDir('pages'); ?>">
+                            <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_PAGES'); ?>
+                        </a>
                     </th>
                     <th align="left">
-                        <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_DESCRIPTION'); ?>
+                        <a href="<?php echo $baseQuery . '&sort=description&dir=' . $toggleDir('description'); ?>">
+                            <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_DESCRIPTION'); ?>
+                        </a>
                     </th>
                     <th align="center">
-                        <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_PUBLISHED'); ?>
+                        <a href="<?php echo $baseQuery . '&sort=published&dir=' . $toggleDir('published'); ?>">
+                            <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_PUBLISHED'); ?>
+                        </a>
                     </th>
                     <th align="center" colspan="2">
-                        <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_REORDER'); ?>
+                        <a href="<?php echo $baseQuery . '&sort=ordering&dir=' . $toggleDir('ordering'); ?>">
+                            <?php echo BFText::_('COM_BREEZINGFORMS_FORMS_REORDER'); ?>
+                        </a>
                     </th>
                 </tr>
                 <?php
@@ -2198,6 +2218,8 @@ class HTML_facileFormsForm
             <input type="hidden" name="form" value="" />
             <input type="hidden" name="page" value="" />
             <input type="hidden" name="pkg" value="" />
+            <input type="hidden" name="sort" value="<?php echo htmlspecialchars($sort, ENT_QUOTES); ?>" />
+            <input type="hidden" name="dir" value="<?php echo htmlspecialchars($dir, ENT_QUOTES); ?>" />
         </form>
         <?php
     }

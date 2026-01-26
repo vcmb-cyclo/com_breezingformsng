@@ -542,10 +542,39 @@ class facileFormsForm
             $limitstart = intval($_REQUEST['limitstart']);
         }
 
+        $app = Factory::getApplication();
+        $session = $app->getSession();
+        $sortReq = BFRequest::getVar('sort', null);
+        $dirReq = BFRequest::getVar('dir', null);
+        if ($sortReq === null) {
+            $sort = (string) $session->get('bf.forms_sort', 'ordering');
+        } else {
+            $sort = (string) $sortReq;
+            $session->set('bf.forms_sort', $sort);
+        }
+        if ($dirReq === null) {
+            $dir = strtoupper((string) $session->get('bf.forms_dir', 'ASC'));
+        } else {
+            $dir = strtoupper((string) $dirReq);
+            $session->set('bf.forms_dir', $dir);
+        }
+        $allowedSorts = array(
+            'id' => 'id',
+            'title' => 'title',
+            'name' => 'name',
+            'pages' => 'pages',
+            'description' => 'description',
+            'published' => 'published',
+            'ordering' => 'ordering',
+        );
+        $sortField = isset($allowedSorts[$sort]) ? $allowedSorts[$sort] : 'ordering';
+        $dir = $dir === 'DESC' ? 'DESC' : 'ASC';
+        $orderBy = "order by {$sortField} {$dir}, id desc";
+
         $database->setQuery(
             "select SQL_CALC_FOUND_ROWS * from #__facileforms_forms " .
             "where package = " . $database->Quote($pkg) . " " .
-            "order by ordering",
+            $orderBy,
             $limitstart,
             $limit
         );
@@ -561,7 +590,7 @@ class facileFormsForm
         $database->setQuery('SELECT FOUND_ROWS();');
         $total = $database->loadResult();
 
-        HTML_facileFormsForm::listitems($option, $rows, $pkglist, $total);
+        HTML_facileFormsForm::listitems($option, $rows, $pkglist, $total, $sort, $dir, $pkg);
     }
 
     // listitems

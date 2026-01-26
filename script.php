@@ -36,6 +36,30 @@ Log::add('User Agent: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'CLI') . '.', Log::INF
 
 class com_breezingformsInstallerScript
 {
+    private function getIncomingVersion($parent): string
+    {
+        $installer = is_object($parent) && method_exists($parent, 'getParent')
+            ? $parent->getParent()
+            : null;
+        $manifest = $installer && method_exists($installer, 'getManifest')
+            ? $installer->getManifest()
+            : null;
+
+        return $manifest && isset($manifest->version) ? (string) $manifest->version : '';
+    }
+
+    private function markReinstallFlag(): void
+    {
+        $flagDir = JPATH_SITE . '/media/breezingforms';
+        $flagPath = $flagDir . '/.bf_reinstall';
+
+        if (!Folder::exists($flagDir)) {
+            Folder::create($flagDir);
+        }
+
+        File::write($flagPath, (string) time());
+    }
+
     private function log(string $message, int $priority = Log::INFO): void
     {
         Log::add($message, $priority, 'com_breezingforms.install');
@@ -288,6 +312,16 @@ class com_breezingformsInstallerScript
     public function preflight(string $type, $parent): void
     {
         $this->log("Preflight executed for action: {$type}");
+
+        if ($type === 'update') {
+            $currentVersion = $this->getCurrentInstalledVersion();
+            $incomingVersion = $this->getIncomingVersion($parent);
+
+            if ($incomingVersion !== '' && $currentVersion === $incomingVersion) {
+                $this->markReinstallFlag();
+                $this->log('Reinstall detected; scheduled step 2 database update.');
+            }
+        }
     }
     /**
      * method to run after an install/update/uninstall method

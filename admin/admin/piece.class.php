@@ -106,6 +106,7 @@ class facileFormsPiece
 
 		// Forcer code non filtré
 		$row->code = $code;
+		$row->description = BFRequest::getVar('description', '', 'POST', 'string', BFREQUEST_ALLOWRAW);
 
 		$now = Factory::getDate()->toSql();
 		$userId = (string) Factory::getApplication()->getIdentity()->username;
@@ -128,7 +129,7 @@ class facileFormsPiece
 		}
 
 		$app->enqueueMessage(BFText::_('COM_BREEZINGFORMS_PIECES_SAVED'));
-		$app->redirect("index.php?option=$option&act=managepieces&pkg=$pkg");
+		$app->redirect("index.php?option=$option&act=managepieces&task=edit&pkg=$pkg&ids[]=" . (int) $row->id);
 	}
 
 	static function cancel($option, $pkg)

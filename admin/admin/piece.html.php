@@ -136,21 +136,12 @@ class HTML_facileFormsPiece
 					<td></td>
 					<td nowrap colspan="2">
 						<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_DESCRIPTION'); ?>:
-						<a href="javascript:void(0);"
-							onClick="textAreaResize('description',<?php echo $ff_config->areasmall; ?>);">[
-							<?php echo $ff_config->areasmall; ?>]
-						</a>
-						<a href="javascript:void(0);"
-							onClick="textAreaResize('description',<?php echo $ff_config->areamedium; ?>);">[
-							<?php echo $ff_config->areamedium; ?>]
-						</a>
-						<a href="javascript:void(0);"
-							onClick="textAreaResize('description',<?php echo $ff_config->arealarge; ?>);">[
-							<?php echo $ff_config->arealarge; ?>]
-						</a>
 						<br />
-						<textarea wrap="off" name="description" style="width:100%;" rows="<?php echo $ff_config->areasmall; ?>"
-							class="inputbox"><?php echo $row->description; ?></textarea>
+						<?php
+						$params = array('syntax' => 'html');
+						$editor = Editor::getInstance('codemirror');
+						echo $editor->display('description', $row->description, '100%', 200, 40, 10, false, 'description', null, null, $params);
+						?>
 					</td>
 					<td></td>
 				</tr>
@@ -398,11 +389,9 @@ class HTML_facileFormsPiece
 
 	static function test($option, $pkg, &$row, $functionName, $paramNames, $paramDefaults, $paramValues = array(), $result = null, $output = '', $error = '', $safeMode = 1, $autoRun = false, $errorDetails = array())
 	{
-		ToolBarHelper::custom('testrun', 'eye', '', 'Lancer', false);
 		ToolBarHelper::custom('edit', 'cancel.png', 'cancel_f2.png', 'Retour', false);
 		ToolBarHelper::custom('prev', 'arrow-left', '', 'Precedent', false);
 		ToolBarHelper::custom('next', 'arrow-right', '', 'Suivant', false);
-		ToolBarHelper::custom('cancel', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false);
 		?>
 		<?php if ($autoRun) { ?>
 			<script type="text/javascript">
@@ -412,6 +401,13 @@ class HTML_facileFormsPiece
 			</script>
 		<?php } ?>
 		<form action="index.php" method="post" name="adminForm" id="adminForm" class="adminForm">
+			<div class="d-flex justify-content-between align-items-center mb-3">
+				<h2 class="m-0">Test PHP Piece</h2>
+				<button type="submit" class="btn btn-primary">
+					<span class="icon-eye" aria-hidden="true"></span>
+					Lancer
+				</button>
+			</div>
 			<h3><?php echo htmlspecialchars($row->title, ENT_QUOTES); ?></h3>
 			<div class="card mb-3 bg-light">
 				<div class="card-body">
@@ -451,22 +447,22 @@ class HTML_facileFormsPiece
 					<div class="card-header">Description</div>
 					<div class="card-body">
 						<div class="form-control bg-light" style="white-space: pre-wrap;">
-							<?php echo htmlspecialchars($row->description, ENT_QUOTES); ?>
+							<?php echo HTMLHelper::_('content.prepare', $row->description); ?>
 						</div>
 					</div>
 				</div>
 			<?php } ?>
 			<div class="accordion" id="bfPieceCodeAccordion">
-				<div class="accordion-item">
+				<div class="accordion-item bg-light">
 					<h2 class="accordion-header" id="bfPieceCodeHeading">
-						<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+						<button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse"
 							data-bs-target="#bfPieceCodeCollapse" aria-expanded="false" aria-controls="bfPieceCodeCollapse">
 							Piece code
 						</button>
 					</h2>
 					<div id="bfPieceCodeCollapse" class="accordion-collapse collapse" aria-labelledby="bfPieceCodeHeading"
 						data-bs-parent="#bfPieceCodeAccordion">
-						<div class="accordion-body">
+						<div class="accordion-body bg-light">
 							<pre><?php echo htmlspecialchars($row->code, ENT_QUOTES); ?></pre>
 						</div>
 					</div>
