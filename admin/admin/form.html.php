@@ -1927,13 +1927,13 @@ class HTML_facileFormsForm
 
     // edit
 
-    static function listitems($option, &$rows, &$pkglist, $total = 0, $sort = 'ordering', $dir = 'ASC', $pkg = '')
+    static function listitems($option, &$rows, &$pkglist, $total = 0, $sort = 'ordering', $dir = 'ASC', $pkg = '', $search = '')
     {
         global $ff_config, $ff_version;
         $sort = $sort ?: 'ordering';
         $dir = strtoupper($dir ?: 'ASC');
         $dir = $dir === 'DESC' ? 'DESC' : 'ASC';
-        $baseQuery = 'index.php?option=' . $option . '&act=manageforms&pkg=' . urlencode($pkg);
+        $baseQuery = 'index.php?option=' . $option . '&act=manageforms&pkg=' . urlencode($pkg) . '&search=' . urlencode($search);
         $toggleDir = function ($column) use ($sort, $dir) {
             if ($sort === $column) {
                 return $dir === 'ASC' ? 'DESC' : 'ASC';
@@ -1954,6 +1954,23 @@ class HTML_facileFormsForm
                     document.adminForm.limitstart.value = 0;
                     document.adminForm.task.value = '';
                     document.adminForm.submit();
+                });
+
+                jQuery('#search').on('change', function(){
+                    document.adminForm.pkg.value = document.adminForm.pkgsel.value;
+                    document.adminForm.limitstart.value = 0;
+                    document.adminForm.task.value = '';
+                    document.adminForm.submit();
+                });
+
+                jQuery('#search').on('keydown', function(e){
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        document.adminForm.pkg.value = document.adminForm.pkgsel.value;
+                        document.adminForm.limitstart.value = 0;
+                        document.adminForm.task.value = '';
+                        document.adminForm.submit();
+                    }
                 });
 
                 jQuery(document).on('click', 'joomla-toolbar-button button', function(e){
@@ -2037,15 +2054,20 @@ class HTML_facileFormsForm
                 <select id="pkgsel" name="pkgsel" class="inputbox" size="1">
                     <?php
                     if (count($pkglist))
-                        foreach ($pkglist as $pkg) {
+                        foreach ($pkglist as $pkgEntry) {
                             $selected = '';
-                            if ($pkg[0])
+                            if ($pkgEntry[0])
                                 $selected = ' selected';
-                            echo '<option value="' . $pkg[1] . '"' . $selected . '>' . ($pkg[1] == '' ? ' - ' . BFText::_('COM_BREEZINGFORMS_SELECT') . ' - ' : $pkg[1]) . '&nbsp;</option>';
+                            echo '<option value="' . $pkgEntry[1] . '"' . $selected . '>' . ($pkgEntry[1] == '' ? ' - ' . BFText::_('COM_BREEZINGFORMS_SELECT') . ' - ' : $pkgEntry[1]) . '&nbsp;</option>';
                         } // foreach
                     ?>
                 </select>
             </label>
+            <label class="bfPackageSelector bfFilterTools">
+                Filtre
+                <input type="text" name="search" id="search" class="inputbox" value="<?php echo htmlspecialchars($search, ENT_QUOTES); ?>" />
+            </label>
+            <div style="clear: both;"></div>
             <table cellpadding="4" cellspacing="0" border="0" width="100%" class="adminlist table table-striped">
                 <tr>
                     <th style="width: 25px;" nowrap align="right">
@@ -2217,7 +2239,7 @@ class HTML_facileFormsForm
             <input type="hidden" name="task" value="" />
             <input type="hidden" name="form" value="" />
             <input type="hidden" name="page" value="" />
-            <input type="hidden" name="pkg" value="" />
+            <input type="hidden" name="pkg" value="<?php echo htmlspecialchars($pkg, ENT_QUOTES); ?>" />
             <input type="hidden" name="sort" value="<?php echo htmlspecialchars($sort, ENT_QUOTES); ?>" />
             <input type="hidden" name="dir" value="<?php echo htmlspecialchars($dir, ENT_QUOTES); ?>" />
         </form>

@@ -577,6 +577,18 @@ main .bfPackageSelector select{
     margin-bottom: 20px;
 }
 
+main .bfFilterTools {
+    float: right;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+main .bfFilterTools .btn {
+    margin: 0 !important;
+}
+
 .main content input[onclick^="submitbutton"] {
     border-radius: 0 !important;
     background: #92C923 none repeat scroll 0 0 !important;

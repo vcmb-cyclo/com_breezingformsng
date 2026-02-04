@@ -177,6 +177,13 @@ class facileFormsScript
 		$pkglist = array();
 		$pkglist[] = array($pkg == '', '');
 		if (count($pkgs)) foreach ($pkgs as $p) $pkglist[] = array($p->name == $pkg, $p->name);
+		$searchReq = BFRequest::getVar('search', null);
+		if ($searchReq === null) {
+			$search = (string) $session->get('bf.scripts_search', '');
+		} else {
+			$search = trim((string) $searchReq);
+			$session->set('bf.scripts_search', $search);
+		}
 
 		$sortReq = BFRequest::getVar('sort', null);
 		$dirReq = BFRequest::getVar('dir', null);
@@ -204,10 +211,20 @@ class facileFormsScript
 		$sortField = isset($allowedSorts[$sort]) ? $allowedSorts[$sort] : 'name';
 		$dir = $dir === 'DESC' ? 'DESC' : 'ASC';
 		$orderBy = "order by {$sortField} {$dir}, id desc";
+		$searchFilter = '';
+		if ($search !== '') {
+			$searchLike = $database->Quote('%' . $search . '%');
+			$searchFilter = "and (" .
+				"title LIKE " . $searchLike . " or " .
+				"name LIKE " . $searchLike . " or " .
+				"description LIKE " . $searchLike .
+				") ";
+		}
 
 		$database->setQuery(
 			"select * from #__facileforms_scripts " .
 				"where package =  " . $database->Quote($pkg) . " " .
+				$searchFilter .
 				$orderBy
 		);
 
@@ -219,7 +236,7 @@ class facileFormsScript
 		} // try
 
 
-		HTML_facileFormsScript::listitems($option, $rows, $pkglist, $pkg);
+		HTML_facileFormsScript::listitems($option, $rows, $pkglist, $pkg, $search);
 	} // listitems
 
 	static function test($option, $pkg, $ids)

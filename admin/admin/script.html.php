@@ -309,13 +309,13 @@ class HTML_facileFormsScript
 		return '???';
 	} // typeName
 
-	static function listitems($option, &$rows, &$pkglist, $pkg)
+	static function listitems($option, &$rows, &$pkglist, $pkg, $search)
 	{
 		global $ff_config, $ff_version;
 		$sort = BFRequest::getCmd('sort', 'name');
 		$dir = strtoupper(BFRequest::getCmd('dir', 'ASC'));
 		$dir = $dir === 'DESC' ? 'DESC' : 'ASC';
-		$baseQuery = 'index.php?option=' . $option . '&act=managescripts&pkg=' . urlencode($pkg);
+		$baseQuery = 'index.php?option=' . $option . '&act=managescripts&pkg=' . urlencode($pkg) . '&search=' . urlencode($search);
 		$toggleDir = function ($column) use ($sort, $dir) {
 			if ($sort === $column) {
 				return $dir === 'ASC' ? 'DESC' : 'ASC';
@@ -380,6 +380,7 @@ class HTML_facileFormsScript
 				}
 				return false;
 			} // listItemTask
+
 			//-->
 		</script>
 		<form action="index.php" method="post" name="adminForm" id="adminForm">
@@ -390,16 +391,23 @@ class HTML_facileFormsScript
 				<select id="pkgsel" name="pkgsel" class="inputbox" size="1" onchange="submitbutton('');">
 					<?php
 					if (count($pkglist))
-						foreach ($pkglist as $pkg) {
+						foreach ($pkglist as $pkgEntry) {
 							$selected = '';
-							if ($pkg[0])
+							if ($pkgEntry[0])
 								$selected = ' selected';
-							echo '<option value="' . $pkg[1] . '"' . $selected . '>' . $pkg[1] . '&nbsp;</option>';
+							echo '<option value="' . $pkgEntry[1] . '"' . $selected . '>' . $pkgEntry[1] . '&nbsp;</option>';
 						} // foreach
 					?>
 				</select>
 
 			</label>
+			<label class="bfPackageSelector bfFilterTools">
+				Filtre
+				<input type="text" name="search" id="search" class="inputbox"
+					value="<?php echo htmlspecialchars($search, ENT_QUOTES); ?>" onchange="submitbutton('');"
+					onkeydown="if(event.key==='Enter'){event.preventDefault();submitbutton('');}" />
+			</label>
+			<div style="clear: both;"></div>
 
 			<table cellpadding="4" cellspacing="0" border="0" width="100%" class="adminlist table table-striped">
 				<tr>
@@ -502,7 +510,7 @@ class HTML_facileFormsScript
 			<input type="hidden" name="option" value="<?php echo $option; ?>" />
 			<input type="hidden" name="act" value="managescripts" />
 			<input type="hidden" name="task" value="" />
-			<input type="hidden" name="pkg" value="" />
+			<input type="hidden" name="pkg" value="<?php echo htmlspecialchars($pkg, ENT_QUOTES); ?>" />
 		</form>
 		<?php
 	} // listitems

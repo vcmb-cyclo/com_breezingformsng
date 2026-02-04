@@ -27,7 +27,7 @@ class BFAdminPieceTestContext
 		$this->form_id = 0;
 	}
 
-	public function execPieceByName($name)
+	public function execPieceByName($name, ...$args)
 	{
 		if ($name === '') {
 			return null;
@@ -45,12 +45,13 @@ class BFAdminPieceTestContext
 		$code = preg_replace('/^<\\?php\\s*/', '', $code);
 		$code = preg_replace('/\\?>\\s*$/', '', $code);
 
-		$runner = \Closure::bind(function () use ($code) {
+		$runner = \Closure::bind(function (...$__bfPieceArgs) use ($code) {
 			if ($code !== '') {
-				eval($code);
+				return eval($code);
 			}
+			return null;
 		}, $this, static::class);
-		$runner();
+		$runner(...$args);
 
 		return true;
 	}
@@ -240,7 +241,23 @@ class facileFormsPiece
 			$showInternal = (int) $showInternalReq;
 			$session->set('bf.show_internal_pieces', $showInternal);
 		}
+		$searchReq = BFRequest::getVar('search', null);
+		if ($searchReq === null) {
+			$search = (string) $session->get('bf.pieces_search', '');
+		} else {
+			$search = trim((string) $searchReq);
+			$session->set('bf.pieces_search', $search);
+		}
 		$internalFilter = $showInternal ? '' : "and name NOT LIKE '\\_%' ";
+		$searchFilter = '';
+		if ($search !== '') {
+			$searchLike = $database->Quote('%' . $search . '%');
+			$searchFilter = "and (" .
+				"title LIKE " . $searchLike . " or " .
+				"name LIKE " . $searchLike . " or " .
+				"description LIKE " . $searchLike .
+				") ";
+		}
 		$sortReq = BFRequest::getVar('sort', null);
 		$dirReq = BFRequest::getVar('dir', null);
 		if ($sortReq === null) {
@@ -271,6 +288,7 @@ class facileFormsPiece
 			"select * from #__facileforms_pieces " .
 			"where package =  " . $database->Quote($pkg) . " " .
 			$internalFilter .
+			$searchFilter .
 			$orderBy
 		);
 		$rows = $database->loadObjectList();
@@ -282,7 +300,7 @@ class facileFormsPiece
 			return false;
 		}
 
-		HTML_facileFormsPiece::listitems($option, $rows, $pkglist, $pkg, $showInternal);
+		HTML_facileFormsPiece::listitems($option, $rows, $pkglist, $pkg, $showInternal, $search);
 	} // listitems
 
 	static function test($option, $pkg, $ids)
@@ -411,14 +429,17 @@ class facileFormsPiece
 			$code = trim($row->code);
 			$code = preg_replace('/^<\\?php\\s*/', '', $code);
 			$code = preg_replace('/\\?>\\s*$/', '', $code);
-			$runner = \Closure::bind(function () use ($code) {
+			$runner = \Closure::bind(function (...$__bfPieceArgs) use ($code) {
 				if ($code !== '') {
-					eval($code);
+					return eval($code);
 				}
+				return null;
 			}, $context, $context::class);
-			$runner();
+			$evalResult = $runner(...$args);
 			if ($functionName !== '' && function_exists($functionName)) {
 				$result = call_user_func_array($functionName, $args);
+			} elseif ($functionName === '') {
+				$result = $evalResult;
 			} else {
 				$error = 'Function not found in piece code.';
 			}

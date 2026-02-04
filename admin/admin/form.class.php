@@ -544,6 +544,13 @@ class facileFormsForm
 
         $app = Factory::getApplication();
         $session = $app->getSession();
+        $searchReq = BFRequest::getVar('search', null);
+        if ($searchReq === null) {
+            $search = (string) $session->get('bf.forms_search', '');
+        } else {
+            $search = trim((string) $searchReq);
+            $session->set('bf.forms_search', $search);
+        }
         $sortReq = BFRequest::getVar('sort', null);
         $dirReq = BFRequest::getVar('dir', null);
         if ($sortReq === null) {
@@ -570,10 +577,20 @@ class facileFormsForm
         $sortField = isset($allowedSorts[$sort]) ? $allowedSorts[$sort] : 'ordering';
         $dir = $dir === 'DESC' ? 'DESC' : 'ASC';
         $orderBy = "order by {$sortField} {$dir}, id desc";
+        $searchFilter = '';
+        if ($search !== '') {
+            $searchLike = $database->Quote('%' . $search . '%');
+            $searchFilter = "and (" .
+                "title LIKE " . $searchLike . " or " .
+                "name LIKE " . $searchLike . " or " .
+                "description LIKE " . $searchLike .
+                ") ";
+        }
 
         $database->setQuery(
             "select SQL_CALC_FOUND_ROWS * from #__facileforms_forms " .
             "where package = " . $database->Quote($pkg) . " " .
+            $searchFilter .
             $orderBy,
             $limitstart,
             $limit
@@ -590,7 +607,7 @@ class facileFormsForm
         $database->setQuery('SELECT FOUND_ROWS();');
         $total = $database->loadResult();
 
-        HTML_facileFormsForm::listitems($option, $rows, $pkglist, $total, $sort, $dir, $pkg);
+        HTML_facileFormsForm::listitems($option, $rows, $pkglist, $total, $sort, $dir, $pkg, $search);
     }
 
     // listitems
