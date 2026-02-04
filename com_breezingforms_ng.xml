@@ -6,15 +6,15 @@
   ~ @license GNU General Public License version 2, or later
   -->
   
-<extension type="component" version="6.0.1" method="upgrade">
-	<name>COM_BREEZINGFORMS</name>
-	<creationDate>2026-01-26</creationDate>
+<extension type="component" version="6.0.2" method="upgrade">
+	<name>COM_BREEZINGFORMS_NG</name>
+	<creationDate>2026-02-04</creationDate>
 	<author>XDA/GIL</author>
 	<copyright>This Joomla! component is released under the GNU/GPL license</copyright>
         <license>GNU/GPLv2 http://www.gnu.org/licenses/gpl-2.0.html</license>
 	<authorEmail>breezingforms@vcmb.fr</authorEmail>
 	<authorUrl>https://breezingforms.vcmb.fr</authorUrl>
-	<version>6.0.1</version>
+	<version>6.0.2</version>
 	<description>Installation successful. Next find BreezingForms in the Components menu, and finish the installation process.</description>
 	<installfile>install.php</installfile>
         <uninstallfile>uninstall.php</uninstallfile>
@@ -22,7 +22,7 @@
         <scriptfile>script.php</scriptfile>
 
         <updateservers>
-            <server type="extension" name="BreezingForms" priority="1">https://breezingforms.vcmb.fr/download/com_breezingforms_update.xml</server>
+            <server type="extension" name="BreezingForms" priority="1">https://breezingforms.vcmb.fr/download/com_breezingforms_ng_update.xml</server>
          </updateservers>
 
 	<targetplatform>
@@ -123,6 +123,7 @@
 	</administration>
 
 </extension>
+
 
 
 
