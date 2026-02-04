@@ -399,23 +399,7 @@
 		<description>Cancel and go to site Home page</description>
 		<code>function gn_annuler(element\x2C action) {\r\n    var url = location.href\x3B // Lit l\x27URL\r\n    var website = location.origin\x3B // retourne host.com\r\n\r\n    var pos = url.indexOf(\x22/\x22\x2C website.length + 1) \x3B // -1 si pas de sous-domaine ou position du /\r\n\r\n    if (pos \x3E 0) {\r\n        // Retourne le nom de sous-domaine\r\n        url = url.substr(0\x2C pos) \x3B\r\n    }\r\n    // Note si pos = négatif\x2C Pas de sous domaine\r\n  location.href = url \x3B // sortie au nom de domaine ou sous domaine\r\n\r\n} // gn_annuler</code>
 	</script>
-	<script id="50">
-		<package>GN</package>
-		<name>gn_annuler</name>
-		<title>Annuler \x26 Home Page</title>
-		<type>Element Action</type>
-		<description>Cancel and go to site Home page</description>
-		<code>function gn_annuler(element\x2C action) {\r\n    var url = location.href\x3B // Lit l\x27URL\r\n    var website = location.origin\x3B // retourne host.com\r\n\r\n    var pos = url.indexOf(\x22/\x22\x2C website.length + 1) \x3B // -1 si pas de sous-domaine ou position du /\r\n\r\n    if (pos \x3E 0) {\r\n        // Retourne le nom de sous-domaine\r\n        url = url.substr(0\x2C pos) \x3B\r\n    }\r\n    // Note si pos = négatif\x2C Pas de sous domaine\r\n  location.href = url \x3B // sortie au nom de domaine ou sous domaine\r\n\r\n} // gn_annuler</code>
-	</script>
 	<script id="51">
-		<package>GN</package>
-		<name>gn_annuler_cyclo</name>
-		<title>Annuler \x26 Cyclo Home Page</title>
-		<type>Element Action</type>
-		<description>Cancel and go to site \x22VCMB Cyclo\x22 Home page</description>
-		<code>function gn_annuler_cyclo(element\x2C action)\r\n{\r\n  eval(\x27document.\x27+ff_processor.form_id).reset()\x3B\r\n  window.location.href = \x22https://cyclo.vcmb.fr\x22\x3B\r\n \r\n} // gn_annuler_cyclo</code>
-	</script>
-	<script id="52">
 		<package>GN</package>
 		<name>gn_annuler_cyclo</name>
 		<title>Annuler \x26 Cyclo Home Page</title>
@@ -431,23 +415,7 @@
 		<description>Go to last page - 1 (Submit page\x2C before Thanks Page)</description>
 		<code>function gn_page_fin(element\x2C action)\r\n{\r\n    ff_switchpage(ff_lastpage-1)\x3B\r\n} // gn_page_fin</code>
 	</script>
-	<script id="54">
-		<package>GN</package>
-		<name>gn_page_fin</name>
-		<title>Page FIN (Last - 1)</title>
-		<type>Element Action</type>
-		<description>Go to last page - 1 (Submit page\x2C before Thanks Page)</description>
-		<code>function gn_page_fin(element\x2C action)\r\n{\r\n    ff_switchpage(ff_lastpage-1)\x3B\r\n} // gn_page_fin</code>
-	</script>
 	<script id="55">
-		<package>GN</package>
-		<name>gn_page4</name>
-		<title>Page 4</title>
-		<type>Element Action</type>
-		<description>Switches to page 4.</description>
-		<code>function gn_page4(element\x2C action)\r\n{\r\n    if (ff_lastpage \x3E= 4) ff_switchpage(4)\x3B\r\n} // gn_page4</code>
-	</script>
-	<script id="56">
 		<package>GN</package>
 		<name>gn_page4</name>
 		<title>Page 4</title>
@@ -697,244 +665,99 @@
 		<description>Set value of a Static Text\x2C Text\x2C Textarea or Hidden Input. \r\n\r\nCall: \r\n    ff_setValue(\x27name\x27\x2C \x27value\x27)\x3B</description>
 		<code>function ff_setValue($name\x2C $value)\r\n{\r\n    global $ff_processor\x3B\r\n    for ($r = 0\x3B $r \x3C $ff_processor-\x3Erowcount\x3B $r++) {\r\n        $row =\x26 $ff_processor-\x3Erows[$r]\x3B\r\n        if ($row-\x3Ename==$name)\r\n            $row-\x3Edata1 = $value\x3B\r\n        unset($row)\x3B\r\n    } // for\r\n} // ff_setValue</code>
 	</piece>
-	<piece id="30">
+<piece id="231">
 		<package>GN</package>
-		<name>gn_countRecords</name>
-		<title>count records</title>
-		<description>Count the records (rows) of a form.\r\n* $formName : form name.</description>
-		<code>function gn_countRecords($formName) {\r\n    $db = BFFactory::getDbo()\x3B\r\n    $sql = \x27SELECT COUNT(1) FROM #__facileforms_records WHERE `name`=\x27.$db-\x3EQuote($formName)\x3B\r\n\r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $nb_countRecords = $db-\x3EloadResult()\x3B\r\n\r\n    return $nb_countRecords\x3B\r\n}</code>
-	</piece>
-	<piece id="31">
-		<package>GN</package>
-		<name>gn_getDBField</name>
-		<title>get DB field</title>
-		<description>Return name item or \x22UNKNOWN\x22 text.\r\n\r\n* $name  : field name\r\n* $recid : current record id.</description>
-		<code>function gn_getDBField($name\x2C $recid) {\r\n    $db = \x26BFFactory::getDbo()\x3B\r\n    $sql = \x22SELECT value from #__facileforms_subrecords WHERE record=$recid AND `name`=\x27$name\x27\x22\x3B \r\n    return ff_selectValue($sql\x2C \x27UNKNOWN\x27)\x3B\r\n}</code>
-	</piece>
-	<piece id="32">
-		<package>GN</package>
-		<name>gn_getDBFieldsDefaultValue</name>
-		<title>get DB fields default value (user)</title>
-		<description>Retrieves the default value identified by its name of a User \x3E Fields.\r\n\r\nPrerequisite: requires loading gn_initLib :\r\n * either like this: \x3C?php $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B return gn_getDBFieldsDefaultValue(\x27club-ffvelo\x27)\x3B ?\x3E\r\n * or in \r\n  * *** begin form \x3E $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B\r\n  * *** \x3C?php return gn_getDBFieldsDefaultValue(\x27club-ffvelo\x27)\x3B ?\x3E\r\n\r\nparameter alias = alias of the field name (example : \x27club-ffvelo\x27)\r\n\r\nExample: \r\n\r\n\x3C?php $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B return gn_getDBFieldsDefaultValue(\x27club-ffvelo\x27)\x3B ?\x3E\r\n\r\nIn the database\x2C the table #__fields contains all default values.</description>
-		<code>function gn_getDBFieldsDefaultValue($name) {\r\n    $userid = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27id\x27\x2C \x27\x27)\x3B\r\n    if ($userid \x3E 0) {\r\n        $db = BFFactory::getDBO()\x3B\r\n        $db-\x3EsetQuery(\x22SELECT default_value FROM #__fields WHERE name = \x27$name\x27\x22)\x3B\r\n        \r\n        // DEBUG $db-\x3EsetQuery(\x22SELECT * FROM #__fields WHERE name = \x27club-ffvelo\x27\x22)\x3B\r\n        // DEBUG return var_dump($db-\x3ELoadObjectList())\x3B\r\n        \r\n        return $db-\x3ELoadResult()\x3B\r\n    }\r\n}</code>
-	</piece>
-	<piece id="33">
-		<package>GN</package>
-		<name>gn_getDBStripeId</name>
-		<title>get DB Stripe Id</title>
-		<description>Retrieves StripeId value.\r\nStripeId is not stored as a standard value.\r\n* $recid : record number.</description>
-		<code>function gn_getDBStripeId($recid) {\r\n    if (isset($recid)) {\r\n        $sql = \x22SELECT paypal_tx_id FROM #__facileforms_records WHERE id=$recid\x22\x3B\r\n        $stripe_id = ff_selectValue($sql\x2C \x27FAILED\x27)\x3B\r\n\r\n        // A AMELIORER \r\n        // $db = BFFactory::getDBO()\x3B\r\n        // $db-\x3EsetQuery($sql)\x3B\r\n        // $stripe_id = $db-\x3ELoadResult()\x3B        \r\n        // if (ŝtripe_id == null) { stripe_id = \x27FAILED\x27}\r\n    }\r\n    else {\r\n        $stripe_id = \x27$recid not defined\x27\x3B\r\n    }\r\n\r\n    return $stripe_id\x3B\r\n}</code>
-	</piece>
-	<piece id="34">
-		<package>GN</package>
-		<name>gn_getFormFromFormName</name>
-		<title>get form data with name</title>
-		<description>Gives information with the name of the form.\r\nThe most interesting ones:\r\n$form-\x3Eid = 51\r\n$form-\x3Ename = \x22SystemDashboard\x22\r\n$form-\x3Etitle = \x22Tableau de bord\x22\r\n$form-\x3Epublished =0/1\r\n$form-\x3Edescription</description>
-		<code>function gn_getFormFromFormName($formname = \x27SystemDashboard\x27) {\r\n    $form = \x27NOT FOUND\x27\x3B\r\n    if ($formname != null) {\r\n        $database = \x26BFFactory::getDbo()\x3B\r\n        \r\n        $sql = \x3C\x3C\x3CSQL\r\n        SELECT\r\n            *\r\n            from\r\n            #__facileforms_forms\r\n            WHERE name=\x27$formname\x27 and published=1\r\n            order by ordering\x2C id\r\n        SQL\x3B\r\n                \r\n        $database-\x3EsetQuery($sql)\x3B\r\n        $forms = $database-\x3EloadObjectList()\x3B\r\n        if (count($forms) \x3C 1) {\r\n            echo \x27[Form \x27.htmlentities($formname\x2C ENT_QUOTES\x2C \x27UTF-8\x27).\x27 not found!]\x27\x3B\r\n            $ok = false\x3B\r\n        } else\r\n            $form = $forms[0]\x3B\r\n    } else {\r\n        Joomla\x5CCMS\x5CFactory::getApplication()-\x3EenqueueMessage(\x27No form name provided!\x27\x2C \x27error\x27)\x3B\r\n        $ok = false\x3B\r\n    } // if\r\n\r\n    return $form\x3B\r\n}</code>
-	</piece>
-	<piece id="35">
-		<package>GN</package>
-		<name>gn_getNbInscrit</name>
-		<title>count value</title>
-		<description>Count specific text occurrences in a form list.\r\n\r\n* $form: form number.\r\n* $element_parcours : field name where to search the text.\r\n* $element_path: specific text to count</description>
-		<code>function gn_getNbInscrit($form\x2C $element_parcours\x2C $distance) {\r\n    $db = BFFactory::getDbo()\x3B\r\n    $sql = \x22SELECT COUNT(1) FROM #__facileforms_subrecords AS s  INNER JOIN #__facileforms_records AS r ON r.id = s.record WHERE r.form = \x22 . $db-\x3EQuote($form) . \x22 AND s.`name`=\x22 . $db-\x3EQuote($element_parcours) .\x22 AND s.value =\x27\x22 . $distance  .  \x22\x27\x22\x3B \r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $nb_parcours = $db-\x3EloadResult()\x3B\r\n\r\n    return $nb_parcours\x3B\r\n}</code>
-	</piece>
-	<piece id="36">
-		<package>GN</package>
-		<name>gn_getNextNumDossard</name>
-		<title>get next</title>
-		<description>Returns the next competitor number of a form \r\n* $form : the number of the current form.\r\n* $field_dossard: the name of the element which contains the competitor number (FIELD_DOSSARD field)\x2C\r\n* $first_dossard: the first competitor number to be assigned (FIRST_DOSSARD).\r\n\r\n  // Principle: search in the database in the #__facileforms_subrecords table for the largest competitor number already assigned for this form.\r\n    // The table #__facileforms_subrecords (list of each element value) has :\r\n    // * a value text field containing the data\x2C\r\n    // * a text field `name` containing the name of the element\x2C\r\n    // \x22 an integer field record containing the id of the record (\x3C=\x3E record_id).\r\n\r\n    // The table #__facileforms_records (list of records) has:\r\n    // \x22 an integer field id containing the id of the record (\x3C=\x3E record_id).\r\n    // * an integer field form containing the form number (\x3C=\x3E form_id</description>
-		<code>function gn_getNextNumDossard($form\x2C $field_dossard\x2C $first_dossard) {\r\n    $db = \x26BFFactory::getDbo()\x3B\r\n      $sql = \x22SELECT MAX(CAST(s.value as UNSIGNED)) FROM #__facileforms_subrecords AS s INNER JOIN #__facileforms_records AS r ON r.id = s.record WHERE r.form = \x22 . $db-\x3EQuote($form) . \x22 AND s.`name`=\x22 . $db-\x3EQuote($field_dossard)\x3B\r\n\r\n    // Marche aussi\x2C mais sans message d\x27erreur clair.\r\n    // $dossard = ff_selectValue($sql\x2C $first_dossard-1)+1\x3B\r\n\r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $dossard = $db-\x3EloadResult()\x3B\r\n                \r\n    // Sécurité.\r\n    if (!isset($dossard) || ($dossard \x3C $first_dossard)) {\r\n        $dossard = $first_dossard-1\x3B\r\n    }\r\n\r\n    return $dossard+1\x3B\r\n}</code>
-	</piece>
-	<piece id="37">
-		<package>GN</package>
-		<name>gn_getNextNumDossard</name>
-		<title>get next</title>
-		<description>Returns the next competitor number of a form \r\n* $form : the number of the current form.\r\n* $field_dossard: the name of the element which contains the competitor number (FIELD_DOSSARD field)\x2C\r\n* $first_dossard: the first competitor number to be assigned (FIRST_DOSSARD).\r\n\r\n  // Principle: search in the database in the #__facileforms_subrecords table for the largest competitor number already assigned for this form.\r\n    // The table #__facileforms_subrecords (list of each element value) has :\r\n    // * a value text field containing the data\x2C\r\n    // * a text field `name` containing the name of the element\x2C\r\n    // \x22 an integer field record containing the id of the record (\x3C=\x3E record_id).\r\n\r\n    // The table #__facileforms_records (list of records) has:\r\n    // \x22 an integer field id containing the id of the record (\x3C=\x3E record_id).\r\n    // * an integer field form containing the form number (\x3C=\x3E form_id</description>
-		<code>function gn_getNextNumDossard($form\x2C $field_dossard\x2C $first_dossard) {\r\n    $db = \x26BFFactory::getDbo()\x3B\r\n      $sql = \x22SELECT MAX(CAST(s.value as UNSIGNED)) FROM #__facileforms_subrecords AS s INNER JOIN #__facileforms_records AS r ON r.id = s.record WHERE r.form = \x22 . $db-\x3EQuote($form) . \x22 AND s.`name`=\x22 . $db-\x3EQuote($field_dossard)\x3B\r\n\r\n    // Marche aussi\x2C mais sans message d\x27erreur clair.\r\n    // $dossard = ff_selectValue($sql\x2C $first_dossard-1)+1\x3B\r\n\r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $dossard = $db-\x3EloadResult()\x3B\r\n                \r\n    // Sécurité.\r\n    if (!isset($dossard) || ($dossard \x3C $first_dossard)) {\r\n        $dossard = $first_dossard-1\x3B\r\n    }\r\n\r\n    return $dossard+1\x3B\r\n}</code>
-	</piece>
-	<piece id="38">
-		<package>GN</package>
-		<name>gn_getSubFormsFromFormId</name>
-		<title>new BF internal</title>
-		<description>Internal use of new BF functions (here: gn_getSubFormsFromFormId).</description>
-		<code>function gn_getSubFormsFromFormId($formid = 51) {\r\n    $subforms = \x27NOT FOUND\x27\x3B\r\n    if ($formid != null) {\r\n        $database = \x26BFFactory::getDbo()\x3B\r\n        \r\n        $sql = \x3C\x3C\x3CSQL\r\n        SELECT\r\n            *\r\n            from\r\n            #__facileforms_elements e \r\n            WHERE \r\n            e.form=$formid \r\n            AND e.published = 1 \r\n            AND e.logging = 1\r\n            ORDER BY ordering\x2C id\r\n        SQL\x3B\r\n                \r\n        $database-\x3EsetQuery($sql)\x3B\r\n        $subforms = $database-\x3EloadObjectList()\x3B\r\n        if (count($subforms) \x3C 1) {\r\n            echo \x27[Form \x27.htmlentities($formid\x2C ENT_QUOTES\x2C \x27UTF-8\x27).\x27 not found!]\x27\x3B\r\n            $ok = false\x3B\r\n        } \r\n    } else {\r\n        Joomla\x5CCMS\x5CFactory::getApplication()-\x3EenqueueMessage(\x27No form name provided!\x27\x2C \x27error\x27)\x3B\r\n        $ok = false\x3B\r\n    } // if\r\n\r\n    return $subforms\x3B\r\n}</code>
-	</piece>
-	<piece id="39">
-		<package>GN</package>
-		<name>gn_InitLib</name>
-		<title>Init Library</title>
-		<description>A collection of useful functions for use in form pieces. \r\n\r\nInclude by: \r\n    $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B</description>
-		<code>//+trace high none\r\n// if (!defined(\x27GN_DIE\x27))                    $this-\x3EexecPieceByName(\x27gn_Constants\x27)\x3B\r\nif (!function_exists(\x27gn_getDBFieldsDefaultValue\x27))      $this-\x3EexecPieceByName(\x27gn_getDBFieldsDefaultValue\x27)\x3B\r\nif (!function_exists(\x27gn_updateDBField\x27))      $this-\x3EexecPieceByName(\x27gn_updateDBField\x27)\x3B\r\nif (!function_exists(\x27gn_getDBField\x27))      $this-\x3EexecPieceByName(\x27gn_getDBField\x27)\x3B\r\nif (!function_exists(\x27gn_getDBStripeId\x27))      $this-\x3EexecPieceByName(\x27gn_getDBStripeId\x27)\x3B\r\nif (!function_exists(\x27gn_getNextNumDossard\x27))      $this-\x3EexecPieceByName(\x27gn_getNextNumDossard\x27)\x3B\r\nif (!function_exists(\x27gn_setMemoryData\x27))      $this-\x3EexecPieceByName(\x27gn_setMemoryData\x27)\x3B\r\nif (!function_exists(\x27gn_getNbInscrit\x27))      $this-\x3EexecPieceByName(\x27gn_getNbInscrit\x27)\x3B\r\n\r\nif (!function_exists(\x27gn_getFormFromFormName\x27))      $this-\x3EexecPieceByName(\x27gn_getFormFromFormName\x27)\x3B\r\nif (!function_exists(\x27gn_newRecord\x27))      $this-\x3EexecPieceByName(\x27gn_newRecord\x27)\x3B\r\nif (!function_exists(\x27gn_newSubRecord\x27))      $this-\x3EexecPieceByName(\x27gn_newSubRecord\x27)\x3B\r\nif (!function_exists(\x27gn_getSubFormsFromFormId\x27))      $this-\x3EexecPieceByName(\x27gn_getSubFormsFromFormId\x27)\x3B\r\n\r\nif (!function_exists(\x27gn_countRecords\x27))      $this-\x3EexecPieceByName(\x27gn_countRecords\x27)\x3B</code>
-	</piece>
-	<piece id="40">
-		<package>GN</package>
-		<name>gn_newRecord</name>
-		<title>new BF record</title>
-		<description>Creates a new BF record (without subrecord).\r\nIt will be in the table\x2C but not visible without a subrecord.\r\n\r\nExample:\r\n$record = gn_newRecord(\x27SystemDashboard\x27)\x3B // creates the new record for the SystemDashboard form.\r\ngn_newSubRecord($record\x2C \x27Element\x27\x2C $this-\x3Eformrow-\x3Ename)\x3B // creates an entry in the row.\r\ngn_newSubRecord($record\x2C \x27Value\x27\x2C \x22This is a value\x22)\x3B\r\ngn_newSubRecord($record\x2C \x27Comment\x27\x2C \x22This is a comment\x22)\x3B</description>
-		<code>function gn_newRecord($form_name = \x27SystemDashboard\x27) {\r\n    // Initialisation\r\n    $jinput = Joomla\x5CCMS\x5CFactory::getApplication()-\x3Einput\x3B\r\n    $ip = $jinput-\x3Eserver-\x3Eget(\x27REMOTE_ADDR\x27\x2C \x27\x27\x2C \x27\x27)\x3B\r\n    \r\n    $jbrowserInstance = Joomla\x5CCMS\x5CEnvironment\x5CBrowser::getInstance()\x3B\r\n    $browser = $jbrowserInstance-\x3EgetAgentString()\x3B\r\n    $platform = $jbrowserInstance-\x3EgetPlatform()\x3B\r\n    $form = gn_getFormFromFormName($form_name)\x3B\r\n    \r\n    $database = \x26BFFactory::getDbo()\x3B\r\n    \r\n    $record = new facileFormsRecords($database)\x3B\r\n    $record-\x3Esubmitted = Joomla\x5CCMS\x5CFactory::getDate(\x27now\x27)-\x3Eformat(\x27Y-m-d H:i:s\x27\x2C true)\x3B\r\n    $record-\x3Eform = $form-\x3Eid\x3B\r\n    $record-\x3Etitle = $form-\x3Etitle\x3B\r\n    $record-\x3Ename = $form-\x3Ename\x3B\r\n    $record-\x3Eip = $ip\x3B\r\n    $record-\x3Ebrowser = $browser\x3B\r\n    $record-\x3Eopsys = $platform\x3B\r\n    $record-\x3Eprovider = \x22\x22\x3B\r\n    $record-\x3Eviewed = 0\x3B\r\n    $record-\x3Eexported = 0\x3B\r\n    $record-\x3Earchived = 0\x3B\r\n    if (Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27id\x27\x2C 0) \x3E 0) {\r\n        $record-\x3Euser_id = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27id\x27\x2C 0)\x3B\r\n        $record-\x3Eusername = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27username\x27\x2C \x27\x27)\x3B\r\n        $record-\x3Euser_full_name = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27name\x27\x2C \x27\x27)\x3B\r\n    } else {\r\n        $record-\x3Euser_id = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27id\x27\x2C 0)\x3B\r\n        $record-\x3Eusername = \x27-\x27\x3B\r\n        $record-\x3Euser_full_name = \x27-\x27\x3B\r\n    }\r\n    \r\n    // echo \x22\x3CBR\x3E\x5Cn\x3CBR\x3E\x5CnRECORD ID=\x22 . var_dump($record)\x3B\r\n    // echo \x22\x3CBR\x3E\x5Cn\x3CBR\x3E\x5Cn\x22\x3B\r\n    if (!$record-\x3Estore()) {\r\n        echo \x22\x3CBR\x3E\x5Cn\x3CBR\x3E\x5CnERROR=\x22 .$record-\x3EgetError()\x3B\r\n        return\x3B\r\n    }\r\n    \r\n    return $record\x3B\r\n}</code>
-	</piece>
-	<piece id="41">
-		<package>GN</package>
-		<name>gn_newSubRecord</name>
-		<title>new BF sub record</title>
-		<description>Set a new entry in a BF record.\r\n\r\n* $record : record to complete\r\n* $name  : field name\r\n* $value : value to set to the field of the record.\r\n\r\nWarning: only do this on a new record or check that this entry does not already exist.\r\nThe value must not be already setted.\r\n\r\nExample:\r\n$record = gn_newRecord(\x27SystemDashboard\x27)\x3B // creates the new record for the SystemDashboard form.\r\ngn_newSubRecord($record\x2C \x27Element\x27\x2C $this-\x3Eformrow-\x3Ename)\x3B // creates an new entry (value) for the record\r\ngn_newSubRecord($record\x2C \x27Value\x27\x2C \x22This is a value\x22)\x3B\r\ngn_newSubRecord($record\x2C \x27Comment\x27\x2C \x22This is a comment\x22)\x3B</description>
-		<code>function gn_newSubRecord($record\x2C $name\x2C $value) {\r\n    $subrecords = gn_getSubFormsFromFormId($record-\x3Eform)\x3B\r\n    foreach ($subrecords as $sr) {\r\n        if ($sr-\x3Ename == $name) {\r\n            $database = \x26BFFactory::getDbo()\x3B\r\n            $subrecord = new facileFormsSubrecords($database)\x3B\r\n            //    $subrecord-\x3Eid // identifier (to be created)\r\n            $subrecord-\x3Erecord = $record-\x3Eid\x3B // record id\r\n            $subrecord-\x3Eelement = $sr-\x3Eid\x3B // element id\r\n            $subrecord-\x3Ename = $sr-\x3Ename\x3B // element name\r\n            $subrecord-\x3Etype = $sr-\x3Etype\x3B // data type\r\n            $subrecord-\x3Evalue = $value\x3B // data value\r\n            $subrecord-\x3Estore()\x3B\r\n            break\x3B\r\n        }\r\n    }\r\n}</code>
-	</piece>
-	<piece id="42">
-		<package>GN</package>
-		<name>gn_page_fin</name>
-		<title>Page FIN (Last - 1)</title>
-		<type>Element Action</type>
-		<description>Go to last page - 1 (Submit page\x2C before Thanks Page)</description>
-		<code>function gn_page_fin(element\x2C action)\r\n{\r\n    ff_switchpage(ff_lastpage-1)\x3B\r\n} // gn_page_fin</code>
-	</piece>
-	<piece id="43">
-		<package>GN</package>
-		<name>gn_page4</name>
-		<title>Page 4</title>
-		<type>Element Action</type>
-		<description>Switches to page 4.</description>
-		<code>function gn_page4(element\x2C action)\r\n{\r\n    if (ff_lastpage \x3E= 4) ff_switchpage(4)\x3B\r\n} // gn_page4</code>
-	</piece>
-	<piece id="44">
-		<package>GN</package>
-		<name>gn_setMemoryData</name>
-		<title>set data in memory</title>
-		<description>Updates the element field provided that the field pre-exists.\r\nSet a non-zero default value in BF\x2C for example the - character\x2C\r\nto force its creation in data arrays in memory.\r\n* $that : put $this\r\n* $element : the name of the element (ex : \x27Dossard\x27).\r\n* $value : the value to replace in the element (ex : 508).</description>
-		<code>function gn_setMemoryData(\x26$that\x2C $element\x2C $value) {\r\n    // Write into maildata table for mailing data.\r\n    foreach ($that-\x3Emaildata as \x26$entry) {\r\n        if ($entry[_FF_DATA_NAME] == $element) {\r\n            $entry[_FF_DATA_VALUE] = $value\x3B\r\n            break\x3B\r\n    	}\r\n    }\r\n\r\n    // Write into savedata table for database data.\r\n    foreach ($that-\x3Esavedata as \x26$entry) {\r\n        if ($entry[_FF_DATA_NAME] == $element) {\r\n            $entry[_FF_DATA_VALUE] = $value\x3B\r\n            break\x3B\r\n    	}\r\n    }\r\n}</code>
-	</piece>
-	<piece id="45">
-		<package>GN</package>
-		<name>gn_updateDBField</name>
-		<title>update DB field</title>
-		<description>Updates the name element in base provided that the field pre-exists.\r\n\r\nIN COMMENT\x2C because the update in base has been replaced by an update in memory in Submit Pieces \x3E Begin Submit \x3E Custom.\r\nwith gn_setMemoryData.\r\n \r\nNB : Put a non-null default value in BF\x2C for example the character -.\r\n* $name : the name of the field\r\n* $recid : the current record id.\r\n* $value : the value to fill in the database.</description>
-		<code>function gn_updateDBField($name\x2C $recid\x2C $value) {\r\n    $db = \x26BFFactory::getDbo()\x3B\r\n    $sql = \x27UPDATE #__facileforms_subrecords SET value = \x27 . $db-\x3Equote($value) . \x22 WHERE record=$recid AND `name`=\x27$name\x27\x22\x3B \r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $db-\x3Eexecute()\x3B\r\n}</code>
-	</piece>
-	<piece id="46">
-		<package>GN</package>
-		<name>gn_validate_page_fin</name>
-		<title>Validate and FIN page</title>
-		<type>Element Action</type>
-		<description>Validates the current page\x2C and if everything is ok is switches to Submit page (Last -1)\x2C before Thanks you page.</description>
-		<code>function gn_validate_page_fin(element\x2C action)\r\n{\r\n    if(typeof bfUseErrorAlerts != \x27undefined\x27){\r\n     JQuery(\x22.bfErrorMessage\x22).html(\x27\x27)\x3B\r\n     JQuery(\x22.bfErrorMessage\x22).css(\x22display\x22\x2C\x22none\x22)\x3B\r\n    }\r\n\r\n    error = ff_validation(ff_currentpage)\x3B\r\n    if (error != \x27\x27) {\r\n       if(typeof bfUseErrorAlerts == \x27undefined\x27){\r\n           swal(error)\x3B\r\n        } else {\r\n           bfShowErrors(error)\x3B\r\n        }\r\n        ff_validationFocus(\x27\x27)\x3B\r\n    } else {\r\n        ff_switchpage(ff_lastpage-1)\x3B\r\n        self.scrollTo(0\x2C0)\x3B   \r\n    }\r\n} // gn_validate_page_fin</code>
-	</piece>
-	<piece id="47">
-		<package>GN</package>
-		<name>gn_validate_submit</name>
-		<title>Validate and submit form (SPAM)</title>
-		<type>Element Action</type>
-		<description>Add ANTI-SPAM test before to validate the form. \r\nTest if Nom = Prenom. before submitting the form.\r\nIf NOM = PRENOM \x3E\x3E Attaques classique des .ru (2021)\r\nMise à jour sept. 2021 (Gil)</description>
-		<code>function gn_validate_submit(element\x2C action)\r\n{\r\n    if(typeof bfUseErrorAlerts != \x27undefined\x27){\r\n     JQuery(\x22.bfErrorMessage\x22).html(\x27\x27)\x3B\r\n     JQuery(\x22.bfErrorMessage\x22).css(\x22display\x22\x2C\x22none\x22)\x3B\r\n    }\r\n    error = ff_validation(0)\x3B\r\n    if (error != \x27\x27) {\r\n\r\n        if(typeof bfUseErrorAlerts == \x27undefined\x27){\r\n           alert(error)\x3B\r\n        } else {\r\n           bfShowErrors(error)\x3B\r\n        }\r\n        ff_validationFocus()\x3B\r\n    } else {\r\n	// Vérif SPAM si le NOM et PRENOM sont différents = OK\r\n	nom = ff_getElementByName(\x22Nom\x22).value \x3B\r\n	prenom = ff_getElementByName(\x22Prenom\x22).value \x3B\r\n		\r\n	// Minuscule\x2C puis enlève les espaces de Début et de Fin\r\n	nom =nom.toLowerCase().trim() \x3B\r\n	prenom = prenom.toLowerCase().trim() \x3B\r\n\r\n	// SPAM si le Nom = Prénom ou si le Prénom commence par le Nom (Gil \x3E Gil-André)\r\n	if ( prenom.search(nom) == 0 ){\r\n		// Tentative de SPAM\x2C Sortie Page d\x27accueil Cyclo\r\n		gn_annuler_cyclo() \x3B\r\n	} else {\r\n		// Nom et Prénom OK\x2C Submit Formulaire\r\n		ff_submitForm() \x3B \r\n		}\r\n	}	\r\n} // gn_validate_submit</code>
-	</piece>
-	<piece id="48">
-		<package>GN</package>
-		<name>gn_annuler_cyclo</name>
-		<title>Annuler \x26 Cyclo Home Page</title>
-		<type>Element Action</type>
-		<description>Cancel and go to site \x22VCMB Cyclo\x22 Home page</description>
-		<code>function gn_annuler_cyclo(element\x2C action)\r\n{\r\n  eval(\x27document.\x27+ff_processor.form_id).reset()\x3B\r\n  window.location.href = \x22https://cyclo.vcmb.fr\x22\x3B\r\n \r\n} // gn_annuler_cyclo</code>
-	</piece>
-		<piece id="231">
-		<package>XDA</package>
 		<name>_gn_vcmb_normalize_phone</name>
 		<title>VCMB -\x3E Normalize phone number</title>
-		<description>Normalize phone number</description>
-		<code>// Gilles - 15/01/2026\r\n// Normalize a phone number to French format \x2206 88 88 77 77\x22\r\n// Accepts +33\x2C 0033\x2C spaces\x2C dots\x2C dashes\r\n// Joomla 6 / PHP 8.x / BreezingForms safe\r\n\r\nfunction _gn_vcmb_normalize_phone($phonenumber)\r\n{\r\n    if ($phonenumber === \x27\x27) return \x27\x27\x3B\r\n\r\n    // Keep digits only\r\n    $s = preg_replace(\x27/\x5CD+/\x27\x2C \x27\x27\x2C $phonenumber)\x3B\r\n\r\n    // Handle international formats\r\n    if (strpos($s\x2C \x2733\x27) === 0 \x26\x26 strlen($s) \x3E= 11) {\r\n        // 33XXXXXXXXX -\x3E 0XXXXXXXXX\r\n        $s = \x270\x27 . substr($s\x2C 2)\x3B\r\n    }\r\n\r\n    // Expect 10 digits for FR\r\n    if (strlen($s) !== 10) {\r\n        return $s\x3B // fallback: return raw digits\r\n    }\r\n\r\n    // Format 06 88 88 77 77\r\n    return preg_replace(\x27/(\x5Cd{2})(\x5Cd{2})(\x5Cd{2})(\x5Cd{2})(\x5Cd{2})/\x27\x2C \x27$1 $2 $3 $4 $5\x27\x2C $s)\x3B\r\n}</code>
+		<description>Normalize phone number\r\n\r\n// Gilles - 15/01/2026\r\n// Normalize a phone number to French format \x2206 88 88 77 77\x22\r\n// Accepts +33\x2C 0033\x2C spaces\x2C dots\x2C dashes\r\n// Joomla 6 / PHP 8.x / BreezingForms safe</description>
+		<code>function _gn_vcmb_normalize_phone($phonenumber)\r\n{\r\n    if ($phonenumber === \x27\x27) return \x27\x27\x3B\r\n\r\n    // Keep digits only\r\n    $s = preg_replace(\x27/\x5CD+/\x27\x2C \x27\x27\x2C $phonenumber)\x3B\r\n\r\n    // Handle international formats\r\n    if (strpos($s\x2C \x2733\x27) === 0 \x26\x26 strlen($s) \x3E= 11) {\r\n        // 33XXXXXXXXX -\x3E 0XXXXXXXXX\r\n        $s = \x270\x27 . substr($s\x2C 2)\x3B\r\n    }\r\n\r\n    // Expect 10 digits for FR\r\n    if (strlen($s) !== 10) {\r\n        return $s\x3B // fallback: return raw digits\r\n    }\r\n\r\n    // Format 06 88 88 77 77\r\n    return preg_replace(\x27/(\x5Cd{2})(\x5Cd{2})(\x5Cd{2})(\x5Cd{2})(\x5Cd{2})/\x27\x2C \x27$1 $2 $3 $4 $5\x27\x2C $s)\x3B\r\n}</code>
 	</piece>
 	<piece id="230">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>_gn_vcmb_normalize_ville</name>
-		<title>VCMB -\x3E Ville</title>
+		<title>VCMB normalize_ville</title>
 		<description>Extrait \x22Ville\x22 du Joomla User Profile VCMB (city)</description>
 		<code>// Gilles - 15/01/2026\r\n// Normalize a city name with VCMB rules.\r\n// Rules:\r\n// 1) Global Title Case (UTF-8).\r\n// 2) Small words are lower case when NOT at first position:\r\n//    le\x2C la\x2C les\x2C de\x2C du\x2C des\x2C au\x2C aux\x2C sur\x2C sous\x2C les\x2C les\x2C lès\x2C en\x2C et.\r\n// 3) For hyphenated names\x2C keep hyphen EXCEPT when the first word is \x22Le\x22:\r\n//    - \x22Montigny-LE-Bretonneux\x22 -\x3E \x22Montigny-le-Bretonneux\x22\r\n//    - \x22LE ManET-dU-ROi\x22        -\x3E \x22Le MANET-du-Roi\x22   (space after \x22Le\x22\x2C not hyphen)\r\n// 4) Proper names are preserved (we do not guess meaning of words).\r\n// Joomla 6 / PHP 8.x / BreezingForms safe\r\n\r\nfunction _gn_vcmb_normalize_ville($town_name)\r\n{\r\n    if ($town_name === \x27\x27) return \x27\x27\x3B\r\n\r\n    // Normalize spaces and hyphens\r\n    $s = trim($town_name)\x3B\r\n    $s = preg_replace(\x27/\x5Cs*-\x5Cs*/\x27\x2C \x27-\x27\x2C $s)\x3B\r\n    $s = preg_replace(\x27/\x5Cs+/\x27\x2C \x27 \x27\x2C $s)\x3B\r\n\r\n    // Split on spaces and hyphens\x2C keeping delimiters\r\n    $tokens = preg_split(\x27/([\x5C- ])/u\x27\x2C $s\x2C -1\x2C PREG_SPLIT_DELIM_CAPTURE)\x3B\r\n\r\n    $lowerWords = array(\x27le\x27\x2C\x27la\x27\x2C\x27les\x27\x2C\x27de\x27\x2C\x27du\x27\x2C\x27des\x27\x2C\x27au\x27\x2C\x27aux\x27\x2C\x27sur\x27\x2C\x27sous\x27\x2C\x27lès\x27\x2C\x27en\x27\x2C\x27et\x27)\x3B\r\n\r\n    $out = array()\x3B\r\n    $isFirst = true\x3B\r\n\r\n    for ($i = 0\x3B $i \x3C count($tokens)\x3B $i++) {\r\n        $t = $tokens[$i]\x3B\r\n\r\n        // Keep separators\r\n        if ($t === \x27-\x27 || $t === \x27 \x27) {\r\n            $out[] = $t\x3B\r\n            continue\x3B\r\n        }\r\n\r\n        $tLower = mb_strtolower($t\x2C \x27UTF-8\x27)\x3B\r\n\r\n        if ($isFirst) {\r\n            // First word: Title Case only\r\n            $out[] = mb_convert_case($t\x2C MB_CASE_TITLE\x2C \x27UTF-8\x27)\x3B\r\n        } else {\r\n            if (in_array($tLower\x2C $lowerWords\x2C true)) {\r\n                $out[] = $tLower\x3B\r\n            } else {\r\n                $out[] = mb_convert_case($t\x2C MB_CASE_TITLE\x2C \x27UTF-8\x27)\x3B\r\n            }\r\n        }\r\n\r\n        $isFirst = false\x3B\r\n    }\r\n\r\n    $s = implode(\x27\x27\x2C $out)\x3B\r\n\r\n    // Special rule: \x22Le-\x22 at beginning becomes \x22Le \x22 (space instead of hyphen)\r\n    $s = preg_replace(\x27/^Le-/u\x27\x2C \x27Le \x27\x2C $s)\x3B\r\n\r\n    return $s\x3B\r\n}</code>
 	</piece>
-	<piece id="199">
-		<package>XDA</package>
-		<name>gn_annuler_cyclo</name>
-		<title>Annuler \x26 Cyclo Home Page</title>
-		<description>Cancel and go to site \x22VCMB Cyclo\x22 Home page</description>
-		<code>function gn_annuler_cyclo(element\x2C action)\r\n{\r\n  eval(\x27document.\x27+ff_processor.form_id).reset()\x3B\r\n  window.location.href = \x22/\x22\x3B\r\n \r\n} // gn_annuler_cyclo</code>
-	</piece>
 	<piece id="200">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_countRecords</name>
 		<title>count records</title>
 		<description>Count the records (rows) of a form.\r\n* $formName : form name.</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n\r\nfunction gn_countRecords($formName) {\r\n    // Defensive checks\r\n    $formName = trim((string) $formName)\x3B\r\n    if ($formName === \x27\x27) {\r\n        throw new InvalidArgumentException(\x27Missing or empty parameter: formName\x27)\x3B\r\n    }\r\n\r\n    $__gnDb = Joomla\x5CCMS\x5CFactory::getContainer()-\x3Eget(Joomla\x5CDatabase\x5CDatabaseInterface::class)\x3B\r\n    $__gnCheckQuery = $__gnDb-\x3EgetQuery(true)\x3B\r\n    $__gnCheckQuery-\x3Eselect(\x27id\x27)\r\n        -\x3Efrom($__gnCheckQuery-\x3EquoteName(\x27#__facileforms_forms\x27))\r\n        -\x3Ewhere($__gnCheckQuery-\x3EquoteName(\x27name\x27) . \x27 = \x27 . $__gnDb-\x3Equote($formName))\r\n        -\x3EsetLimit(1)\x3B\r\n    $__gnDb-\x3EsetQuery($__gnCheckQuery)\x3B\r\n    if (!($__gnDb-\x3EloadResult())) {\r\n        throw new InvalidArgumentException(\x27Form not found: \x27 . $formName)\x3B\r\n    }\r\n\r\n    $db = Factory::getContainer()-\x3Eget(DatabaseInterface::class)\x3B\r\n    $query = $db-\x3EgetQuery(true)\x3B\r\n    $query-\x3Eselect(\x27COUNT(1)\x27)\r\n        -\x3Efrom($query-\x3EquoteName(\x27#__facileforms_records\x27))\r\n        -\x3Ewhere($query-\x3EquoteName(\x27name\x27) . \x27 = \x27 . $db-\x3Equote($formName))\x3B\r\n\r\n    $db-\x3EsetQuery($query)\x3B\r\n\r\n    return (int) $db-\x3EloadResult()\x3B\r\n}</code>
 	</piece>
 	<piece id="201">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_getDBField</name>
 		<title>get DB field</title>
 		<description>Return name item or \x22UNKNOWN\x22 text.\r\n\r\n* $name  : field name\r\n* $recid : current record id.</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\nfunction gn_getDBField($name\x2C $recid) {\r\n    // Defensive checks\r\n    if ($name === null || $name === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: name\x27)\x3B }\r\n    if ($recid === null || $recid === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: recid\x27)\x3B }\r\n\r\n    $db = \x26Factory::getContainer()-\x3Eget(DatabaseInterface::class)\x3B\r\n    $sql = \x22SELECT value from #__facileforms_subrecords WHERE record=$recid AND `name`=\x27$name\x27\x22\x3B \r\n    return ff_selectValue($sql\x2C \x27UNKNOWN\x27)\x3B\r\n}</code>
 	</piece>
 	<piece id="202">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_getDBFieldsDefaultValue</name>
 		<title>get DB fields default value (user)</title>
 		<description>Retrieves the default value identified by its name of a User \x3E Fields.\r\n\r\nPrerequisite: requires loading gn_initLib :\r\n * either like this: \x3C?php $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B return gn_getDBFieldsDefaultValue(\x27club-ffvelo\x27)\x3B ?\x3E\r\n * or in \r\n  * *** begin form \x3E $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B\r\n  * *** \x3C?php return gn_getDBFieldsDefaultValue(\x27club-ffvelo\x27)\x3B ?\x3E\r\n\r\nparameter alias = alias of the field name (example : \x27club-ffvelo\x27)\r\n\r\nExample: \r\n\r\n\x3C?php $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B return gn_getDBFieldsDefaultValue(\x27club-ffvelo\x27)\x3B ?\x3E\r\n\r\nIn the database\x2C the table #__fields contains all default values.</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\nfunction gn_getDBFieldsDefaultValue($name) {\r\n    // Defensive checks\r\n    if ($name === null || $name === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: name\x27)\x3B }\r\n\r\n    $userid = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27id\x27\x2C \x27\x27)\x3B\r\n    if ($userid \x3E 0) {\r\n        $db = BFFactory::getDBO()\x3B\r\n        $db-\x3EsetQuery(\x22SELECT default_value FROM #__fields WHERE name = \x27$name\x27\x22)\x3B\r\n        \r\n        // DEBUG $db-\x3EsetQuery(\x22SELECT * FROM #__fields WHERE name = \x27club-ffvelo\x27\x22)\x3B\r\n        // DEBUG return var_dump($db-\x3ELoadObjectList())\x3B\r\n        \r\n        return $db-\x3ELoadResult()\x3B\r\n    }\r\n}</code>
 	</piece>
 	<piece id="203">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_getDBStripeId</name>
 		<title>get DB Stripe Id</title>
 		<description>Retrieves StripeId value.\r\nStripeId is not stored as a standard value.\r\n* $recid : record number.</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\nfunction gn_getDBStripeId($recid) {\r\n    // Defensive checks\r\n    if ($recid === null || $recid === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: recid\x27)\x3B }\r\n\r\n    if (isset($recid)) {\r\n        $sql = \x22SELECT paypal_tx_id FROM #__facileforms_records WHERE id=$recid\x22\x3B\r\n        $stripe_id = ff_selectValue($sql\x2C \x27FAILED\x27)\x3B\r\n\r\n        // A AMELIORER \r\n        // $db = BFFactory::getDBO()\x3B\r\n        // $db-\x3EsetQuery($sql)\x3B\r\n        // $stripe_id = $db-\x3ELoadResult()\x3B        \r\n        // if (ŝtripe_id == null) { stripe_id = \x27FAILED\x27}\r\n    }\r\n    else {\r\n        $stripe_id = \x27$recid not defined\x27\x3B\r\n    }\r\n\r\n    return $stripe_id\x3B\r\n}</code>
 	</piece>
 	<piece id="204">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_getFormFromFormName</name>
 		<title>get form data with name</title>
 		<description>Gives information with the name of the form.\r\nThe most interesting ones:\r\n$form-\x3Eid = 51\r\n$form-\x3Ename = \x22SystemDashboard\x22\r\n$form-\x3Etitle = \x22Tableau de bord\x22\r\n$form-\x3Epublished =0/1\r\n$form-\x3Edescription</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\nfunction gn_getFormFromFormName($formname = \x27SystemDashboard\x27) {\r\n    // Defensive checks\r\n    if ($formname === null || $formname === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: formname\x27)\x3B }\r\n    $__gnDb = Joomla\x5CCMS\x5CFactory::getContainer()-\x3Eget(Joomla\x5CDatabase\x5CDatabaseInterface::class)\x3B\r\n    $__gnCheckQuery = $__gnDb-\x3EgetQuery(true)\x3B\r\n    $__gnCheckQuery-\x3Eselect(\x27id\x27)\r\n        -\x3Efrom($__gnCheckQuery-\x3EquoteName(\x27#__facileforms_forms\x27))\r\n        -\x3Ewhere($__gnCheckQuery-\x3EquoteName(\x27name\x27) . \x27 = \x27 . $__gnDb-\x3Equote($formname))\r\n        -\x3EsetLimit(1)\x3B\r\n    $__gnDb-\x3EsetQuery($__gnCheckQuery)\x3B\r\n    if (!($__gnDb-\x3EloadResult())) { throw new InvalidArgumentException(\x27Form not found: \x27 . $formname)\x3B }\r\n\r\n    $form = \x27NOT FOUND\x27\x3B\r\n    if ($formname != null) {\r\n        $database = \x26Factory::getContainer()-\x3Eget(DatabaseInterface::class)\x3B\r\n        \r\n        $sql = \x3C\x3C\x3CSQL\r\n        SELECT\r\n            *\r\n            from\r\n            #__facileforms_forms\r\n            WHERE name=\x27$formname\x27 and published=1\r\n            order by ordering\x2C id\r\n        SQL\x3B\r\n                \r\n        $database-\x3EsetQuery($sql)\x3B\r\n        $forms = $database-\x3EloadObjectList()\x3B\r\n        if (count($forms) \x3C 1) {\r\n            echo \x27[Form \x27.htmlentities($formname\x2C ENT_QUOTES\x2C \x27UTF-8\x27).\x27 not found!]\x27\x3B\r\n            $ok = false\x3B\r\n        } else\r\n            $form = $forms[0]\x3B\r\n    } else {\r\n        Joomla\x5CCMS\x5CFactory::getApplication()-\x3EenqueueMessage(\x27No form name provided!\x27\x2C \x27error\x27)\x3B\r\n        $ok = false\x3B\r\n    } // if\r\n\r\n    return $form\x3B\r\n}</code>
 	</piece>
 	<piece id="205">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_getNbInscrit</name>
 		<title>count value</title>
 		<description>Count specific text occurrences in a form list.\r\n\r\n* $form: form number.\r\n* $element_parcours : field name where to search the text.\r\n* $element_path: specific text to count</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\nfunction gn_getNbInscrit($form\x2C $element_parcours\x2C $distance) {\r\n    // Defensive checks\r\n    if ($form === null || $form === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: form\x27)\x3B }\r\n    if ($element_parcours === null || $element_parcours === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: element_parcours\x27)\x3B }\r\n    if ($distance === null || $distance === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: distance\x27)\x3B }\r\n\r\n    $db = Factory::getContainer()-\x3Eget(DatabaseInterface::class)\x3B\r\n    $sql = \x22SELECT COUNT(1) FROM #__facileforms_subrecords AS s  INNER JOIN #__facileforms_records AS r ON r.id = s.record WHERE r.form = \x22 . $db-\x3EQuote($form) . \x22 AND s.`name`=\x22 . $db-\x3EQuote($element_parcours) .\x22 AND s.value =\x27\x22 . $distance  .  \x22\x27\x22\x3B \r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $nb_parcours = $db-\x3EloadResult()\x3B\r\n\r\n    return $nb_parcours\x3B\r\n}</code>
 	</piece>
 	<piece id="206">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_getNextNumDossard</name>
 		<title>get next</title>
 		<description>Returns the next competitor number of a form \r\n* $form : the number of the current form.\r\n* $field_dossard: the name of the element which contains the competitor number (FIELD_DOSSARD field)\x2C\r\n* $first_dossard: the first competitor number to be assigned (FIRST_DOSSARD).\r\n\r\n  // Principle: search in the database in the #__facileforms_subrecords table for the largest competitor number already assigned for this form.\r\n    // The table #__facileforms_subrecords (list of each element value) has :\r\n    // * a value text field containing the data\x2C\r\n    // * a text field `name` containing the name of the element\x2C\r\n    // \x22 an integer field record containing the id of the record (\x3C=\x3E record_id).\r\n\r\n    // The table #__facileforms_records (list of records) has:\r\n    // \x22 an integer field id containing the id of the record (\x3C=\x3E record_id).\r\n    // * an integer field form containing the form number (\x3C=\x3E form_id</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\nfunction gn_getNextNumDossard($form\x2C $field_dossard\x2C $first_dossard) {\r\n    // Defensive checks\r\n    if ($form === null || $form === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: form\x27)\x3B }\r\n    if ($field_dossard === null || $field_dossard === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: field_dossard\x27)\x3B }\r\n    if ($first_dossard === null || $first_dossard === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: first_dossard\x27)\x3B }\r\n\r\n    $db = \x26Factory::getContainer()-\x3Eget(DatabaseInterface::class)\x3B\r\n      $sql = \x22SELECT MAX(CAST(s.value as UNSIGNED)) FROM #__facileforms_subrecords AS s INNER JOIN #__facileforms_records AS r ON r.id = s.record WHERE r.form = \x22 . $db-\x3EQuote($form) . \x22 AND s.`name`=\x22 . $db-\x3EQuote($field_dossard)\x3B\r\n\r\n    // Marche aussi\x2C mais sans message d\x27erreur clair.\r\n    // $dossard = ff_selectValue($sql\x2C $first_dossard-1)+1\x3B\r\n\r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $dossard = $db-\x3EloadResult()\x3B\r\n                \r\n    // Sécurité.\r\n    if (!isset($dossard) || ($dossard \x3C $first_dossard)) {\r\n        $dossard = $first_dossard-1\x3B\r\n    }\r\n\r\n    return $dossard+1\x3B\r\n}</code>
 	</piece>
 	<piece id="207">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_getSubFormsFromFormId</name>
 		<title>new BF internal</title>
 		<description>Internal use of new BF functions (here: gn_getSubFormsFromFormId).</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\nfunction gn_getSubFormsFromFormId($formid = 51) {\r\n    // Defensive checks\r\n    if ($formid === null || $formid === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: formid\x27)\x3B }\r\n\r\n    $subforms = \x27NOT FOUND\x27\x3B\r\n    if ($formid != null) {\r\n        $database = \x26Factory::getContainer()-\x3Eget(DatabaseInterface::class)\x3B\r\n        \r\n        $sql = \x3C\x3C\x3CSQL\r\n        SELECT\r\n            *\r\n            from\r\n            #__facileforms_elements e \r\n            WHERE \r\n            e.form=$formid \r\n            AND e.published = 1 \r\n            AND e.logging = 1\r\n            ORDER BY ordering\x2C id\r\n        SQL\x3B\r\n                \r\n        $database-\x3EsetQuery($sql)\x3B\r\n        $subforms = $database-\x3EloadObjectList()\x3B\r\n        if (count($subforms) \x3C 1) {\r\n            echo \x27[Form \x27.htmlentities($formid\x2C ENT_QUOTES\x2C \x27UTF-8\x27).\x27 not found!]\x27\x3B\r\n            $ok = false\x3B\r\n        } \r\n    } else {\r\n        Joomla\x5CCMS\x5CFactory::getApplication()-\x3EenqueueMessage(\x27No form name provided!\x27\x2C \x27error\x27)\x3B\r\n        $ok = false\x3B\r\n    } // if\r\n\r\n    return $subforms\x3B\r\n}</code>
 	</piece>
 	<piece id="208">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_InitLib</name>
 		<title>Init Library</title>
 		<description>A collection of useful functions for use in form pieces. \r\n\r\nInclude by: \r\n    $this-\x3EexecPieceByName(\x27gn_InitLib\x27)\x3B</description>
 		<code>//+trace high none\r\n// if (!defined(\x27GN_DIE\x27))                    $this-\x3EexecPieceByName(\x27gn_Constants\x27)\x3B\r\nif (!function_exists(\x27gn_getDBFieldsDefaultValue\x27))      $this-\x3EexecPieceByName(\x27gn_getDBFieldsDefaultValue\x27)\x3B\r\nif (!function_exists(\x27gn_updateDBField\x27))      $this-\x3EexecPieceByName(\x27gn_updateDBField\x27)\x3B\r\nif (!function_exists(\x27gn_getDBField\x27))      $this-\x3EexecPieceByName(\x27gn_getDBField\x27)\x3B\r\nif (!function_exists(\x27gn_getDBStripeId\x27))      $this-\x3EexecPieceByName(\x27gn_getDBStripeId\x27)\x3B\r\nif (!function_exists(\x27gn_getNextNumDossard\x27))      $this-\x3EexecPieceByName(\x27gn_getNextNumDossard\x27)\x3B\r\nif (!function_exists(\x27gn_setMemoryData\x27))      $this-\x3EexecPieceByName(\x27gn_setMemoryData\x27)\x3B\r\nif (!function_exists(\x27gn_getNbInscrit\x27))      $this-\x3EexecPieceByName(\x27gn_getNbInscrit\x27)\x3B\r\n\r\nif (!function_exists(\x27gn_getFormFromFormName\x27))      $this-\x3EexecPieceByName(\x27gn_getFormFromFormName\x27)\x3B\r\nif (!function_exists(\x27gn_newRecord\x27))      $this-\x3EexecPieceByName(\x27gn_newRecord\x27)\x3B\r\nif (!function_exists(\x27gn_newSubRecord\x27))      $this-\x3EexecPieceByName(\x27gn_newSubRecord\x27)\x3B\r\nif (!function_exists(\x27gn_getSubFormsFromFormId\x27))      $this-\x3EexecPieceByName(\x27gn_getSubFormsFromFormId\x27)\x3B\r\n\r\nif (!function_exists(\x27gn_countRecords\x27))      $this-\x3EexecPieceByName(\x27gn_countRecords\x27)\x3B</code>
 	</piece>
 	<piece id="209">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_newRecord</name>
 		<title>new BF record</title>
 		<description>Creates a new BF record (without subrecord).\r\nIt will be in the table\x2C but not visible without a subrecord.\r\n\r\nExample:\r\n$record = gn_newRecord(\x27SystemDashboard\x27)\x3B // creates the new record for the SystemDashboard form.\r\ngn_newSubRecord($record\x2C \x27Element\x27\x2C $this-\x3Eformrow-\x3Ename)\x3B // creates an entry in the row.\r\ngn_newSubRecord($record\x2C \x27Value\x27\x2C \x22This is a value\x22)\x3B\r\ngn_newSubRecord($record\x2C \x27Comment\x27\x2C \x22This is a comment\x22)\x3B</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\nfunction gn_newRecord($form_name = \x27SystemDashboard\x27) {\r\n    // Defensive checks\r\n    if ($form_name === null || $form_name === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: form_name\x27)\x3B }\r\n\r\n    // Initialisation\r\n    $jinput = Joomla\x5CCMS\x5CFactory::getApplication()-\x3Einput\x3B\r\n    $ip = $jinput-\x3Eserver-\x3Eget(\x27REMOTE_ADDR\x27\x2C \x27\x27\x2C \x27\x27)\x3B\r\n    \r\n    $jbrowserInstance = Joomla\x5CCMS\x5CEnvironment\x5CBrowser::getInstance()\x3B\r\n    $browser = $jbrowserInstance-\x3EgetAgentString()\x3B\r\n    $platform = $jbrowserInstance-\x3EgetPlatform()\x3B\r\n    $form = gn_getFormFromFormName($form_name)\x3B\r\n    \r\n    $database = \x26Factory::getContainer()-\x3Eget(DatabaseInterface::class)\x3B\r\n    \r\n    $record = new facileFormsRecords($database)\x3B\r\n    $record-\x3Esubmitted = Joomla\x5CCMS\x5CFactory::getDate(\x27now\x27)-\x3Eformat(\x27Y-m-d H:i:s\x27\x2C true)\x3B\r\n    $record-\x3Eform = $form-\x3Eid\x3B\r\n    $record-\x3Etitle = $form-\x3Etitle\x3B\r\n    $record-\x3Ename = $form-\x3Ename\x3B\r\n    $record-\x3Eip = $ip\x3B\r\n    $record-\x3Ebrowser = $browser\x3B\r\n    $record-\x3Eopsys = $platform\x3B\r\n    $record-\x3Eprovider = \x22\x22\x3B\r\n    $record-\x3Eviewed = 0\x3B\r\n    $record-\x3Eexported = 0\x3B\r\n    $record-\x3Earchived = 0\x3B\r\n    if (Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27id\x27\x2C 0) \x3E 0) {\r\n        $record-\x3Euser_id = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27id\x27\x2C 0)\x3B\r\n        $record-\x3Eusername = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27username\x27\x2C \x27\x27)\x3B\r\n        $record-\x3Euser_full_name = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27name\x27\x2C \x27\x27)\x3B\r\n    } else {\r\n        $record-\x3Euser_id = Joomla\x5CCMS\x5CFactory::getUser()-\x3Eget(\x27id\x27\x2C 0)\x3B\r\n        $record-\x3Eusername = \x27-\x27\x3B\r\n        $record-\x3Euser_full_name = \x27-\x27\x3B\r\n    }\r\n    \r\n    // echo \x22\x3CBR\x3E\x5Cn\x3CBR\x3E\x5CnRECORD ID=\x22 . var_dump($record)\x3B\r\n    // echo \x22\x3CBR\x3E\x5Cn\x3CBR\x3E\x5Cn\x22\x3B\r\n    if (!$record-\x3Estore()) {\r\n        echo \x22\x3CBR\x3E\x5Cn\x3CBR\x3E\x5CnERROR=\x22 .$record-\x3EgetError()\x3B\r\n        return\x3B\r\n    }\r\n    \r\n    return $record\x3B\r\n}</code>
 	</piece>
 	<piece id="210">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_newSubRecord</name>
 		<title>new BF sub record</title>
 		<description>Set a new entry in a BF record.\r\n\r\n* $record : record to complete\r\n* $name  : field name\r\n* $value : value to set to the field of the record.\r\n\r\nWarning: only do this on a new record or check that this entry does not already exist.\r\nThe value must not be already setted.\r\n\r\nExample:\r\n$record = gn_newRecord(\x27SystemDashboard\x27)\x3B // creates the new record for the SystemDashboard form.\r\ngn_newSubRecord($record\x2C \x27Element\x27\x2C $this-\x3Eformrow-\x3Ename)\x3B // creates an new entry (value) for the record\r\ngn_newSubRecord($record\x2C \x27Value\x27\x2C \x22This is a value\x22)\x3B\r\ngn_newSubRecord($record\x2C \x27Comment\x27\x2C \x22This is a comment\x22)\x3B</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\nfunction gn_newSubRecord($record\x2C $name\x2C $value) {\r\n    // Defensive checks\r\n    if ($record === null || $record === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: record\x27)\x3B }\r\n    if ($name === null || $name === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: name\x27)\x3B }\r\n    if ($value === null || $value === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: value\x27)\x3B }\r\n\r\n    $subrecords = gn_getSubFormsFromFormId($record-\x3Eform)\x3B\r\n    foreach ($subrecords as $sr) {\r\n        if ($sr-\x3Ename == $name) {\r\n            $database = \x26Factory::getContainer()-\x3Eget(DatabaseInterface::class)\x3B\r\n            $subrecord = new facileFormsSubrecords($database)\x3B\r\n            //    $subrecord-\x3Eid // identifier (to be created)\r\n            $subrecord-\x3Erecord = $record-\x3Eid\x3B // record id\r\n            $subrecord-\x3Eelement = $sr-\x3Eid\x3B // element id\r\n            $subrecord-\x3Ename = $sr-\x3Ename\x3B // element name\r\n            $subrecord-\x3Etype = $sr-\x3Etype\x3B // data type\r\n            $subrecord-\x3Evalue = $value\x3B // data value\r\n            $subrecord-\x3Estore()\x3B\r\n            break\x3B\r\n        }\r\n    }\r\n}</code>
 	</piece>
 	<piece id="211">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_page_fin</name>
 		<title>Page FIN (Last - 1)</title>
 		<type>Element Action</type>
@@ -942,7 +765,7 @@
 		<code>function gn_page_fin(element\x2C action)\r\n{\r\n    ff_switchpage(ff_lastpage-1)\x3B\r\n} // gn_page_fin</code>
 	</piece>
 	<piece id="212">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_page4</name>
 		<title>Page 4</title>
 		<type>Element Action</type>
@@ -950,127 +773,120 @@
 		<code>function gn_page4(element\x2C action)\r\n{\r\n    if (ff_lastpage \x3E= 4) ff_switchpage(4)\x3B\r\n} // gn_page4</code>
 	</piece>
 	<piece id="213">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_setMemoryData</name>
 		<title>set data in memory</title>
 		<description>Updates the element field provided that the field pre-exists.\r\nSet a non-zero default value in BF\x2C for example the - character\x2C\r\nto force its creation in data arrays in memory.\r\n* $that : put $this\r\n* $element : the name of the element (ex : \x27Dossard\x27).\r\n* $value : the value to replace in the element (ex : 508).</description>
 		<code>function gn_setMemoryData(\x26$that\x2C $element\x2C $value) {\r\n    // Defensive checks\r\n    if ($that === null || $that === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: that\x27)\x3B }\r\n    if ($element === null || $element === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: element\x27)\x3B }\r\n    if ($value === null || $value === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: value\x27)\x3B }\r\n\r\n    // Write into maildata table for mailing data.\r\n    foreach ($that-\x3Emaildata as \x26$entry) {\r\n        if ($entry[_FF_DATA_NAME] == $element) {\r\n            $entry[_FF_DATA_VALUE] = $value\x3B\r\n            break\x3B\r\n    	}\r\n    }\r\n\r\n    // Write into savedata table for database data.\r\n    foreach ($that-\x3Esavedata as \x26$entry) {\r\n        if ($entry[_FF_DATA_NAME] == $element) {\r\n            $entry[_FF_DATA_VALUE] = $value\x3B\r\n            break\x3B\r\n    	}\r\n    }\r\n}</code>
 	</piece>
 	<piece id="214">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_updateDBField</name>
 		<title>update DB field</title>
 		<description>Updates the name element in base provided that the field pre-exists.\r\n\r\nIN COMMENT\x2C because the update in base has been replaced by an update in memory in Submit Pieces \x3E Begin Submit \x3E Custom.\r\nwith gn_setMemoryData.\r\n \r\nNB : Put a non-null default value in BF\x2C for example the character -.\r\n* $name : the name of the field\r\n* $recid : the current record id.\r\n* $value : the value to fill in the database.</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\nfunction gn_updateDBField($name\x2C $recid\x2C $value) {\r\n    // Defensive checks\r\n    if ($name === null || $name === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: name\x27)\x3B }\r\n    if ($recid === null || $recid === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: recid\x27)\x3B }\r\n    if ($value === null || $value === \x27\x27) { throw new InvalidArgumentException(\x27Missing or empty parameter: value\x27)\x3B }\r\n\r\n    $db = \x26Factory::getContainer()-\x3Eget(DatabaseInterface::class)\x3B\r\n    $sql = \x27UPDATE #__facileforms_subrecords SET value = \x27 . $db-\x3Equote($value) . \x22 WHERE record=$recid AND `name`=\x27$name\x27\x22\x3B \r\n    $db-\x3EsetQuery($sql)\x3B\r\n    $db-\x3Eexecute()\x3B\r\n}</code>
 	</piece>
 	<piece id="215">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_validate_page_fin</name>
 		<title>Validate and FIN page</title>
 		<type>Element Action</type>
 		<description>Validates the current page\x2C and if everything is ok is switches to Submit page (Last -1)\x2C before Thanks you page.</description>
 		<code>function gn_validate_page_fin(element\x2C action)\r\n{\r\n    if(typeof bfUseErrorAlerts != \x27undefined\x27){\r\n     JQuery(\x22.bfErrorMessage\x22).html(\x27\x27)\x3B\r\n     JQuery(\x22.bfErrorMessage\x22).css(\x22display\x22\x2C\x22none\x22)\x3B\r\n    }\r\n\r\n    error = ff_validation(ff_currentpage)\x3B\r\n    if (error != \x27\x27) {\r\n       if(typeof bfUseErrorAlerts == \x27undefined\x27){\r\n           swal(error)\x3B\r\n        } else {\r\n           bfShowErrors(error)\x3B\r\n        }\r\n        ff_validationFocus(\x27\x27)\x3B\r\n    } else {\r\n        ff_switchpage(ff_lastpage-1)\x3B\r\n        self.scrollTo(0\x2C0)\x3B   \r\n    }\r\n} // gn_validate_page_fin</code>
 	</piece>
-	<piece id="216">
-		<package>XDA</package>
-		<name>gn_validate_submit</name>
-		<title>Validate and submit form (SPAM)</title>
-		<description>Add ANTI-SPAM test before to validate the form. \r\nTest if Nom = Prenom. before submitting the form.\r\nIf NOM = PRENOM \x3E\x3E Attaques classique des .ru (2021)\r\nMise à jour sept. 2021 (Gil)</description>
-		<code>function gn_validate_submit(element\x2C action)\r\n{\r\n    if (typeof bfUseErrorAlerts != \x27undefined\x27){\r\n     JQuery(\x22.bfErrorMessage\x22).html(\x27\x27)\x3B\r\n     JQuery(\x22.bfErrorMessage\x22).css(\x22display\x22\x2C\x22none\x22)\x3B\r\n    }\r\n    error = ff_validation(0)\x3B\r\n    if (error != \x27\x27) {\r\n\r\n        if(typeof bfUseErrorAlerts == \x27undefined\x27){\r\n           alert(error)\x3B\r\n        } else {\r\n           bfShowErrors(error)\x3B\r\n        }\r\n        ff_validationFocus()\x3B\r\n    } else {\r\n	// Vérif SPAM si le NOM et PRENOM sont différents = OK\r\n	nom = ff_getElementByName(\x22Nom\x22).value \x3B\r\n	prenom = ff_getElementByName(\x22Prenom\x22).value \x3B\r\n		\r\n	// Minuscule\x2C puis enlève les espaces de Début et de Fin\r\n	nom =nom.toLowerCase().trim() \x3B\r\n	prenom = prenom.toLowerCase().trim() \x3B\r\n\r\n	// SPAM si le Nom = Prénom ou si le Prénom commence par le Nom (Gil \x3E Gil-André)\r\n	if ( prenom.search(nom) == 0 ){\r\n		// Tentative de SPAM\x2C Sortie Page d\x27accueil Cyclo\r\n		document.getElementById(ff_processor.form_id).reset()\x3B\r\n		window.location.href = \x22/\x22\x3B\r\n	} else {\r\n		// Nom et Prénom OK\x2C Submit Formulaire\r\n		ff_submitForm() \x3B \r\n		}\r\n	}	\r\n} // gn_validate_submit</code>
-	</piece>
 	<piece id="217">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_activites</name>
 		<title>VCMB -\x3E Activités</title>
 		<description>Extrait les \x22Activites VCMB\x22 du User Custom Field courant :\r\n(Mercredicienne\x3B Jeudicienne\x2C ...)</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles - 15/01/2026\r\n// Get Joomla user custom field \x22activites\x22 (type: checkboxes)\r\n// Return values joined with \x27\x3B\x27 (VCMB format) e.g. \x22Route\x3BGravel\x3BEcole jeunes\x22\r\n// Joomla 6 / PHP 8.x / BreezingForms safe\r\n\r\nfunction gn_vcmb_activites()\r\n{\r\n    $fieldName = \x27activites\x27\x3B\r\n    $fieldType = \x27checkboxes\x27\x3B\r\n\r\n    $user = Joomla\x5CCMS\x5CFactory::getApplication()-\x3EgetIdentity()\x3B\r\n    if ((int) $user-\x3Eget(\x27id\x27) === 0) {\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    $fields = Joomla\x5CComponent\x5CFields\x5CAdministrator\x5CHelper\x5CFieldsHelper::getFields(\x27com_users.user\x27\x2C $user\x2C true)\x3B\r\n\r\n    foreach ($fields as $field) {\r\n        if ($field-\x3Ename === $fieldName \x26\x26 $field-\x3Etype === $fieldType) {\r\n\r\n            if (is_array($field-\x3Erawvalue)) {\r\n                $vals = array_map(\x27trim\x27\x2C $field-\x3Erawvalue)\x3B\r\n                return implode(\x27\x3B\x27\x2C $vals)\x3B\r\n            }\r\n\r\n            return trim((string) $field-\x3Erawvalue)\x3B\r\n        }\r\n    }\r\n\r\n    return \x27\x27\x3B\r\n} // gn_vcmb_activites</code>
 	</piece>
 	<piece id="218">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_adresse</name>
 		<title>VCMB -\x3E Adresse</title>
 		<description>Extrait \x22Adresse\x22 du Joomla User Profile VCMB (address1)\r\n1ère ligne d\x27adresse</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles - 15/01/2026\r\n// Get Joomla PROFILE field \x22address1\x22 (profile.address1)\r\n// Not a Joomla custom field (UF) -\x3E do NOT use FieldsHelper here\r\n// Return empty string if not logged in or field not found\r\n// Apply VCMB normalization (rue\x2C avenue\x2C de\x2C des\x2C etc -\x3E lower case)\r\n// Joomla 6 / PHP 8.x / BreezingForms safe\r\n\r\nfunction gn_vcmb_adresse()\r\n{\r\n    // Debug flag\r\n    $GN_DEBUG = false\x3B\r\n\r\n    // Profile field definition\r\n    $profileField = \x27address1\x27\x3B\r\n\r\n    // Current user\r\n    $user = Joomla\x5CCMS\x5CFactory::getApplication()-\x3EgetIdentity()\x3B\r\n\r\n    if ((int) $user-\x3Eget(\x27id\x27) === 0) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_adresse: user not logged in\x27)\x3B\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    // Load profile for this user id\r\n    $profile = Joomla\x5CCMS\x5CUser\x5CUserHelper::getProfile($user-\x3Eid)\x3B\r\n\r\n    if (!isset($profile-\x3Eprofile) || !is_array($profile-\x3Eprofile)) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_adresse: profile array not found\x27)\x3B\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    if (!isset($profile-\x3Eprofile[$profileField])) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_adresse: profile field not found name=\x27 . $profileField)\x3B\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    $addr = trim((string) $profile-\x3Eprofile[$profileField])\x3B\r\n\r\n    if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_adresse: raw=\x27 . $addr)\x3B\r\n\r\n    // Normalize (simple VCMB rules)\r\n    $addr = gn_vcmb_normalize_adresse($addr)\x3B\r\n\r\n    if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_adresse: normalized=\x27 . $addr)\x3B\r\n\r\n    return $addr\x3B\r\n\r\n} // gn_vcmb_adresse\r\n\r\n\r\n// Gilles - 15/01/2026\r\n// Normalize a street address (rue\x2C avenue\x2C de\x2C des\x2C etc in lower case)\r\n// Keep proper names untouched\r\n// Joomla 6 / PHP 8.x / BreezingForms safe\r\n\r\nfunction gn_vcmb_normalize_adresse($s)\r\n{\r\n    if ($s === \x27\x27) return \x27\x27\x3B\r\n\r\n    // Convert to Title Case (12 RUE DE LA PAIX -\x3E 12 Rue De La Paix)\r\n    $s = mb_convert_case($s\x2C MB_CASE_TITLE\x2C \x27UTF-8\x27)\x3B\r\n\r\n    // Words forced to lower case\r\n    $lower = array(\r\n        \x27Rue\x27\x2C\x27Avenue\x27\x2C\x27Allée\x27\x2C\x27Boulevard\x27\x2C\x27Impasse\x27\x2C\x27Chemin\x27\x2C\x27Parc\x27\x2C\x27Square\x27\x2C\x27Résidence\x27\x2C\x27Lotissement\x27\x2C\r\n        \x27De\x27\x2C\x27Du\x27\x2C\x27Des\x27\x2C\x27La\x27\x2C\x27Le\x27\x2C\x27Les\x27\x2C\x27Aux\x27\x2C\x27Au\x27\x2C\x27Et\x27\r\n    )\x3B\r\n\r\n    foreach ($lower as $w) {\r\n        $s = preg_replace(\x27/\x5Cb\x27 . preg_quote($w\x2C \x27/\x27) . \x27\x5Cb/u\x27\x2C mb_strtolower($w\x2C \x27UTF-8\x27)\x2C $s)\x3B\r\n    }\r\n\r\n    return $s\x3B\r\n}</code>
 	</piece>
 	<piece id="219">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_civilite</name>
 		<title>VCMB -\x3E Civilité</title>
 		<description>Extrait la \x22Civilité VCMB\x22 du User Custom Field Joomla courant\r\n\x22Homme\x3B Femme\x3B Autre\x22</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles - 15/01/2026\r\n// Get Joomla user custom field \x22civilite\x22 (type: checkboxes)\r\n// Return values joined with \x27\x3B\x27 (VCMB format) e.g. \x22Homme\x3B Femme\x3B Autre\x22\r\n// Joomla 6 / PHP 8.x / BreezingForms safe\r\n\r\nfunction gn_vcmb_civilite()\r\n{\r\n    $fieldName = \x27civilite\x27\x3B\r\n    $fieldType = \x27radio\x27\x3B\r\n\r\n    $user = Joomla\x5CCMS\x5CFactory::getApplication()-\x3EgetIdentity()\x3B\r\n    if ((int) $user-\x3Eget(\x27id\x27) === 0) {\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    $fields = Joomla\x5CComponent\x5CFields\x5CAdministrator\x5CHelper\x5CFieldsHelper::getFields(\x27com_users.user\x27\x2C $user\x2C true)\x3B\r\n\r\n    foreach ($fields as $field) {\r\n        if ($field-\x3Ename === $fieldName \x26\x26 $field-\x3Etype === $fieldType) {\r\n\r\n            if (is_array($field-\x3Erawvalue)) {\r\n                $vals = array_map(\x27trim\x27\x2C $field-\x3Erawvalue)\x3B\r\n                return implode(\x27\x3B\x27\x2C $vals)\x3B\r\n            }\r\n\r\n            return trim((string) $field-\x3Erawvalue)\x3B\r\n        }\r\n    }\r\n\r\n    return \x27\x27\x3B\r\n} // gn_vcmb_civilite</code>
 	</piece>
 	<piece id="220">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_code_postal</name>
 		<title>VCMB -\x3E Code Postal</title>
 		<description>Extrait \x22Code Postal\x22 du Joomla User Profile VCMB (address1)</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles - 15/01/2026\r\n// Get Joomla PROFILE field \x22postal_code\x22 (profile.postal_code)\r\n// Not a Joomla custom field (UF) -\x3E do NOT use FieldsHelper here\r\n// Return empty string if not logged in or field not found\r\n// VCMB normalization: digits only (keep 0-9)\r\n// Joomla 6 / PHP 8.x / BreezingForms safe\r\n\r\nfunction gn_vcmb_code_postal() : string\r\n{\r\n    // Debug flag\r\n    $GN_DEBUG = false\x3B\r\n\r\n    // Profile field definition\r\n    $profileField = \x27postal_code\x27\x3B\r\n\r\n    // Current user\r\n    $user = Joomla\x5CCMS\x5CFactory::getApplication()-\x3EgetIdentity()\x3B\r\n\r\n    if ((int) $user-\x3Eget(\x27id\x27) === 0) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_code_postal: user not logged in\x27)\x3B\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    // Load profile for this user id\r\n    $profile = Joomla\x5CCMS\x5CUser\x5CUserHelper::getProfile($user-\x3Eid)\x3B\r\n\r\n    if (!isset($profile-\x3Eprofile) || !is_array($profile-\x3Eprofile)) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_code_postal: profile array not found\x27)\x3B\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    if (!isset($profile-\x3Eprofile[$profileField])) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_code_postal: profile field not found name=\x27 . $profileField)\x3B\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    // Raw value\r\n    $cp = trim((string) $profile-\x3Eprofile[$profileField])\x3B\r\n\r\n    if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_code_postal: raw=\x27 . $cp)\x3B\r\n\r\n    // VCMB normalization: keep digits only\r\n    $cp = preg_replace(\x27/\x5CD+/\x27\x2C \x27\x27\x2C $cp)\x3B\r\n\r\n    if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_code_postal: normalized=\x27 . $cp)\x3B\r\n\r\n    return $cp\x3B\r\n\r\n} // gn_vcmb_code_postal</code>
 	</piece>
 	<piece id="221">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_date</name>
 		<title>VCMB -\x3E Date</title>
 		<description>Lit la date pour la Timezone de Paris\r\nFormat date : JJ/MM/AAAA HH:MM</description>
 		<code>// Gilles — 17/01/2026\r\n// Get local date (FR)\r\n// Format : JJ/MM/AAAA HH:MM\r\n// Timezone : Europe/Paris\r\n// Joomla 6 / PHP 8.x / BreezingForms safe\r\n// ----------------------------------------\r\n\r\nfunction gn_vcmb_date(): string\r\n{\r\n    // Set timezone (sécurisé même si déjà défini)\r\n    date_default_timezone_set(\x27Europe/Paris\x27)\x3B\r\n\r\n    // Format FR : JJ/MM/AAAA HH:MM\r\n    return date(\x27d/m/Y H:i\x27)\x3B\r\n\r\n} // gn_vcmb_date</code>
 	</piece>
 	<piece id="222">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_date_naissance</name>
 		<title>VCMB -\x3E Date de naissance</title>
 		<description>Extrait \x22Date de naissance\x22 du Joomla User Profile VCMB (dob)</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles - 15/01/2026\r\n// Get Joomla PROFILE field \x22dob\x22 (profile.dob)\r\n// Not a Joomla custom field (UF) -\x3E do NOT use FieldsHelper here\r\n// Return empty string if not logged in or field not found\r\n// VCMB normalization: French date format \x2216/10/2003\x22 (date only\x2C no time)\r\n// Joomla 6 / PHP 8.x / BreezingForms safe\r\n\r\nfunction gn_vcmb_date_naissance()\r\n{\r\n    // Debug flag\r\n    $GN_DEBUG = true\x3B\r\n\r\n    // Profile field definition\r\n    $profileField = \x27dob\x27\x3B\r\n\r\n    // Current user\r\n    $user = Joomla\x5CCMS\x5CFactory::getApplication()-\x3EgetIdentity()\x3B\r\n\r\n    if ((int) $user-\x3Eget(\x27id\x27) === 0) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_date_naissance: user not logged in\x27)\x3B\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    // Load profile for this user id\r\n    $profile = Joomla\x5CCMS\x5CUser\x5CUserHelper::getProfile($user-\x3Eid)\x3B\r\n\r\n    if (!isset($profile-\x3Eprofile) || !is_array($profile-\x3Eprofile)) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_date_naissance: profile array not found\x27)\x3B\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    if (!isset($profile-\x3Eprofile[$profileField])) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_date_naissance: profile field not found name=\x27 . $profileField)\x3B\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    // Raw value (can be \x22YYYY-MM-DD\x22 or \x22YYYY-MM-DD HH:MM:SS\x22)\r\n    $raw = trim((string) $profile-\x3Eprofile[$profileField])\x3B\r\n    if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_date_naissance: raw=\x27 . $raw)\x3B\r\n\r\n    if ($raw === \x27\x27) return \x27\x27\x3B\r\n\r\n    // 1) Cut time if present (keep only the date part)\r\n    // \x222003-12-25 14:30:18\x22 -\x3E \x222003-12-25\x22\r\n    if (preg_match(\x27/^(\x5Cd{4}-\x5Cd{2}-\x5Cd{2})/\x27\x2C $raw\x2C $m)) {\r\n        $raw = $m[1]\x3B\r\n    }\r\n\r\n    // 2) Parse supported formats\r\n    $d = \x27\x27\x3B $mth = \x27\x27\x3B $y = \x27\x27\x3B\r\n\r\n    if (preg_match(\x27/^(\x5Cd{4})-(\x5Cd{2})-(\x5Cd{2})$/\x27\x2C $raw\x2C $mm)) {\r\n        $y = $mm[1]\x3B $mth = $mm[2]\x3B $d = $mm[3]\x3B\r\n    } elseif (preg_match(\x27/^(\x5Cd{2})\x5C/(\x5Cd{2})\x5C/(\x5Cd{4})$/\x27\x2C $raw\x2C $mm)) {\r\n        $d = $mm[1]\x3B $mth = $mm[2]\x3B $y = $mm[3]\x3B\r\n    } else {\r\n        // digits only fallback (ex: 25122003 or 20031225)\r\n        $digits = preg_replace(\x27/\x5CD+/\x27\x2C \x27\x27\x2C $raw)\x3B\r\n\r\n        if (preg_match(\x27/^(\x5Cd{2})(\x5Cd{2})(\x5Cd{4})$/\x27\x2C $digits\x2C $mm)) {\r\n            $d = $mm[1]\x3B $mth = $mm[2]\x3B $y = $mm[3]\x3B\r\n        } elseif (preg_match(\x27/^(\x5Cd{4})(\x5Cd{2})(\x5Cd{2})$/\x27\x2C $digits\x2C $mm)) {\r\n            $y = $mm[1]\x3B $mth = $mm[2]\x3B $d = $mm[3]\x3B\r\n        }\r\n    }\r\n\r\n    // 3) If parsing failed\x2C return raw (date-only already attempted)\r\n    if ($d === \x27\x27 || $mth === \x27\x27 || $y === \x27\x27) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_date_naissance: cannot parse -\x3E \x27 . $raw)\x3B\r\n        return $raw\x3B\r\n    }\r\n\r\n    // 4) Sanity check\r\n    $di = (int) $d\x3B $mi = (int) $mth\x3B $yi = (int) $y\x3B\r\n    if ($yi \x3C 1900 || $yi \x3E 2100 || $mi \x3C 1 || $mi \x3E 12 || $di \x3C 1 || $di \x3E 31) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_date_naissance: invalid -\x3E \x27 . $d . \x27/\x27 . $mth . \x27/\x27 . $y)\x3B\r\n        return $raw\x3B\r\n    }\r\n\r\n    // 5) French output\r\n    $out = sprintf(\x27%02d/%02d/%04d\x27\x2C $di\x2C $mi\x2C $yi)\x3B\r\n    if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_date_naissance: normalized=\x27 . $out)\x3B\r\n\r\n    return $out\x3B\r\n\r\n} // gn_vcmb_date_naissance</code>
 	</piece>
 	<piece id="223">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_email</name>
 		<title>VCMB -\x3E Email</title>
 		<description>Extrait l\x27Email du User Joomla courant</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles - 15/01/2026\r\n// Extrait l\x27EMAIL du User Joomla courant\r\n// - Supprime les espaces parasites (trim)\r\n// - Force en minuscules (normalisation)\r\n// - Filtre les caractères invalides (sécurité)\r\n// Utilisable pour : exports VCMB\x2C CSV\x2C envois mail\x2C FFVélo\x2C etc.\r\n// Compatible Joomla 6 / PHP 8.x\r\n\r\nfunction gn_vcmb_email(): string\r\n{\r\n    // Récupère l\x27utilisateur Joomla courant\r\n    $user = Joomla\x5CCMS\x5CFactory::getApplication()-\x3EgetIdentity()\x3B\r\n\r\n    // Sécurité : utilisateur non connecté ou email absent\r\n    if (empty($user-\x3Eemail)) {\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    // Nettoyage de base (espaces\x2C retours ligne\x2C etc.)\r\n    $email = trim((string) $user-\x3Eemail)\x3B\r\n\r\n    // Normalisation en minuscules (conforme aux RFC email)\r\n    $email = strtolower($email)\x3B\r\n\r\n    // Supprime les caractères invalides pour un email\r\n    $email = filter_var($email\x2C FILTER_SANITIZE_EMAIL)\x3B\r\n\r\n    return $email\x3B\r\n    \r\n} // gn_vcmb_email</code>
 	</piece>
 	<piece id="224">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_groupe</name>
 		<title>VCMB -\x3E Groupe</title>
 		<description>Extrait le \x22Groupe VCMB\x22 du User Custom Field Joomla courant</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles - 15/01/2026\r\n// Extrait le champ utilisateur Joomla \x22groupe-vcmb\x22 (type: list) de l\x27utilisateur courant\r\n// - Retourne la valeur brute du champ (value) telle qu\x27enregistrée dans Joomla\r\n// - trim() pour éliminer les espaces parasites\r\n// - IMPORTANT : on ne force pas en minuscules (risque de casser la correspondance avec les values BF)\r\n// Compatible Joomla 6 / PHP 8.x / BreezingForms\r\n\r\nfunction gn_vcmb_groupe(): string\r\n{\r\n    // Paramètres du champ custom user\r\n    $fieldName = \x27groupe-vcmb\x27\x3B\r\n    $fieldType = \x27list\x27\x3B\r\n\r\n    // Utilisateur courant\r\n    $user = Joomla\x5CCMS\x5CFactory::getApplication()-\x3EgetIdentity()\x3B\r\n\r\n    // Sécurité : utilisateur non connecté\r\n    if ((int) $user-\x3Eget(\x27id\x27) === 0) {\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    // Récupère les champs custom de l\x27utilisateur\r\n    $fields = Joomla\x5CComponent\x5CFields\x5CAdministrator\x5CHelper\x5CFieldsHelper::getFields(\x27com_users.user\x27\x2C $user\x2C true)\x3B\r\n\r\n    // Recherche du champ \x22groupe-vcmb\x22\r\n    foreach ($fields as $field) {\r\n        if ($field-\x3Ename === $fieldName \x26\x26 $field-\x3Etype === $fieldType) {\r\n\r\n            // Pour un champ \x22list\x22\x2C rawvalue est normalement une string (la value)\r\n            // On gère quand même le cas tableau par sécurité\r\n            if (is_array($field-\x3Erawvalue)) {\r\n                $vals = array_map(\x27trim\x27\x2C $field-\x3Erawvalue)\x3B\r\n                return implode(\x27\x2C \x27\x2C $vals)\x3B\r\n            }\r\n\r\n            return trim((string) $field-\x3Erawvalue)\x3B\r\n        }\r\n    }\r\n\r\n    // Champ non trouvé\r\n    return \x27\x27\x3B\r\n\r\n} // gn_vcmb_groupe</code>
 	</piece>
 	<piece id="225">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_groupes</name>
 		<title>VCMB -\x3E Groupes</title>
 		<description>Extrait les \x22Groupes VCMB\x22 du User Custom Field Joomla de l\x27utilisateur courant.</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles - 15/01/2026\r\n// Get Joomla user custom field \x22groupes-vcmb\x22 (type: checkboxes)\r\n// Return values joined with \x27\x3B\x27 (VCMB format) e.g. \x22Route\x3BGravel\x3BEcole jeunes\x22\r\n// Joomla 6 / PHP 8.x / BreezingForms safe\r\n\r\nfunction gn_vcmb_groupes()\r\n{\r\n    $fieldName = \x27groupes-vcmb\x27\x3B\r\n    $fieldType = \x27checkboxes\x27\x3B\r\n\r\n    $user = Joomla\x5CCMS\x5CFactory::getApplication()-\x3EgetIdentity()\x3B\r\n    if ((int) $user-\x3Eget(\x27id\x27) === 0) {\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    $fields = Joomla\x5CComponent\x5CFields\x5CAdministrator\x5CHelper\x5CFieldsHelper::getFields(\x27com_users.user\x27\x2C $user\x2C true)\x3B\r\n\r\n    foreach ($fields as $field) {\r\n        if ($field-\x3Ename === $fieldName \x26\x26 $field-\x3Etype === $fieldType) {\r\n\r\n            if (is_array($field-\x3Erawvalue)) {\r\n                $vals = array_map(\x27trim\x27\x2C $field-\x3Erawvalue)\x3B\r\n                return implode(\x27\x3B\x27\x2C $vals)\x3B\r\n            }\r\n\r\n            return trim((string) $field-\x3Erawvalue)\x3B\r\n        }\r\n    }\r\n\r\n    return \x27\x27\x3B\r\n} // gn_vcmb_groupes</code>
 	</piece>
 	<piece id="226">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_nb_inscrits</name>
 		<title>VCMB -\x3E Nb Inscrits</title>
 		<description>Compte le nombre d\x27inscrits (records) du formulaire\r\nRetourne un nombre</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles — 17/01/2026\r\n// Count BreezingForms records for current form (by form ID\x2C rename-proof)\r\n// Table : #__facileforms_records\r\n// Joomla 6 / PHP 8.x / BreezingForms safe\r\n// ------------------------------------------------------------\r\n\r\n    function gn_nb_inscrits(int $formId): int\r\n    {\r\n        if ($formId \x3C= 0) {\r\n            return 0\x3B\r\n        }\r\n\r\n        try {\r\n            $db = Joomla\x5CCMS\x5CFactory::getDbo()\x3B\r\n\r\n            $query = $db-\x3EgetQuery(true)\r\n                -\x3Eselect(\x27COUNT(*)\x27)\r\n                -\x3Efrom($db-\x3EquoteName(\x27#__facileforms_records\x27))\r\n                -\x3Ewhere($db-\x3EquoteName(\x27form\x27) . \x27 = :formid\x27)\r\n                -\x3Ebind(\x27:formid\x27\x2C $formId\x2C Joomla\x5CDatabase\x5CParameterType::INTEGER)\x3B\r\n\r\n            $db-\x3EsetQuery($query)\x3B\r\n\r\n            return (int) $db-\x3EloadResult()\x3B\r\n\r\n        } catch (\x5CThrowable $e) {\r\n            return 0\x3B\r\n        }\r\n    } // gn_nb_inscrits</code>
 	</piece>
 	<piece id="227">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_nom</name>
 		<title>VCMB -\x3E NOM</title>
 		<description>Extrait le NOM du User VCMB (username) : NOM Prénom</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles - 14/01/2026\r\n// Extrait le NOM (VCMB) du champ Joomla \x22name\x22 au format : \x22NOM Prénom\x22\r\n// Hypothèse VCMB :\r\n//   - Le prénom est le DERNIER mot\r\n//   - Le nom peut contenir des espaces (LE ROUX\x2C DE LA ROUE\x2C etc.)\r\n// Gère les accents (UTF-8) et les espaces multiples\r\n\r\nfunction gn_vcmb_nom()\r\n{\r\n    // Récupère l\x27utilisateur Joomla courant\r\n    $user = Joomla\x5CCMS\x5CFactory::getApplication()-\x3EgetIdentity()\x3B\r\n\r\n    // Nom complet Joomla (ex: \x22LE ROUX Jean-Luc\x22)\r\n    $full = trim((string) $user-\x3Ename)\x3B\r\n\r\n    // Sécurité : nom vide (utilisateur non connecté\x2C bug Joomla\x2C etc.)\r\n    if ($full === \x27\x27) {\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    // Découpe sur un ou plusieurs espaces\r\n    $parts = preg_split(\x27/\x5Cs+/\x27\x2C $full\x2C -1\x2C PREG_SPLIT_NO_EMPTY)\x3B\r\n\r\n    // Si on n\x27a pas au moins \x22NOM Prénom\x22\x2C on renvoie tout en majuscules\r\n    if (!$parts || count($parts) \x3C 2) {\r\n        return mb_strtoupper($full\x2C \x27UTF-8\x27)\x3B\r\n    }\r\n\r\n    // Supprime le prénom (dernier mot)\r\n    array_pop($parts)\x3B\r\n\r\n    // Le reste = NOM (peut contenir des espaces)\r\n    $nom = implode(\x27 \x27\x2C $parts)\x3B\r\n\r\n    // Retourne le NOM en majuscules UTF-8 (É\x2C È\x2C Ç\x2C etc.)\r\n    return mb_strtoupper($nom\x2C \x27UTF-8\x27)\x3B\r\n    \r\n} // gn_vcmb_nom</code>
 	</piece>
 	<piece id="228">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_prenom</name>
 		<title>VCMB -\x3E Prénom</title>
 		<description>Extrait le Prénom du User VCMB (username) : NOM Prénom</description>
-		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles - 14/01/2026\r\n// Extrait le PRÉNOM (VCMB) du champ Joomla \x22name\x22 au format : \x22NOM Prénom\x22\r\n// Hypothèse VCMB :\r\n//   - Le prénom est le DERNIER mot\r\n//   - Le nom peut contenir des espaces (LE ROUX\x2C DE LA ROUE\x2C etc.)\r\n// Gère les accents (UTF-8) et les prénoms composés (Jean-Luc\x2C Marie-Claire)\r\n\r\nfunction gn_vcmb_prenom(): string\r\n{\r\n    // Récupère l\x27utilisateur Joomla courant\r\n    $user = Joomla\x5CCMS\x5CFactory::getApplication()-\x3EgetIdentity()\x3B\r\n\r\n    // Nom complet Joomla (ex: \x22LE ROUX Jean-Luc\x22)\r\n    $full = trim((string) $user-\x3Ename)\x3B\r\n\r\n    // Découpe sur un ou plusieurs espaces\r\n    $parts = preg_split(\x27/\x5Cs+/\x27\x2C $full\x2C -1\x2C PREG_SPLIT_NO_EMPTY)\x3B\r\n\r\n    // Sécurité : si pas de prénom détectable\r\n    if (!$parts || count($parts) \x3C 2) {\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    // Le prénom est le DERNIER mot\r\n    $firstname = end($parts)\x3B\r\n\r\n    // Met en casse \x22jolie\x22 (Jean-Luc\x2C Élodie\x2C etc.)\r\n    return mb_convert_case($firstname\x2C MB_CASE_TITLE\x2C \x27UTF-8\x27)\x3B\r\n  \r\n} // gn_vcmb_prenom</code>
+		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles - 14/01/2026\r\n// Extrait le PRÉNOM (VCMB) du champ Joomla \x22name\x22 au format : \x22NOM Prénom\x22\r\n// Hypothèse VCMB :\r\n//   - Le prénom est le DERNIER mot\r\n//   - Le nom peut contenir des espaces (LE ROUX\x2C DE LA ROUE\x2C etc.)\r\n// Gère les accents (UTF-8) et les prénoms composés (Jean-Luc\x2C Marie-Claire)\r\n\r\nfunction gn_vcmb_prenom($name): string\r\n{\r\n    \r\n  if ($name === null || trim($name) === \x27\x27) {\r\n    // Récupère l\x27utilisateur Joomla courant\r\n    $user = Joomla\x5CCMS\x5CFactory::getApplication()-\x3EgetIdentity()\x3B\r\n\r\n    // Nom complet Joomla (ex: \x22LE ROUX Jean-Luc\x22)\r\n    $name = $user-\x3Ename\x3B\r\n  }\r\n\r\n    $full = trim((string) $name)\x3B\r\n\r\n    // Découpe sur un ou plusieurs espaces\r\n    $parts = preg_split(\x27/\x5Cs+/\x27\x2C $full\x2C -1\x2C PREG_SPLIT_NO_EMPTY)\x3B\r\n\r\n    // Sécurité : si pas de prénom détectable\r\n    if (!$parts || count($parts) \x3C 2) {\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    // Le prénom est le DERNIER mot\r\n    $firstname = end($parts)\x3B\r\n\r\n    // Met en casse \x22jolie\x22 (Jean-Luc\x2C Élodie\x2C etc.)\r\n    return mb_convert_case($firstname\x2C MB_CASE_TITLE\x2C \x27UTF-8\x27)\x3B\r\n  \r\n} // gn_vcmb_prenom</code>
 	</piece>
 	<piece id="232">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_telephone</name>
 		<title>VCMB -\x3E Téléphone</title>
 		<description>Extrait \x22Téléphone\x22 du Joomla User Profile VCMB (phone)</description>
 		<code>use Joomla\x5CCMS\x5CFactory\x3B\r\nuse Joomla\x5CDatabase\x5CDatabaseInterface\x3B\r\n// Gilles - 15/01/2026\r\n// Get Joomla PROFILE field \x22phone\x22 (profile.phone)\r\n// Not a Joomla custom field (UF) -\x3E do NOT use FieldsHelper here\r\n// Return empty string if not logged in or field not found\r\n// VCMB normalization: French phone format \x2206 88 88 77 77\x22\r\n// Joomla 6 / PHP 8.x / BreezingForms safe\r\n\r\nif (!function_exists(\x27_gn_vcmb_normalize_phone\x27)) {\r\n    $this-\x3EexecPieceByName(\x27_gn_vcmb_normalize_phone\x27)\x3B\r\n}\r\n\r\nfunction gn_vcmb_telephone()\r\n{\r\n    // Debug flag\r\n    $GN_DEBUG = false\x3B\r\n\r\n    // Profile field definition\r\n    $profileField = \x27phone\x27\x3B\r\n\r\n    // Current user\r\n    $user = Joomla\x5CCMS\x5CFactory::getApplication()-\x3EgetIdentity()\x3B\r\n\r\n    if ((int) $user-\x3Eget(\x27id\x27) === 0) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_telephone: user not logged in\x27)\x3B\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    // Load profile for this user id\r\n    $profile = Joomla\x5CCMS\x5CUser\x5CUserHelper::getProfile($user-\x3Eid)\x3B\r\n\r\n    if (!isset($profile-\x3Eprofile) || !is_array($profile-\x3Eprofile)) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_telephone: profile array not found\x27)\x3B\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    if (!isset($profile-\x3Eprofile[$profileField])) {\r\n        if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_telephone: profile field not found name=\x27 . $profileField)\x3B\r\n        return \x27\x27\x3B\r\n    }\r\n\r\n    // Raw value\r\n    $tel = trim((string) $profile-\x3Eprofile[$profileField])\x3B\r\n\r\n    if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_telephone: raw=\x27 . $tel)\x3B\r\n\r\n    // Normalize to VCMB format\r\n    $tel = _gn_vcmb_normalize_phone($tel)\x3B\r\n\r\n    if ($GN_DEBUG) error_log(\x27[BF] gn_vcmb_telephone: normalized=\x27 . $tel)\x3B\r\n\r\n    return $tel\x3B\r\n\r\n} // gn_vcmb_telephone</code>
 	</piece>
 	<piece id="233">
-		<package>XDA</package>
+		<package>GN</package>
 		<name>gn_vcmb_ville</name>
 		<title>VCMB -\x3E Ville</title>
 		<description>Extrait \x22Ville\x22 du Joomla User Profile VCMB (city)</description>
