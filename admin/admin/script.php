@@ -40,6 +40,15 @@ switch ($task) {
 	case 'unpublish' :
 		facileFormsScript::publish($option, $pkg, $ids, '0');
 		break;
+	case 'prev':
+		facileFormsScript::prev($option, $pkg, $ids);
+		break;
+	case 'next':
+		facileFormsScript::next($option, $pkg, $ids);
+		break;
+	case 'test':
+		facileFormsScript::test($option, $pkg, $ids);
+		break;
 	case 'config' :
 		$ff_config->edit(
 			$option,

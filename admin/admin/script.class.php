@@ -222,4 +222,140 @@ class facileFormsScript
 		HTML_facileFormsScript::listitems($option, $rows, $pkglist, $pkg);
 	} // listitems
 
+	static function test($option, $pkg, $ids)
+	{
+		$app = Factory::getApplication();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
+		ArrayHelper::toInteger($ids);
+		if (!count($ids)) {
+			$id = BFRequest::getInt('id', 0);
+			if ($id) {
+				$ids = array($id);
+			}
+		}
+		if (!count($ids)) {
+			$app->redirect("index.php?option=$option&act=managescripts&pkg=$pkg");
+			return;
+		}
+
+		$row = new facileFormsScripts($database);
+		$row->load($ids[0]);
+		if (!(int) $row->id) {
+			$app->redirect("index.php?option=$option&act=managescripts&pkg=$pkg");
+			return;
+		}
+
+		list($functionName, $params, $paramDefaults) = self::extractFunctionSignature((string) $row->code, (string) $row->name);
+		HTML_facileFormsScript::test($option, $pkg, $row, $functionName, $params, $paramDefaults);
+	}
+
+	static function prev($option, $pkg, $ids)
+	{
+		self::navigate($option, $pkg, $ids, 'prev');
+	}
+
+	static function next($option, $pkg, $ids)
+	{
+		self::navigate($option, $pkg, $ids, 'next');
+	}
+
+	private static function navigate($option, $pkg, $ids, $direction)
+	{
+		$app = Factory::getApplication();
+		$database = Factory::getContainer()->get(DatabaseInterface::class);
+		ArrayHelper::toInteger($ids);
+		if (!count($ids)) {
+			$id = BFRequest::getInt('id', 0);
+			if ($id) {
+				$ids = array($id);
+			}
+		}
+		if (!count($ids)) {
+			$app->redirect("index.php?option=$option&act=managescripts&pkg=$pkg");
+			return;
+		}
+
+		$currentId = (int) $ids[0];
+		if ($direction === 'prev') {
+			$database->setQuery(
+				"SELECT id FROM #__facileforms_scripts WHERE package = " . $database->Quote($pkg) .
+				" AND id < " . $currentId . " ORDER BY id DESC LIMIT 1"
+			);
+		} else {
+			$database->setQuery(
+				"SELECT id FROM #__facileforms_scripts WHERE package = " . $database->Quote($pkg) .
+				" AND id > " . $currentId . " ORDER BY id ASC LIMIT 1"
+			);
+		}
+		$targetId = (int) $database->loadResult();
+		if (!$targetId) {
+			if ($direction === 'prev') {
+				$database->setQuery(
+					"SELECT id FROM #__facileforms_scripts WHERE package = " . $database->Quote($pkg) .
+					" ORDER BY id DESC LIMIT 1"
+				);
+			} else {
+				$database->setQuery(
+					"SELECT id FROM #__facileforms_scripts WHERE package = " . $database->Quote($pkg) .
+					" ORDER BY id ASC LIMIT 1"
+				);
+			}
+			$targetId = (int) $database->loadResult();
+			if (!$targetId) {
+				$targetId = $currentId;
+			}
+		}
+
+		$testContext = BFRequest::getInt('test_context', 0);
+		if ($testContext) {
+			$app->redirect("index.php?option=$option&act=managescripts&task=test&pkg=$pkg&ids[]=" . $targetId);
+		} else {
+			$app->redirect("index.php?option=$option&act=managescripts&task=edit&pkg=$pkg&ids[]=" . $targetId);
+		}
+	}
+
+	private static function extractFunctionSignature($code, $fallbackName = '')
+	{
+		$functionName = '';
+		$params = array();
+		$defaults = array();
+
+		$patterns = array(
+			'/function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(([^)]*)\)/m',
+			'/(?:const|let|var)?\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*function\s*\(([^)]*)\)/m',
+			'/(?:const|let|var)?\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*\(([^)]*)\)\s*=>/m',
+		);
+
+		foreach ($patterns as $pattern) {
+			if (preg_match($pattern, $code, $matches)) {
+				$functionName = $matches[1];
+				$paramList = trim($matches[2]);
+				if ($paramList !== '') {
+					$parts = explode(',', $paramList);
+					foreach ($parts as $part) {
+						$part = trim($part);
+						if ($part === '') {
+							continue;
+						}
+						$part = preg_replace('/^\.{3}/', '', $part);
+						$segments = explode('=', $part, 2);
+						$name = trim($segments[0]);
+						if (!preg_match('/^[a-zA-Z_$][a-zA-Z0-9_$]*$/', $name)) {
+							continue;
+						}
+						$params[] = $name;
+						$defaults[] = isset($segments[1]) ? trim($segments[1]) : '';
+					}
+				}
+				break;
+			}
+		}
+
+		if ($functionName === '') {
+			$functionName = trim((string) $fallbackName);
+		}
+
+		return array($functionName, $params, $defaults);
+	}
+
 } // class facileFormsScript

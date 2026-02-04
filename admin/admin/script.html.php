@@ -333,6 +333,7 @@ class HTML_facileFormsScript
 									case 'publish':
 									case 'unpublish':
 									case 'remove':
+									case 'test':
 										if (form.boxchecked.value==0) {
 											alert("<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_SELSCRIPTSFIRST'); ?>");
 			return;
@@ -360,6 +361,7 @@ class HTML_facileFormsScript
 			ToolBarHelper::custom('copy', 'copy.png', 'copy_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_COPY'), false);
 			ToolBarHelper::custom('publish', 'publish.png', 'publish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_PUBLISH'), false);
 			ToolBarHelper::custom('unpublish', 'unpublish.png', 'unpublish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_UNPUBLISH'), false);
+			ToolBarHelper::custom('test', 'eye', '', 'Test', false);
 			ToolBarHelper::custom('remove', 'delete.png', 'delete_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_DELETE'), false);
 			?>
 
@@ -436,6 +438,7 @@ class HTML_facileFormsScript
 							<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_PUBLISHED'); ?>
 						</a>
 					</th>
+					<th align="center">Test</th>
 				</tr>
 				<?php
 				$k = 0;
@@ -484,6 +487,11 @@ class HTML_facileFormsScript
 							} // if
 							?>
 						</td>
+						<td valign="top" align="center">
+							<a class="tbody-icon" href="javascript:void(0);"
+								onClick="return listItemTask('cb<?php echo $i; ?>','test')"><span class="icon-eye"
+									aria-hidden="true"></span></a>
+						</td>
 					</tr>
 					<?php
 					$k = 1 - $k;
@@ -498,6 +506,293 @@ class HTML_facileFormsScript
 		</form>
 		<?php
 	} // listitems
+
+	static function test($option, $pkg, &$row, $functionName, $paramNames, $paramDefaults)
+	{
+		ToolBarHelper::custom('edit', 'cancel.png', 'cancel_f2.png', 'Retour', false);
+		ToolBarHelper::custom('prev', 'arrow-left', '', 'Precedent', false);
+		ToolBarHelper::custom('next', 'arrow-right', '', 'Suivant', false);
+		$safeCode = json_encode((string) $row->code);
+		$safeFunction = json_encode((string) $functionName);
+		?>
+		<script type="text/javascript">
+			(function () {
+				var testCode = <?php echo $safeCode; ?>;
+				var defaultFunctionName = <?php echo $safeFunction; ?>;
+
+				function parseValue(raw) {
+					var value = String(raw || '').trim();
+					if (value === '') {
+						return '';
+					}
+
+					var lower = value.toLowerCase();
+					if (lower === 'null') return null;
+					if (lower === 'true') return true;
+					if (lower === 'false') return false;
+
+					if (/^-?\d+(\.\d+)?$/.test(value)) {
+						return value.indexOf('.') !== -1 ? parseFloat(value) : parseInt(value, 10);
+					}
+
+					var startsLikeJson = (value.charAt(0) === '{' && value.charAt(value.length - 1) === '}') ||
+						(value.charAt(0) === '[' && value.charAt(value.length - 1) === ']');
+					if (startsLikeJson) {
+						try {
+							return JSON.parse(value);
+						} catch (e) {
+							return value;
+						}
+					}
+
+					var quoted = (value.charAt(0) === '"' && value.charAt(value.length - 1) === '"') ||
+						(value.charAt(0) === "'" && value.charAt(value.length - 1) === "'");
+					if (quoted && value.length >= 2) {
+						return value.slice(1, -1);
+					}
+
+					return value;
+				}
+
+				function formatValue(value) {
+					if (typeof value === 'undefined') {
+						return 'undefined';
+					}
+					if (typeof value === 'string') {
+						return value;
+					}
+					try {
+						return JSON.stringify(value, null, 2);
+					} catch (e) {
+						return String(value);
+					}
+				}
+
+				window.submitbutton = function (pressbutton) {
+					Joomla.submitform(pressbutton, document.getElementById('adminForm'));
+				};
+
+				window.bfRunScriptTest = function () {
+					var fnField = document.getElementById('bf-script-function');
+					var output = document.getElementById('bf-script-test-output');
+					var result = document.getElementById('bf-script-test-result');
+					var error = document.getElementById('bf-script-test-error');
+					var logs = document.getElementById('bf-script-test-logs');
+
+					if (!fnField || !output || !result || !error || !logs) {
+						return false;
+					}
+
+					var functionName = String(fnField.value || '').trim();
+					if (!functionName) {
+						output.style.display = 'block';
+						result.style.display = 'none';
+						logs.style.display = 'none';
+						error.style.display = 'block';
+						error.textContent = 'Veuillez renseigner le nom de la fonction a tester.';
+						return false;
+					}
+					if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(functionName)) {
+						output.style.display = 'block';
+						result.style.display = 'none';
+						logs.style.display = 'none';
+						error.style.display = 'block';
+						error.textContent = 'Nom de fonction invalide.';
+						return false;
+					}
+
+					var argFields = document.querySelectorAll('.bf-test-arg');
+					var args = [];
+					var labels = [];
+					for (var i = 0; i < argFields.length; i++) {
+						var field = argFields[i];
+						labels.push(field.getAttribute('data-param') || ('arg' + i));
+						args.push(parseValue(field.value));
+					}
+
+					var consoleLines = [];
+					var consoleProxy = {
+						log: function () {
+							consoleLines.push('log: ' + Array.prototype.slice.call(arguments).join(' '));
+						},
+						warn: function () {
+							consoleLines.push('warn: ' + Array.prototype.slice.call(arguments).join(' '));
+						},
+						error: function () {
+							consoleLines.push('error: ' + Array.prototype.slice.call(arguments).join(' '));
+						}
+					};
+
+					output.style.display = 'block';
+					result.style.display = 'none';
+					error.style.display = 'none';
+					logs.style.display = 'none';
+					result.textContent = '';
+					error.textContent = '';
+					logs.textContent = '';
+
+					try {
+						var runner = new Function('scriptCode', 'fnName', 'args', 'consoleProxy',
+							'var FF_STATUS_OK = 0;\n' +
+							'var FF_STATUS_UNPUBLISHED = 1;\n' +
+							'var FF_STATUS_SAVERECORD_FAILED = 2;\n' +
+							'var FF_STATUS_SAVESUBRECORD_FAILED = 3;\n' +
+							'var FF_STATUS_UPLOAD_FAILED = 4;\n' +
+							'var FF_STATUS_ATTACHMENT_FAILED = 5;\n' +
+							'var FF_STATUS_SENDMAIL_FAILED = 6;\n' +
+							'function ff_validationFocus(){ return true; }\n' +
+							'var console = consoleProxy || window.console;\n' +
+							'eval(scriptCode);\n' +
+							'var target = null;\n' +
+							'try { target = eval(fnName); } catch (e) { target = null; }\n' +
+							'if (typeof target !== "function") {\n' +
+							'  throw new Error("Function \'" + fnName + "\' not found in script code.");\n' +
+							'}\n' +
+							'return target.apply(window, args);'
+						);
+
+						var executed = runner(testCode, functionName, args, consoleProxy);
+						result.style.display = 'block';
+						result.textContent =
+							'Result:\n' + formatValue(executed) +
+							'\n\nParameters:\n' + formatValue(labels.map(function (name, idx) { return [name, args[idx]]; }));
+					} catch (e) {
+						error.style.display = 'block';
+						error.textContent =
+							'Error: ' + (e && e.message ? e.message : e) +
+							'\n\nParameters:\n' + formatValue(labels.map(function (name, idx) { return [name, args[idx]]; }));
+					}
+
+					if (consoleLines.length) {
+						logs.style.display = 'block';
+						logs.textContent = consoleLines.join('\n');
+					}
+
+					return false;
+				};
+
+				window.addEventListener('load', function () {
+					var field = document.getElementById('bf-script-function');
+					if (field && !field.value) {
+						field.value = defaultFunctionName || '';
+					}
+				});
+				if (window.Joomla) {
+					window.Joomla.submitbutton = window.submitbutton;
+				}
+			})();
+		</script>
+		<form action="index.php" method="post" name="adminForm" id="adminForm" class="adminForm">
+			<div class="d-flex justify-content-between align-items-center mb-3">
+				<h2 class="m-0">Test Script</h2>
+				<button type="button" class="btn btn-primary" onclick="return bfRunScriptTest();">
+					<span class="icon-eye" aria-hidden="true"></span>
+					Lancer
+				</button>
+			</div>
+			<h3><?php echo htmlspecialchars((string) $row->title, ENT_QUOTES); ?></h3>
+			<div class="card mb-3 bg-light">
+				<div class="card-body">
+					<div class="row">
+						<div class="col-sm-6 col-md-3">
+							<strong>Script ID:</strong> <?php echo (int) $row->id; ?>
+						</div>
+						<div class="col-sm-6 col-md-3">
+							<strong>Package:</strong> <?php echo htmlspecialchars((string) $row->package, ENT_QUOTES); ?>
+						</div>
+						<div class="col-sm-6 col-md-3">
+							<strong>Name:</strong> <?php echo htmlspecialchars((string) $row->name, ENT_QUOTES); ?>
+						</div>
+						<div class="col-sm-6 col-md-3">
+							<strong>Type:</strong> <?php echo htmlspecialchars(self::typeName((string) $row->type), ENT_QUOTES); ?>
+						</div>
+					</div>
+				</div>
+			</div>
+			<?php if (!empty($row->description)) { ?>
+				<div class="card mb-3">
+					<div class="card-header">Description</div>
+					<div class="card-body">
+						<div class="form-control bg-light" style="white-space: pre-wrap;">
+							<?php echo HTMLHelper::_('content.prepare', $row->description); ?>
+						</div>
+					</div>
+				</div>
+			<?php } ?>
+			<div class="card mb-3 bg-light">
+				<div class="card-body">
+					<label for="bf-script-function"><strong>Function</strong></label>
+					<input type="text" id="bf-script-function" class="form-control" value="<?php echo htmlspecialchars((string) $functionName, ENT_QUOTES); ?>" />
+					<small class="text-muted">Valeurs: null, true, false, nombres, JSON ({}/[]), ou texte.</small>
+				</div>
+			</div>
+			<div class="card mb-3">
+				<div class="card-header">Arguments</div>
+				<div class="card-body">
+					<table cellpadding="4" cellspacing="0" border="0" class="adminlist table table-striped">
+						<tr>
+							<th>Parametre</th>
+							<th>Valeur</th>
+						</tr>
+						<?php if (!count($paramNames)) { ?>
+							<tr>
+								<td colspan="2">Aucun parametre detecte.</td>
+							</tr>
+						<?php } else { ?>
+							<?php for ($i = 0; $i < count($paramNames); $i++) { ?>
+								<?php
+								$name = $paramNames[$i];
+								$default = isset($paramDefaults[$i]) ? $paramDefaults[$i] : '';
+								?>
+								<tr>
+									<td><?php echo htmlspecialchars($name, ENT_QUOTES); ?></td>
+									<td>
+										<input
+											type="text"
+											class="inputbox bf-test-arg"
+											data-param="<?php echo htmlspecialchars($name, ENT_QUOTES); ?>"
+											value="<?php echo htmlspecialchars($default, ENT_QUOTES); ?>" />
+									</td>
+								</tr>
+							<?php } ?>
+						<?php } ?>
+					</table>
+				</div>
+			</div>
+			<div id="bf-script-test-output" class="card mb-3" style="display:none;">
+				<div class="card-header">Resultat</div>
+				<div class="card-body">
+					<pre id="bf-script-test-result" class="alert alert-success" style="display:none;"></pre>
+					<pre id="bf-script-test-error" class="alert alert-danger" style="display:none;"></pre>
+					<pre id="bf-script-test-logs" class="alert alert-secondary" style="display:none;"></pre>
+				</div>
+			</div>
+			<div class="accordion" id="bfScriptCodeAccordion">
+				<div class="accordion-item bg-light">
+					<h2 class="accordion-header" id="bfScriptCodeHeading">
+						<button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse"
+							data-bs-target="#bfScriptCodeCollapse" aria-expanded="false" aria-controls="bfScriptCodeCollapse">
+							Script code
+						</button>
+					</h2>
+					<div id="bfScriptCodeCollapse" class="accordion-collapse collapse" aria-labelledby="bfScriptCodeHeading"
+						data-bs-parent="#bfScriptCodeAccordion">
+						<div class="accordion-body bg-light">
+							<pre><?php echo htmlspecialchars((string) $row->code, ENT_QUOTES); ?></pre>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<input type="hidden" name="option" value="<?php echo $option; ?>" />
+			<input type="hidden" name="task" value="test" />
+			<input type="hidden" name="act" value="managescripts" />
+			<input type="hidden" name="pkg" value="<?php echo htmlspecialchars((string) $pkg, ENT_QUOTES); ?>" />
+			<input type="hidden" name="ids[]" value="<?php echo (int) $row->id; ?>" />
+			<input type="hidden" name="test_context" value="1" />
+		</form>
+		<?php
+	} // test
 
 } // class HTML_facileFormsScript
 ?>
