@@ -1583,26 +1583,77 @@ function bfTriggerRules() {
                                                         var bfFlashFileQueue" . $mdata['dbId'] . " = {};
                                                         function bfUploadImageThumb(file) {
                                                                 var img;
-                                                                img = new moxie.image.Image;
-                                                                img.onload = function() {
-                                                                        img.embed(JQuery('#' + file.id+'thumb').get(0), {
-                                                                                width: 100,
-                                                                                height: 60,
-                                                                                crop: true,
-                                                                                swf_url: moxie.core.utils.Url.resolveUrl('" . $base . "components/com_breezingforms/libraries/jquery/plupload/Moxie.swf')
-                                                                        });
-                                                                };
+                                                                var thumbId = '#' + file.id + 'thumb';
+                                                                var thumbEl = JQuery(thumbId).get(0);
 
-                                                                img.onembedded = function() {
-                                                                        img.destroy();
-                                                                };
+                                                                function bfIsImage(f) {
+                                                                        var name = (f && f.name) ? f.name : '';
+                                                                        var ext = name.split('.').pop().toLowerCase();
+                                                                        if (f && f.type && f.type.indexOf('image/') === 0) {
+                                                                                return true;
+                                                                        }
+                                                                        return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].indexOf(ext) !== -1;
+                                                                }
 
-                                                                img.onerror = function() {
+                                                                function bfFallbackThumb() {
+                                                                        if (!thumbEl || !bfIsImage(file) || !window.FileReader) {
+                                                                                return;
+                                                                        }
+                                                                        var nativeFile = null;
+                                                                        if (file && typeof file.getNative === 'function') {
+                                                                                nativeFile = file.getNative();
+                                                                        }
+                                                                        if (!nativeFile && file && typeof file.getSource === 'function') {
+                                                                                var src = file.getSource();
+                                                                                if (src && typeof src.getSource === 'function') {
+                                                                                        nativeFile = src.getSource();
+                                                                                }
+                                                                        }
+                                                                        if (!nativeFile) {
+                                                                                return;
+                                                                        }
+                                                                        var reader = new FileReader();
+                                                                        reader.onload = function(e) {
+                                                                                try {
+                                                                                        var imgTag = new Image();
+                                                                                        imgTag.onload = function() {
+                                                                                                imgTag.style.maxWidth = '100px';
+                                                                                                imgTag.style.maxHeight = '60px';
+                                                                                                thumbEl.innerHTML = '';
+                                                                                                thumbEl.appendChild(imgTag);
+                                                                                        };
+                                                                                        imgTag.src = e.target.result;
+                                                                                } catch (err) {}
+                                                                        };
+                                                                        reader.readAsDataURL(nativeFile);
+                                                                }
 
-                                                                };
+                                                                if (window.moxie && window.moxie.image && window.moxie.image.Image && thumbEl) {
+                                                                        try {
+                                                                                img = new moxie.image.Image;
+                                                                                img.onload = function() {
+                                                                                        img.embed(thumbEl, {
+                                                                                                width: 100,
+                                                                                                height: 60,
+                                                                                                crop: true,
+                                                                                                swf_url: moxie.core.utils.Url.resolveUrl('" . $base . "components/com_breezingforms/libraries/jquery/plupload/Moxie.swf')
+                                                                                        });
+                                                                                };
 
-                                                                img.load(file.getSource());
+                                                                                img.onembedded = function() {
+                                                                                        img.destroy();
+                                                                                };
 
+                                                                                img.onerror = function() {
+                                                                                        bfFallbackThumb();
+                                                                                };
+
+                                                                                img.load(file.getSource());
+                                                                                return;
+                                                                        } catch (e) {}
+                                                                }
+
+                                                                bfFallbackThumb();
                                                         }
                                                         JQuery(document).ready(
                                                             function() {
