@@ -208,6 +208,36 @@ class BFQuickModeMobile
 		if ($this->hasFlashUpload) {
 			$this->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/plupload/moxie.js');
 			$this->addScript(Uri::root(true) . '/components/com_breezingforms/libraries/jquery/plupload/plupload.js');
+			$pluploadCompat = <<<JS
+(function() {
+	function bfEnsurePluploadCompat() {
+		if (window.moxie) {
+			if (!window.mOxie) {
+				window.mOxie = window.moxie;
+			}
+			if (!window.ctplupload) {
+				window.ctplupload = {};
+			}
+			var imageCtor = (window.moxie.image && window.moxie.image.Image) || window.moxie.Image;
+			if (imageCtor && !window.ctplupload.Image) {
+				window.ctplupload.Image = imageCtor;
+			}
+		}
+		if (window.plupload && window.plupload.Uploader && !window.plupload.Uploader.prototype.removeFileById) {
+			window.plupload.Uploader.prototype.removeFileById = function(id) {
+				return this.removeFile(id);
+			};
+		}
+	}
+	bfEnsurePluploadCompat();
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', bfEnsurePluploadCompat);
+	}
+	setTimeout(bfEnsurePluploadCompat, 0);
+	setTimeout(bfEnsurePluploadCompat, 500);
+})();
+JS;
+			$this->addScriptDeclaration($pluploadCompat);
 		}
 
 		// loading system css
@@ -1553,13 +1583,13 @@ function bfTriggerRules() {
                                                         var bfFlashFileQueue" . $mdata['dbId'] . " = {};
                                                         function bfUploadImageThumb(file) {
                                                                 var img;
-                                                                img = new ctplupload.Image;
+                                                                img = new moxie.image.Image;
                                                                 img.onload = function() {
                                                                         img.embed(JQuery('#' + file.id+'thumb').get(0), {
                                                                                 width: 100,
                                                                                 height: 60,
                                                                                 crop: true,
-                                                                                swf_url: mOxie.resolveUrl('" . $base . "components/com_breezingforms/libraries/jquery/plupload/Moxie.swf')
+                                                                                swf_url: moxie.core.utils.Url.resolveUrl('" . $base . "components/com_breezingforms/libraries/jquery/plupload/Moxie.swf')
                                                                         });
                                                                 };
 
@@ -1624,7 +1654,7 @@ function bfTriggerRules() {
                                                                                         }
                                                                                         var id_ = this.id.split('cancel');
                                                                                         id_ = id_[0];
-                                                                                        uploader_.removeFileById(id_);
+                                                                                        uploader_.removeFile(id_);
                                                                                         JQuery('#'+id_+'queue').remove();
                                                                                         JQuery('#'+id_+'queueitem').remove();
                                                                                         bfFlashUploadersLength--;
