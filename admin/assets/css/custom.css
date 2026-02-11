@@ -1726,6 +1726,40 @@ Manage records table > pagination
         position: relative;
         z-index: 30;
     }
+    #bfPiecesPaginationContainer > div.jtable-bottom-panel,
+    #bfScriptsPaginationContainer > div.jtable-bottom-panel {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 12px;
+    }
+    #bfPiecesPaginationContainer > div.jtable-bottom-panel > div.jtable-left-area,
+    #bfScriptsPaginationContainer > div.jtable-bottom-panel > div.jtable-left-area {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 12px;
+    }
+    #bfPiecesPaginationContainer > div.jtable-bottom-panel > div.jtable-right-area,
+    #bfScriptsPaginationContainer > div.jtable-bottom-panel > div.jtable-right-area {
+        margin-left: auto;
+    }
+    #bfPiecesPaginationContainer > div.jtable-bottom-panel span.jtable-page-info,
+    #bfScriptsPaginationContainer > div.jtable-bottom-panel span.jtable-page-info {
+        display: inline-block;
+        font-weight: 400;
+        padding: 4px 0;
+    }
+    #bfPiecesPaginationContainer > div.jtable-bottom-panel span.jtable-page-size-change,
+    #bfPiecesPaginationContainer > div.jtable-bottom-panel span.jtable-goto-page,
+    #bfScriptsPaginationContainer > div.jtable-bottom-panel span.jtable-page-size-change,
+    #bfScriptsPaginationContainer > div.jtable-bottom-panel span.jtable-goto-page {
+        margin-left: 0;
+    }
+    #bfPiecesPaginationContainer > div.jtable-bottom-panel span.jtable-goto-page input[type=text],
+    #bfScriptsPaginationContainer > div.jtable-bottom-panel span.jtable-goto-page input[type=text] {
+        width: 50px;
+    }
     div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-page-number,
     div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-page-number-space,
     div.jtable-main-container > div.jtable-bottom-panel .jtable-page-list .jtable-page-number-first,

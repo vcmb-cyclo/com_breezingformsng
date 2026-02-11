@@ -296,10 +296,53 @@ class facileFormsPiece
 		$sortField = isset($allowedSorts[$sort]) ? $allowedSorts[$sort] : 'name';
 		$dir = $dir === 'DESC' ? 'DESC' : 'ASC';
 		$orderBy = "order by {$sortField} {$dir}, id desc";
+
+		$pageSizes = array(10, 25, 50, 100, 250, 500, 1000, 5000, 10000, 100000);
+		$limitReq = BFRequest::getInt('limit', -1);
+		if ($limitReq > 0 && in_array($limitReq, $pageSizes, true)) {
+			$limit = $limitReq;
+			$session->set('bf.pieces_limit', $limit);
+		} else {
+			$limit = (int) $session->get('bf.pieces_limit', 10);
+			if (!in_array($limit, $pageSizes, true)) {
+				$limit = 10;
+			}
+		}
+
+		$limitstartReq = BFRequest::getInt('limitstart', -1);
+		if ($limitstartReq >= 0) {
+			$limitstart = $limitstartReq;
+		} else {
+			$limitstart = (int) $session->get('bf.pieces_limitstart', 0);
+		}
+		if ($limitstart < 0) {
+			$limitstart = 0;
+		}
+
+		$database->setQuery(
+			"select count(*) from #__facileforms_pieces " .
+			$whereClause
+		);
+		try {
+			$total = (int) $database->loadResult();
+		} catch (Exception $e) {
+			echo $e->getCode() . ' : ' . $e->getMessage();
+			return false;
+		}
+
+		if ($total > 0 && $limitstart >= $total) {
+			$lastPage = (int) floor(($total - 1) / $limit);
+			$limitstart = $lastPage * $limit;
+		}
+		$limitstart = (int) floor($limitstart / $limit) * $limit;
+		$session->set('bf.pieces_limitstart', $limitstart);
+
 		$database->setQuery(
 			"select * from #__facileforms_pieces " .
 			$whereClause .
-			$orderBy
+			$orderBy,
+			$limitstart,
+			$limit
 		);
 		try {
 			$rows = $database->loadObjectList();
@@ -308,7 +351,7 @@ class facileFormsPiece
 			return false;
 		}
 
-		HTML_facileFormsPiece::listitems($option, $rows, $pkglist, $pkg, $showInternal, $search);
+		HTML_facileFormsPiece::listitems($option, $rows, $pkglist, $pkg, $showInternal, $search, $total, $limit, $limitstart, $pageSizes);
 	} // listitems
 
 	static function test($option, $pkg, $ids)

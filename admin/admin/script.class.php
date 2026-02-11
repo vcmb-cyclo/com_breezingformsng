@@ -206,48 +206,88 @@ class facileFormsScript
 			$dir = strtoupper((string) $dirReq);
 			$session->set('bf.scripts_dir', $dir);
 		}
-		$allowedSorts = array(
-			'id' => 'id',
-			'title' => 'title',
-			'name' => 'name',
-			'type' => 'type',
-			'description' => 'description',
-			'modified' => 'modified',
-			'published' => 'published',
-		);
-		$sortField = isset($allowedSorts[$sort]) ? $allowedSorts[$sort] : 'name';
-		$dir = $dir === 'DESC' ? 'DESC' : 'ASC';
-		$orderBy = "order by {$sortField} {$dir}, id desc";
-		$conditions = array();
-		if ($pkg !== '') {
-			$conditions[] = "package = " . $database->Quote($pkg);
-		}
-		if ($search !== '') {
-			$searchLike = $database->Quote('%' . $search . '%');
-			$conditions[] = "(" .
-				"title LIKE " . $searchLike . " or " .
-				"name LIKE " . $searchLike . " or " .
-				"description LIKE " . $searchLike .
-				")";
-		}
-		$whereClause = count($conditions) ? "where " . implode(' and ', $conditions) . " " : "";
+			$allowedSorts = array(
+				'id' => 'id',
+				'title' => 'title',
+				'name' => 'name',
+				'type' => 'type',
+				'description' => 'description',
+				'modified' => 'modified',
+				'published' => 'published',
+			);
+			$sortField = isset($allowedSorts[$sort]) ? $allowedSorts[$sort] : 'name';
+			$dir = $dir === 'DESC' ? 'DESC' : 'ASC';
+			$orderBy = "order by {$sortField} {$dir}, id desc";
+			$pageSizes = array(10, 25, 50, 100, 250, 500, 1000, 5000, 10000, 100000);
+			$limitReq = BFRequest::getInt('limit', -1);
+			if ($limitReq > 0 && in_array($limitReq, $pageSizes, true)) {
+				$limit = $limitReq;
+				$session->set('bf.scripts_limit', $limit);
+			} else {
+				$limit = (int) $session->get('bf.scripts_limit', 10);
+				if (!in_array($limit, $pageSizes, true)) {
+					$limit = 10;
+				}
+			}
+			$limitstartReq = BFRequest::getInt('limitstart', -1);
+			if ($limitstartReq >= 0) {
+				$limitstart = $limitstartReq;
+			} else {
+				$limitstart = (int) $session->get('bf.scripts_limitstart', 0);
+			}
+			if ($limitstart < 0) {
+				$limitstart = 0;
+			}
+			$conditions = array();
+			if ($pkg !== '') {
+				$conditions[] = "package = " . $database->Quote($pkg);
+			}
+			if ($search !== '') {
+				$searchLike = $database->Quote('%' . $search . '%');
+				$conditions[] = "(" .
+					"title LIKE " . $searchLike . " or " .
+					"name LIKE " . $searchLike . " or " .
+					"description LIKE " . $searchLike .
+					")";
+			}
+			$whereClause = count($conditions) ? "where " . implode(' and ', $conditions) . " " : "";
 
-		$database->setQuery(
-			"select * from #__facileforms_scripts " .
-				$whereClause .
-				$orderBy
-		);
+			$database->setQuery(
+				"select count(*) from #__facileforms_scripts " .
+					$whereClause
+			);
 
-		try {
-			$rows = $database->loadObjectList();
-		} catch (\Exception $e) {
-			echo $e->getMessage();
-			return false;
-		} // try
+			try {
+				$total = (int) $database->loadResult();
+			} catch (\Exception $e) {
+				echo $e->getMessage();
+				return false;
+			} // try
 
+			if ($total > 0 && $limitstart >= $total) {
+				$lastPage = (int) floor(($total - 1) / $limit);
+				$limitstart = $lastPage * $limit;
+			}
+			$limitstart = (int) floor($limitstart / $limit) * $limit;
+			$session->set('bf.scripts_limitstart', $limitstart);
 
-		HTML_facileFormsScript::listitems($option, $rows, $pkglist, $pkg, $search);
-	} // listitems
+			$database->setQuery(
+				"select * from #__facileforms_scripts " .
+					$whereClause .
+					$orderBy,
+				$limitstart,
+				$limit
+			);
+
+			try {
+				$rows = $database->loadObjectList();
+			} catch (\Exception $e) {
+				echo $e->getMessage();
+				return false;
+			} // try
+
+			HTML_facileFormsScript::listitems($option, $rows, $pkglist, $pkg, $search, $total, $limit, $limitstart, $pageSizes);
+		} // listitems
 
 	static function test($option, $pkg, $ids)
 	{

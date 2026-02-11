@@ -173,46 +173,133 @@ class HTML_facileFormsPiece
 		return '???';
 	} // typeName
 
-	static function listitems($option, &$rows, &$pkglist, $pkg, $showInternal, $search)
+	static function listitems($option, &$rows, &$pkglist, $pkg, $showInternal, $search, $total, $limit, $limitstart, $pageSizes)
 	{
 		global $ff_config, $ff_version;
 		$sort = BFRequest::getCmd('sort', 'name');
 		$dir = strtoupper(BFRequest::getCmd('dir', 'ASC'));
 		$dir = $dir === 'DESC' ? 'DESC' : 'ASC';
-		$baseQuery = 'index.php?option=' . $option . '&act=managepieces&pkg=' . urlencode($pkg) . '&show_internal=' . (int) $showInternal . '&search=' . urlencode($search);
+		$baseQuery = 'index.php?option=' . $option .
+			'&act=managepieces' .
+			'&pkg=' . urlencode($pkg) .
+			'&show_internal=' . (int) $showInternal .
+			'&search=' . urlencode($search) .
+			'&limit=' . (int) $limit .
+			'&limitstart=' . (int) $limitstart;
 		$toggleDir = function ($column) use ($sort, $dir) {
 			if ($sort === $column) {
 				return $dir === 'ASC' ? 'DESC' : 'ASC';
 			}
 			return 'ASC';
 		};
+		$pageCount = $limit > 0 ? (int) ceil($total / $limit) : 1;
+		$pageCount = max(1, $pageCount);
+		$currentPage = $limit > 0 ? ((int) floor($limitstart / $limit) + 1) : 1;
+		$currentPage = min(max($currentPage, 1), $pageCount);
+		$startNo = $total > 0 ? $limitstart + 1 : 0;
+		$endNo = $total > 0 ? min($limitstart + $limit, $total) : 0;
+		$shownPageNumbers = array();
+		if ($pageCount <= 4) {
+			for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+				$shownPageNumbers[] = $pageNo;
+			}
+		} else {
+			$shownPageNumbers = array(1, 2, $pageCount - 1, $pageCount, max(1, $currentPage - 1), $currentPage, min($pageCount, $currentPage + 1));
+			$shownPageNumbers = array_values(array_unique($shownPageNumbers));
+			sort($shownPageNumbers);
+		}
+		$gotoLabel = rtrim(BFText::_('COM_BREEZINGFORMS_GO_TO_PAGE'), '.');
 		?>
-		<script type="text/javascript">
-							<!--
-							function submitbutton(pressbutton)
-							{
-								var form = document.adminForm;
-								switch (pressbutton) {
-									case 'copy':
-									case 'publish':
-									case 'unpublish':
-									case 'remove':
-										if (form.boxchecked.value==0) {
-											alert("<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_SELPIECESFIRST'); ?>");
-			return;
-										} // if
-			break;
-									default:
-			break;
-								} // switch
-			if (pressbutton == 'remove')
-				if (!confirm("<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_ASKDELETE'); ?>")) return;
-			if (pressbutton == '' && form.pkgsel.value == '')
-				form.pkg.value = '- blank -';
-			else
-				form.pkg.value = form.pkgsel.value;
-			Joomla.submitform(pressbutton);
-							} // submitbutton
+			<script type="text/javascript">
+								<!--
+								var bfPiecesPageCount = <?php echo (int) $pageCount; ?>;
+								function bfPiecesSyncPackage(form)
+								{
+									if (!form) {
+										return;
+									}
+									if (form.pkgsel && form.pkg) {
+										form.pkg.value = form.pkgsel.value === '' ? '- blank -' : form.pkgsel.value;
+									}
+								}
+
+								function bfPiecesSubmitList(resetLimitStart)
+								{
+									var form = document.adminForm;
+									if (!form) {
+										return false;
+									}
+									if (resetLimitStart && form.limitstart) {
+										form.limitstart.value = 0;
+									}
+									bfPiecesSyncPackage(form);
+									Joomla.submitform('', form);
+									return false;
+								}
+
+								function submitbutton(pressbutton)
+								{
+									var form = document.adminForm;
+									switch (pressbutton) {
+										case 'copy':
+										case 'publish':
+										case 'unpublish':
+										case 'remove':
+											if (form.boxchecked.value==0) {
+												alert("<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_SELPIECESFIRST'); ?>");
+												return;
+											} // if
+											break;
+										default:
+											break;
+									} // switch
+									if (pressbutton == 'remove') {
+										if (!confirm("<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_ASKDELETE'); ?>")) {
+											return;
+										}
+									}
+									bfPiecesSyncPackage(form);
+									Joomla.submitform(pressbutton, form);
+								} // submitbutton
+
+								function bfPiecesGoToPage(pageNo)
+								{
+									var form = document.adminForm;
+									var limit = parseInt(form.limit.value, 10);
+									var page = parseInt(pageNo, 10);
+									if (isNaN(limit) || limit <= 0) {
+										limit = 10;
+									}
+									if (isNaN(page) || page < 1) {
+										page = 1;
+									}
+									if (page > bfPiecesPageCount) {
+										page = bfPiecesPageCount;
+									}
+									form.limitstart.value = (page - 1) * limit;
+									return bfPiecesSubmitList(false);
+								}
+
+								function bfPiecesChangePageSize(pageSize)
+								{
+									var form = document.adminForm;
+									var size = parseInt(pageSize, 10);
+									if (isNaN(size) || size <= 0) {
+										return false;
+									}
+									form.limit.value = size;
+									form.limitstart.value = 0;
+									return bfPiecesSubmitList(false);
+								}
+
+								function bfPiecesGotoPageFromInput()
+								{
+									var input = document.getElementById('bfPiecesGotoPage');
+									if (!input) {
+										return false;
+									}
+									return bfPiecesGoToPage(input.value);
+								}
 
 			<?php
 
@@ -243,9 +330,9 @@ class HTML_facileFormsPiece
 			</script>
 		<form action="index.php" method="post" name="adminForm" id="adminForm">
 
-			<label class="bfPackageSelector">
-				<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_PACKAGE'); ?>
-				<select id="pkgsel" name="pkgsel" class="inputbox" size="1" onchange="submitbutton('');">
+				<label class="bfPackageSelector">
+					<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_PACKAGE'); ?>
+					<select id="pkgsel" name="pkgsel" class="inputbox" size="1" onchange="return bfPiecesSubmitList(true);">
 					<?php
 					if (count($pkglist))
 						foreach ($pkglist as $pkgEntry) {
@@ -258,21 +345,22 @@ class HTML_facileFormsPiece
 					?>
 				</select>
 			</label>
-			<label class="bfPackageSelector">
-				<input type="hidden" name="show_internal" value="0" />
-				<input type="checkbox" name="show_internal" value="1" onchange="submitbutton('');"
-					<?php echo $showInternal ? 'checked' : ''; ?> />
-				Afficher les fonctions internes (préfixe _fonction)
-			</label>
-			<label class="bfPackageSelector bfFilterTools">
-				Filtre
-				<input type="text" name="search" id="search" class="inputbox"
-					value="<?php echo htmlspecialchars($search, ENT_QUOTES); ?>" onchange="submitbutton('');"
-					onkeydown="if(event.key==='Enter'){event.preventDefault();submitbutton('');}" />
+				<label class="bfPackageSelector">
+					<input type="hidden" name="show_internal" value="0" />
+					<input type="checkbox" name="show_internal" value="1" onchange="return bfPiecesSubmitList(true);"
+						<?php echo $showInternal ? 'checked' : ''; ?> />
+					Afficher les fonctions internes (préfixe _fonction)
+				</label>
+				<label class="bfPackageSelector bfFilterTools">
+					Filtre
+					<input type="text" name="search" id="search" class="inputbox"
+						value="<?php echo htmlspecialchars($search, ENT_QUOTES); ?>" onchange="return bfPiecesSubmitList(true);"
+						onkeydown="if(event.key==='Enter'){event.preventDefault();bfPiecesSubmitList(true);}" />
 			</label>
 			<div style="clear: both;"></div>
 
-			<table cellpadding="4" cellspacing="0" border="0" width="100%" class="adminlist table table-striped">
+				<div class="jtable-main-container bf-manage-list-pagination-container" id="bfPiecesPaginationContainer">
+				<table cellpadding="4" cellspacing="0" border="0" width="100%" class="adminlist table table-striped">
 				<tr>
 					<th style="width: 25px;" nowrap align="right">
 						<a href="<?php echo $baseQuery . '&sort=id&dir=' . $toggleDir('id'); ?>">ID</a>
@@ -367,13 +455,57 @@ class HTML_facileFormsPiece
 					$k = 1 - $k;
 				} // for
 				?>
-			</table>
-			<input type="hidden" name="boxchecked" value="0" />
-			<input type="hidden" name="option" value="<?php echo $option; ?>" />
-			<input type="hidden" name="act" value="managepieces" />
-			<input type="hidden" name="task" value="" />
-			<input type="hidden" name="pkg" value="<?php echo htmlspecialchars($pkg, ENT_QUOTES); ?>" />
-		</form>
+				</table>
+				<div class="jtable-bottom-panel">
+					<div class="jtable-left-area">
+						<span class="jtable-page-list">
+							<?php
+							$firstDisabled = $currentPage <= 1;
+							$lastDisabled = $currentPage >= $pageCount;
+							?>
+							<span class="jtable-page-number-first<?php echo $firstDisabled ? ' jtable-page-number-disabled' : ''; ?>"<?php echo $firstDisabled ? '' : ' onclick="return bfPiecesGoToPage(1);"'; ?>>&lt;&lt;</span>
+							<span class="jtable-page-number-previous<?php echo $firstDisabled ? ' jtable-page-number-disabled' : ''; ?>"<?php echo $firstDisabled ? '' : ' onclick="return bfPiecesGoToPage(' . ($currentPage - 1) . ');"'; ?>>&lt;</span>
+							<?php
+							$previousPageNo = 0;
+							foreach ($shownPageNumbers as $pageNo) {
+								if (($pageNo - $previousPageNo) > 1) {
+									echo '<span class="jtable-page-number-space">...</span>';
+								}
+								$isActive = $pageNo === $currentPage;
+								echo '<span class="jtable-page-number' . ($isActive ? ' jtable-page-number-active jtable-page-number-disabled' : '') . '"' .
+									($isActive ? '' : ' onclick="return bfPiecesGoToPage(' . (int) $pageNo . ');"') . '>' . (int) $pageNo . '</span>';
+								$previousPageNo = $pageNo;
+							}
+							?>
+							<span class="jtable-page-number-next<?php echo $lastDisabled ? ' jtable-page-number-disabled' : ''; ?>"<?php echo $lastDisabled ? '' : ' onclick="return bfPiecesGoToPage(' . ($currentPage + 1) . ');"'; ?>>&gt;</span>
+							<span class="jtable-page-number-last<?php echo $lastDisabled ? ' jtable-page-number-disabled' : ''; ?>"<?php echo $lastDisabled ? '' : ' onclick="return bfPiecesGoToPage(' . $pageCount . ');"'; ?>>&gt;&gt;</span>
+						</span>
+						<span class="jtable-page-size-change">
+							<span>Row count: </span>
+							<select name="limit" onchange="return bfPiecesChangePageSize(this.value);">
+								<?php foreach ($pageSizes as $pageSize) { ?>
+									<option value="<?php echo (int) $pageSize; ?>"<?php echo (int) $pageSize === (int) $limit ? ' selected="selected"' : ''; ?>><?php echo (int) $pageSize; ?></option>
+								<?php } ?>
+							</select>
+						</span>
+						<span class="jtable-goto-page">
+							<span><?php echo htmlspecialchars($gotoLabel, ENT_QUOTES); ?>: </span>
+							<input type="text" id="bfPiecesGotoPage" maxlength="10" value="<?php echo (int) $currentPage; ?>"
+								onkeydown="if(event.key==='Enter'){event.preventDefault();bfPiecesGotoPageFromInput();}" />
+						</span>
+					</div>
+					<div class="jtable-right-area">
+						<span class="jtable-page-info"><?php echo $total > 0 ? ('Showing ' . (int) $startNo . '-' . (int) $endNo . ' of ' . (int) $total) : ''; ?></span>
+					</div>
+				</div>
+				</div>
+				<input type="hidden" name="boxchecked" value="0" />
+				<input type="hidden" name="option" value="<?php echo $option; ?>" />
+				<input type="hidden" name="act" value="managepieces" />
+				<input type="hidden" name="task" value="" />
+				<input type="hidden" name="limitstart" value="<?php echo (int) $limitstart; ?>" />
+				<input type="hidden" name="pkg" value="<?php echo htmlspecialchars($pkg, ENT_QUOTES); ?>" />
+			</form>
 		<?php
 	} // listitems
 
