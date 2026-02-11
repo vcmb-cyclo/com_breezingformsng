@@ -208,6 +208,7 @@ class facileFormsScript
 		}
 			$allowedSorts = array(
 				'id' => 'id',
+				'package' => 'package',
 				'title' => 'title',
 				'name' => 'name',
 				'type' => 'type',

@@ -368,6 +368,11 @@ class HTML_facileFormsPiece
 					<th style="width: 25px;" nowrap align="center"><input type="checkbox" name="toggle" value=""
 							onclick="Joomla.checkAll(this);" /></th>
 					<th align="left">
+						<a href="<?php echo $baseQuery . '&sort=package&dir=' . $toggleDir('package'); ?>">
+							<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_PACKAGE'); ?>
+						</a>
+					</th>
+					<th align="left">
 						<a href="<?php echo $baseQuery . '&sort=title&dir=' . $toggleDir('title'); ?>">
 							<?php echo BFText::_('COM_BREEZINGFORMS_PIECES_TITLE'); ?>
 						</a>
@@ -412,6 +417,9 @@ class HTML_facileFormsPiece
 						</td>
 						<td nowrap valign="top" align="center"><input type="checkbox" id="cb<?php echo $i; ?>" name="ids[]"
 								value="<?php echo $row->id; ?>" onclick="Joomla.isChecked(this.checked);" /></td>
+						<td valign="top" align="left">
+							<?php echo htmlspecialchars((string) $row->package, ENT_QUOTES); ?>
+						</td>
 						<td valign="top" align="left"><a href="#edit" onclick="return listItemTask('cb<?php echo $i; ?>','edit')">
 								<?php echo $row->title; ?>
 							</a></td>
