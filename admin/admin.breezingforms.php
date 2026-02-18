@@ -447,6 +447,9 @@ switch ($act) {
     case 'recordmanagement':
         require_once ($ff_admpath . '/admin/recordmanagement.php');
         break;
+    case 'about':
+        require_once ($ff_admpath . '/admin/about.php');
+        break;
     default:
         require_once ($ff_admpath . '/admin/recordmanagement.php');
         break;
@@ -560,7 +563,8 @@ function protectedComponentIds()
         "'index.php?option=com_breezingforms&act=managepieces'," .
         "'index.php?option=com_breezingforms&act=share'," .
         "'index.php?option=com_breezingforms&act=integrate'," .
-        "'index.php?option=com_breezingforms&act=configuration'" .
+        "'index.php?option=com_breezingforms&act=configuration'," .
+        "'index.php?option=com_breezingforms&act=about'" .
         ") " .
         "order by id"
     );

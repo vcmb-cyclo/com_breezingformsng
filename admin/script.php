@@ -232,6 +232,8 @@ class com_breezingformsInstallerScript
             $db->setQuery("Delete From #__updates Where update_site_id = " . $db->quote($site_id));
             $db->execute();
         }
+
+        $this->syncMenuQuickTasks($db);
     }
 
     function getPlugins()
@@ -255,5 +257,73 @@ class com_breezingformsInstallerScript
         }
 
         return $results;
+    }
+
+    private function syncMenuQuickTasks(DatabaseInterface $db): void
+    {
+        $quickTasks = array(
+            'index.php?option=com_breezingforms&act=manageforms' => array(
+                'menu-quicktask' => 'index.php?option=com_breezingforms&act=manageforms&task=quickmode',
+                'menu-quicktask-title' => 'COM_BREEZINGFORMS_MENUS_NEW_FORM',
+                'menu-quicktask-icon' => 'plus',
+            ),
+            'index.php?option=com_breezingforms&act=managescripts' => array(
+                'menu-quicktask' => 'index.php?option=com_breezingforms&act=managescripts&task=new',
+                'menu-quicktask-title' => 'COM_BREEZINGFORMS_MENUS_NEW_SCRIPT',
+                'menu-quicktask-icon' => 'plus',
+            ),
+            'index.php?option=com_breezingforms&act=managepieces' => array(
+                'menu-quicktask' => 'index.php?option=com_breezingforms&act=managepieces&task=new',
+                'menu-quicktask-title' => 'COM_BREEZINGFORMS_MENUS_NEW_PIECE',
+                'menu-quicktask-icon' => 'plus',
+            ),
+            'index.php?option=com_breezingforms&act=integrate' => array(
+                'menu-quicktask' => 'index.php?option=com_breezingforms&act=integrate&task=add',
+                'menu-quicktask-title' => 'COM_BREEZINGFORMS_MENUS_NEW_INTEGRATION',
+                'menu-quicktask-icon' => 'plus',
+            ),
+        );
+
+        foreach ($quickTasks as $menuLink => $paramsToSet) {
+            $query = $db->getQuery(true)
+                ->select(array($db->quoteName('id'), $db->quoteName('params')))
+                ->from($db->quoteName('#__menu'))
+                ->where($db->quoteName('link') . ' = ' . $db->quote($menuLink))
+                ->where($db->quoteName('client_id') . ' = 1');
+
+            $db->setQuery($query);
+            $menuRows = $db->loadObjectList();
+
+            if (!$menuRows) {
+                continue;
+            }
+
+            foreach ($menuRows as $menuRow) {
+                $decodedParams = json_decode((string) ($menuRow->params ?? ''), true);
+
+                if (!is_array($decodedParams)) {
+                    $decodedParams = array();
+                }
+
+                $mergedParams = array_merge($decodedParams, $paramsToSet);
+                $encodedParams = json_encode($mergedParams, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+                if (!is_string($encodedParams) || $encodedParams === '') {
+                    continue;
+                }
+
+                if ((string) ($menuRow->params ?? '') === $encodedParams) {
+                    continue;
+                }
+
+                $updateQuery = $db->getQuery(true)
+                    ->update($db->quoteName('#__menu'))
+                    ->set($db->quoteName('params') . ' = ' . $db->quote($encodedParams))
+                    ->where($db->quoteName('id') . ' = ' . (int) $menuRow->id);
+
+                $db->setQuery($updateQuery);
+                $db->execute();
+            }
+        }
     }
 }

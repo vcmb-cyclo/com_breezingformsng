@@ -9,7 +9,4 @@
 
 defined('_JEXEC') or die;
 
-if(BFRequest::getVar('act') != 'quickmode_editor' && BFRequest::getVar('task') != 'csvimport' && BFRequest::getVar('task') != 'setcsvimport'){
-
-    echo $this->sidebar;
-}
+// Component sidebar intentionally disabled to avoid duplicating the Joomla left menu.

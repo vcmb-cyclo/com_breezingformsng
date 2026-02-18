@@ -49,7 +49,7 @@ class PlgSystemSysbreezingforms extends CMSPlugin
                 $message = 'Please enter your update key in the BreezingForms configuration.<br />Without this key you won\'t be able to receive future upates.<br />You can get your personal update key at Crosstec.org in the My Account => My Downloads section after login.<br />If your membership is expired, you can renew it by <a style="font-weight: bold; text-decoration: underline;" target="_blank" href="https://crosstec.org/en/downloads/joomla-forms.html">purchasing a membership</a>.';
 
                 $db = Factory::getContainer()->get(DatabaseInterface::class);
-                $db->setQuery("Select extra_query From #__update_sites Where `name` = 'BreezingForms Pro' And `type` = 'extension'");
+                $db->setQuery("Select extra_query From #__update_sites Where `name` = 'BreezingForms NG' And `type` = 'extension'");
                 $query = $db->loadResult();
 
                 $exp = explode('=', $query);
@@ -86,7 +86,7 @@ class PlgSystemSysbreezingforms extends CMSPlugin
                         $app->input->getString('option') == 'com_installer' &&
                         $app->input->getString('view', '') == 'update'
                     ) {
-                        $breaks = '<br /><h4>BreezingForms Pro</h4>';
+                        $breaks = '<br /><h4>BreezingForms NG</h4>';
                         $breaks2 = '<br /><br />';
                     }
                     Factory::getApplication()->enqueueMessage($breaks . $message . $breaks2, 'warning');

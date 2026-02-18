@@ -59,4 +59,9 @@ function com_install()
                 "where `link`='index.php?option=com_breezingforms&act=configuration'"
         );
         $db->execute();
+        $db->setQuery(
+                "update #__menu set `alias` = 'About', img='components/com_breezingforms/images/js/ThemeOffice/config.png' " .
+                "where `link`='index.php?option=com_breezingforms&act=about'"
+        );
+        $db->execute();
 }

@@ -63,11 +63,40 @@
 		<menu>COM_BREEZINGFORMS</menu>
 		<submenu>
 			<menu option="com_breezingforms" act="managerecs" alt="BreezingForms/Manage Records">COM_BREEZINGFORMS_MANAGE_RECORDS</menu>
-			<menu option="com_breezingforms" act="manageforms" alt="BreezingForms/Manage Forms">COM_BREEZINGFORMS_MANAGE_FORMS</menu>
-			<menu option="com_breezingforms" act="managescripts" alt="BreezingForms/Manage Scripts">COM_BREEZINGFORMS_MANAGE_SCRIPTS</menu>
-			<menu option="com_breezingforms" act="managepieces" alt="BreezingForms/Manage Pieces">COM_BREEZINGFORMS_MANAGE_PIECES</menu>
-			<menu option="com_breezingforms" act="integrate" alt="BreezingForms/Integrator">COM_BREEZINGFORMS_INTEGRATOR</menu>
+			<menu option="com_breezingforms" act="manageforms" alt="BreezingForms/Manage Forms">
+				COM_BREEZINGFORMS_MANAGE_FORMS
+				<params>
+					<menu-quicktask>index.php?option=com_breezingforms&amp;act=manageforms&amp;task=quickmode</menu-quicktask>
+					<menu-quicktask-title>COM_BREEZINGFORMS_MENUS_NEW_FORM</menu-quicktask-title>
+					<menu-quicktask-icon>plus</menu-quicktask-icon>
+				</params>
+			</menu>
+			<menu option="com_breezingforms" act="managescripts" alt="BreezingForms/Manage Scripts">
+				COM_BREEZINGFORMS_MANAGE_SCRIPTS
+				<params>
+					<menu-quicktask>index.php?option=com_breezingforms&amp;act=managescripts&amp;task=new</menu-quicktask>
+					<menu-quicktask-title>COM_BREEZINGFORMS_MENUS_NEW_SCRIPT</menu-quicktask-title>
+					<menu-quicktask-icon>plus</menu-quicktask-icon>
+				</params>
+			</menu>
+			<menu option="com_breezingforms" act="managepieces" alt="BreezingForms/Manage Pieces">
+				COM_BREEZINGFORMS_MANAGE_PIECES
+				<params>
+					<menu-quicktask>index.php?option=com_breezingforms&amp;act=managepieces&amp;task=new</menu-quicktask>
+					<menu-quicktask-title>COM_BREEZINGFORMS_MENUS_NEW_PIECE</menu-quicktask-title>
+					<menu-quicktask-icon>plus</menu-quicktask-icon>
+				</params>
+			</menu>
+			<menu option="com_breezingforms" act="integrate" alt="BreezingForms/Integrator">
+				COM_BREEZINGFORMS_INTEGRATOR
+				<params>
+					<menu-quicktask>index.php?option=com_breezingforms&amp;act=integrate&amp;task=add</menu-quicktask>
+					<menu-quicktask-title>COM_BREEZINGFORMS_MENUS_NEW_INTEGRATION</menu-quicktask-title>
+					<menu-quicktask-icon>plus</menu-quicktask-icon>
+				</params>
+			</menu>
 			<menu option="com_breezingforms" act="configuration" alt="BreezingForms/Configuration">COM_BREEZINGFORMS_CONFIGURATION</menu>
+			<menu option="com_breezingforms" act="about" alt="BreezingForms/About">COM_BREEZINGFORMS_ABOUT</menu>
 		</submenu>
 
 		<files folder="admin">

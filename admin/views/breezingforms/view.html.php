@@ -21,9 +21,9 @@ class BreezingformsViewBreezingforms extends HtmlView
 
     public function display($tpl = null)
     {
-        ToolbarHelper::title('BreezingForms');
+        ToolbarHelper::title('BreezingForms NG', 'logo_left');
         $doc = Factory::getApplication()->getDocument();
-        $doc->setTitle("BreezingForms");
+        $doc->setTitle("BreezingForms NG");
 
         require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFRequest.php');
         require_once(JPATH_SITE . '/administrator/components/com_breezingforms/libraries/crosstec/classes/BFText.php');
@@ -80,9 +80,10 @@ class BreezingformsViewBreezingforms extends HtmlView
         );
 
         Sidebar::addEntry(
-            '<i class="fa fa-file-text-o" aria-hidden="true"></i> ' . '<m>' .
-            BFText::_('Docs & Support') . '</m>',
-            'http://crosstec.org/en/support/breezingforms-documentation.html'
+            '<i class="fa fa-info-circle" aria-hidden="true"></i> ' . '<m>' .
+            BFText::_('COM_BREEZINGFORMS_ABOUT') . '</m>',
+            'index.php?option=com_breezingforms&act=about',
+            BFRequest::getVar('act', '') == 'about'
         );
 
         $this->sidebar = '<div id="bf-sidebar">' . Sidebar::render() . '</div>';

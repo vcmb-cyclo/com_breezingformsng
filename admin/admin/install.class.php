@@ -324,17 +324,21 @@ class facileFormsInstaller
 			"update #__menu set `alias` = 'Manage Pieces', img='components/com_breezingforms/images/js/ThemeOffice/controlpanel.png' " .
 			"where `link`='index.php?option=com_breezingforms&act=managepieces'"
 		);
-		_ff_query(
-			"update #__menu set `alias` = 'Integrator', img='components/com_breezingforms/images/js/ThemeOffice/controlpanel.png' " .
-			"where `link`='index.php?option=com_breezingforms&act=integrate'"
-		);
-		_ff_query(
-			"update #__menu set `alias` = 'Configuration', img='components/com_breezingforms/images/js/ThemeOffice/config.png' " .
-			"where `link`='index.php?option=com_breezingforms&act=configuration'"
-		);
+			_ff_query(
+				"update #__menu set `alias` = 'Integrator', img='components/com_breezingforms/images/js/ThemeOffice/controlpanel.png' " .
+				"where `link`='index.php?option=com_breezingforms&act=integrate'"
+			);
+			_ff_query(
+				"update #__menu set `alias` = 'Configuration', img='components/com_breezingforms/images/js/ThemeOffice/config.png' " .
+				"where `link`='index.php?option=com_breezingforms&act=configuration'"
+			);
+			_ff_query(
+				"update #__menu set `alias` = 'About', img='components/com_breezingforms/images/js/ThemeOffice/config.png' " .
+				"where `link`='index.php?option=com_breezingforms&act=about'"
+			);
 
-		if ($ff_config->images == '{mossite}/administrator/components/com_breezingforms/images')
-			$ff_config->images = '{mossite}/components/com_breezingforms/images';
+			if ($ff_config->images == '{mossite}/administrator/components/com_breezingforms/images')
+				$ff_config->images = '{mossite}/components/com_breezingforms/images';
 		if ($ff_config->uploads == '{mospath}/media/breezingforms/uploads')
 			$ff_config->uploads = '{mospath}/media/breezingforms/uploads';
 

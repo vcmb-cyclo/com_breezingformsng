@@ -35,10 +35,10 @@ class facileFormsConfig extends facileFormsConf
 		if (isset($_REQUEST['updatekey'])) {
 			try {
 				$db = Factory::getContainer()->get(DatabaseInterface::class);
-				$db->setQuery("Update #__update_sites Set last_check_timestamp = 0, extra_query = " . $db->quote('key=' . $_REQUEST['updatekey']) . " Where `name` = 'BreezingForms Pro' And `type` = 'extension'");
+				$db->setQuery("Update #__update_sites Set last_check_timestamp = 0, extra_query = " . $db->quote('key=' . $_REQUEST['updatekey']) . " Where `name` = 'BreezingForms NG' And `type` = 'extension'");
 				$db->execute();
 
-				$db->setQuery("Select update_site_id From #__update_sites Where `name` = 'BreezingForms Pro' And `type` = 'extension'");
+				$db->setQuery("Select update_site_id From #__update_sites Where `name` = 'BreezingForms NG' And `type` = 'extension'");
 				$update_site_id = $db->loadResult();
 
 				$db->setQuery("Delete From #__updates Where `update_site_id` = " . $db->quote($update_site_id));
