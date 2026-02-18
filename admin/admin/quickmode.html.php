@@ -1112,11 +1112,11 @@ class QuickModeHtml
                     mdata.required = JQuery('#bfElementValidationRequired').attr('checked');
 
                     /* versions > 3.7 */
-                    mdata.showTime = JQuery('#bfElementCalendarAdvancedShowTime').attr('checked');
-                    mdata.timeFormat = JQuery('#bfElementCalendarAdvancedTimeFormat').attr('checked');
-                    mdata.singleHeader = JQuery('#bfElementCalendarAdvancedSingleHeader').attr('checked');
-                    mdata.todayButton = JQuery('#bfElementCalendarAdvancedTodayButton').attr('checked');
-                    mdata.weekNumbers = JQuery('#bfElementCalendarAdvancedWeekNumbers').attr('checked');
+                    mdata.showTime = JQuery('#bfElementCalendarAdvancedShowTime').is(':checked');
+                    mdata.timeFormat = JQuery('#bfElementCalendarAdvancedTimeFormat').is(':checked');
+                    mdata.singleHeader = JQuery('#bfElementCalendarAdvancedSingleHeader').is(':checked');
+                    mdata.todayButton = JQuery('#bfElementCalendarAdvancedTodayButton').is(':checked');
+                    mdata.weekNumbers = JQuery('#bfElementCalendarAdvancedWeekNumbers').is(':checked');
                     mdata.minYear = JQuery('#bfElementCalendarAdvancedMinYear').val();
                     mdata.maxYear = JQuery('#bfElementCalendarAdvancedMaxYear').val();
                     mdata.firstDay = JQuery('#bfElementCalendarAdvancedFirstDay').val();
@@ -1153,11 +1153,11 @@ class QuickModeHtml
                     JQuery('#bfElementTypeCalendarIcon').val(mdata.icon);
 
                     /* > 3.7 */
-                    JQuery('#bfElementCalendarAdvancedShowTime').attr('checked', mdata.showTime);
-                    JQuery('#bfElementCalendarAdvancedTimeFormat').attr('checked', mdata.timeFormat);
-                    JQuery('#bfElementCalendarAdvancedSingleHeader').attr('checked', mdata.singleHeader);
-                    JQuery('#bfElementCalendarAdvancedTodayButton').attr('checked', mdata.todayButton);
-                    JQuery('#bfElementCalendarAdvancedWeekNumbers').attr('checked', mdata.weekNumbers);
+                    JQuery('#bfElementCalendarAdvancedShowTime').prop('checked', !!mdata.showTime);
+                    JQuery('#bfElementCalendarAdvancedTimeFormat').prop('checked', !!mdata.timeFormat);
+                    JQuery('#bfElementCalendarAdvancedSingleHeader').prop('checked', !!mdata.singleHeader);
+                    JQuery('#bfElementCalendarAdvancedTodayButton').prop('checked', !!mdata.todayButton);
+                    JQuery('#bfElementCalendarAdvancedWeekNumbers').prop('checked', !!mdata.weekNumbers);
                     JQuery('#bfElementCalendarAdvancedMinYear').val(mdata.minYear);
                     JQuery('#bfElementCalendarAdvancedMaxYear').val(mdata.maxYear);
                     JQuery('#bfElementCalendarAdvancedFirstDay').val(mdata.firstDay);
@@ -3977,66 +3977,41 @@ class QuickModeHtml
                                                     <option value="">
                                                         <?php echo BFText::_('COM_BREEZINGFORMS_CHOOSE_ONE'); ?>
                                                     </option>
-                                                    <option value="bfElementTypeText">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_TEXTFIELD'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeTextarea">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_TEXTAREA'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeRadioGroup">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_RADIO_GROUP'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeCheckboxGroup">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CHECKBOX_GROUP'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeCheckbox">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CHECKBOX'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeSelect">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_SELECT'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeFile">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_FILE'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeSubmitButton">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_SUBMIT_BUTTON'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeHidden">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_HIDDEN'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeSummarize">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_SUMMARIZE'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeCaptcha">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CAPTCHA'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeReCaptcha">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_ReCaptcha'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeCalendarResponsive">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CALENDAR_RESPONSIVE'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeCalendar">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_CALENDAR'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypePayPal">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_PAYPAL'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeStripe">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_STRIPE'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeSofortueberweisung">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_SOFORTUEBERWEISUNG'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeNumberInput">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_NUMBER_INPUT'); ?>
-                                                    </option>
-                                                    <option value="bfElementTypeSlider">
-                                                        Slider
-                                                    </option>
-                                                    <option value="bfElementTypeSignature">
-                                                        <?php echo BFText::_('COM_BREEZINGFORMS_SIGNATURE'); ?>
-                                                    </option>
+                                                    <?php
+                                                    $elementTypeOptions = array(
+                                                        array('value' => 'bfElementTypeCalendar', 'label' => BFText::_('COM_BREEZINGFORMS_CALENDAR'), 'icon' => '📅'),
+                                                        array('value' => 'bfElementTypeCalendarResponsive', 'label' => BFText::_('COM_BREEZINGFORMS_CALENDAR_RESPONSIVE'), 'icon' => '📆'),
+                                                        array('value' => 'bfElementTypeCaptcha', 'label' => BFText::_('COM_BREEZINGFORMS_CAPTCHA'), 'icon' => '🔐'),
+                                                        array('value' => 'bfElementTypeCheckbox', 'label' => BFText::_('COM_BREEZINGFORMS_CHECKBOX'), 'icon' => '☑️'),
+                                                        array('value' => 'bfElementTypeCheckboxGroup', 'label' => BFText::_('COM_BREEZINGFORMS_CHECKBOX_GROUP'), 'icon' => '✅'),
+                                                        array('value' => 'bfElementTypeFile', 'label' => BFText::_('COM_BREEZINGFORMS_FILE'), 'icon' => '📎'),
+                                                        array('value' => 'bfElementTypeHidden', 'label' => BFText::_('COM_BREEZINGFORMS_HIDDEN'), 'icon' => '🙈'),
+                                                        array('value' => 'bfElementTypeNumberInput', 'label' => BFText::_('COM_BREEZINGFORMS_NUMBER_INPUT'), 'icon' => '🔢'),
+                                                        array('value' => 'bfElementTypePayPal', 'label' => BFText::_('COM_BREEZINGFORMS_PAYPAL'), 'icon' => '💳'),
+                                                        array('value' => 'bfElementTypeRadioGroup', 'label' => BFText::_('COM_BREEZINGFORMS_RADIO_GROUP'), 'icon' => '🔘'),
+                                                        array('value' => 'bfElementTypeReCaptcha', 'label' => BFText::_('COM_BREEZINGFORMS_ReCaptcha'), 'icon' => '🛡️'),
+                                                        array('value' => 'bfElementTypeSelect', 'label' => BFText::_('COM_BREEZINGFORMS_SELECT'), 'icon' => '📋'),
+                                                        array('value' => 'bfElementTypeSignature', 'label' => BFText::_('COM_BREEZINGFORMS_SIGNATURE'), 'icon' => '✍️'),
+                                                        array('value' => 'bfElementTypeSlider', 'label' => 'Slider', 'icon' => '🎚️'),
+                                                        array('value' => 'bfElementTypeSofortueberweisung', 'label' => BFText::_('COM_BREEZINGFORMS_SOFORTUEBERWEISUNG'), 'icon' => '🏦'),
+                                                        array('value' => 'bfElementTypeStripe', 'label' => BFText::_('COM_BREEZINGFORMS_STRIPE'), 'icon' => '💳'),
+                                                        array('value' => 'bfElementTypeSubmitButton', 'label' => BFText::_('COM_BREEZINGFORMS_SUBMIT_BUTTON'), 'icon' => '🚀'),
+                                                        array('value' => 'bfElementTypeSummarize', 'label' => BFText::_('COM_BREEZINGFORMS_SUMMARIZE'), 'icon' => '🧮'),
+                                                        array('value' => 'bfElementTypeTextarea', 'label' => BFText::_('COM_BREEZINGFORMS_TEXTAREA'), 'icon' => '📝'),
+                                                        array('value' => 'bfElementTypeText', 'label' => BFText::_('COM_BREEZINGFORMS_TEXTFIELD'), 'icon' => '🔤')
+                                                    );
+
+                                                    usort($elementTypeOptions, function ($a, $b) {
+                                                        return strcasecmp($a['label'], $b['label']);
+                                                    });
+
+                                                    foreach ($elementTypeOptions as $elementTypeOption) :
+                                                        $optionText = $elementTypeOption['icon'] . ' ' . $elementTypeOption['label'];
+                                                    ?>
+                                                        <option value="<?php echo $elementTypeOption['value']; ?>">
+                                                            <?php echo htmlspecialchars($optionText, ENT_QUOTES, 'UTF-8'); ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
                                                 </select>
                                             </div>
                                             <legend>

@@ -856,7 +856,7 @@ this.createCalendar = function(id){
 						weekNumbers : 1,
 						minYear : '',
 						maxYear : '',
-						firstDay : '6'
+						firstDay : '1'
 					}
 		};
 };

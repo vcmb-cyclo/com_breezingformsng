@@ -129,12 +129,44 @@ function ff_range(element) {
     sliders.forEach((slider) => {
         slider.parentNode.classList.add('range');
 
-        const spanElement = document.createElement('span');
-        slider.parentNode.insertBefore(spanElement, slider.nextSibling);
-        spanElement.innerHTML = slider.value;
+        let spanElement = slider.nextElementSibling;
 
-        slider.addEventListener('input', function() {
-            spanElement.innerHTML = slider.value;
-        });
+        if (!spanElement || spanElement.tagName !== 'SPAN') {
+            spanElement = document.createElement('span');
+            slider.parentNode.insertBefore(spanElement, slider.nextSibling);
+        }
+
+        const updateSliderValue = function () {
+            spanElement.textContent = slider.value;
+        };
+
+        updateSliderValue();
+
+        if (!slider.hasAttribute('data-bf-range-bound')) {
+            slider.setAttribute('data-bf-range-bound', '1');
+
+            slider.addEventListener('input', function() {
+                updateSliderValue();
+            });
+
+            slider.addEventListener('change', function() {
+                updateSliderValue();
+            });
+        }
+
+        const form = slider.form;
+        if (form && !form.hasAttribute('data-bf-range-reset-bound')) {
+            form.setAttribute('data-bf-range-reset-bound', '1');
+            form.addEventListener('reset', function() {
+                setTimeout(function() {
+                    form.querySelectorAll('input[type="range"]').forEach((rangeSlider) => {
+                        const rangeSpan = rangeSlider.nextElementSibling;
+                        if (rangeSpan && rangeSpan.tagName === 'SPAN') {
+                            rangeSpan.textContent = rangeSlider.value;
+                        }
+                    });
+                }, 0);
+            });
+        }
     });
 }

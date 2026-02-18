@@ -128,6 +128,55 @@ class BFQuickModeMobile
 		return "[" . rtrim($parsed, ",") . "]";
 	}
 
+	private function bfCalendarIsTruthy($mdata, $key)
+	{
+		return isset($mdata[$key]) && $mdata[$key] !== '' && $mdata[$key] !== '0' && $mdata[$key] !== 0 && $mdata[$key] !== false;
+	}
+
+	private function bfCalendarShowTimeEnabled($mdata)
+	{
+		return $this->bfCalendarIsTruthy($mdata, 'showTime');
+	}
+
+	private function bfCalendarToPickadateFormat($format)
+	{
+		$format = trim((string) $format);
+
+		if ($format === '') {
+			return 'yyyy-mm-dd';
+		}
+
+		$format = str_replace(
+			array('%Y', '%y', '%m', '%d', '%e', '%B', '%b'),
+			array('yyyy', 'yy', 'mm', 'dd', 'd', 'mmmm', 'mmm'),
+			$format
+		);
+		$format = preg_replace('/\s*(%H|%I|%k|%l|%M|%S|%p).*/', '', $format);
+		$format = trim($format);
+
+		return $format !== '' ? $format : 'yyyy-mm-dd';
+	}
+
+	private function bfCalendarToPickadateFirstDay($firstDay)
+	{
+		$firstDay = (int) $firstDay;
+
+		if ($firstDay < 1 || $firstDay > 7) {
+			$firstDay = 1;
+		}
+
+		return $firstDay === 7 ? 0 : $firstDay;
+	}
+
+	private function bfCalendarSelectYears($mdata)
+	{
+		$minYear = (isset($mdata['minYear']) && is_numeric($mdata['minYear'])) ? max(0, (int) $mdata['minYear']) : 0;
+		$maxYear = (isset($mdata['maxYear']) && is_numeric($mdata['maxYear'])) ? max(0, (int) $mdata['maxYear']) : 0;
+		$range = $minYear + $maxYear;
+
+		return $range > 0 ? max(10, $range + 1) : 60;
+	}
+
 	public function fetchHead($head)
 	{
 		$app = Factory::getApplication();
@@ -1987,18 +2036,11 @@ function bfTriggerRules() {
 						echo '</div>';
 						break;
 
-					case 'bfCalendar':
+						case 'bfCalendar':
 
-						$this->addStyleSheet(Uri::root(true) . '/media/system/css/fields/calendar.min.css');
-						$this->addScript(Uri::root(true) . '/media/system/js/fields/calendar-locales/date/gregorian/date-helper.min.js');
-						$this->addScript(Uri::root(true) . '/media/system/js/fields/calendar.min.js');
-						$this->addScript(Uri::root(true) . '/media/vendor/bootstrap/js/bootstrap.bundle.min.js');
-						$this->addScript(Uri::root(true) . '/media/system/js/core.min.js');
-						$this->addScript(Uri::root(true) . '/media/legacy/js/bootstrap-init.min.js');
-
-						/* translatables */
-						if (isset($mdata['value_translation' . $this->language_tag]) && $mdata['value_translation' . $this->language_tag] != '') {
-							$mdata['value'] = $mdata['value_translation' . $this->language_tag];
+							/* translatables */
+							if (isset($mdata['value_translation' . $this->language_tag]) && $mdata['value_translation' . $this->language_tag] != '') {
+								$mdata['value'] = $mdata['value_translation' . $this->language_tag];
 						}
 						if (isset($mdata['format_translation' . $this->language_tag]) && $mdata['format_translation' . $this->language_tag] != '') {
 							$mdata['format'] = $mdata['format_translation' . $this->language_tag];
@@ -2008,127 +2050,141 @@ function bfTriggerRules() {
 							if (!isset($mdata['icon']) || $mdata['icon'] == '') {
 								$icon = '<i class="fas fa-calendar iconf--fumi" aria-hidden="true"></i>';
 							} else {
-								$icon = '<i class="fas ' . htmlentities($mdata['icon'], ENT_QUOTES, 'UTF-8') . ' iconf--fumi" aria-hidden="true"></i>';
+									$icon = '<i class="fas ' . htmlentities($mdata['icon'], ENT_QUOTES, 'UTF-8') . ' iconf--fumi" aria-hidden="true"></i>';
+								}
 							}
-						}
-						/* translatables end */
-						echo '<div class="d-flex flex-wrap align-items-center gap-2">';
-						echo '<div class="mb-0 other-form-group">';
-						echo '<span class="nonform-control">';
+							/* translatables end */
+							$this->addStyleSheet(Uri::root(true) . '/media/system/css/fields/calendar.min.css');
+							$this->addScript(Uri::root(true) . '/media/system/js/fields/calendar-locales/date/gregorian/date-helper.min.js');
+							$this->addScript(Uri::root(true) . '/media/system/js/fields/calendar.min.js');
+							$this->addScript(Uri::root(true) . '/media/vendor/bootstrap/js/bootstrap.bundle.min.js');
+							$this->addScript(Uri::root(true) . '/media/system/js/core.min.js');
+							$this->addScript(Uri::root(true) . '/media/legacy/js/bootstrap-init.min.js');
 
-						$size = '';
-						if ($mdata['size'] != '') {
-							$size = 'style="width:' . htmlentities(strip_tags($mdata['size'])) . '" ';
-						}
+							echo '<div class="d-flex flex-wrap align-items-center gap-2">';
+							echo '<div class="mb-0 other-form-group">';
+							echo '<span class="nonform-control">';
 
-						$exploded = explode('::', trim($mdata['value']));
+							$size = '';
+							if ($mdata['size'] != '') {
+								$size = 'style="width:' . htmlentities(strip_tags($mdata['size'])) . '" ';
+							}
 
-						$left = '';
-						$right = '';
-						if (count($exploded) == 2) {
-							$left = trim($exploded[0]);
-							$right = trim($exploded[1]);
-						} else {
-							$right = trim($exploded[0]);
-						}
-						// public static function calendar($value, $name, $id, $format = '%Y-%m-%d', $attribs = array())
-						$calAttr = [
-							'class' => 'ff_elem bfCalendar',
-							'showTime' => (isset($mdata['showTime']) && $mdata['showTime'] != '') ? true : false,
-							'timeFormat' => (isset($mdata['timeFormat']) && $mdata['timeFormat'] != '') ? '24' : '12',
-							'singleHeader' => (isset($mdata['singleHeader']) && $mdata['singleHeader'] != '') ? true : false,
-							'todayBtn' => (isset($mdata['todayButton']) && $mdata['todayButton'] != '') ? true : false,
-							'weekNumbers' => (isset($mdata['weekNumbers']) && $mdata['weekNumbers'] != '') ? true : false,
-							'minYear' => (isset($mdata['minYear']) && $mdata['minYear'] != '') ? '-' . $mdata['minYear'] : '',
-							'maxYear' => (isset($mdata['maxYear']) && $mdata['maxYear'] != '') ? '+' . $mdata['maxYear'] : '',
-							'firstDay' => (isset($mdata['firstDay']) && $mdata['firstDay'] != '') ? $mdata['firstDay'] : '7',
-						];
+							$exploded = explode('::', trim((string) $mdata['value']));
+							$left = '';
 
+							if (count($exploded) == 2) {
+								$left = trim($exploded[0]);
+							} elseif (count($exploded) == 1) {
+								$left = trim($exploded[0]);
 
-						//echo HTMLHelper::_('calendar', $left, "ff_nm_" . $mdata['bfName'] . "[]" , "ff_elem" . $mdata['dbId'], $mdata['format'], $calAttr);
-						echo $this->calendar($left, "ff_nm_" . $mdata['bfName'] . "[]", "ff_elem" . $mdata['dbId'], $mdata['format'], $calAttr);
+								if ($left === '...') {
+									$left = '';
+								}
+							}
 
-						echo '
-                        <script>
-                        JQuery(document).ready(function(){
-                            
-                            setTimeout(function(){
-                                
-                                JQuery(".js-calendar").css("display", "none");
-                                
-                                JQuery("#ff_elem' . $mdata['dbId'] . '_btn").on("click", function(){
-                                    JQuery(this).closest(".input-group").next(".js-calendar").css("display", "block");
-                                });
-                                
-                                JQuery(".js-calendar .btn-exit").on("click", function(){
-                                   JQuery(this).closest(".js-calendar").css("display", "none");
-                                });
-                                
-                                JQuery(".js-calendar .btn-today").on("click", function(){
-                                   JQuery(this).closest(".js-calendar").css("display", "none");
-                                });
-                                
-                                JQuery(".js-calendar .day").on("click", function(){
-                                   JQuery(this).closest(".js-calendar").css("display", "none");
-                                });
-                                
-                                JQuery("#ff_elem' . $mdata['dbId'] . '_btn").html(' . json_encode(Text::_('COM_BREEZINGFORMS_CALENDAR_OPEN')) . ');
-                                
-                            }, 100);                            
-                            
-                        });
-                        </script>
-                        ';
+							// public static function calendar($value, $name, $id, $format = '%Y-%m-%d', $attribs = array())
+							$calAttr = [
+								'class' => 'ff_elem bfCalendar',
+								'showTime' => $this->bfCalendarShowTimeEnabled($mdata),
+								'timeFormat' => $this->bfCalendarIsTruthy($mdata, 'timeFormat') ? '24' : '12',
+								'singleHeader' => $this->bfCalendarIsTruthy($mdata, 'singleHeader'),
+								'todayBtn' => $this->bfCalendarIsTruthy($mdata, 'todayButton'),
+								'weekNumbers' => $this->bfCalendarIsTruthy($mdata, 'weekNumbers'),
+								'minYear' => (isset($mdata['minYear']) && $mdata['minYear'] != '') ? '-' . $mdata['minYear'] : '',
+								'maxYear' => (isset($mdata['maxYear']) && $mdata['maxYear'] != '') ? '+' . $mdata['maxYear'] : '',
+								'firstDay' => (isset($mdata['firstDay']) && $mdata['firstDay'] != '') ? $mdata['firstDay'] : '7',
+							];
 
-						echo '</span>';
-						echo '</div>';
-						echo '</div>';
-						break;
+							echo $this->calendar($left, "ff_nm_" . $mdata['bfName'] . "[]", "ff_elem" . $mdata['dbId'], $mdata['format'], $calAttr);
 
-					case 'bfCalendarResponsive':
+							echo '
+	                        <script>
+	                        JQuery(document).ready(function(){
+	                            
+	                            setTimeout(function(){
+	                                
+	                                JQuery(".js-calendar").css("display", "none");
+	                                
+	                                JQuery("#ff_elem' . $mdata['dbId'] . '_btn").on("click", function(){
+	                                    JQuery(this).closest(".input-group").next(".js-calendar").css("display", "block");
+	                                });
+	                                
+	                                JQuery(".js-calendar .btn-exit").on("click", function(){
+	                                   JQuery(this).closest(".js-calendar").css("display", "none");
+	                                });
+	                                
+	                                JQuery(".js-calendar .btn-today").on("click", function(){
+	                                   JQuery(this).closest(".js-calendar").css("display", "none");
+	                                });
+	                                
+	                                JQuery(".js-calendar .day").on("click", function(){
+	                                   JQuery(this).closest(".js-calendar").css("display", "none");
+	                                });
+	                                
+	                                JQuery("#ff_elem' . $mdata['dbId'] . '_btn").html(' . json_encode(Text::_('COM_BREEZINGFORMS_CALENDAR_OPEN')) . ');
+	                                
+	                            }, 100);                            
+	                            
+	                        });
+	                        </script>
+	                        ';
+							echo '</span>';
+							echo '</div>';
+							echo '</div>';
+							break;
+
+						case 'bfCalendarResponsive':
 
 						/* translatables */
 						if (isset($mdata['value_translation' . $this->language_tag]) && $mdata['value_translation' . $this->language_tag] != '') {
 							$mdata['value'] = $mdata['value_translation' . $this->language_tag];
 						}
-						if (isset($mdata['format_translation' . $this->language_tag]) && $mdata['format_translation' . $this->language_tag] != '') {
-							$mdata['format'] = $mdata['format_translation' . $this->language_tag];
-						}
-						/* translatables end */
+							if (isset($mdata['format_translation' . $this->language_tag]) && $mdata['format_translation' . $this->language_tag] != '') {
+								$mdata['format'] = $mdata['format_translation' . $this->language_tag];
+							}
+							/* translatables end */
+							$mdata['format'] = $this->bfCalendarToPickadateFormat($mdata['format']);
+							$pickerFirstDay = $this->bfCalendarToPickadateFirstDay(isset($mdata['firstDay']) ? $mdata['firstDay'] : '');
+							$pickerSelectYears = $this->bfCalendarSelectYears($mdata);
+							$pickerFormat = json_encode($mdata['format']);
 
-						$exploded = explode('::', trim($mdata['value']));
+							$exploded = explode('::', trim($mdata['value']));
 
 						$left = '';
 						$right = '';
-						if (count($exploded) == 2) {
-							$left = trim($exploded[0]);
-							$right = trim($exploded[1]);
-						} else {
-							$right = trim($exploded[0]);
-						}
+							if (count($exploded) == 2) {
+								$left = trim($exploded[0]);
+								$right = trim($exploded[1]);
+							} else {
+								$right = trim($exploded[0]);
+							}
+							if ($right === '') {
+								$right = '...';
+							}
 
-						$container = 'JQuery("body").append("<div class=\"bfCalendarResponsiveContainer' . $mdata['dbId'] . '\" style=\"display:block;position:absolute;left:-9999px;\"></div>");';
+							$container = 'JQuery("body").append("<div class=\"bfCalendarResponsiveContainer' . $mdata['dbId'] . '\" style=\"display:block;position:absolute;left:-9999px;\"></div>");';
 
-						echo '<input autocomplete="off" class="ff_elem" type="text" name="ff_nm_' . $mdata['bfName'] . '[]"  id="ff_elem' . $mdata['dbId'] . '" value="' . htmlentities($left, ENT_QUOTES, 'UTF-8') . '"/>' . "\n";
-						echo '<label for="ff_elem' . $mdata['dbId'] . '_calendarButton"></label>';
-						echo '<button data-theme="a" id="ff_elem' . $mdata['dbId'] . '_calendarButton" type="submit" class="bfCalendar" value="' . htmlentities($right, ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities($right, ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
+							echo '<input autocomplete="off" class="ff_elem" type="text" name="ff_nm_' . $mdata['bfName'] . '[]"  id="ff_elem' . $mdata['dbId'] . '" value="' . htmlentities($left, ENT_QUOTES, 'UTF-8') . '"/>' . "\n";
+							echo '<label for="ff_elem' . $mdata['dbId'] . '_calendarButton"></label>';
+							echo '<button data-theme="a" id="ff_elem' . $mdata['dbId'] . '_calendarButton" type="button" class="bfCalendar" value="' . htmlentities($right, ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities($right, ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
 
 						echo '<script type="text/javascript">
                                                 <!--
-                                                JQuery(document).ready(function () {
-                                                    ' . $container . '
-                                                    JQuery(".bfCalendar").on("mousedown",function(event){
-                                                    event.preventDefault();})
-                                                    JQuery("#ff_elem' . $mdata['dbId'] . '_calendarButton").pickadate({
-                                                        format: "' . $mdata['format'] . '",
-                                                        selectYears: 60,
-                                                        selectMonths: true,
-                                                        editable: true,
-                                                        firstDay: 1,
-                                                        container: ".bfCalendarResponsiveContainer' . $mdata['dbId'] . '",
-                                                        onClose: function() {
-                                                            JQuery(".bfCalendar").blur();
-                                                        },
+	                                                JQuery(document).ready(function () {
+	                                                    ' . $container . '
+	                                                    JQuery("#ff_elem' . $mdata['dbId'] . '_calendarButton").on("mousedown",function(event){
+	                                                    event.preventDefault();})
+	                                                    JQuery("#ff_elem' . $mdata['dbId'] . '_calendarButton").pickadate({
+	                                                        format: ' . $pickerFormat . ',
+	                                                        selectYears: ' . $pickerSelectYears . ',
+	                                                        selectMonths: true,
+	                                                        editable: true,
+	                                                        firstDay: ' . $pickerFirstDay . ',
+	                                                        container: ".bfCalendarResponsiveContainer' . $mdata['dbId'] . '",
+	                                                        onClose: function() {
+	                                                            JQuery("#ff_elem' . $mdata['dbId'] . '_calendarButton").blur();
+	                                                        },
                                                         onSet: function() {
                                                             JQuery("#ff_elem' . $mdata['dbId'] . '").val(this.get("value"));
                                                         }
