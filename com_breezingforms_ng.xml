@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--~
-  ~ @component Breezinforms
+  ~ @component Breezinforms-ng
   ~ @author: XDA/GIL (Joomla! 6, 2026) | Markus Bopp | until FacileForms v1.4.7: Peter Koch
   ~ @copyright Copyright (c)20xx-2026
   ~ @license GNU General Public License version 2, or later
@@ -13,7 +13,7 @@
 	<copyright>Copyright 2004 - 2026 by XDA+GIL</copyright>
         <license>GNU/GPL v2 or later</license>
 	<authorEmail>breezingforms@vcmb.fr</authorEmail>
-	<authorUrl>https://breezingforms.vcmb.fr</authorUrl>
+	<authorUrl>https://breezingforms-ng.vcmb.fr</authorUrl>
 	<version>6.0.3</version>
 	<description>Installation successful. Next find BreezingForms in the Components menu, and finish the installation process.</description>
 	<installfile>install.php</installfile>
@@ -22,7 +22,7 @@
         <scriptfile>script.php</scriptfile>
 
         <updateservers>
-            <server type="extension" name="BreezingForms" priority="1">https://breezingforms.vcmb.fr/download/com_breezingforms_ng_update.xml</server>
+            <server type="extension" name="BreezingForms-ng" priority="1">https://breezingforms-ng.vcmb.fr/download/com_breezingforms_ng_update.xml</server>
          </updateservers>
 
 	<targetplatform>
@@ -152,6 +152,7 @@
 	</administration>
 
 </extension>
+
 
 
 
