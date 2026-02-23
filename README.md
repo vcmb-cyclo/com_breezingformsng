@@ -13,10 +13,10 @@ This initiative aims to keep the extension usable on modern Joomla installations
 - removing deprecated APIs
 - adapting the codebase to Joomla 5.x and 6.x
 - librairies: improving scripts and pieces, Stripe, PSF, XLS
-- add a 'Previous' debug tools
+- add a Test & Debug tools
 - About and help implementation
 - New elements : Slider, responsive calendar, 
-- Many others features
+- Many others cool features
 
 ⚠️ **This is NOT an official Crosstec project.**  
 All trademarks and original copyrights remain the property of their respective owners.
