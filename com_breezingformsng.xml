@@ -6,16 +6,16 @@
   ~ @license GNU General Public License version 2, or later
   -->
 
-<extension type="component" version="6.0.3" method="upgrade">
+<extension type="component" version="6.0" method="upgrade">
 
 	<name>COM_BREEZINGFORMS</name>
-	<creationDate>2026-02-20</creationDate>
+	<creationDate>2026-02-24</creationDate>
 	<author>XDA/GIL</author>
 	<copyright>Copyright 2004 - 2026 by XDA+GIL</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
 	<authorEmail>bf@vcmb.fr</authorEmail>
 	<authorUrl>https://breezingforms-ng.vcmb.fr</authorUrl>
-	<version>6.0.3</version>
+	<version>6.0.4</version>
 	<description>Installation successful. Next find BreezingForms in the Components menu, and finish the installation process.</description>
 
 	<installfile>install.php</installfile>
@@ -23,7 +23,7 @@
 	<scriptfile>script.php</scriptfile>
 
 	<updateservers>
-		<server type="extension" name="BreezingForms-ng" priority="1">https://breezingforms-ng.vcmb.fr/download/com_breezingforms-ng_update.xml</server>
+		<server type="extension" name="BreezingForms-ng" priority="1">https://breezingforms-ng.vcmb.fr/download/com_breezingformsng_update.xml</server>
 	</updateservers>
 
 	<targetplatform>
