@@ -5,12 +5,12 @@
 	<creationDate>2026-02-18</creationDate>
 	<copyright>Copyright 2004 - 2026 by XDA+GIL</copyright>
         <license>GNU/GPL v2 or later</license>
-	<authorEmail>breezingforms@vcmb.fr</authorEmail>
-	<authorUrl>https://breezingforms.vcmb.fr</authorUrl>
+	<authorEmail>bf@vcmb.fr</authorEmail>
+	<authorUrl>https://breezingforms-ng.vcmb.fr</authorUrl>
 	<version>6.0.3</version>
 	<description>System plugin required by the BreezingForms component</description>
 	<updateservers>
-		<server type="extension" name="sysbreezingforms" priority="1">https://breezingforms.vcmb.fr/download/plg_breezingforms_update.xml</server>
+		<server type="extension" name="sysbreezingforms" priority="1">https://breezingforms-ng.vcmb.fr/download/plg_breezingforms_update.xml</server>
 	</updateservers>
 	<files>
 		<filename plugin="sysbreezingforms">sysbreezingforms.php</filename>
