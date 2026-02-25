@@ -75,6 +75,7 @@ if (!function_exists('bf_about_get_version_information')) {
         }
 
         $manifestPaths = array(
+            JPATH_ADMINISTRATOR . '/components/com_breezingforms/com_breezingformsng.xml',
             JPATH_ADMINISTRATOR . '/components/com_breezingforms/com_breezingforms_ng.xml',
             JPATH_ADMINISTRATOR . '/components/com_breezingforms/com_breezingforms-ng.xml',
             JPATH_ADMINISTRATOR . '/components/com_breezingforms/com_breezingforms.xml',
@@ -460,7 +461,7 @@ $aboutDescription = str_replace(
         <div class="bf-about-intro-content">
             <p class="mb-0">
                 <?php echo $aboutDescription; ?>
-                <a href="https://breezingforms.vcmb.fr" target="_blank" rel="noopener noreferrer">VCMB migration</a>
+                <a href="https://breezingforms-ng.vcmb.fr" target="_blank" rel="noopener noreferrer">VCMB migration</a>
             </p>
         </div>
     </div>
