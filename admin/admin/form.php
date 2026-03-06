@@ -79,22 +79,28 @@ function getFormPackage()
 {
 	global $ff_config;
 	$pkg = BFRequest::getVar('pkg', null);
-	if (is_null($pkg))
-		$pkg = $pkg = $ff_config->formpkg;
-	else
-		if ($pkg === '')
+	$shouldStore = true;
+
+	if (is_null($pkg)) {
+		$pkg = $ff_config->formpkg;
+		if ($pkg === 'QuickModeForms') {
 			$pkg = '';
-		else if ($pkg == '- blank -')
+			$shouldStore = false;
+		}
+	} else {
+		if ($pkg === '' || $pkg === '- blank -') {
 			$pkg = '';
-		else {
+		} else {
 			$ok = _ff_selectValue(
 				"select count(*) from `#__facileforms_forms` " .
 				"where package = " . Factory::getContainer()->get(DatabaseInterface::class)->Quote($pkg) . ""
 			);
 			if (!$ok)
 				$pkg = $ff_config->formpkg;
-		} // if
-	if ($pkg != $ff_config->formpkg) {
+		}
+	}
+
+	if ($shouldStore && $pkg != $ff_config->formpkg) {
 		$ff_config->formpkg = $pkg;
 		$ff_config->store();
 	} // if

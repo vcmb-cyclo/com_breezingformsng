@@ -346,45 +346,6 @@ main input[type=radio]:not(old):checked + label > span > span {
     color: #333 !important;
 }
 
-#subhead .btn-toolbar {
-    margin-top: -10px !important;
-}
-
-#subhead .menu-button{
-    position: absolute !important;
-    right: -30px !important;
-}
-
-.subhead {
-    background-color: #3f51b5 !important;
-    box-shadow: 0 2px 4px rgba(33, 33, 33, 0.2);
-    left: 0;
-    min-height: 44px !important;
-    height: 44px !important;
-    width: 100%;
-    position: relative;
-    border-bottom: none !important;
-    z-index: 2;
-    margin-bottom: 0 !important;
-}
-
-.subhead-fixed {
-    position: fixed;
-    width: 100%;
-    top: 30px;
-    z-index: 999 !important;
-}
-
-#container-main {
-    padding-left: 0 !important;
-    position: relative !important;
-    top: 0 !important;
-}
-
-
-body .container-main{
-    width: 100% !important;
-}
 
 .toggle_fullscreen {
     display: block;
@@ -422,11 +383,6 @@ body .container-main{
 #bfPreviewModal .modal-body{
     
     padding: 25px;
-}
-
-#subhead-container{
-    
-    /*z-index: 10000; // Correction de supperposition de la barre de menu */
 }
 
 /*
@@ -599,10 +555,6 @@ main .bfFilterTools .btn {
     box-shadow: none !important;
 }
 
-.subhead .btn > span {
-    color: inherit;
-}
-
 main {
     display: block !important;
     margin: 30px !important;
@@ -612,31 +564,6 @@ main {
     background-color: #ffffff;
     box-shadow: 0 1px 3px rgba(33, 33, 33, 0.2);
     position: relative;
-}
-
-.subhead-collapse {
-    margin-bottom: 0 !important;
-}
-
-#toolbar .btn,
-#toolbar .btn:hover,
-#toolbar .btn:focus {
-    background: rgba(0, 0, 0, 0) none repeat scroll 0 0 !important;
-    border: medium none !important;
-    box-shadow: none;
-    /*color: #fff !important;*/
-    text-shadow: none !important;
-    width: 100% !important;
-    min-width: 100% !important;
-}
-
-.subhead .btn:not([disabled]):hover, .subhead .btn:not([disabled]):active, .subhead .btn:not([disabled]):focus {
- 
-    color: var(--template-text-dark);
-}
-
-.subhead .btn:not([disabled]):hover > span, .subhead .btn:not([disabled]):active > span, .subhead .btn:not([disabled]):focus > span {
-    color: var(--template-text-dark);
 }
 
 #sidebar li a {
@@ -653,19 +580,6 @@ main {
     
     color: #fff !important;
     
-}
-
-#toolbar [class^="icon-"],
-#toolbar [class*=" icon-"] {
-    background-color: transparent !important;
-    border: none !important;
-    height: auto;
-    line-height: inherit;
-    margin: 0 0 0 -10px !important;
-    opacity: 1;
-    text-shadow: none;
-    width: 20px !important;
-    z-index: -1;
 }
 
 .btn-toolbar {
@@ -1051,13 +965,6 @@ quick mode
     border: 1px solid #eaeaea !important;
     padding: 15px !important;
 	overflow: hidden;
-}
-
-.subhead .btn{
-
-    padding: 0 5px !important;
-    margin: 2px !important;
-    font-size: 12px !important;
 }
 
 legend {
@@ -2090,16 +1997,6 @@ toogle sidebar and main-content
     }
 
 
-    .subhead-scroll{
-        position: fixed !important;
-        z-index: 199999 !important;
-
-    }
-
-    .subhead-scroll #toolbar{
-        margin-left: -17px !important;
-    }
-
     .CodeMirror-fullscreen {
         position: fixed;
         top: 0 !important;
@@ -2257,15 +2154,6 @@ Mobile view
             padding: 25px;
             margin: 20px 0 0 0 !important;
         }
-        .subhead {
-            width: auto;
-            height: 44px !important;
-            min-height: 44px;
-        }
-        .subhead-scroll{
-            position: inherit !important;
-            z-index: inherit !important;
-        }
         .min-menu #sidebar {
             position: relative;
             width: 100% !important;
@@ -2319,10 +2207,6 @@ Mobile view
             padding-top: 50px !important;
 
             position: unset !important
-        }
-        .subhead {
-            width: auto;
-            height: auto !important;
         }
     }
     @media (max-width:481px) {

@@ -1,18 +1,9 @@
 jQuery(document).ready(function () {
 
-    jQuery('#subhead-container').addClass('position-sticky');
-    jQuery('#subhead-container').addClass('sticky-top');
-
-    jQuery('joomla-toolbar-button:first').addClass('ms-auto');
-
     jQuery('#content .span2').addClass('sidebar').removeClass('span2');
     jQuery('#content .span10').addClass('main-content').removeClass('span10');
 
-    jQuery('.container-main').removeClass('container-fluid');
-
     jQuery('#submenu').addClass('wraplist');
-
-    jQuery('#toolbar').prepend('<div class="btn-wrapper menu-button"><button onclick="" class="btn btn-sm"><i class="fa fa-bars" aria-hidden="true"></i></button></div>');
 
     /*
     toggle fullscreen
@@ -128,22 +119,6 @@ jQuery(document).ready(function () {
     jQuery('#bfQuickModeRight span .tab-element').prepend('<i class="fa fa-cogs" aria-hidden="true"></i> ');
 
 
-    jQuery(window).scroll(function () {
-
-        //console.log(jQuery(window).height() - jQuery(this).scrollTop());
-
-        if (jQuery(this).scrollTop() >= 80) {
-
-            jQuery('#subhead').addClass('subhead-scroll');
-
-        } else {
-
-            jQuery('#subhead').removeClass('subhead-scroll');
-        }
-    });
-
-
-
     //Check to see if the window is top if not then display button
     jQuery(window).scroll(function () {
         if (jQuery(this).scrollTop() > 100) {
@@ -164,7 +139,6 @@ jQuery(document).ready(function () {
     jQuery('.admin').css('display', 'block');
 
     jQuery('#SelectOptionDialog').wrap('<div class="classicmode-box"></div>');
-
 
 
 });

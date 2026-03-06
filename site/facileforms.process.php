@@ -906,7 +906,7 @@ class HTML_facileFormsProcessor
 
     function findToken(&$code, &$spos, &$offs)
     {
-        $srch = '#(function|return[^a-zA-Z_-]|_ff_trace|ff_trace[ \\t]*\\(|//|/\*|\*/|\\\\"|\\\\\'|{|}|\(|\)|;|"|\'|\n)#si';
+        $srch = '#(\bfunction\b|return[^a-zA-Z_-]|_ff_trace|ff_trace[ \\t]*\\(|//|/\*|\*/|\\\\"|\\\\\'|{|}|\(|\)|;|"|\'|\n)#si';
         $match = array();
         if (!preg_match($srch, $code, $match, PREG_OFFSET_CAPTURE, $spos))
             return '';
