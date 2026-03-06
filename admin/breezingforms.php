@@ -65,25 +65,6 @@ if ($mgconfig)
 if ($mgabout)
     $add = ' :: ' . Text::_('COM_BREEZINGFORMS_ABOUT');
 
-if ($mgabout) {
-    Factory::getApplication()->getDocument()->addStyleDeclaration(
-        '.subhead{
-            background-color:#e9ecef !important;
-            box-shadow:0 1px 2px rgba(33,33,33,.12) !important;
-        }
-        .subhead .btn,
-        .subhead .btn > span{
-            color: var(--template-text-dark) !important;
-        }
-        .subhead .btn:not([disabled]):hover,
-        .subhead .btn:not([disabled]):focus,
-        .subhead .btn:not([disabled]):active{
-            color: var(--template-text-dark) !important;
-            background: transparent !important;
-        }'
-    );
-}
-
 $app = Factory::getApplication();
 $app->JComponentTitle = "BreezingForms NG" . $add;
 $app->JComponentTitle = '<h1 class="page-title"><span class="icon-logo_left" aria-hidden="true"></span>BreezingForms NG' . $add . '</h1>';

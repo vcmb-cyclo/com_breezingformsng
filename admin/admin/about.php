@@ -76,9 +76,11 @@ if (!function_exists('bf_about_get_version_information')) {
 
         $manifestPaths = array(
             JPATH_ADMINISTRATOR . '/components/com_breezingforms/com_breezingformsng.xml',
+            JPATH_ADMINISTRATOR . '/components/com_breezingforms/breezingforms.xml',
             JPATH_ADMINISTRATOR . '/components/com_breezingforms/com_breezingforms_ng.xml',
             JPATH_ADMINISTRATOR . '/components/com_breezingforms/com_breezingforms-ng.xml',
             JPATH_ADMINISTRATOR . '/components/com_breezingforms/com_breezingforms.xml',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng.xml',
         );
 
         foreach ($manifestPaths as $manifestPath) {
