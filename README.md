@@ -6,12 +6,12 @@ a Joomla extension originally developed by **Crosstec**. The original Crosstec p
 is no longer maintained or supported since 2022.
 
 This BreezingForms-ng (new gen) has been highly refactored for Joomla 6 native support. 
-New Gen releases will be named: " breezingForms-ng-6.1.xx.zip " and above.
+New Gen releases will be named: " breezingFormsng-6.1.xx.zip " and above.
 
 This initiative aims to keep the extension usable on modern Joomla installations by:
 - fixing compatibility issues
 - removing deprecated APIs
-- adapting the codebase to Joomla 5.x and 6.x
+- adapting the codebase to Joomla 6.x
 - librairies: improving scripts and pieces, Stripe, PSF, XLS
 - add a Test & Debug tools
 - About and help implementation
@@ -26,7 +26,7 @@ All trademarks and original copyrights remain the property of their respective o
 ## Compatibility
 
 - ✅ Joomla 5.4.x (not tested, should be OK **without** the Backward Compatibility plugin)
-- ✅ Joomla 6.x. (tested **with** the Backward Compatibility plugin)
+- ✅ Joomla 6.x. (tested **with** Joomla Backward Compatibility plugin enable)
 - ✅ PHP 8.3 
 
 ⚠️ **This is NOT an official Breezingforms repository.**  
