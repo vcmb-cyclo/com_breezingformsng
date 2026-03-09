@@ -2961,10 +2961,25 @@ class QuickModeHtml
                     }
                 );
 
+                this.formatScriptDescription = function (description) {
+                    if (typeof description !== 'string') {
+                        return '';
+                    }
+
+                    return description
+                        .replace(/\r\n/g, '\n')
+                        .split('\n')
+                        .filter(function (line) {
+                            return !/^\s*\/\//.test(line);
+                        })
+                        .join('\n')
+                        .replace(/^\n+|\n+$/g, '');
+                };
+
                 this.setActionScriptDescription = function () {
                     for (var i = 0; i < appScope.elementScripts.action.length; i++) {
                         if (JQuery('#bfActionsScriptSelection').val() == appScope.elementScripts.action[i].id) {
-                            JQuery('#bfActionsScriptSelectionDescription').text(appScope.elementScripts.action[i].description);
+                            JQuery('#bfActionsScriptSelectionDescription').text(appScope.formatScriptDescription(appScope.elementScripts.action[i].description));
                         }
                     }
                 };
@@ -2978,7 +2993,7 @@ class QuickModeHtml
                 this.setInitScriptDescription = function () {
                     for (var i = 0; i < appScope.elementScripts.init.length; i++) {
                         if (JQuery('#bfInitScriptSelection').val() == appScope.elementScripts.init[i].id) {
-                            JQuery('#bfInitSelectionDescription').text(appScope.elementScripts.init[i].description);
+                            JQuery('#bfInitSelectionDescription').text(appScope.formatScriptDescription(appScope.elementScripts.init[i].description));
                         }
                     }
                 };
@@ -2992,7 +3007,7 @@ class QuickModeHtml
                 this.setValidationScriptDescription = function () {
                     for (var i = 0; i < appScope.elementScripts.validation.length; i++) {
                         if (JQuery('#bfValidationScriptSelection').val() == appScope.elementScripts.validation[i].id) {
-                            JQuery('#bfValidationScriptSelectionDescription').text(appScope.elementScripts.validation[i].description);
+                            JQuery('#bfValidationScriptSelectionDescription').text(appScope.formatScriptDescription(appScope.elementScripts.validation[i].description));
                         }
                     }
                 };
@@ -3494,7 +3509,7 @@ class QuickModeHtml
                 ');
             }
             ?>
-            <div onclick="location.href = 'index.php?option=com_breezingforms&format=html&act=quickmode&formName=translationtest&form=<?php echo $formId ?>&active_language_code='"
+            <div onclick="location.href = 'index.php?option=com_breezingforms&format=html&act=manageforms&task=quickmode&formName=translationtest&form=<?php echo $formId ?>&active_language_code='"
                 class="bfLanguageButton<?php echo $active_language_code == $default || $active_language_code == '' ? ' bfLanguageButtonActive' : '' ?>">
                 <?php echo $default; ?>
             </div>
@@ -3503,7 +3518,7 @@ class QuickModeHtml
             foreach ($languages as $language) {
                 if ($language->lang_code != $default) {
                     ?>
-                    <div onclick="location.href = 'index.php?option=com_breezingforms&format=html&act=quickmode&formName=translationtest&form=<?php echo $formId ?>&active_language_code=<?php echo $language->lang_code; ?>'"
+                    <div onclick="location.href = 'index.php?option=com_breezingforms&format=html&act=manageforms&task=quickmode&formName=translationtest&form=<?php echo $formId ?>&active_language_code=<?php echo $language->lang_code; ?>'"
                         class="bfLanguageButton<?php echo $active_language_code == $language->lang_code ? ' bfLanguageButtonActive' : '' ?>">
                         <?php echo $language->lang_code; ?>
                     </div>
@@ -5455,7 +5470,7 @@ class QuickModeHtml
                                                         </span><br /> <select id="bfValidationScriptSelection"></select>
                                                     </div>
                                                     <br />
-                                                    <div id="bfValidationScriptSelectionDescription"></div>
+                                                    <div id="bfValidationScriptSelectionDescription" style="white-space: pre-line;"></div>
                                                 </div>
 
                                                 <div id="bfValidationScriptCustom" style="display:none">
@@ -5505,7 +5520,7 @@ class QuickModeHtml
                                                 <?php echo BFText::_('COM_BREEZINGFORMS_ADVANCED_FORM_OPTIONS'); ?>
                                             </legend>
                                             <?php if ($formId != 0) { ?>
-                                                <a href="index.php?option=com_breezingforms&task=editform&act=editpage&form=<?php echo $formId ?>&pkg=QuickModeForms"
+                                                <a href="index.php?option=com_breezingforms&task=editform&act=manageforms&form=<?php echo $formId ?>&pkg=QuickModeForms"
                                                     title="<?php echo BFText::_('COM_BREEZINGFORMS_MORE_OPTIONS'); ?>">
                                                     <?php echo htmlentities(BFText::_('COM_BREEZINGFORMS_MORE_OPTIONS'), ENT_QUOTES, 'UTF-8') ?>
                                                 </a>
@@ -6939,7 +6954,7 @@ class QuickModeHtml
                                                         id="bfInitScriptSelection"></select>
                                                 </div>
                                                 <br />
-                                                <div id="bfInitSelectionDescription"></div>
+                                                <div id="bfInitSelectionDescription" style="white-space: pre-line;"></div>
                                             </div>
 
                                             <div id="bfInitScriptCustom" style="display:none">
@@ -7030,7 +7045,7 @@ class QuickModeHtml
                                                         id="bfActionsScriptSelection"></select>
                                                 </div>
                                                 <br />
-                                                <div id="bfActionsScriptSelectionDescription"></div>
+                                                <div id="bfActionsScriptSelectionDescription" style="white-space: pre-line;"></div>
                                             </div>
 
                                             <div id="bfActionScriptCustom" style="display:none">
