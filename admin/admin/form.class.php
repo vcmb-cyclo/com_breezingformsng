@@ -290,6 +290,14 @@ class facileFormsForm
             $_POST['salesforce_enabled'] = 0;
         }
 
+        if (isset($_POST['id']) && (int) $_POST['id'] > 0 && (!isset($_POST['salesforce_password']) || $_POST['salesforce_password'] === '')) {
+            $currentRow = new facileFormsForms($database);
+
+            if ($currentRow->load((int) $_POST['id'])) {
+                $_POST['salesforce_password'] = $currentRow->salesforce_password;
+            }
+        }
+
         if (isset($_POST['dropbox_submission_types']) && is_array($_POST['dropbox_submission_types'])) {
             $_POST['dropbox_submission_types'] = implode(',', $_POST['dropbox_submission_types']);
         } else {

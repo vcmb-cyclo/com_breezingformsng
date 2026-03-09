@@ -1726,7 +1726,8 @@ class HTML_facileFormsForm
                                             <?php echo BFText::_('COM_BREEZINGFORMS_SF_PASSWORD'); ?>
                                         </td>
                                         <td valign="top"><input type="password" name="salesforce_password"
-                                                value="<?php echo $row->salesforce_password; ?>" size="50" class="inputbox"
+                                                value="" size="50" class="inputbox"
+                                                placeholder="Leave empty to keep current password"
                                                 autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" />
                                         </td>
                                     </tr>
