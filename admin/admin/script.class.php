@@ -112,7 +112,8 @@ class facileFormsScript
 			$row->store();
 		} // foreach
 		$msg = $total . ' ' . BFText::_('COM_BREEZINGFORMS_SCRIPTS_SUCCOPIED');
-		Factory::getApplication()->redirect("index.php?option=$option&act=managescripts&pkg=$pkg&mosmsg=$msg");
+		Factory::getApplication()->enqueueMessage($msg);
+		Factory::getApplication()->redirect("index.php?option=$option&act=managescripts&pkg=$pkg");
 	} // copy
 
 	static function del($option, $pkg, $ids)

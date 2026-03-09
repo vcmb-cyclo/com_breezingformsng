@@ -405,33 +405,6 @@ switch ($act) {
         require_once ($ff_admpath . '/admin/menu.php');
         break;
     case 'manageforms':
-        $elementTasks = array(
-            'editform',
-            'edit',
-            'new',
-            'newedit',
-            'save',
-            'sort',
-            'cancel',
-            'remove',
-            'copy',
-            'copysave',
-            'move',
-            'movesave',
-            'movepos',
-            'gridshow',
-            'publish',
-            'unpublish',
-            'orderup',
-            'orderdown',
-            'addbefore',
-            'addbehind',
-            'delpage',
-            'movepage',
-            'movepagesave',
-            'submit',
-            'config'
-        );
         switch ($task) {
             case 'manageforms':
                 require_once ($ff_admpath . '/admin/quickmode.php');
@@ -443,11 +416,7 @@ switch ($act) {
                 require_once ($ff_admpath . '/admin/quickmode-editor.php');
                 break;
             default:
-                if (strpos($task, 'editpage') === 0 || in_array($task, $elementTasks, true)) {
-                    require_once ($ff_admpath . '/admin/element.php');
-                } else {
-                    require_once ($ff_admpath . '/admin/form.php');
-                }
+                require_once ($ff_admpath . '/admin/form.php');
                 break;
         }
         break;
@@ -467,29 +436,6 @@ switch ($act) {
     //    require_once ($ff_admpath . '/admin/easymode.php');
     //    break;
     case 'quickmode':
-        if (!in_array($task, array('save', 'doAjaxSave'), true)) {
-            $redirect = 'index.php?option=com_breezingforms&act=manageforms&task=quickmode';
-            $formName = BFRequest::getVar('formName', '');
-            $form = BFRequest::getInt('form', 0);
-            $activeLanguageCode = BFRequest::getVar('active_language_code', '');
-            $format = BFRequest::getVar('format', '');
-
-            if ($format !== '') {
-                $redirect .= '&format=' . urlencode($format);
-            }
-            if ($formName !== '') {
-                $redirect .= '&formName=' . urlencode($formName);
-            }
-            if ($form > 0) {
-                $redirect .= '&form=' . $form;
-            }
-            if ($activeLanguageCode !== '') {
-                $redirect .= '&active_language_code=' . urlencode($activeLanguageCode);
-            }
-
-            Factory::getApplication()->redirect($redirect);
-            return;
-        }
         require_once ($ff_admpath . '/admin/quickmode.php');
         break;
     case 'quickmode_editor':

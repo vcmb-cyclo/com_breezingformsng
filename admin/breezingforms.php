@@ -19,16 +19,8 @@ $controller->redirect();
 
 require_once(JPATH_SITE . '/administrator/components/com_breezingforms/admin.breezingforms.php');
 
-$assetBasePath = JPATH_ADMINISTRATOR . '/components/com_breezingforms/assets';
-$customJsVersion = @filemtime($assetBasePath . '/js/custom.js') ?: time();
-$customCssVersion = @filemtime($assetBasePath . '/css/custom.css') ?: time();
-
-Factory::getApplication()->getDocument()->addScript(
-    Uri::root(true) . '/administrator/components/com_breezingforms/assets/js/custom.js?v=' . $customJsVersion
-);
-Factory::getApplication()->getDocument()->addStyleSheet(
-    Uri::root(true) . '/administrator/components/com_breezingforms/assets/css/custom.css?v=' . $customCssVersion
-);
+Factory::getApplication()->getDocument()->addScript(Uri::root(true) . '/administrator/components/com_breezingforms/assets/js/custom.js');
+Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/administrator/components/com_breezingforms/assets/css/custom.css');
 
 Factory::getApplication()->getDocument()->addStyleSheet(Uri::root(true) . '/administrator/components/com_breezingforms/assets/font-awesome/css/font-awesome.css');
 Factory::getApplication()->getDocument()->addStyleDeclaration(

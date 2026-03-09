@@ -358,7 +358,7 @@ class facileFormsForm
             Factory::getApplication()->redirect($caller);
         }
 
-        Factory::getApplication()->redirect('index.php?option=com_breezingforms&task=editform&act=manageforms&form=' . intval($_POST['id']) . ($quickmode ? '&pkg=QuickModeForms' : ''));
+        Factory::getApplication()->redirect('index.php?option=com_breezingforms&task=editform&act=editpage&form=' . intval($_POST['id']) . ($quickmode ? '&pkg=QuickModeForms' : ''));
     }
 
     // Cancel
@@ -369,7 +369,7 @@ class facileFormsForm
                 $caller = "index.php?option=$option&act=manageforms&pkg=$pkg";
             Factory::getApplication()->redirect($caller);
         } else {
-                Factory::getApplication()->redirect('index.php?option=com_breezingforms&act=manageforms&task=quickmode&formName=' . BFRequest::getVar('name', '') . '&form=' . BFRequest::getInt('id', 0));
+                Factory::getApplication()->redirect('index.php?option=com_breezingforms&act=quickmode&formName=' . BFRequest::getVar('name', '') . '&form=' . BFRequest::getInt('id', 0));
         }
     }
 
@@ -454,7 +454,8 @@ class facileFormsForm
                 // reset end
             } // foreach
         $msg = $total . ' ' . BFText::_('COM_BREEZINGFORMS_FORMS_SUCOPIED');
-        Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&pkg=$pkg&mosmsg=$msg");
+        Factory::getApplication()->enqueueMessage($msg);
+        Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&pkg=$pkg");
     }
 
     // copy

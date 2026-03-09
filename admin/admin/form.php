@@ -36,6 +36,17 @@ switch ($task) {
 	case 'edit':
 		facileFormsForm::edit($option, $tabpane, $pkg, $ids, $caller);
 		break;
+	case 'editform':
+		$formId = BFRequest::getInt('form', 0);
+		$ids = array($formId);
+		if (trim($caller) == '') {
+			$caller = "index.php?option=$option&task=editform&act=manageforms&form=$formId";
+			if ($pkg != '') {
+				$caller .= "&pkg=$pkg";
+			}
+		}
+		facileFormsForm::edit($option, $tabpane, $pkg, $ids, $caller);
+		break;
 	case 'new':
 		$ids = array(0);
 		facileFormsForm::edit($option, 0, $pkg, $ids, $caller);

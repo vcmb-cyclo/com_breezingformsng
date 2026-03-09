@@ -18,9 +18,10 @@ $pkg = BFRequest::getVar( 'pkg', '');
 
 switch ($task) {
 	case 'editform' :
+		$callerPkg = ($pkg !== '' && $pkg !== 'QuickModeForms') ? "&pkg=$pkg" : '';
 		facileFormsForm::edit(
 			$option, $tabpane, $pkg, array($form),
-			"index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg"
+			"index.php?option=$option&act=editpage&form=$form&page=$page" . $callerPkg
 		);
 		break;
 	case 'edit' :
@@ -99,7 +100,7 @@ switch ($task) {
 	case 'config' :
 		$ff_config->edit(
 			$option,
-			"index.php?option=$option&act=manageforms&form=$form&page=$page",
+			"index.php?option=$option&act=editpage&form=$form&page=$page",
 			$pkg
 		);
 		break;

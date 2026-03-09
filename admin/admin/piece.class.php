@@ -156,7 +156,8 @@ class facileFormsPiece
 				$row->store();
 			} // foreach
 		$msg = $total . ' ' . BFText::_('COM_BREEZINGFORMS_PIECES_SUCCOPIED');
-		Factory::getApplication()->redirect("index.php?option=$option&act=managepieces&pkg=$pkg&mosmsg=$msg");
+		Factory::getApplication()->enqueueMessage($msg);
+		Factory::getApplication()->redirect("index.php?option=$option&act=managepieces&pkg=$pkg");
 	} // copy
 
 
@@ -176,7 +177,8 @@ class facileFormsPiece
 		} // if
 		if ($total) {
 			$msg = $total . ' ' . BFText::_('COM_BREEZINGFORMS_PIECES_SUCCDELETED');
-			Factory::getApplication()->redirect("index.php?option=$option&act=managepieces&pkg=$pkg&mosmsg=$msg");
+			Factory::getApplication()->enqueueMessage($msg);
+			Factory::getApplication()->redirect("index.php?option=$option&act=managepieces&pkg=$pkg");
 			return;
 		}
 		Factory::getApplication()->redirect("index.php?option=$option&act=managepieces&pkg=$pkg");
