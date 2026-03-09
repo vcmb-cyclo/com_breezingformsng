@@ -39,10 +39,10 @@ jQuery(document).ready(function () {
         }
 
         var targetHref = getBreezingformsMenuTarget();
-        var $targetLink = jQuery('a[href*="' + targetHref.replace(/&/g, '&amp;') + '"], a[href*="' + targetHref + '"]').first();
+        var $targetLink = jQuery('a[href*="' + targetHref.replace(/&/g, '&amp;') + '"], a[href*="' + targetHref + '"]').eq(0);
 
         if (!$targetLink.length) {
-            $targetLink = jQuery('a[href*="option=com_breezingforms"]').first();
+            $targetLink = jQuery('a[href*="option=com_breezingforms"]').eq(0);
         }
 
         if (!$targetLink.length) {
