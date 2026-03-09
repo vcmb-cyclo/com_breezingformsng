@@ -482,7 +482,7 @@
 		<package>GN</package>
 		<name>gn_getBFElementName</name>
 		<title>Format -\x3E Renvoi le Nom de l\x27élement BF</title>
-		<description>Renvoi le Nom de l\x27élément BreezingForms\r\nReconstruit le nom logique BF\x2C \r\nquand on part d’un élément ou d\x27une action DOM (this)\r\n// --------------------------------------\r\n// Lit le Nom de l\x27élément \r\n// 👉 Reconstruire le nom logique BF\r\n// → quand on part d’un élément ou action DOM (this)\r\n// Gilles — 18/01/2026\r\n// --------------------------------------</description>
+		<description>Renvoi le Nom de l\x27élément BreezingForms\r\nReconstruit le nom logique BF\x2C \r\nquand on part d’un élément ou d\x27une action DOM (this)\r\n// --------------------------------------\r\n// Lit le Nom de l\x27élément \r\n// -> Reconstruire le nom logique BF\r\n// → quand on part d’un élément ou action DOM (this)\r\n// Gilles — 18/01/2026\r\n// --------------------------------------</description>
 		<code>function gn_getBFElementName(element) \r\n{\r\n    if (!element || !element.id) return \x27\x27\x3B\r\n\r\n    for (var i = 0\x3B i \x3C ff_elements.length\x3B i++) {\r\n        if (ff_elements[i][0] === element.id) {\r\n            return ff_elements[i][2]\x3B // Nom logique BF\r\n        }\r\n    }\r\n    return \x27\x27\x3B\r\n} // gn_getBFElementName</code>
 	</script>
 	<script id="153">

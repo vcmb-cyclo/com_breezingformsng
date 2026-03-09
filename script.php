@@ -17,6 +17,110 @@ use Joomla\CMS\Installer\Installer;
 use Joomla\Filesystem\Folder;
 use Joomla\CMS\Log\Log;
 
+if (!function_exists('_ff_query')) {
+    function _ff_query($sql, $insert = 0)
+    {
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
+        $database->setQuery($sql);
+        $database->execute();
+
+        return $insert ? $database->insertid() : null;
+    }
+}
+
+if (!function_exists('_ff_select')) {
+    function _ff_select($sql)
+    {
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
+        $database->setQuery($sql);
+
+        return $database->loadObjectList();
+    }
+}
+
+if (!function_exists('_ff_selectValue')) {
+    function _ff_selectValue($sql)
+    {
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
+        $database->setQuery($sql);
+
+        return $database->loadResult();
+    }
+}
+
+if (!function_exists('savePackage')) {
+    function savePackage($id, $name, $title, $version, $created, $author, $email, $url, $description, $copyright)
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $cnt = _ff_selectValue("select count(*) from #__facileforms_packages where id=" . $db->quote($id));
+
+        if (!$cnt) {
+            _ff_query(
+                "insert into #__facileforms_packages " .
+                "(id, name, title, version, created, author, email, url, description, copyright) " .
+                "values (" . $db->quote($id) . ", " . $db->quote($name) . ", " . $db->quote($title) . ", " .
+                $db->quote($version) . ", " . $db->quote($created) . ", " . $db->quote($author) . ", " .
+                $db->quote($email) . ", " . $db->quote($url) . ", " . $db->quote($description) . ", " .
+                $db->quote($copyright) . ")"
+            );
+        } else {
+            _ff_query(
+                "update #__facileforms_packages " .
+                "set name=" . $db->quote($name) . ", title=" . $db->quote($title) . ", version=" . $db->quote($version) . ", " .
+                "created=" . $db->quote($created) . ", author=" . $db->quote($author) . ", email=" . $db->quote($email) . ", " .
+                "url=" . $db->quote($url) . ", description=" . $db->quote($description) . ", " .
+                "copyright=" . $db->quote($copyright) . " where id = " . $db->quote($id)
+            );
+        }
+    }
+}
+
+if (!function_exists('relinkScripts')) {
+    function relinkScripts(&$oldscripts)
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+
+        if ($oldscripts != null && count($oldscripts)) {
+            foreach ($oldscripts as $row) {
+                $newid = _ff_selectValue("select max(id) from #__facileforms_scripts where name = " . $db->quote($row->name));
+                if ($newid) {
+                    _ff_query("update #__facileforms_forms set script1id=$newid where script1id=$row->id");
+                    _ff_query("update #__facileforms_forms set script2id=$newid where script2id=$row->id");
+                    _ff_query("update #__facileforms_elements set script1id=$newid where script1id=$row->id");
+                    _ff_query("update #__facileforms_elements set script2id=$newid where script2id=$row->id");
+                    _ff_query("update #__facileforms_elements set script3id=$newid where script3id=$row->id");
+                }
+            }
+        }
+    }
+}
+
+if (!function_exists('relinkPieces')) {
+    function relinkPieces(&$oldpieces)
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+
+        if ($oldpieces != null && count($oldpieces)) {
+            foreach ($oldpieces as $row) {
+                $newid = _ff_selectValue("select max(id) from #__facileforms_pieces where name = " . $db->quote($row->name));
+                if ($newid) {
+                    _ff_query("update #__facileforms_forms set piece1id=$newid where piece1id=$row->id");
+                    _ff_query("update #__facileforms_forms set piece2id=$newid where piece2id=$row->id");
+                    _ff_query("update #__facileforms_forms set piece3id=$newid where piece3id=$row->id");
+                    _ff_query("update #__facileforms_forms set piece4id=$newid where piece4id=$row->id");
+                }
+            }
+        }
+    }
+}
+
+if (!function_exists('updateComponentMenus')) {
+    function updateComponentMenus($copy = false)
+    {
+        return '';
+    }
+}
+
 Log::addLogger(
     [
         'text_file' => 'breezingforms_install.log',
@@ -36,6 +140,279 @@ Log::add('User Agent: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'CLI') . '.', Log::INF
 
 class com_breezingformsInstallerScript
 {
+    private $utf8mb4SupportChecked = false;
+    private $utf8mb4Supported = false;
+    private $utf8mb4Collation = 'utf8mb4_general_ci';
+    private $utf8mb4CheckPerformed = false;
+    private $utf8mb4CapabilityAnnounced = false;
+
+    private function detectUtf8mb4Support(): void
+    {
+        if ($this->utf8mb4SupportChecked) {
+            return;
+        }
+
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+
+        try {
+            $db->setQuery("SHOW CHARACTER SET LIKE 'utf8mb4'");
+            $charset = $db->loadAssoc();
+            $this->utf8mb4Supported = is_array($charset) && !empty($charset);
+
+            if ($this->utf8mb4Supported) {
+                $db->setQuery("SHOW COLLATION WHERE Charset = 'utf8mb4'");
+                $collations = (array) $db->loadAssocList();
+                $available = [];
+
+                foreach ($collations as $collation) {
+                    if (!empty($collation['Collation'])) {
+                        $available[] = $collation['Collation'];
+                    }
+                }
+
+                foreach (['utf8mb4_unicode_ci', 'utf8mb4_general_ci'] as $preferredCollation) {
+                    if (in_array($preferredCollation, $available, true)) {
+                        $this->utf8mb4Collation = $preferredCollation;
+                        break;
+                    }
+                }
+
+                if (!in_array($this->utf8mb4Collation, $available, true) && !empty($available)) {
+                    $this->utf8mb4Collation = $available[0];
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->utf8mb4Supported = false;
+            $this->log('Unable to detect utf8mb4 support on this database server: ' . $e->getMessage(), Log::WARNING);
+        }
+
+        $this->utf8mb4SupportChecked = true;
+    }
+
+    private function announceUtf8mb4Capability(): void
+    {
+        if ($this->utf8mb4CapabilityAnnounced) {
+            return;
+        }
+
+        $this->detectUtf8mb4Support();
+
+        if ($this->utf8mb4Supported) {
+            $message = 'utf8mb4 support detected on the database server. BreezingForms tables will be checked and converted when needed.';
+            $this->log($message . ' Target collation: ' . $this->utf8mb4Collation . '.');
+            Factory::getApplication()->enqueueMessage($message, 'message');
+        } else {
+            $message = 'utf8mb4 is not available on the database server. BreezingForms cannot auto-convert its text columns to utf8mb4 on this installation.';
+            $this->log($message, Log::WARNING);
+            Factory::getApplication()->enqueueMessage($message, 'warning');
+        }
+
+        $this->utf8mb4CapabilityAnnounced = true;
+    }
+
+    private function getBreezingFormsTables(DatabaseInterface $db): array
+    {
+        $prefix = $db->getPrefix();
+        $tables = [];
+
+        foreach ($db->getTableList() as $tableName) {
+            if (strpos($tableName, $prefix . 'facileforms_') === 0) {
+                $tables[] = $tableName;
+            }
+        }
+
+        sort($tables);
+
+        return $tables;
+    }
+
+    private function getUtf8mb4NonCompliantTables(DatabaseInterface $db, array $tables): array
+    {
+        if (empty($tables)) {
+            return [];
+        }
+
+        $quotedTables = array_map([$db, 'quote'], $tables);
+
+        $tableQuery = $db->getQuery(true)
+            ->select([
+                $db->quoteName('TABLE_NAME'),
+                $db->quoteName('TABLE_COLLATION'),
+            ])
+            ->from($db->quoteName('information_schema.TABLES'))
+            ->where($db->quoteName('TABLE_SCHEMA') . ' = DATABASE()')
+            ->where($db->quoteName('TABLE_NAME') . ' IN (' . implode(',', $quotedTables) . ')');
+
+        $db->setQuery($tableQuery);
+        $tableRows = (array) $db->loadAssocList();
+
+        $columnQuery = $db->getQuery(true)
+            ->select([
+                $db->quoteName('TABLE_NAME'),
+                $db->quoteName('COLUMN_NAME'),
+                $db->quoteName('CHARACTER_SET_NAME'),
+                $db->quoteName('COLLATION_NAME'),
+            ])
+            ->from($db->quoteName('information_schema.COLUMNS'))
+            ->where($db->quoteName('TABLE_SCHEMA') . ' = DATABASE()')
+            ->where($db->quoteName('TABLE_NAME') . ' IN (' . implode(',', $quotedTables) . ')')
+            ->where($db->quoteName('CHARACTER_SET_NAME') . ' IS NOT NULL');
+
+        $db->setQuery($columnQuery);
+        $columnRows = (array) $db->loadAssocList();
+
+        $issues = [];
+
+        foreach ($tableRows as $row) {
+            $tableName = $row['TABLE_NAME'] ?? '';
+            $tableCollation = (string) ($row['TABLE_COLLATION'] ?? '');
+
+            if ($tableName !== '' && strpos($tableCollation, 'utf8mb4_') !== 0) {
+                $issues[$tableName][] = 'table collation=' . ($tableCollation !== '' ? $tableCollation : 'none');
+            }
+        }
+
+        foreach ($columnRows as $row) {
+            $tableName = $row['TABLE_NAME'] ?? '';
+            $columnName = $row['COLUMN_NAME'] ?? '';
+            $charset = (string) ($row['CHARACTER_SET_NAME'] ?? '');
+            $collation = (string) ($row['COLLATION_NAME'] ?? '');
+
+            if ($tableName === '' || $columnName === '') {
+                continue;
+            }
+
+            if ($charset !== 'utf8mb4' || strpos($collation, 'utf8mb4_') !== 0) {
+                $issues[$tableName][] = $columnName . '=' . ($charset !== '' ? $charset : 'none') . '/' . ($collation !== '' ? $collation : 'none');
+            }
+        }
+
+        return $issues;
+    }
+
+    private function ensureUtf8mb4Columns(): void
+    {
+        if ($this->utf8mb4CheckPerformed) {
+            return;
+        }
+
+        $this->detectUtf8mb4Support();
+        $this->utf8mb4CheckPerformed = true;
+
+        if (!$this->utf8mb4Supported) {
+            return;
+        }
+
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $tables = $this->getBreezingFormsTables($db);
+
+        if (empty($tables)) {
+            $this->log('No BreezingForms tables found yet for utf8mb4 verification.', Log::INFO);
+            return;
+        }
+
+        $issues = $this->getUtf8mb4NonCompliantTables($db, $tables);
+
+        if (empty($issues)) {
+            $message = 'BreezingForms utf8mb4 check: all existing component tables already use utf8mb4.';
+            $this->log($message);
+            Factory::getApplication()->enqueueMessage($message, 'message');
+            return;
+        }
+
+        $converted = [];
+        $failed = [];
+
+        foreach ($issues as $tableName => $tableIssues) {
+            try {
+                $db->setQuery(
+                    'ALTER TABLE ' . $db->quoteName($tableName) .
+                    ' CONVERT TO CHARACTER SET utf8mb4 COLLATE ' . $this->utf8mb4Collation
+                )->execute();
+
+                $converted[] = $tableName;
+                $this->log(
+                    'Converted table ' . $tableName . ' to utf8mb4/' . $this->utf8mb4Collation .
+                    '. Previous issues: ' . implode(', ', $tableIssues)
+                );
+            } catch (\Throwable $e) {
+                $failed[] = $tableName;
+                $message = 'Failed to convert table ' . $tableName . ' to utf8mb4: ' . $e->getMessage();
+                $this->log($message, Log::ERROR);
+                Factory::getApplication()->enqueueMessage($message, 'error');
+            }
+        }
+
+        if (!empty($converted)) {
+            $message = 'BreezingForms utf8mb4 correction applied on ' . count($converted) . ' table(s): ' . implode(', ', $converted) . '.';
+            $this->log($message);
+            Factory::getApplication()->enqueueMessage($message, 'warning');
+        }
+
+        if (empty($failed)) {
+            $message = 'BreezingForms utf8mb4 verification completed successfully.';
+            $this->log($message);
+            Factory::getApplication()->enqueueMessage($message, 'message');
+        }
+    }
+
+    private function getTextCollationClause(): string
+    {
+        $this->detectUtf8mb4Support();
+
+        if (!$this->utf8mb4Supported) {
+            return '';
+        }
+
+        return ' COLLATE ' . $this->utf8mb4Collation;
+    }
+
+    private function importStandardLibrary(): void
+    {
+        global $ff_admpath, $ff_compath, $errors, $errmode;
+
+        $ff_admpath = str_replace('\\', '/', JPATH_ADMINISTRATOR . '/components/com_breezingforms');
+        $ff_compath = str_replace('\\', '/', JPATH_SITE . '/components/com_breezingforms');
+        $xmlFile = $ff_admpath . '/packages/stdlib.english.xml';
+
+        if (!File::exists($xmlFile)) {
+            $this->log("Standard library package not found: {$xmlFile}", Log::WARNING);
+            return;
+        }
+
+        require_once $ff_admpath . '/libraries/crosstec/classes/BFText.php';
+        require_once $ff_compath . '/facileforms.class.php';
+        require_once $ff_admpath . '/admin/import.class.php';
+
+        $errors = [];
+        $errmode = 'log';
+
+        $importer = new ff_importPackage();
+        $importer->reinstallOnlyIfChanged = true;
+
+        if (!$importer->import($xmlFile)) {
+            $details = [];
+
+            if (!empty($errors)) {
+                $details = $errors;
+            } elseif (!empty($importer->error)) {
+                $details[] = $importer->error;
+            }
+
+            $detailText = empty($details) ? 'Unknown import error.' : implode(' | ', $details);
+            $this->log('Standard library import failed. ' . $detailText, Log::ERROR);
+            Factory::getApplication()->enqueueMessage('BreezingForms standard pieces import failed: ' . $detailText, 'error');
+            return;
+        }
+
+        $this->log(
+            'Standard library imported successfully: ' .
+            count($importer->scripts) . ' script(s), ' .
+            count($importer->pieces) . ' piece(s), ' .
+            count($importer->forms) . ' form(s).'
+        );
+    }
+
     private function getIncomingVersion($parent): string
     {
         $installer = is_object($parent) && method_exists($parent, 'getParent')
@@ -192,8 +569,10 @@ class com_breezingformsInstallerScript
     public function update($parent): void
     {
         $this->log('Updating BreezingForms from version ' . $this->getCurrentInstalledVersion());
+        $this->ensureUtf8mb4Columns();
 
         $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $textCollationClause = $this->getTextCollationClause();
         $tables = self::getTableFields($db->getTableList());
         $prefix = $db->getPrefix();
 
@@ -259,8 +638,8 @@ class com_breezingformsInstallerScript
             $auditFormColumns = [
                 'created'     => "DATETIME NULL DEFAULT CURRENT_TIMESTAMP AFTER `filter_state`",
                 'modified'    => "DATETIME NULL DEFAULT NULL AFTER `created`",
-                'created_by'  => "VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' AFTER `modified`",
-                'modified_by' => "VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' AFTER `created_by`"
+                'created_by'  => "VARCHAR(255){$textCollationClause} NOT NULL DEFAULT '' AFTER `modified`",
+                'modified_by' => "VARCHAR(255){$textCollationClause} NOT NULL DEFAULT '' AFTER `created_by`"
             ];
 
             foreach ($auditFormColumns as $col => $def) {
@@ -271,20 +650,20 @@ class com_breezingformsInstallerScript
             }
 
             if (isset($columns['created_by'])) {
-                $db->setQuery("ALTER TABLE `{$formsTable}` MODIFY `created_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''")->execute();
+                $db->setQuery("ALTER TABLE `{$formsTable}` MODIFY `created_by` VARCHAR(255){$textCollationClause} NOT NULL DEFAULT ''")->execute();
                 $this->log("Updated created_by column definition in facileforms_forms.");
             }
             if (isset($columns['modified_by'])) {
-                $db->setQuery("ALTER TABLE `{$formsTable}` MODIFY `modified_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''")->execute();
+                $db->setQuery("ALTER TABLE `{$formsTable}` MODIFY `modified_by` VARCHAR(255){$textCollationClause} NOT NULL DEFAULT ''")->execute();
                 $this->log("Updated modified_by column definition in facileforms_forms.");
             }
         }
 
         $auditColumns = [
             'created'     => "DATETIME NULL DEFAULT NULL AFTER `code`",
-            'created_by'  => "VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' AFTER `created`",
+            'created_by'  => "VARCHAR(255){$textCollationClause} NOT NULL DEFAULT '' AFTER `created`",
             'modified'    => "DATETIME NULL DEFAULT NULL AFTER `created_by`",
-            'modified_by' => "VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' AFTER `modified`",
+            'modified_by' => "VARCHAR(255){$textCollationClause} NOT NULL DEFAULT '' AFTER `modified`",
         ];
 
         foreach ([$scriptsTable, $piecesTable] as $tableName) {
@@ -301,11 +680,11 @@ class com_breezingformsInstallerScript
             }
 
             if (isset($columns['created_by'])) {
-                $db->setQuery("ALTER TABLE `{$tableName}` MODIFY `created_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''")->execute();
+                $db->setQuery("ALTER TABLE `{$tableName}` MODIFY `created_by` VARCHAR(255){$textCollationClause} NOT NULL DEFAULT ''")->execute();
                 $this->log("Updated created_by column definition in {$tableName}.");
             }
             if (isset($columns['modified_by'])) {
-                $db->setQuery("ALTER TABLE `{$tableName}` MODIFY `modified_by` VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''")->execute();
+                $db->setQuery("ALTER TABLE `{$tableName}` MODIFY `modified_by` VARCHAR(255){$textCollationClause} NOT NULL DEFAULT ''")->execute();
                 $this->log("Updated modified_by column definition in {$tableName}.");
             }
         }
@@ -352,6 +731,10 @@ class com_breezingformsInstallerScript
     {
         $this->log("Preflight executed for action: {$type}");
 
+        if (in_array($type, ['install', 'update', 'discover_install'], true)) {
+            $this->announceUtf8mb4Capability();
+        }
+
         if ($type === 'update') {
             $currentVersion = $this->getCurrentInstalledVersion();
             $incomingVersion = $this->getIncomingVersion($parent);
@@ -373,6 +756,11 @@ class com_breezingformsInstallerScript
         // === LOG POUR DÉBOGAGE ===
         $this->log('Postflight installation method call, parameter : ' . $type . '.');
         $this->log('Current version in manifest_cache : ' . $this->getCurrentInstalledVersion() . '.');
+
+        if (in_array($type, ['install', 'update', 'discover_install'], true)) {
+            $this->ensureUtf8mb4Columns();
+            $this->importStandardLibrary();
+        }
 
         $this->installPlugins();
         $this->removeOldUpdateSite();
