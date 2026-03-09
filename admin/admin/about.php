@@ -44,6 +44,8 @@ if (!function_exists('bf_about_get_version_information')) {
             'version' => '',
             'creationDate' => '',
             'author' => '',
+            'copyright' => '',
+            'license' => '',
         );
 
         try {
@@ -64,6 +66,8 @@ if (!function_exists('bf_about_get_version_information')) {
                     $versionInformation['version'] = (string) ($manifestData['version'] ?? '');
                     $versionInformation['creationDate'] = (string) ($manifestData['creationDate'] ?? '');
                     $versionInformation['author'] = (string) ($manifestData['author'] ?? '');
+                    $versionInformation['copyright'] = (string) ($manifestData['copyright'] ?? '');
+                    $versionInformation['license'] = (string) ($manifestData['license'] ?? '');
                 }
             }
         } catch (Throwable $e) {
@@ -97,10 +101,70 @@ if (!function_exists('bf_about_get_version_information')) {
             $versionInformation['version'] = (string) ($manifest->version ?? '');
             $versionInformation['creationDate'] = (string) ($manifest->creationDate ?? '');
             $versionInformation['author'] = (string) ($manifest->author ?? '');
+            $versionInformation['copyright'] = (string) ($manifest->copyright ?? '');
+            $versionInformation['license'] = (string) ($manifest->license ?? '');
             break;
         }
 
         return $versionInformation;
+    }
+}
+
+if (!function_exists('bf_about_get_log_report')) {
+    function bf_about_get_log_report()
+    {
+        $paths = array(
+            JPATH_ADMINISTRATOR . '/logs/breezingforms_install2.log',
+            JPATH_ADMINISTRATOR . '/logs/breezingforms_install.log',
+        );
+
+        $latestPath = '';
+        $latestMtime = 0;
+
+        foreach ($paths as $path) {
+            if (!is_file($path)) {
+                continue;
+            }
+
+            $mtime = (int) @filemtime($path);
+
+            if ($latestPath === '' || $mtime > $latestMtime) {
+                $latestPath = $path;
+                $latestMtime = $mtime;
+            }
+        }
+
+        if ($latestPath === '') {
+            return array();
+        }
+
+        $size = (int) @filesize($latestPath);
+        $tailBytes = 65536;
+        $content = '';
+        $truncated = false;
+
+        if ($size > 0) {
+            $handle = @fopen($latestPath, 'rb');
+
+            if (is_resource($handle)) {
+                if ($size > $tailBytes) {
+                    $truncated = true;
+                    fseek($handle, -$tailBytes, SEEK_END);
+                }
+
+                $content = (string) stream_get_contents($handle);
+                fclose($handle);
+            }
+        }
+
+        return array(
+            'file' => basename($latestPath),
+            'size' => $size,
+            'loaded_at' => $latestMtime > 0 ? date('Y-m-d H:i:s', $latestMtime) : '',
+            'content' => $content,
+            'truncated' => $truncated ? 1 : 0,
+            'tail_bytes' => $tailBytes,
+        );
     }
 }
 
@@ -302,11 +366,39 @@ if (!function_exists('bf_about_get_javascript_libraries')) {
 $versionInformation = bf_about_get_version_information();
 $phpLibraries = bf_about_get_php_libraries();
 $javascriptLibraries = bf_about_get_javascript_libraries();
+$logReport = bf_about_get_log_report();
 $notAvailable = BFText::_('COM_BREEZINGFORMS_NOT_AVAILABLE');
 
 $versionValue = $versionInformation['version'] !== '' ? $versionInformation['version'] : $notAvailable;
 $creationDateValue = $versionInformation['creationDate'] !== '' ? $versionInformation['creationDate'] : $notAvailable;
 $authorValue = $versionInformation['author'] !== '' ? $versionInformation['author'] : $notAvailable;
+$copyrightValue = $versionInformation['copyright'] !== '' ? $versionInformation['copyright'] : $notAvailable;
+$licenseValue = trim((string) ($versionInformation['license'] ?? ''));
+$genericLicenseValues = array('gpl', 'gnu/gpl', 'gnu/gpl v2 or later');
+
+if ($licenseValue === '' || in_array(strtolower($licenseValue), $genericLicenseValues, true)) {
+    $licenseValue = BFText::_('COM_BREEZINGFORMS_LICENSE_FALLBACK');
+}
+
+$licenseUrl = 'https://www.gnu.org/licenses/gpl-2.0.html';
+$vcmbUrl = 'https://breezingforms-ng.vcmb.fr';
+$githubUrl = 'https://github.com/vcmb-cyclo/com_breezingformsng';
+$logFileName = (string) ($logReport['file'] ?? $notAvailable);
+$logSize = (int) ($logReport['size'] ?? 0);
+$logLoadedAt = (string) ($logReport['loaded_at'] ?? $notAvailable);
+$logContent = (string) ($logReport['content'] ?? '');
+$logDisplayContent = $logContent;
+
+if ($logDisplayContent !== '') {
+    $logLines = preg_split('/\r\n|\r|\n/', $logDisplayContent);
+
+    if (is_array($logLines) && $logLines !== array()) {
+        $logDisplayContent = implode(PHP_EOL, array_reverse($logLines));
+    }
+}
+
+$logTruncated = (int) ($logReport['truncated'] ?? 0) === 1;
+$logTailBytes = (int) ($logReport['tail_bytes'] ?? 0);
 $aboutDescription = (string) BFText::_('COM_BREEZINGFORMS_ABOUT_DESC');
 $aboutDescription = str_replace(
     '<strong>BreezingForms</strong>',
@@ -341,6 +433,55 @@ $aboutDescription = str_replace(
         margin: 0;
         padding: 0;
         text-align: left;
+    }
+    .bf-about-intro-links {
+        margin-top: .55rem;
+        display: flex;
+        gap: .5rem;
+        flex-wrap: wrap;
+    }
+    .bf-about-intro-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .35rem;
+        font-size: .78rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: .01em;
+        text-decoration: none;
+        border-radius: 999px;
+        padding: .45rem .8rem;
+        transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+    }
+    .bf-about-intro-link:hover,
+    .bf-about-intro-link:focus {
+        transform: translateY(-1px);
+        opacity: .95;
+        text-decoration: none;
+    }
+    .bf-about-intro-link--vcmb {
+        color: var(--bs-primary-text-emphasis, #0a58ca);
+        background: var(--bs-primary-bg-subtle, #e7f1ff);
+        border: 1px solid var(--bs-primary-border-subtle, #b6d4fe);
+    }
+    .bf-about-intro-link--github {
+        color: var(--bs-secondary-text-emphasis, #41464b);
+        background: var(--bs-secondary-bg-subtle, #e2e3e5);
+        border: 1px solid var(--bs-secondary-border-subtle, #d3d6d8);
+        box-shadow: 0 .35rem .9rem rgba(15, 23, 42, .16);
+    }
+    .bf-about-intro-link--license {
+        color: var(--bs-warning-text-emphasis, #664d03);
+        background: var(--bs-warning-bg-subtle, #fff3cd);
+        border: 1px solid var(--bs-warning-border-subtle, #ffecb5);
+        box-shadow: 0 .25rem .75rem rgba(191, 144, 0, .16);
+    }
+    .bf-about-intro-link--log {
+        color: var(--bs-success-text-emphasis, #0f5132);
+        background: var(--bs-success-bg-subtle, #d1e7dd);
+        border: 1px solid var(--bs-success-border-subtle, #badbcc);
+        box-shadow: 0 .25rem .75rem rgba(25, 135, 84, .16);
     }
     @media (max-width: 767.98px) {
         .bf-about-intro {
@@ -410,6 +551,9 @@ $aboutDescription = str_replace(
     .bf-about-version-tile--author {
         --bf-accent-color: #fd7e14;
     }
+    .bf-about-version-tile--license {
+        --bf-accent-color: #d39e00;
+    }
     .bf-about-version-icon {
         width: 2rem;
         height: 2rem;
@@ -431,6 +575,10 @@ $aboutDescription = str_replace(
         background-color: #fff1e8;
         color: #fd7e14;
     }
+    .bf-about-version-tile--license .bf-about-version-icon {
+        background-color: #fff8db;
+        color: #a56b00;
+    }
     .bf-about-version-label {
         margin: .15rem 0 0;
         color: #6c757d;
@@ -446,6 +594,11 @@ $aboutDescription = str_replace(
         font-weight: 700;
         line-height: 1.25;
         word-break: break-word;
+    }
+    .bf-about-version-link {
+        margin-top: .4rem;
+        font-size: .76rem;
+        font-weight: 700;
     }
 </style>
 
@@ -463,8 +616,13 @@ $aboutDescription = str_replace(
         <div class="bf-about-intro-content">
             <p class="mb-0">
                 <?php echo $aboutDescription; ?>
-                <a href="https://breezingforms-ng.vcmb.fr" target="_blank" rel="noopener noreferrer">VCMB migration</a>
             </p>
+            <div class="bf-about-intro-links">
+                <a class="bf-about-intro-link bf-about-intro-link--vcmb" href="<?php echo htmlspecialchars($vcmbUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo BFText::_('COM_BREEZINGFORMS_VCMB_LINK'); ?></a>
+                <a class="bf-about-intro-link bf-about-intro-link--github" href="<?php echo htmlspecialchars($githubUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo BFText::_('COM_BREEZINGFORMS_GITHUB_LINK'); ?></a>
+                <a class="bf-about-intro-link bf-about-intro-link--license" href="<?php echo htmlspecialchars($licenseUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo BFText::_('COM_BREEZINGFORMS_LICENSE_LINK'); ?></a>
+                <a class="bf-about-intro-link bf-about-intro-link--log" href="#bf-about-log"><?php echo BFText::_('COM_BREEZINGFORMS_ABOUT_SHOW_LOG'); ?></a>
+            </div>
         </div>
     </div>
 
@@ -476,28 +634,66 @@ $aboutDescription = str_replace(
             </div>
 
             <div class="row g-3">
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-6 col-lg-2">
                     <div class="bf-about-version-tile bf-about-version-tile--version">
                         <span class="bf-about-version-icon" aria-hidden="true">VER</span>
                         <p class="bf-about-version-label"><?php echo BFText::_('COM_BREEZINGFORMS_VERSION_LABEL'); ?></p>
                         <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $versionValue, ENT_QUOTES, 'UTF-8'); ?></p>
                     </div>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-6 col-lg-2">
                     <div class="bf-about-version-tile bf-about-version-tile--date">
                         <span class="bf-about-version-icon" aria-hidden="true">DATE</span>
                         <p class="bf-about-version-label"><?php echo BFText::_('COM_BREEZINGFORMS_CREATION_DATE_LABEL'); ?></p>
                         <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $creationDateValue, ENT_QUOTES, 'UTF-8'); ?></p>
                     </div>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-6 col-lg-4">
                     <div class="bf-about-version-tile bf-about-version-tile--author">
                         <span class="bf-about-version-icon" aria-hidden="true">DEV</span>
                         <p class="bf-about-version-label"><?php echo BFText::_('COM_BREEZINGFORMS_AUTHOR_LABEL'); ?></p>
                         <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $authorValue, ENT_QUOTES, 'UTF-8'); ?></p>
+                        <p class="bf-about-version-label mt-2"><?php echo BFText::_('COM_BREEZINGFORMS_COPYRIGHT_LABEL'); ?></p>
+                        <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $copyrightValue, ENT_QUOTES, 'UTF-8'); ?></p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-12 col-lg-4">
+                    <div class="bf-about-version-tile bf-about-version-tile--license">
+                        <span class="bf-about-version-icon" aria-hidden="true">GPL</span>
+                        <p class="bf-about-version-label"><?php echo BFText::_('COM_BREEZINGFORMS_LICENSE_LABEL'); ?></p>
+                        <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $licenseValue, ENT_QUOTES, 'UTF-8'); ?></p>
+                        <a class="bf-about-version-link" href="<?php echo htmlspecialchars($licenseUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo BFText::_('COM_BREEZINGFORMS_LICENSE_LINK'); ?></a>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="card mt-3" id="bf-about-log">
+        <div class="card-body">
+            <h3 class="h6 card-title mb-3"><?php echo BFText::_('COM_BREEZINGFORMS_ABOUT_LOG_TITLE'); ?></h3>
+            <p class="text-muted small mb-2">
+                <?php echo sprintf(
+                    BFText::_('COM_BREEZINGFORMS_ABOUT_LOG_LAST_READ'),
+                    htmlspecialchars($logFileName, ENT_QUOTES, 'UTF-8'),
+                    number_format($logSize, 0, '.', ' '),
+                    htmlspecialchars($logLoadedAt, ENT_QUOTES, 'UTF-8')
+                ); ?>
+            </p>
+
+            <?php if ($logTruncated) : ?>
+                <div class="alert alert-warning py-2">
+                    <?php echo sprintf(BFText::_('COM_BREEZINGFORMS_ABOUT_LOG_TRUNCATED'), max(1, $logTailBytes)); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($logDisplayContent === '') : ?>
+                <div class="alert alert-info mb-0">
+                    <?php echo BFText::_('COM_BREEZINGFORMS_ABOUT_LOG_EMPTY'); ?>
+                </div>
+            <?php else : ?>
+                <pre class="bg-body-tertiary text-body p-3 border rounded small mb-0" style="max-height: 420px; overflow: auto;"><?php echo htmlspecialchars($logDisplayContent, ENT_QUOTES, 'UTF-8'); ?></pre>
+            <?php endif; ?>
         </div>
     </div>
 
