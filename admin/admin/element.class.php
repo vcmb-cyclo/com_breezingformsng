@@ -315,14 +315,14 @@ class facileFormsElement
 		// CONTENTBUILDER END
 
 		Factory::getApplication()->redirect(
-			"index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg",
+			"index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg",
 			BFText::_('COM_BREEZINGFORMS_ELEMENTS_SAVED')
 		);
 	} // save
 
 	static function cancel($option, $pkg, $form, $page)
 	{
-		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
+		Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg");
 	} // cancel
 
 	static function del($option, $pkg, $form, $page, $ids)
@@ -353,7 +353,7 @@ class facileFormsElement
 		//	echo "<script> alert('".$e->getMessage()."'); window.history.go(-1); </script>\n";
 		//}
 		
-		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
+		Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg");
 	} // del
 
 	static function getDestination($option, $pkg, $form, $page, $ids, $action)
@@ -417,7 +417,7 @@ class facileFormsElement
 		$destination = explode(',', BFRequest::getVar('destination', ''));
 		list($newform, $newpage) = $destination;
 		if (!$newform && !$newpage)
-			Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg&mosmsg=" . BFText::_('COM_BREEZINGFORMS_ELEMENTS_ANERROR'));
+			Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg&mosmsg=" . BFText::_('COM_BREEZINGFORMS_ELEMENTS_ANERROR'));
 		$total = count($ids);
 		$row = new facileFormsElements($database);
 		if (count($ids))
@@ -431,7 +431,7 @@ class facileFormsElement
 				$row->reorder('form=' . $newform . ' and page = ' . $newpage);
 			} // foreach
 		$msg = $total . ' ' . BFText::_('COM_BREEZINGFORMS_ELEMENTS_COPIED') . $newform . ', ' . BFText::_('COM_BREEZINGFORMS_ELEMENTS_PAGE2') . $newpage;
-		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg&mosmsg=$msg");
+		Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg&mosmsg=$msg");
 	} // copy
 
 	static function move($option, $pkg, $form, $page, $ids)
@@ -441,7 +441,7 @@ class facileFormsElement
 		$destination = explode(',', BFRequest::getVar('destination', ''));
 		list($newform, $newpage) = $destination;
 		if (!$newform && !$newpage)
-			Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg&mosmsg=" . BFText::_('COM_BREEZINGFORMS_ELEMENTS_ANERROR'));
+			Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg&mosmsg=" . BFText::_('COM_BREEZINGFORMS_ELEMENTS_ANERROR'));
 		if ($newform != $form || $newpage != $page) {
 			$total = count($ids);
 			$row = new facileFormsElements($database);
@@ -457,7 +457,7 @@ class facileFormsElement
 			$msg = $total . ' ' . BFText::_('COM_BREEZINGFORMS_ELEMENTS_MOVED') . $newform . ', ' . BFText::_('COM_BREEZINGFORMS_ELEMENTS_PAGE2') . $newpage;
 		} else
 			$msg = BFText::_('COM_BREEZINGFORMS_ELEMENTS_NOTMOVED');
-		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg&mosmsg=$msg");
+		Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg&mosmsg=$msg");
 	} // move
 
 	static function sort($option, $pkg, $form, $page)
@@ -495,7 +495,7 @@ class facileFormsElement
 				$o++;
 			} // foreach
 		Factory::getApplication()->redirect(
-			"index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg",
+			"index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg",
 			BFText::_('COM_BREEZINGFORMS_ELEMENTS_SORTED')
 		);
 	} // save
@@ -516,7 +516,7 @@ class facileFormsElement
 			$elem->posy = $pos[$p++];
 			$elem->store();
 		} // for
-		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
+		Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg");
 	} // movePos
 
 	static function gridshow($option, $pkg, $form, $page, $ids, $task)
@@ -525,7 +525,7 @@ class facileFormsElement
 		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$ff_config->gridshow = BFRequest::getVar('gridshow', 0);
 		$ff_config->store();
-		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg&checkedIds=" . implode(',', $ids));
+		Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg&checkedIds=" . implode(',', $ids));
 	} // gridshow
 
 	static function publish($option, $pkg, $form, $page, $ids, $publish)
@@ -543,7 +543,7 @@ class facileFormsElement
 			exit();
 		}
 
-		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
+		Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg");
 	} // publish
 
 	static function order($option, $pkg, $form, $page, $ids, $inc)
@@ -553,7 +553,7 @@ class facileFormsElement
 		$row = new facileFormsElements($database);
 		$row->load($ids[0]);
 		$row->move($inc, "form=$form and page=$page");
-		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
+		Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg");
 	} // order
 
 	static function orderWithoutRedirect($option, $pkg, $form, $page, $positions)
@@ -624,7 +624,7 @@ class facileFormsElement
 		$row->pages++;
 		$row->store();
 		$page++;
-		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
+		Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg");
 	} // addPageBehind
 
 	static function addPageBefore($option, $pkg, $form, $page)
@@ -644,7 +644,7 @@ class facileFormsElement
 		}
 		$row->pages++;
 		$row->store();
-		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
+		Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg");
 	} // addPageBefore
 
 	static function delPage($option, $pkg, $form, $page)
@@ -677,7 +677,7 @@ class facileFormsElement
 		$row->store();
 		if ($page > $row->pages)
 			$page--;
-		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
+		Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg");
 	} // delPage
 
 	static function getPageDestination($option, $pkg, $form, $page)
@@ -745,7 +745,7 @@ class facileFormsElement
 
 			$page = $newpage;
 		} // if
-		Factory::getApplication()->redirect("index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg");
+		Factory::getApplication()->redirect("index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg");
 	} // movePage
 
 } // class facileFormsElement

@@ -2166,11 +2166,11 @@ class HTML_facileFormsForm
                                 </a></td>
                         <?php } else if ($row->template_code_processed == 'QuickMode') { ?>
                                 <td valign="top" align="left"><a
-                                        href="index.php?option=com_breezingforms&amp;format=html&amp;act=quickmode&amp;formName=<?php echo $row->name ?>&amp;form=<?php echo $row->id; ?>">
+                                        href="index.php?option=com_breezingforms&amp;format=html&amp;act=manageforms&amp;task=quickmode&amp;formName=<?php echo $row->name ?>&amp;form=<?php echo $row->id; ?>">
                                     <?php echo $row->title; ?>
                                     </a></td>
                                 <td valign="top" align="left"><a
-                                        href="index.php?option=com_breezingforms&amp;format=html&amp;act=quickmode&amp;formName=<?php echo $row->name ?>&amp;form=<?php echo $row->id; ?>">
+                                        href="index.php?option=com_breezingforms&amp;format=html&amp;act=manageforms&amp;task=quickmode&amp;formName=<?php echo $row->name ?>&amp;form=<?php echo $row->id; ?>">
                                     <?php echo $row->name; ?>
                                     </a></td>
                         <?php } else { ?>
@@ -2186,7 +2186,7 @@ class HTML_facileFormsForm
 
                         <td nowrap valign="top" align="left">
                             <a
-                                href="index.php?option=com_breezingforms&amp;format=html&amp;act=quickmode&amp;formName=<?php echo $row->name ?>&amp;form=<?php echo $row->id; ?>">
+                                href="index.php?option=com_breezingforms&amp;format=html&amp;act=manageforms&amp;task=quickmode&amp;formName=<?php echo $row->name ?>&amp;form=<?php echo $row->id; ?>">
                                 <?php echo $row->pages; ?>
                             </a>
                         </td>

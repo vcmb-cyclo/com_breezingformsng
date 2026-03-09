@@ -176,7 +176,7 @@ class HTML_facileFormsElement
 			<input type="hidden" name="pkg" value="<?php echo $pkg; ?>" />
 			<input type="hidden" name="option" value="<?php echo $option; ?>" />
 			<input type="hidden" name="task" value="" />
-			<input type="hidden" name="act" value="editpage" />
+			<input type="hidden" name="act" value="manageforms" />
 			<input type="hidden" name="form" value="<?php echo $form; ?>" />
 			<input type="hidden" name="page" value="<?php echo $page; ?>" />
 		</form>
@@ -3240,7 +3240,7 @@ class HTML_facileFormsElement
 			<input type="hidden" name="pkg" value="<?php echo $pkg; ?>" />
 			<input type="hidden" name="option" value="<?php echo $option; ?>" />
 			<input type="hidden" id="task" name="task" value="" />
-			<input type="hidden" name="act" value="editpage" />
+			<input type="hidden" name="act" value="manageforms" />
 			<input type="hidden" name="form" value="<?php echo $row->form; ?>" />
 			<input type="hidden" name="page" value="<?php echo $row->page; ?>" />
 			<input type="hidden" name="type" value="<?php echo $row->type; ?>" />
@@ -3942,7 +3942,7 @@ class HTML_facileFormsElement
 					<input type="hidden" name="boxchecked" value="<?php echo $boxchecked; ?>" />
 					<input type="hidden" name="pkg" value="<?php echo $pkg; ?>" />
 					<input type="hidden" name="option" value="<?php echo $option; ?>" />
-					<input type="hidden" name="act" value="editpage" />
+					<input type="hidden" name="act" value="manageforms" />
 					<input type="hidden" name="task" value="" />
 					<input type="hidden" name="form" value="<?php echo $form->id; ?>" />
 					<input type="hidden" name="page" value="<?php echo $page; ?>" />
@@ -4007,7 +4007,7 @@ class HTML_facileFormsElement
 				<input type="hidden" name="pkg" value="<?php echo $pkg; ?>" />
 				<input type="hidden" name="option" value="<?php echo $option; ?>" />
 				<input type="hidden" name="task" value="" />
-				<input type="hidden" name="act" value="editpage" />
+				<input type="hidden" name="act" value="manageforms" />
 				<input type="hidden" name="form" value="<?php echo $form; ?>" />
 				<input type="hidden" name="page" value="<?php echo $page; ?>" />
 		<?php
@@ -4064,7 +4064,7 @@ class HTML_facileFormsElement
 				<input type="hidden" name="pkg" value="<?php echo $pkg; ?>" />
 				<input type="hidden" name="option" value="<?php echo $option; ?>" />
 				<input type="hidden" name="task" value="" />
-				<input type="hidden" name="act" value="editpage" />
+				<input type="hidden" name="act" value="manageforms" />
 				<input type="hidden" name="form" value="<?php echo $form; ?>" />
 				<input type="hidden" name="page" value="<?php echo $page; ?>" />
 				</form>

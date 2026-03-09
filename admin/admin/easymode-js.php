@@ -3458,7 +3458,7 @@ HTMLHelper::_('bootstrap.modal');
 				submitform(pressbutton);
 				break;
 			case 'editform':
-				location.href = "index.php?option=com_breezingforms&task=editform&act=editpage&form=<?php echo $formId ?>";
+				location.href = "index.php?option=com_breezingforms&task=editform&act=manageforms&form=<?php echo $formId ?>";
 				break;
 			case 'preview':
 				SqueezeBox.initialize({});

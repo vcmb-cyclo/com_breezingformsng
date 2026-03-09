@@ -1,5 +1,80 @@
 jQuery(document).ready(function () {
 
+    function getBreezingformsMenuTarget() {
+        var params = new URLSearchParams(window.location.search);
+        var act = params.get('act') || '';
+
+        switch (act) {
+            case 'quickmode':
+            case 'quickmode_editor':
+            case 'editpage':
+            case 'easymode':
+            case 'manageforms':
+                return 'index.php?option=com_breezingforms&act=manageforms';
+            case 'recordmanagement':
+            case 'managerecs':
+                return 'index.php?option=com_breezingforms&act=managerecs';
+            case 'managescripts':
+                return 'index.php?option=com_breezingforms&act=managescripts';
+            case 'managepieces':
+                return 'index.php?option=com_breezingforms&act=managepieces';
+            case 'integrate':
+                return 'index.php?option=com_breezingforms&act=integrate';
+            case 'configuration':
+                return 'index.php?option=com_breezingforms&act=configuration';
+            case 'about':
+                return 'index.php?option=com_breezingforms&act=about';
+            case 'managemenus':
+                return 'index.php?option=com_breezingforms&act=managemenus';
+            default:
+                return 'index.php?option=com_breezingforms';
+        }
+    }
+
+    function expandJoomlaMenuForBreezingforms() {
+        var params = new URLSearchParams(window.location.search);
+
+        if ((params.get('option') || '') !== 'com_breezingforms') {
+            return;
+        }
+
+        var targetHref = getBreezingformsMenuTarget();
+        var $targetLink = jQuery('a[href*="' + targetHref.replace(/&/g, '&amp;') + '"], a[href*="' + targetHref + '"]').first();
+
+        if (!$targetLink.length) {
+            $targetLink = jQuery('a[href*="option=com_breezingforms"]').first();
+        }
+
+        if (!$targetLink.length) {
+            return;
+        }
+
+        $targetLink.addClass('active current').attr('aria-current', 'page');
+        $targetLink.parents('li').addClass('active current');
+        $targetLink.parents('details').attr('open', 'open');
+        $targetLink.parents('[hidden]').removeAttr('hidden');
+        $targetLink.parents('.collapse').addClass('show');
+        $targetLink.parents('.collapsed').removeClass('collapsed');
+
+        $targetLink.parents().each(function () {
+            var $node = jQuery(this);
+
+            if ($node.is('[aria-expanded]')) {
+                $node.attr('aria-expanded', 'true');
+            }
+
+            if ($node.is('joomla-sidebar-item, .sidebar-item, .menu-item')) {
+                $node.addClass('active current');
+            }
+        });
+
+        $targetLink.closest('details').children('summary').attr('aria-expanded', 'true');
+        $targetLink.closest('li').children('button,[aria-expanded]').attr('aria-expanded', 'true');
+    }
+
+    expandJoomlaMenuForBreezingforms();
+    window.setTimeout(expandJoomlaMenuForBreezingforms, 150);
+
     jQuery('#content .span2').addClass('sidebar').removeClass('span2');
     jQuery('#content .span10').addClass('main-content').removeClass('span10');
 

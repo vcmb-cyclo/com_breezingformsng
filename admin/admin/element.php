@@ -20,7 +20,7 @@ switch ($task) {
 	case 'editform' :
 		facileFormsForm::edit(
 			$option, $tabpane, $pkg, array($form),
-			"index.php?option=$option&act=editpage&form=$form&page=$page&pkg=$pkg"
+			"index.php?option=$option&act=manageforms&form=$form&page=$page&pkg=$pkg"
 		);
 		break;
 	case 'edit' :
@@ -99,7 +99,7 @@ switch ($task) {
 	case 'config' :
 		$ff_config->edit(
 			$option,
-			"index.php?option=$option&act=editpage&form=$form&page=$page",
+			"index.php?option=$option&act=manageforms&form=$form&page=$page",
 			$pkg
 		);
 		break;
