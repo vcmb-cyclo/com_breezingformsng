@@ -51,14 +51,14 @@ class facileFormsConfig extends facileFormsConf
 			unset($_REQUEST['updatekey']);
 		}
 
-		$this->bindRequest($_REQUEST);
-		$this->store();
-		if ($pkg != '') {
+			$this->bindRequest($_REQUEST);
+			$this->store();
+			if ($pkg != '') {
+				Factory::getApplication()->enqueueMessage(BFText::_('COM_BREEZINGFORMS_CONFIG_SAVED'));
+				Factory::getApplication()->redirect($caller . "&pkg=$pkg");
+			}
 			Factory::getApplication()->enqueueMessage(BFText::_('COM_BREEZINGFORMS_CONFIG_SAVED'));
-			Factory::getApplication()->redirect($caller . "&pkg=$pkg", BFText::_('COM_BREEZINGFORMS_CONFIG_SAVED'));
-		}
-		Factory::getApplication()->enqueueMessage(BFText::_('COM_BREEZINGFORMS_CONFIG_SAVED'));
-		Factory::getApplication()->redirect('index.php?option=com_breezingforms&act=configuration');
+			Factory::getApplication()->redirect('index.php?option=com_breezingforms&act=configuration');
 	} // save
 
 	function addToAll(&$all, $row)

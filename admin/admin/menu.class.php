@@ -194,14 +194,15 @@ class facileFormsMenu
 		} // if
 		$row->reorder('parent=' . $row->parent);
 		$result = updateComponentMenus();
-		$type = 'message';
-		$msg = BFText::_('COM_BREEZINGFORMS_MENUS_SAVED');
-		if ($result != '') {
-			$msg = $result;
-			$type = 'error';
-		}
-		Factory::getApplication()->redirect("index.php?option=$option&act=managemenus&pkg=$pkg", $msg, $type);
-	} // save
+			$type = 'message';
+			$msg = BFText::_('COM_BREEZINGFORMS_MENUS_SAVED');
+			if ($result != '') {
+				$msg = $result;
+				$type = 'error';
+			}
+			Factory::getApplication()->enqueueMessage($msg, $type);
+			Factory::getApplication()->redirect("index.php?option=$option&act=managemenus&pkg=$pkg");
+		} // save
 
 	static function cancel($option, $pkg)
 	{

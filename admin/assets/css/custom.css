@@ -1102,14 +1102,18 @@ tree
 More options
 */
 
-.current fieldset {
+main .current fieldset,
+#adminForm .current fieldset,
+#bfQuickModeWrapper .current fieldset {
     border: 0 none;
     margin: 0;
     padding: 0;
     width: 100%;
 }
 
-.current {
+main .current,
+#adminForm .current,
+#bfQuickModeWrapper .current {
     border: 1px solid #eaeaea !important;
     margin-top: 50px;
     padding: 40px 15px 15px 15px;

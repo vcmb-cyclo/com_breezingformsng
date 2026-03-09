@@ -49,8 +49,8 @@ jQuery(document).ready(function () {
             return;
         }
 
-        $targetLink.addClass('active current').attr('aria-current', 'page');
-        $targetLink.parents('li').addClass('active current');
+        $targetLink.addClass('active').attr('aria-current', 'page');
+        $targetLink.parents('li').addClass('active');
         $targetLink.parents('details').attr('open', 'open');
         $targetLink.parents('[hidden]').removeAttr('hidden');
         $targetLink.parents('.collapse').addClass('show');
@@ -64,7 +64,7 @@ jQuery(document).ready(function () {
             }
 
             if ($node.is('joomla-sidebar-item, .sidebar-item, .menu-item')) {
-                $node.addClass('active current');
+                $node.addClass('active');
             }
         });
 

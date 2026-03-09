@@ -411,7 +411,8 @@ class HTML_facileFormsForm
             </legend>
 
             <div style="clear:both;"></div>
-            <form action="index.php?format=html" method="post" name="adminForm" id="adminForm" class="adminForm"
+            <form action="index.php?option=<?php echo $option; ?>&amp;act=manageforms&amp;task=editform&amp;form=<?php echo (int) $row->id; ?>&amp;pkg=<?php echo urlencode((string) $pkg); ?>"
+                method="post" name="adminForm" id="adminForm" class="adminForm" autocomplete="off"
                 onsubmit="return false;">
                 <table cellpadding="4" cellspacing="1" border="0" style="width: 100%;" width="100%">
                     <tr>
@@ -1725,7 +1726,8 @@ class HTML_facileFormsForm
                                             <?php echo BFText::_('COM_BREEZINGFORMS_SF_PASSWORD'); ?>
                                         </td>
                                         <td valign="top"><input type="password" name="salesforce_password"
-                                                value="<?php echo $row->salesforce_password; ?>" size="50" class="inputbox" />
+                                                value="<?php echo $row->salesforce_password; ?>" size="50" class="inputbox"
+                                                autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" />
                                         </td>
                                     </tr>
 
