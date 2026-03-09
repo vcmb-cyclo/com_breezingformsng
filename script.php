@@ -551,6 +551,60 @@ class com_breezingformsInstallerScript
         }
     }
 
+    private function copyComponentImageAssets(): void
+    {
+        $sourceImages = JPATH_SITE . '/components/com_breezingforms/images';
+        $targetRoot = JPATH_SITE . '/images';
+        $directories = ['icons', 'galerie/breezingforms'];
+
+        if (!Folder::exists($sourceImages)) {
+            $this->log("Component image directory not found: {$sourceImages}. Skipping copy.");
+            return;
+        }
+
+        foreach ($directories as $directory) {
+            $sourceDir = $sourceImages . '/' . $directory;
+            if (!Folder::exists($sourceDir)) {
+                continue;
+            }
+
+            $relativeCounter = 0;
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($sourceDir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::LEAVES_ONLY
+            );
+
+            foreach ($iterator as $file) {
+                if (!$file->isFile()) {
+                    continue;
+                }
+
+                $relativePath = ltrim(str_replace('\\', '/', substr($file->getPathname(), strlen($sourceImages))), '/');
+                if ($relativePath === '') {
+                    continue;
+                }
+
+                $targetPath = $targetRoot . '/' . $relativePath;
+                $targetDir = dirname($targetPath);
+
+                if (!Folder::exists($targetDir)) {
+                    Folder::create($targetDir);
+                }
+
+                if (!@copy($file->getPathname(), $targetPath)) {
+                    $this->log("Failed to copy component image '{$relativePath}' into /images.", Log::WARNING);
+                    continue;
+                }
+
+                $relativeCounter++;
+            }
+
+            if ($relativeCounter > 0) {
+                $this->log("Copied {$relativeCounter} file(s) from '{$directory}' into /images.");
+            }
+        }
+    }
+
 
     /**
      * method to install the component
@@ -760,6 +814,7 @@ class com_breezingformsInstallerScript
         if (in_array($type, ['install', 'update', 'discover_install'], true)) {
             $this->ensureUtf8mb4Columns();
             $this->importStandardLibrary();
+            $this->copyComponentImageAssets();
         }
 
         $this->installPlugins();
