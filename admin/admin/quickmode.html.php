@@ -3973,14 +3973,14 @@ class QuickModeHtml
                                                     for="bfElementType">
                                                     <?php echo BFText::_('COM_BREEZINGFORMS_ELEMENT_TYPE'); ?>
                                                 </label>
-                                                <select id="bfElementType" size="24">
+                                                <select id="bfElementType">
                                                     <option value="">
                                                         <?php echo BFText::_('COM_BREEZINGFORMS_CHOOSE_ONE'); ?>
                                                     </option>
                                                     <?php
                                                     $elementTypeOptions = array(
                                                         array('value' => 'bfElementTypeCalendar', 'label' => BFText::_('COM_BREEZINGFORMS_CALENDAR'), 'icon' => '📅'),
-                                                        array('value' => 'bfElementTypeCalendarResponsive', 'label' => 'Calendar (responsive)', 'icon' => '📆'),
+                                                        array('value' => 'bfElementTypeCalendarResponsive', 'label' => BFText::_('COM_BREEZINGFORMS_CALENDAR_RESPONSIVE'), 'icon' => '📆'),
                                                         array('value' => 'bfElementTypeCaptcha', 'label' => BFText::_('COM_BREEZINGFORMS_CAPTCHA'), 'icon' => '🔐'),
                                                         array('value' => 'bfElementTypeCheckbox', 'label' => BFText::_('COM_BREEZINGFORMS_CHECKBOX'), 'icon' => '☑️'),
                                                         array('value' => 'bfElementTypeCheckboxGroup', 'label' => BFText::_('COM_BREEZINGFORMS_CHECKBOX_GROUP'), 'icon' => '✅'),
