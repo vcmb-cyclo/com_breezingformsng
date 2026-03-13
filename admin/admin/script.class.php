@@ -54,6 +54,7 @@ class facileFormsScript
 
 		// Récupérer code tel qu'envoyé
 		$code = $post['code'] ?? '';
+		$unitTests = $post['unit_tests'] ?? '';
 
 		$database = Factory::getContainer()->get(DatabaseInterface::class);
 		$row      = new facileFormsScripts($database);
@@ -66,6 +67,7 @@ class facileFormsScript
 
 		// Forcer code non filtré
 		$row->code = $code;
+		$row->unit_tests = $unitTests;
 
 		$now = Factory::getDate()->toSql();
 		$userId = (string) Factory::getApplication()->getIdentity()->username;
@@ -329,7 +331,8 @@ class facileFormsScript
 			}
 			$autoRun = $allDefaults;
 		}
-		HTML_facileFormsScript::test($option, $pkg, $row, $functionName, $params, $paramDefaults, $autoRun);
+		$testMode = BFRequest::getCmd('test_mode', '');
+		HTML_facileFormsScript::test($option, $pkg, $row, $functionName, $params, $paramDefaults, $autoRun, $testMode);
 	}
 
 	static function prev($option, $pkg, $ids)
@@ -391,8 +394,10 @@ class facileFormsScript
 		}
 
 		$testContext = BFRequest::getInt('test_context', 0);
+		$testMode = BFRequest::getCmd('test_mode', '');
 		if ($testContext) {
-			$app->redirect("index.php?option=$option&act=managescripts&task=test&pkg=$pkg&ids[]=" . $targetId);
+			$testModeQuery = $testMode !== '' ? '&test_mode=' . urlencode($testMode) : '';
+			$app->redirect("index.php?option=$option&act=managescripts&task=test&pkg=$pkg&ids[]=" . $targetId . $testModeQuery);
 		} else {
 			$app->redirect("index.php?option=$option&act=managescripts&task=edit&pkg=$pkg&ids[]=" . $targetId);
 		}

@@ -270,11 +270,15 @@ class facileFormsConfig extends facileFormsConf
 				if ($script->description != '')
 					$xml .= indent(2) . '<description>' . expstring($script->description) . '</description>' . nl();
 
-				$script->code = trim($script->code);
-				if ($script->code != '')
-					$xml .= indent(2) . '<code>' . expstring($script->code) . '</code>' . nl();
+					$script->code = trim($script->code);
+					if ($script->code != '')
+						$xml .= indent(2) . '<code>' . expstring($script->code) . '</code>' . nl();
 
-				$xml .= indent(1) . '</script>' . nl();
+					$script->unit_tests = trim((string) $script->unit_tests);
+					if ($script->unit_tests != '')
+						$xml .= indent(2) . '<unit_tests>' . expstring($script->unit_tests) . '</unit_tests>' . nl();
+
+					$xml .= indent(1) . '</script>' . nl();
 			} // for
 		} // if
 
@@ -321,12 +325,16 @@ class facileFormsConfig extends facileFormsConf
 				if ($piece->description != '')
 					$xml .= indent(2) . '<description>' . expstring($piece->description) . '</description>' . nl();
 
-				$piece->code = trim($piece->code);
+					$piece->code = trim($piece->code);
 
-				if ($piece->code != '')
-					$xml .= indent(2) . '<code>' . expstring($piece->code) . '</code>' . nl();
-				
-				$xml .= indent(1) . '</piece>' . nl();
+					if ($piece->code != '')
+						$xml .= indent(2) . '<code>' . expstring($piece->code) . '</code>' . nl();
+
+					$piece->unit_tests = trim((string) $piece->unit_tests);
+					if ($piece->unit_tests != '')
+						$xml .= indent(2) . '<unit_tests>' . expstring($piece->unit_tests) . '</unit_tests>' . nl();
+					
+					$xml .= indent(1) . '</piece>' . nl();
 			} // for
 		} // if
 

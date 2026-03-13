@@ -384,19 +384,16 @@ foreach ($_REQUEST as $prop => $val) {
 }
 
 
-// To go on with displaying of installation menu.
-if ($ff_install) {
-    $act = 'installation';
-    $task = 'step2';
-} // if
-
 $ids = BFRequest::getVar('ids', array());
+$isRawAjaxTask = $act === 'managepieces' && $task === 'testrunajax';
 
-echo '<div class="row" id="bf-content"><div class="col-md-12">';
+if (!$isRawAjaxTask) {
+    echo '<div class="row" id="bf-content"><div class="col-md-12">';
+}
 
 switch ($act) {
     case 'installation':
-        require_once ($ff_admpath . '/admin/install.php');
+        require_once ($ff_admpath . '/admin/config.php');
         break;
     case 'configuration':
         require_once ($ff_admpath . '/admin/config.php');
@@ -455,7 +452,9 @@ switch ($act) {
         break;
 } // switch
 
-echo '</div></div>';
+if (!$isRawAjaxTask) {
+    echo '</div></div>';
+}
 
 // some general purpose functions for admin
 

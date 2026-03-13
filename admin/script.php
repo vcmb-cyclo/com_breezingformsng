@@ -84,8 +84,12 @@ class com_breezingformsInstallerScript
         }
 
         if (isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_scripts'])) {
+            if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_scripts']['unit_tests'])) {
+                $db->setQuery("ALTER TABLE `#__facileforms_scripts` ADD `unit_tests` LONGTEXT NULL AFTER `code`");
+                $db->execute();
+            }
             if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_scripts']['created'])) {
-                $db->setQuery("ALTER TABLE `#__facileforms_scripts` ADD `created` DATETIME NULL DEFAULT NULL AFTER `code`");
+                $db->setQuery("ALTER TABLE `#__facileforms_scripts` ADD `created` DATETIME NULL DEFAULT NULL AFTER `unit_tests`");
                 $db->execute();
             }
             if (!isset ($tables[Factory::getContainer()->get(DatabaseInterface::class)->getPrefix() . 'facileforms_scripts']['created_by'])) {

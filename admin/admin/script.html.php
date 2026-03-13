@@ -21,6 +21,26 @@ class HTML_facileFormsScript
 	{
 		global $ff_mossite, $ff_admsite, $ff_config;
 		$action = $row->id ? BFText::_('COM_BREEZINGFORMS_SCRIPTS_EDITSCRIPT') : BFText::_('COM_BREEZINGFORMS_SCRIPTS_ADDSCRIPT');
+		$hasPersistedUnitTests = $row->id && trim((string) $row->unit_tests) !== '';
+		$safePersistedUnitTests = json_encode((string) $row->unit_tests);
+		$initialState = array(
+			'title' => (string) $row->title,
+			'type' => (string) $row->type,
+			'package' => (string) $row->package,
+			'name' => (string) $row->name,
+			'published' => (string) $row->published,
+			'description' => (string) $row->description,
+			'code' => (string) $row->code,
+			'unit_tests' => (string) $row->unit_tests
+		);
+		$safeInitialState = json_encode($initialState);
+		$unitTestsHelp = "Une ligne par test au format entree -> resultat attendu.\n" .
+			"Exemples :\n" .
+			"'12/ 02/2023 ' -> '12/02/2023'\n" .
+			"' abc ' -> 'abc'\n" .
+			"'' -> ''\n\n" .
+			"Valeurs acceptees : texte entre guillemets simples ou doubles, null, true, false, nombres, JSON ({}/[]).\n" .
+			"Si votre fonction attend plusieurs arguments, utilisez un tableau JSON a gauche : [\"abc\", 12] -> \"ok\"";
 		HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
 		if ($row->id) {
 			ToolBarHelper::custom('prev', 'arrow-left', '', BFText::_('COM_BREEZINGFORMS_PROCESS_PAGEPREV'), false);
@@ -48,6 +68,10 @@ class HTML_facileFormsScript
 			function submitbutton(pressbutton) {
 				var form = document.adminForm;
 				var error = '';
+				if ((pressbutton == 'test' || pressbutton == 'prev' || pressbutton == 'next') && isEditTestBlocked()) {
+					alert('Enregistrez le script avant de poursuivre.');
+					return;
+				}
 				if (pressbutton != 'cancel' && pressbutton != 'prev' && pressbutton != 'next' && pressbutton != 'test') {
 					error += checkIdentifier(form.name.value, 'name');
 					if (form.title.value == '') error += "<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_ENTTITLE'); ?>\n";
@@ -57,12 +81,8 @@ class HTML_facileFormsScript
 				else
 					Joomla.submitform(pressbutton);
 			} // submitbutton
-
-			<?php
-			Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
-                    Joomla.submitbutton = submitbutton;  
-                ');
-			?>
+			Joomla.submitbutton = submitbutton;
+			window.submitbutton = submitbutton;
 
 			function createCode() {
 				form = document.adminForm;
@@ -172,6 +192,470 @@ class HTML_facileFormsScript
 			onload = function () {
 				document.adminForm.title.focus();
 			} // onload
+
+			function getEditTestToolbarButton() {
+				return findToolbarButton('test', ['test']);
+			}
+
+			function getEditTestToolbarButtons() {
+				return findToolbarButtons('test', ['test']);
+			}
+
+			function getEditSaveToolbarButton() {
+				return findToolbarButton('save', ['save', 'enregistrer']);
+			}
+
+			function getEditPrevToolbarButton() {
+				return findToolbarButton('prev', ['prev', 'precedent']);
+			}
+
+			function getEditNextToolbarButton() {
+				return findToolbarButton('next', ['next', 'suivant']);
+			}
+
+			function findToolbarButton(taskName, textHints) {
+				var buttons = findToolbarButtons(taskName, textHints);
+				return buttons.length ? buttons[0] : null;
+			}
+
+			function findToolbarButtons(taskName, textHints) {
+				var toolbarRoots = document.querySelectorAll('#toolbar, .toolbar, .subhead, .btn-toolbar, joomla-toolbar, .joomla-toolbar-button');
+				var matches = [];
+				var seen = [];
+				function pushMatch(node) {
+					if (!node || node.id === 'bf-edit-unit-tests-button') {
+						return;
+					}
+					var target = node.closest ? (node.closest('button, a, [role="button"], li, .btn, .toolbar-item') || node) : node;
+					if (seen.indexOf(target) === -1) {
+						seen.push(target);
+						matches.push(target);
+					}
+				}
+				var selectors = [
+					'#toolbar-' + taskName,
+					'.toolbar-' + taskName,
+					'.button-' + taskName,
+					'[data-task="' + taskName + '"]',
+					"[onclick*='" + taskName + "']",
+					"[href*='" + taskName + "']"
+				];
+				for (var r = 0; r < toolbarRoots.length; r++) {
+					for (var s = 0; s < selectors.length; s++) {
+						var scopedMatches = toolbarRoots[r].querySelectorAll(selectors[s]);
+						for (var m = 0; m < scopedMatches.length; m++) {
+							pushMatch(scopedMatches[m]);
+						}
+					}
+				}
+				for (var s = 0; s < selectors.length; s++) {
+					var directMatches = document.querySelectorAll(selectors[s]);
+					for (var d = 0; d < directMatches.length; d++) {
+						pushMatch(directMatches[d]);
+					}
+				}
+				var candidates = document.querySelectorAll('#toolbar button, #toolbar a, .toolbar button, .toolbar a, .subhead button, .subhead a, .btn-toolbar button, .btn-toolbar a, joomla-toolbar button, joomla-toolbar a, .joomla-toolbar-button button, .joomla-toolbar-button a');
+				if (!candidates.length) {
+					candidates = document.querySelectorAll('button, a, [role="button"]');
+				}
+				for (var i = 0; i < candidates.length; i++) {
+					var candidate = candidates[i];
+					var haystack = [
+						candidate.id || '',
+						candidate.className || '',
+						candidate.getAttribute('data-task') || '',
+						candidate.getAttribute('onclick') || '',
+						candidate.getAttribute('href') || '',
+						candidate.textContent || '',
+						candidate.title || '',
+						candidate.getAttribute('aria-label') || ''
+					].join(' ').toLowerCase();
+					if (haystack.indexOf(taskName.toLowerCase()) !== -1) {
+						pushMatch(candidate);
+					}
+					for (var h = 0; h < textHints.length; h++) {
+						if (haystack.indexOf(String(textHints[h]).toLowerCase()) !== -1) {
+							pushMatch(candidate);
+						}
+					}
+				}
+				return matches;
+			}
+
+			function normalizeUnitTestsValue(value) {
+				return String(value || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+			}
+
+			function getCodeMirrorInstance(field) {
+				if (!field || !field.parentNode) {
+					return null;
+				}
+				var sibling = field.nextElementSibling;
+				while (sibling) {
+					if (sibling.CodeMirror) {
+						return sibling.CodeMirror;
+					}
+					sibling = sibling.nextElementSibling;
+				}
+				var wrappers = field.parentNode.querySelectorAll('.CodeMirror');
+				for (var i = 0; i < wrappers.length; i++) {
+					if (field.compareDocumentPosition(wrappers[i]) & Node.DOCUMENT_POSITION_FOLLOWING) {
+						return wrappers[i].CodeMirror || null;
+					}
+				}
+				return null;
+			}
+
+			function getFieldValue(fieldId) {
+				var field = document.getElementById(fieldId);
+				if (!field && document.adminForm && document.adminForm.elements && document.adminForm.elements[fieldId]) {
+					field = document.adminForm.elements[fieldId];
+				}
+				if (!field) {
+					return '';
+				}
+				if (typeof RadioNodeList !== 'undefined' && field instanceof RadioNodeList) {
+					return field.value;
+				}
+				if (field.length && typeof field.value !== 'undefined' && !field.tagName) {
+					return field.value;
+				}
+				if (window.Joomla && Joomla.editors && Joomla.editors.instances && Joomla.editors.instances[fieldId] && typeof Joomla.editors.instances[fieldId].getValue === 'function') {
+					return Joomla.editors.instances[fieldId].getValue();
+				}
+				if (typeof field.value !== 'undefined') {
+					var codeMirrorInstance = getCodeMirrorInstance(field);
+					if (codeMirrorInstance) {
+						return codeMirrorInstance.getValue();
+					}
+					return field.value;
+				}
+				return '';
+			}
+
+			function getCurrentEditState() {
+				return {
+					title: getFieldValue('title'),
+					type: getFieldValue('type'),
+					package: getFieldValue('package'),
+					name: getFieldValue('name'),
+					published: getFieldValue('published'),
+					description: getFieldValue('description'),
+					code: getFieldValue('code'),
+					unit_tests: getFieldValue('unit_tests')
+				};
+			}
+
+			function isEditDirty() {
+				var initialState = <?php echo $safeInitialState; ?> || {};
+				var currentState = getCurrentEditState();
+				var keys = Object.keys(initialState);
+				for (var i = 0; i < keys.length; i++) {
+					var key = keys[i];
+					if (normalizeUnitTestsValue(currentState[key]) !== normalizeUnitTestsValue(initialState[key])) {
+						return true;
+					}
+				}
+				return false;
+			}
+
+			function isEditTestBlocked() {
+				return isEditDirty();
+			}
+
+			function syncEditSaveToolbarButton() {
+				var button = getEditSaveToolbarButton();
+				if (!button) {
+					return;
+				}
+				var isDirty = isEditDirty();
+				button.classList.toggle('disabled', !isDirty);
+				button.setAttribute('aria-disabled', isDirty ? 'false' : 'true');
+				button.style.pointerEvents = isDirty ? '' : 'none';
+				button.style.opacity = isDirty ? '' : '0.5';
+				if (button.tagName === 'BUTTON') {
+					button.disabled = !isDirty;
+				}
+				if (!isDirty) {
+					button.setAttribute('tabindex', '-1');
+					button.title = 'Aucune modification a enregistrer.';
+				} else {
+					button.removeAttribute('tabindex');
+					button.title = '';
+				}
+			}
+
+			function syncEditTestToolbarButton() {
+				var buttons = getEditTestToolbarButtons();
+				if (!buttons.length) {
+					return;
+				}
+				var isBlocked = isEditTestBlocked();
+				for (var i = 0; i < buttons.length; i++) {
+					var button = buttons[i];
+					button.classList.toggle('disabled', isBlocked);
+					button.setAttribute('aria-disabled', isBlocked ? 'true' : 'false');
+					button.style.pointerEvents = isBlocked ? 'none' : '';
+					button.style.opacity = isBlocked ? '0.5' : '';
+					if (button.tagName === 'BUTTON') {
+						button.disabled = isBlocked;
+					}
+					if (isBlocked) {
+						button.setAttribute('tabindex', '-1');
+						button.title = 'Enregistrez le script avant de lancer les tests.';
+					} else {
+						button.removeAttribute('tabindex');
+						button.title = '';
+					}
+				}
+			}
+
+			function syncEditNavigationToolbarButton(button, title) {
+				if (!button) {
+					return;
+				}
+				var isBlocked = isEditDirty();
+				button.classList.toggle('disabled', isBlocked);
+				button.setAttribute('aria-disabled', isBlocked ? 'true' : 'false');
+				button.style.pointerEvents = isBlocked ? 'none' : '';
+				button.style.opacity = isBlocked ? '0.5' : '';
+				if (button.tagName === 'BUTTON') {
+					button.disabled = isBlocked;
+				}
+				if (isBlocked) {
+					button.setAttribute('tabindex', '-1');
+					button.title = title;
+				} else {
+					button.removeAttribute('tabindex');
+					button.title = '';
+				}
+			}
+
+			function syncEditPrevNextToolbarButtons() {
+				syncEditNavigationToolbarButton(getEditPrevToolbarButton(), 'Enregistrez le script avant de changer d\'element.');
+				syncEditNavigationToolbarButton(getEditNextToolbarButton(), 'Enregistrez le script avant de changer d\'element.');
+			}
+
+			function syncEditUnitTestsButton() {
+				var button = document.getElementById('bf-edit-unit-tests-button');
+				var field = document.getElementById('unit_tests');
+				if (!button || !field) {
+					return;
+				}
+
+				var persistedValue = <?php echo $safePersistedUnitTests; ?>;
+				var currentValue = String(field.value || '');
+				var hasTests = currentValue.trim() !== '';
+				var isDirty = isEditTestBlocked();
+				var enabled = hasTests && <?php echo $row->id ? 'true' : 'false'; ?> && !isDirty;
+				button.disabled = !enabled;
+				button.classList.toggle('disabled', !enabled);
+				button.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+				if (!<?php echo $row->id ? 'true' : 'false'; ?>) {
+					button.title = 'Enregistrez d\'abord le script pour lancer les tests unitaires.';
+				} else if (isDirty) {
+					button.title = 'Enregistrez le script avant de lancer les tests unitaires.';
+				} else {
+					button.title = enabled ? '' : 'Aucun test unitaire renseigne';
+				}
+			}
+
+			function runUnitTestsFromEdit() {
+				var button = document.getElementById('bf-edit-unit-tests-button');
+				if (button && button.disabled) {
+					return false;
+				}
+
+				var codeField = document.getElementById('code');
+				var unitTestsField = document.getElementById('unit_tests');
+				var resultBox = document.getElementById('bf-edit-script-unit-tests-status');
+				var summary = document.getElementById('bf-edit-script-unit-tests-summary');
+				var detailsWrap = document.getElementById('bf-edit-script-unit-tests-details-wrap');
+				var details = document.getElementById('bf-edit-script-unit-tests-details');
+				var functionField = document.getElementById('name');
+
+				if (!codeField || !unitTestsField || !resultBox || !summary || !detailsWrap || !details) {
+					return false;
+				}
+
+				function parseValue(raw) {
+					var value = String(raw || '').trim();
+					if (value === '') return '';
+					var lower = value.toLowerCase();
+					if (lower === 'null') return null;
+					if (lower === 'true') return true;
+					if (lower === 'false') return false;
+					if (/^-?\d+(\.\d+)?$/.test(value)) {
+						return value.indexOf('.') !== -1 ? parseFloat(value) : parseInt(value, 10);
+					}
+					var startsLikeJson = (value.charAt(0) === '{' && value.charAt(value.length - 1) === '}') ||
+						(value.charAt(0) === '[' && value.charAt(value.length - 1) === ']');
+					if (startsLikeJson) {
+						try {
+							return JSON.parse(value);
+						} catch (e) {}
+					}
+					var quoted = (value.charAt(0) === '"' && value.charAt(value.length - 1) === '"') ||
+						(value.charAt(0) === "'" && value.charAt(value.length - 1) === "'");
+					if (quoted && value.length >= 2) {
+						return value.slice(1, -1);
+					}
+					return value;
+				}
+
+				function formatValue(value) {
+					if (typeof value === 'undefined') return 'undefined';
+					if (typeof value === 'string') return value;
+					try {
+						return JSON.stringify(value, null, 2);
+					} catch (e) {
+						return String(value);
+					}
+				}
+
+				function valuesEqual(actual, expected) {
+					if (actual === expected) return true;
+					try {
+						return JSON.stringify(actual) === JSON.stringify(expected);
+					} catch (e) {
+						return false;
+					}
+				}
+
+				function parseUnitTestLine(line, lineNumber) {
+					var trimmedLine = String(line || '').trim();
+					if (!trimmedLine || trimmedLine.indexOf('//') === 0 || trimmedLine.indexOf('#') === 0) {
+						return null;
+					}
+					var arrowIndex = trimmedLine.indexOf('->');
+					if (arrowIndex === -1) {
+						throw new Error('Ligne ' + lineNumber + ' invalide: separateur -> manquant.');
+					}
+					var inputText = trimmedLine.slice(0, arrowIndex).trim();
+					var expectedText = trimmedLine.slice(arrowIndex + 2).trim();
+					if (inputText === '' || expectedText === '') {
+						throw new Error('Ligne ' + lineNumber + ' invalide: entree ou resultat attendu manquant.');
+					}
+					var inputValue = parseValue(inputText);
+					return {
+						lineNumber: lineNumber,
+						inputText: inputText,
+						args: Array.isArray(inputValue) ? inputValue.slice() : [inputValue],
+						expectedValue: parseValue(expectedText)
+					};
+				}
+
+				var functionName = String((functionField && functionField.value) || '').trim();
+				if (!functionName) {
+					resultBox.style.display = 'block';
+					resultBox.className = 'alert alert-danger';
+					summary.textContent = 'Veuillez renseigner le nom de la fonction.';
+					detailsWrap.style.display = 'none';
+					details.textContent = '';
+					return false;
+				}
+
+				var lines = String(unitTestsField.value || '').split(/\r?\n/);
+				var tests = [];
+				try {
+					for (var i = 0; i < lines.length; i++) {
+						var parsed = parseUnitTestLine(lines[i], i + 1);
+						if (parsed) tests.push(parsed);
+					}
+				} catch (e) {
+					resultBox.style.display = 'block';
+					resultBox.className = 'alert alert-danger';
+					summary.textContent = e && e.message ? e.message : String(e);
+					detailsWrap.style.display = 'none';
+					details.textContent = '';
+					return false;
+				}
+
+				if (!tests.length) {
+					resultBox.style.display = 'block';
+					resultBox.className = 'alert alert-warning';
+					summary.textContent = 'Aucun test unitaire defini.';
+					detailsWrap.style.display = 'none';
+					details.textContent = '';
+					return false;
+				}
+
+				var consoleLines = [];
+				var fakeConsole = {
+					log: function () { consoleLines.push(Array.prototype.slice.call(arguments).map(formatValue).join(' ')); },
+					info: function () { consoleLines.push(Array.prototype.slice.call(arguments).map(formatValue).join(' ')); },
+					warn: function () { consoleLines.push(Array.prototype.slice.call(arguments).map(formatValue).join(' ')); },
+					error: function () { consoleLines.push(Array.prototype.slice.call(arguments).map(formatValue).join(' ')); }
+				};
+				var failures = [];
+				var passedCount = 0;
+
+				try {
+					var runner = new Function(
+						'console',
+						'"use strict";\n' + String(codeField.value || '') + '\nif (typeof ' + functionName + ' !== "function") { throw new Error("Fonction introuvable: ' + functionName + '"); }\nreturn ' + functionName + ';'
+					);
+					var fn = runner(fakeConsole);
+					for (var t = 0; t < tests.length; t++) {
+						var test = tests[t];
+						try {
+							var actualValue = fn.apply(window, test.args);
+							if (valuesEqual(actualValue, test.expectedValue)) {
+								passedCount++;
+							} else {
+								failures.push('Ligne ' + test.lineNumber + ' | entree: ' + test.inputText + ' | attendu: ' + formatValue(test.expectedValue) + ' | obtenu: ' + formatValue(actualValue));
+							}
+						} catch (testError) {
+							failures.push('Ligne ' + test.lineNumber + ' | entree: ' + test.inputText + ' | erreur: ' + (testError && testError.message ? testError.message : String(testError)));
+						}
+					}
+				} catch (e) {
+					resultBox.style.display = 'block';
+					resultBox.className = 'alert alert-danger';
+					summary.textContent = e && e.message ? e.message : String(e);
+					detailsWrap.style.display = consoleLines.length ? 'block' : 'none';
+					details.textContent = consoleLines.join('\n');
+					return false;
+				}
+
+				resultBox.style.display = 'block';
+				resultBox.className = failures.length ? 'alert alert-warning' : 'alert alert-success';
+				summary.textContent = passedCount + '/' + tests.length + ' réussis';
+				var detailParts = failures.slice();
+				if (consoleLines.length) detailParts.push('Output:\n' + consoleLines.join('\n'));
+				if (detailParts.length) {
+					detailsWrap.style.display = 'block';
+					details.textContent = detailParts.join('\n\n');
+				} else {
+					detailsWrap.style.display = 'none';
+					details.textContent = '';
+				}
+				return false;
+			}
+
+			window.addEventListener('load', function () {
+				var form = document.getElementById('adminForm');
+				syncEditUnitTestsButton();
+				syncEditSaveToolbarButton();
+				syncEditTestToolbarButton();
+				syncEditPrevNextToolbarButtons();
+				if (form) {
+					['input', 'change'].forEach(function (eventName) {
+						form.addEventListener(eventName, function () {
+							syncEditUnitTestsButton();
+							syncEditSaveToolbarButton();
+							syncEditTestToolbarButton();
+							syncEditPrevNextToolbarButtons();
+						});
+					});
+					window.setInterval(function () {
+						syncEditUnitTestsButton();
+						syncEditSaveToolbarButton();
+						syncEditTestToolbarButton();
+						syncEditPrevNextToolbarButtons();
+					}, 500);
+				}
+			});
 			//-->
 		</script>
 		<form action="index.php" method="post" name="adminForm" id="adminForm" class="adminForm">
@@ -182,7 +666,7 @@ class HTML_facileFormsScript
 						<?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_TITLE'); ?>:
 					</td>
 					<td nowrap>
-						<input type="text" size="70" maxlength="50" name="title" value="<?php echo $row->title; ?>"
+						<input type="text" size="70" maxlength="50" id="title" name="title" value="<?php echo $row->title; ?>"
 							class="inputbox" />
 						<?php
 						echo '<span><span title="' . bf_ToolTipText(BFText::_('COM_BREEZINGFORMS_SCRIPTS_TIPTITLE')) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
@@ -248,7 +732,7 @@ class HTML_facileFormsScript
 							<?php echo $ff_config->arealarge; ?>]
 						</a>
 						<br />
-						<textarea wrap="off" name="description" style="width:100%;" rows="12"
+						<textarea wrap="off" name="description" id="description" style="width:100%;" rows="12"
 							class="inputbox"><?php echo $row->description; ?></textarea>
 					</td>
 				</tr>
@@ -267,11 +751,62 @@ class HTML_facileFormsScript
 
 					</td>
 				</tr>
+				<tr>
+					<td></td>
+					<td nowrap colspan="3">
+						Tests unitaires:
+						<?php
+						echo '<span><span title="' . htmlspecialchars($unitTestsHelp, ENT_QUOTES) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
+						?>
+						<a href="javascript:void(0);"
+							onClick="textAreaResize('unit_tests',<?php echo $ff_config->areasmall; ?>);">[
+							<?php echo $ff_config->areasmall; ?>]
+						</a>
+						<a href="javascript:void(0);"
+							onClick="textAreaResize('unit_tests',<?php echo $ff_config->areamedium; ?>);">[
+							<?php echo $ff_config->areamedium; ?>]
+						</a>
+						<a href="javascript:void(0);"
+							onClick="textAreaResize('unit_tests',<?php echo $ff_config->arealarge; ?>);">[
+							<?php echo $ff_config->arealarge; ?>]
+						</a>
+						<br />
+						<textarea wrap="off" name="unit_tests" id="unit_tests" style="width:100%;" rows="8"
+							class="inputbox"><?php echo htmlspecialchars((string) $row->unit_tests, ENT_QUOTES); ?></textarea>
+						<div class="mt-2 text-muted">
+							Une ligne par test, format simple :
+							<code>'12/ 02/2023 ' -> '12/02/2023'</code><br />
+							<code>' abc ' -> 'abc'</code><br />
+							<code>'' -> ''</code><br />
+							Types acceptes : texte entre quotes, `null`, `true`, `false`, nombres, JSON.
+						</div>
+						<div class="mt-3">
+							<button
+								type="button"
+								id="bf-edit-unit-tests-button"
+								class="btn btn-secondary"
+								onclick="return runUnitTestsFromEdit();"
+								<?php echo $hasPersistedUnitTests ? '' : 'disabled="disabled" aria-disabled="true" title="' . ($row->id ? 'Aucun test unitaire renseigne' : 'Enregistrez d&#039;abord le script pour lancer les tests unitaires.') . '"'; ?>>
+								<span class="icon-play" aria-hidden="true"></span>
+								Tests unitaires
+							</button>
+						</div>
+						<div id="bf-edit-script-unit-tests-status" class="alert mt-3" style="display:none;">
+							<strong>Tests unitaires:</strong>
+							<div id="bf-edit-script-unit-tests-summary"></div>
+							<div id="bf-edit-script-unit-tests-details-wrap" style="display:none;">
+								<div><strong>Detail:</strong></div>
+								<pre id="bf-edit-script-unit-tests-details"></pre>
+							</div>
+						</div>
+					</td>
+				</tr>
 			</table>
 			<input type="hidden" name="pkg" value="<?php echo $pkg; ?>" />
 			<input type="hidden" name="id" value="<?php echo $row->id; ?>" />
 			<input type="hidden" name="option" value="<?php echo $option; ?>" />
 			<input type="hidden" name="task" value="" />
+			<input type="hidden" name="test_mode" value="" />
 			<input type="hidden" name="act" value="managescripts" />
 		</form>
 		<?php
@@ -385,6 +920,7 @@ class HTML_facileFormsScript
 									bfScriptsSyncPackage(form);
 									Joomla.submitform(pressbutton, form);
 								} // submitbutton
+								Joomla.submitbutton = submitbutton;
 
 								function bfScriptsGoToPage(pageNo)
 								{
@@ -424,13 +960,7 @@ class HTML_facileFormsScript
 									}
 									return bfScriptsGoToPage(input.value);
 								}
-
 			<?php
-			Factory::getApplication()->getDocument()->getWebAssetManager()->addInlineScript('
-            
-                Joomla.submitbutton = submitbutton;
-            ');
-
 			ToolBarHelper::custom('new', 'new.png', 'new_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_NEW'), false);
 			ToolBarHelper::custom('copy', 'copy.png', 'copy_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_COPY'), false);
 			ToolBarHelper::custom('publish', 'publish.png', 'publish_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_PUBLISH'), false);
@@ -440,19 +970,19 @@ class HTML_facileFormsScript
 
 			function listItemTask(id, task) {
 				var f = document.adminForm;
-				cb = eval('f.' + id);
-				if (cb) {
-					for (i = 0; true; i++) {
-						cbx = eval('f.cb' + i);
-						if (!cbx) break;
-						cbx.checked = false;
-					} // for
+				var cb = document.getElementById(id);
+				if (cb && f) {
+					var checkboxes = f.querySelectorAll('input[type="checkbox"][id^="cb"]');
+					for (var i = 0; i < checkboxes.length; i++) {
+						checkboxes[i].checked = false;
+					}
 					cb.checked = true;
 					f.boxchecked.value = 1;
 					Joomla.submitbutton(task);
 				}
 				return false;
 			} // listItemTask
+			window.listItemTask = listItemTask;
 
 			//-->
 		</script>
@@ -636,19 +1166,25 @@ class HTML_facileFormsScript
 		<?php
 	} // listitems
 
-	static function test($option, $pkg, &$row, $functionName, $paramNames, $paramDefaults, $autoRun = false)
+	static function test($option, $pkg, &$row, $functionName, $paramNames, $paramDefaults, $autoRun = false, $testMode = '')
 	{
 		ToolBarHelper::custom('edit', 'cancel.png', 'cancel_f2.png', 'Retour', false);
 		ToolBarHelper::custom('prev', 'arrow-left', '', BFText::_('COM_BREEZINGFORMS_PROCESS_PAGEPREV'), false);
 		ToolBarHelper::custom('next', 'arrow-right', '', BFText::_('COM_BREEZINGFORMS_PROCESS_PAGENEXT'), false);
+		$hasUnitTests = trim((string) $row->unit_tests) !== '';
 		$safeCode = json_encode((string) $row->code);
 		$safeFunction = json_encode((string) $functionName);
+		$safeUnitTests = json_encode((string) $row->unit_tests);
+		$safeRequestedTestMode = json_encode((string) $testMode);
 		$safeAutoRun = $autoRun ? 'true' : 'false';
+		$safeHasUnitTests = $hasUnitTests ? 'true' : 'false';
 		?>
 		<script type="text/javascript">
 			(function () {
 				var testCode = <?php echo $safeCode; ?>;
 				var defaultFunctionName = <?php echo $safeFunction; ?>;
+				var unitTestsDefinition = <?php echo $safeUnitTests; ?>;
+				var requestedTestMode = <?php echo $safeRequestedTestMode; ?>;
 
 				function parseValue(raw) {
 					var value = String(raw || '').trim();
@@ -697,6 +1233,90 @@ class HTML_facileFormsScript
 						return String(value);
 					}
 				}
+
+				function valuesEqual(actual, expected) {
+					if (actual === expected) {
+						return true;
+					}
+					try {
+						return JSON.stringify(actual) === JSON.stringify(expected);
+					} catch (e) {
+						return false;
+					}
+				}
+
+				function parseUnitTestLine(line, lineNumber) {
+					var trimmedLine = String(line || '').trim();
+					if (!trimmedLine || trimmedLine.indexOf('//') === 0 || trimmedLine.indexOf('#') === 0) {
+						return null;
+					}
+
+					var arrowIndex = trimmedLine.indexOf('->');
+					if (arrowIndex === -1) {
+						throw new Error('Ligne ' + lineNumber + ' invalide: separateur -> manquant.');
+					}
+
+					var inputText = trimmedLine.slice(0, arrowIndex).trim();
+					var expectedText = trimmedLine.slice(arrowIndex + 2).trim();
+					if (inputText === '' || expectedText === '') {
+						throw new Error('Ligne ' + lineNumber + ' invalide: entree ou resultat attendu manquant.');
+					}
+
+					var inputValue = parseValue(inputText);
+					var expectedValue = parseValue(expectedText);
+					var args = Array.isArray(inputValue) ? inputValue.slice() : [inputValue];
+
+					return {
+						lineNumber: lineNumber,
+						inputText: inputText,
+						expectedText: expectedText,
+						args: args,
+						expectedValue: expectedValue
+					};
+				}
+
+				function hasUnitTests() {
+					var lines = String(unitTestsDefinition || '').split(/\r?\n/);
+					for (var i = 0; i < lines.length; i++) {
+						var trimmedLine = String(lines[i] || '').trim();
+						if (trimmedLine && trimmedLine.indexOf('//') !== 0 && trimmedLine.indexOf('#') !== 0) {
+							return true;
+						}
+					}
+					return false;
+				}
+
+					function syncUnitTestButtons() {
+						var enabled = hasUnitTests();
+					var buttons = document.querySelectorAll('.bf-unit-tests-button');
+					for (var i = 0; i < buttons.length; i++) {
+						buttons[i].disabled = !enabled;
+						buttons[i].classList.toggle('disabled', !enabled);
+						buttons[i].setAttribute('aria-disabled', enabled ? 'false' : 'true');
+						buttons[i].title = enabled ? '' : 'Aucun test unitaire renseigne';
+						}
+					}
+
+					function showAutoOpenUnitWarning(message) {
+						var banner = document.getElementById('bf-script-auto-unit-warning');
+						var text = document.getElementById('bf-script-auto-unit-warning-text');
+						if (!banner || !text) {
+							return;
+						}
+						text.textContent = message;
+						banner.style.display = 'block';
+						window.setTimeout(function () {
+							banner.style.display = 'none';
+						}, 5000);
+					}
+
+					function formatAutoOpenUnitWarningMessage(failureCount) {
+						var count = parseInt(failureCount, 10) || 0;
+						if (count <= 0) {
+							return 'Des tests unitaires ont échoué à l\'ouverture.';
+						}
+						return count + (count > 1 ? ' tests unitaires en échec.' : ' test unitaire en échec.');
+					}
 
 				window.submitbutton = function (pressbutton) {
 					Joomla.submitform(pressbutton, document.getElementById('adminForm'));
@@ -852,25 +1472,189 @@ class HTML_facileFormsScript
 					return false;
 				};
 
+					window.bfRunScriptUnitTests = function (fromAutoOpen) {
+					if (!hasUnitTests()) {
+						syncUnitTestButtons();
+						return false;
+					}
+
+					var fnField = document.getElementById('bf-script-function');
+					var unitTestsBox = document.getElementById('bf-script-unit-tests-status');
+					var unitTestsSummary = document.getElementById('bf-script-unit-tests-summary');
+					var unitTestsDetailsWrap = document.getElementById('bf-script-unit-tests-details-wrap');
+					var unitTestsDetails = document.getElementById('bf-script-unit-tests-details');
+
+					if (!fnField || !unitTestsBox || !unitTestsSummary || !unitTestsDetailsWrap || !unitTestsDetails) {
+						return false;
+					}
+
+					var functionName = String(fnField.value || '').trim();
+						if (!functionName) {
+						unitTestsBox.style.display = 'block';
+						unitTestsBox.className = 'alert alert-danger';
+						unitTestsSummary.textContent = 'Veuillez renseigner le nom de la fonction a tester.';
+						unitTestsDetailsWrap.style.display = 'none';
+						unitTestsDetails.textContent = '';
+						return false;
+					}
+						if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(functionName)) {
+						unitTestsBox.style.display = 'block';
+						unitTestsBox.className = 'alert alert-danger';
+						unitTestsSummary.textContent = 'Nom de fonction invalide.';
+						unitTestsDetailsWrap.style.display = 'none';
+						unitTestsDetails.textContent = '';
+						return false;
+					}
+
+					var lines = String(unitTestsDefinition || '').split(/\r?\n/);
+					var tests = [];
+					try {
+						for (var i = 0; i < lines.length; i++) {
+							var parsed = parseUnitTestLine(lines[i], i + 1);
+							if (parsed) {
+								tests.push(parsed);
+							}
+						}
+					} catch (e) {
+						unitTestsBox.style.display = 'block';
+						unitTestsBox.className = 'alert alert-danger';
+						unitTestsSummary.textContent = e && e.message ? e.message : String(e);
+						unitTestsDetailsWrap.style.display = 'none';
+						unitTestsDetails.textContent = '';
+						return false;
+					}
+
+					if (!tests.length) {
+						unitTestsBox.style.display = 'block';
+						unitTestsBox.className = 'alert alert-warning';
+						unitTestsSummary.textContent = 'Aucun test unitaire defini.';
+						unitTestsDetailsWrap.style.display = 'none';
+						unitTestsDetails.textContent = '';
+						return false;
+					}
+
+					var consoleLines = [];
+					var originalConsole = window.console;
+					var fakeConsole = {
+						log: function () {
+							consoleLines.push(Array.prototype.slice.call(arguments).map(formatValue).join(' '));
+						},
+						info: function () {
+							consoleLines.push(Array.prototype.slice.call(arguments).map(formatValue).join(' '));
+						},
+						warn: function () {
+							consoleLines.push(Array.prototype.slice.call(arguments).map(formatValue).join(' '));
+						},
+						error: function () {
+							consoleLines.push(Array.prototype.slice.call(arguments).map(formatValue).join(' '));
+						}
+					};
+
+					var passedCount = 0;
+					var failures = [];
+
+					try {
+						var runner = new Function(
+							'console',
+							'"use strict";\n' + testCode + '\nif (typeof ' + functionName + ' !== "function") { throw new Error("Fonction introuvable: ' + functionName + '"); }\nreturn ' + functionName + ';'
+						);
+						var fn = runner(fakeConsole);
+
+						for (var t = 0; t < tests.length; t++) {
+							var test = tests[t];
+							try {
+								var actualValue = fn.apply(window, test.args);
+								if (valuesEqual(actualValue, test.expectedValue)) {
+									passedCount++;
+								} else {
+									failures.push(
+										'Ligne ' + test.lineNumber +
+										' | entree: ' + test.inputText +
+										' | attendu: ' + formatValue(test.expectedValue) +
+										' | obtenu: ' + formatValue(actualValue)
+									);
+								}
+							} catch (testError) {
+								failures.push(
+									'Ligne ' + test.lineNumber +
+									' | entree: ' + test.inputText +
+									' | erreur: ' + (testError && testError.message ? testError.message : String(testError))
+								);
+							}
+						}
+						} catch (e) {
+							unitTestsBox.style.display = 'block';
+							unitTestsBox.className = 'alert alert-danger';
+							unitTestsSummary.textContent = e && e.message ? e.message : String(e);
+							unitTestsDetailsWrap.style.display = consoleLines.length ? 'block' : 'none';
+							unitTestsDetails.textContent = consoleLines.join('\n');
+							if (fromAutoOpen) {
+								showAutoOpenUnitWarning('Des tests unitaires ont échoué à l\'ouverture.');
+							}
+							return false;
+						} finally {
+						window.console = originalConsole;
+					}
+
+						unitTestsBox.style.display = 'block';
+						unitTestsBox.className = failures.length ? 'alert alert-warning' : 'alert alert-success';
+						unitTestsSummary.textContent = passedCount + '/' + tests.length + ' réussis';
+						if (fromAutoOpen && failures.length) {
+							showAutoOpenUnitWarning(formatAutoOpenUnitWarningMessage(failures.length));
+						}
+
+					var details = failures.slice();
+					if (consoleLines.length) {
+						details.push('Output:\n' + consoleLines.join('\n'));
+					}
+
+					if (details.length) {
+						unitTestsDetailsWrap.style.display = 'block';
+						unitTestsDetails.textContent = details.join('\n\n');
+					} else {
+						unitTestsDetailsWrap.style.display = 'none';
+						unitTestsDetails.textContent = '';
+					}
+
+					return false;
+				};
+
+					window.bfRunAllScriptTests = function () {
+						window.bfRunScriptTest();
+						if (hasUnitTests()) {
+							window.bfRunScriptUnitTests();
+					}
+					return false;
+				};
+
 				window.addEventListener('load', function () {
 					var field = document.getElementById('bf-script-function');
 					if (field && !field.value) {
 						field.value = defaultFunctionName || '';
 					}
-					if (<?php echo $safeAutoRun; ?>) {
-						window.bfRunScriptTest();
-					}
-				});
+						syncUnitTestButtons();
+						if (requestedTestMode === 'unit' && hasUnitTests()) {
+							window.bfRunScriptUnitTests(true);
+						} else if (<?php echo $safeAutoRun; ?>) {
+							window.bfRunAllScriptTests();
+						} else if (<?php echo $safeHasUnitTests; ?>) {
+							window.bfRunScriptUnitTests(true);
+						}
+					});
 				if (window.Joomla) {
 					window.Joomla.submitbutton = window.submitbutton;
 				}
 			})();
 		</script>
 		<form action="index.php" method="post" name="adminForm" id="adminForm" class="adminForm">
+			<div id="bf-script-auto-unit-warning" class="alert alert-warning" style="display:none;">
+				<span class="icon-warning text-warning" aria-hidden="true"></span>
+				<span id="bf-script-auto-unit-warning-text"></span>
+			</div>
 			<div class="d-flex justify-content-between align-items-center mb-3">
 				<h2 class="m-0">Test Script</h2>
-				<button type="button" class="btn btn-primary" onclick="return bfRunScriptTest();">
-					<span class="icon-eye" aria-hidden="true"></span>
+				<button type="button" class="btn btn-primary" onclick="return bfRunAllScriptTests();">
+					<span class="icon-play" aria-hidden="true"></span>
 					Lancer
 				</button>
 			</div>
@@ -937,6 +1721,24 @@ class HTML_facileFormsScript
 					</div>
 				</div>
 			</div>
+			<?php if (trim((string) $row->unit_tests) !== '') { ?>
+				<div class="accordion mt-3" id="bfScriptUnitTestsAccordion">
+					<div class="accordion-item bg-light">
+						<h2 class="accordion-header" id="bfScriptUnitTestsHeading">
+							<button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse"
+								data-bs-target="#bfScriptUnitTestsCollapse" aria-expanded="false" aria-controls="bfScriptUnitTestsCollapse">
+								Tests unitaires
+							</button>
+						</h2>
+						<div id="bfScriptUnitTestsCollapse" class="accordion-collapse collapse" aria-labelledby="bfScriptUnitTestsHeading"
+							data-bs-parent="#bfScriptUnitTestsAccordion">
+							<div class="accordion-body bg-light">
+								<pre><?php echo htmlspecialchars((string) $row->unit_tests, ENT_QUOTES); ?></pre>
+							</div>
+						</div>
+					</div>
+				</div>
+			<?php } ?>
 			<div class="card mb-3 bg-light">
 				<div class="card-body">
 					<label for="bf-script-function"><strong>Function</strong></label>
@@ -975,8 +1777,8 @@ class HTML_facileFormsScript
 									</td>
 									<td>
 										<?php if ($i === $lastParamIndex) { ?>
-											<button type="button" class="btn btn-primary" onclick="return bfRunScriptTest();">
-												<span class="icon-eye" aria-hidden="true"></span>
+											<button type="button" class="btn btn-primary" onclick="return bfRunAllScriptTests();">
+												<span class="icon-play" aria-hidden="true"></span>
 												Lancer
 											</button>
 										<?php } ?>
@@ -1014,7 +1816,7 @@ class HTML_facileFormsScript
 				</div>
 				<div id="bf-script-test-status-success" style="display:none;">
 					<span class="icon-check text-success" aria-hidden="true"></span>
-					Valide
+					Execut&eacute;
 				</div>
 				<div id="bf-script-test-status-invalid" style="display:none;">
 					<span class="icon-times text-danger" aria-hidden="true"></span>
@@ -1025,12 +1827,21 @@ class HTML_facileFormsScript
 					<pre id="bf-script-test-status-params"></pre>
 				</div>
 			</div>
+			<div id="bf-script-unit-tests-status" class="alert" style="display:none;">
+				<strong>Tests unitaires:</strong>
+				<div id="bf-script-unit-tests-summary"></div>
+				<div id="bf-script-unit-tests-details-wrap" style="display:none;">
+					<div><strong>Detail:</strong></div>
+					<pre id="bf-script-unit-tests-details"></pre>
+				</div>
+			</div>
 			<input type="hidden" name="option" value="<?php echo $option; ?>" />
 			<input type="hidden" name="task" value="test" />
 			<input type="hidden" name="act" value="managescripts" />
 			<input type="hidden" name="pkg" value="<?php echo htmlspecialchars((string) $pkg, ENT_QUOTES); ?>" />
 			<input type="hidden" name="ids[]" value="<?php echo (int) $row->id; ?>" />
 			<input type="hidden" name="test_context" value="1" />
+			<input type="hidden" name="test_mode" value="<?php echo htmlspecialchars((string) $testMode, ENT_QUOTES); ?>" />
 		</form>
 		<?php
 	} // test

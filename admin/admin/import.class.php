@@ -456,20 +456,23 @@ class ff_importPackage extends ff_xmlPackage
 			$row->load($id);
 		}
 
-		$incomingPublished = $this->getInt(1, 'published', 1);
-		$incomingTitle = $this->getText(1, 'title', BFText::_('COM_BREEZINGFORMS_INSTALLER_UNKNOWN'));
-		$incomingDescription = $this->getText(1, 'description');
-		$incomingType = $this->getText(1, 'type', 'Untyped');
-		$incomingCode = $this->getText(1, 'code');
+			$incomingPublished = $this->getInt(1, 'published', 1);
+			$incomingTitle = $this->getText(1, 'title', BFText::_('COM_BREEZINGFORMS_INSTALLER_UNKNOWN'));
+			$incomingDescription = $this->getText(1, 'description');
+			$incomingType = $this->getText(1, 'type', 'Untyped');
+			$incomingCode = $this->getText(1, 'code');
+			$hasIncomingUnitTests = array_key_exists('unit_tests', $this->params[1]);
+			$incomingUnitTests = $hasIncomingUnitTests ? $this->getText(1, 'unit_tests') : null;
 
-		if ($this->reinstallOnlyIfChanged && !empty($row->id)) {
-			$isSame = (int) $row->published === (int) $incomingPublished
-				&& (string) $row->package === (string) $package
-				&& (string) $row->name === (string) $name
-				&& (string) $row->title === (string) $incomingTitle
-				&& (string) $row->description === (string) $incomingDescription
-				&& (string) $row->type === (string) $incomingType
-				&& (string) $row->code === (string) $incomingCode;
+			if ($this->reinstallOnlyIfChanged && !empty($row->id)) {
+				$isSame = (int) $row->published === (int) $incomingPublished
+					&& (string) $row->package === (string) $package
+					&& (string) $row->name === (string) $name
+					&& (string) $row->title === (string) $incomingTitle
+					&& (string) $row->description === (string) $incomingDescription
+					&& (string) $row->type === (string) $incomingType
+					&& (string) $row->code === (string) $incomingCode
+					&& (!$hasIncomingUnitTests || (string) $row->unit_tests === (string) $incomingUnitTests);
 
 			if ($isSame) {
 				if (array_key_exists('id', $this->params[1])) {
@@ -482,10 +485,13 @@ class ff_importPackage extends ff_xmlPackage
 		$row->published = $incomingPublished;
 		$row->package = $package;
 		$row->name = $name;
-		$row->title = $incomingTitle;
-		$row->description = $incomingDescription;
-		$row->type = $incomingType;
-		$row->code = $incomingCode;
+			$row->title = $incomingTitle;
+			$row->description = $incomingDescription;
+			$row->type = $incomingType;
+			$row->code = $incomingCode;
+			if ($hasIncomingUnitTests) {
+				$row->unit_tests = $incomingUnitTests;
+			}
 
 		$now = Factory::getDate()->toSql();
 		$userName = (string) Factory::getApplication()->getIdentity()->username;
@@ -534,20 +540,23 @@ class ff_importPackage extends ff_xmlPackage
 			$row->load($id);
 		}
 
-		$incomingPublished = $this->getInt(1, 'published', 1);
-		$incomingTitle = $this->getText(1, 'title', BFText::_('COM_BREEZINGFORMS_INSTALLER_UNKNOWN'));
-		$incomingDescription = $this->getText(1, 'description');
-		$incomingType = $this->getText(1, 'type', 'Untyped');
-		$incomingCode = $this->getText(1, 'code');
+			$incomingPublished = $this->getInt(1, 'published', 1);
+			$incomingTitle = $this->getText(1, 'title', BFText::_('COM_BREEZINGFORMS_INSTALLER_UNKNOWN'));
+			$incomingDescription = $this->getText(1, 'description');
+			$incomingType = $this->getText(1, 'type', 'Untyped');
+			$incomingCode = $this->getText(1, 'code');
+			$hasIncomingUnitTests = array_key_exists('unit_tests', $this->params[1]);
+			$incomingUnitTests = $hasIncomingUnitTests ? $this->getText(1, 'unit_tests') : null;
 
-		if ($this->reinstallOnlyIfChanged && !empty($row->id)) {
-			$isSame = (int) $row->published === (int) $incomingPublished
-				&& (string) $row->package === (string) $package
-				&& (string) $row->name === (string) $name
-				&& (string) $row->title === (string) $incomingTitle
-				&& (string) $row->description === (string) $incomingDescription
-				&& (string) $row->type === (string) $incomingType
-				&& (string) $row->code === (string) $incomingCode;
+			if ($this->reinstallOnlyIfChanged && !empty($row->id)) {
+				$isSame = (int) $row->published === (int) $incomingPublished
+					&& (string) $row->package === (string) $package
+					&& (string) $row->name === (string) $name
+					&& (string) $row->title === (string) $incomingTitle
+					&& (string) $row->description === (string) $incomingDescription
+					&& (string) $row->type === (string) $incomingType
+					&& (string) $row->code === (string) $incomingCode
+					&& (!$hasIncomingUnitTests || (string) $row->unit_tests === (string) $incomingUnitTests);
 
 			if ($isSame) {
 				if (array_key_exists('id', $this->params[1])) {
@@ -560,10 +569,13 @@ class ff_importPackage extends ff_xmlPackage
 		$row->published = $incomingPublished;
 		$row->package = $package;
 		$row->name = $name;
-		$row->title = $incomingTitle;
-		$row->description = $incomingDescription;
-		$row->type = $incomingType;
-		$row->code = $incomingCode;
+			$row->title = $incomingTitle;
+			$row->description = $incomingDescription;
+			$row->type = $incomingType;
+			$row->code = $incomingCode;
+			if ($hasIncomingUnitTests) {
+				$row->unit_tests = $incomingUnitTests;
+			}
 
 		$now = Factory::getDate()->toSql();
 		$userName = (string) Factory::getApplication()->getIdentity()->username;

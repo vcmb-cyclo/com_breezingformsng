@@ -140,11 +140,20 @@ Log::add('User Agent: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'CLI') . '.', Log::INF
 
 class com_breezingformsInstallerScript
 {
+    private $installStartedAt = 0.0;
+    private $incomingPackageVersion = '';
+    private $currentInstalledVersion = '0.0.0';
     private $utf8mb4SupportChecked = false;
     private $utf8mb4Supported = false;
     private $utf8mb4Collation = 'utf8mb4_general_ci';
     private $utf8mb4CheckPerformed = false;
     private $utf8mb4CapabilityAnnounced = false;
+
+    public function __construct()
+    {
+        $this->installStartedAt = microtime(true);
+        $this->currentInstalledVersion = $this->getCurrentInstalledVersion();
+    }
 
     private function detectUtf8mb4Support(): void
     {
@@ -199,12 +208,10 @@ class com_breezingformsInstallerScript
 
         if ($this->utf8mb4Supported) {
             $message = 'utf8mb4 support detected on the database server. BreezingForms tables will be checked and converted when needed.';
-            $this->log($message . ' Target collation: ' . $this->utf8mb4Collation . '.');
-            Factory::getApplication()->enqueueMessage($message, 'message');
+            $this->announce($message . ' Target collation: ' . $this->utf8mb4Collation . '.', 'message', Log::INFO);
         } else {
             $message = 'utf8mb4 is not available on the database server. BreezingForms cannot auto-convert its text columns to utf8mb4 on this installation.';
-            $this->log($message, Log::WARNING);
-            Factory::getApplication()->enqueueMessage($message, 'warning');
+            $this->announce($message, 'warning', Log::WARNING);
         }
 
         $this->utf8mb4CapabilityAnnounced = true;
@@ -307,16 +314,15 @@ class com_breezingformsInstallerScript
         $tables = $this->getBreezingFormsTables($db);
 
         if (empty($tables)) {
-            $this->log('No BreezingForms tables found yet for utf8mb4 verification.', Log::INFO);
+            $this->log('No BreezingForms NG tables found yet for utf8mb4 verification.', Log::INFO);
             return;
         }
 
         $issues = $this->getUtf8mb4NonCompliantTables($db, $tables);
 
         if (empty($issues)) {
-            $message = 'BreezingForms utf8mb4 check: all existing component tables already use utf8mb4.';
-            $this->log($message);
-            Factory::getApplication()->enqueueMessage($message, 'message');
+            $message = 'BreezingForms NG utf8mb4 check: all existing component tables already use utf8mb4.';
+            $this->announce($message, 'message', Log::INFO);
             return;
         }
 
@@ -338,21 +344,18 @@ class com_breezingformsInstallerScript
             } catch (\Throwable $e) {
                 $failed[] = $tableName;
                 $message = 'Failed to convert table ' . $tableName . ' to utf8mb4: ' . $e->getMessage();
-                $this->log($message, Log::ERROR);
-                Factory::getApplication()->enqueueMessage($message, 'error');
+                $this->announce($message, 'error', Log::ERROR);
             }
         }
 
         if (!empty($converted)) {
             $message = 'BreezingForms utf8mb4 correction applied on ' . count($converted) . ' table(s): ' . implode(', ', $converted) . '.';
-            $this->log($message);
-            Factory::getApplication()->enqueueMessage($message, 'warning');
+            $this->announce($message, 'warning', Log::INFO);
         }
 
         if (empty($failed)) {
             $message = 'BreezingForms utf8mb4 verification completed successfully.';
-            $this->log($message);
-            Factory::getApplication()->enqueueMessage($message, 'message');
+            $this->announce($message, 'message', Log::INFO);
         }
     }
 
@@ -401,7 +404,7 @@ class com_breezingformsInstallerScript
 
             $detailText = empty($details) ? 'Unknown import error.' : implode(' | ', $details);
             $this->log('Standard library import failed. ' . $detailText, Log::ERROR);
-            Factory::getApplication()->enqueueMessage('BreezingForms standard pieces import failed: ' . $detailText, 'error');
+            $this->announce('BreezingForms standard pieces import failed: ' . $detailText, 'error', Log::ERROR);
             return;
         }
 
@@ -425,20 +428,9 @@ class com_breezingformsInstallerScript
         return $manifest && isset($manifest->version) ? (string) $manifest->version : '';
     }
 
-    private function markReinstallFlag(): void
-    {
-        $flagDir = JPATH_SITE . '/media/breezingforms';
-        $flagPath = $flagDir . '/.bf_reinstall';
-
-        if (!Folder::exists($flagDir)) {
-            Folder::create($flagDir);
-        }
-
-        File::write($flagPath, (string) time());
-    }
-
     private function log(string $message, int $priority = Log::INFO): void
     {
+        $message = $this->prefixMessage($message, $priority);
         Log::add($message, $priority, 'com_breezingforms.install');
 
         $logPath = JPATH_ADMINISTRATOR . '/logs/breezingforms_install2.log';
@@ -451,6 +443,54 @@ class com_breezingformsInstallerScript
         $line = "[{$timestamp}] [] {$message}" . PHP_EOL;
 
         file_put_contents($logPath, $line, FILE_APPEND | LOCK_EX);
+    }
+
+    private function announce(string $message, string $type = 'message', int $priority = Log::INFO): void
+    {
+        $this->log($message, $priority);
+        Factory::getApplication()->enqueueMessage($this->formatInstallMessageForDisplay($this->prefixMessage($message, $priority)), $type);
+    }
+
+    private function prefixMessage(string $message, int $priority = Log::INFO): string
+    {
+        if (preg_match('/^\[(OK|INFO|WARNING|ERROR)\]\s/u', $message)) {
+            return $message;
+        }
+
+        return match ($priority) {
+            Log::ERROR => '[ERROR] ' . $message,
+            Log::WARNING => '[WARNING] ' . $message,
+            default => '[INFO] ' . $message,
+        };
+    }
+
+    private function formatInstallMessageForDisplay(string $message): string
+    {
+        return str_replace(
+            ['[OK]', '[INFO]', '[WARNING]', '[ERROR]'],
+            [
+                '<span style="color:#198754;font-weight:700;" aria-hidden="true">&#10003;</span>',
+                '<span style="color:#0d6efd;font-weight:700;" aria-hidden="true">&#9432;</span>',
+                '<span style="color:#fd7e14;font-weight:700;" aria-hidden="true">&#9888;</span>',
+                '<span style="color:#dc3545;font-weight:700;" aria-hidden="true">&#10060;</span>',
+            ],
+            $message
+        );
+    }
+
+    private function getDatabaseRuntimeLabel(): string
+    {
+        try {
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
+            $serverType = method_exists($db, 'getServerType') ? (string) $db->getServerType() : 'database';
+            $version = method_exists($db, 'getVersion') ? trim((string) $db->getVersion()) : '';
+            $prefix = method_exists($db, 'getPrefix') ? (string) $db->getPrefix() : '';
+
+            return trim($serverType . ' ' . $version) . ($prefix !== '' ? ' (prefix: ' . $prefix . ')' : '');
+        } catch (\Throwable $e) {
+            $this->log('Unable to detect database runtime information: ' . $e->getMessage(), Log::WARNING);
+            return 'unknown';
+        }
     }
 
     private function getCurrentInstalledVersion()
@@ -498,8 +538,7 @@ class com_breezingformsInstallerScript
             if ($installer->install($basePath . '/' . $folder)) {
                 $this->log("Plugin {$folder} installed successfully.", Log::INFO);
             } else {
-                $this->log("Failed to install plugin {$folder}.", Log::ERROR);
-                Factory::getApplication()->enqueueMessage("Failed to install BreezingForms plugin: {$folder}", 'error');
+                $this->announce("Failed to install BreezingForms plugin: {$folder}", 'error', Log::ERROR);
             }
         }
 
@@ -720,6 +759,24 @@ class com_breezingformsInstallerScript
             'modified_by' => "VARCHAR(255){$textCollationClause} NOT NULL DEFAULT '' AFTER `modified`",
         ];
 
+        if (isset($tables[$scriptsTable])) {
+            $columns = $tables[$scriptsTable];
+
+            if (!isset($columns['unit_tests'])) {
+                $db->setQuery("ALTER TABLE `{$scriptsTable}` ADD `unit_tests` LONGTEXT NULL AFTER `code`")->execute();
+                $this->log('Added column unit_tests to facileforms_scripts.');
+            }
+        }
+
+        if (isset($tables[$piecesTable])) {
+            $columns = $tables[$piecesTable];
+
+            if (!isset($columns['unit_tests'])) {
+                $db->setQuery("ALTER TABLE `{$piecesTable}` ADD `unit_tests` LONGTEXT NULL AFTER `code`")->execute();
+                $this->log('Added column unit_tests to facileforms_pieces.');
+            }
+        }
+
         foreach ([$scriptsTable, $piecesTable] as $tableName) {
             if (!isset($tables[$tableName])) {
                 continue;
@@ -783,21 +840,29 @@ class com_breezingformsInstallerScript
 
     public function preflight(string $type, $parent): void
     {
+        $this->incomingPackageVersion = $this->getIncomingVersion($parent);
+        $this->currentInstalledVersion = $this->getCurrentInstalledVersion();
+
+        $this->announce(
+            '[INFO] BreezingForms ' . strtoupper($type) .
+            ' | package version: <strong>' . htmlspecialchars($this->incomingPackageVersion !== '' ? $this->incomingPackageVersion : 'unknown', ENT_QUOTES, 'UTF-8') . '</strong>' .
+            ' | installed version: <strong>' . htmlspecialchars($this->currentInstalledVersion, ENT_QUOTES, 'UTF-8') . '</strong>.',
+            'message',
+            Log::INFO
+        );
+        $this->announce(
+            '[INFO] Environment | Joomla <strong>' . htmlspecialchars(defined('JVERSION') ? JVERSION : 'unknown', ENT_QUOTES, 'UTF-8') . '</strong>' .
+            ' | PHP <strong>' . htmlspecialchars(PHP_VERSION, ENT_QUOTES, 'UTF-8') . '</strong>' .
+            ' | DB <strong>' . htmlspecialchars($this->getDatabaseRuntimeLabel(), ENT_QUOTES, 'UTF-8') . '</strong>.',
+            'message',
+            Log::INFO
+        );
         $this->log("Preflight executed for action: {$type}");
 
         if (in_array($type, ['install', 'update', 'discover_install'], true)) {
             $this->announceUtf8mb4Capability();
         }
 
-        if ($type === 'update') {
-            $currentVersion = $this->getCurrentInstalledVersion();
-            $incomingVersion = $this->getIncomingVersion($parent);
-
-            if ($incomingVersion !== '' && $currentVersion === $incomingVersion) {
-                $this->markReinstallFlag();
-                $this->log('Reinstall detected; scheduled step 2 database update.');
-            }
-        }
     }
     /**
      * method to run after an install/update/uninstall method
@@ -821,6 +886,19 @@ class com_breezingformsInstallerScript
         $this->removeOldUpdateSite();
         $this->cleanupOldConfig();
 
+        $durationSeconds = max(0.0, microtime(true) - $this->installStartedAt);
+        $actionLabel = strtoupper((string) $type);
+        $packageVersion = $this->incomingPackageVersion !== '' ? $this->incomingPackageVersion : $this->getIncomingVersion($parent);
+        $installedVersion = $this->getCurrentInstalledVersion();
+
+        $this->announce(
+            '[OK] BreezingForms ' . $actionLabel . ' finished successfully.' .
+            ' Package version: <strong>' . htmlspecialchars($packageVersion !== '' ? $packageVersion : 'unknown', ENT_QUOTES, 'UTF-8') . '</strong>' .
+            ' | installed version: <strong>' . htmlspecialchars($installedVersion, ENT_QUOTES, 'UTF-8') . '</strong>' .
+            ' | duration: <strong>' . number_format($durationSeconds, 2, '.', '') . 's</strong>.',
+            'message',
+            Log::INFO
+        );
         $this->log('BreezingForms installation/update process finished successfully.');
     }
 

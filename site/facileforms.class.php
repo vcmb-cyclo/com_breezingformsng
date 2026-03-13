@@ -678,6 +678,7 @@ class facileFormsScripts extends Table
 	public $description = null; // description
 	public $type = null;     	// type name
 	public $code = null;     	// the code
+	public $unit_tests = null;   // unit test definitions
 	public $created = null;
 	public $created_by = null;
 	public $modified = null;
@@ -724,6 +725,7 @@ class facileFormsPieces extends Table
 	public $description = null; 	// description
 	public $type = null;     		// type name
 	public $code = null;     		// the code
+	public $unit_tests = null;   // unit test definitions
 	public $created = null;
 	public $created_by = null;
 	public $modified = null;

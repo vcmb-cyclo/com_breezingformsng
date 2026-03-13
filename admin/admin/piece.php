@@ -52,6 +52,9 @@ switch ($task) {
 	case 'testrun':
 		facileFormsPiece::testrun($option, $pkg, $ids);
 		break;
+	case 'testrunajax':
+		facileFormsPiece::testrunajax($option, $pkg, $ids);
+		break;
 	case 'config':
 		$ff_config->edit(
 			$option,
