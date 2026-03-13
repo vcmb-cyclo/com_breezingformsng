@@ -295,6 +295,37 @@ main input[type=radio]:not(old):checked + label > span > span {
     margin-right: 20px;
 }
 
+/*
+Keep Joomla admin header overlays above the component content when labels are truncated.
+Stay below modal overlays declared later in this file.
+*/
+.container-header,
+.header {
+    position: relative;
+    z-index: 19000;
+}
+
+.container-header .dropdown-menu,
+.container-header .header-item-content,
+.header .dropdown-menu,
+.header .header-item-content,
+.header .popover {
+    z-index: 19010 !important;
+}
+
+/*
+Keep the component toolbar below the Joomla header dropdowns in compact mode.
+This is intentionally low and local to avoid disturbing the legacy toolbar layout.
+*/
+#toolbar,
+.subhead,
+.btn-toolbar,
+joomla-toolbar,
+joomla-toolbar-button {
+    position: relative;
+    z-index: 1;
+}
+
 #triggerScrollable, #scrollElementList{
     margin-bottom: 20px !important;
 }
@@ -1964,6 +1995,7 @@ toogle sidebar and main-content
         right: 50px !important;
         float: right !important;
         position: absolute !important;
+        z-index: 1 !important;
     }
     /********************************
 @MEDIA
