@@ -33,18 +33,12 @@ class HTML_facileFormsPiece
 			'unit_tests' => (string) $row->unit_tests
 		);
 		$safeInitialState = json_encode($initialState);
-		$unitTestsHelp = "Une ligne par test au format entree -> resultat attendu.\n" .
-			"Exemples :\n" .
-			"'12/ 02/2023 ' -> '12/02/2023'\n" .
-			"' abc ' -> 'abc'\n" .
-			"'' -> ''\n\n" .
-			"Valeurs acceptees : texte entre guillemets simples ou doubles, null, true, false, nombres, JSON ({}/[]).\n" .
-			"Si votre fonction attend plusieurs arguments, utilisez un tableau JSON a gauche : [\"abc\", 12] -> \"ok\"";
+		$unitTestsHelp = BFText::_('COM_BREEZINGFORMS_TEST_UNIT_TESTS_HELP');
 		HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
 		if ($row->id) {
 			ToolBarHelper::custom('prev', 'arrow-left', '', BFText::_('COM_BREEZINGFORMS_PROCESS_PAGEPREV'), false);
 			ToolBarHelper::custom('next', 'arrow-right', '', BFText::_('COM_BREEZINGFORMS_PROCESS_PAGENEXT'), false);
-			ToolBarHelper::custom('test', 'eye', '', 'Test', false);
+			ToolBarHelper::custom('test', 'eye', '', BFText::_('COM_BREEZINGFORMS_TEST'), false);
 		}
 		ToolBarHelper::custom('save', 'save.png', 'save_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_SAVE'), false);
 		ToolBarHelper::custom('cancel', 'cancel.png', 'cancel_f2.png', BFText::_('COM_BREEZINGFORMS_TOOLBAR_QUICKMODE_CLOSE'), false);
@@ -68,7 +62,7 @@ class HTML_facileFormsPiece
 				var form = document.adminForm;
 				var error = '';
 				if ((pressbutton == 'test' || pressbutton == 'prev' || pressbutton == 'next') && isEditTestBlocked()) {
-					alert('Enregistrez la piece avant de poursuivre.');
+					alert('<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_TEST_SAVE_PIECE_BEFORE_CONTINUE')); ?>');
 					return;
 				}
 				if (pressbutton != 'cancel' && pressbutton != 'test' && pressbutton != 'prev' && pressbutton != 'next') {
@@ -271,7 +265,7 @@ class HTML_facileFormsPiece
 				}
 				if (!isDirty) {
 					button.setAttribute('tabindex', '-1');
-					button.title = 'Aucune modification a enregistrer.';
+					button.title = '<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_TEST_NO_CHANGES')); ?>';
 				} else {
 					button.removeAttribute('tabindex');
 					button.title = '';
@@ -295,7 +289,7 @@ class HTML_facileFormsPiece
 					}
 					if (isBlocked) {
 						button.setAttribute('tabindex', '-1');
-						button.title = 'Enregistrez la piece avant de lancer les tests.';
+						button.title = '<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_TEST_SAVE_PIECE_BEFORE_TESTS')); ?>';
 					} else {
 						button.removeAttribute('tabindex');
 						button.title = '';
@@ -325,8 +319,8 @@ class HTML_facileFormsPiece
 			}
 
 			function syncEditPrevNextToolbarButtons() {
-				syncEditNavigationToolbarButton(getEditPrevToolbarButton(), 'Enregistrez la piece avant de changer d\'element.');
-				syncEditNavigationToolbarButton(getEditNextToolbarButton(), 'Enregistrez la piece avant de changer d\'element.');
+				syncEditNavigationToolbarButton(getEditPrevToolbarButton(), '<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_TEST_SAVE_PIECE_BEFORE_NAVIGATION')); ?>');
+				syncEditNavigationToolbarButton(getEditNextToolbarButton(), '<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_TEST_SAVE_PIECE_BEFORE_NAVIGATION')); ?>');
 			}
 
 			function syncEditUnitTestsButton() {
@@ -343,11 +337,11 @@ class HTML_facileFormsPiece
 				button.classList.toggle('disabled', !enabled);
 				button.setAttribute('aria-disabled', enabled ? 'false' : 'true');
 				if (!<?php echo $row->id ? 'true' : 'false'; ?>) {
-					button.title = 'Enregistrez d\'abord la piece pour lancer les tests unitaires.';
+					button.title = '<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_TEST_SAVE_FIRST_PIECE')); ?>';
 				} else if (isDirty) {
-					button.title = 'Enregistrez la piece avant de lancer les tests unitaires.';
+					button.title = '<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_TEST_SAVE_PIECE_BEFORE_UNIT_TESTS')); ?>';
 				} else {
-					button.title = enabled ? '' : 'Aucun test unitaire renseigne';
+					button.title = enabled ? '' : '<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_TEST_UNIT_TESTS_NONE')); ?>';
 				}
 			}
 
@@ -376,7 +370,7 @@ class HTML_facileFormsPiece
 
 				resultBox.style.display = 'block';
 				resultBox.className = 'alert alert-info mt-3';
-				summary.textContent = 'Execution en cours...';
+				summary.textContent = '<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_TEST_RUNNING')); ?>';
 				detailsWrap.style.display = 'none';
 				details.textContent = '';
 
@@ -407,7 +401,7 @@ class HTML_facileFormsPiece
 							try {
 								data = JSON.parse(normalizedText);
 							} catch (e) {
-								throw new Error(text || 'Reponse serveur invalide.');
+								throw new Error(text || '<?php echo addslashes(BFText::_('COM_BREEZINGFORMS_TEST_INVALID_SERVER_RESPONSE')); ?>');
 							}
 							return data;
 						})
@@ -423,7 +417,7 @@ class HTML_facileFormsPiece
 							return;
 						}
 						resultBox.className = (data.failures && data.failures.length) ? 'alert alert-warning mt-3' : 'alert alert-success mt-3';
-						summary.textContent = String(data.passed || 0) + '/' + String(data.total || 0) + ' réussis';
+						summary.textContent = String(data.passed || 0) + '/' + String(data.total || 0) + ' <?php echo addslashes(BFText::_('COM_BREEZINGFORMS_TEST_PASSED_SHORT')); ?>';
 						if (data.failures && data.failures.length) {
 							detailsWrap.style.display = 'block';
 							details.textContent = data.failures.join('\n\n');
@@ -547,7 +541,7 @@ class HTML_facileFormsPiece
 				<tr>
 					<td></td>
 					<td nowrap colspan="3">
-						Tests unitaires:
+						<?php echo BFText::_('COM_BREEZINGFORMS_TEST_UNIT_TESTS'); ?>:
 						<?php
 						echo '<span><span title="' . htmlspecialchars($unitTestsHelp, ENT_QUOTES) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
 						?>
@@ -567,11 +561,11 @@ class HTML_facileFormsPiece
 						<textarea wrap="off" name="unit_tests" id="unit_tests" style="width:100%;" rows="8"
 							class="inputbox"><?php echo htmlspecialchars((string) $row->unit_tests, ENT_QUOTES); ?></textarea>
 						<div class="mt-2 text-muted">
-							Une ligne par test, format simple :
+							<?php echo BFText::_('COM_BREEZINGFORMS_TEST_UNIT_TESTS_FORMAT_HINT'); ?>:
 							<code>'12/ 02/2023 ' -> '12/02/2023'</code><br />
 							<code>' abc ' -> 'abc'</code><br />
 							<code>'' -> ''</code><br />
-							Types acceptes : texte entre quotes, `null`, `true`, `false`, nombres, JSON.
+							<?php echo BFText::_('COM_BREEZINGFORMS_TEST_UNIT_TESTS_TYPES_HINT'); ?>
 						</div>
 						<div class="mt-3">
 							<button
@@ -579,16 +573,16 @@ class HTML_facileFormsPiece
 								id="bf-edit-piece-unit-tests-button"
 								class="btn btn-secondary"
 								onclick="return runPieceUnitTestsFromEdit();"
-								<?php echo $hasPersistedUnitTests ? '' : 'disabled="disabled" aria-disabled="true" title="' . ($row->id ? 'Aucun test unitaire renseigne' : 'Enregistrez d&#039;abord la piece pour lancer les tests unitaires.') . '"'; ?>>
+								<?php echo $hasPersistedUnitTests ? '' : 'disabled="disabled" aria-disabled="true" title="' . ($row->id ? htmlspecialchars(BFText::_('COM_BREEZINGFORMS_TEST_UNIT_TESTS_NONE'), ENT_QUOTES) : htmlspecialchars(BFText::_('COM_BREEZINGFORMS_TEST_SAVE_FIRST_PIECE'), ENT_QUOTES)) . '"'; ?>>
 								<span class="icon-play" aria-hidden="true"></span>
-								Tests unitaires
+								<?php echo BFText::_('COM_BREEZINGFORMS_TEST_UNIT_TESTS'); ?>
 							</button>
 						</div>
 						<div id="bf-edit-piece-unit-tests-status" class="alert mt-3" style="display:none;">
-							<strong>Tests unitaires:</strong>
+							<strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_UNIT_TESTS'); ?>:</strong>
 							<div id="bf-edit-piece-unit-tests-summary"></div>
 							<div id="bf-edit-piece-unit-tests-details-wrap" style="display:none;">
-								<div><strong>Detail:</strong></div>
+								<div><strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_DETAIL'); ?>:</strong></div>
 								<pre id="bf-edit-piece-unit-tests-details"></pre>
 							</div>
 						</div>
@@ -800,10 +794,10 @@ class HTML_facileFormsPiece
 					<input type="hidden" name="show_internal" value="0" />
 					<input type="checkbox" name="show_internal" value="1" onchange="return bfPiecesSubmitList(true);"
 						<?php echo $showInternal ? 'checked' : ''; ?> />
-					Afficher les fonctions internes (préfixe _fonction)
+					<?php echo BFText::_('COM_BREEZINGFORMS_TEST_SHOW_INTERNAL_FUNCTIONS'); ?>
 				</label>
 				<label class="bfPackageSelector bfFilterTools">
-					Filtre
+					<?php echo BFText::_('COM_BREEZINGFORMS_FILTER'); ?>
 					<input type="text" name="search" id="search" class="inputbox"
 						value="<?php echo htmlspecialchars($search, ENT_QUOTES); ?>" onchange="return bfPiecesSubmitList(true);"
 						onkeydown="if(event.key==='Enter'){event.preventDefault();bfPiecesSubmitList(true);}" />
@@ -970,7 +964,7 @@ class HTML_facileFormsPiece
 
 	static function test($option, $pkg, &$row, $functionName, $paramNames, $paramDefaults, $paramValues = array(), $result = null, $output = '', $error = '', $safeMode = 1, $autoRun = false, $errorDetails = array(), $testMode = '', $unitTestResult = array(), $autoOpened = 0)
 	{
-		ToolBarHelper::custom('edit', 'cancel.png', 'cancel_f2.png', 'Retour', false);
+		ToolBarHelper::custom('edit', 'arrow-left', '', BFText::_('COM_BREEZINGFORMS_TEST_BACK'), false);
 		ToolBarHelper::custom('prev', 'arrow-left', '', BFText::_('COM_BREEZINGFORMS_PROCESS_PAGEPREV'), false);
 		ToolBarHelper::custom('next', 'arrow-right', '', BFText::_('COM_BREEZINGFORMS_PROCESS_PAGENEXT'), false);
 			$hasUnitTests = trim((string) $row->unit_tests) !== '';
@@ -983,8 +977,8 @@ class HTML_facileFormsPiece
 				);
 			$autoOpenUnitFailureCount = !empty($unitTestResult['failures']) ? count($unitTestResult['failures']) : 0;
 			$autoOpenUnitWarningText = $autoOpenUnitFailureCount > 0
-				? $autoOpenUnitFailureCount . ' test' . ($autoOpenUnitFailureCount > 1 ? 's unitaires en échec.' : ' unitaire en échec.')
-				: 'Des tests unitaires ont échoué à l\'ouverture.';
+				? $autoOpenUnitFailureCount . ' ' . BFText::_($autoOpenUnitFailureCount > 1 ? 'COM_BREEZINGFORMS_TEST_UNIT_FAILURES_PLURAL' : 'COM_BREEZINGFORMS_TEST_UNIT_FAILURES_SINGULAR')
+				: BFText::_('COM_BREEZINGFORMS_TEST_UNIT_FAILURES_ON_OPEN');
 			?>
 		<?php if ($autoRun || $testMode === 'unit' || $shouldAutoRunUnitTestsOnly) { ?>
 			<script type="text/javascript">
@@ -1026,10 +1020,10 @@ class HTML_facileFormsPiece
 				</script>
 			<?php } ?>
 			<div class="d-flex justify-content-between align-items-center mb-3">
-				<h2 class="m-0">Test PHP Piece</h2>
+				<h2 class="m-0"><?php echo BFText::_('COM_BREEZINGFORMS_TEST_PHP_PIECE'); ?></h2>
 				<button type="submit" class="btn btn-primary">
 					<span class="icon-play" aria-hidden="true"></span>
-					Lancer
+					<?php echo BFText::_('COM_BREEZINGFORMS_TEST_RUN'); ?>
 				</button>
 			</div>
 			<h3><?php echo htmlspecialchars($row->title, ENT_QUOTES); ?></h3>
@@ -1037,13 +1031,13 @@ class HTML_facileFormsPiece
 				<div class="card-body">
 					<div class="row">
 						<div class="col-sm-6 col-md-4">
-							<strong>PHP Piece ID :</strong> <?php echo (int) $row->id; ?>
+							<strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_PHP_PIECE_ID'); ?>:</strong> <?php echo (int) $row->id; ?>
 						</div>
 						<div class="col-sm-6 col-md-4">
-							<strong>Package :</strong> <?php echo htmlspecialchars($row->package, ENT_QUOTES); ?>
+							<strong><?php echo BFText::_('COM_BREEZINGFORMS_SCRIPTS_PACKAGE'); ?>:</strong> <?php echo htmlspecialchars($row->package, ENT_QUOTES); ?>
 						</div>
 						<div class="col-sm-6 col-md-4">
-							<strong>Function :</strong> <?php echo htmlspecialchars($functionName, ENT_QUOTES); ?>
+							<strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_FUNCTION'); ?>:</strong> <?php echo htmlspecialchars($functionName, ENT_QUOTES); ?>
 						</div>
 					</div>
 				</div>
@@ -1052,23 +1046,23 @@ class HTML_facileFormsPiece
 				<div class="card-body">
 					<div class="row">
 						<div class="col-sm-6 col-md-3">
-							<strong>Created :</strong> <?php echo $row->created ? HTMLHelper::date($row->created, 'Y-m-d H:i', true) : '-'; ?>
+							<strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_CREATED'); ?>:</strong> <?php echo $row->created ? HTMLHelper::date($row->created, 'Y-m-d H:i', true) : '-'; ?>
 						</div>
 						<div class="col-sm-6 col-md-3">
-							<strong>Created by :</strong> <?php echo htmlspecialchars((string) $row->created_by, ENT_QUOTES); ?>
+							<strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_CREATED_BY'); ?>:</strong> <?php echo htmlspecialchars((string) $row->created_by, ENT_QUOTES); ?>
 						</div>
 						<div class="col-sm-6 col-md-3">
-							<strong>Modified :</strong> <?php echo $row->modified ? HTMLHelper::date($row->modified, 'Y-m-d H:i', true) : '-'; ?>
+							<strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_MODIFIED'); ?>:</strong> <?php echo $row->modified ? HTMLHelper::date($row->modified, 'Y-m-d H:i', true) : '-'; ?>
 						</div>
 						<div class="col-sm-6 col-md-3">
-							<strong>Modified by :</strong> <?php echo htmlspecialchars((string) $row->modified_by, ENT_QUOTES); ?>
+							<strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_MODIFIED_BY'); ?>:</strong> <?php echo htmlspecialchars((string) $row->modified_by, ENT_QUOTES); ?>
 						</div>
 					</div>
 				</div>
 			</div>
 			<?php if (!empty($row->description)) { ?>
 				<div class="card mb-3">
-					<div class="card-header">Description</div>
+					<div class="card-header"><?php echo BFText::_('COM_BREEZINGFORMS_PIECES_DESCRIPTION'); ?></div>
 					<div class="card-body">
 						<div class="form-control bg-light" style="white-space: pre-wrap;">
 							<?php echo HTMLHelper::_('content.prepare', $row->description); ?>
@@ -1081,7 +1075,7 @@ class HTML_facileFormsPiece
 					<h2 class="accordion-header" id="bfPieceCodeHeading">
 						<button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse"
 							data-bs-target="#bfPieceCodeCollapse" aria-expanded="false" aria-controls="bfPieceCodeCollapse">
-							Piece code
+							<?php echo BFText::_('COM_BREEZINGFORMS_TEST_PIECE_CODE'); ?>
 						</button>
 					</h2>
 					<div id="bfPieceCodeCollapse" class="accordion-collapse collapse" aria-labelledby="bfPieceCodeHeading"
@@ -1096,7 +1090,7 @@ class HTML_facileFormsPiece
 						<h2 class="accordion-header" id="bfPieceUnitTestsHeading">
 							<button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse"
 								data-bs-target="#bfPieceUnitTestsCollapse" aria-expanded="false" aria-controls="bfPieceUnitTestsCollapse">
-								Tests unitaires
+								<?php echo BFText::_('COM_BREEZINGFORMS_TEST_UNIT_TESTS'); ?>
 							</button>
 						</h2>
 						<div id="bfPieceUnitTestsCollapse" class="accordion-collapse collapse" aria-labelledby="bfPieceUnitTestsHeading"
@@ -1109,18 +1103,18 @@ class HTML_facileFormsPiece
 				<?php } ?>
 
 				<?php if (empty($functionName)) { ?>
-				<p>Unable to detect a function signature in this piece.</p>
+				<p><?php echo BFText::_('COM_BREEZINGFORMS_TEST_UNABLE_TO_DETECT_FUNCTION_SIGNATURE_PIECE'); ?></p>
 			<?php } else { ?>
 				<table cellpadding="4" cellspacing="1" border="0" class="adminform" style="width:100%;">
 					<tr>
-						<th align="left">Parameter</th>
-						<th align="left">Value</th>
+						<th align="left"><?php echo BFText::_('COM_BREEZINGFORMS_TEST_PARAMETER'); ?></th>
+						<th align="left"><?php echo BFText::_('COM_BREEZINGFORMS_TEST_VALUE'); ?></th>
 					</tr>
 					<?php
 					if (!count($paramNames)) {
 						?>
 						<tr>
-							<td>NO parameter</td>
+							<td><?php echo BFText::_('COM_BREEZINGFORMS_TEST_NO_PARAMETER'); ?></td>
 							<td>-</td>
 							<td></td>
 						</tr>
@@ -1143,7 +1137,7 @@ class HTML_facileFormsPiece
 									<?php if ($i === $lastParamIndex) { ?>
 										<button type="submit" class="btn btn-primary">
 											<span class="icon-play" aria-hidden="true"></span>
-											Lancer
+											<?php echo BFText::_('COM_BREEZINGFORMS_TEST_RUN'); ?>
 										</button>
 									<?php } ?>
 								</td>
@@ -1162,49 +1156,49 @@ class HTML_facileFormsPiece
 			<?php if ($error !== '') { ?>
 				<div class="alert alert-danger bf-piece-test-alert">
 					<span class="icon-times text-danger" aria-hidden="true"></span>
-					Invalide: <?php echo htmlspecialchars($error, ENT_QUOTES); ?>
+					<?php echo BFText::_('COM_BREEZINGFORMS_TEST_INVALID'); ?>: <?php echo htmlspecialchars($error, ENT_QUOTES); ?>
 					<?php if ($output !== '') { ?>
-						<div><strong>Output:</strong></div>
+						<div><strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_OUTPUT'); ?>:</strong></div>
 						<pre><?php echo htmlspecialchars($output, ENT_QUOTES); ?></pre>
 					<?php } ?>
 					<?php if ($result !== null) { ?>
-						<div><strong>Result:</strong></div>
+						<div><strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_RESULT'); ?>:</strong></div>
 						<pre><?php echo htmlspecialchars(var_export($result, true), ENT_QUOTES); ?></pre>
 					<?php } ?>
 					<?php if (!empty($errorDetails)) { ?>
-						<div><strong>Exception:</strong></div>
+						<div><strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_EXCEPTION'); ?>:</strong></div>
 						<pre><?php echo htmlspecialchars(print_r($errorDetails, true), ENT_QUOTES); ?></pre>
 					<?php } ?>
-					<div><strong>Parameters:</strong></div>
+					<div><strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_PARAMETERS'); ?>:</strong></div>
 					<pre><?php echo htmlspecialchars(print_r(array_combine($paramNames, $paramValues), true), ENT_QUOTES); ?></pre>
 				</div>
 			<?php } ?>
 			<?php if ($error === '' && $output !== '') { ?>
-				<p><strong>Output:</strong></p>
+				<p><strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_OUTPUT'); ?>:</strong></p>
 				<pre><?php echo htmlspecialchars($output, ENT_QUOTES); ?></pre>
 			<?php } ?>
 			<?php if ($error === '' && $result !== null) { ?>
 				<div class="alert <?php echo $isEmptyResult ? 'alert-warning' : ($isSuccess ? 'alert-success' : 'alert-danger'); ?>">
-					<strong>Result:</strong>
+					<strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_RESULT'); ?>:</strong>
 					<pre><?php echo htmlspecialchars(var_export($result, true), ENT_QUOTES); ?></pre>
 					<?php if ($isEmptyResult) { ?>
 						<div>
 							<span class="icon-warning text-warning" aria-hidden="true"></span>
-							Warning: resultat vide
+							<?php echo BFText::_('COM_BREEZINGFORMS_TEST_WARNING_EMPTY_RESULT'); ?>
 						</div>
 					<?php } elseif ($isSuccess) { ?>
 						<div>
 							<span class="icon-check text-success" aria-hidden="true"></span>
-							Execut&eacute;
+							<?php echo BFText::_('COM_BREEZINGFORMS_TEST_EXECUTED'); ?>
 						</div>
 					<?php } else { ?>
 						<div>
 							<span class="icon-times text-danger" aria-hidden="true"></span>
-							Invalide: resultat faux
+							<?php echo BFText::_('COM_BREEZINGFORMS_TEST_INVALID_FALSE_RESULT'); ?>
 						</div>
 					<?php } ?>
 					<?php if (!$isSuccess && !$isEmptyResult) { ?>
-						<div><strong>Parameters:</strong></div>
+						<div><strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_PARAMETERS'); ?>:</strong></div>
 						<pre><?php echo htmlspecialchars(print_r(array_combine($paramNames, $paramValues), true), ENT_QUOTES); ?></pre>
 					<?php } ?>
 				</div>
@@ -1214,15 +1208,15 @@ class HTML_facileFormsPiece
 				$unitAlertClass = isset($unitTestResult['error']) ? 'alert-danger' : (isset($unitTestResult['warning']) ? 'alert-warning' : (empty($unitTestResult['failures']) ? 'alert-success' : 'alert-warning'));
 				?>
 				<div class="alert <?php echo $unitAlertClass; ?>">
-					<strong>Tests unitaires:</strong>
+					<strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_UNIT_TESTS'); ?>:</strong>
 					<?php if (isset($unitTestResult['error'])) { ?>
 						<div><?php echo htmlspecialchars($unitTestResult['error'], ENT_QUOTES); ?></div>
 					<?php } elseif (isset($unitTestResult['warning'])) { ?>
 						<div><?php echo htmlspecialchars($unitTestResult['warning'], ENT_QUOTES); ?></div>
 					<?php } else { ?>
-						<div><?php echo (int) $unitTestResult['passed']; ?>/<?php echo (int) $unitTestResult['total']; ?> réussis</div>
+						<div><?php echo (int) $unitTestResult['passed']; ?>/<?php echo (int) $unitTestResult['total']; ?> <?php echo BFText::_('COM_BREEZINGFORMS_TEST_PASSED_SHORT'); ?></div>
 						<?php if (!empty($unitTestResult['failures'])) { ?>
-							<div><strong>Detail:</strong></div>
+							<div><strong><?php echo BFText::_('COM_BREEZINGFORMS_TEST_DETAIL'); ?>:</strong></div>
 							<pre><?php echo htmlspecialchars(implode("\n\n", $unitTestResult['failures']), ENT_QUOTES); ?></pre>
 						<?php } ?>
 					<?php } ?>
