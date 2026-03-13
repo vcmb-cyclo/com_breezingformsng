@@ -964,7 +964,7 @@ class HTML_facileFormsPiece
 
 	static function test($option, $pkg, &$row, $functionName, $paramNames, $paramDefaults, $paramValues = array(), $result = null, $output = '', $error = '', $safeMode = 1, $autoRun = false, $errorDetails = array(), $testMode = '', $unitTestResult = array(), $autoOpened = 0)
 	{
-		ToolBarHelper::custom('edit', 'arrow-left', '', BFText::_('COM_BREEZINGFORMS_TEST_BACK'), false);
+		ToolBarHelper::custom('edit', 'undo', '', BFText::_('COM_BREEZINGFORMS_TEST_BACK'), false);
 		ToolBarHelper::custom('prev', 'arrow-left', '', BFText::_('COM_BREEZINGFORMS_PROCESS_PAGEPREV'), false);
 		ToolBarHelper::custom('next', 'arrow-right', '', BFText::_('COM_BREEZINGFORMS_PROCESS_PAGENEXT'), false);
 			$hasUnitTests = trim((string) $row->unit_tests) !== '';

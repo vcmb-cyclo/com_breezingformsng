@@ -1162,7 +1162,7 @@ class HTML_facileFormsScript
 
 	static function test($option, $pkg, &$row, $functionName, $paramNames, $paramDefaults, $autoRun = false, $testMode = '')
 	{
-		ToolBarHelper::custom('edit', 'arrow-left', '', BFText::_('COM_BREEZINGFORMS_TEST_BACK'), false);
+		ToolBarHelper::custom('edit', 'undo', '', BFText::_('COM_BREEZINGFORMS_TEST_BACK'), false);
 		ToolBarHelper::custom('prev', 'arrow-left', '', BFText::_('COM_BREEZINGFORMS_PROCESS_PAGEPREV'), false);
 		ToolBarHelper::custom('next', 'arrow-right', '', BFText::_('COM_BREEZINGFORMS_PROCESS_PAGENEXT'), false);
 		$hasUnitTests = trim((string) $row->unit_tests) !== '';
