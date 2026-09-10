@@ -29,7 +29,6 @@ jobs:
         language:
           - actions
           - javascript-typescript
-          - php
           - python
 
     steps:
