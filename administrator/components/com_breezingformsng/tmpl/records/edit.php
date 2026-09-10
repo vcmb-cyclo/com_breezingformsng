@@ -116,7 +116,14 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
             <tr><th><?= Text::_('COM_BREEZINGFORMSNG_PAYMENT_DOWNLOAD_TRIES'); ?></th><td><?= (int) $record->paypal_download_tries; ?></td></tr>
             <tr class="table-primary"><th colspan="2"><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_FORMINFO'); ?></th></tr>
             <tr><th><?= Text::_('COM_BREEZINGFORMSNG_ID'); ?></th><td><?= (int) $record->form; ?></td></tr>
-            <tr><th><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_TITLE'); ?></th><td><?= $value($record->form_title); ?></td></tr>
+            <tr>
+              <th><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_TITLE'); ?></th>
+              <td>
+                <a href="<?= htmlspecialchars($formEditorUrl, ENT_QUOTES, 'UTF-8'); ?>" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_OPEN_EDITOR'), ENT_QUOTES, 'UTF-8'); ?>">
+                  <?= $value($record->form_title); ?>
+                </a>
+              </td>
+            </tr>
             <tr><th><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_NAME'); ?></th><td><?= $value($record->form_name); ?></td></tr>
           </tbody>
         </table>
