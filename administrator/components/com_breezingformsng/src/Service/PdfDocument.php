@@ -22,7 +22,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper;
 if (!defined('K_PATH_FONTS')) {
     define(
         'K_PATH_FONTS',
-        JPATH_ADMINISTRATOR . '/components/com_breezingformsng/vendor/tecnickcom/tc-lib-pdf-font/target/fonts/'
+        JPATH_ADMINISTRATOR . '/components/com_breezingformsng/vendor/tecnickcom/tc-lib-pdf-font/target/fonts/core/'
     );
 }
 
