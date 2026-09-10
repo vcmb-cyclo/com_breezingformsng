@@ -44,9 +44,10 @@ sed -i \
 # tc-lib-barcode (via TCPDF v7's tc-lib-pdf) needs ext-bcmath, and
 # phpoffice/phpspreadsheet needs ext-gd, ext-zip, ext-xml and friends.
 # Those only have to be present on the deployment target - not on the
-# machine running this build script - so skip Composer's platform check.
+# machine running this build script - so skip the extension checks only
+# (ext-*), while still enforcing the PHP version requirement.
 composer install --no-dev --no-interaction --quiet \
-    --ignore-platform-reqs \
+    --ignore-platform-req='ext-*' \
     --working-dir="${package_dir}/administrator/components/com_breezingformsng"
 
 # TCPDF v7 ships its font engine (tecnickcom/tc-lib-pdf-font) without the

@@ -32,6 +32,13 @@ class RecordsController extends BaseController
 {
     private const EXPORT_SUBRECORD_BATCH_SIZE = 200;
 
+    /**
+     * Row ceiling for the Excel export. PhpSpreadsheet keeps every cell in
+     * memory, so a very large selection has to fall back to the streamed CSV
+     * export instead.
+     */
+    private const EXPORT_XLSX_MAX_ROWS = 25000;
+
     public function display($cachable = false, $urlparams = [])
     {
         $this->app->getInput()->set('view', 'records');
@@ -281,13 +288,14 @@ class RecordsController extends BaseController
         ArrayHelper::toInteger($ids);
         $formSelection = $input->getInt('form_selection', 0);
 
-        $config = $this->getRecordModel()->getExportConfig();
+        $model = $this->getRecordModel();
+        $config = $model->getExportConfig();
 
         $delimiter = stripslashes((string) $config->csvdelimiter);
         $quote = stripslashes((string) $config->csvquote);
         $cellNewline = ((int) $config->cellnewline === 0) ? "\n" : "\\n";
 
-        [$formName, $headers, $rows, $updIds] = $this->buildTabularExport($ids, $formSelection);
+        [$formName, $headers, $rows, $updIds] = $this->buildTabularExport($model, $ids, $formSelection);
 
         $q = fn($val) => $quote
             . str_replace($quote, $quote . $quote, str_replace("\n", $cellNewline, str_replace("\r", '', (string) $val)))
@@ -300,7 +308,7 @@ class RecordsController extends BaseController
         }
 
         if ($updIds) {
-            $this->getRecordModel()->markExported($updIds);
+            $model->markExported($updIds);
         }
 
         $fileName = ($formName ? $formName . '-' : '') . 'ffexport-' . date('YmdHis') . '.csv';
@@ -328,7 +336,20 @@ class RecordsController extends BaseController
         $ids = $input->post->get('cid', [], 'array');
         ArrayHelper::toInteger($ids);
         $formSelection = $input->getInt('form_selection', 0);
-        [$formName, $headers, $rows, $updIds] = $this->buildTabularExport($ids, $formSelection);
+
+        $model = $this->getRecordModel();
+
+        if ($this->countRecords($model->getDatabaseConnection(), $ids, $formSelection) > self::EXPORT_XLSX_MAX_ROWS) {
+            $app->enqueueMessage(
+                Text::sprintf('COM_BREEZINGFORMSNG_RECORDS_XLSX_TOO_MANY_ROWS', self::EXPORT_XLSX_MAX_ROWS),
+                'warning'
+            );
+            $app->redirect($this->listUrl($input));
+
+            return;
+        }
+
+        [$formName, $headers, $rows, $updIds] = $this->buildTabularExport($model, $ids, $formSelection);
 
         VendorHelper::load();
         $spreadsheet = new Spreadsheet();
@@ -362,7 +383,7 @@ class RecordsController extends BaseController
         }
 
         if ($updIds) {
-            $this->getRecordModel()->markExported($updIds);
+            $model->markExported($updIds);
         }
 
         $filePrefix = preg_replace('/[^A-Za-z0-9_.-]/', '_', (string) $formName);
@@ -375,7 +396,9 @@ class RecordsController extends BaseController
         $app->setHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"', true);
         $app->setHeader('Cache-Control', 'max-age=0', true);
         $app->sendHeaders();
-        (new Xlsx($spreadsheet))->save('php://output');
+        $writer = new Xlsx($spreadsheet);
+        $writer->setPreCalculateFormulas(false);
+        $writer->save('php://output');
         $spreadsheet->disconnectWorksheets();
         $app->close();
     }
@@ -532,11 +555,10 @@ class RecordsController extends BaseController
     /**
      * Builds the shared data set used by the CSV and Excel exports.
      *
-     * @return array{string, list<string>, list<list<string|int>>, list<int>}
+     * @return array{string, list<string>, list<list<string>>, list<int>}
      */
-    private function buildTabularExport(array $ids, int $formSelection): array
+    private function buildTabularExport(RecordModel $model, array $ids, int $formSelection): array
     {
-        $model = $this->getRecordModel();
         $timezone = $this->getTimezone();
         $db = $model->getDatabaseConnection();
         $records = $this->fetchRecords($db, $ids, $formSelection);
@@ -585,9 +607,9 @@ class RecordsController extends BaseController
                 }
 
                 $row = [
-                    (int) $record->id,
+                    (string) $record->id,
                     $date->format('Y-m-d H:i:s', true),
-                    (int) $record->user_id,
+                    (string) $record->user_id,
                     (string) $record->username,
                     (string) $record->user_full_name,
                     (string) $record->title,
@@ -596,8 +618,8 @@ class RecordsController extends BaseController
                     (string) $record->opsys,
                     (string) $record->paypal_tx_id,
                     (string) $record->paypal_payment_date,
-                    (int) $record->paypal_testaccount,
-                    (int) $record->paypal_download_tries,
+                    (string) $record->paypal_testaccount,
+                    (string) $record->paypal_download_tries,
                     (string) ($record->opted ?? ''),
                 ];
                 foreach ($fieldKeys as $key => $name) {
@@ -636,6 +658,27 @@ class RecordsController extends BaseController
 
         $db->setQuery($query);
         return $db->loadObjectList();
+    }
+
+    /**
+     * Counts the records matching the current export selection, without
+     * loading them. Used to keep the Excel export within its row ceiling.
+     */
+    private function countRecords(DatabaseInterface $db, array $ids, int $formSelection): int
+    {
+        $query = $db->getQuery(true)
+            ->select('COUNT(*)')
+            ->from($db->quoteName('#__facileforms_records'));
+
+        if ($ids) {
+            $query->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
+        } elseif ($formSelection) {
+            $query->where($db->quoteName('form') . ' = :formSelection')
+                ->bind(':formSelection', $formSelection, ParameterType::INTEGER);
+        }
+
+        $db->setQuery($query);
+        return (int) $db->loadResult();
     }
 
     /**

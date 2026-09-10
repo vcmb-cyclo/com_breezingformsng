@@ -366,10 +366,12 @@ class HtmlView extends BaseHtmlView
             'saveTask'   => 'records.save',
             'validateTask' => 'records.save',
             'confirmDeleteTask' => 'records.remove',
+            'exportTasks' => ['records.exportPdf', 'records.exportCsv', 'records.exportXlsx', 'records.exportXml'],
         ]);
         Text::script('JGLOBAL_CONFIRM_DELETE');
         Text::script('COM_BREEZINGFORMSNG_TEST_NO_CHANGES');
         Text::script('COM_BREEZINGFORMSNG_CONFIRM_DISCARD_CHANGES');
+        Text::script('COM_BREEZINGFORMSNG_EXPORT_SAVE_FIRST');
     }
 
     private function prepareImportToolbar(): void
