@@ -404,6 +404,7 @@ fi
 # Joomla installation, including Securimage and TCPDF.
 docker exec "${web_container}" php -r '
     define("_JEXEC", 1);
+    define("JPATH_SITE", "/var/www/html");
     define("JPATH_ADMINISTRATOR", "/var/www/html/administrator");
     require "/var/www/html/administrator/components/com_breezingformsng/src/Helper/VendorHelper.php";
     \Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper::load();
