@@ -39,6 +39,13 @@ class RecordsController extends BaseController
      */
     private const EXPORT_XLSX_MAX_ROWS = 25000;
 
+    /**
+     * Column ceiling for the Excel export. This is the hard limit of the
+     * .xlsx format itself; an unfiltered "all forms" export can gather more
+     * distinct field names than that.
+     */
+    private const EXPORT_XLSX_MAX_COLUMNS = 16384;
+
     public function display($cachable = false, $urlparams = [])
     {
         $this->app->getInput()->set('view', 'records');
@@ -349,7 +356,19 @@ class RecordsController extends BaseController
             return;
         }
 
-        [$formName, $headers, $rows, $updIds] = $this->buildTabularExport($model, $ids, $formSelection);
+        try {
+            [$formName, $headers, $rows, $updIds] = $this->buildTabularExport(
+                $model,
+                $ids,
+                $formSelection,
+                self::EXPORT_XLSX_MAX_COLUMNS
+            );
+        } catch (\RangeException) {
+            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_RECORDS_XLSX_TOO_MANY_COLUMNS'), 'warning');
+            $app->redirect($this->listUrl($input));
+
+            return;
+        }
 
         VendorHelper::load();
         $spreadsheet = new Spreadsheet();
@@ -555,10 +574,17 @@ class RecordsController extends BaseController
     /**
      * Builds the shared data set used by the CSV and Excel exports.
      *
+     * @param int $maxColumns Hard cap on the column count; a \RangeException is
+     *                        thrown before any rows are built when it is exceeded.
+     *
      * @return array{string, list<string>, list<list<string>>, list<int>}
      */
-    private function buildTabularExport(RecordModel $model, array $ids, int $formSelection): array
-    {
+    private function buildTabularExport(
+        RecordModel $model,
+        array $ids,
+        int $formSelection,
+        int $maxColumns = PHP_INT_MAX
+    ): array {
         $timezone = $this->getTimezone();
         $db = $model->getDatabaseConnection();
         $records = $this->fetchRecords($db, $ids, $formSelection);
@@ -582,6 +608,11 @@ class RecordsController extends BaseController
             'browser', 'opsys', 'paypal_tx_id', 'paypal_payment_date', 'paypal_testaccount',
             'paypal_download_tries', 'double_opt_in', ...array_values($fieldKeys),
         ];
+
+        if (count($headers) > $maxColumns) {
+            throw new \RangeException('Export column count exceeds the requested maximum.');
+        }
+
         $rows = [];
         $updateIds = [];
 

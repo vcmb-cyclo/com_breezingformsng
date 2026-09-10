@@ -45,7 +45,9 @@ function bfDirtySyncSaveButton(form) {
 Joomla.submitbutton = function (task) {
 	var form = document.getElementById('adminForm');
 
-	if (__bfOpts.cancelTask && task === __bfOpts.cancelTask && bfDirtyIsChanged(form)
+	var isDiscardTask = (__bfOpts.cancelTask && task === __bfOpts.cancelTask)
+		|| (Array.isArray(__bfOpts.discardTasks) && __bfOpts.discardTasks.indexOf(task) !== -1);
+	if (isDiscardTask && bfDirtyIsChanged(form)
 		&& !confirm(Joomla.Text._('COM_BREEZINGFORMSNG_CONFIRM_DISCARD_CHANGES'))) {
 		return false;
 	}

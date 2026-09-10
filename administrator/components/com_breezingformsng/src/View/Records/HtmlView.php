@@ -367,6 +367,10 @@ class HtmlView extends BaseHtmlView
             'validateTask' => 'records.save',
             'confirmDeleteTask' => 'records.remove',
             'exportTasks' => ['records.exportPdf', 'records.exportCsv', 'records.exportXlsx', 'records.exportXml'],
+            'discardTasks' => [
+                'records.viewed', 'records.unviewed', 'records.exported',
+                'records.unexported', 'records.archived', 'records.unarchived',
+            ],
         ]);
         Text::script('JGLOBAL_CONFIRM_DELETE');
         Text::script('COM_BREEZINGFORMSNG_TEST_NO_CHANGES');
