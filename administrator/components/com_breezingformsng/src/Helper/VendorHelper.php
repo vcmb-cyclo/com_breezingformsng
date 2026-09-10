@@ -23,6 +23,13 @@ final class VendorHelper
             return;
         }
 
+        if (!defined('K_PATH_FONTS')) {
+            define(
+                'K_PATH_FONTS',
+                JPATH_ADMINISTRATOR . '/components/com_breezingformsng/vendor/tecnickcom/tc-lib-pdf-font/target/fonts/core/'
+            );
+        }
+
         $autoload = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/vendor/autoload.php';
 
         if (!is_file($autoload)) {
