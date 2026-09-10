@@ -48,44 +48,29 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
 <form action="index.php?option=com_breezingformsng" method="post" name="adminForm" id="adminForm">
 
   <div class="card mb-3">
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-striped mb-0">
-          <tbody>
-            <tr class="table-primary"><th colspan="2"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_META'); ?></th></tr>
-            <tr><th><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_RECORDID'); ?></th><td><?= (int) $record->id; ?></td></tr>
-            <tr><th><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_SUBMITTED'); ?></th><td><?= $submitted; ?></td></tr>
-            <tr>
-              <th><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_TITLE'); ?></th>
-              <td>
-                <a href="<?= htmlspecialchars($formEditorUrl, ENT_QUOTES, 'UTF-8'); ?>" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_OPEN_EDITOR'), ENT_QUOTES, 'UTF-8'); ?>">
-                  <?= $value($record->form_title); ?>
-                </a>
-                <div class="small text-muted"><?= $value($record->form_name); ?></div>
-              </td>
-            </tr>
-            <tr><th><?= Text::_('COM_BREEZINGFORMSNG_IP'); ?></th><td><?= $value($record->ip); ?></td></tr>
-            <tr><th><?= Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME'); ?></th><td><?= $value($record->username); ?></td></tr>
-            <tr><th><?= Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME'); ?></th><td><?= $value($record->user_full_name); ?></td></tr>
-          </tbody>
-        </table>
+    <div class="card-header d-flex align-items-center">
+      <span><?= Text::_('COM_BREEZINGFORMSNG_RECORD_META'); ?></span>
+      <span class="badge text-bg-secondary ms-2">
+        <?= Text::_('COM_BREEZINGFORMSNG_RECORDS_RECORDID'); ?> #<?= (int) $record->id; ?>
+      </span>
+    </div>
+    <div class="card-body py-2">
+      <div>
+        <strong><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_TITLE'); ?></strong>
+        <a href="<?= htmlspecialchars($formEditorUrl, ENT_QUOTES, 'UTF-8'); ?>" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_OPEN_EDITOR'), ENT_QUOTES, 'UTF-8'); ?>">
+          <?= $value($record->form_title); ?>
+        </a>
+        <span class="small text-muted"><?= $value($record->form_name); ?></span>
+      </div>
+      <div class="small text-muted mt-1">
+        <strong><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_SUBMITTED'); ?></strong> <?= $submitted; ?>
       </div>
     </div>
   </div>
 
   <div class="card mb-3">
+    <div class="card-header"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_VALUES'); ?></div>
     <div class="card-body">
-      <div class="d-flex align-items-center mb-2">
-        <span
-          class="text-muted"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_RECORD_VALUES'), ENT_QUOTES, 'UTF-8'); ?>"
-          role="button"
-          aria-label="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_RECORD_VALUES'), ENT_QUOTES, 'UTF-8'); ?>">
-          <i class="fas fa-info-circle"></i>
-        </span>
-      </div>
       <?php foreach ($this->recordRows as $row): ?>
         <div class="row mb-3">
           <label class="col-sm-3 col-form-label" for="element_<?= (int) $row['element_id']; ?>">
