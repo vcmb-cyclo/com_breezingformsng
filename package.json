@@ -2,12 +2,13 @@
   "name": "com-breezingformsng-ci",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "CI tooling for BreezingForms NG",
   "scripts": {
     "lint": "npm run lint:css",
     "lint:css": "stylelint \"media/com_breezingformsng/css/**/*.css\"",
     "lint:css:fix": "stylelint \"media/com_breezingformsng/css/**/*.css\" --fix",
-    "test:tree-model": "node --experimental-default-type=module --test tests/JavaScript/quickmode-tree-model.test.mjs"
+    "test:tree-model": "node --test tests/JavaScript/quickmode-tree-model.test.mjs"
   },
   "engines": {
     "node": ">=20.19.0"

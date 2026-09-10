@@ -230,7 +230,7 @@ export class QuickmodeTreeModel {
             children = this.ensureChildren(target);
             insertionIndex = index === null ? children.length : this.normalizeIndex(index, children.length);
         } else if (position === 'before' || position === 'after') {
-            destination = this.getParent(target);
+            destination = this.getParent(targetId);
 
             if (!destination || !this.canContain(destination, source)) {
                 throw new Error('The moved node has no valid sibling destination.');

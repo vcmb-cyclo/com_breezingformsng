@@ -9,6 +9,8 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
@@ -20,16 +22,18 @@ final class PackagesController extends BaseController
     public function display($cachable = false, $urlparams = []): static
     {
         $this->assertAuthorised();
-        $this->app->getInput()->set('view', 'packages');
+        Factory::getApplication()->getInput()->set('view', 'packages');
 
         return parent::display($cachable, $urlparams);
     }
 
     public function export(): void
     {
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
         $this->assertAuthorised();
         $this->checkToken();
-        $package = $this->app->getInput()->getString('package', '');
+        $package = $app->getInput()->getString('package', '');
 
         try {
             $json = $this->model()->export($package);
@@ -37,22 +41,24 @@ final class PackagesController extends BaseController
             while (ob_get_level() > 0) {
                 ob_end_clean();
             }
-            $this->app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
-            $this->app->setHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"', true);
-            $this->app->sendHeaders();
+            $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
+            $app->setHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"', true);
+            $app->sendHeaders();
             echo $json;
-            $this->app->close();
+            $app->close();
         } catch (\Throwable $exception) {
-            $this->app->enqueueMessage($exception->getMessage(), 'error');
-            $this->app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages', false));
+            $app->enqueueMessage($exception->getMessage(), 'error');
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages', false));
         }
     }
 
     public function import(): void
     {
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
         $this->assertAuthorised();
         $this->checkToken();
-        $file = $this->app->getInput()->files->get('package_file', [], 'array');
+        $file = $app->getInput()->files->get('package_file', [], 'array');
         $path = is_array($file) ? (string) ($file['tmp_name'] ?? '') : '';
 
         try {
@@ -60,11 +66,11 @@ final class PackagesController extends BaseController
                 throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_FILE_REQUIRED'));
             }
             $this->model()->import($path);
-            $this->app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORTED'), 'message');
+            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORTED'), 'message');
         } catch (\Throwable $exception) {
-            $this->app->enqueueMessage($exception->getMessage(), 'error');
+            $app->enqueueMessage($exception->getMessage(), 'error');
         }
-        $this->app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages', false));
+        $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages', false));
     }
 
     private function assertAuthorised(): void
