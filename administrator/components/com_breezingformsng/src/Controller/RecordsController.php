@@ -17,6 +17,11 @@ use Joomla\CMS\Response\JsonResponse;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfDocument;
@@ -276,99 +281,26 @@ class RecordsController extends BaseController
         ArrayHelper::toInteger($ids);
         $formSelection = $input->getInt('form_selection', 0);
 
-        $model = $this->getRecordModel();
-        $config = $model->getExportConfig();
-        $tz = $this->getTimezone();
-        $db = $model->getDatabaseConnection();
+        $config = $this->getRecordModel()->getExportConfig();
 
         $delimiter = stripslashes((string) $config->csvdelimiter);
         $quote = stripslashes((string) $config->csvquote);
         $cellNewline = ((int) $config->cellnewline === 0) ? "\n" : "\\n";
 
-        $recs = $this->fetchRecords($db, $ids, $formSelection);
-
-        if ($ids) {
-            $formIds = array_unique(array_map(fn($r) => (int) $r->form, $recs));
-        } elseif ($formSelection) {
-            $formIds = [$formSelection];
-        } else {
-            $formIds = [];
-        }
-
-        $elementFields = $this->fetchElementFields($db, $formIds);
-        $formName = ($formSelection && $recs) ? ($recs[0]->name ?? '') : '';
-
-        $headKeys = [];
-        $seenKeys = [];
-        foreach ($elementFields as $ef) {
-            $key = md5(strip_tags((string) $ef->name));
-            if (!isset($seenKeys[$key])) {
-                $seenKeys[$key] = true;
-                $headKeys[$key] = strip_tags((string) $ef->name);
-            }
-        }
+        [$formName, $headers, $rows, $updIds] = $this->buildTabularExport($ids, $formSelection);
 
         $q = fn($val) => $quote
             . str_replace($quote, $quote . $quote, str_replace("\n", $cellNewline, str_replace("\r", '', (string) $val)))
             . $quote;
 
-        $fixedLabels = ['id', 'submitted', 'user_id', 'username', 'user_full_name', 'bf_form_title', 'ip', 'browser', 'opsys', 'paypal_tx_id', 'paypal_payment_date', 'paypal_testaccount', 'paypal_download_tries', 'double_opt_in'];
-        $header = implode($delimiter, array_map($q, $fixedLabels));
-        foreach ($headKeys as $name) {
-            $header .= $delimiter . $q($name);
-        }
-        $header .= "\n";
-
-        $updIds = [];
+        $header = implode($delimiter, array_map($q, $headers)) . "\n";
         $body = '';
-        foreach (array_chunk($recs, self::EXPORT_SUBRECORD_BATCH_SIZE) as $recordBatch) {
-            $subrecordsByRecord = $model->getSubrecordsByRecordIds(
-                array_map(static fn (object $record): int => (int) $record->id, $recordBatch)
-            );
-
-            foreach ($recordBatch as $rec) {
-                $updIds[] = (int) $rec->id;
-                $date = new \Joomla\CMS\Date\Date($rec->submitted, $tz);
-                $offset = $date->getOffsetFromGMT();
-                if ($offset > 0) {
-                    $date->add(new \DateInterval('PT' . $offset . 'S'));
-                } elseif ($offset < 0) {
-                    $date->sub(new \DateInterval('PT' . abs($offset) . 'S'));
-                }
-
-                $subValues = [];
-                foreach ($subrecordsByRecord[(int) $rec->id] ?? [] as $sub) {
-                    $k = md5(strip_tags((string) $sub->name));
-                    $subValues[$k][] = (string) $sub->value;
-                }
-
-                $cells = [
-                    $rec->id,
-                    $date->format('Y-m-d H:i:s', true),
-                    $rec->user_id,
-                    $rec->username,
-                    $rec->user_full_name,
-                    $rec->title,
-                    $rec->ip,
-                    $rec->browser,
-                    $rec->opsys,
-                    $rec->paypal_tx_id,
-                    $rec->paypal_payment_date,
-                    $rec->paypal_testaccount,
-                    $rec->paypal_download_tries,
-                    $rec->opted ?? '',
-                ];
-                $row = implode($delimiter, array_map($q, $cells));
-                foreach ($headKeys as $key => $name) {
-                    $val = isset($subValues[$key]) ? implode('|', $subValues[$key]) : '';
-                    $row .= $delimiter . $q($val);
-                }
-                $body .= $row . "\n";
-            }
+        foreach ($rows as $row) {
+            $body .= implode($delimiter, array_map($q, $row)) . "\n";
         }
 
         if ($updIds) {
-            $model->markExported($updIds);
+            $this->getRecordModel()->markExported($updIds);
         }
 
         $fileName = ($formName ? $formName . '-' : '') . 'ffexport-' . date('YmdHis') . '.csv';
@@ -384,6 +316,67 @@ class RecordsController extends BaseController
         $app->sendHeaders();
         echo "\xEF\xBB\xBF";
         echo $header . $body;
+        $app->close();
+    }
+
+    public function exportXlsx(): void
+    {
+        $this->checkToken();
+
+        $app = $this->app;
+        $input = $app->getInput();
+        $ids = $input->post->get('cid', [], 'array');
+        ArrayHelper::toInteger($ids);
+        $formSelection = $input->getInt('form_selection', 0);
+        [$formName, $headers, $rows, $updIds] = $this->buildTabularExport($ids, $formSelection);
+
+        VendorHelper::load();
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheetTitle = preg_replace('/[\\\\\\/:*?\[\]]/', '', (string) $formName) ?: Text::_('COM_BREEZINGFORMSNG_RECORDS_RECORDINFO');
+        $sheet->setTitle(mb_substr($sheetTitle, 0, 31));
+
+        foreach ($headers as $columnIndex => $header) {
+            $sheet->setCellValueExplicit(
+                Coordinate::stringFromColumnIndex($columnIndex + 1) . '1',
+                (string) $header,
+                DataType::TYPE_STRING,
+            );
+        }
+
+        foreach ($rows as $rowIndex => $row) {
+            foreach ($row as $columnIndex => $value) {
+                $sheet->setCellValueExplicit(
+                    Coordinate::stringFromColumnIndex($columnIndex + 1) . (string) ($rowIndex + 2),
+                    (string) $value,
+                    DataType::TYPE_STRING,
+                );
+            }
+        }
+
+        if ($headers) {
+            $lastColumn = Coordinate::stringFromColumnIndex(count($headers));
+            $sheet->getStyle('A1:' . $lastColumn . '1')->getFont()->setBold(true);
+            $sheet->freezePane('A2');
+            $sheet->setAutoFilter('A1:' . $lastColumn . (string) max(1, count($rows) + 1));
+        }
+
+        if ($updIds) {
+            $this->getRecordModel()->markExported($updIds);
+        }
+
+        $filePrefix = preg_replace('/[^A-Za-z0-9_.-]/', '_', (string) $formName);
+        $fileName = ($filePrefix ? $filePrefix . '-' : '') . 'ffexport-' . date('YmdHis') . '.xlsx';
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        $app->setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', true);
+        $app->setHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"', true);
+        $app->setHeader('Cache-Control', 'max-age=0', true);
+        $app->sendHeaders();
+        (new Xlsx($spreadsheet))->save('php://output');
+        $spreadsheet->disconnectWorksheets();
         $app->close();
     }
 
@@ -534,6 +527,92 @@ class RecordsController extends BaseController
     private function getTimezone(): \DateTimeZone
     {
         return new \DateTimeZone((string) $this->app->get('offset', 'UTC'));
+    }
+
+    /**
+     * Builds the shared data set used by the CSV and Excel exports.
+     *
+     * @return array{string, list<string>, list<list<string|int>>, list<int>}
+     */
+    private function buildTabularExport(array $ids, int $formSelection): array
+    {
+        $model = $this->getRecordModel();
+        $timezone = $this->getTimezone();
+        $db = $model->getDatabaseConnection();
+        $records = $this->fetchRecords($db, $ids, $formSelection);
+
+        if ($ids) {
+            $formIds = array_unique(array_map(static fn (object $record): int => (int) $record->form, $records));
+        } elseif ($formSelection) {
+            $formIds = [$formSelection];
+        } else {
+            $formIds = [];
+        }
+
+        $fieldKeys = [];
+        foreach ($this->fetchElementFields($db, $formIds) as $field) {
+            $key = md5(strip_tags((string) $field->name));
+            $fieldKeys[$key] ??= strip_tags((string) $field->name);
+        }
+
+        $headers = [
+            'id', 'submitted', 'user_id', 'username', 'user_full_name', 'bf_form_title', 'ip',
+            'browser', 'opsys', 'paypal_tx_id', 'paypal_payment_date', 'paypal_testaccount',
+            'paypal_download_tries', 'double_opt_in', ...array_values($fieldKeys),
+        ];
+        $rows = [];
+        $updateIds = [];
+
+        foreach (array_chunk($records, self::EXPORT_SUBRECORD_BATCH_SIZE) as $recordBatch) {
+            $subrecordsByRecord = $model->getSubrecordsByRecordIds(
+                array_map(static fn (object $record): int => (int) $record->id, $recordBatch)
+            );
+
+            foreach ($recordBatch as $record) {
+                $updateIds[] = (int) $record->id;
+                $date = new \Joomla\CMS\Date\Date($record->submitted, $timezone);
+                $offset = $date->getOffsetFromGMT();
+                if ($offset > 0) {
+                    $date->add(new \DateInterval('PT' . $offset . 'S'));
+                } elseif ($offset < 0) {
+                    $date->sub(new \DateInterval('PT' . abs($offset) . 'S'));
+                }
+
+                $subValues = [];
+                foreach ($subrecordsByRecord[(int) $record->id] ?? [] as $subrecord) {
+                    $key = md5(strip_tags((string) $subrecord->name));
+                    $subValues[$key][] = (string) $subrecord->value;
+                }
+
+                $row = [
+                    (int) $record->id,
+                    $date->format('Y-m-d H:i:s', true),
+                    (int) $record->user_id,
+                    (string) $record->username,
+                    (string) $record->user_full_name,
+                    (string) $record->title,
+                    (string) $record->ip,
+                    (string) $record->browser,
+                    (string) $record->opsys,
+                    (string) $record->paypal_tx_id,
+                    (string) $record->paypal_payment_date,
+                    (int) $record->paypal_testaccount,
+                    (int) $record->paypal_download_tries,
+                    (string) ($record->opted ?? ''),
+                ];
+                foreach ($fieldKeys as $key => $name) {
+                    $row[] = isset($subValues[$key]) ? implode('|', $subValues[$key]) : '';
+                }
+                $rows[] = $row;
+            }
+        }
+
+        return [
+            ($formSelection && $records) ? (string) ($records[0]->name ?? '') : '',
+            $headers,
+            $rows,
+            $updateIds,
+        ];
     }
 
     /**
