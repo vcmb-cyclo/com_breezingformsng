@@ -63,6 +63,7 @@ class HtmlView extends BaseHtmlView
         if ($layout === 'edit') {
             $this->prepareEditData($input);
             $this->prepareEditToolbar();
+            HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
         } elseif ($layout === 'csvimport') {
             $this->formSelection = $input->getInt('form_selection', 0);
             $this->prepareImportToolbar();
