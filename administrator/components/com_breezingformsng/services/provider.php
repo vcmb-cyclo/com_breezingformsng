@@ -8,6 +8,10 @@
 
 \defined('_JEXEC') or die;
 
+// Joomla loads this provider while installing the component, before its
+// extension namespace is registered with the autoloader.
+require_once __DIR__ . '/../src/Extension/BreezingFormsNGComponent.php';
+
 use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Component\Router\RouterFactoryInterface;
 use Joomla\CMS\Dispatcher\ComponentDispatcherFactoryInterface;
