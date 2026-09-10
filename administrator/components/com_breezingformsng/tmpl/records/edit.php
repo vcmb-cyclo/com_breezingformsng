@@ -53,6 +53,25 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
       <span class="badge bg-light text-dark border ms-2">
         <?= Text::_('COM_BREEZINGFORMSNG_ID'); ?> : <?= (int) $record->id; ?>
       </span>
+      <div class="d-flex gap-2 ms-auto">
+        <?php if ($this->prevRecordId !== null): ?>
+          <a class="btn btn-sm btn-outline-secondary"
+            href="<?= htmlspecialchars($recordUrl($this->prevRecordId), ENT_QUOTES, 'UTF-8'); ?>">
+            &laquo; <?= Text::_('JPREVIOUS'); ?>
+          </a>
+        <?php else: ?>
+          <span class="btn btn-sm btn-outline-secondary disabled">&laquo; <?= Text::_('JPREVIOUS'); ?></span>
+        <?php endif; ?>
+
+        <?php if ($this->nextRecordId !== null): ?>
+          <a class="btn btn-sm btn-outline-secondary"
+            href="<?= htmlspecialchars($recordUrl($this->nextRecordId), ENT_QUOTES, 'UTF-8'); ?>">
+            <?= Text::_('JNEXT'); ?> &raquo;
+          </a>
+        <?php else: ?>
+          <span class="btn btn-sm btn-outline-secondary disabled"><?= Text::_('JNEXT'); ?> &raquo;</span>
+        <?php endif; ?>
+      </div>
     </div>
     <div class="card-body py-2">
       <div>
