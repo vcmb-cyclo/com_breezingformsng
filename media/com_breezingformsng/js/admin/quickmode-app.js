@@ -2,6 +2,7 @@
 // Requires: BFQMConfig (inline), BFQMElements (quickmode-elements.js)
 /* global BFQMConfig, BFQMElements, JQuery, Joomla, bootstrap */
 import { JoomlaEditor } from 'editor-api';
+import { QuickmodeTreeModel } from './quickmode-tree-model.js';
 
 (function () {
     'use strict';
@@ -32,6 +33,7 @@ import { JoomlaEditor } from 'editor-api';
                 this.elementScripts = BFQMConfig.elementScripts;
                 this.dataObject = BFQMConfig.dataObject;
                 this.quickModeIconBase = BFQMConfig.iconBase;
+                this.treeModel = new QuickmodeTreeModel(this.dataObject);
 
                 this.normalizeQuickModeIcons = function (item) {
                     if (!item) {
@@ -62,172 +64,76 @@ import { JoomlaEditor } from 'editor-api';
                  Helper methods
                  */
                 this.getNodeClass = function (node) {
-                    if (JQuery(node).attr('class')) {
-                        var splitted = JQuery(appScope.selectedTreeElement).attr('class').split(' ');
-                        if (splitted.length != 0) {
-                            return splitted[0];
-                        }
-                    }
-                    return '';
+                    var item = node && node.attributes
+                        ? node
+                        : appScope.treeModel.find(JQuery(node).attr('id'));
+
+                    return appScope.treeModel.getNodeClass(item).split(' ')[0] || '';
                 };
 
                 this.setProperties = function (node, props) {
-                    var item = this.findDataObjectItem(JQuery(node).attr('id'), appScope.dataObject);
-                    item.properties = props;
+                    var item = appScope.treeModel.find(JQuery(node).attr('id'));
+
+                    if (item) {
+                        item.properties = props;
+                    }
                 };
 
                 this.getProperties = function (node) {
+                    var item = node && node.attributes
+                        ? node
+                        : appScope.treeModel.find(JQuery(node).attr('id'));
 
-                    var item = this.findDataObjectItem(JQuery(node).attr('id'), appScope.dataObject)
-                    return item.properties;
+                    return item && item.properties ? item.properties : null;
                 };
 
                 /**
                  searches for the id in a given object item.
                  */
                 this.findDataObjectItem = function (id, startObj) {
-                    if (id && startObj && startObj.attributes && startObj.attributes.id) {
-                        if (startObj.attributes.id == id) {
-                            return startObj;
-                        } else {
-                            if (startObj.children) {
-                                var child = null;
-                                for (var i = 0; i < startObj.children.length; i++) {
-                                    child = appScope.findDataObjectItem(id, startObj.children[i]);
-                                    if (child) {
-                                        return child;
-                                    }
-                                }
-                            }
-                        }
-                        return null;
-                    }
-                    return null;
+                    return appScope.treeModel.find(id, startObj || appScope.dataObject);
                 };
 
                 this.getItemsFlattened = function (startObj, arr) {
-                    if (startObj && startObj.properties && startObj.properties.type == 'element') {
-                        arr.push(startObj);
-
-                    }
-                    if (startObj.children) {
-                        var child = null;
-                        for (var i = 0; i < startObj.children.length; i++) {
-                            appScope.getItemsFlattened(startObj.children[i], arr);
-                        }
-                    }
+                    appScope.treeModel.getElements(startObj || appScope.dataObject, arr);
                 };
 
                 this.replaceDataObjectItem = function (id, replacement, startObj) {
-                    if (id && startObj && startObj.attributes && startObj.attributes.id) {
-                        if (startObj.children) {
-                            var child = null;
-                            for (var i = 0; i < startObj.children.length; i++) {
-                                if (startObj.children[i].attributes.id == id) {
-                                    startObj.children[i] = replacement;
-                                    break;
-                                }
-                                appScope.replaceDataObjectItem(id, replacement, startObj.children[i]);
-                            }
-                        }
-                    }
-                }
+                    return appScope.treeModel.replace(id, replacement);
+                };
 
                 /**
                  searches for the id in a given object item and deletes it.
                  returns the deleted child.
                  */
                 this.deleteDataObjectItem = function (id, startObj, previous) {
-                    if (id && startObj && startObj.attributes && startObj.attributes.id) {
-                        if (startObj.attributes.id == id) {
-                            if (previous) {
-                                var newChildren = new Array();
-                                for (var j = 0; j < previous.children.length; j++) {
-                                    if (previous.children[j].attributes.id != startObj.attributes.id) {
-                                        newChildren.push(previous.children[j]);
-                                    }
-                                }
-                                previous.children = newChildren;
-                            }
-                            return startObj;
-                        } else {
-                            if (startObj.children) {
-                                var child = null;
-                                for (var i = 0; i < startObj.children.length; i++) {
-                                    child = appScope.deleteDataObjectItem(id, startObj.children[i], startObj);
-                                    if (child) {
-                                        return child;
-                                    }
-                                }
-                            }
-                        }
-                        return null;
-                    }
-                    return null;
+                    var result = appScope.treeModel.remove(id);
+
+                    return result ? result.node : null;
                 };
 
                 this.moveDataObjectItem = function (sourceId, targetId, index, obj) {
-                    var source = appScope.deleteDataObjectItem(sourceId, obj);
-                    var target = appScope.findDataObjectItem(targetId, obj);
-                    if (target && !target.children && (target.attributes['class'] == 'bfQuickModePageClass' || target.attributes['class'] == 'bfQuickModeSectionClass' || target.attributes['class'] == 'bfQuickModeRootClass')) {
-                        target.children = new Array();
+                    var result = appScope.treeModel.move(sourceId, targetId, 'inside', index);
+
+                    if (result && appScope.treeModel.getNodeType(result.parent) === 'root') {
+                        appScope.treeModel.renumberPages(BFQMConfig.labels['COM_BREEZINGFORMSNG_PAGE']);
                     }
-                    if (target && target.children) {
-                        target.children.splice(index, 0, source);
-                        if (target.attributes['class'] == 'bfQuickModeRootClass') {
-                            for (var i = 0; i < target.children.length; i++) {
-                                var mdata = appScope.getProperties(JQuery('#' + target.children[i].attributes.id));
-                                if (mdata) {
-                                    if (target.children[i].attributes['class'] == 'bfQuickModePageClass') {
-                                        target.children[i].attributes.id = 'bfQuickModePage' + (i + 1);
-                                        target.children[i].data.title = BFQMConfig.labels['COM_BREEZINGFORMSNG_PAGE'] + (i + 1);
-                                        target.children[i].properties.pageNumber = i + 1;
-                                    }
-                                }
-                            }
-                        }
-                        return true;
-                    }
-                    return false;
+
+                    return Boolean(result);
                 };
 
                 this.insertElementInto = function (source, target) {
-                    if (target && target.children) {
-                        if (target.attributes['class'] == 'bfQuickModeSectionClass' || target.attributes['class'] == 'bfQuickModePageClass') {
-                            this.recreatedIds(source);
-                            target.children.push(source);
-                        }
+                    if (source && target) {
+                        appScope.treeModel.recreateIds(source);
+
+                        return Boolean(appScope.treeModel.insert(target.attributes.id, source));
                     }
+
+                    return false;
                 };
 
                 this.recreatedIds = function (startObj) {
-                    if (startObj && startObj.attributes && startObj.attributes.id) {
-                        if (startObj.attributes['class'] == 'bfQuickModeSectionClass') {
-                            type = 'bfQuickModeSection';
-                        } else {
-                            type = 'bfQuickMode';
-                        }
-                        var id = type + (Math.floor(Math.random() * 100000));
-                        startObj.attributes.id = id;
-                        if (startObj.attributes['class'] == 'bfQuickModeSectionClass') {
-                            startObj.properties.name = id;
-                        } else {
-                            startObj.properties.bfName = id;
-                            startObj.properties.dbId = 0;
-                        }
-                        startObj.properties.name = id;
-                        if (startObj.children) {
-                            var child = null;
-                            for (var i = 0; i < startObj.children.length; i++) {
-                                child = appScope.recreatedIds(startObj.children[i]);
-                                if (child) {
-                                    return child;
-                                }
-                            }
-                        }
-                        return null;
-                    }
-                    return null;
+                    return appScope.treeModel.recreateIds(startObj);
                 };
 
                 /**

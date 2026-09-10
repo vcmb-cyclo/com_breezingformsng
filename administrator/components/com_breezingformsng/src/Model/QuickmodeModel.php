@@ -104,7 +104,9 @@ class QuickmodeModel extends BaseDatabaseModel
         $this->db->setQuery($query);
         $list = $this->db->loadObjectList();
 
-        return count($list) === 1 ? (string) base64_decode($list[0]->template_code) : '';
+        return count($list) === 1
+            ? (string) base64_decode((string) ($list[0]->template_code ?? ''))
+            : '';
     }
 
     public function getElementScripts(): array

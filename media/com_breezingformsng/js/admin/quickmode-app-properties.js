@@ -1949,33 +1949,27 @@ import { JoomlaEditor } from 'editor-api';
 
         appScope.createTreeItem = function (obj) {
             if (appScope.selectedTreeElement) {
-                switch (appScope.getNodeClass(appScope.selectedTreeElement)) {
-                    case 'bfQuickModePageClass':
-                    case 'bfQuickModeSectionClass':
-                        if (obj.attributes['class'] != 'bfQuickModePageClass') {
-                            var item = appScope.findDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), appScope.dataObject);
-                            if (item) {
-                                if (item.children) {
-                                    item.children[item.children.length] = obj;
-                                } else {
-                                    alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_NO_CHILDREN_ERROR']);
-                                }
-                            }
-                        } else {
-                            alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_NEW_SECTION_ERROR']);
+                var selectedId = JQuery(appScope.selectedTreeElement).attr('id');
+                var selected = appScope.treeModel.find(selectedId);
+                var inserted = false;
+
+                if (selected && appScope.treeModel.canContain(selected, obj)) {
+                    try {
+                        inserted = Boolean(appScope.treeModel.insert(selectedId, obj));
+
+                        if (appScope.treeModel.getNodeType(selected) === 'root') {
+                            appScope.treeModel.renumberPages(BFQMConfig.labels['COM_BREEZINGFORMSNG_PAGE']);
                         }
-                        break;
-                    case 'bfQuickModeRootClass':
-                        if (obj.attributes['class'] == 'bfQuickModePageClass' && appScope.dataObject && appScope.dataObject.children) {
-                            appScope.dataObject.children[appScope.dataObject.children.length] = obj;
-                        } else {
-                            alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_NEW_SECTION_ERROR']);
-                        }
-                        break;
-                    default:
+                    } catch (error) {
                         alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_NEW_SECTION_ERROR']);
+                    }
+                } else {
+                    alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_NEW_SECTION_ERROR']);
                 }
-                JQuery.tree_reference('bfElementExplorer').refresh();
+
+                if (inserted) {
+                    JQuery.tree_reference('bfElementExplorer').refresh();
+                }
             }
         };
 

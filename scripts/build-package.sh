@@ -33,6 +33,12 @@ done < <(
         script.php
 )
 
+build_timestamp="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+sed -i \
+    -e 's|<buildType>development</buildType>|<buildType>production</buildType>|' \
+    -e "s|<buildTimestamp></buildTimestamp>|<buildTimestamp>${build_timestamp}</buildTimestamp>|" \
+    "${package_dir}/com_breezingformsng.xml"
+
 # Install PHP dependencies (managed by Composer) into the package.
 # tecnickcom/tc-lib-barcode (a transitive dependency of TCPDF v7's
 # tc-lib-pdf) declares a hard ext-bcmath requirement. It only needs to be

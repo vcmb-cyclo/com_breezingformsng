@@ -39,6 +39,14 @@
     },
 
     {
+      "name": "com_breezingformsng.quickmode-tree-model",
+      "type": "script",
+      "uri": "media/com_breezingformsng/js/admin/quickmode-tree-model.js",
+      "attributes": {"type": "module"},
+      "version": "auto"
+    },
+
+    {
       "name": "com_breezingformsng.quickmode-elements",
       "type": "script",
       "uri": "media/com_breezingformsng/js/admin/quickmode-elements.js",
@@ -71,6 +79,7 @@
         "com_breezingformsng.quickmode-elements",
         "com_breezingformsng.quickmode-compat",
         "com_breezingformsng.quickmode-app-properties",
+        "com_breezingformsng.quickmode-tree-model",
         "com_breezingformsng.jtree",
         "bootstrap.tab",
         "com_breezingformsng.base64",

@@ -185,8 +185,16 @@ HTMLHelper::_('bootstrap.tab');
 
     <!-- TAB: NOTIFICATIONS EMAIL -->
     <div class="tab-pane fade" id="pane-email" role="tabpanel">
-
-      <h5 class="mt-2"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_ADMIN'); ?></h5>
+      <ul class="nav nav-tabs" id="<?= $tabId; ?>-email" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="tab-email-admin" data-bs-toggle="tab" data-bs-target="#pane-email-admin" type="button" role="tab" aria-controls="pane-email-admin" aria-selected="true"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_ADMIN'); ?></button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-email-user" data-bs-toggle="tab" data-bs-target="#pane-email-user" type="button" role="tab" aria-controls="pane-email-user" aria-selected="false"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_USER'); ?></button>
+        </li>
+      </ul>
+      <div class="tab-content pt-3">
+        <div class="tab-pane fade show active" id="pane-email-admin" role="tabpanel" aria-labelledby="tab-email-admin">
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAILNTF'); ?></label>
@@ -248,8 +256,8 @@ HTMLHelper::_('bootstrap.tab');
         </div>
       </div>
 
-      <hr>
-      <h5><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_USER'); ?></h5>
+        </div>
+        <div class="tab-pane fade" id="pane-email-user" role="tabpanel" aria-labelledby="tab-email-user">
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MB_EMAILNTF'); ?></label>
@@ -292,6 +300,8 @@ HTMLHelper::_('bootstrap.tab');
         </div>
       </div>
 
+        </div>
+      </div>
     </div><!-- /tab email -->
 
     <!-- TAB: SCRIPTS & PIÈCES -->

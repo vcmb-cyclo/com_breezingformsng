@@ -17,6 +17,8 @@
 	<authorEmail>bf@vcmb.fr</authorEmail>
 	<authorUrl>https://breezingforms-ng.vcmb.fr</authorUrl>
 	<version>6.1.0-RC05</version>
+	<buildType>development</buildType>
+	<buildTimestamp></buildTimestamp>
 	<description>COM_BREEZINGFORMSNG_XML_DESCRIPTION</description>
 
 	<namespace path="src">Vcmb\Component\BreezingformsNG</namespace>
