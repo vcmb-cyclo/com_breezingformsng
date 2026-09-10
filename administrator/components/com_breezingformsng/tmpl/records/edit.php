@@ -50,8 +50,8 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
   <div class="card mb-3">
     <div class="card-header d-flex align-items-center">
       <span><?= Text::_('COM_BREEZINGFORMSNG_RECORD_META'); ?></span>
-      <span class="badge text-bg-secondary ms-2">
-        <?= Text::_('COM_BREEZINGFORMSNG_RECORDS_RECORDID'); ?> #<?= (int) $record->id; ?>
+      <span class="badge bg-light text-dark border ms-2">
+        <?= Text::_('COM_BREEZINGFORMSNG_ID'); ?> : <?= (int) $record->id; ?>
       </span>
     </div>
     <div class="card-body py-2">
