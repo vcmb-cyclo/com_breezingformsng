@@ -25,6 +25,7 @@ $limit = $this->limit;
 $limitStart = $this->limitStart;
 $value = static fn(mixed $field): string => htmlspecialchars((string) ($field ?? ''), ENT_QUOTES, 'UTF-8');
 $yesNo = static fn(mixed $field): string => Text::_((bool) $field ? 'JYES' : 'JNO');
+$formEditorUrl = 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . (int) $record->form;
 $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $listOrder, $listDirn, $limit, $limitStart): string {
   $query = [
     'option'           => 'com_breezingformsng',
@@ -47,6 +48,63 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
 <form action="index.php?option=com_breezingformsng" method="post" name="adminForm" id="adminForm">
 
   <div class="card mb-3">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped mb-0">
+          <tbody>
+            <tr class="table-primary"><th colspan="2"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_META'); ?></th></tr>
+            <tr><th><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_RECORDID'); ?></th><td><?= (int) $record->id; ?></td></tr>
+            <tr><th><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_SUBMITTED'); ?></th><td><?= $submitted; ?></td></tr>
+            <tr>
+              <th><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_TITLE'); ?></th>
+              <td>
+                <a href="<?= htmlspecialchars($formEditorUrl, ENT_QUOTES, 'UTF-8'); ?>" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_OPEN_EDITOR'), ENT_QUOTES, 'UTF-8'); ?>">
+                  <?= $value($record->form_title); ?>
+                </a>
+                <div class="small text-muted"><?= $value($record->form_name); ?></div>
+              </td>
+            </tr>
+            <tr><th><?= Text::_('COM_BREEZINGFORMSNG_IP'); ?></th><td><?= $value($record->ip); ?></td></tr>
+            <tr><th><?= Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME'); ?></th><td><?= $value($record->username); ?></td></tr>
+            <tr><th><?= Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME'); ?></th><td><?= $value($record->user_full_name); ?></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex align-items-center mb-2">
+        <span
+          class="text-muted"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_RECORD_VALUES'), ENT_QUOTES, 'UTF-8'); ?>"
+          role="button"
+          aria-label="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_RECORD_VALUES'), ENT_QUOTES, 'UTF-8'); ?>">
+          <i class="fas fa-info-circle"></i>
+        </span>
+      </div>
+      <?php foreach ($this->recordRows as $row): ?>
+        <div class="row mb-3">
+          <label class="col-sm-3 col-form-label" for="element_<?= (int) $row['element_id']; ?>">
+            <strong><?= htmlspecialchars($row['title']); ?></strong>
+            <small class="text-muted">(<?= htmlspecialchars($row['name']); ?>)</small>
+          </label>
+          <div class="col-sm-9">
+            <textarea
+              id="element_<?= (int) $row['element_id']; ?>"
+              name="element[<?= (int) $row['element_id']; ?>]"
+              class="form-control"
+              rows="<?= (substr_count($row['value'], "\n") > 0) ? min(10, substr_count($row['value'], "\n") + 2) : 1; ?>"><?= htmlspecialchars($row['value']); ?></textarea>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-striped mb-0">
@@ -81,39 +139,9 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-body">
-      <div class="d-flex align-items-center mb-2">
-        <span
-          class="text-muted"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_RECORD_VALUES'), ENT_QUOTES, 'UTF-8'); ?>"
-          role="button"
-          aria-label="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_RECORD_VALUES'), ENT_QUOTES, 'UTF-8'); ?>">
-          <i class="fas fa-info-circle"></i>
-        </span>
-      </div>
-      <?php foreach ($this->recordRows as $row): ?>
-        <div class="row mb-3">
-          <label class="col-sm-3 col-form-label" for="element_<?= (int) $row['element_id']; ?>">
-            <strong><?= htmlspecialchars($row['title']); ?></strong>
-            <small class="text-muted">(<?= htmlspecialchars($row['name']); ?>)</small>
-          </label>
-          <div class="col-sm-9">
-            <textarea
-              id="element_<?= (int) $row['element_id']; ?>"
-              name="element[<?= (int) $row['element_id']; ?>]"
-              class="form-control"
-              rows="<?= (substr_count($row['value'], "\n") > 0) ? min(10, substr_count($row['value'], "\n") + 2) : 1; ?>"><?= htmlspecialchars($row['value']); ?></textarea>
-          </div>
-        </div>
-      <?php endforeach; ?>
-    </div>
-  </div>
-
   <input type="hidden" name="task" value="records.save">
   <input type="hidden" name="record_id" value="<?= (int) $record->id; ?>">
+  <input type="hidden" name="cid[]" value="<?= (int) $record->id; ?>">
   <input type="hidden" name="form_selection" value="<?= $formSelection; ?>">
   <input type="hidden" name="searchterm" value="<?= htmlspecialchars($searchTerm, ENT_QUOTES, 'UTF-8'); ?>">
   <input type="hidden" name="filter_order" value="<?= htmlspecialchars($listOrder, ENT_QUOTES, 'UTF-8'); ?>">
