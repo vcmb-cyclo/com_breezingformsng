@@ -66,8 +66,8 @@ jobs:
         working-directory: administrator/components/com_breezingformsng
         run: composer audit --locked --no-interaction
 
-  css-lint:
-    name: CSS checks
+  frontend-checks:
+    name: Frontend checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -78,7 +78,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
           cache: npm
 
       - name: Install CSS lint dependencies
@@ -86,6 +86,9 @@ jobs:
 
       - name: Lint CSS
         run: npm run lint:css
+
+      - name: Run JavaScript tests
+        run: npm run test:tree-model
 
   phpstan:
     name: PHPStan
@@ -179,7 +182,7 @@ jobs:
             --coverage-text
 
       - name: Enforce coverage threshold
-        run: php scripts/check-coverage.php coverage/clover.xml 0.05
+        run: php scripts/check-coverage.php coverage/clover.xml 29
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v7
@@ -190,7 +193,6 @@ jobs:
 
   package:
     name: Build and smoke-test package
-    needs: [lint, css-lint, phpstan, unit-tests]
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -227,7 +229,9 @@ jobs:
 
       - name: Build production package
         id: package
-        run: echo "archive=$(scripts/build-package.sh)" >> "$GITHUB_OUTPUT"
+        run: |
+          archive="$(scripts/build-package.sh)"
+          echo "archive=${archive}" >> "$GITHUB_OUTPUT"
 
       - name: Validate package contents
         run: scripts/validate-package.sh "${{ steps.package.outputs.archive }}"
@@ -245,7 +249,7 @@ jobs:
   release:
     name: Publish release
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: package
+    needs: [lint, frontend-checks, phpstan, unit-tests, package]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

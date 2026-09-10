@@ -13,13 +13,23 @@ web_container="bfng-smoke-web-${run_id}"
 container_archive="/tmp/com_breezingformsng.zip"
 
 cleanup() {
+    local exit_status=$?
+
+    if [[ "${exit_status}" -ne 0 ]]; then
+        echo "Smoke test failed - dumping container state for diagnosis:" >&2
+        docker ps -a --filter "name=${web_container}" --filter "name=${db_container}" >&2 || true
+        docker logs "${web_container}" >&2 || true
+        docker logs "${db_container}" >&2 || true
+    fi
+
     if [[ "${KEEP_SMOKE_CONTAINERS:-0}" == "1" ]]; then
         echo "Smoke containers kept: ${web_container}, ${db_container}; network: ${network}" >&2
-        return
+        return "${exit_status}"
     fi
 
     docker rm -f "${web_container}" "${db_container}" >/dev/null 2>&1 || true
     docker network rm "${network}" >/dev/null 2>&1 || true
+    return "${exit_status}"
 }
 trap cleanup EXIT
 
@@ -330,6 +340,16 @@ if [[ "${table_count}" -lt 14 ]]; then
     exit 1
 fi
 
+# A real submission must survive a package update, not only the schema.
+fixture_form_id="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "INSERT INTO \`${table_prefix}facileforms_forms\` (name, title, published) VALUES ('bfng-smoke-update-form', 'BFNG smoke update form', 1); SELECT LAST_INSERT_ID();"
+)"
+fixture_record_id="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "INSERT INTO \`${table_prefix}facileforms_records\` (submitted, form, title, name, browser) VALUES (UTC_TIMESTAMP(), ${fixture_form_id}, 'BFNG smoke update record', 'bfng-smoke-update-record', 'smoke'); SELECT LAST_INSERT_ID();"
+)"
+
 # Exercise the update path: installing the same package again over an
 # existing install must succeed without errors and leave the same tables
 # and registrations in place.
@@ -346,6 +366,16 @@ table_count_after_update="$(
 
 if [[ "${table_count_after_update}" -ne "${table_count}" ]]; then
     echo "Table count changed after re-running the installer as an update: ${table_count} -> ${table_count_after_update}." >&2
+    exit 1
+fi
+
+fixture_count_after_update="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "SELECT COUNT(*) FROM \`${table_prefix}facileforms_records\` WHERE id = ${fixture_record_id} AND form = ${fixture_form_id} AND name = 'bfng-smoke-update-record';"
+)"
+
+if [[ "${fixture_count_after_update}" -ne 1 ]]; then
+    echo "Record fixture was not preserved by the package update." >&2
     exit 1
 fi
 
@@ -382,6 +412,13 @@ docker exec "${web_container}" php -r '
     }
     require "/var/www/html/administrator/components/com_breezingformsng/src/Service/PdfDocument.php";
     if (!class_exists("\\Vcmb\\Component\\BreezingformsNG\\Administrator\\Service\\PdfDocument")) {
+        exit(1);
+    }
+    $pdf = new \Vcmb\Component\BreezingformsNG\Administrator\Service\PdfDocument();
+    $pdf->AddPage();
+    $pdf->Write(0, "BreezingForms NG smoke test");
+    $pdfOutput = $pdf->Output("", "S");
+    if (!str_starts_with($pdfOutput, "%PDF-")) {
         exit(1);
     }
     $captcha = new Securimage(["no_exit" => true, "send_headers" => false]);
