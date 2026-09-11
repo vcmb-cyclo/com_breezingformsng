@@ -193,6 +193,96 @@ class AboutController extends BaseController
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
     }
 
+    public function repairColumnCollations(): void
+    {
+        $this->checkToken();
+
+        try {
+            $this->getAuthorizedApplication();
+            $singleToken = trim((string) $this->input->post->getString('column_collation_issue', ''));
+            $selectedTokens = $singleToken !== ''
+                ? [$singleToken]
+                : array_values(array_filter(
+                    array_map(
+                        static fn($value): string => trim((string) $value),
+                        (array) $this->input->post->get('column_collation_issues', [], 'array')
+                    ),
+                    static fn(string $value): bool => $value !== ''
+                ));
+
+            if ($selectedTokens === []) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATION_NO_SELECTION'));
+            }
+
+            $summary = $this->getRepairService()->repairColumnCollations($selectedTokens);
+
+            if ((int) ($summary['selected_columns'] ?? 0) === 0) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATION_NO_SELECTION'));
+            }
+
+            $this->app->setUserState('com_breezingformsng.about.audit', $this->getAuditService()->run());
+            $failedColumns = (int) ($summary['failed_columns'] ?? 0);
+            $this->setMessage(Text::sprintf(
+                'COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATION_REPAIR_SUMMARY',
+                (int) ($summary['selected_columns'] ?? 0),
+                (int) ($summary['repaired_columns'] ?? 0),
+                $failedColumns
+            ), $failedColumns > 0 ? 'warning' : 'message');
+        } catch (\Throwable $exception) {
+            $this->setMessage(
+                Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATION_REPAIR_FAILED', $exception->getMessage()),
+                'error'
+            );
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+    }
+
+    public function repairTableCollations(): void
+    {
+        $this->checkToken();
+
+        try {
+            $this->getAuthorizedApplication();
+            $singleToken = trim((string) $this->input->post->getString('table_collation_issue', ''));
+            $selectedTokens = $singleToken !== ''
+                ? [$singleToken]
+                : array_values(array_filter(
+                    array_map(
+                        static fn($value): string => trim((string) $value),
+                        (array) $this->input->post->get('table_collation_issues', [], 'array')
+                    ),
+                    static fn(string $value): bool => $value !== ''
+                ));
+
+            if ($selectedTokens === []) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_COLLATION_NO_SELECTION'));
+            }
+
+            $summary = $this->getRepairService()->repairTableCollations($selectedTokens);
+
+            if ((int) ($summary['selected_tables'] ?? 0) === 0) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_COLLATION_NO_SELECTION'));
+            }
+
+            $this->app->setUserState('com_breezingformsng.about.audit', $this->getAuditService()->run());
+            $failedTables = (int) ($summary['failed_tables'] ?? 0);
+            $this->setMessage(Text::sprintf(
+                'COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_COLLATION_REPAIR_SUMMARY',
+                (int) ($summary['selected_tables'] ?? 0),
+                (int) ($summary['repaired_tables'] ?? 0),
+                $failedTables
+            ), $failedTables > 0 ? 'warning' : 'message');
+        } catch (\Throwable $exception) {
+            $this->setMessage(
+                Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_COLLATION_REPAIR_FAILED', $exception->getMessage()),
+                'error'
+            );
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+    }
+
     public function deleteStaleInstallerTemp(): void
     {
         $this->checkToken();

@@ -127,6 +127,10 @@ final class RecordsNavigationTest extends TestCase
         self::assertStringContainsString('name="limitstart"', $editTemplate);
         self::assertStringContainsString('$recordUrl($this->prevRecordId)', $editTemplate);
         self::assertStringContainsString('$recordUrl($this->nextRecordId)', $editTemplate);
+        self::assertStringContainsString('$record->browser', $editTemplate);
+        self::assertStringContainsString('$record->paypal_testaccount', $editTemplate);
+        self::assertStringContainsString('$record->paypal_download_tries', $editTemplate);
+        self::assertStringContainsString('$record->opted', $editTemplate);
     }
 
     private function model(RecordsNavigationDatabaseDouble $database): RecordsNavigationModelDouble

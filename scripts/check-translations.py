@@ -4,9 +4,8 @@
 Vérifie pour chaque répertoire ``language`` :
   - clefs dupliquées dans un même fichier .ini ;
   - lignes malformées (pas de ``=`` ou valeur non entourée de guillemets) ;
-  - parité des clefs entre les langues lorsque le fichier traduit existe.
-
-Un fichier fr-FR/de-DE absent est signalé en avertissement, pas en erreur.
+  - présence de chaque fichier dans les huit langues ;
+  - parité des clefs entre les langues.
 
 Usage: python3 scripts/check-translations.py
 """
@@ -40,7 +39,6 @@ def parse_ini(path):
 
 def main():
     errors = []
-    warnings = []
     for root, dirs, _files in os.walk('.'):
         dirs[:] = [d for d in dirs if d not in ('vendor', 'node_modules', '.git', 'build')]
         if os.path.basename(root) != 'language':
@@ -56,7 +54,7 @@ def main():
             for lang in LANGS[1:]:
                 path = os.path.join(root, lang, name)
                 if not os.path.isfile(path):
-                    warnings.append(f'{path}: traduction absente')
+                    errors.append(f'{path}: traduction absente')
                     continue
                 keys, lang_errors = parse_ini(path)
                 errors.extend(lang_errors)
@@ -65,8 +63,6 @@ def main():
                 for key in sorted(keys - en_keys):
                     errors.append(f'{path}: clef orpheline {key} (absente de en-GB)')
 
-    for warning in warnings:
-        print(f'::warning::{warning}')
     for error in errors:
         print(f'::error::{error}')
     if errors:

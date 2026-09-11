@@ -14,7 +14,10 @@ Joomla.submitbutton = function (task) {
 		}
 	}
 
-	if (__bfOpts.cancelTask && task !== __bfOpts.cancelTask && !form.reportValidity()) {
+	var shouldValidate = __bfOpts.validateTask
+		? task === __bfOpts.validateTask
+		: Boolean(__bfOpts.cancelTask) && task !== __bfOpts.cancelTask;
+	if (shouldValidate && !form.reportValidity()) {
 		return;
 	}
 

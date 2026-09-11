@@ -23,6 +23,8 @@ required=(
     "administrator/components/com_breezingformsng/vendor/bgli100/securimage/StorageAdapter/Session.php"
     "administrator/components/com_breezingformsng/vendor/autoload.php"
     "administrator/components/com_breezingformsng/vendor/tecnickcom/tcpdf/tcpdf.php"
+    "administrator/components/com_breezingformsng/vendor/tecnickcom/tc-lib-pdf-font/target/fonts/core/helvetica.json"
+    "administrator/components/com_breezingformsng/vendor/phpoffice/phpspreadsheet/src/PhpSpreadsheet/Spreadsheet.php"
     "components/com_breezingformsng/breezingformsng.php"
     "components/com_breezingformsng/src/Service/Rendering/QuickMode/QuickModeSubmittedValueHydrator.php"
     "media/com_breezingformsng/css/custom.css"

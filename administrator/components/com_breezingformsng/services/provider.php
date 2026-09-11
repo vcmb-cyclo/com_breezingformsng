@@ -8,6 +8,22 @@
 
 \defined('_JEXEC') or die;
 
+// Joomla loads this provider while installing the component, before its
+// extension namespaces are registered with the autoloader. On a normal
+// request the namespaces resolve already, so only register the fallback
+// paths when the component's own classes cannot be autoloaded yet.
+if (!class_exists('Vcmb\\Component\\BreezingformsNG\\Administrator\\Extension\\BreezingFormsNGComponent')) {
+    $packageRoot = dirname(__DIR__, 4);
+    \JLoader::registerNamespace(
+        'Vcmb\\Component\\BreezingformsNG\\Administrator',
+        dirname(__DIR__) . '/src',
+    );
+    \JLoader::registerNamespace(
+        'Vcmb\\Component\\BreezingformsNG\\Site',
+        $packageRoot . '/components/com_breezingformsng/src',
+    );
+}
+
 use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Component\Router\RouterFactoryInterface;
 use Joomla\CMS\Dispatcher\ComponentDispatcherFactoryInterface;

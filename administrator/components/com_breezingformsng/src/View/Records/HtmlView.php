@@ -63,6 +63,7 @@ class HtmlView extends BaseHtmlView
         if ($layout === 'edit') {
             $this->prepareEditData($input);
             $this->prepareEditToolbar();
+            HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
         } elseif ($layout === 'csvimport') {
             $this->formSelection = $input->getInt('form_selection', 0);
             $this->prepareImportToolbar();
@@ -231,6 +232,7 @@ class HtmlView extends BaseHtmlView
         $child = $exportDropdown->getChildToolbar();
         $child->standardButton('exportPdf')->text(Text::_('COM_BREEZINGFORMSNG_PDF'))->task('records.exportPdf')->icon('icon-download')->listCheck(false);
         $child->standardButton('exportCsv')->text(Text::_('COM_BREEZINGFORMSNG_CSV'))->task('records.exportCsv')->icon('icon-download')->listCheck(false);
+        $child->standardButton('exportXlsx')->text(Text::_('COM_BREEZINGFORMSNG_XLSX'))->task('records.exportXlsx')->icon('icon-download')->listCheck(false);
         $child->standardButton('exportXml')->text(Text::_('COM_BREEZINGFORMSNG_XML'))->task('records.exportXml')->icon('icon-download')->listCheck(false);
 
         ToolbarHelper::custom('records.csvImport', 'upload', 'upload', Text::_('COM_BREEZINGFORMSNG_BTN_IMPORT_CSV'), false);
@@ -297,6 +299,47 @@ class HtmlView extends BaseHtmlView
 
     private function prepareEditToolbar(): void
     {
+        /** @var HtmlDocument $document */
+        $document = $this->getDocument();
+        $toolbar = $document->getToolbar();
+
+        $exportDropdown = $toolbar->dropdownButton('export-options');
+
+        if (!$exportDropdown instanceof DropdownButton) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $exportDropdown->toggleSplit(false);
+        $exportDropdown
+            ->text(Text::_('COM_BREEZINGFORMSNG_EXPORT_DOWNLOAD'))
+            ->icon('icon-download')
+            ->buttonClass('btn btn-action');
+        $exportChild = $exportDropdown->getChildToolbar();
+        $exportChild->standardButton('exportPdf')->text(Text::_('COM_BREEZINGFORMSNG_PDF'))->task('records.exportPdf')->icon('icon-download')->listCheck(false);
+        $exportChild->standardButton('exportCsv')->text(Text::_('COM_BREEZINGFORMSNG_CSV'))->task('records.exportCsv')->icon('icon-download')->listCheck(false);
+        $exportChild->standardButton('exportXlsx')->text(Text::_('COM_BREEZINGFORMSNG_XLSX'))->task('records.exportXlsx')->icon('icon-download')->listCheck(false);
+        $exportChild->standardButton('exportXml')->text(Text::_('COM_BREEZINGFORMSNG_XML'))->task('records.exportXml')->icon('icon-download')->listCheck(false);
+
+        $markDropdown = $toolbar->dropdownButton('mark-options');
+
+        if (!$markDropdown instanceof DropdownButton) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $markDropdown->toggleSplit(false);
+        $markDropdown
+            ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK'))
+            ->icon('icon-check')
+            ->buttonClass('btn btn-action');
+        $markChild = $markDropdown->getChildToolbar();
+        $markChild->standardButton('markViewed')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_VIEWED'))->task('records.viewed')->icon('icon-eye-open')->listCheck(false);
+        $markChild->standardButton('unmarkViewed')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_VIEWED'))->task('records.unviewed')->icon('icon-eye-close')->listCheck(false);
+        $markChild->standardButton('markExported')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_EXPORTED'))->task('records.exported')->icon('icon-share')->listCheck(false);
+        $markChild->standardButton('unmarkExported')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_EXPORTED'))->task('records.unexported')->icon('icon-cancel-circle')->listCheck(false);
+        $markChild->standardButton('markArchived')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_ARCHIVED'))->task('records.archived')->icon('icon-archive')->listCheck(false);
+        $markChild->standardButton('unmarkArchived')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_ARCHIVED'))->task('records.unarchived')->icon('icon-out-2')->listCheck(false);
+
+        ToolbarHelper::custom('records.remove', 'delete', 'delete', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_DELETE'), false);
         ToolbarHelper::custom('records.save', 'save', 'save', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_SAVE'), false);
         ToolbarHelper::cancel('records.cancel', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_CANCEL'));
 
@@ -321,9 +364,18 @@ class HtmlView extends BaseHtmlView
         $document->addScriptOptions('com_breezingformsng.admin-form', [
             'cancelTask' => 'records.cancel',
             'saveTask'   => 'records.save',
+            'validateTask' => 'records.save',
+            'confirmDeleteTask' => 'records.remove',
+            'exportTasks' => ['records.exportPdf', 'records.exportCsv', 'records.exportXlsx', 'records.exportXml'],
+            'discardTasks' => [
+                'records.viewed', 'records.unviewed', 'records.exported',
+                'records.unexported', 'records.archived', 'records.unarchived',
+            ],
         ]);
+        Text::script('JGLOBAL_CONFIRM_DELETE');
         Text::script('COM_BREEZINGFORMSNG_TEST_NO_CHANGES');
         Text::script('COM_BREEZINGFORMSNG_CONFIRM_DISCARD_CHANGES');
+        Text::script('COM_BREEZINGFORMSNG_EXPORT_SAVE_FIRST');
     }
 
     private function prepareImportToolbar(): void

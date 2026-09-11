@@ -1680,6 +1680,12 @@ class com_breezingformsngInstallerScript
                 $checked++;
             }
 
+            $query = $db->getQuery(true)
+                ->delete($db->quoteName('#__menu'))
+                ->where($db->quoteName('client_id') . ' = 1')
+                ->where($db->quoteName('alias') . ' = ' . $db->quote('breezingformsng-import-export'));
+            $db->setQuery($query)->execute();
+
             $this->log('BFNG administration submenu entries checked: ' . $checked . ' item(s).');
         } catch (\Throwable $e) {
             $this->log('Unable to ensure BFNG administration submenu entries: ' . $e->getMessage(), Log::WARNING);
@@ -2085,6 +2091,19 @@ class com_breezingformsngInstallerScript
         if (isset($tables[$recordsTable])) {
             $columns = $tables[$recordsTable];
 
+            $recordAuditColumns = [
+                'modified'        => "DATETIME NULL DEFAULT NULL AFTER `submitted`",
+                'modified_by'     => "VARCHAR(255){$textCollationClause} NOT NULL DEFAULT '' AFTER `modified`",
+                'modified_user_id' => "INT(11) NOT NULL DEFAULT '0' AFTER `modified_by`",
+            ];
+
+            foreach ($recordAuditColumns as $col => $def) {
+                if (!isset($columns[$col])) {
+                    $db->setQuery("ALTER TABLE `{$recordsTable}` ADD `{$col}` {$def}")->execute();
+                    $this->log("Added column {$col} to facileforms_records.");
+                }
+            }
+
             $newColumns = [
                 'opted'     => "TINYINT(1) NOT NULL DEFAULT '0' AFTER `paypal_download_tries`",
                 'opt_ip'    => "VARCHAR(255) NOT NULL DEFAULT '' AFTER `opted`",
@@ -2427,7 +2446,9 @@ class com_breezingformsngInstallerScript
 
         if (in_array($type, ['install', 'update', 'discover_install'], true)) {
             $this->ensureUtf8mb4Columns();
-            $this->migrateLegacyConfig();
+            if ($type === 'update') {
+                $this->migrateLegacyConfig();
+            }
             $this->importStandardLibrary();
             $this->copyComponentImageAssets();
             $this->installPlugins();

@@ -45,8 +45,17 @@ function bfDirtySyncSaveButton(form) {
 Joomla.submitbutton = function (task) {
 	var form = document.getElementById('adminForm');
 
-	if (__bfOpts.cancelTask && task === __bfOpts.cancelTask && bfDirtyIsChanged(form)
+	var isDiscardTask = (__bfOpts.cancelTask && task === __bfOpts.cancelTask)
+		|| (Array.isArray(__bfOpts.discardTasks) && __bfOpts.discardTasks.indexOf(task) !== -1);
+	if (isDiscardTask && bfDirtyIsChanged(form)
 		&& !confirm(Joomla.Text._('COM_BREEZINGFORMSNG_CONFIRM_DISCARD_CHANGES'))) {
+		return false;
+	}
+
+	// Exports run against the persisted record, so unsaved edits would be
+	// silently left out - block the export until the form has been saved.
+	if (Array.isArray(__bfOpts.exportTasks) && __bfOpts.exportTasks.indexOf(task) !== -1 && bfDirtyIsChanged(form)) {
+		alert(Joomla.Text._('COM_BREEZINGFORMSNG_EXPORT_SAVE_FIRST'));
 		return false;
 	}
 
@@ -62,6 +71,10 @@ document.addEventListener('DOMContentLoaded', function () {
 	__bfDirtyInitialState = bfDirtyFormState(form);
 	form.addEventListener('breezingformsng:form-submit', function () {
 		__bfDirtySubmitting = true;
+		// A genuine save/cancel navigates away almost immediately; a file
+		// download (CSV/Excel/PDF/XML export) leaves the edit page open, so
+		// re-arm the unsaved-changes guard once the response has been served.
+		window.setTimeout(function () { __bfDirtySubmitting = false; }, 10000);
 	});
 	form.addEventListener('input', function () { bfDirtySyncSaveButton(form); });
 	form.addEventListener('change', function () { bfDirtySyncSaveButton(form); });

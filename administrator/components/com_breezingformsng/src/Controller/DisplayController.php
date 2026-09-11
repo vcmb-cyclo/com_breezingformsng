@@ -50,6 +50,10 @@ class DisplayController extends BaseController
             return parent::display($cachable, $urlparams);
         }
 
+        if ($task === '' && $view === 'packages') {
+            return parent::display($cachable, $urlparams);
+        }
+
         if ($task === '' && (
             $view === 'records'
             || in_array($act, ['managerecs', 'recordmanagement'], true)

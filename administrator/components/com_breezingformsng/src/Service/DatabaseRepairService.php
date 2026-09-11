@@ -35,6 +35,157 @@ final class DatabaseRepairService
         ]));
     }
 
+    public static function getColumnCollationSelectionToken(array $issue): string
+    {
+        return hash('sha256', implode("\0", [
+            trim((string) ($issue['table'] ?? '')),
+            trim((string) ($issue['column'] ?? '')),
+            trim((string) ($issue['charset'] ?? '')),
+            trim((string) ($issue['collation'] ?? '')),
+            trim((string) ($issue['expected_charset'] ?? '')),
+            trim((string) ($issue['expected'] ?? '')),
+        ]));
+    }
+
+    public static function getTableCollationSelectionToken(array $issue): string
+    {
+        return hash('sha256', implode("\0", [
+            trim((string) ($issue['table'] ?? '')),
+            trim((string) ($issue['collation'] ?? '')),
+            trim((string) ($issue['expected'] ?? '')),
+        ]));
+    }
+
+    /**
+     * @return array{selected_tables:int, repaired_tables:int, failed_tables:int, errors:array<int,string>}
+     */
+    public function repairTableCollations(array $selectedTokens): array
+    {
+        $selectedTokens = array_values(array_unique(array_filter(
+            array_map(static fn($value): string => trim((string) $value), $selectedTokens),
+            static fn(string $value): bool => $value !== ''
+        )));
+        $report = (new DatabaseAuditService($this->db, $this->temporaryPath))->run();
+        $selectedIssues = array_values(array_filter(
+            (array) ($report['collation_issues'] ?? []),
+            static fn(array $issue): bool => in_array(self::getTableCollationSelectionToken($issue), $selectedTokens, true)
+        ));
+        $errors = [];
+        $repairedTables = 0;
+
+        foreach ($selectedIssues as $issue) {
+            $tableAlias = trim((string) ($issue['table'] ?? ''));
+            $targetCollation = trim((string) ($issue['expected'] ?? ''));
+            $tableName = str_starts_with($tableAlias, '#__')
+                ? $this->db->getPrefix() . substr($tableAlias, 3)
+                : '';
+
+            try {
+                if ($tableName === '' || $targetCollation === '' || !in_array($tableName, $this->db->getTableList(), true)) {
+                    throw new \RuntimeException('Invalid table-collation audit entry.');
+                }
+
+                $this->db->setQuery(
+                    'ALTER TABLE ' . $this->db->quoteName($tableName)
+                    . ' CONVERT TO CHARACTER SET utf8mb4 COLLATE ' . $targetCollation
+                );
+                $this->db->execute();
+                $repairedTables++;
+            } catch (\Throwable $exception) {
+                $errors[] = $tableAlias . ': ' . $exception->getMessage();
+            }
+        }
+
+        return [
+            'selected_tables' => count($selectedIssues),
+            'repaired_tables' => $repairedTables,
+            'failed_tables' => count($errors),
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * Repair only column-collation issues selected from a fresh audit report.
+     *
+     * @return array{selected_columns:int, repaired_columns:int, failed_columns:int, errors:array<int,string>}
+     */
+    public function repairColumnCollations(array $selectedTokens): array
+    {
+        $selectedTokens = array_values(array_unique(array_filter(
+            array_map(static fn($value): string => trim((string) $value), $selectedTokens),
+            static fn(string $value): bool => $value !== ''
+        )));
+        $report = (new DatabaseAuditService($this->db, $this->temporaryPath))->run();
+        $issues = array_values((array) ($report['column_collation_issues'] ?? []));
+        $selectedIssues = array_values(array_filter(
+            $issues,
+            static fn(array $issue): bool => in_array(self::getColumnCollationSelectionToken($issue), $selectedTokens, true)
+        ));
+        $errors = [];
+        $repairedColumns = 0;
+
+        foreach ($selectedIssues as $issue) {
+            $tableAlias = trim((string) ($issue['table'] ?? ''));
+            $columnName = trim((string) ($issue['column'] ?? ''));
+            $targetCharset = trim((string) ($issue['expected_charset'] ?? ''));
+            $targetCollation = trim((string) ($issue['expected'] ?? ''));
+            $tableName = str_starts_with($tableAlias, '#__')
+                ? $this->db->getPrefix() . substr($tableAlias, 3)
+                : '';
+
+            try {
+                if ($tableName === '' || $columnName === '' || $targetCharset !== 'utf8mb4' || $targetCollation === '') {
+                    throw new \RuntimeException('Invalid column-collation audit entry.');
+                }
+
+                if (!in_array($tableName, $this->db->getTableList(), true)) {
+                    throw new \RuntimeException('Table not found.');
+                }
+
+                $this->db->setQuery(
+                    'SHOW FULL COLUMNS FROM ' . $this->db->quoteName($tableName)
+                    . ' WHERE Field = ' . $this->db->quote($columnName)
+                );
+                $definition = (array) ($this->db->loadAssoc() ?: []);
+                $type = trim((string) ($definition['Type'] ?? ''));
+
+                if ($type === '') {
+                    throw new \RuntimeException('Column not found.');
+                }
+
+                $sql = 'ALTER TABLE ' . $this->db->quoteName($tableName)
+                    . ' MODIFY COLUMN ' . $this->db->quoteName($columnName)
+                    . ' ' . $type
+                    . ' CHARACTER SET ' . $targetCharset
+                    . ' COLLATE ' . $targetCollation
+                    . ((string) ($definition['Null'] ?? '') === 'YES' ? ' NULL' : ' NOT NULL');
+
+                if (array_key_exists('Default', $definition) && $definition['Default'] !== null) {
+                    $sql .= ' DEFAULT ' . $this->db->quote((string) $definition['Default']);
+                } elseif ((string) ($definition['Null'] ?? '') === 'YES') {
+                    $sql .= ' DEFAULT NULL';
+                }
+
+                if ((string) ($definition['Comment'] ?? '') !== '') {
+                    $sql .= ' COMMENT ' . $this->db->quote((string) $definition['Comment']);
+                }
+
+                $this->db->setQuery($sql);
+                $this->db->execute();
+                $repairedColumns++;
+            } catch (\Throwable $exception) {
+                $errors[] = $tableAlias . '/' . $columnName . ': ' . $exception->getMessage();
+            }
+        }
+
+        return [
+            'selected_columns' => count($selectedIssues),
+            'repaired_columns' => $repairedColumns,
+            'failed_columns' => count($errors),
+            'errors' => $errors,
+        ];
+    }
+
     /**
      * Repair only duplicate-index groups selected from a fresh audit report.
      *

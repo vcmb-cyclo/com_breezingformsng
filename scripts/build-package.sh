@@ -33,17 +33,21 @@ done < <(
         script.php
 )
 
+build_timestamp="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+sed -i \
+    -e 's|<buildType>development</buildType>|<buildType>production</buildType>|' \
+    -e "s|<buildTimestamp></buildTimestamp>|<buildTimestamp>${build_timestamp}</buildTimestamp>|" \
+    "${package_dir}/com_breezingformsng.xml"
+
 # Install PHP dependencies (managed by Composer) into the package.
-# tecnickcom/tc-lib-barcode (a transitive dependency of TCPDF v7's
-# tc-lib-pdf) declares a hard ext-bcmath requirement. It only needs to be
-# present on the deployment target - not on the machine running this build
-# script - so skip Composer's platform check when it is absent locally.
-composer_platform_flags=()
-if ! php -m | grep -qi '^bcmath$'; then
-    composer_platform_flags+=(--ignore-platform-req=ext-bcmath)
-fi
+# Some dependencies declare hard PHP extension requirements: tecnickcom/
+# tc-lib-barcode (via TCPDF v7's tc-lib-pdf) needs ext-bcmath, and
+# phpoffice/phpspreadsheet needs ext-gd, ext-zip, ext-xml and friends.
+# Those only have to be present on the deployment target - not on the
+# machine running this build script - so skip the extension checks only
+# (ext-*), while still enforcing the PHP version requirement.
 composer install --no-dev --no-interaction --quiet \
-    "${composer_platform_flags[@]}" \
+    --ignore-platform-req='ext-*' \
     --working-dir="${package_dir}/administrator/components/com_breezingformsng"
 
 # TCPDF v7 ships its font engine (tecnickcom/tc-lib-pdf-font) without the

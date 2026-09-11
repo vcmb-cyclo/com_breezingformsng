@@ -93,7 +93,6 @@ class Renderer
 		?>
 		<?php
 		$document = $app->getDocument();
-		$document->getWebAssetManager()->useScript('com_breezingformsng.areautils');
 		$document->getWebAssetManager()->useScript('com_breezingformsng.pieces-edit');
 		$document->addScriptOptions('com_breezingformsng.pieces-edit', [
 			'initialState' => $initialState,
@@ -207,18 +206,9 @@ class Renderer
 						<?php
 						echo '<span><span title="' . htmlspecialchars($unitTestsHelp, ENT_QUOTES) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
 						?>
-						<a href="javascript:void(0);"
-							onClick="textAreaResize('unit_tests',<?php echo self::AREA_SMALL; ?>);">[
-							<?php echo self::AREA_SMALL; ?>]
-						</a>
-						<a href="javascript:void(0);"
-							onClick="textAreaResize('unit_tests',<?php echo self::AREA_MEDIUM; ?>);">[
-							<?php echo self::AREA_MEDIUM; ?>]
-						</a>
-						<a href="javascript:void(0);"
-							onClick="textAreaResize('unit_tests',<?php echo self::AREA_LARGE; ?>);">[
-							<?php echo self::AREA_LARGE; ?>]
-						</a>
+						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('unit_tests').rows = <?php echo self::AREA_SMALL; ?>;">[<?php echo self::AREA_SMALL; ?>]</button>
+						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('unit_tests').rows = <?php echo self::AREA_MEDIUM; ?>;">[<?php echo self::AREA_MEDIUM; ?>]</button>
+						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('unit_tests').rows = <?php echo self::AREA_LARGE; ?>;">[<?php echo self::AREA_LARGE; ?>]</button>
 						<br />
 						<textarea wrap="off" name="unit_tests" id="unit_tests" style="width:100%;" rows="8"
 							class="inputbox"><?php echo htmlspecialchars((string) $row->unit_tests, ENT_QUOTES); ?></textarea>

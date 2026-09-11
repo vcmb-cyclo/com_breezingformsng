@@ -122,7 +122,6 @@ class Renderer
 		?>
 		<?php
 		$document = $app->getDocument();
-		$document->getWebAssetManager()->useScript('com_breezingformsng.areautils');
 		$document->getWebAssetManager()->useScript('com_breezingformsng.scripts-edit');
 		$document->addScriptOptions('com_breezingformsng.scripts-edit', [
 			'initialState' => $initialState,
@@ -204,18 +203,9 @@ class Renderer
 						<?php
 						echo '<span><span title="' . HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPDESCRIPTION')) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
 						?>
-						<a href="javascript:void(0);"
-							onClick="textAreaResize('description',<?php echo self::AREA_SMALL; ?>);">[
-							<?php echo self::AREA_SMALL; ?>]
-						</a>
-						<a href="javascript:void(0);"
-							onClick="textAreaResize('description',<?php echo self::AREA_MEDIUM; ?>);">[
-							<?php echo self::AREA_MEDIUM; ?>]
-						</a>
-						<a href="javascript:void(0);"
-							onClick="textAreaResize('description',<?php echo self::AREA_LARGE; ?>);">[
-							<?php echo self::AREA_LARGE; ?>]
-						</a>
+						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('description').rows = <?php echo self::AREA_SMALL; ?>;">[<?php echo self::AREA_SMALL; ?>]</button>
+						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('description').rows = <?php echo self::AREA_MEDIUM; ?>;">[<?php echo self::AREA_MEDIUM; ?>]</button>
+						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('description').rows = <?php echo self::AREA_LARGE; ?>;">[<?php echo self::AREA_LARGE; ?>]</button>
 						<br />
 						<textarea wrap="off" name="description" id="description" style="width:100%;" rows="12"
 							class="inputbox"><?php echo $row->description; ?></textarea>
@@ -246,18 +236,9 @@ class Renderer
 						<?php
 						echo '<span><span title="' . htmlspecialchars($unitTestsHelp, ENT_QUOTES) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
 						?>
-						<a href="javascript:void(0);"
-							onClick="textAreaResize('unit_tests',<?php echo self::AREA_SMALL; ?>);">[
-							<?php echo self::AREA_SMALL; ?>]
-						</a>
-						<a href="javascript:void(0);"
-							onClick="textAreaResize('unit_tests',<?php echo self::AREA_MEDIUM; ?>);">[
-							<?php echo self::AREA_MEDIUM; ?>]
-						</a>
-						<a href="javascript:void(0);"
-							onClick="textAreaResize('unit_tests',<?php echo self::AREA_LARGE; ?>);">[
-							<?php echo self::AREA_LARGE; ?>]
-						</a>
+						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('unit_tests').rows = <?php echo self::AREA_SMALL; ?>;">[<?php echo self::AREA_SMALL; ?>]</button>
+						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('unit_tests').rows = <?php echo self::AREA_MEDIUM; ?>;">[<?php echo self::AREA_MEDIUM; ?>]</button>
+						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('unit_tests').rows = <?php echo self::AREA_LARGE; ?>;">[<?php echo self::AREA_LARGE; ?>]</button>
 						<br />
 						<textarea wrap="off" name="unit_tests" id="unit_tests" style="width:100%;" rows="8"
 							class="inputbox"><?php echo htmlspecialchars((string) $row->unit_tests, ENT_QUOTES); ?></textarea>

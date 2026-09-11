@@ -84,6 +84,12 @@
     border-bottom: 1px dashed var(--bs-border-color);
     padding-bottom: .75rem;
 }
+.bf-about-version-meta {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .4rem;
+}
 .bf-about-version-title {
     color: var(--bs-emphasis-color);
     font-weight: 700;

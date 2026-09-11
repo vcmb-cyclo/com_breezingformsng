@@ -224,6 +224,9 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_pieces` (
 CREATE TABLE IF NOT EXISTS `#__facileforms_records` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `submitted` datetime NOT NULL DEFAULT '1970-01-01 00:00:00',
+  `modified` datetime NULL DEFAULT NULL,
+  `modified_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `modified_user_id` int(11) NOT NULL DEFAULT '0',
   `form` int(11) NOT NULL DEFAULT '0',
   `title` varchar(255) NOT NULL DEFAULT '',
   `name` varchar(255) NOT NULL DEFAULT '',
