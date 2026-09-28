@@ -15,6 +15,7 @@ use Joomla\Filesystem\File;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 use Joomla\CMS\Installer\Installer;
 use Joomla\CMS\Language\Text;
 use Joomla\Filesystem\Folder;
@@ -556,6 +557,140 @@ class com_breezingformsngInstallerScript
         if (empty($failed)) {
             $message = 'BreezingForms utf8mb4 verification completed successfully.';
             $this->announce($message, 'message', Log::INFO);
+        }
+    }
+
+    /**
+     * Free-text form/element content authored before the NG migration -
+     * custom "thank you" redirect URLs, PayPal/Stripe/Sofortueberweisung
+     * return URLs, custom init/action/validation code - can hardcode
+     * `option=com_breezingforms`, the pre-NG component name. That
+     * component no longer exists, so any such stored link now 404s with
+     * "Composant introuvable". Rewrite it to `com_breezingformsng`
+     * wherever it appears, without touching content that already says
+     * `com_breezingformsng` (a blind str_replace('com_breezingforms',
+     * 'com_breezingformsng', ...) would double-migrate that to
+     * "com_breezingformsngng").
+     */
+    private function migrateLegacyComponentOptionReferences(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $prefix = $db->getPrefix();
+        $tables = self::getTableFields($db->getTableList());
+
+        $elementsTable = $prefix . 'facileforms_elements';
+        $formsTable = $prefix . 'facileforms_forms';
+
+        if (isset($tables[$elementsTable])) {
+            $this->migrateLegacyOptionInElements($db, $elementsTable);
+        }
+
+        if (isset($tables[$formsTable])) {
+            $this->migrateLegacyOptionInFormTrees($db, $formsTable);
+        }
+    }
+
+    private function migrateLegacyOptionInElements(DatabaseInterface $db, string $table): void
+    {
+        $columns = [
+            'data1', 'data2', 'data3',
+            'script1code', 'script2code', 'script3code', 'script3msg',
+            'mailbackfile',
+        ];
+
+        $query = $db->getQuery(true)
+            ->select(array_merge([$db->quoteName('id')], array_map([$db, 'quoteName'], $columns)))
+            ->from($db->quoteName($table));
+        $rows = (array) $db->setQuery($query)->loadAssocList();
+
+        $updatedRows = 0;
+
+        foreach ($rows as $row) {
+            $changes = [];
+
+            foreach ($columns as $column) {
+                $original = (string) ($row[$column] ?? '');
+
+                if ($original === '' || strpos($original, 'com_breezingforms') === false) {
+                    continue;
+                }
+
+                $rewritten = preg_replace('/com_breezingforms(?!ng)/', 'com_breezingformsng', $original);
+
+                if ($rewritten !== $original) {
+                    $changes[$column] = $rewritten;
+                }
+            }
+
+            if ($changes === []) {
+                continue;
+            }
+
+            $update = $db->getQuery(true)->update($db->quoteName($table));
+
+            foreach ($changes as $column => $value) {
+                $update->set($db->quoteName($column) . ' = :' . $column)
+                    ->bind(':' . $column, $changes[$column], ParameterType::STRING);
+            }
+
+            $id = (int) $row['id'];
+            $update->where($db->quoteName('id') . ' = :id')->bind(':id', $id, ParameterType::INTEGER);
+            $db->setQuery($update)->execute();
+            $updatedRows++;
+        }
+
+        if ($updatedRows > 0) {
+            $this->log(
+                "Rewrote legacy option=com_breezingforms references in {$updatedRows} facileforms_elements row(s)."
+            );
+        }
+    }
+
+    private function migrateLegacyOptionInFormTrees(DatabaseInterface $db, string $table): void
+    {
+        $query = $db->getQuery(true)
+            ->select([$db->quoteName('id'), $db->quoteName('template_code')])
+            ->from($db->quoteName($table));
+        $rows = (array) $db->setQuery($query)->loadAssocList();
+
+        $updatedRows = 0;
+
+        foreach ($rows as $row) {
+            $encoded = (string) ($row['template_code'] ?? '');
+
+            if ($encoded === '') {
+                continue;
+            }
+
+            $decoded = base64_decode($encoded, true);
+
+            if ($decoded === false || strpos($decoded, 'com_breezingforms') === false) {
+                continue;
+            }
+
+            $rewritten = preg_replace('/com_breezingforms(?!ng)/', 'com_breezingformsng', $decoded);
+
+            if ($rewritten === $decoded) {
+                continue;
+            }
+
+            $newEncoded = base64_encode($rewritten);
+            $id = (int) $row['id'];
+            $update = $db->getQuery(true)
+                ->update($db->quoteName($table))
+                ->set($db->quoteName('template_code') . ' = :templateCode')
+                ->bind(':templateCode', $newEncoded, ParameterType::STRING)
+                ->where($db->quoteName('id') . ' = :id')
+                ->bind(':id', $id, ParameterType::INTEGER);
+            $db->setQuery($update)->execute();
+            $updatedRows++;
+        }
+
+        if ($updatedRows > 0) {
+            $this->log(
+                "Rewrote legacy option=com_breezingforms references in "
+                . "{$updatedRows} facileforms_forms.template_code row(s)."
+            );
         }
     }
 
@@ -2205,6 +2340,7 @@ class com_breezingformsngInstallerScript
     {
         $this->log('Updating BreezingForms from version ' . $this->getCurrentInstalledVersion());
         $this->ensureUtf8mb4Columns();
+        $this->migrateLegacyComponentOptionReferences();
 
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $textCollationClause = $this->getTextCollationClause();

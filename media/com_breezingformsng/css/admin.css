@@ -358,3 +358,17 @@ overflow:hidden;width: 100%;
 
 /* Ensure right-side helper panels don't force the page to grow beyond viewport */
 .bf-sidebar, .bf-panel, .bfQuickModeRight { max-height: calc(100vh - 80px); overflow: auto; }
+
+/*
+ * Keep the toolbar (Save/Preview/Close) visible while scrolling a long
+ * QuickMode form. #subhead-container isn't ours to add a class to (it's
+ * rendered by the admin template - administrator/templates/atum/index.php),
+ * so this reproduces Bootstrap's own .sticky-top utility values (already
+ * shipped in Atum's compiled CSS) rather than inventing new ones, scoped to
+ * this view only via the body classes Atum already sets.
+ */
+body.com_breezingformsng.view-quickmode #subhead-container {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}

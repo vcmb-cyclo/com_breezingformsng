@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added a one-time update migration rewriting `option=com_breezingforms` (the pre-NG
+  component name, no longer installed) to `option=com_breezingformsng` wherever it's
+  hardcoded in free-text form/element content — Stripe/PayPal/Sofortueberweisung
+  "thank you" redirect URLs, custom init/action/validation code — so those stored links
+  don't 404 with "Composant introuvable" after migrating to NG.
 - Fixed a pre-existing crash on every QuickMode admin page load
   (`jQuery(...).offset() is undefined`) caused by a stale `#menutab .t` selector left
   over from an earlier Bootstrap 5 tabs migration; falls back to the window height
