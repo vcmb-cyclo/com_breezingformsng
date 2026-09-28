@@ -2,10 +2,11 @@
 
 ## Unreleased
 
-- Fixed two jQuery 3 compatibility bugs on the frontend: the form iframe autoheight script
+- Fixed jQuery 3 compatibility bugs on the frontend: the form iframe autoheight script
   referenced an undefined `JQuery` alias (`ReferenceError: JQuery is not defined`), and
-  QuickMode's radio/checkbox toggle fields called the removed jQuery `.size()` method
-  (`TypeError: JQuery(...).size is not a function`, now `.length`).
+  QuickMode's toggle fields, Flash upload queue counting, AJAX multi-page submission, and
+  progress bar all called the jQuery `.size()` method removed in jQuery 3
+  (`TypeError: JQuery(...).size is not a function`), now replaced with `.length`.
 - Fixed the utf8mb4 install/update conversion failing on legacy MyISAM tables or InnoDB
   tables using the old Antelope row format (`Specified key was too long; max key length
   is 1000 bytes`). Affected tables are now moved to `InnoDB`/`DYNAMIC` and their oversized
