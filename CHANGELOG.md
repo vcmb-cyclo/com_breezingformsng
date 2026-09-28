@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Fixed a crash when selecting a node in the admin QuickMode tree editor
+  (`TypeError: ...getNodeClass(...).split is not a function`), caused by a DOM element
+  being mistaken for a tree-model node because both expose an `.attributes` property.
+  Also removed a dead 2015-era Firefox workaround using two more removed jQuery APIs
+  (`.live()`, `.browser`) and replaced the remaining admin `.size()` calls with `.length`.
 - Fixed jQuery 3 compatibility bugs on the frontend: the form iframe autoheight script
   referenced an undefined `JQuery` alias (`ReferenceError: JQuery is not defined`), and
   QuickMode's toggle fields, Flash upload queue counting, AJAX multi-page submission, and
