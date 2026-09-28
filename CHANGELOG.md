@@ -8,7 +8,8 @@
 - Fixed a second, unrelated cause of the same false-positive badge: the Options tab's
   `jf_piece1code`-`jf_piece4code` CodeMirror editors aren't registered yet on the very
   first check after load, so their arrival one poll cycle later was read as an edit.
-  The baseline now waits for two consecutive polls to agree before freezing.
+  The baseline now waits for several consecutive stable polls (~3s of genuine quiet,
+  capped at ~10s) before freezing, since two absences in a row can also look "stable".
 - Extended the `option=com_breezingforms` migration below to also cover
   `facileforms_forms.template_areas` and `template_code_processed` - the compiled
   columns site-side payment callbacks actually read from at runtime, distinct from the
