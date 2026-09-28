@@ -6,6 +6,10 @@
   (`jQuery(...).offset() is undefined`) caused by a stale `#menutab .t` selector left
   over from an earlier Bootstrap 5 tabs migration; falls back to the window height
   instead of throwing.
+- Fixed the QuickMode properties panel (Type/Libellé/Nom, section, page and form
+  fields) staying empty after selecting any tree node, a regression from the jsTree 3
+  migration below: several save/populate functions read the selected node's id via a
+  jQuery DOM call that silently failed against the new node representation.
 - Migrated the admin QuickMode tree editor from jsTree 0.9.8 (2010, bundling its own
   private jQuery 1.3.2 clone that overwrote the shared `window.JQuery`/`$` globals) to
   jsTree 3.3.17, vendored under `libraries/jquery/jstree3/`. The persisted form JSON
