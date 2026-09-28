@@ -582,22 +582,35 @@ class com_breezingformsngInstallerScript
         $formsTable = $prefix . 'facileforms_forms';
 
         if (isset($tables[$elementsTable])) {
-            $this->migrateLegacyOptionInElements($db, $elementsTable);
+            $this->migrateLegacyOptionInPlainColumns(
+                $db,
+                $elementsTable,
+                ['data1', 'data2', 'data3', 'script1code', 'script2code', 'script3code', 'script3msg', 'mailbackfile']
+            );
         }
 
         if (isset($tables[$formsTable])) {
             $this->migrateLegacyOptionInFormTrees($db, $formsTable);
+            // template_areas is the *compiled*, plain-JSON copy of the QuickMode tree
+            // that site-side callbacks (e.g. StripeCallback::confirm() via
+            // PaymentFormLoader::decodeAreas()) actually read from at runtime -
+            // template_code (handled above) only feeds the admin QuickMode editor.
+            // template_code_processed is the classic (non-QuickMode) builder's
+            // equivalent compiled copy.
+            $this->migrateLegacyOptionInPlainColumns(
+                $db,
+                $formsTable,
+                ['template_areas', 'template_code_processed']
+            );
         }
     }
 
-    private function migrateLegacyOptionInElements(DatabaseInterface $db, string $table): void
+    /**
+     * Rewrites legacy option=com_breezingforms references found in a set of
+     * plain-text columns (i.e. not base64-encoded) of the given table.
+     */
+    private function migrateLegacyOptionInPlainColumns(DatabaseInterface $db, string $table, array $columns): void
     {
-        $columns = [
-            'data1', 'data2', 'data3',
-            'script1code', 'script2code', 'script3code', 'script3msg',
-            'mailbackfile',
-        ];
-
         $query = $db->getQuery(true)
             ->select(array_merge([$db->quoteName('id')], array_map([$db, 'quoteName'], $columns)))
             ->from($db->quoteName($table));
@@ -641,7 +654,7 @@ class com_breezingformsngInstallerScript
 
         if ($updatedRows > 0) {
             $this->log(
-                "Rewrote legacy option=com_breezingforms references in {$updatedRows} facileforms_elements row(s)."
+                "Rewrote legacy option=com_breezingforms references in {$updatedRows} {$table} row(s)."
             );
         }
     }

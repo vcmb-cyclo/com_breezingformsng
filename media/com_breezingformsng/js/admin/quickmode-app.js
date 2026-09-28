@@ -198,6 +198,8 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                     }
                 };
 
+                var treeReady = false;
+
                 JQuery('#bfElementExplorer').jstree({
                     core: {
                         data: [toJsTreeNode(appScope.dataObject)],
@@ -315,13 +317,31 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                                 break;
                         }
                     })
+                    .on('ready.jstree', function () {
+                        // jsTree fires open_node.jstree for every initially-expanded
+                        // node while building its own DOM on first render (state.opened
+                        // from toJsTreeNode()), not just on a real user click. Nodes
+                        // with no .state at all (never explicitly toggled) would then
+                        // gain a brand new "state":"open" key purely from that replay,
+                        // changing dataObject's JSON and falsely tripping the "unsaved
+                        // changes" badge (quickmode-form-dirty.js) on every page load.
+                        // Only start reacting to open/close once the initial render
+                        // (and its synthetic events) is done.
+                        treeReady = true;
+                    })
                     .on('open_node.jstree', function (e, data) {
+                        if (!treeReady) {
+                            return;
+                        }
                         var source = appScope.treeModel.find(data.node.id);
                         if (source) {
                             source.state = 'open';
                         }
                     })
                     .on('close_node.jstree', function (e, data) {
+                        if (!treeReady) {
+                            return;
+                        }
                         var source = appScope.treeModel.find(data.node.id);
                         if (source) {
                             source.state = 'close';
