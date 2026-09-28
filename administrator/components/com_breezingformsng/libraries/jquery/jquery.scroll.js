@@ -37,7 +37,13 @@ jQuery(function(){
 	
 	function getVariables(){
 		if(jQuery(window).width()>=767){
-			theHeight= jQuery(window).height()  - jQuery('#menutab .t').offset().top;
+			var tabBar = jQuery('#menutab .t');
+			// #menutab's tab bar no longer has a ".t" element since the
+			// Bootstrap 5 nav-tabs migration; fall back to the full window
+			// height instead of crashing on .offset() of an empty selection.
+			theHeight = tabBar.length
+				? jQuery(window).height() - tabBar.offset().top
+				: jQuery(window).height();
 		}else{
 			theHeight=400;
 		}
