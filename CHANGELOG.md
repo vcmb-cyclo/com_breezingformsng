@@ -5,6 +5,10 @@
 - Fixed a false-positive "unsaved changes" badge appearing on every QuickMode page
   load, caused by jsTree 3 replaying `open_node`/`close_node` events for already-open
   nodes during its own initial render, which the handlers mistook for real edits.
+- Fixed a second, unrelated cause of the same false-positive badge: the Options tab's
+  `jf_piece1code`-`jf_piece4code` CodeMirror editors aren't registered yet on the very
+  first check after load, so their arrival one poll cycle later was read as an edit.
+  The baseline now waits for two consecutive polls to agree before freezing.
 - Extended the `option=com_breezingforms` migration below to also cover
   `facileforms_forms.template_areas` and `template_code_processed` - the compiled
   columns site-side payment callbacks actually read from at runtime, distinct from the
