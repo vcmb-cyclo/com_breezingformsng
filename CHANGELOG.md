@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Fixed a false-positive "unsaved changes" badge appearing on every QuickMode page
+  load, caused by jsTree 3 replaying `open_node`/`close_node` events for already-open
+  nodes during its own initial render, which the handlers mistook for real edits.
+- Extended the `option=com_breezingforms` migration below to also cover
+  `facileforms_forms.template_areas` and `template_code_processed` - the compiled
+  columns site-side payment callbacks actually read from at runtime, distinct from the
+  `template_code` column the admin editor displays.
 - Added a one-time update migration rewriting `option=com_breezingforms` (the pre-NG
   component name, no longer installed) to `option=com_breezingformsng` wherever it's
   hardcoded in free-text form/element content — Stripe/PayPal/Sofortueberweisung
