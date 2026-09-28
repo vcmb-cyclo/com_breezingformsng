@@ -6,6 +6,16 @@
   when rendering a form from a module or a menu item, present in the 6.1.0-RC05 package.
   The frontend bootstrap now resolves the `EngineDispatcher` through the component's own
   `getEngineDispatcher()` accessor instead of a non-existent `getContainer()` call (#77).
+- Added XLSX export for records, with review-round fixes to the exported columns and formatting.
+- Fixed several record-management UI regressions: header navigation, record detail actions,
+  compact record detail header, record ID badge contrast, form title link in metadata, and
+  added system field tooltips.
+- Fixed bundled TCPDF core fonts not loading (fonts are now configured before the Composer
+  autoload runs), which affected generated PDF output.
+- Fixed component provider bootstrapping and namespace registration in the packaged build.
+- Fixed QuickMode dirty-state initialization and switched it to Joomla's native editor API.
+- Normalized the rendering page context type and added tooltips to record table columns.
+- Ported the audit repair controls and completed audit coverage for BreezingFormsNG.
 
 - Switched BreezingForms integration from legacy `com_contentbuilder` to `com_contentbuilderng`.
 - Updated BF site/admin flows to use ContentBuilder NG services for permissions, form resolution, record sync, article creation, and redirects.
