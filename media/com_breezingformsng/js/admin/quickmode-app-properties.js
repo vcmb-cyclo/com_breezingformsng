@@ -2086,7 +2086,7 @@ import { JoomlaEditor } from 'editor-api';
                     mdata.rollover = JQuery('#bfElementAdvancedRollover').attr('checked');
                     mdata.rolloverColor = JQuery('#bfElementAdvancedRolloverColor').val();
                     mdata.toggleFields = JQuery('#bfElementAdvancedToggleFields').val();
-                    var pagesSize = JQuery('#bfQuickModeRoot').children("ul").children("li").size();
+                    var pagesSize = JQuery('#bfQuickModeRoot').children("ul").children("li").length;
                     if (mdata.lastPageThankYou && pagesSize > 1) {
                         mdata.submittedScriptCondidtion = 2;
                         mdata.submittedScriptCode = 'function ff_' + mdata.name + '_submitted(status, message){if(status==0){ff_switchpage(' + pagesSize + ');}else{alert(message);}}';

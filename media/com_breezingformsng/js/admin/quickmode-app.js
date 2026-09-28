@@ -64,7 +64,11 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                  Helper methods
                  */
                 this.getNodeClass = function (node) {
-                    var item = node && node.attributes
+                    // A DOM element also has an `.attributes` property (its NamedNodeMap),
+                    // so that alone can't tell it apart from our own JSON tree node - only
+                    // a real DOM node has `.nodeType`. jTree's onselect() callback passes
+                    // the <li> DOM element, which must always be resolved through find().
+                    var item = node && node.attributes && !node.nodeType
                         ? node
                         : appScope.treeModel.find(JQuery(node).attr('id'));
 
@@ -80,7 +84,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                 };
 
                 this.getProperties = function (node) {
-                    var item = node && node.attributes
+                    var item = node && node.attributes && !node.nodeType
                         ? node
                         : appScope.treeModel.find(JQuery(node).attr('id'));
 
@@ -627,12 +631,12 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
 
                 JQuery('#bfNewPageButton').click(
                     function () {
-                        var pageNumber = JQuery('#bfQuickModeRoot').children("ul").children("li").size() == 0 ? 1 : JQuery('#bfQuickModeRoot').children("ul").children("li").size() + 1;
+                        var pageNumber = JQuery('#bfQuickModeRoot').children("ul").children("li").length == 0 ? 1 : JQuery('#bfQuickModeRoot').children("ul").children("li").length + 1;
                         var id = "bfQuickModePage" + pageNumber;
 
                         // taking care of thank you page if a new page is added
                         var item = appScope.findDataObjectItem('bfQuickModeRoot', appScope.dataObject);
-                        var pagesSize = JQuery('#bfQuickModeRoot').children("ul").children("li").size();
+                        var pagesSize = JQuery('#bfQuickModeRoot').children("ul").children("li").length;
                         if (item.properties.lastPageThankYou && pagesSize > 0) {
                             item.properties.submittedScriptCondidtion = 2;
                             item.properties.submittedScriptCode = 'function ff_' + item.properties.name + '_submitted(status, message){if(status==0){ff_switchpage(' + (pagesSize + 1) + ');}else{alert(message);}}';
@@ -665,21 +669,6 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
             }
 
             window.addEventListener('load', function () {
-
-                // works around a bug in Firefox 40.0 that prevents you from selecting anything in the editor
-                if (JQuery.browser.mozilla) {
-                    JQuery("option").live('click', function () {
-                        var options = JQuery(this).closest("select").get(0).options;
-                        for (var i = 0; i < options.length; i++) {
-                            if (options[i] == JQuery(this).get(0)) {
-                                JQuery(this).closest("select").get(0).selectedIndex = i;
-                                JQuery(this).closest("select").trigger('change');
-                                JQuery(this).closest("select").blur();
-                                break;
-                            }
-                        }
-                    });
-                }
 
                 app = new BF_QuickModeApp();
                 // Exposed read-only for quickmode-form-dirty.js's "unsaved changes"
