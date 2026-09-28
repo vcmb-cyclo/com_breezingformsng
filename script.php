@@ -372,6 +372,92 @@ class com_breezingformsngInstallerScript
         return $issues;
     }
 
+    /**
+     * Legacy BreezingForms installs can still carry MyISAM tables (1000-byte
+     * key limit) or InnoDB tables using the old Antelope row format
+     * (767-byte limit). A blind CONVERT TO CHARACTER SET utf8mb4 then fails
+     * on any single-column index over a varchar(255) column, since utf8mb4
+     * needs up to 4 bytes/char (255 * 4 = 1020 bytes). Move the table to
+     * InnoDB/DYNAMIC first, then shrink oversized index prefixes to 191
+     * characters (191 * 4 = 764 bytes), which fits under every limit above.
+     */
+    private function prepareTableForUtf8mb4Conversion(DatabaseInterface $db, string $tableName): void
+    {
+        $db->setQuery(
+            $db->getQuery(true)
+                ->select([$db->quoteName('ENGINE'), $db->quoteName('ROW_FORMAT')])
+                ->from($db->quoteName('information_schema.TABLES'))
+                ->where($db->quoteName('TABLE_SCHEMA') . ' = DATABASE()')
+                ->where($db->quoteName('TABLE_NAME') . ' = ' . $db->quote($tableName))
+        );
+        $tableInfo = (array) $db->loadAssoc();
+        $engine = strtoupper((string) ($tableInfo['ENGINE'] ?? ''));
+        $rowFormat = strtoupper((string) ($tableInfo['ROW_FORMAT'] ?? ''));
+
+        if ($engine !== 'INNODB' || !in_array($rowFormat, ['DYNAMIC', 'COMPRESSED'], true)) {
+            $db->setQuery(
+                'ALTER TABLE ' . $db->quoteName($tableName) . ' ENGINE=InnoDB, ROW_FORMAT=DYNAMIC'
+            )->execute();
+            $this->log('Moved table ' . $tableName . ' to ENGINE=InnoDB ROW_FORMAT=DYNAMIC before utf8mb4 conversion.');
+        }
+
+        $this->shrinkOversizedIndexes($db, $tableName);
+    }
+
+    private function shrinkOversizedIndexes(DatabaseInterface $db, string $tableName): void
+    {
+        $db->setQuery(
+            $db->getQuery(true)
+                ->select([
+                    $db->quoteName('s.INDEX_NAME'),
+                    $db->quoteName('s.COLUMN_NAME'),
+                    $db->quoteName('s.NON_UNIQUE'),
+                    $db->quoteName('c.CHARACTER_MAXIMUM_LENGTH'),
+                ])
+                ->from($db->quoteName('information_schema.STATISTICS', 's'))
+                ->join(
+                    'INNER',
+                    $db->quoteName('information_schema.COLUMNS', 'c') .
+                    ' ON ' . $db->quoteName('c.TABLE_SCHEMA') . ' = ' . $db->quoteName('s.TABLE_SCHEMA') .
+                    ' AND ' . $db->quoteName('c.TABLE_NAME') . ' = ' . $db->quoteName('s.TABLE_NAME') .
+                    ' AND ' . $db->quoteName('c.COLUMN_NAME') . ' = ' . $db->quoteName('s.COLUMN_NAME')
+                )
+                ->where($db->quoteName('s.TABLE_SCHEMA') . ' = DATABASE()')
+                ->where($db->quoteName('s.TABLE_NAME') . ' = ' . $db->quote($tableName))
+                ->where($db->quoteName('s.INDEX_NAME') . ' != ' . $db->quote('PRIMARY'))
+                ->where($db->quoteName('s.SEQ_IN_INDEX') . ' = 1')
+                ->where($db->quoteName('s.SUB_PART') . ' IS NULL')
+                ->where($db->quoteName('c.CHARACTER_MAXIMUM_LENGTH') . ' > 191')
+        );
+
+        $riskyIndexes = (array) $db->loadAssocList();
+
+        foreach ($riskyIndexes as $index) {
+            $indexName = (string) ($index['INDEX_NAME'] ?? '');
+            $columnName = (string) ($index['COLUMN_NAME'] ?? '');
+
+            if ($indexName === '' || $columnName === '') {
+                continue;
+            }
+
+            $unique = ((int) ($index['NON_UNIQUE'] ?? 1)) === 0;
+            $keyword = $unique ? 'UNIQUE KEY' : 'KEY';
+
+            $db->setQuery(
+                'ALTER TABLE ' . $db->quoteName($tableName) . ' DROP INDEX ' . $db->quoteName($indexName)
+            )->execute();
+            $db->setQuery(
+                'ALTER TABLE ' . $db->quoteName($tableName) . ' ADD ' . $keyword . ' ' .
+                $db->quoteName($indexName) . ' (' . $db->quoteName($columnName) . '(191))'
+            )->execute();
+
+            $this->log(
+                'Shrunk index ' . $indexName . ' on ' . $tableName . '.' . $columnName .
+                ' to a 191-character prefix to fit utf8mb4 key length limits.'
+            );
+        }
+    }
+
     private function ensureUtf8mb4Columns(): void
     {
         if ($this->utf8mb4CheckPerformed) {
@@ -406,6 +492,8 @@ class com_breezingformsngInstallerScript
 
         foreach ($issues as $tableName => $tableIssues) {
             try {
+                $this->prepareTableForUtf8mb4Conversion($db, $tableName);
+
                 $db->setQuery(
                     'ALTER TABLE ' . $db->quoteName($tableName) .
                     ' CONVERT TO CHARACTER SET utf8mb4 COLLATE ' . $this->utf8mb4Collation
