@@ -501,6 +501,13 @@ class com_breezingformsngInstallerScript
             return;
         }
 
+        // ENGINE=InnoDB conversion rebuilds the whole table and can outlast the
+        // default PHP execution time limit on large record tables; a timeout here
+        // is a fatal error that bypasses the per-table try/catch below.
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(300);
+        }
+
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $tables = $this->getBreezingFormsTables($db);
 
