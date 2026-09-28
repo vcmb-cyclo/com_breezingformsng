@@ -2174,6 +2174,9 @@ class com_breezingformsngInstallerScript
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/mailchimp',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/recaptcha',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/salesforce',
+            // jsTree 0.9.8 + its bundled jQuery 1.3.2 clone, replaced by the
+            // native jsTree 3.x vendored under libraries/jquery/jstree3.
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/jtree',
         ];
 
         foreach ($obsoleteDirectories as $directory) {

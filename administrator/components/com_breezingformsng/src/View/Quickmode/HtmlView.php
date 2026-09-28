@@ -134,11 +134,11 @@ class HtmlView extends BaseHtmlView
         $wa->useStyle('com_breezingformsng.tokens');
         $wa->useStyle('com_breezingformsng.bfng-admin');
         $wa->useStyle('com_breezingformsng.quickmode-style');
-        $wa->useStyle('com_breezingformsng.jtree-style');
+        $wa->useStyle('com_breezingformsng.jstree3-style');
         $wa->useStyle('com_breezingformsng.admin-style');
         $wa->useStyle('com_breezingformsng.custom-style');
         $wa->useScript('com_breezingformsng.jquery-alias');
-        $wa->useScript('com_breezingformsng.jtree');
+        $wa->useScript('com_breezingformsng.jstree3');
         $wa->useScript('bootstrap.tab');
         $wa->useScript('com_breezingformsng.base64');
         $wa->useScript('com_breezingformsng.center');

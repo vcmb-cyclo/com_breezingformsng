@@ -161,226 +161,178 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                     JQuery('#' + property).css('display', '');
                 };
 
-                JQuery('#bfElementExplorer').tree(
-                    {
-                        ui: {
-                            theme_name: "apple",
-                            theme_path: BFQMConfig.siteRootPath + '/administrator/components/com_breezingformsng/libraries/jquery/jtree/themes/',
-                            context: [
-                                {
-                                    id: 'copy',
-                                    label: 'Copy',
-                                    visible: function (NODE, TREE_OBJ) {
-                                        var source = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                        if (source.attributes['class'] == 'bfQuickModeSectionClass' || source.attributes['class'] == 'bfQuickModeElementClass') {
-                                            return true;
-                                        }
-                                        return false;
-                                    },
-                                    action: function (NODE, TREE_OBJ) {
-                                        var source = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                        if (source.attributes['class'] == 'bfQuickModeSectionClass' || source.attributes['class'] == 'bfQuickModeElementClass') {
-                                            if (source && source.attributes && source.attributes.id) {
-                                                appScope.copyTreeElement = source;
-                                            }
-                                        }
-                                    }
-                                },
-                                {
-                                    id: 'paste',
-                                    label: 'Paste',
-                                    visible: function (NODE, TREE_OBJ) {
-                                        if (appScope.copyTreeElement) {
-                                            var target = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                            if (target.attributes['class'] == 'bfQuickModeSectionClass' || target.attributes['class'] == 'bfQuickModePageClass') {
-                                                return true;
-                                            }
-                                            return false;
-                                        }
-                                        return false;
-                                    },
-                                    action: function (NODE, TREE_OBJ) {
-                                        if (appScope.copyTreeElement) {
-                                            var target = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                            if (target.attributes['class'] == 'bfQuickModeSectionClass' || target.attributes['class'] == 'bfQuickModePageClass') {
-                                                appScope.insertElementInto(clone_obj(appScope.copyTreeElement), target);
-                                                setTimeout("JQuery.tree_reference('bfElementExplorer').refresh()", 10); // give it time to close the context menu
-                                            }
-                                        }
-                                    }
-                                },
-                                {
-                                    id: "delete",
-                                    label: "Delete",
-                                    icon: "remove.png",
-                                    visible: function (NODE, TREE_OBJ) {
-                                        var ok = true;
-                                        JQuery.each(NODE, function () {
-                                            if (TREE_OBJ.check("deletable", this) == false)
-                                                ok = false;
-                                            return false;
-                                        });
-                                        return ok;
-                                    },
-                                    action: function (NODE, TREE_OBJ) {
-                                        JQuery.each(NODE, function () {
-                                            TREE_OBJ.remove(this);
-                                        });
-                                    }
-                                }
+                // --- jsTree 3.x adapter ---------------------------------------------
+                // appScope.treeModel / appScope.dataObject remain the single source of
+                // truth (same JSON shape persisted to the server - see saveButton()'s
+                // JQuery.base64Encode(JSON.stringify(app.dataObject)) below). jsTree only
+                // ever gets a freshly-converted, throw-away read-only view of that data;
+                // every mutation goes through the model first, then refreshTree() re-derives
+                // the view from it - mirroring the old jTree 0.9.8 tree.refresh() pattern.
+                function toJsTreeNode(node) {
+                    var type = appScope.treeModel.getNodeType(node) || 'default';
+                    var title = (node.data && node.data.title) || node.attributes.id;
 
-                            ]
+                    return {
+                        id: node.attributes.id,
+                        text: title,
+                        icon: (node.data && node.data.icon) || true,
+                        type: type,
+                        state: { opened: node.state !== 'close' },
+                        children: appScope.treeModel.getChildren(node).map(toJsTreeNode)
+                    };
+                }
 
-                        },
-                        selected: 'bfQuickModeRoot',
-                        callback: {
-                            onselect: function (node, obj) {
-                                // Auto-commit the previously selected node's currently
-                                // displayed field values into the in-memory tree before
-                                // switching away - populateXProperties() below overwrites
-                                // those same fields from the tree, so without this any
-                                // edit not yet pushed via the (now removed) inline "save"
-                                // buttons would silently be lost on every node change.
-                                // getNodeClass() reads appScope.selectedTreeElement itself
-                                // (ignoring its argument) - calling it here, before the
-                                // reassignment below, is what makes it resolve to the
-                                // outgoing node.
-                                if (appScope.selectedTreeElement && appScope.selectedTreeElement !== node) {
-                                    switch (appScope.getNodeClass(appScope.selectedTreeElement)) {
-                                        case 'bfQuickModeRootClass':
-                                            appScope.saveFormProperties();
-                                            break;
-                                        case 'bfQuickModeSectionClass':
-                                            appScope.saveSectionProperties();
-                                            break;
-                                        case 'bfQuickModeElementClass':
-                                            appScope.saveSelectedElementProperties();
-                                            break;
-                                        case 'bfQuickModePageClass':
-                                            appScope.savePageProperties();
-                                            break;
-                                    }
-                                }
+                appScope.refreshTree = function () {
+                    var instance = JQuery('#bfElementExplorer').jstree(true);
+                    if (instance) {
+                        instance.settings.core.data = [toJsTreeNode(appScope.dataObject)];
+                        instance.refresh();
+                    }
+                };
 
-                                appScope.selectedTreeElement = node;
-                                switch (appScope.getNodeClass(node)) {
-                                    case 'bfQuickModeRootClass':
-                                        appScope.toggleProperties('bfFormProperties');
-                                        appScope.toggleAdvanced('bfFormAdvanced');
-                                        appScope.populateFormProperties();
-                                        break;
-                                    case 'bfQuickModeSectionClass':
-                                        appScope.toggleProperties('bfSectionProperties');
-                                        appScope.toggleAdvanced('bfSectionAdvanced');
-                                        appScope.populateSectionProperties();
-                                        //JQuery('#bfAdvancedSaveButton').css('display','none');
-                                        //JQuery('#bfAdvancedSaveButtonTop').css('display','none');
-                                        break;
-                                    case 'bfQuickModeElementClass':
-                                        appScope.toggleProperties('bfElementProperties');
-                                        appScope.toggleAdvanced('bfElementAdvanced');
-                                        appScope.populateSelectedElementProperties();
-                                        break;
-                                    case 'bfQuickModePageClass':
-                                        appScope.toggleProperties('bfPageProperties');
-                                        appScope.toggleAdvanced('bfPageAdvanced');
-                                        appScope.populatePageProperties();
-                                        JQuery('#bfAdvancedSaveButton').css('display', 'none');
-                                        JQuery('#bfAdvancedSaveButtonTop').css('display', 'none');
-                                        break;
-                                }
-                            },
-                            onload: function (obj) {
+                appScope.selectTreeBranch = function (id) {
+                    var instance = JQuery('#bfElementExplorer').jstree(true);
+                    if (instance) {
+                        instance.deselect_all();
+                        instance.select_node(id);
+                    }
+                };
 
-                            },
-                            onopen: function (NODE, TREE_OBJ) {
-                                var source = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                source.state = 'open';
-                            },
-                            onclose: function (NODE, TREE_OBJ) {
-                                var source = appScope.findDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                source.state = 'close';
-                            },
-                            ondelete: function (NODE, TREE_OBJ, RB) {
-                                appScope.selectedTreeElement = null;
-                                appScope.deleteDataObjectItem(JQuery(NODE).attr('id'), appScope.dataObject);
-                                var target = appScope.findDataObjectItem(JQuery('#bfQuickModeRoot').attr('id'), appScope.dataObject);
-                                if (target && !target.children) {
-                                    target.children = new Array();
-                                }
-                                // restoring page numbers
-                                if (target && target.children) {
-                                    if (target.attributes['class'] == 'bfQuickModeRootClass') {
-                                        for (var i = 0; i < target.children.length; i++) {
-                                            if (target.children[i].attributes['class'] == 'bfQuickModePageClass') {
-                                                var mdata = appScope.getProperties(JQuery('#' + target.children[i].attributes.id));
-                                                if (mdata) {
-                                                    target.children[i].attributes.id = 'bfQuickModePage' + (i + 1);
-                                                    target.children[i].data.title = BFQMConfig.labels['COM_BREEZINGFORMSNG_PAGE'] + (i + 1);
-                                                    target.children[i].properties.pageNumber = i + 1;
-                                                }
-                                            }
-                                        }
-                                        // taking care of last page as thank you page
-                                        var pagesSize = target.children.length;
-                                        if (target.properties.lastPageThankYou && pagesSize > 1) {
-                                            target.properties.submittedScriptCondidtion = 2;
-                                            target.properties.submittedScriptCode = 'function ff_' + target.properties.name + '_submitted(status, message){if(status==0){ff_switchpage(' + pagesSize + ');}else{alert(message);}}';
-                                        } else {
-                                            target.properties.submittedScriptCondidtion = -1;
-                                        }
-                                    }
-                                }
-                                setTimeout("JQuery.tree_reference('bfElementExplorer').refresh()", 10); // give it time to close the context menu
-                            },
-                            onmove: function (NODE, REF_NODE, TYPE, TREE_OBJ, RB) {
-                                var parent = JQuery.tree_reference('bfElementExplorer').parent(NODE);
-                                if (!parent) {
-                                    parent = '#bfQuickModeRoot';
-                                }
-                                children = parent.children("ul").children("li");
-                                if (children && children.length && children.length > 0) {
-                                    for (var i = 0; i < children.length; i++) {
-                                        if (JQuery(NODE).attr('id') == children[i].id) {
-                                            appScope.moveDataObjectItem(JQuery(NODE).attr('id'), JQuery(parent).attr('id'), i, appScope.dataObject);
-                                            break;
-                                        }
-                                    }
-                                }
-                                JQuery.tree_reference('bfElementExplorer').refresh();
+                JQuery('#bfElementExplorer').jstree({
+                    core: {
+                        data: [toJsTreeNode(appScope.dataObject)],
+                        multiple: false,
+                        check_callback: function (operation, node, node_parent) {
+                            if (operation !== 'move_node') {
+                                return true;
                             }
-                        },
-                        rules: {
-                            metadata: 'mdata',
-                            use_inline: true,
-                            deletable: 'none',
-                            creatable: 'none',
-                            renameable: 'none',
 
-                            draggable: ['section', 'element', 'page'],
-                            dragrules: [
-                                'element inside section',
-                                'section inside section',
-                                'element inside page',
-                                'section inside page',
-                                'element after element',
-                                'element before element',
-                                'element after section',
-                                'element before section',
-                                'section after element',
-                                'section before element',
-                                'section after section',
-                                'section before section',
-                                'page before page',
-                                'page after page'
-                            ]
+                            var sourceItem = appScope.treeModel.find(node.id);
+                            var targetItem = appScope.treeModel.find(node_parent.id);
+
+                            return Boolean(sourceItem && targetItem && appScope.treeModel.canContain(targetItem, sourceItem));
                         },
-                        data: {
-                            type: "json",
-                            json: [appScope.dataObject]
+                        themes: { name: 'default', icons: true, dots: true }
+                    },
+                    types: {
+                        'default': {},
+                        root: {},
+                        page: {},
+                        section: {},
+                        element: {}
+                    },
+                    plugins: ['types', 'dnd', 'contextmenu'],
+                    contextmenu: {
+                        items: function (node) {
+                            var item = appScope.treeModel.find(node.id);
+                            var itemType = appScope.treeModel.getNodeType(item);
+                            var menuItems = {};
+
+                            if (itemType === 'section' || itemType === 'element') {
+                                menuItems.copy = {
+                                    label: 'Copy',
+                                    action: function () {
+                                        appScope.copyTreeElement = item;
+                                    }
+                                };
+                            }
+
+                            if (appScope.copyTreeElement && (itemType === 'section' || itemType === 'page')) {
+                                menuItems.paste = {
+                                    label: 'Paste',
+                                    action: function () {
+                                        appScope.insertElementInto(clone_obj(appScope.copyTreeElement), item);
+                                        appScope.refreshTree();
+                                    }
+                                };
+                            }
+
+                            if (itemType !== 'root') {
+                                menuItems.remove = {
+                                    label: 'Delete',
+                                    action: function () {
+                                        appScope.selectedTreeElement = null;
+                                        appScope.deleteDataObjectItem(node.id, appScope.dataObject);
+                                        appScope.treeModel.renumberPages(BFQMConfig.labels['COM_BREEZINGFORMSNG_PAGE']);
+                                        appScope.refreshTree();
+                                    }
+                                };
+                            }
+
+                            return menuItems;
                         }
                     }
-                );
+                })
+                    .on('select_node.jstree', function (e, data) {
+                        // Auto-commit the previously selected node's currently
+                        // displayed field values into the in-memory tree before
+                        // switching away - populateXProperties() below overwrites
+                        // those same fields from the tree, so without this any
+                        // edit not yet pushed via the (now removed) inline "save"
+                        // buttons would silently be lost on every node change.
+                        var node = appScope.treeModel.find(data.node.id);
+
+                        if (appScope.selectedTreeElement && appScope.selectedTreeElement !== node) {
+                            switch (appScope.getNodeClass(appScope.selectedTreeElement)) {
+                                case 'bfQuickModeRootClass':
+                                    appScope.saveFormProperties();
+                                    break;
+                                case 'bfQuickModeSectionClass':
+                                    appScope.saveSectionProperties();
+                                    break;
+                                case 'bfQuickModeElementClass':
+                                    appScope.saveSelectedElementProperties();
+                                    break;
+                                case 'bfQuickModePageClass':
+                                    appScope.savePageProperties();
+                                    break;
+                            }
+                        }
+
+                        appScope.selectedTreeElement = node;
+                        switch (appScope.getNodeClass(node)) {
+                            case 'bfQuickModeRootClass':
+                                appScope.toggleProperties('bfFormProperties');
+                                appScope.toggleAdvanced('bfFormAdvanced');
+                                appScope.populateFormProperties();
+                                break;
+                            case 'bfQuickModeSectionClass':
+                                appScope.toggleProperties('bfSectionProperties');
+                                appScope.toggleAdvanced('bfSectionAdvanced');
+                                appScope.populateSectionProperties();
+                                break;
+                            case 'bfQuickModeElementClass':
+                                appScope.toggleProperties('bfElementProperties');
+                                appScope.toggleAdvanced('bfElementAdvanced');
+                                appScope.populateSelectedElementProperties();
+                                break;
+                            case 'bfQuickModePageClass':
+                                appScope.toggleProperties('bfPageProperties');
+                                appScope.toggleAdvanced('bfPageAdvanced');
+                                appScope.populatePageProperties();
+                                JQuery('#bfAdvancedSaveButton').css('display', 'none');
+                                JQuery('#bfAdvancedSaveButtonTop').css('display', 'none');
+                                break;
+                        }
+                    })
+                    .on('open_node.jstree', function (e, data) {
+                        var source = appScope.treeModel.find(data.node.id);
+                        if (source) {
+                            source.state = 'open';
+                        }
+                    })
+                    .on('close_node.jstree', function (e, data) {
+                        var source = appScope.treeModel.find(data.node.id);
+                        if (source) {
+                            source.state = 'close';
+                        }
+                    })
+                    .on('move_node.jstree', function (e, data) {
+                        appScope.moveDataObjectItem(data.node.id, data.parent, data.position, appScope.dataObject);
+                        appScope.refreshTree();
+                    });
+
+                appScope.selectTreeBranch('bfQuickModeRoot');
 
                 this.saveButton = function () {
                     var error = false;
@@ -448,8 +400,8 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         }
                         if (!error) {
                             // TODO: remove the 2nd refresh if found out why this works only on the 2nd
-                            JQuery.tree_reference('bfElementExplorer').refresh();
-                            JQuery.tree_reference('bfElementExplorer').refresh();
+                            appScope.refreshTree();
+                            appScope.refreshTree();
 
                             JQuery(".bfFadingMessage").html(BFQMConfig.labels['COM_BREEZINGFORMSNG_SETTINGS_UPDATED']);
                             JQuery(".bfFadingMessage").fadeIn(1000);
@@ -483,7 +435,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                             children: []
                         };
                         appScope.createTreeItem(obj);
-                        JQuery.tree_reference('bfElementExplorer').select_branch(JQuery('#' + id));
+                        appScope.selectTreeBranch(id);
                     }
                 );
 
@@ -557,8 +509,8 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         }
                         if (obj) {
                             appScope.replaceDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), obj, appScope.dataObject);
-                            JQuery.tree_reference('bfElementExplorer').refresh();
-                            JQuery.tree_reference('bfElementExplorer').select_branch(JQuery('#' + id));
+                            appScope.refreshTree();
+                            appScope.selectTreeBranch(id);
                         }
                     }
                 );
@@ -625,7 +577,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         var id = "bfQuickMode" + (Math.floor(Math.random() * 10000000));
                         var obj = appScope.createTextfield(id);
                         appScope.createTreeItem(obj);
-                        JQuery.tree_reference('bfElementExplorer').select_branch(JQuery('#' + id));
+                        appScope.selectTreeBranch(id);
                     }
                 );
 
@@ -659,7 +611,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                             children: []
                         };
                         appScope.createTreeItem(obj);
-                        JQuery.tree_reference('bfElementExplorer').select_branch(JQuery('#' + id));
+                        appScope.selectTreeBranch(id);
                     }
                 );
 

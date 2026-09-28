@@ -176,11 +176,11 @@ final class QuickmodeHtml
             && (($decodedThemeObject['properties']['themebootstrapThemeEngine'] ?? '') === 'bootstrap')
             && (($decodedThemeObject['properties']['themebootstrap'] ?? '') === 'Azure');
         $wa->useStyle('com_breezingformsng.quickmode-style');
-        $wa->useStyle('com_breezingformsng.jtree-style');
+        $wa->useStyle('com_breezingformsng.jstree3-style');
         $wa->useStyle('com_breezingformsng.admin-style');
         $wa->useStyle('com_breezingformsng.custom-style');
         $wa->useScript('com_breezingformsng.jquery-alias');
-        $wa->useScript('com_breezingformsng.jtree');
+        $wa->useScript('com_breezingformsng.jstree3');
         $wa->useScript('bootstrap.tab');
         $wa->useScript('bootstrap.dropdown');
         $wa->useScript('com_breezingformsng.base64');

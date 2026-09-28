@@ -1968,7 +1968,7 @@ import { JoomlaEditor } from 'editor-api';
                 }
 
                 if (inserted) {
-                    JQuery.tree_reference('bfElementExplorer').refresh();
+                    appScope.refreshTree();
                 }
             }
         };
