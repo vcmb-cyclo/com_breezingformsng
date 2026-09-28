@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Migrated the admin QuickMode tree editor from jsTree 0.9.8 (2010, bundling its own
+  private jQuery 1.3.2 clone that overwrote the shared `window.JQuery`/`$` globals) to
+  jsTree 3.3.17, vendored under `libraries/jquery/jstree3/`. The persisted form JSON
+  format and `QuickmodeTreeModel` are unchanged; only the tree widget and its
+  init/context-menu/event wiring were ported. The obsolete `jtree/` bundle is removed
+  from the package and cleaned up on update.
 - Fixed a crash when selecting a node in the admin QuickMode tree editor
   (`TypeError: ...getNodeClass(...).split is not a function`), caused by a DOM element
   being mistaken for a tree-model node because both expose an `.attributes` property.
