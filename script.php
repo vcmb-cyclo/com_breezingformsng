@@ -410,8 +410,10 @@ class com_breezingformsngInstallerScript
             $db->getQuery(true)
                 ->select([
                     $db->quoteName('s.INDEX_NAME'),
+                    $db->quoteName('s.SEQ_IN_INDEX'),
                     $db->quoteName('s.COLUMN_NAME'),
                     $db->quoteName('s.NON_UNIQUE'),
+                    $db->quoteName('s.SUB_PART'),
                     $db->quoteName('c.CHARACTER_MAXIMUM_LENGTH'),
                 ])
                 ->from($db->quoteName('information_schema.STATISTICS', 's'))
@@ -425,35 +427,63 @@ class com_breezingformsngInstallerScript
                 ->where($db->quoteName('s.TABLE_SCHEMA') . ' = DATABASE()')
                 ->where($db->quoteName('s.TABLE_NAME') . ' = ' . $db->quote($tableName))
                 ->where($db->quoteName('s.INDEX_NAME') . ' != ' . $db->quote('PRIMARY'))
-                ->where($db->quoteName('s.SEQ_IN_INDEX') . ' = 1')
-                ->where($db->quoteName('s.SUB_PART') . ' IS NULL')
-                ->where($db->quoteName('c.CHARACTER_MAXIMUM_LENGTH') . ' > 191')
+                ->where($db->quoteName('s.INDEX_TYPE') . ' != ' . $db->quote('FULLTEXT'))
+                ->order([$db->quoteName('s.INDEX_NAME'), $db->quoteName('s.SEQ_IN_INDEX')])
         );
 
-        $riskyIndexes = (array) $db->loadAssocList();
+        $rows = (array) $db->loadAssocList();
+        $indexes = [];
 
-        foreach ($riskyIndexes as $index) {
-            $indexName = (string) ($index['INDEX_NAME'] ?? '');
-            $columnName = (string) ($index['COLUMN_NAME'] ?? '');
+        foreach ($rows as $row) {
+            $indexName = (string) ($row['INDEX_NAME'] ?? '');
+            $columnName = (string) ($row['COLUMN_NAME'] ?? '');
 
             if ($indexName === '' || $columnName === '') {
                 continue;
             }
 
-            $unique = ((int) ($index['NON_UNIQUE'] ?? 1)) === 0;
-            $keyword = $unique ? 'UNIQUE KEY' : 'KEY';
+            $indexes[$indexName]['unique'] = ((int) ($row['NON_UNIQUE'] ?? 1)) === 0;
+            $indexes[$indexName]['columns'][] = [
+                'name' => $columnName,
+                'subPart' => $row['SUB_PART'] !== null ? (int) $row['SUB_PART'] : null,
+                'maxLength' => $row['CHARACTER_MAXIMUM_LENGTH'] !== null
+                    ? (int) $row['CHARACTER_MAXIMUM_LENGTH']
+                    : null,
+            ];
+        }
+
+        foreach ($indexes as $indexName => $index) {
+            $needsShrinking = false;
+            $columnDefinitions = [];
+
+            foreach ($index['columns'] as $column) {
+                if ($column['subPart'] === null && $column['maxLength'] !== null && $column['maxLength'] > 191) {
+                    $needsShrinking = true;
+                    $columnDefinitions[] = $db->quoteName($column['name']) . '(191)';
+                } elseif ($column['subPart'] !== null) {
+                    $columnDefinitions[] = $db->quoteName($column['name']) . '(' . $column['subPart'] . ')';
+                } else {
+                    $columnDefinitions[] = $db->quoteName($column['name']);
+                }
+            }
+
+            if (!$needsShrinking) {
+                continue;
+            }
+
+            $keyword = $index['unique'] ? 'UNIQUE KEY' : 'KEY';
 
             $db->setQuery(
                 'ALTER TABLE ' . $db->quoteName($tableName) . ' DROP INDEX ' . $db->quoteName($indexName)
             )->execute();
             $db->setQuery(
                 'ALTER TABLE ' . $db->quoteName($tableName) . ' ADD ' . $keyword . ' ' .
-                $db->quoteName($indexName) . ' (' . $db->quoteName($columnName) . '(191))'
+                $db->quoteName($indexName) . ' (' . implode(',', $columnDefinitions) . ')'
             )->execute();
 
             $this->log(
-                'Shrunk index ' . $indexName . ' on ' . $tableName . '.' . $columnName .
-                ' to a 191-character prefix to fit utf8mb4 key length limits.'
+                'Shrunk index ' . $indexName . ' on ' . $tableName .
+                ' to fit utf8mb4 key length limits (191-character prefix on oversized text columns).'
             );
         }
     }
