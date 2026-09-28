@@ -13,9 +13,15 @@
 - Fixed bundled TCPDF core fonts not loading (fonts are now configured before the Composer
   autoload runs), which affected generated PDF output.
 - Fixed component provider bootstrapping and namespace registration in the packaged build.
+- Fixed the missing web asset registry declaration on the Scripts and Pieces admin views,
+  and isolated the piece test runner's global processor context so it no longer leaks
+  between test executions.
 - Fixed QuickMode dirty-state initialization and switched it to Joomla's native editor API.
 - Normalized the rendering page context type and added tooltips to record table columns.
 - Ported the audit repair controls and completed audit coverage for BreezingFormsNG.
+- Performance audit fixes: batched subrecord loading to remove an N+1 query pattern in
+  the records list/export, narrowed the Forms list query to its used columns, and
+  optimized the Package model and Records controller listing queries.
 
 - Switched BreezingForms integration from legacy `com_contentbuilder` to `com_contentbuilderng`.
 - Updated BF site/admin flows to use ContentBuilder NG services for permissions, form resolution, record sync, article creation, and redirects.
