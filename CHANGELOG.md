@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fixed the utf8mb4 install/update conversion failing on legacy MyISAM tables or InnoDB
+  tables using the old Antelope row format (`Specified key was too long; max key length
+  is 1000 bytes`). Affected tables are now moved to `InnoDB`/`DYNAMIC` and their oversized
+  single-column indexes shrunk to a 191-character prefix before the charset conversion runs.
 - Fixed a fatal error (`Call to undefined method BreezingFormsNGComponent::getContainer()`)
   when rendering a form from a module or a menu item, present in the 6.1.0-RC05 package.
   The frontend bootstrap now resolves the `EngineDispatcher` through the component's own
