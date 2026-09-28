@@ -384,7 +384,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                                 var items = new Array();
                                 appScope.getItemsFlattened(appScope.dataObject, items);
                                 for (var i = 0; i < items.length; i++) {
-                                    if (JQuery(appScope.selectedTreeElement).attr('id') != items[i].attributes.id && JQuery.trim(items[i].properties.bfName) == JQuery.trim(JQuery('#bfElementName').val())) {
+                                    if (appScope.selectedTreeElement.attributes.id != items[i].attributes.id && JQuery.trim(items[i].properties.bfName) == JQuery.trim(JQuery('#bfElementName').val())) {
                                         alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_NAME_EXISTS'] + " " + JQuery.trim(JQuery('#bfElementName').val()) + " (" + JQuery.trim(JQuery('#bfElementLabel').val()) + ")");
                                         error = true;
                                     }
@@ -508,7 +508,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                                 break;
                         }
                         if (obj) {
-                            appScope.replaceDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), obj, appScope.dataObject);
+                            appScope.replaceDataObjectItem(appScope.selectedTreeElement.attributes.id, obj, appScope.dataObject);
                             appScope.refreshTree();
                             appScope.selectTreeBranch(id);
                         }
