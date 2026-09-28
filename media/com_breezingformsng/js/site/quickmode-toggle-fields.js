@@ -99,7 +99,7 @@ function bfSetFieldValue(name, condition) {
             break;
           case "radio":
           case "checkbox":
-            var radioLength = element.size();
+            var radioLength = element.length;
             if (toggleFieldsArray[i].value == "!empty") {
               for (var j = 0; j < radioLength; j++) {
                 element.get(j).checked = false;
@@ -246,7 +246,7 @@ function bfRegisterToggleFields() {
             break;
           case "radio":
           case "checkbox": // needs revision
-            var radioLength = JQuery("[name=\"ff_nm_" + toggleField.sName + "[]\"]").size();
+            var radioLength = JQuery("[name=\"ff_nm_" + toggleField.sName + "[]\"]").length;
             for (var j = 0; j < radioLength; j++) {
               JQuery("#" + JQuery("[name=\"ff_nm_" + toggleField.sName + "[]\"]").get(j).id).off("click");
               JQuery("#" + JQuery("[name=\"ff_nm_" + toggleField.sName + "[]\"]").get(j).id).on("click",

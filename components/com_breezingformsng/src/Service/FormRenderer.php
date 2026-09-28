@@ -364,9 +364,9 @@ $ff_request = array();
                 $this->application->getDocument()->getWebAssetManager()->useScript('jquery');
                 RuntimeAssetLoader::script($this->application, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/jq.iframeautoheight.js');
                 $this->application->getDocument()->getWebAssetManager()->addInlineScript("<!--
-                            JQuery(document).ready(function() {
-                                //JQuery(\".breezingforms_iframe\").css(\"width\",\"100%\");
-                                JQuery(\".breezingforms_iframe\").iframeAutoHeight({heightOffset: 15, debug: false, diagnostics: false});
+                            jQuery(document).ready(function() {
+                                //jQuery(\".breezingforms_iframe\").css(\"width\",\"100%\");
+                                jQuery(\".breezingforms_iframe\").iframeAutoHeight({heightOffset: 15, debug: false, diagnostics: false});
                             });
                             //-->");
             }
