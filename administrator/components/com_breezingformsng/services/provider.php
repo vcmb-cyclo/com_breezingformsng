@@ -98,7 +98,6 @@ return new class implements ServiceProviderInterface
                     $application,
                     $container->get(DatabaseInterface::class),
                     $container->get(PaymentFormLoader::class),
-                    $container->get(PaymentRecordService::class),
                     $container->get(RedirectHelper::class),
                     $container->get(PaymentDownloadPolicy::class),
                 );
@@ -179,6 +178,7 @@ return new class implements ServiceProviderInterface
                     $application,
                     $container->get(DatabaseInterface::class),
                     $container->get(PaymentFormLoader::class),
+                    $container->get(PaymentRecordService::class),
                     $container->get(RedirectHelper::class),
                     $container->get(MailerFactoryInterface::class),
                     $container->get(PaymentDownloadService::class),
