@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Fixed a fatal error (`Call to undefined method BreezingFormsNGComponent::getContainer()`)
+  when rendering a form from a module or a menu item, present in the 6.1.0-RC05 package.
+  The frontend bootstrap now resolves the `EngineDispatcher` through the component's own
+  `getEngineDispatcher()` accessor instead of a non-existent `getContainer()` call (#77).
+
 - Switched BreezingForms integration from legacy `com_contentbuilder` to `com_contentbuilderng`.
 - Updated BF site/admin flows to use ContentBuilder NG services for permissions, form resolution, record sync, article creation, and redirects.
 - Changed BF direct access behavior so linked CBNG views are validated against the new CBNG ACL flow.
