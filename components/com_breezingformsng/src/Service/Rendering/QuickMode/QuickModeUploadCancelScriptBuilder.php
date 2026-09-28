@@ -48,7 +48,7 @@ final class QuickModeUploadCancelScriptBuilder
             '                                                                                        }' . $newline .
             '                                                                                        // re-enable button if there is none left' . $newline .
             '                                                                                        if( ' . $multiSelection . ' == false ){' . $newline .
-            "                                                                                            var the_size = JQuery('#bfFlashFileQueue" . $dbId . " .bfFileQueueItem').size();" . $newline .
+            "                                                                                            var the_size = JQuery('#bfFlashFileQueue" . $dbId . " .bfFileQueueItem').length;" . $newline .
             '                                                                                            if( the_size == 0 ){' . $newline .
             $reenableScript .
             '                                                                                            }' . $newline .

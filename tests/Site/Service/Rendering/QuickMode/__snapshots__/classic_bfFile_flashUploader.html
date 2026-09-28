@@ -146,7 +146,7 @@
                                                                                         }
                                                                                         // re-enable button if there is none left
                                                                                         if( false == false ){
-                                                                                            var the_size = JQuery('#bfFlashFileQueue62 .bfFileQueueItem').size();
+                                                                                            var the_size = JQuery('#bfFlashFileQueue62 .bfFileQueueItem').length;
                                                                                             if( the_size == 0 ){
                                                                                                 JQuery('#bfPickFiles62').css('display','block');
                                                                                                 JQuery('#bfPickFiles62holder').css('display','none');
@@ -182,7 +182,7 @@
                                                                         }
                                                                         // disable the button if no multi upload
                                                                         if( false == false ){
-                                                                            var the_size = JQuery('#bfFlashFileQueue62 .bfFileQueueItem').size();
+                                                                            var the_size = JQuery('#bfFlashFileQueue62 .bfFileQueueItem').length;
                                                                             if( the_size > 0 ){
                                                                                 JQuery('#bfPickFiles62').css('display','none');
                                                                                 JQuery('#bfPickFiles62holder').css('display','block');

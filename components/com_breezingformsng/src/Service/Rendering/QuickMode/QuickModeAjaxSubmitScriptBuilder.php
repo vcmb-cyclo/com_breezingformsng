@@ -60,7 +60,7 @@ final class QuickModeAjaxSubmitScriptBuilder
             . 'html());'
             . $newline .
             '                                    JQuery(cloned).remove();' . $newline .
-            '                                    ff_currentpage = JQuery(".bfPage").size() + 1;' . $newline .
+            '                                    ff_currentpage = JQuery(".bfPage").length + 1;' . $newline .
             '                                    var inst = JQuery("[data-remodal-id=modal]").remodal();' . $newline .
             '                                    inst.open();' . $newline .
             $newline .
@@ -68,7 +68,7 @@ final class QuickModeAjaxSubmitScriptBuilder
             '                                    alert(' . $successMessage . ');' . $newline .
             '                                    JQuery(".bfPage").css("pointer-events","auto");' . $newline .
             '                                    JQuery(".bfPage").css("opacity","1.0");' . $newline .
-            '                                    ff_currentpage = JQuery(".bfPage").size() + 1;' . $newline .
+            '                                    ff_currentpage = JQuery(".bfPage").length + 1;' . $newline .
             '                                    ladda_button.ladda("stop");' . $newline .
             '                                    if(typeof crbc_cart_url != "undefined"){' . $newline .
             '                                        location.href = crbc_cart_url;' . $newline .
