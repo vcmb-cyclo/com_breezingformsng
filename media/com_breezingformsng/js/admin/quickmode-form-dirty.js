@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // baseline at DOMContentLoaded would therefore record an empty tree and
     // mark the form as dirty as soon as the QuickMode app is initialized.
     var initialState = null;
+    var pendingState = null;
 
     function sync() {
         if (!window.BFQMApp) {
@@ -70,9 +71,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         var currentState = formState();
+
         if (initialState === null) {
-            initialState = currentState;
-            badge.hidden = true;
+            // Some of the Options tab's CodeMirror editors (jf_piece1code..
+            // jf_piece4code) aren't registered with JoomlaEditor yet on the
+            // very first tick right after load/bfqm:ready - editorValues()
+            // silently skips whatever isn't ready, so freezing the baseline
+            // immediately would record a smaller editor set than what's
+            // there moments later, and that late registration alone (not any
+            // real edit) would then look like a change forever after. Only
+            // freeze the baseline once two consecutive polls agree, i.e.
+            // once the editor set has actually settled.
+            if (pendingState !== null && pendingState === currentState) {
+                initialState = currentState;
+                badge.hidden = true;
+            }
+
+            pendingState = currentState;
+
             return;
         }
 
