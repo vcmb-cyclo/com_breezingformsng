@@ -474,12 +474,16 @@ class com_breezingformsngInstallerScript
 
             $keyword = $index['unique'] ? 'UNIQUE KEY' : 'KEY';
 
+            // A single multi-clause ALTER TABLE (rather than a separate DROP
+            // INDEX followed by its own ADD KEY) is one DDL operation: if the
+            // ADD half fails (e.g. a future UNIQUE KEY whose 191-char prefix
+            // collides between existing rows), the whole statement is
+            // rejected and the index is never dropped in the first place.
             $db->setQuery(
-                'ALTER TABLE ' . $db->quoteName($tableName) . ' DROP INDEX ' . $db->quoteName($indexName)
-            )->execute();
-            $db->setQuery(
-                'ALTER TABLE ' . $db->quoteName($tableName) . ' ADD ' . $keyword . ' ' .
-                $db->quoteName($indexName) . ' (' . implode(',', $columnDefinitions) . ')'
+                'ALTER TABLE ' . $db->quoteName($tableName)
+                . ' DROP INDEX ' . $db->quoteName($indexName)
+                . ', ADD ' . $keyword . ' ' . $db->quoteName($indexName)
+                . ' (' . implode(',', $columnDefinitions) . ')'
             )->execute();
 
             $this->log(
