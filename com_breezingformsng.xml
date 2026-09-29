@@ -74,7 +74,7 @@
 			<menu link="index.php?option=com_breezingformsng&amp;view=scripts">COM_BREEZINGFORMSNG_MANAGE_SCRIPTS</menu>
 			<menu link="index.php?option=com_breezingformsng&amp;view=pieces">COM_BREEZINGFORMSNG_MANAGE_PIECES</menu>
 			<menu link="index.php?option=com_breezingformsng&amp;view=integrator">COM_BREEZINGFORMSNG_INTEGRATOR</menu>
-			<menu link="index.php?option=com_config&amp;view=component&amp;component=com_breezingformsng">COM_BREEZINGFORMSNG_CONFIGURATION</menu>
+			<menu link="index.php?option=com_breezingformsng&amp;view=packages">COM_BREEZINGFORMSNG_CONFIGURATION</menu>
 			<menu link="index.php?option=com_breezingformsng&amp;task=about.display&amp;view=about">COM_BREEZINGFORMSNG_ABOUT</menu>
 		</submenu>
 

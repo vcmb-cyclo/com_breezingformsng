@@ -1908,7 +1908,7 @@ class com_breezingformsngInstallerScript
                 [
                     'COM_BREEZINGFORMSNG_CONFIGURATION',
                     'breezingformsng-configuration',
-                    'index.php?option=com_config&view=component&component=' . self::TARGET_COMPONENT,
+                    'view=packages',
                     [],
                 ],
                 ['COM_BREEZINGFORMSNG_ABOUT', 'breezingformsng-about', 'task=about.display&view=about', []],
@@ -1979,7 +1979,14 @@ class com_breezingformsngInstallerScript
             $query = $db->getQuery(true)
                 ->delete($db->quoteName('#__menu'))
                 ->where($db->quoteName('client_id') . ' = 1')
-                ->where($db->quoteName('alias') . ' = ' . $db->quote('breezingformsng-import-export'));
+                ->where(
+                    $db->quoteName('alias')
+                    . ' IN ('
+                    . $db->quote('breezingformsng-import-export')
+                    . ', '
+                    . $db->quote('breezingformsng-packages')
+                    . ')'
+                );
             $db->setQuery($query)->execute();
 
             $this->log('BFNG administration submenu entries checked: ' . $checked . ' item(s).');

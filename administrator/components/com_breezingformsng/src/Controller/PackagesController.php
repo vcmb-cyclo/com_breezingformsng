@@ -33,10 +33,19 @@ final class PackagesController extends BaseController
         $app = Factory::getApplication();
         $this->assertAuthorised();
         $this->checkToken();
-        $package = $app->getInput()->getString('package', '');
+        $input = $app->getInput();
+        $existingId = $input->getString('existing_id', '');
+        $package = $existingId !== '' ? $existingId : $input->getString('package', '');
 
         try {
-            $json = $this->model()->export($package);
+            $formIds = $input->get("forms", [], "array");
+            $scriptIds = $input->get("scripts", [], "array");
+            $pieceIds = $input->get("pieces", [], "array");
+            $menuIds = $input->get("menus", [], "array");
+            $metadata = $input->get('metadata', [], 'array');
+            $json = $existingId !== ''
+                ? $this->model()->export($package, $metadata)
+                : $this->model()->exportSelection($package, $formIds, $scriptIds, $pieceIds, $menuIds, $metadata);
             $fileName = 'breezingformsng-' . preg_replace('/[^A-Za-z0-9._-]/', '-', $package) . '.json';
             while (ob_get_level() > 0) {
                 ob_end_clean();
