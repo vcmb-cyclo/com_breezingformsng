@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Fixed the QuickMode properties panel/save button silently doing nothing right after
+  a form loads: the initial root selection raced jsTree 3's asynchronous data parsing
+  (`core.worker`), so `select_node()` could run before the node existed in jsTree's
+  model. The same race affected creating a page/section/element and changing an
+  element's type. Selection now always waits for `ready.jstree`/`refresh.jstree`.
+- Fixed a renamed element becoming unselectable and unreachable by its own context-menu
+  actions: the tree model's id index wasn't rebuilt after a rename, so subsequent
+  lookups by the new id returned nothing.
+- Extended the `option=com_breezingforms` migration to also run on a fresh
+  install/discover_install (not just update), and to cover `facileforms_forms`'s
+  script/piece code columns and `facileforms_scripts`/`facileforms_pieces.code`,
+  alongside the columns already covered.
 - Fixed a false-positive "unsaved changes" badge appearing on every QuickMode page
   load, caused by jsTree 3 replaying `open_node`/`close_node` events for already-open
   nodes during its own initial render, which the handlers mistook for real edits.
