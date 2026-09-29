@@ -48,6 +48,22 @@
   top: 0;
   right: 0;
 }
+/* .bfng-tree-toolbar__settings .dropdown-menu: wide enough that the two
+   switch labels stay on one line - Bootstrap's default .form-check-input
+   margin-top assumes a single-line label, so a wrapped label reads as
+   misaligned with its switch. min-width is the fix that holds at any
+   translation length; align-items covers whatever still wraps. */
+.bfng-tree-toolbar__settings .dropdown-menu {
+  min-width: 15rem;
+}
+.bfng-tree-toolbar__settings .form-check.form-switch {
+  display: flex;
+  align-items: center;
+}
+.bfng-tree-toolbar__settings .form-check.form-switch .form-check-input {
+  margin-top: 0;
+  flex-shrink: 0;
+}
 
 /* .bfng-message: replaces #bfSaveQueue's fixed-350px Verdana box and
    .bfFadingMessage's Bootstrap-3-green box (charte section 07). Both

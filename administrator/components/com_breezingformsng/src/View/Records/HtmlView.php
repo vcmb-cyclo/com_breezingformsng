@@ -366,7 +366,7 @@ class HtmlView extends BaseHtmlView
 
         ToolbarHelper::custom('records.remove', 'delete', 'delete', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_DELETE'), false);
         ToolbarHelper::custom('records.save', 'save', 'save', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_SAVE'), false);
-        ToolbarHelper::cancel('records.cancel', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_CANCEL'));
+        ToolbarHelper::cancel('records.cancel', 'JTOOLBAR_CLOSE');
 
         /** @var CMSApplication $app */
         $app      = Factory::getApplication();

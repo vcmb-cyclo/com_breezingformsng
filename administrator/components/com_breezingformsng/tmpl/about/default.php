@@ -611,16 +611,25 @@ $aboutDescription = str_replace(
                         <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_ISSUES'); ?></h4>
                         <div class="table-responsive">
                             <table class="table table-sm align-middle mb-0">
-                                <thead><tr><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_FORM'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ISSUE'); ?></th></tr></thead>
+                                <thead><tr><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_FORM'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ISSUE'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ACTIONS'); ?></th></tr></thead>
                                 <tbody>
                                 <?php foreach ($auditMenuIssues as $issue) : ?>
+                                    <?php $menuId = (int) ($issue['menu_id'] ?? 0); ?>
                                     <tr class="table-warning">
-                                        <td><?php echo htmlspecialchars((string) ($issue['title'] ?? ''), ENT_QUOTES, 'UTF-8'); ?> <span class="text-muted">(#<?php echo (int) ($issue['menu_id'] ?? 0); ?>)</span></td>
+                                        <td><?php echo htmlspecialchars((string) ($issue['title'] ?? ''), ENT_QUOTES, 'UTF-8'); ?> <span class="text-muted">(#<?php echo $menuId; ?>)</span></td>
                                         <td><code><?php echo htmlspecialchars((string) ($issue['form_name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code></td>
                                         <td>
                                             <?php foreach ((array) ($issue['issues'] ?? array()) as $code) : ?>
                                                 <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_' . strtoupper((string) $code)); ?><br />
                                             <?php endforeach; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($menuId > 0) : ?>
+                                                <a class="btn btn-sm btn-outline-secondary" target="_blank"
+                                                    href="index.php?option=com_menus&amp;task=item.edit&amp;id=<?php echo $menuId; ?>">
+                                                    <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_EDIT'); ?>
+                                                </a>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -715,7 +724,7 @@ $aboutDescription = str_replace(
                         </div>
                         <div class="table-responsive">
                             <table class="table table-sm align-middle mb-0">
-                                <thead><tr><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_CURRENT'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXPECTED'); ?></th><th><?php echo Text::_('JGRID_HEADING_ACTIONS'); ?></th></tr></thead>
+                                <thead><tr><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_CURRENT'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXPECTED'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ACTIONS'); ?></th></tr></thead>
                                 <tbody>
                                 <?php foreach ($auditCollationIssues as $index => $issue) : ?>
                                     <?php $tableCollationToken = DatabaseRepairService::getTableCollationSelectionToken((array) $issue); ?>
@@ -751,7 +760,7 @@ $aboutDescription = str_replace(
                         </div>
                         <div class="table-responsive">
                             <table class="table table-sm align-middle mb-0">
-                                <thead><tr><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_CHARSET'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLLATION'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXPECTED'); ?></th><th><?php echo Text::_('JGRID_HEADING_ACTIONS'); ?></th></tr></thead>
+                                <thead><tr><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_CHARSET'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLLATION'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXPECTED'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ACTIONS'); ?></th></tr></thead>
                                 <tbody>
                                 <?php foreach ($auditColumnCollationIssues as $index => $issue) : ?>
                                     <?php $columnCollationToken = DatabaseRepairService::getColumnCollationSelectionToken((array) $issue); ?>

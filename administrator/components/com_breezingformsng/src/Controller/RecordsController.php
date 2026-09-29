@@ -171,7 +171,13 @@ class RecordsController extends BaseController
             return;
         }
 
-        $this->getRecordModel()->importCsv($formId, $tmpFile, $encoding);
+        $imported = $this->getRecordModel()->importCsv($formId, $tmpFile, $encoding);
+
+        if ($imported > 0) {
+            $app->enqueueMessage(Text::plural('COM_BREEZINGFORMSNG_RECORDS_N_IMPORTED', $imported), 'message');
+        } else {
+            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_RECORDS_IMPORT_NONE'), 'warning');
+        }
 
         $app->redirect('index.php?option=com_breezingformsng&view=records&form_selection=' . $formSelection);
     }
