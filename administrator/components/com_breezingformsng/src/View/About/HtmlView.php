@@ -12,6 +12,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\About;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Toolbar\Toolbar;
@@ -95,6 +96,7 @@ class HtmlView extends BaseHtmlView
         if ($layout === 'extensions') {
             $this->plugins = $this->getInstalledPlugins();
         } else {
+            HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
             $auditReport = $app->getUserState('com_breezingformsng.about.audit', []);
             $this->auditReport = is_array($auditReport) ? $auditReport : [];
             $app->setUserState('com_breezingformsng.about.audit', []);

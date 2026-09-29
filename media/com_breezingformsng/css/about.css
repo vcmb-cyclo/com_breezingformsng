@@ -198,14 +198,6 @@
     background-color: var(--bs-warning-bg-subtle, #fff6d6);
     color: var(--bs-warning-text-emphasis, #a87400);
 }
-.bf-about-version-label {
-    margin: .15rem 0 0;
-    color: var(--bs-secondary-color);
-    font-size: .74rem;
-    font-weight: 700;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-}
 .bf-about-version-value {
     margin: 0;
     color: var(--bs-emphasis-color);
@@ -216,11 +208,6 @@
 }
 .bf-about-version-tile--license .bf-about-version-value {
     font-weight: 400;
-}
-.bf-about-version-link {
-    margin-top: .4rem;
-    font-size: .76rem;
-    font-weight: 700;
 }
 .bf-audit-ok-alert {
     display: flex;
