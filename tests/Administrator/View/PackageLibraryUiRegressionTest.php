@@ -43,6 +43,22 @@ final class PackageLibraryUiRegressionTest extends TestCase
     }
 
     #[DataProvider('libraryProvider')]
+    public function testListsUseNativeFiltersAndColumnSelector(string $view, string $asset): void
+    {
+        $viewSource = $this->read("administrator/components/com_breezingformsng/src/View/{$view}/HtmlView.php");
+        $rendererSource = $this->read("administrator/components/com_breezingformsng/src/View/{$view}/Renderer.php");
+
+        self::assertStringContainsString("useScript('table.columns')", $viewSource);
+        self::assertStringContainsString('d-flex flex-wrap gap-2 mb-3 align-items-center', $rendererSource);
+        self::assertStringContainsString('id="filter_package"', $rendererSource);
+        self::assertStringContainsString('id="filter_state"', $rendererSource);
+        self::assertStringContainsString('id="filter_search"', $rendererSource);
+        self::assertStringContainsString('id="filter_search_submit"', $rendererSource);
+        self::assertStringContainsString('id="check-all"', $rendererSource);
+        self::assertStringContainsString("data-name=\"breezingformsng-{$asset}\"", $rendererSource);
+    }
+
+    #[DataProvider('libraryProvider')]
     public function testToolbarTasksAreQualified(string $view, string $controller): void
     {
         $source = $this->read("administrator/components/com_breezingformsng/src/View/{$view}/Renderer.php");

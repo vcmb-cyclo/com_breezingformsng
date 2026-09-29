@@ -287,6 +287,7 @@ class HtmlView extends BaseHtmlView
             ->listCheck(true);
 
         ToolbarHelper::custom('records.remove', 'delete', 'delete', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_DELETE'), false);
+        ToolbarHelper::preferences('com_breezingformsng');
         $toolbar
             ->popupButton('help', 'JHELP')
             ->popupType('iframe')

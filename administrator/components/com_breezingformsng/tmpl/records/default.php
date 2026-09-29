@@ -69,10 +69,13 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
     </div>
     <div class="col-md-4">
       <div class="input-group">
-        <input type="text" name="searchterm" class="form-control" placeholder="<?= Text::_('JSEARCH_FILTER'); ?>" value="<?= htmlspecialchars($this->searchTerm); ?>">
-        <button type="submit" class="btn btn-primary" onclick="this.form.limitstart.value=0;" title="<?= $headerTitle('JSEARCH_FILTER_SUBMIT'); ?>"><?= Text::_('JSEARCH_FILTER_SUBMIT'); ?></button>
+        <label class="visually-hidden" for="filter_search"><?= Text::_('JSEARCH_FILTER'); ?></label>
+        <input type="text" name="searchterm" id="filter_search" class="form-control" placeholder="<?= Text::_('JSEARCH_FILTER'); ?>" value="<?= htmlspecialchars($this->searchTerm); ?>">
+        <button type="submit" id="filter_search_submit" class="btn btn-primary" onclick="this.form.limitstart.value=0;" title="<?= $headerTitle('JSEARCH_FILTER_SUBMIT'); ?>" aria-label="<?= $headerTitle('JSEARCH_FILTER_SUBMIT'); ?>">
+          <span class="icon-search" aria-hidden="true"></span>
+        </button>
         <?php if ($this->searchTerm !== ''): ?>
-          <a href="index.php?option=com_breezingformsng&view=records&form_selection=<?= $this->formSelection; ?>" class="btn btn-secondary" title="<?= $headerTitle('JSEARCH_FILTER_CLEAR'); ?>"><?= Text::_('JSEARCH_FILTER_CLEAR'); ?></a>
+          <a href="index.php?option=com_breezingformsng&view=records&form_selection=<?= $this->formSelection; ?>" id="filter_search_clear" class="btn btn-secondary" title="<?= $headerTitle('JSEARCH_FILTER_CLEAR'); ?>"><?= Text::_('JSEARCH_FILTER_CLEAR'); ?></a>
         <?php endif; ?>
       </div>
     </div>
@@ -165,7 +168,6 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
   <input type="hidden" name="task" value="">
   <input type="hidden" name="view" value="records">
   <input type="hidden" name="boxchecked" value="0">
-  <input type="hidden" name="searchterm" value="<?= htmlspecialchars($this->searchTerm); ?>">
   <input type="hidden" name="filter_order" value="<?= htmlspecialchars($listOrder); ?>">
   <input type="hidden" name="filter_order_Dir" value="<?= htmlspecialchars($listDirn); ?>">
   <input type="hidden" name="limitstart" value="<?= $limitStart; ?>">

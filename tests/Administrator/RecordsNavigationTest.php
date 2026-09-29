@@ -133,6 +133,20 @@ final class RecordsNavigationTest extends TestCase
         self::assertStringContainsString('$record->opted', $editTemplate);
     }
 
+    public function testRecordsSearchUsesOneSubmittedFieldAndStableControlIds(): void
+    {
+        $listTemplate = file_get_contents(
+            __DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/records/default.php'
+        );
+
+        self::assertIsString($listTemplate);
+        self::assertSame(1, substr_count($listTemplate, 'name="searchterm"'));
+        self::assertStringContainsString('id="filter_search"', $listTemplate);
+        self::assertStringContainsString('id="filter_search_submit"', $listTemplate);
+        self::assertStringContainsString('id="filter_search_clear"', $listTemplate);
+        self::assertStringContainsString('class="icon-search" aria-hidden="true"', $listTemplate);
+    }
+
     private function model(RecordsNavigationDatabaseDouble $database): RecordsNavigationModelDouble
     {
         return new RecordsNavigationModelDouble($database);

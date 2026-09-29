@@ -353,7 +353,7 @@ overflow:hidden;width: 100%;
 /* Prevent admin area panels from overflowing the Joomla control panel window */
 @media (min-width: 1024px) {
     body.admin .container-fluid, body.admin .admin { max-width: 100%; box-sizing: border-box; }
-    body.admin .container-fluid { overflow-x: hidden; }
+    body.admin .container-fluid > #content { overflow-x: hidden; }
 }
 
 /* Ensure right-side helper panels don't force the page to grow beyond viewport */

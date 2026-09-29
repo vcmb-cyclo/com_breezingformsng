@@ -2,6 +2,103 @@
 
 ## Unreleased
 
+- Fixed the "Import/export" tab of the component's Options screen (the closest
+  equivalent to the legacy `act=configuration` page's "Créer Package" button) silently
+  falling back to a plain empty text box instead of its actual button: `config.xml`'s
+  `type="packagetransfer"` didn't match the field's real class name
+  (`PackageTransferField`) once Joomla applies its own class-name derivation, so the
+  custom field type was never found.
+- Fixed the tree always showing an element's/the form's label one edit behind: it was
+  only synced from the field on populate (i.e. the *next* time the node opens), never
+  on save. The underlying saved data was always correct - only the tree's own label
+  rendering lagged a cycle.
+- Fixed the "unsaved changes" badge appearing on every tree click: `open_node`/
+  `close_node` handlers wrote a node's `.state` unconditionally on any tree replay
+  (not just the very first render), permanently adding a `"state":"open"` key to nodes
+  that never had one. Now only write on a genuine open/close transition.
+- Fixed the form's title/name/description/notification fields no longer being synced
+  onto the root node at load, and a renamed element becoming unreachable in the tree
+  until an unrelated refresh - both regressions from the `ready.jstree` selection fix
+  above, since the metadata sync and the auto-save-on-switch path each depended on
+  `selectedTreeElement` timing that no longer held.
+- Fixed the QuickMode properties panel/save button silently doing nothing right after
+  a form loads: the initial root selection raced jsTree 3's asynchronous data parsing
+  (`core.worker`), so `select_node()` could run before the node existed in jsTree's
+  model. The same race affected creating a page/section/element and changing an
+  element's type. Selection now always waits for `ready.jstree`/`refresh.jstree`.
+- Fixed a renamed element becoming unselectable and unreachable by its own context-menu
+  actions: the tree model's id index wasn't rebuilt after a rename, so subsequent
+  lookups by the new id returned nothing.
+- Extended the `option=com_breezingforms` migration to also run on a fresh
+  install/discover_install (not just update), and to cover `facileforms_forms`'s
+  script/piece code columns and `facileforms_scripts`/`facileforms_pieces.code`,
+  alongside the columns already covered.
+- Fixed a false-positive "unsaved changes" badge appearing on every QuickMode page
+  load, caused by jsTree 3 replaying `open_node`/`close_node` events for already-open
+  nodes during its own initial render, which the handlers mistook for real edits.
+- Fixed a second, unrelated cause of the same false-positive badge: the Options tab's
+  `jf_piece1code`-`jf_piece4code` CodeMirror editors aren't registered yet on the very
+  first check after load, so their arrival one poll cycle later was read as an edit.
+  The baseline now waits for several consecutive stable polls (~3s of genuine quiet,
+  capped at ~10s) before freezing, since two absences in a row can also look "stable".
+- Extended the `option=com_breezingforms` migration below to also cover
+  `facileforms_forms.template_areas` and `template_code_processed` - the compiled
+  columns site-side payment callbacks actually read from at runtime, distinct from the
+  `template_code` column the admin editor displays.
+- Added a one-time update migration rewriting `option=com_breezingforms` (the pre-NG
+  component name, no longer installed) to `option=com_breezingformsng` wherever it's
+  hardcoded in free-text form/element content — Stripe/PayPal/Sofortueberweisung
+  "thank you" redirect URLs, custom init/action/validation code — so those stored links
+  don't 404 with "Composant introuvable" after migrating to NG.
+- Fixed a pre-existing crash on every QuickMode admin page load
+  (`jQuery(...).offset() is undefined`) caused by a stale `#menutab .t` selector left
+  over from an earlier Bootstrap 5 tabs migration; falls back to the window height
+  instead of throwing.
+- Fixed the QuickMode properties panel (Type/Libellé/Nom, section, page and form
+  fields) staying empty after selecting any tree node, a regression from the jsTree 3
+  migration below: several save/populate functions read the selected node's id via a
+  jQuery DOM call that silently failed against the new node representation.
+- Migrated the admin QuickMode tree editor from jsTree 0.9.8 (2010, bundling its own
+  private jQuery 1.3.2 clone that overwrote the shared `window.JQuery`/`$` globals) to
+  jsTree 3.3.17, vendored under `libraries/jquery/jstree3/`. The persisted form JSON
+  format and `QuickmodeTreeModel` are unchanged; only the tree widget and its
+  init/context-menu/event wiring were ported. The obsolete `jtree/` bundle is removed
+  from the package and cleaned up on update.
+- Fixed a crash when selecting a node in the admin QuickMode tree editor
+  (`TypeError: ...getNodeClass(...).split is not a function`), caused by a DOM element
+  being mistaken for a tree-model node because both expose an `.attributes` property.
+  Also removed a dead 2015-era Firefox workaround using two more removed jQuery APIs
+  (`.live()`, `.browser`) and replaced the remaining admin `.size()` calls with `.length`.
+- Fixed jQuery 3 compatibility bugs on the frontend: the form iframe autoheight script
+  referenced an undefined `JQuery` alias (`ReferenceError: JQuery is not defined`), and
+  QuickMode's toggle fields, Flash upload queue counting, AJAX multi-page submission, and
+  progress bar all called the jQuery `.size()` method removed in jQuery 3
+  (`TypeError: JQuery(...).size is not a function`), now replaced with `.length`.
+- Fixed the utf8mb4 install/update conversion failing on legacy MyISAM tables or InnoDB
+  tables using the old Antelope row format (`Specified key was too long; max key length
+  is 1000 bytes`). Affected tables are now moved to `InnoDB`/`DYNAMIC` and their oversized
+  single-column indexes shrunk to a 191-character prefix before the charset conversion runs.
+- Fixed a fatal error (`Call to undefined method BreezingFormsNGComponent::getContainer()`)
+  when rendering a form from a module or a menu item, present in the 6.1.0-RC05 package.
+  The frontend bootstrap now resolves the `EngineDispatcher` through the component's own
+  `getEngineDispatcher()` accessor instead of a non-existent `getContainer()` call (#77).
+- Added XLSX export for records, with review-round fixes to the exported columns and formatting.
+- Fixed several record-management UI regressions: header navigation, record detail actions,
+  compact record detail header, record ID badge contrast, form title link in metadata, and
+  added system field tooltips.
+- Fixed bundled TCPDF core fonts not loading (fonts are now configured before the Composer
+  autoload runs), which affected generated PDF output.
+- Fixed component provider bootstrapping and namespace registration in the packaged build.
+- Fixed the missing web asset registry declaration on the Scripts and Pieces admin views,
+  and isolated the piece test runner's global processor context so it no longer leaks
+  between test executions.
+- Fixed QuickMode dirty-state initialization and switched it to Joomla's native editor API.
+- Normalized the rendering page context type and added tooltips to record table columns.
+- Ported the audit repair controls and completed audit coverage for BreezingFormsNG.
+- Performance audit fixes: batched subrecord loading to remove an N+1 query pattern in
+  the records list/export, narrowed the Forms list query to its used columns, and
+  optimized the Package model and Records controller listing queries.
+
 - Switched BreezingForms integration from legacy `com_contentbuilder` to `com_contentbuilderng`.
 - Updated BF site/admin flows to use ContentBuilder NG services for permissions, form resolution, record sync, article creation, and redirects.
 - Changed BF direct access behavior so linked CBNG views are validated against the new CBNG ACL flow.

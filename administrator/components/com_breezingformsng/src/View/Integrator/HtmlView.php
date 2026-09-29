@@ -72,6 +72,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         $this->rules = $model->getRules($this->listOrder, $this->listDirn);
         ToolbarHelper::addNew('integrator.edit');
         ToolbarHelper::deleteList('', 'integrator.remove');
+        ToolbarHelper::preferences('com_breezingformsng');
         ToolbarHelper::help(
             'COM_BREEZINGFORMSNG_HELP_INTEGRATOR_TITLE',
             false,

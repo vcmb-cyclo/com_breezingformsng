@@ -62,7 +62,22 @@ document.addEventListener('DOMContentLoaded', function () {
     // quickmode-app.js creates BFQMApp during the load event. Capturing the
     // baseline at DOMContentLoaded would therefore record an empty tree and
     // mark the form as dirty as soon as the QuickMode app is initialized.
+    // Some of the Options tab's CodeMirror editors (jf_piece1code..
+    // jf_piece4code) take noticeably longer than a single 500ms tick to
+    // register with JoomlaEditor after load/bfqm:ready - editorValues()
+    // silently skips whatever isn't ready yet, so two absences in a row can
+    // still look "stable" even though those editors simply haven't started
+    // mounting. Require several consecutive stable ticks (a few seconds of
+    // genuine quiet) before trusting the state as a baseline, with a hard
+    // cap so a field that's legitimately still changing that long after
+    // load doesn't leave the badge permanently disabled.
+    var REQUIRED_STABLE_TICKS = 6;
+    var MAX_BASELINE_TICKS = 20;
+
     var initialState = null;
+    var pendingState = null;
+    var stableTicks = 0;
+    var totalTicks = 0;
 
     function sync() {
         if (!window.BFQMApp) {
@@ -70,9 +85,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         var currentState = formState();
+
         if (initialState === null) {
-            initialState = currentState;
-            badge.hidden = true;
+            totalTicks++;
+            stableTicks = (pendingState === currentState) ? stableTicks + 1 : 0;
+            pendingState = currentState;
+
+            if (stableTicks >= REQUIRED_STABLE_TICKS || totalTicks >= MAX_BASELINE_TICKS) {
+                initialState = currentState;
+                badge.hidden = true;
+            }
+
             return;
         }
 

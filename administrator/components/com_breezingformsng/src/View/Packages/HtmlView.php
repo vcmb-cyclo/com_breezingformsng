@@ -19,6 +19,8 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 final class HtmlView extends BaseHtmlView
 {
     public array $packages = [];
+    public array $choices = [];
+    public array $profiles = [];
 
     public function display($tpl = null)
     {
@@ -32,7 +34,10 @@ final class HtmlView extends BaseHtmlView
             throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
         $this->packages = $model->getPackages();
-        ToolbarHelper::title(Text::_('COM_BREEZINGFORMSNG_IMPORT_EXPORT'));
+        $this->choices = $model->getExportChoices();
+        $this->profiles = $model->getPackageProfiles();
+        ToolbarHelper::title(Text::_("COM_BREEZINGFORMSNG_CONFIGURATION"));
+        ToolbarHelper::preferences("com_breezingformsng");
         parent::display($tpl);
     }
 }

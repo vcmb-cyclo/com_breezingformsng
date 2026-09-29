@@ -15,6 +15,7 @@ use Joomla\Filesystem\File;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 use Joomla\CMS\Installer\Installer;
 use Joomla\CMS\Language\Text;
 use Joomla\Filesystem\Folder;
@@ -372,6 +373,126 @@ class com_breezingformsngInstallerScript
         return $issues;
     }
 
+    /**
+     * Legacy BreezingForms installs can still carry MyISAM tables (1000-byte
+     * key limit) or InnoDB tables using the old Antelope row format
+     * (767-byte limit). A blind CONVERT TO CHARACTER SET utf8mb4 then fails
+     * on any single-column index over a varchar(255) column, since utf8mb4
+     * needs up to 4 bytes/char (255 * 4 = 1020 bytes). Move the table to
+     * InnoDB/DYNAMIC first, then shrink oversized index prefixes to 191
+     * characters (191 * 4 = 764 bytes), which fits under every limit above.
+     */
+    private function prepareTableForUtf8mb4Conversion(DatabaseInterface $db, string $tableName): void
+    {
+        $db->setQuery(
+            $db->getQuery(true)
+                ->select([$db->quoteName('ENGINE'), $db->quoteName('ROW_FORMAT')])
+                ->from($db->quoteName('information_schema.TABLES'))
+                ->where($db->quoteName('TABLE_SCHEMA') . ' = DATABASE()')
+                ->where($db->quoteName('TABLE_NAME') . ' = ' . $db->quote($tableName))
+        );
+        $tableInfo = (array) $db->loadAssoc();
+        $engine = strtoupper((string) ($tableInfo['ENGINE'] ?? ''));
+        $rowFormat = strtoupper((string) ($tableInfo['ROW_FORMAT'] ?? ''));
+
+        if ($engine !== 'INNODB' || !in_array($rowFormat, ['DYNAMIC', 'COMPRESSED'], true)) {
+            $db->setQuery(
+                'ALTER TABLE ' . $db->quoteName($tableName) . ' ENGINE=InnoDB, ROW_FORMAT=DYNAMIC'
+            )->execute();
+            $this->log('Moved table ' . $tableName . ' to ENGINE=InnoDB ROW_FORMAT=DYNAMIC before utf8mb4 conversion.');
+        }
+
+        $this->shrinkOversizedIndexes($db, $tableName);
+    }
+
+    private function shrinkOversizedIndexes(DatabaseInterface $db, string $tableName): void
+    {
+        $db->setQuery(
+            $db->getQuery(true)
+                ->select([
+                    $db->quoteName('s.INDEX_NAME'),
+                    $db->quoteName('s.SEQ_IN_INDEX'),
+                    $db->quoteName('s.COLUMN_NAME'),
+                    $db->quoteName('s.NON_UNIQUE'),
+                    $db->quoteName('s.SUB_PART'),
+                    $db->quoteName('c.CHARACTER_MAXIMUM_LENGTH'),
+                ])
+                ->from($db->quoteName('information_schema.STATISTICS', 's'))
+                ->join(
+                    'INNER',
+                    $db->quoteName('information_schema.COLUMNS', 'c') .
+                    ' ON ' . $db->quoteName('c.TABLE_SCHEMA') . ' = ' . $db->quoteName('s.TABLE_SCHEMA') .
+                    ' AND ' . $db->quoteName('c.TABLE_NAME') . ' = ' . $db->quoteName('s.TABLE_NAME') .
+                    ' AND ' . $db->quoteName('c.COLUMN_NAME') . ' = ' . $db->quoteName('s.COLUMN_NAME')
+                )
+                ->where($db->quoteName('s.TABLE_SCHEMA') . ' = DATABASE()')
+                ->where($db->quoteName('s.TABLE_NAME') . ' = ' . $db->quote($tableName))
+                ->where($db->quoteName('s.INDEX_NAME') . ' != ' . $db->quote('PRIMARY'))
+                ->where($db->quoteName('s.INDEX_TYPE') . ' != ' . $db->quote('FULLTEXT'))
+                ->order([$db->quoteName('s.INDEX_NAME'), $db->quoteName('s.SEQ_IN_INDEX')])
+        );
+
+        $rows = (array) $db->loadAssocList();
+        $indexes = [];
+
+        foreach ($rows as $row) {
+            $indexName = (string) ($row['INDEX_NAME'] ?? '');
+            $columnName = (string) ($row['COLUMN_NAME'] ?? '');
+
+            if ($indexName === '' || $columnName === '') {
+                continue;
+            }
+
+            $indexes[$indexName]['unique'] = ((int) ($row['NON_UNIQUE'] ?? 1)) === 0;
+            $indexes[$indexName]['columns'][] = [
+                'name' => $columnName,
+                'subPart' => $row['SUB_PART'] !== null ? (int) $row['SUB_PART'] : null,
+                'maxLength' => $row['CHARACTER_MAXIMUM_LENGTH'] !== null
+                    ? (int) $row['CHARACTER_MAXIMUM_LENGTH']
+                    : null,
+            ];
+        }
+
+        foreach ($indexes as $indexName => $index) {
+            $needsShrinking = false;
+            $columnDefinitions = [];
+
+            foreach ($index['columns'] as $column) {
+                if ($column['subPart'] === null && $column['maxLength'] !== null && $column['maxLength'] > 191) {
+                    $needsShrinking = true;
+                    $columnDefinitions[] = $db->quoteName($column['name']) . '(191)';
+                } elseif ($column['subPart'] !== null) {
+                    $columnDefinitions[] = $db->quoteName($column['name']) . '(' . $column['subPart'] . ')';
+                } else {
+                    $columnDefinitions[] = $db->quoteName($column['name']);
+                }
+            }
+
+            if (!$needsShrinking) {
+                continue;
+            }
+
+            $keyword = $index['unique'] ? 'UNIQUE KEY' : 'KEY';
+
+            // A single multi-clause ALTER TABLE (rather than a separate DROP
+            // INDEX followed by its own ADD KEY) is one DDL operation: if the
+            // ADD half fails (e.g. a future UNIQUE KEY whose 191-char prefix
+            // collides between existing rows), the whole statement is
+            // rejected and the index is never dropped in the first place.
+            $db->setQuery(
+                'ALTER TABLE ' . $db->quoteName($tableName)
+                . ' DROP INDEX ' . $db->quoteName($indexName)
+                . ', ADD ' . $keyword . ' ' . $db->quoteName($indexName)
+                . ' (' . implode(',', $columnDefinitions) . ')'
+            )->execute();
+
+            $this->log(
+                'Shrunk index ' . $indexName . ' on ' . $tableName .
+                ' to fit utf8mb4 key length limits (191-character prefix on oversized text columns).'
+            );
+        }
+    }
+
     private function ensureUtf8mb4Columns(): void
     {
         if ($this->utf8mb4CheckPerformed) {
@@ -383,6 +504,13 @@ class com_breezingformsngInstallerScript
 
         if (!$this->utf8mb4Supported) {
             return;
+        }
+
+        // ENGINE=InnoDB conversion rebuilds the whole table and can outlast the
+        // default PHP execution time limit on large record tables; a timeout here
+        // is a fatal error that bypasses the per-table try/catch below.
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(300);
         }
 
         $db = Factory::getContainer()->get(DatabaseInterface::class);
@@ -406,6 +534,8 @@ class com_breezingformsngInstallerScript
 
         foreach ($issues as $tableName => $tableIssues) {
             try {
+                $this->prepareTableForUtf8mb4Conversion($db, $tableName);
+
                 $db->setQuery(
                     'ALTER TABLE ' . $db->quoteName($tableName) .
                     ' CONVERT TO CHARACTER SET utf8mb4 COLLATE ' . $this->utf8mb4Collation
@@ -431,6 +561,172 @@ class com_breezingformsngInstallerScript
         if (empty($failed)) {
             $message = 'BreezingForms utf8mb4 verification completed successfully.';
             $this->announce($message, 'message', Log::INFO);
+        }
+    }
+
+    /**
+     * Free-text form/element content authored before the NG migration -
+     * custom "thank you" redirect URLs, PayPal/Stripe/Sofortueberweisung
+     * return URLs, custom init/action/validation code - can hardcode
+     * `option=com_breezingforms`, the pre-NG component name. That
+     * component no longer exists, so any such stored link now 404s with
+     * "Composant introuvable". Rewrite it to `com_breezingformsng`
+     * wherever it appears, without touching content that already says
+     * `com_breezingformsng` (a blind str_replace('com_breezingforms',
+     * 'com_breezingformsng', ...) would double-migrate that to
+     * "com_breezingformsngng").
+     */
+    private function migrateLegacyComponentOptionReferences(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $prefix = $db->getPrefix();
+        $tables = self::getTableFields($db->getTableList());
+
+        $elementsTable = $prefix . 'facileforms_elements';
+        $formsTable = $prefix . 'facileforms_forms';
+        $scriptsTable = $prefix . 'facileforms_scripts';
+        $piecesTable = $prefix . 'facileforms_pieces';
+
+        if (isset($tables[$elementsTable])) {
+            $this->migrateLegacyOptionInPlainColumns(
+                $db,
+                $elementsTable,
+                ['data1', 'data2', 'data3', 'script1code', 'script2code', 'script3code', 'script3msg', 'mailbackfile']
+            );
+        }
+
+        if (isset($tables[$formsTable])) {
+            $this->migrateLegacyOptionInFormTrees($db, $formsTable);
+            // template_areas is the *compiled*, plain-JSON copy of the QuickMode tree
+            // that site-side callbacks (e.g. StripeCallback::confirm() via
+            // PaymentFormLoader::decodeAreas()) actually read from at runtime -
+            // template_code (handled above) only feeds the admin QuickMode editor.
+            // template_code_processed is the classic (non-QuickMode) builder's
+            // equivalent compiled copy. script*code/piece*code are the form-level
+            // custom init/action/validation/piece code, executed at runtime the
+            // same way as their per-element counterparts above.
+            $this->migrateLegacyOptionInPlainColumns(
+                $db,
+                $formsTable,
+                [
+                    'template_areas', 'template_code_processed',
+                    'script1code', 'script2code',
+                    'piece1code', 'piece2code', 'piece3code', 'piece4code',
+                ]
+            );
+        }
+
+        // Scripts and Pieces are reusable code snippets, independent of any one
+        // form, executed at runtime wherever a form references them - the same
+        // kind of free-text content that can hardcode the pre-NG option value.
+        if (isset($tables[$scriptsTable])) {
+            $this->migrateLegacyOptionInPlainColumns($db, $scriptsTable, ['code']);
+        }
+
+        if (isset($tables[$piecesTable])) {
+            $this->migrateLegacyOptionInPlainColumns($db, $piecesTable, ['code']);
+        }
+    }
+
+    /**
+     * Rewrites legacy option=com_breezingforms references found in a set of
+     * plain-text columns (i.e. not base64-encoded) of the given table.
+     */
+    private function migrateLegacyOptionInPlainColumns(DatabaseInterface $db, string $table, array $columns): void
+    {
+        $query = $db->getQuery(true)
+            ->select(array_merge([$db->quoteName('id')], array_map([$db, 'quoteName'], $columns)))
+            ->from($db->quoteName($table));
+        $rows = (array) $db->setQuery($query)->loadAssocList();
+
+        $updatedRows = 0;
+
+        foreach ($rows as $row) {
+            $changes = [];
+
+            foreach ($columns as $column) {
+                $original = (string) ($row[$column] ?? '');
+
+                if ($original === '' || strpos($original, 'com_breezingforms') === false) {
+                    continue;
+                }
+
+                $rewritten = preg_replace('/com_breezingforms(?!ng)/', 'com_breezingformsng', $original);
+
+                if ($rewritten !== $original) {
+                    $changes[$column] = $rewritten;
+                }
+            }
+
+            if ($changes === []) {
+                continue;
+            }
+
+            $update = $db->getQuery(true)->update($db->quoteName($table));
+
+            foreach ($changes as $column => $value) {
+                $update->set($db->quoteName($column) . ' = :' . $column)
+                    ->bind(':' . $column, $changes[$column], ParameterType::STRING);
+            }
+
+            $id = (int) $row['id'];
+            $update->where($db->quoteName('id') . ' = :id')->bind(':id', $id, ParameterType::INTEGER);
+            $db->setQuery($update)->execute();
+            $updatedRows++;
+        }
+
+        if ($updatedRows > 0) {
+            $this->log(
+                "Rewrote legacy option=com_breezingforms references in {$updatedRows} {$table} row(s)."
+            );
+        }
+    }
+
+    private function migrateLegacyOptionInFormTrees(DatabaseInterface $db, string $table): void
+    {
+        $query = $db->getQuery(true)
+            ->select([$db->quoteName('id'), $db->quoteName('template_code')])
+            ->from($db->quoteName($table));
+        $rows = (array) $db->setQuery($query)->loadAssocList();
+
+        $updatedRows = 0;
+
+        foreach ($rows as $row) {
+            $encoded = (string) ($row['template_code'] ?? '');
+
+            if ($encoded === '') {
+                continue;
+            }
+
+            $decoded = base64_decode($encoded, true);
+
+            if ($decoded === false || strpos($decoded, 'com_breezingforms') === false) {
+                continue;
+            }
+
+            $rewritten = preg_replace('/com_breezingforms(?!ng)/', 'com_breezingformsng', $decoded);
+
+            if ($rewritten === $decoded) {
+                continue;
+            }
+
+            $newEncoded = base64_encode($rewritten);
+            $id = (int) $row['id'];
+            $update = $db->getQuery(true)
+                ->update($db->quoteName($table))
+                ->set($db->quoteName('template_code') . ' = :templateCode')
+                ->bind(':templateCode', $newEncoded, ParameterType::STRING)
+                ->where($db->quoteName('id') . ' = :id')
+                ->bind(':id', $id, ParameterType::INTEGER);
+            $db->setQuery($update)->execute();
+            $updatedRows++;
+        }
+
+        if ($updatedRows > 0) {
+            $this->log(
+                "Rewrote legacy option=com_breezingforms references in "
+                . "{$updatedRows} facileforms_forms.template_code row(s)."
+            );
         }
     }
 
@@ -1612,7 +1908,7 @@ class com_breezingformsngInstallerScript
                 [
                     'COM_BREEZINGFORMSNG_CONFIGURATION',
                     'breezingformsng-configuration',
-                    'index.php?option=com_config&view=component&component=' . self::TARGET_COMPONENT,
+                    'view=packages',
                     [],
                 ],
                 ['COM_BREEZINGFORMSNG_ABOUT', 'breezingformsng-about', 'task=about.display&view=about', []],
@@ -1683,7 +1979,14 @@ class com_breezingformsngInstallerScript
             $query = $db->getQuery(true)
                 ->delete($db->quoteName('#__menu'))
                 ->where($db->quoteName('client_id') . ' = 1')
-                ->where($db->quoteName('alias') . ' = ' . $db->quote('breezingformsng-import-export'));
+                ->where(
+                    $db->quoteName('alias')
+                    . ' IN ('
+                    . $db->quote('breezingformsng-import-export')
+                    . ', '
+                    . $db->quote('breezingformsng-packages')
+                    . ')'
+                );
             $db->setQuery($query)->execute();
 
             $this->log('BFNG administration submenu entries checked: ' . $checked . ' item(s).');
@@ -2049,6 +2352,9 @@ class com_breezingformsngInstallerScript
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/mailchimp',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/recaptcha',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/salesforce',
+            // jsTree 0.9.8 + its bundled jQuery 1.3.2 clone, replaced by the
+            // native jsTree 3.x vendored under libraries/jquery/jstree3.
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/jtree',
         ];
 
         foreach ($obsoleteDirectories as $directory) {
@@ -2077,6 +2383,7 @@ class com_breezingformsngInstallerScript
     {
         $this->log('Updating BreezingForms from version ' . $this->getCurrentInstalledVersion());
         $this->ensureUtf8mb4Columns();
+        $this->migrateLegacyComponentOptionReferences();
 
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $textCollationClause = $this->getTextCollationClause();
@@ -2446,6 +2753,12 @@ class com_breezingformsngInstallerScript
 
         if (in_array($type, ['install', 'update', 'discover_install'], true)) {
             $this->ensureUtf8mb4Columns();
+            // update() already calls this for a genuine extension update, but a
+            // fresh install()/discover_install can still run over facileforms_*
+            // tables preserved from a pre-NG install (CREATE TABLE IF NOT EXISTS
+            // never drops them), so it needs the same cleanup. Idempotent - only
+            // rewrites rows that still contain the literal old reference.
+            $this->migrateLegacyComponentOptionReferences();
             if ($type === 'update') {
                 $this->migrateLegacyConfig();
             }

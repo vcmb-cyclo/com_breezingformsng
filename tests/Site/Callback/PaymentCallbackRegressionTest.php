@@ -108,6 +108,29 @@ final class PaymentCallbackRegressionTest extends TestCase
         self::assertStringNotContainsString('$this->paymentDownloadPolicy', $dispatcher);
     }
 
+    public function testPaymentFactoriesMatchConstructorDependencies(): void
+    {
+        $source = $this->read('administrator/components/com_breezingformsng/services/provider.php');
+
+        foreach (['PaymentDownloadService', 'StripeCallback', 'PayPalCallback', 'SofortCallback'] as $service) {
+            self::assertSame(1, preg_match('/return new ' . $service . '\\((.*?)\\n\\s*\\);/s', $source, $match));
+            preg_match_all('/\\$container->get\\((\\w+)::class\\)/', $match[1], $dependencies);
+            $constructor = new \ReflectionMethod(
+                'Vcmb\\Component\\BreezingformsNG\\Site\\Service\\Callback\\' . $service,
+                '__construct'
+            );
+            $expected = [];
+            foreach ($constructor->getParameters() as $parameter) {
+                if (in_array($parameter->getName(), ['application', 'http'], true)) {
+                    continue;
+                }
+                $type = $parameter->getType()->getName();
+                $expected[] = substr($type, strrpos($type, '\\') + 1);
+            }
+            self::assertSame($expected, $dependencies[1], $service);
+        }
+    }
+
     public function testPaymentCallbacksDelegateFormLoadingToTheSharedLoader(): void
     {
         foreach (['StripeCallback', 'PayPalCallback', 'SofortCallback'] as $callback) {

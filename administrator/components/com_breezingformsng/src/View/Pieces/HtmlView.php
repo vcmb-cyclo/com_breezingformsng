@@ -86,12 +86,14 @@ class HtmlView extends BaseHtmlView
             ['defer' => true],
             ['core', 'com_breezingformsng.admin-sort']
         );
+        $app->getDocument()->getWebAssetManager()->useScript('table.columns');
 
         ToolbarHelper::custom('pieces.add', 'new.png', 'new_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_NEW', false);
         ToolbarHelper::custom('pieces.copy', 'copy.png', 'copy_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_COPY', false);
         ToolbarHelper::custom('pieces.publish', 'publish.png', 'publish_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_PUBLISH', false);
         ToolbarHelper::custom('pieces.unpublish', 'unpublish.png', 'unpublish_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_UNPUBLISH', false);
         ToolbarHelper::custom('pieces.remove', 'delete.png', 'delete_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_DELETE', false);
+        ToolbarHelper::preferences('com_breezingformsng');
         ToolbarHelper::help(
             'COM_BREEZINGFORMSNG_HELP_PIECES_TITLE',
             false,

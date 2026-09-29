@@ -837,7 +837,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
 ) . "
                                                                         // disable the button if no multi upload
                                                                         if( " . $multiSelection . " == false ){
-                                                                            var the_size = JQuery('#bfFlashFileQueue" . $mdata['dbId'] . " .bfFileQueueItem').size();
+                                                                            var the_size = JQuery('#bfFlashFileQueue" . $mdata['dbId'] . " .bfFileQueueItem').length;
                                                                             if( the_size > 0 ){
                                                                                 JQuery('#bfPickFiles" . $mdata['dbId'] . "').prop('disabled',true);
                                                                             }

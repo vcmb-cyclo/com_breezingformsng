@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
   "name": "com_breezingformsng",
-  "version": "6.1.0-RC05",
+  "version": "6.1.0-RC06",
   "description": "BreezingForms NG Web Assets",
   "license": "GPL-2.0-or-later",
   "assets": [
@@ -23,18 +23,10 @@
     },
 
     {
-      "name": "com_breezingformsng.jtree-lib",
+      "name": "com_breezingformsng.jstree3",
       "type": "script",
-      "uri": "administrator/components/com_breezingformsng/libraries/jquery/jtree/_lib.js",
+      "uri": "administrator/components/com_breezingformsng/libraries/jquery/jstree3/jstree.min.js",
       "dependencies": ["com_breezingformsng.jquery-alias"],
-      "version": "auto"
-    },
-
-    {
-      "name": "com_breezingformsng.jtree",
-      "type": "script",
-      "uri": "administrator/components/com_breezingformsng/libraries/jquery/jtree/tree_component.min.js",
-      "dependencies": ["com_breezingformsng.jtree-lib"],
       "version": "auto"
     },
 
@@ -58,7 +50,7 @@
       "name": "com_breezingformsng.quickmode-compat",
       "type": "script",
       "uri": "media/com_breezingformsng/js/admin/quickmode-compat.js",
-      "dependencies": ["com_breezingformsng.jquery-alias", "com_breezingformsng.jtree-lib"],
+      "dependencies": ["com_breezingformsng.jquery-alias"],
       "version": "auto"
     },
 
@@ -80,7 +72,7 @@
         "com_breezingformsng.quickmode-compat",
         "com_breezingformsng.quickmode-app-properties",
         "com_breezingformsng.quickmode-tree-model",
-        "com_breezingformsng.jtree",
+        "com_breezingformsng.jstree3",
         "bootstrap.tab",
         "com_breezingformsng.base64",
         "com_breezingformsng.center",
@@ -322,9 +314,9 @@
     },
 
     {
-      "name": "com_breezingformsng.jtree-style",
+      "name": "com_breezingformsng.jstree3-style",
       "type": "style",
-      "uri": "administrator/components/com_breezingformsng/libraries/jquery/jtree/tree_component.css",
+      "uri": "administrator/components/com_breezingformsng/libraries/jquery/jstree3/themes/default/style.min.css",
       "version": "auto"
     },
 

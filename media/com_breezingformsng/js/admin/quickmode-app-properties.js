@@ -1328,7 +1328,7 @@ import { JoomlaEditor } from 'editor-api';
             if (appScope.selectedTreeElement) {
                 var mdata = appScope.getProperties(appScope.selectedTreeElement);
                 if (mdata) {
-                    var item = appScope.findDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), appScope.dataObject);
+                    var item = appScope.findDataObjectItem(appScope.selectedTreeElement.attributes.id, appScope.dataObject);
                     if (item) {
 
                         switch (mdata.bfType) {
@@ -1427,8 +1427,22 @@ import { JoomlaEditor } from 'editor-api';
                                 appScope.saveAction(mdata, item);
                                 break;
                         }
+                        // item === appScope.selectedTreeElement (same canonical node
+                        // reference from treeModel.find()), so this already renames
+                        // the tree's own model - no separate DOM element to sync
+                        // anymore since jsTree only ever gets a re-derived read-only
+                        // view of it (see refreshTree() in quickmode-app.js). The
+                        // model's own id->node index is keyed by the OLD id though
+                        // (built once in indexNode()/rebuildIndex()), so treeModel.find()
+                        // would return null for the new id until that index is rebuilt.
                         item.attributes.id = JQuery('#bfElementName').val();
-                        JQuery(appScope.selectedTreeElement).attr('id', JQuery('#bfElementName').val());
+                        // item.data.title is what the tree actually displays
+                        // (toJsTreeNode()'s text field) - previously only synced by
+                        // populateSelectedElementProperties() (i.e. the *next* time
+                        // this node is opened), so the tree always showed the label
+                        // from one edit ago instead of the one just saved.
+                        item.data.title = JQuery('<div/>').text(mdata.label).html();
+                        appScope.treeModel.rebuildIndex();
                     }
                 }
             }
@@ -1556,7 +1570,7 @@ import { JoomlaEditor } from 'editor-api';
                 // compat 723 end
 
                 if (mdata) {
-                    var item = appScope.findDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), appScope.dataObject);
+                    var item = appScope.findDataObjectItem(appScope.selectedTreeElement.attributes.id, appScope.dataObject);
                     if (item) {
                         item.data.title = JQuery("<div/>").text(mdata.label).html();
                         JQuery('#bfValidationScript').css('display', 'none');
@@ -1947,9 +1961,9 @@ import { JoomlaEditor } from 'editor-api';
             }
         };
 
-        appScope.createTreeItem = function (obj) {
+        appScope.createTreeItem = function (obj, onComplete) {
             if (appScope.selectedTreeElement) {
-                var selectedId = JQuery(appScope.selectedTreeElement).attr('id');
+                var selectedId = appScope.selectedTreeElement.attributes.id;
                 var selected = appScope.treeModel.find(selectedId);
                 var inserted = false;
 
@@ -1968,8 +1982,14 @@ import { JoomlaEditor } from 'editor-api';
                 }
 
                 if (inserted) {
-                    JQuery.tree_reference('bfElementExplorer').refresh();
+                    appScope.refreshTree(onComplete);
+
+                    return;
                 }
+            }
+
+            if (typeof onComplete === 'function') {
+                onComplete();
             }
         };
 
@@ -1979,7 +1999,7 @@ import { JoomlaEditor } from 'editor-api';
         appScope.saveSectionProperties = function () {
             var mdata = appScope.getProperties(appScope.selectedTreeElement);
             if (mdata) {
-                var item = appScope.findDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), appScope.dataObject);
+                var item = appScope.findDataObjectItem(appScope.selectedTreeElement.attributes.id, appScope.dataObject);
                 if (item) {
                     mdata.bfType = JQuery('#bfSectionType').val();
                     mdata.displayType = JQuery('#bfSectionDisplayType').val();
@@ -2004,7 +2024,7 @@ import { JoomlaEditor } from 'editor-api';
                 }
                 // compat 723 end
                 if (mdata) {
-                    var item = appScope.findDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), appScope.dataObject);
+                    var item = appScope.findDataObjectItem(appScope.selectedTreeElement.attributes.id, appScope.dataObject);
                     if (item) {
                         item.data.title = mdata.title;
 
@@ -2029,7 +2049,7 @@ import { JoomlaEditor } from 'editor-api';
         appScope.saveFormProperties = function () {
             var mdata = appScope.getProperties(appScope.selectedTreeElement);
             if (mdata) {
-                var item = appScope.findDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), appScope.dataObject);
+                var item = appScope.findDataObjectItem(appScope.selectedTreeElement.attributes.id, appScope.dataObject);
                 if (item) {
                     mdata.title = JQuery('#bfFormTitle').val();
                     mdata['title_translation'+BFQMConfig.lang] = JQuery('#bfFormTitleTrans').val();
@@ -2086,13 +2106,19 @@ import { JoomlaEditor } from 'editor-api';
                     mdata.rollover = JQuery('#bfElementAdvancedRollover').attr('checked');
                     mdata.rolloverColor = JQuery('#bfElementAdvancedRolloverColor').val();
                     mdata.toggleFields = JQuery('#bfElementAdvancedToggleFields').val();
-                    var pagesSize = JQuery('#bfQuickModeRoot').children("ul").children("li").size();
+                    var pagesSize = JQuery('#bfQuickModeRoot').children("ul").children("li").length;
                     if (mdata.lastPageThankYou && pagesSize > 1) {
                         mdata.submittedScriptCondidtion = 2;
                         mdata.submittedScriptCode = 'function ff_' + mdata.name + '_submitted(status, message){if(status==0){ff_switchpage(' + pagesSize + ');}else{alert(message);}}';
                     } else {
                         mdata.submittedScriptCondidtion = -1;
                     }
+                    // item.data.title is what the tree actually displays
+                    // (toJsTreeNode()'s text field) - previously only synced by
+                    // populateFormProperties() (i.e. the *next* time the root is
+                    // selected), so the tree always showed the title from one
+                    // edit ago instead of the one just saved.
+                    item.data.title = mdata.title;
                     item.properties = mdata;
                 }
             }
@@ -2103,7 +2129,7 @@ import { JoomlaEditor } from 'editor-api';
                 var mdata = appScope.getProperties(appScope.selectedTreeElement);
                 if (mdata) {
                     // setting the node's data
-                    var item = appScope.findDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), appScope.dataObject);
+                    var item = appScope.findDataObjectItem(appScope.selectedTreeElement.attributes.id, appScope.dataObject);
                     if (item) {
                         item.data.title = mdata.title;
                         JQuery('#bfFormTitleTrans').val(typeof mdata['title_translation'+BFQMConfig.lang] != "undefined" ? mdata['title_translation'+BFQMConfig.lang] : "");
@@ -2225,7 +2251,7 @@ import { JoomlaEditor } from 'editor-api';
         appScope.savePageProperties = function () {
             var mdata = appScope.getProperties(appScope.selectedTreeElement);
             if (mdata) {
-                var item = appScope.findDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), appScope.dataObject);
+                var item = appScope.findDataObjectItem(appScope.selectedTreeElement.attributes.id, appScope.dataObject);
                 if (item) {
                     item.properties = mdata;
                 }
@@ -2237,7 +2263,7 @@ import { JoomlaEditor } from 'editor-api';
                 var mdata = appScope.getProperties(appScope.selectedTreeElement);
                 if (mdata) {
                     // setting the node's data
-                    var item = appScope.findDataObjectItem(JQuery(appScope.selectedTreeElement).attr('id'), appScope.dataObject);
+                    var item = appScope.findDataObjectItem(appScope.selectedTreeElement.attributes.id, appScope.dataObject);
                     if (item) {
                         // no properties yet to set
                     }

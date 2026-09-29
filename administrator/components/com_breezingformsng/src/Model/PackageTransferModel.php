@@ -15,7 +15,7 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 final class PackageTransferModel extends BaseDatabaseModel
 {
     private const FORMAT = 'breezingformsng-package';
-    private const VERSION = 1;
+    private const VERSION = 2;
     private const LIBRARY_COLUMNS = ['published', 'package', 'name', 'title', 'description', 'type', 'code', 'unit_tests'];
 
     public function getPackages(): array
@@ -23,7 +23,7 @@ final class PackageTransferModel extends BaseDatabaseModel
         $db = $this->getDatabase();
         $packages = [];
 
-        foreach (['#__facileforms_forms', '#__facileforms_scripts', '#__facileforms_pieces'] as $table) {
+        foreach (['#__facileforms_forms', '#__facileforms_scripts', '#__facileforms_pieces', '#__facileforms_compmenus'] as $table) {
             $query = $db->getQuery(true)
                 ->select('DISTINCT ' . $db->quoteName('package'))
                 ->from($db->quoteName($table))
@@ -31,13 +31,30 @@ final class PackageTransferModel extends BaseDatabaseModel
             $packages = array_merge($packages, array_column($db->setQuery($query)->loadAssocList() ?: [], 'package'));
         }
 
+        $query = $db->getQuery(true)->select($db->quoteName('id'))->from($db->quoteName('#__facileforms_packages'));
+        $packages = array_merge($packages, $db->setQuery($query)->loadColumn() ?: []);
         $packages = array_values(array_unique(array_filter($packages, 'is_string')));
         sort($packages, SORT_NATURAL | SORT_FLAG_CASE);
 
         return $packages;
     }
 
-    public function export(string $package): string
+    public function getPackageProfiles(): array
+    {
+        $db = $this->getDatabase();
+        $query = $db->getQuery(true)->select('*')->from($db->quoteName('#__facileforms_packages'));
+        $profiles = $db->setQuery($query)->loadAssocList('id') ?: [];
+
+        foreach ($this->getPackages() as $id) {
+            $profiles[$id] ??= ['id' => $id];
+        }
+
+        ksort($profiles, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $profiles;
+    }
+
+    public function export(string $package, array $metadata = []): string
     {
         if ($package === '') {
             throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED'));
@@ -70,7 +87,9 @@ final class PackageTransferModel extends BaseDatabaseModel
             'exported_at' => (new \Joomla\CMS\Date\Date())->toSql(),
             'scripts' => array_map(fn(array $row): array => $this->libraryExportRow($row), $this->loadPackageRows('#__facileforms_scripts', $package)),
             'pieces' => array_map(fn(array $row): array => $this->libraryExportRow($row), $this->loadPackageRows('#__facileforms_pieces', $package)),
+            'menus' => array_map(fn(array $row): array => $this->menuExportRow($row), $this->includeMenuAncestors($this->loadPackageRows('#__facileforms_compmenus', $package))),
             'forms' => $payloadForms,
+            'metadata' => $this->metadataForExport($package, $metadata),
         ];
         $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 
@@ -90,7 +109,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_FILE'), 0, $exception);
         }
 
-        if (!is_array($payload) || ($payload['format'] ?? '') !== self::FORMAT || ($payload['version'] ?? null) !== self::VERSION || !is_string($payload['package'] ?? null) || $payload['package'] === '') {
+        if (!is_array($payload) || ($payload['format'] ?? '') !== self::FORMAT || !in_array($payload['version'] ?? null, [1, self::VERSION], true) || !is_string($payload['package'] ?? null) || $payload['package'] === '') {
             throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_FILE'));
         }
 
@@ -102,11 +121,276 @@ final class PackageTransferModel extends BaseDatabaseModel
             $scriptIds = $this->importLibraries('#__facileforms_scripts', (array) ($payload['scripts'] ?? []), $package);
             $pieceIds = $this->importLibraries('#__facileforms_pieces', (array) ($payload['pieces'] ?? []), $package);
             $this->importForms((array) ($payload['forms'] ?? []), $package, $scriptIds, $pieceIds);
+
+            if (($payload['version'] ?? null) === self::VERSION) {
+                $this->importMenus((array) ($payload['menus'] ?? []), $package);
+                if (isset($payload['metadata'])) {
+                    if (!is_array($payload['metadata'])) {
+                        throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_FILE'));
+                    }
+                    $this->savePackageMetadata($package, $payload['metadata']);
+                }
+            }
+
             $db->transactionCommit();
         } catch (\Throwable $exception) {
             $db->transactionRollback();
             throw $exception;
         }
+    }
+
+    public function getExportChoices(): array
+    {
+        return [
+            "forms" => $this->loadChoices("#__facileforms_forms"),
+            "scripts" => $this->loadChoices("#__facileforms_scripts"),
+            "pieces" => $this->loadChoices("#__facileforms_pieces"),
+            "menus" => $this->loadChoices("#__facileforms_compmenus"),
+        ];
+    }
+
+    public function exportSelection(string $package, array $formIds, array $scriptIds, array $pieceIds, array $menuIds = [], array $metadata = []): string
+    {
+        $package = trim($package);
+
+        if ($package === "") {
+            throw new \RuntimeException(Text::_("COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED"));
+        }
+
+        $forms = $this->loadRowsByIds("#__facileforms_forms", $formIds);
+        $scripts = $this->loadRowsByIds("#__facileforms_scripts", $scriptIds);
+        $pieces = $this->loadRowsByIds("#__facileforms_pieces", $pieceIds);
+        $menus = $this->includeMenuAncestors($this->loadRowsByIds('#__facileforms_compmenus', $menuIds));
+
+        if ($forms === [] && $scripts === [] && $pieces === [] && $menus === []) {
+            throw new \RuntimeException(Text::_("COM_BREEZINGFORMSNG_INSTALLER_SELECTAPKG"));
+        }
+
+        $formIds = array_map(static fn(array $form): int => (int) $form["id"], $forms);
+        $elementsByForm = [];
+
+        foreach ($formIds === [] ? [] : $this->loadElements($formIds) as $element) {
+            $elementsByForm[(int) $element["form"]][] = $this->without($element, ["id", "form"]);
+        }
+
+        $payloadForms = [];
+        foreach ($forms as $form) {
+            $sourceId = (int) $form["id"];
+            $payloadForms[] = [
+                "source_id" => $sourceId,
+                "data" => $this->without($form, ["id", "created", "created_by", "modified", "modified_by"]),
+                "elements" => $elementsByForm[$sourceId] ?? [],
+            ];
+        }
+
+        $payload = [
+            "format" => self::FORMAT,
+            "version" => self::VERSION,
+            "package" => $package,
+            "exported_at" => (new \Joomla\CMS\Date\Date())->toSql(),
+            "scripts" => array_map(fn(array $row): array => $this->libraryExportRow($row), $scripts),
+            "pieces" => array_map(fn(array $row): array => $this->libraryExportRow($row), $pieces),
+            "menus" => array_map(fn(array $row): array => $this->menuExportRow($row), $menus),
+            "forms" => $payloadForms,
+            "metadata" => $this->metadataForExport($package, $metadata),
+        ];
+
+        return json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "\n";
+    }
+
+    private function metadataForExport(string $package, array $submitted): array
+    {
+        $db = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->select('*')
+            ->from($db->quoteName('#__facileforms_packages'))
+            ->where($db->quoteName('id') . ' = :id')
+            ->bind(':id', $package);
+        $stored = $db->setQuery($query)->loadAssoc() ?: [];
+        $fields = ['name', 'version', 'title', 'author', 'email', 'url', 'description', 'copyright'];
+        $metadata = ['created' => (string) ($stored['created'] ?? (new \Joomla\CMS\Date\Date())->toSql())];
+
+        foreach ($fields as $field) {
+            $value = $submitted[$field] ?? $stored[$field] ?? '';
+            if (!is_string($value)) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_FILE'));
+            }
+            $metadata[$field] = trim($value);
+        }
+
+        $metadata['name'] = $metadata['name'] ?: $package;
+
+        return $metadata;
+    }
+
+    private function savePackageMetadata(string $package, array $metadata): void
+    {
+        $db = $this->getDatabase();
+        $columns = $this->tableColumns('#__facileforms_packages');
+        $data = $this->only($metadata, $columns, ['id']);
+        $data['id'] = $package;
+
+        foreach ($data as $value) {
+            if (!is_string($value)) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_FILE'));
+            }
+        }
+
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('id'))
+            ->from($db->quoteName('#__facileforms_packages'))
+            ->where($db->quoteName('id') . ' = :id')
+            ->bind(':id', $package);
+
+        if ($db->setQuery($query)->loadResult() !== null) {
+            $object = (object) $data;
+            $db->updateObject('#__facileforms_packages', $object, 'id');
+        } else {
+            $object = (object) $data;
+            $db->insertObject('#__facileforms_packages', $object);
+        }
+    }
+
+    private function menuExportRow(array $row): array
+    {
+        return ['source_id' => (int) $row['id'], 'data' => $this->without($row, ['id'])];
+    }
+
+    private function includeMenuAncestors(array $rows): array
+    {
+        $byId = [];
+        foreach ($rows as $row) {
+            $byId[(int) $row['id']] = $row;
+        }
+
+        foreach ($rows as $row) {
+            $seen = [];
+            $parent = (int) $row['parent'];
+            while ($parent > 0) {
+                if (isset($seen[$parent])) {
+                    throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_FILE'));
+                }
+                $seen[$parent] = true;
+                if (!isset($byId[$parent])) {
+                    $ancestor = $this->loadRowsByIds('#__facileforms_compmenus', [$parent]);
+                    if ($ancestor === []) {
+                        throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_FILE'));
+                    }
+                    $byId[$parent] = $ancestor[0];
+                }
+                $parent = (int) $byId[$parent]['parent'];
+            }
+        }
+
+        ksort($byId);
+
+        return array_values($byId);
+    }
+
+    private function importMenus(array $rows, string $package): void
+    {
+        $db = $this->getDatabase();
+        $columns = $this->tableColumns('#__facileforms_compmenus');
+        $pending = [];
+        $importedIds = [];
+
+        foreach ($rows as $row) {
+            if (!is_array($row) || !is_int($row['source_id'] ?? null)
+                || $row['source_id'] <= 0 || !is_array($row['data'] ?? null)
+                || isset($pending[$row['source_id']])) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_FILE'));
+            }
+            $pending[$row['source_id']] = $row['data'];
+        }
+
+        while ($pending !== []) {
+            $progress = false;
+            foreach ($pending as $sourceId => $source) {
+                $sourceParent = (int) ($source['parent'] ?? 0);
+                if ($sourceParent > 0 && !isset($importedIds[$sourceParent])) {
+                    continue;
+                }
+
+                $data = $this->only($source, $columns, ['id']);
+                $data['package'] = $package;
+                $data['parent'] = $sourceParent > 0 ? $importedIds[$sourceParent] : 0;
+                $name = trim((string) ($data['name'] ?? ''));
+                $title = trim((string) ($data['title'] ?? ''));
+                if ($title === '') {
+                    throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_FILE'));
+                }
+
+                $id = $this->findMenuId($package, $name, $title, (int) $data['parent']);
+                if ($id > 0) {
+                    $data['id'] = $id;
+                    $object = (object) $data;
+                    $db->updateObject('#__facileforms_compmenus', $object, 'id');
+                } else {
+                    $query = $db->getQuery(true)
+                        ->select('COALESCE(MAX(' . $db->quoteName('id') . '), 0) + 1')
+                        ->from($db->quoteName('#__facileforms_compmenus'));
+                    $data['id'] = (int) $db->setQuery($query)->loadResult();
+                    $object = (object) $data;
+                    $db->insertObject('#__facileforms_compmenus', $object);
+                    $id = $data['id'];
+                }
+
+                $importedIds[$sourceId] = $id;
+                unset($pending[$sourceId]);
+                $progress = true;
+            }
+
+            if (!$progress) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_FILE'));
+            }
+        }
+    }
+
+    private function findMenuId(string $package, string $name, string $title, int $parent): int
+    {
+        $db = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('id'))
+            ->from($db->quoteName('#__facileforms_compmenus'))
+            ->where($db->quoteName('package') . ' = :package')
+            ->where($db->quoteName('name') . ' = :name')
+            ->where($db->quoteName('title') . ' = :title')
+            ->where($db->quoteName('parent') . ' = :parent')
+            ->bind(':package', $package)
+            ->bind(':name', $name)
+            ->bind(':title', $title)
+            ->bind(':parent', $parent);
+
+        return (int) $db->setQuery($query, 0, 1)->loadResult();
+    }
+
+    private function loadChoices(string $table): array
+    {
+        $db = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->select($db->quoteName(["id", "package", "name", "title"]))
+            ->from($db->quoteName($table))
+            ->order([$db->quoteName("package"), $db->quoteName("name"), $db->quoteName("id")]);
+
+        return $db->setQuery($query)->loadAssocList() ?: [];
+    }
+
+    private function loadRowsByIds(string $table, array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map("intval", $ids), static fn(int $id): bool => $id > 0)));
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $db = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->select("*")
+            ->from($db->quoteName($table))
+            ->whereIn($db->quoteName("id"), $ids)
+            ->order($db->quoteName("id"));
+
+        return $db->setQuery($query)->loadAssocList() ?: [];
     }
 
     private function importLibraries(string $table, array $rows, string $package): array
@@ -127,9 +411,11 @@ final class PackageTransferModel extends BaseDatabaseModel
             $id = $this->findId($table, $package, $name);
             if ($id > 0) {
                 $data['id'] = $id;
-                $db->updateObject($table, (object) $data, 'id');
+                $object = (object) $data;
+                $db->updateObject($table, $object, 'id');
             } else {
-                $db->insertObject($table, (object) $data, 'id');
+                $object = (object) $data;
+                $db->insertObject($table, $object, 'id');
                 $id = (int) $db->insertid();
             }
             $sourceIds[$row['source_id']] = $id;
@@ -158,11 +444,13 @@ final class PackageTransferModel extends BaseDatabaseModel
             $id = $this->findId('#__facileforms_forms', $package, $name);
             if ($id > 0) {
                 $data['id'] = $id;
-                $db->updateObject('#__facileforms_forms', (object) $data, 'id');
+                $object = (object) $data;
+                $db->updateObject('#__facileforms_forms', $object, 'id');
                 $query = $db->getQuery(true)->delete($db->quoteName('#__facileforms_elements'))->where($db->quoteName('form') . ' = ' . $id);
                 $db->setQuery($query)->execute();
             } else {
-                $db->insertObject('#__facileforms_forms', (object) $data, 'id');
+                $object = (object) $data;
+                $db->insertObject('#__facileforms_forms', $object, 'id');
                 $id = (int) $db->insertid();
             }
 
@@ -173,7 +461,8 @@ final class PackageTransferModel extends BaseDatabaseModel
                 $elementData = $this->only($element, $elementColumns, ['id', 'form']);
                 $elementData['form'] = $id;
                 $this->remapReferences($elementData, $scriptIds, $pieceIds);
-                $db->insertObject('#__facileforms_elements', (object) $elementData, 'id');
+                $elementObject = (object) $elementData;
+                $db->insertObject('#__facileforms_elements', $elementObject, 'id');
             }
         }
     }

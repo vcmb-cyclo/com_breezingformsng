@@ -226,7 +226,7 @@ if (!function_exists('bf_about_extract_version_from_file')) {
         }
 
         $patterns = array(
-            '/jsTree\s+([0-9A-Za-z\.\-]+)/i',
+            '/jsTree[\s\-]+v?([0-9]+(?:\.[0-9]+)*)/i',
             '/JQuery\s+([0-9A-Za-z\.\-]+)/i',
             '/version\s*[:=]\s*[\'"]([0-9A-Za-z\.\-]+)/i',
         );
@@ -258,8 +258,8 @@ if (!function_exists('bf_about_get_javascript_libraries')) {
             ),
             array(
                 'name' => 'jsTree',
-                'script_path' => $basePath . 'jtree/tree_component.min.js',
-                'css_path' => $basePath . 'jtree/tree_component.css',
+                'script_path' => $basePath . 'jstree3/jstree.min.js',
+                'css_path' => $basePath . 'jstree3/themes/default/style.min.css',
             ),
         );
 

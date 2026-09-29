@@ -25,7 +25,7 @@ final class QuickModeProgressMarkupBuilderTest extends TestCase
 
         self::assertStringContainsString('class="progress"', $markup);
         self::assertStringContainsString('class="bar"', $markup);
-        self::assertStringContainsString('var pages = JQuery(".bfPage").size()-1;', $markup);
+        self::assertStringContainsString('var pages = JQuery(".bfPage").length-1;', $markup);
         self::assertStringContainsString('function bfUpdateProgress()', $markup);
         self::assertStringContainsString('setInterval("bfUpdateProgress()", 500);', $markup);
     }
@@ -33,7 +33,7 @@ final class QuickModeProgressMarkupBuilderTest extends TestCase
     public function testBuildsProgressWidgetWithoutThankYouPageAdjustment(): void
     {
         self::assertStringContainsString(
-            'var pages = JQuery(".bfPage").size();',
+            'var pages = JQuery(".bfPage").length;',
             QuickModeProgressMarkupBuilder::build('progress', 'bar', false)
         );
     }

@@ -25,7 +25,7 @@ final class QuickModeProgressMarkupBuilder
                         <!--
                         function bfUpdateProgress(){
                             if(ff_currentpage > 1){
-                                var pages = JQuery(".bfPage").size()' . ($lastPageThankYou ? '-1' : '') . ';
+                                var pages = JQuery(".bfPage").length' . ($lastPageThankYou ? '-1' : '') . ';
                                 var result = Math.round(((ff_currentpage-1) / pages)*100);
                                 JQuery("#bfProgressBar").css("width",result+"%");
                             }else{
