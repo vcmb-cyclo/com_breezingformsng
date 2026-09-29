@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fixed the tree always showing an element's/the form's label one edit behind: it was
+  only synced from the field on populate (i.e. the *next* time the node opens), never
+  on save. The underlying saved data was always correct - only the tree's own label
+  rendering lagged a cycle.
 - Fixed the "unsaved changes" badge appearing on every tree click: `open_node`/
   `close_node` handlers wrote a node's `.state` unconditionally on any tree replay
   (not just the very first render), permanently adding a `"state":"open"` key to nodes
