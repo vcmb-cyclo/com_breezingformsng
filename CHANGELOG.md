@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fixed the "unsaved changes" badge appearing on every tree click: `open_node`/
+  `close_node` handlers wrote a node's `.state` unconditionally on any tree replay
+  (not just the very first render), permanently adding a `"state":"open"` key to nodes
+  that never had one. Now only write on a genuine open/close transition.
 - Fixed the form's title/name/description/notification fields no longer being synced
   onto the root node at load, and a renamed element becoming unreachable in the tree
   until an unrelated refresh - both regressions from the `ready.jstree` selection fix
