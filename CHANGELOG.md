@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Fixed the form's title/name/description/notification fields no longer being synced
+  onto the root node at load, and a renamed element becoming unreachable in the tree
+  until an unrelated refresh - both regressions from the `ready.jstree` selection fix
+  above, since the metadata sync and the auto-save-on-switch path each depended on
+  `selectedTreeElement` timing that no longer held.
 - Fixed the QuickMode properties panel/save button silently doing nothing right after
   a form loads: the initial root selection raced jsTree 3's asynchronous data parsing
   (`core.worker`), so `select_node()` could run before the node existed in jsTree's
