@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Fixed the "Import/export" tab of the component's Options screen (the closest
+  equivalent to the legacy `act=configuration` page's "Créer Package" button) silently
+  falling back to a plain empty text box instead of its actual button: `config.xml`'s
+  `type="packagetransfer"` didn't match the field's real class name
+  (`PackageTransferField`) once Joomla applies its own class-name derivation, so the
+  custom field type was never found.
 - Fixed the tree always showing an element's/the form's label one edit behind: it was
   only synced from the field on populate (i.e. the *next* time the node opens), never
   on save. The underlying saved data was always correct - only the tree's own label
