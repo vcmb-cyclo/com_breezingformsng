@@ -1436,6 +1436,12 @@ import { JoomlaEditor } from 'editor-api';
                         // (built once in indexNode()/rebuildIndex()), so treeModel.find()
                         // would return null for the new id until that index is rebuilt.
                         item.attributes.id = JQuery('#bfElementName').val();
+                        // item.data.title is what the tree actually displays
+                        // (toJsTreeNode()'s text field) - previously only synced by
+                        // populateSelectedElementProperties() (i.e. the *next* time
+                        // this node is opened), so the tree always showed the label
+                        // from one edit ago instead of the one just saved.
+                        item.data.title = JQuery('<div/>').text(mdata.label).html();
                         appScope.treeModel.rebuildIndex();
                     }
                 }
@@ -2107,6 +2113,12 @@ import { JoomlaEditor } from 'editor-api';
                     } else {
                         mdata.submittedScriptCondidtion = -1;
                     }
+                    // item.data.title is what the tree actually displays
+                    // (toJsTreeNode()'s text field) - previously only synced by
+                    // populateFormProperties() (i.e. the *next* time the root is
+                    // selected), so the tree always showed the title from one
+                    // edit ago instead of the one just saved.
+                    item.data.title = mdata.title;
                     item.properties = mdata;
                 }
             }
