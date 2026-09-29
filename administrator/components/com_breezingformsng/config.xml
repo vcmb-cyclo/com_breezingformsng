@@ -72,7 +72,7 @@
     >
         <field
             name="package_transfer"
-            type="packagetransfer"
+            type="packageTransfer"
             label="COM_BREEZINGFORMSNG_IMPORT_EXPORT"
             filter="unset"
         />
