@@ -182,11 +182,20 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                     };
                 }
 
-                appScope.refreshTree = function () {
+                appScope.refreshTree = function (onComplete) {
                     var instance = JQuery('#bfElementExplorer').jstree(true);
                     if (instance) {
                         instance.settings.core.data = [toJsTreeNode(appScope.dataObject)];
+                        // refresh() rebuilds the model asynchronously (same load path as
+                        // the initial .jstree() call, including its optional worker) - a
+                        // node created just before this call isn't reliably selectable
+                        // until refresh.jstree actually fires.
+                        if (typeof onComplete === 'function') {
+                            JQuery('#bfElementExplorer').one('refresh.jstree', onComplete);
+                        }
                         instance.refresh();
+                    } else if (typeof onComplete === 'function') {
+                        onComplete();
                     }
                 };
 
@@ -328,6 +337,12 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         // Only start reacting to open/close once the initial render
                         // (and its synthetic events) is done.
                         treeReady = true;
+
+                        // core.worker (on by default) parses the initial data
+                        // asynchronously, so the root isn't reliably selectable
+                        // immediately after the .jstree(...) call below returns -
+                        // only once ready.jstree actually fires.
+                        appScope.selectTreeBranch('bfQuickModeRoot');
                     })
                     .on('open_node.jstree', function (e, data) {
                         if (!treeReady) {
@@ -351,8 +366,6 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         appScope.moveDataObjectItem(data.node.id, data.parent, data.position, appScope.dataObject);
                         appScope.refreshTree();
                     });
-
-                appScope.selectTreeBranch('bfQuickModeRoot');
 
                 this.saveButton = function () {
                     var error = false;
@@ -454,8 +467,9 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                             data: { title: "untitled section", icon: BFQMConfig.iconBase + 'icon_section.png' },
                             children: []
                         };
-                        appScope.createTreeItem(obj);
-                        appScope.selectTreeBranch(id);
+                        appScope.createTreeItem(obj, function () {
+                            appScope.selectTreeBranch(id);
+                        });
                     }
                 );
 
@@ -529,8 +543,9 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         }
                         if (obj) {
                             appScope.replaceDataObjectItem(appScope.selectedTreeElement.attributes.id, obj, appScope.dataObject);
-                            appScope.refreshTree();
-                            appScope.selectTreeBranch(id);
+                            appScope.refreshTree(function () {
+                                appScope.selectTreeBranch(id);
+                            });
                         }
                     }
                 );
@@ -596,8 +611,9 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                     function () {
                         var id = "bfQuickMode" + (Math.floor(Math.random() * 10000000));
                         var obj = appScope.createTextfield(id);
-                        appScope.createTreeItem(obj);
-                        appScope.selectTreeBranch(id);
+                        appScope.createTreeItem(obj, function () {
+                            appScope.selectTreeBranch(id);
+                        });
                     }
                 );
 
@@ -630,8 +646,9 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                             },
                             children: []
                         };
-                        appScope.createTreeItem(obj);
-                        appScope.selectTreeBranch(id);
+                        appScope.createTreeItem(obj, function () {
+                            appScope.selectTreeBranch(id);
+                        });
                     }
                 );
 

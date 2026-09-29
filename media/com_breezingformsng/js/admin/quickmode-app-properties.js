@@ -1431,8 +1431,12 @@ import { JoomlaEditor } from 'editor-api';
                         // reference from treeModel.find()), so this already renames
                         // the tree's own model - no separate DOM element to sync
                         // anymore since jsTree only ever gets a re-derived read-only
-                        // view of it (see refreshTree() in quickmode-app.js).
+                        // view of it (see refreshTree() in quickmode-app.js). The
+                        // model's own id->node index is keyed by the OLD id though
+                        // (built once in indexNode()/rebuildIndex()), so treeModel.find()
+                        // would return null for the new id until that index is rebuilt.
                         item.attributes.id = JQuery('#bfElementName').val();
+                        appScope.treeModel.rebuildIndex();
                     }
                 }
             }
@@ -1951,7 +1955,7 @@ import { JoomlaEditor } from 'editor-api';
             }
         };
 
-        appScope.createTreeItem = function (obj) {
+        appScope.createTreeItem = function (obj, onComplete) {
             if (appScope.selectedTreeElement) {
                 var selectedId = appScope.selectedTreeElement.attributes.id;
                 var selected = appScope.treeModel.find(selectedId);
@@ -1972,8 +1976,14 @@ import { JoomlaEditor } from 'editor-api';
                 }
 
                 if (inserted) {
-                    appScope.refreshTree();
+                    appScope.refreshTree(onComplete);
+
+                    return;
                 }
+            }
+
+            if (typeof onComplete === 'function') {
+                onComplete();
             }
         };
 

@@ -584,6 +584,8 @@ class com_breezingformsngInstallerScript
 
         $elementsTable = $prefix . 'facileforms_elements';
         $formsTable = $prefix . 'facileforms_forms';
+        $scriptsTable = $prefix . 'facileforms_scripts';
+        $piecesTable = $prefix . 'facileforms_pieces';
 
         if (isset($tables[$elementsTable])) {
             $this->migrateLegacyOptionInPlainColumns(
@@ -600,12 +602,29 @@ class com_breezingformsngInstallerScript
             // PaymentFormLoader::decodeAreas()) actually read from at runtime -
             // template_code (handled above) only feeds the admin QuickMode editor.
             // template_code_processed is the classic (non-QuickMode) builder's
-            // equivalent compiled copy.
+            // equivalent compiled copy. script*code/piece*code are the form-level
+            // custom init/action/validation/piece code, executed at runtime the
+            // same way as their per-element counterparts above.
             $this->migrateLegacyOptionInPlainColumns(
                 $db,
                 $formsTable,
-                ['template_areas', 'template_code_processed']
+                [
+                    'template_areas', 'template_code_processed',
+                    'script1code', 'script2code',
+                    'piece1code', 'piece2code', 'piece3code', 'piece4code',
+                ]
             );
+        }
+
+        // Scripts and Pieces are reusable code snippets, independent of any one
+        // form, executed at runtime wherever a form references them - the same
+        // kind of free-text content that can hardcode the pre-NG option value.
+        if (isset($tables[$scriptsTable])) {
+            $this->migrateLegacyOptionInPlainColumns($db, $scriptsTable, ['code']);
+        }
+
+        if (isset($tables[$piecesTable])) {
+            $this->migrateLegacyOptionInPlainColumns($db, $piecesTable, ['code']);
         }
     }
 
@@ -2727,6 +2746,12 @@ class com_breezingformsngInstallerScript
 
         if (in_array($type, ['install', 'update', 'discover_install'], true)) {
             $this->ensureUtf8mb4Columns();
+            // update() already calls this for a genuine extension update, but a
+            // fresh install()/discover_install can still run over facileforms_*
+            // tables preserved from a pre-NG install (CREATE TABLE IF NOT EXISTS
+            // never drops them), so it needs the same cleanup. Idempotent - only
+            // rewrites rows that still contain the literal old reference.
+            $this->migrateLegacyComponentOptionReferences();
             if ($type === 'update') {
                 $this->migrateLegacyConfig();
             }
