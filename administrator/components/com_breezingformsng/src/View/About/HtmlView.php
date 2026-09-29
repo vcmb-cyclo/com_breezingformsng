@@ -61,12 +61,6 @@ class HtmlView extends BaseHtmlView
                 ->icon('fa-solid fa-stethoscope')
                 ->listCheck(false);
 
-            $actionsChildToolbar->standardButton('about_migrate_packed_data')
-                ->task('about.startRepairWorkflow')
-                ->text('COM_BREEZINGFORMSNG_ABOUT_MIGRATE_PACKED_DATA')
-                ->icon('fa-solid fa-arrows-rotate')
-                ->listCheck(false);
-
             $actionsChildToolbar->standardButton('about_export_configuration')
                 ->task('about.exportConfiguration')
                 ->text('COM_BREEZINGFORMSNG_ABOUT_EXPORT_CONFIGURATION')
