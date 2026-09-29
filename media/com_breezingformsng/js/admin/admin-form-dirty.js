@@ -3,7 +3,12 @@ var __bfDirtySubmitting = false;
 var __bfDirtySubmitbutton = Joomla.submitbutton;
 
 function bfDirtyFormState(form) {
-	return new URLSearchParams(new FormData(form)).toString();
+	// `task` is toolbar-click metadata, not form content: Joomla.submitbutton()
+	// mutates it in place before every submit, including exports which leave
+	// the edit page open - excluding it keeps the comparison to actual fields.
+	var params = new URLSearchParams(new FormData(form));
+	params.delete('task');
+	return params.toString();
 }
 
 function bfDirtyIsChanged(form) {
