@@ -67,17 +67,6 @@
         </field>
     </fieldset>
     <fieldset
-        name="package_transfer"
-        label="COM_BREEZINGFORMSNG_IMPORT_EXPORT"
-    >
-        <field
-            name="package_transfer"
-            type="packageTransfer"
-            label="COM_BREEZINGFORMSNG_IMPORT_EXPORT"
-            filter="unset"
-        />
-    </fieldset>
-    <fieldset
         name="permissions"
         label="JCONFIG_PERMISSIONS_LABEL"
         description="JCONFIG_PERMISSIONS_DESC"
