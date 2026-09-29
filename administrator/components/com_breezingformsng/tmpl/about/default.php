@@ -625,7 +625,7 @@ $aboutDescription = str_replace(
                                         </td>
                                         <td>
                                             <?php if ($menuId > 0) : ?>
-                                                <a class="btn btn-sm btn-outline-secondary" target="_blank"
+                                                <a class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener"
                                                     href="index.php?option=com_menus&amp;task=item.edit&amp;id=<?php echo $menuId; ?>">
                                                     <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_EDIT'); ?>
                                                 </a>

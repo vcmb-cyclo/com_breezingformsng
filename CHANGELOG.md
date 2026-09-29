@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- Fixed the About screen's database/menu audit tables using a non-existent
+  `JGRID_HEADING_ACTIONS` language key (rendered untranslated); added a real
+  `COM_BREEZINGFORMSNG_ABOUT_AUDIT_ACTIONS` key, and added an "Edit menu item" link
+  on the site-menu-issues table pointing to Joomla's native menu item editor.
+- Fixed the record edit screen's "unsaved changes" detector being wrongly triggered
+  by a PDF/CSV/XLSX/XML export: `Joomla.submitbutton()` mutates the hidden `task`
+  field before every submit, and an export leaves the edit page open (file download,
+  no navigation), so the mutated value never reset.
+- Added quick Vu/Exporté/Archivé toggles next to the record title on the record edit
+  screen, kept in sync with the existing read-only Oui/Non detail table, and made the
+  detail table's sections collapsible.
+- Added tooltips to the QuickMode "New page/section/element" buttons, and fixed the
+  tree-toolbar settings dropdown's misaligned switch labels.
+- Replaced the generic "Élément enregistré." message on form save with a specific
+  "Formulaire « X » enregistré." message.
+- Relabelled the records edit screen's Cancel button to "Fermer" (native
+  `JTOOLBAR_CLOSE`), matching the Forms edit screen.
+- Enabled the native column-visibility filter on the Forms list, matching
+  Records/Scripts/Pieces.
+- Added a result message after CSV record import (previously silent on success or
+  failure).
 - Fixed the "Import/export" tab of the component's Options screen (the closest
   equivalent to the legacy `act=configuration` page's "Créer Package" button) silently
   falling back to a plain empty text box instead of its actual button: `config.xml`'s
