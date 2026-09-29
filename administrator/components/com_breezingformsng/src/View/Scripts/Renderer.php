@@ -316,10 +316,9 @@ class Renderer
 		?>
 		<form action="index.php?option=<?php echo htmlspecialchars($option, ENT_QUOTES); ?>&amp;view=scripts" method="post" name="adminForm" id="adminForm">
 
-			<label class="bfPackageSelector">
-
-				<?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_PACKAGE'); ?>
-					<select id="pkgsel" name="pkgsel" class="inputbox" size="1" onchange="return bfScriptsSubmitList(true);">
+			<div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+				<label class="visually-hidden" for="filter_package"><?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_PACKAGE'); ?></label>
+				<select class="form-select w-auto" id="filter_package" name="pkgsel" onchange="return bfScriptsSubmitList(true);">
 					<?php
 					if (count($pkglist))
 						foreach ($pkglist as $pkgEntry) {
@@ -332,22 +331,27 @@ class Renderer
 					?>
 				</select>
 
-			</label>
-				<label class="bfPackageSelector bfFilterTools">
-					<?php echo Text::_('COM_BREEZINGFORMSNG_FILTER'); ?>
-					<input type="text" name="search" id="search" class="inputbox"
-						value="<?php echo htmlspecialchars($search, ENT_QUOTES); ?>" onchange="return bfScriptsSubmitList(true);"
+				<label class="visually-hidden" for="filter_state"><?php echo Text::_('JOPTION_SELECT_PUBLISHED'); ?></label>
+				<select name="filter_state" id="filter_state" class="form-select w-auto"
+					onchange="return bfScriptsSubmitList(true);">
+					<option value=""><?php echo Text::_('JOPTION_SELECT_PUBLISHED'); ?></option>
+					<option value="P"<?php echo $filterState === 'P' ? ' selected="selected"' : ''; ?>><?php echo Text::_('JPUBLISHED'); ?></option>
+					<option value="U"<?php echo $filterState === 'U' ? ' selected="selected"' : ''; ?>><?php echo Text::_('JUNPUBLISHED'); ?></option>
+				</select>
+
+				<div class="input-group w-auto">
+					<label class="visually-hidden" for="filter_search"><?php echo Text::_('JSEARCH_FILTER'); ?></label>
+					<input type="text" name="search" id="filter_search" class="form-control"
+						value="<?php echo htmlspecialchars($search, ENT_QUOTES); ?>"
 						onkeydown="if(event.key==='Enter'){event.preventDefault();bfScriptsSubmitList(true);}" />
-				</label>
-				<label class="bfPackageSelector">
-					<select name="filter_state" id="filter_state" class="inputbox form-select form-select-sm"
-						onchange="return bfScriptsSubmitList(true);">
-						<option value=""><?php echo Text::_('JOPTION_SELECT_PUBLISHED'); ?></option>
-						<option value="P"<?php echo $filterState === 'P' ? ' selected="selected"' : ''; ?>><?php echo Text::_('JPUBLISHED'); ?></option>
-						<option value="U"<?php echo $filterState === 'U' ? ' selected="selected"' : ''; ?>><?php echo Text::_('JUNPUBLISHED'); ?></option>
-					</select>
-				</label>
-			<div style="clear: both;"></div>
+					<button type="button" id="filter_search_submit" class="btn btn-primary"
+						onclick="return bfScriptsSubmitList(true);"
+						title="<?php echo htmlspecialchars(Text::_('JSEARCH_FILTER_SUBMIT'), ENT_QUOTES, 'UTF-8'); ?>"
+						aria-label="<?php echo htmlspecialchars(Text::_('JSEARCH_FILTER_SUBMIT'), ENT_QUOTES, 'UTF-8'); ?>">
+						<span class="icon-search" aria-hidden="true"></span>
+					</button>
+				</div>
+			</div>
 
 				<div class="bf-manage-list-pagination-container table-responsive" id="bfScriptsPaginationContainer">
 				<table class="adminlist table table-striped" id="bfScriptsList" data-name="breezingformsng-scripts">
@@ -356,7 +360,7 @@ class Renderer
 					<th class="w-1 text-nowrap">
 						<?php echo HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'a.id', $listDirn, $listOrder); ?>
 					</th>
-					<th class="w-1 text-center"><input class="form-check-input" type="checkbox" name="toggle" value=""
+					<th class="w-1 text-center"><input id="check-all" class="form-check-input" type="checkbox" name="toggle" value=""
 							onclick="Joomla.checkAll(this);" /></th>
 					<th>
 						<?php echo HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_SCRIPTS_PACKAGE', 'a.package', $listDirn, $listOrder); ?>

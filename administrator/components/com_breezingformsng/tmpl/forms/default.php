@@ -46,7 +46,9 @@ $saveOrder  = $this->listOrder === 'ordering' && strtolower($this->listDirn) ===
       <input type="text" class="form-control" name="search" id="filter_search"
              value="<?= htmlspecialchars($this->search); ?>"
              placeholder="<?= Text::_('JSEARCH_FILTER'); ?>">
-      <button type="submit" class="btn btn-primary" id="filter_search_submit"><?= Text::_('JSEARCH_FILTER_SUBMIT'); ?></button>
+      <button type="submit" class="btn btn-primary" id="filter_search_submit" title="<?= Text::_('JSEARCH_FILTER_SUBMIT'); ?>" aria-label="<?= Text::_('JSEARCH_FILTER_SUBMIT'); ?>">
+        <span class="icon-search" aria-hidden="true"></span>
+      </button>
       <?php if ($this->search !== ''): ?>
         <a href="index.php?option=com_breezingformsng&view=forms&search=&pkg=<?= rawurlencode($pkg); ?>"
            class="btn btn-secondary" id="filter_search_clear"><?= Text::_('JSEARCH_FILTER_CLEAR'); ?></a>
