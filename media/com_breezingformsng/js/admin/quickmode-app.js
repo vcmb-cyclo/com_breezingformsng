@@ -170,7 +170,15 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                 // the view from it - mirroring the old jTree 0.9.8 tree.refresh() pattern.
                 function toJsTreeNode(node) {
                     var type = appScope.treeModel.getNodeType(node) || 'default';
-                    var title = (node.data && node.data.title) || node.attributes.id;
+                    // data.title (the tree's own display label) only gets kept in
+                    // sync by saveFormProperties(), itself only triggered by
+                    // switching tree selection away from the node - a freshly
+                    // created form's root can reach this before that ever
+                    // happens. properties.title (the real, server-sourced title)
+                    // is a more reliable fallback than the raw internal id.
+                    var title = (node.data && node.data.title)
+                        || (node.properties && node.properties.title)
+                        || node.attributes.id;
 
                     return {
                         id: node.attributes.id,
@@ -694,6 +702,16 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                     item.properties.description = BFQMConfig.formDesc;
                     item.properties.mailRecipient = BFQMConfig.formEmailadr;
                     item.properties.mailNotification = BFQMConfig.formEmailntf;
+                    // data.title is the tree's own display label - a separate
+                    // field from properties.title, only ever kept in sync by
+                    // saveFormProperties() (itself only triggered by switching
+                    // tree selection away from root, or saveButton()'s root
+                    // branch). Without this, a freshly created form's root node
+                    // keeps showing its raw internal id in the tree until the
+                    // user happens to select another node at least once.
+                    if (item.data) {
+                        item.data.title = BFQMConfig.formTitle;
+                    }
                 }
                 window.dispatchEvent(new CustomEvent('bfqm:ready'));
             });

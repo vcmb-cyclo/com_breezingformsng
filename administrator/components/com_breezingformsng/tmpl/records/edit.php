@@ -30,6 +30,21 @@ $systemLabel = static fn(string $label, string $description): string => sprintf(
     htmlspecialchars(Text::_($description), ENT_QUOTES, 'UTF-8'),
     htmlspecialchars(Text::_($label), ENT_QUOTES, 'UTF-8'),
 );
+$sectionOpened = false;
+$sectionHeader = static function (string $id, string $label) use (&$sectionOpened): string {
+    $close = $sectionOpened ? '</tbody>' : '';
+    $sectionOpened = true;
+
+    return $close . sprintf(
+        '<tbody><tr class="table-primary"><th colspan="2">'
+            . '<a href="#" class="bf-collapse-toggle d-block text-decoration-none text-reset"'
+            . ' data-bs-toggle="collapse" data-bs-target="#%1$s" aria-expanded="true" aria-controls="%1$s">'
+            . '<span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> %2$s'
+            . '</a></th></tr></tbody><tbody id="%1$s" class="collapse show">',
+        $id,
+        htmlspecialchars(Text::_($label), ENT_QUOTES, 'UTF-8'),
+    );
+};
 $formEditorUrl = 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . (int) $record->form;
 $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $listOrder, $listDirn, $limit, $limitStart): string {
   $query = [
@@ -79,15 +94,39 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
       </div>
     </div>
     <div class="card-body py-2">
-      <div>
-        <strong><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_TITLE'); ?></strong>
-        <a href="<?= htmlspecialchars($formEditorUrl, ENT_QUOTES, 'UTF-8'); ?>" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_OPEN_EDITOR'), ENT_QUOTES, 'UTF-8'); ?>">
-          <?= $value($record->form_title); ?>
-        </a>
-        <span class="small text-muted"><?= $value($record->form_name); ?></span>
-      </div>
-      <div class="small text-muted mt-1">
-        <strong><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_SUBMITTED'); ?></strong> <?= $submitted; ?>
+      <div class="d-flex align-items-start">
+        <div>
+          <div>
+            <strong><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_TITLE'); ?></strong>
+            <a href="<?= htmlspecialchars($formEditorUrl, ENT_QUOTES, 'UTF-8'); ?>" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_OPEN_EDITOR'), ENT_QUOTES, 'UTF-8'); ?>">
+              <?= $value($record->form_title); ?>
+            </a>
+            <span class="small text-muted"><?= $value($record->form_name); ?></span>
+          </div>
+          <div class="small text-muted mt-1">
+            <strong><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_SUBMITTED'); ?></strong> <?= $submitted; ?>
+          </div>
+        </div>
+        <div class="d-flex gap-3 ms-auto">
+          <a href="#" class="text-decoration-none"
+            onclick="bfToggleFlag(<?= (int) $record->id; ?>, 'bfrecord_viewed', this, 'record-flag-value-viewed'); return false;"
+            title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_TOGGLE_VIEWED'), ENT_QUOTES, 'UTF-8'); ?>">
+            <span class="<?= $record->viewed ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
+            <?= Text::_('COM_BREEZINGFORMSNG_RECORDS_VIEWED'); ?>
+          </a>
+          <a href="#" class="text-decoration-none"
+            onclick="bfToggleFlag(<?= (int) $record->id; ?>, 'bfrecord_exported', this, 'record-flag-value-exported'); return false;"
+            title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_TOGGLE_EXPORTED'), ENT_QUOTES, 'UTF-8'); ?>">
+            <span class="<?= $record->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
+            <?= Text::_('COM_BREEZINGFORMSNG_RECORDS_EXPORTED'); ?>
+          </a>
+          <a href="#" class="text-decoration-none"
+            onclick="bfToggleFlag(<?= (int) $record->id; ?>, 'bfrecord_archived', this, 'record-flag-value-archived'); return false;"
+            title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_TOGGLE_ARCHIVED'), ENT_QUOTES, 'UTF-8'); ?>">
+            <span class="<?= $record->archived ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
+            <?= Text::_('COM_BREEZINGFORMSNG_RECORDS_ARCHIVED'); ?>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -117,8 +156,7 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-striped mb-0">
-          <tbody>
-            <tr class="table-primary"><th colspan="2"><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_SUBMINFO'); ?></th></tr>
+            <?= $sectionHeader('record-section-subinfo', 'COM_BREEZINGFORMSNG_RECORDS_SUBMINFO'); ?>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_SUBMITTED', 'COM_BREEZINGFORMSNG_RECORDS_SUBMITTED_DESC'); ?></th><td><?= $submitted; ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_IP', 'COM_BREEZINGFORMSNG_IP_DESC'); ?></th><td><?= $value($record->ip); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_BROWSER', 'COM_BREEZINGFORMSNG_RECORDS_BROWSER_DESC'); ?></th><td><?= $value($record->browser); ?></td></tr>
@@ -127,18 +165,18 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_USERID', 'COM_BREEZINGFORMSNG_USERID_DESC'); ?></th><td><?= (int) $record->user_id; ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME', 'COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME_DESC'); ?></th><td><?= $value($record->username); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME', 'COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME_DESC'); ?></th><td><?= $value($record->user_full_name); ?></td></tr>
-            <tr class="table-primary"><th colspan="2"><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_RECORDINFO'); ?></th></tr>
+            <?= $sectionHeader('record-section-recordinfo', 'COM_BREEZINGFORMSNG_RECORDS_RECORDINFO'); ?>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_RECORDID', 'COM_BREEZINGFORMSNG_ID_DESC'); ?></th><td><?= (int) $record->id; ?></td></tr>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_VIEWED', 'COM_BREEZINGFORMSNG_RECORDS_VIEWED_DESC'); ?></th><td><?= $yesNo($record->viewed); ?></td></tr>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_EXPORTED', 'COM_BREEZINGFORMSNG_RECORDS_EXPORTED_DESC'); ?></th><td><?= $yesNo($record->exported); ?></td></tr>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_ARCHIVED', 'COM_BREEZINGFORMSNG_RECORDS_ARCHIVED_DESC'); ?></th><td><?= $yesNo($record->archived); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_VIEWED', 'COM_BREEZINGFORMSNG_RECORDS_VIEWED_DESC'); ?></th><td id="record-flag-value-viewed"><?= $yesNo($record->viewed); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_EXPORTED', 'COM_BREEZINGFORMSNG_RECORDS_EXPORTED_DESC'); ?></th><td id="record-flag-value-exported"><?= $yesNo($record->exported); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_ARCHIVED', 'COM_BREEZINGFORMSNG_RECORDS_ARCHIVED_DESC'); ?></th><td id="record-flag-value-archived"><?= $yesNo($record->archived); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPTED', 'COM_BREEZINGFORMSNG_RECORDS_OPTED_DESC'); ?></th><td><?= $yesNo($record->opted); ?></td></tr>
-            <tr class="table-primary"><th colspan="2"><?= Text::_('COM_BREEZINGFORMSNG_PAYMENT_INFORMATION'); ?></th></tr>
+            <?= $sectionHeader('record-section-payment', 'COM_BREEZINGFORMSNG_PAYMENT_INFORMATION'); ?>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PAYMENT_TX_ID', 'COM_BREEZINGFORMSNG_PAYMENT_TX_ID_DESC'); ?></th><td><?= $value($record->paypal_tx_id); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PAYMENT_TX_DATE', 'COM_BREEZINGFORMSNG_PAYMENT_TX_DATE_DESC'); ?></th><td><?= $value($record->paypal_payment_date); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PAYMENT_TESTACCOUNT', 'COM_BREEZINGFORMSNG_PAYMENT_TESTACCOUNT_DESC'); ?></th><td><?= $yesNo($record->paypal_testaccount); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PAYMENT_DOWNLOAD_TRIES', 'COM_BREEZINGFORMSNG_PAYMENT_DOWNLOAD_TRIES_DESC'); ?></th><td><?= (int) $record->paypal_download_tries; ?></td></tr>
-            <tr class="table-primary"><th colspan="2"><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_FORMINFO'); ?></th></tr>
+            <?= $sectionHeader('record-section-forminfo', 'COM_BREEZINGFORMSNG_RECORDS_FORMINFO'); ?>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_ID', 'COM_BREEZINGFORMSNG_RECORDS_FORM_ID_DESC'); ?></th><td><?= (int) $record->form; ?></td></tr>
             <tr>
               <th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_TITLE', 'COM_BREEZINGFORMSNG_RECORDS_TITLE_DESC'); ?></th>

@@ -37,17 +37,6 @@ class AboutController extends BaseController
         'facileforms_integrator_criteria_joomla',
     ];
 
-    /**
-     * Tables the collation repair should also cover but that exportConfiguration()
-     * deliberately excludes from the config-only backup (user-submitted data,
-     * not component configuration).
-     */
-    private const ADDITIONAL_REPAIR_TABLES = [
-        'facileforms_config',
-        'facileforms_records',
-        'facileforms_subrecords',
-    ];
-
     public function display($cachable = false, $urlparams = [])
     {
         $application = $this->app;
@@ -59,61 +48,6 @@ class AboutController extends BaseController
         $application->getInput()->set('view', 'about');
 
         return parent::display($cachable, $urlparams);
-    }
-
-    public function migratePackedData(): void
-    {
-        $this->startRepairWorkflow();
-    }
-
-    public function startRepairWorkflow(): void
-    {
-        $this->checkToken();
-
-        try {
-            $this->getAuthorizedApplication();
-            $db = $this->getDatabase();
-
-            $report = $this->getAuditService($db)->run();
-            $targetCollation = (string) ($report['target_collation'] ?? 'utf8mb4_unicode_ci');
-            $currentCollations = array_column($report['tables'] ?? [], 'collation', 'table');
-
-            $converted = 0;
-            $skipped = 0;
-            $missing = 0;
-
-            foreach ([...self::CONFIGURATION_TABLES, ...self::ADDITIONAL_REPAIR_TABLES] as $table) {
-                if (!$this->tableExists($table)) {
-                    $missing++;
-                    continue;
-                }
-
-                $currentCollation = (string) ($currentCollations['#__' . $table] ?? '');
-                if ($currentCollation !== '' && strcasecmp($currentCollation, $targetCollation) === 0) {
-                    $skipped++;
-                    continue;
-                }
-
-                // $targetCollation only ever comes from DatabaseAuditService's own
-                // hardcoded candidate list, never from user input.
-                $db->setQuery(
-                    'ALTER TABLE ' . $db->quoteName('#__' . $table)
-                    . ' CONVERT TO CHARACTER SET utf8mb4 COLLATE ' . $targetCollation
-                );
-                $db->execute();
-                $converted++;
-            }
-
-            $this->setMessage(
-                Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_DB_REPAIR_DONE', $converted, $missing)
-                . ' ' . Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_DB_REPAIR_SKIPPED', $skipped, $targetCollation),
-                'message'
-            );
-        } catch (\Throwable $exception) {
-            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_DB_REPAIR_FAILED', $exception->getMessage()), 'error');
-        }
-
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false));
     }
 
     public function runAudit(): void

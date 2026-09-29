@@ -12,6 +12,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\About;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Toolbar\Toolbar;
@@ -61,12 +62,6 @@ class HtmlView extends BaseHtmlView
                 ->icon('fa-solid fa-stethoscope')
                 ->listCheck(false);
 
-            $actionsChildToolbar->standardButton('about_migrate_packed_data')
-                ->task('about.startRepairWorkflow')
-                ->text('COM_BREEZINGFORMSNG_ABOUT_MIGRATE_PACKED_DATA')
-                ->icon('fa-solid fa-arrows-rotate')
-                ->listCheck(false);
-
             $actionsChildToolbar->standardButton('about_export_configuration')
                 ->task('about.exportConfiguration')
                 ->text('COM_BREEZINGFORMSNG_ABOUT_EXPORT_CONFIGURATION')
@@ -101,6 +96,7 @@ class HtmlView extends BaseHtmlView
         if ($layout === 'extensions') {
             $this->plugins = $this->getInstalledPlugins();
         } else {
+            HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
             $auditReport = $app->getUserState('com_breezingformsng.about.audit', []);
             $this->auditReport = is_array($auditReport) ? $auditReport : [];
             $app->setUserState('com_breezingformsng.about.audit', []);

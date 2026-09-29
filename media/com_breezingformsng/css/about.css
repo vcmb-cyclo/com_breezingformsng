@@ -198,14 +198,6 @@
     background-color: var(--bs-warning-bg-subtle, #fff6d6);
     color: var(--bs-warning-text-emphasis, #a87400);
 }
-.bf-about-version-label {
-    margin: .15rem 0 0;
-    color: var(--bs-secondary-color);
-    font-size: .74rem;
-    font-weight: 700;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-}
 .bf-about-version-value {
     margin: 0;
     color: var(--bs-emphasis-color);
@@ -216,11 +208,6 @@
 }
 .bf-about-version-tile--license .bf-about-version-value {
     font-weight: 400;
-}
-.bf-about-version-link {
-    margin-top: .4rem;
-    font-size: .76rem;
-    font-weight: 700;
 }
 .bf-audit-ok-alert {
     display: flex;
@@ -245,6 +232,11 @@
     font-size: 1rem;
     line-height: 1.4;
 }
+.bf-audit-error-alert {
+    border-color: var(--bs-danger-border-subtle);
+    background-color: var(--bs-danger-bg-subtle);
+    color: var(--bs-danger-text-emphasis);
+}
 .bf-audit-section-title {
     display: inline-flex;
     align-items: center;
@@ -257,6 +249,9 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+.bf-audit-detail-sections > .bf-audit-section-block {
+    margin-bottom: 0 !important;
 }
 .bf-audit-section-block,
 .bf-repair-workflow-step,

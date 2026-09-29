@@ -109,6 +109,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         } else {
             $document = $app->getDocument();
             $wa       = $document->getWebAssetManager();
+            $wa->useScript('table.columns');
             $wa->registerAndUseScript(
                 'com_breezingformsng.admin-sort',
                 'media/com_breezingformsng/js/admin/admin-sort.js',

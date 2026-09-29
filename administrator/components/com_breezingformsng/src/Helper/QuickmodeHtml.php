@@ -263,15 +263,18 @@ final class QuickmodeHtml
 
                 <div class="bfng-tree-toolbar">
                     <form id="newStuffBar" onsubmit="return false;">
-                        <button class="bfng-btn bfng-btn--primary" id="bfNewPageButton">
+                        <button class="bfng-btn bfng-btn--primary" id="bfNewPageButton"
+                            title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_NEW_PAGE_DESC'), ENT_QUOTES, 'UTF-8'); ?>">
                             <i class="fa-solid fa-plus" aria-hidden="true"></i>
                             <?php echo Text::_('COM_BREEZINGFORMSNG_NEW_PAGE'); ?>
                         </button>
-                        <button class="bfng-btn bfng-btn--primary" id="bfNewSectionButton">
+                        <button class="bfng-btn bfng-btn--primary" id="bfNewSectionButton"
+                            title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_NEW_SECTION_DESC'), ENT_QUOTES, 'UTF-8'); ?>">
                             <i class="fa-solid fa-plus" aria-hidden="true"></i>
                             <?php echo Text::_('COM_BREEZINGFORMSNG_NEW_SECTION'); ?>
                         </button>
-                        <button class="bfng-btn bfng-btn--primary" id="bfNewElementButton">
+                        <button class="bfng-btn bfng-btn--primary" id="bfNewElementButton"
+                            title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_NEW_ELEMENT_DESC'), ENT_QUOTES, 'UTF-8'); ?>">
                             <i class="fa-solid fa-plus" aria-hidden="true"></i>
                             <?php echo Text::_('COM_BREEZINGFORMSNG_NEW_ELEMENT'); ?>
                         </button>

@@ -162,7 +162,13 @@ class FormsController extends BaseController
             // Set by the QuickMode "Options" tab's own form (bfOptionsForm) so
             // the redirect lands back on that tab instead of the default one.
             $returnTab = $input->post->getCmd('return_tab', '');
-            $app->enqueueMessage(Text::_('JLIB_APPLICATION_SAVE_SUCCESS'), 'message');
+            $title = trim((string) ($data['title'] ?? ''));
+            $app->enqueueMessage(
+                $title !== ''
+                    ? Text::sprintf('COM_BREEZINGFORMSNG_FORM_SAVE_SUCCESS', $title)
+                    : Text::_('JLIB_APPLICATION_SAVE_SUCCESS'),
+                'message'
+            );
             $app->redirect(Route::_(
                 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . $id
                 . ($pkg !== '' ? '&pkg=' . rawurlencode($pkg) : '')

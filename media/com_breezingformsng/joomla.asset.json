@@ -173,10 +173,18 @@
     },
 
     {
+      "name": "com_breezingformsng.record-flags",
+      "type": "script",
+      "uri": "com_breezingformsng/js/admin/record-flags.js",
+      "dependencies": ["core"],
+      "version": "auto"
+    },
+
+    {
       "name": "com_breezingformsng.records-list",
       "type": "script",
       "uri": "com_breezingformsng/js/admin/records-list.js",
-      "dependencies": ["core", "com_breezingformsng.admin-sort"],
+      "dependencies": ["core", "com_breezingformsng.admin-sort", "com_breezingformsng.record-flags"],
       "version": "auto"
     },
 

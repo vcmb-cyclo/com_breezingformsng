@@ -64,6 +64,23 @@ class HtmlView extends BaseHtmlView
             $this->prepareEditData($input);
             $this->prepareEditToolbar();
             HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
+
+            $document = $app->getDocument();
+            $document->getWebAssetManager()->useStyle('com_breezingformsng.admin-style');
+            $document->getWebAssetManager()->registerAndUseScript(
+                'com_breezingformsng.record-flags',
+                'media/com_breezingformsng/js/admin/record-flags.js',
+                ['version' => 'auto'],
+                ['defer' => true],
+                ['core']
+            );
+            $document->addScriptOptions(
+                'com_breezingformsng.record-flags',
+                ['csrfToken' => \Joomla\CMS\Session\Session::getFormToken()]
+            );
+            Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
+            Text::script('JYES');
+            Text::script('JNO');
         } elseif ($layout === 'csvimport') {
             $this->formSelection = $input->getInt('form_selection', 0);
             $this->prepareImportToolbar();
@@ -80,15 +97,22 @@ class HtmlView extends BaseHtmlView
                 ['core']
             );
             $document->getWebAssetManager()->registerAndUseScript(
-                'com_breezingformsng.records-list',
-                'media/com_breezingformsng/js/admin/records-list.js',
+                'com_breezingformsng.record-flags',
+                'media/com_breezingformsng/js/admin/record-flags.js',
                 ['version' => 'auto'],
                 ['defer' => true],
                 ['core']
             );
             $document->addScriptOptions(
-                'com_breezingformsng.records-list',
+                'com_breezingformsng.record-flags',
                 ['csrfToken' => \Joomla\CMS\Session\Session::getFormToken()]
+            );
+            $document->getWebAssetManager()->registerAndUseScript(
+                'com_breezingformsng.records-list',
+                'media/com_breezingformsng/js/admin/records-list.js',
+                ['version' => 'auto'],
+                ['defer' => true],
+                ['core', 'com_breezingformsng.record-flags']
             );
             Text::script('COM_BREEZINGFORMSNG_CONFIRM_DELETE_RECORDS');
             Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
@@ -342,7 +366,7 @@ class HtmlView extends BaseHtmlView
 
         ToolbarHelper::custom('records.remove', 'delete', 'delete', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_DELETE'), false);
         ToolbarHelper::custom('records.save', 'save', 'save', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_SAVE'), false);
-        ToolbarHelper::cancel('records.cancel', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_CANCEL'));
+        ToolbarHelper::cancel('records.cancel', 'JTOOLBAR_CLOSE');
 
         /** @var CMSApplication $app */
         $app      = Factory::getApplication();

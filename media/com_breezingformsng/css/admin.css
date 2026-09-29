@@ -358,3 +358,7 @@ overflow:hidden;width: 100%;
 
 /* Ensure right-side helper panels don't force the page to grow beyond viewport */
 .bf-sidebar, .bf-panel, .bfQuickModeRight { max-height: calc(100vh - 80px); overflow: auto; }
+
+/* Record edit screen: collapsible detail sections */
+.bf-collapse-toggle .bf-collapse-icon { transition: transform .15s ease-in-out; display: inline-block; }
+.bf-collapse-toggle:not(.collapsed) .bf-collapse-icon { transform: rotate(180deg); }
