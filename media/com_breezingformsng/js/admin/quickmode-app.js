@@ -207,8 +207,6 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                     }
                 };
 
-                var treeReady = false;
-
                 JQuery('#bfElementExplorer').jstree({
                     core: {
                         data: [toJsTreeNode(appScope.dataObject)],
@@ -341,17 +339,6 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         }
                     })
                     .on('ready.jstree', function () {
-                        // jsTree fires open_node.jstree for every initially-expanded
-                        // node while building its own DOM on first render (state.opened
-                        // from toJsTreeNode()), not just on a real user click. Nodes
-                        // with no .state at all (never explicitly toggled) would then
-                        // gain a brand new "state":"open" key purely from that replay,
-                        // changing dataObject's JSON and falsely tripping the "unsaved
-                        // changes" badge (quickmode-form-dirty.js) on every page load.
-                        // Only start reacting to open/close once the initial render
-                        // (and its synthetic events) is done.
-                        treeReady = true;
-
                         // core.worker (on by default) parses the initial data
                         // asynchronously, so the root isn't reliably selectable
                         // immediately after the .jstree(...) call below returns -
@@ -359,20 +346,25 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         appScope.selectTreeBranch('bfQuickModeRoot');
                     })
                     .on('open_node.jstree', function (e, data) {
-                        if (!treeReady) {
-                            return;
-                        }
+                        // jsTree fires open_node.jstree for every expanded node
+                        // whenever it (re)builds its DOM - the initial render, and
+                        // every refreshTree() afterwards (e.g. after the auto-save-
+                        // on-switch path above triggers one) - not just on a real
+                        // user click. A node with no .state at all is already
+                        // implicitly "open" (see toJsTreeNode()'s state.opened),
+                        // so only write when this is a genuine close->open
+                        // transition; writing 'open' unconditionally would add a
+                        // brand new key to dataObject on every such replay, falsely
+                        // tripping the "unsaved changes" badge even though nothing
+                        // was edited.
                         var source = appScope.treeModel.find(data.node.id);
-                        if (source) {
+                        if (source && source.state === 'close') {
                             source.state = 'open';
                         }
                     })
                     .on('close_node.jstree', function (e, data) {
-                        if (!treeReady) {
-                            return;
-                        }
                         var source = appScope.treeModel.find(data.node.id);
-                        if (source) {
+                        if (source && source.state !== 'close') {
                             source.state = 'close';
                         }
                     })
