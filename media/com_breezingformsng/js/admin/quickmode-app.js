@@ -308,7 +308,16 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                             // treeModel.find(). The node currently being selected below
                             // keeps the same id either way, so this doesn't disturb it.
                             if (appScope.selectedTreeElement.attributes.id !== previousId) {
-                                appScope.refreshTree();
+                                // Deferred: this whole block runs from inside jsTree's
+                                // own select_node.jstree handler, itself invoked while
+                                // jsTree is still executing its internal click handling.
+                                // refresh() replaces the tree's entire DOM (this.element
+                                // .html(...)) - doing that synchronously, still on jsTree's
+                                // own call stack, risks it operating on elements ripped out
+                                // from under it a moment later. Let that unwind first.
+                                setTimeout(function () {
+                                    appScope.refreshTree();
+                                }, 0);
                             }
                         }
 
