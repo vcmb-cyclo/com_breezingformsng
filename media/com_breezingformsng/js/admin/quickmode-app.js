@@ -284,6 +284,8 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         var node = appScope.treeModel.find(data.node.id);
 
                         if (appScope.selectedTreeElement && appScope.selectedTreeElement !== node) {
+                            var previousId = appScope.selectedTreeElement.attributes.id;
+
                             switch (appScope.getNodeClass(appScope.selectedTreeElement)) {
                                 case 'bfQuickModeRootClass':
                                     appScope.saveFormProperties();
@@ -297,6 +299,18 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                                 case 'bfQuickModePageClass':
                                     appScope.savePageProperties();
                                     break;
+                            }
+
+                            // saveSelectedElementProperties() can rename the node
+                            // (item.attributes.id) as a side effect of this auto-commit.
+                            // The tree model's index already accounts for the new id
+                            // (rebuildIndex() runs there), but jsTree's own DOM/model
+                            // still shows the node under its old id until refreshed -
+                            // clicking it again would otherwise fail to resolve via
+                            // treeModel.find(). The node currently being selected below
+                            // keeps the same id either way, so this doesn't disturb it.
+                            if (appScope.selectedTreeElement.attributes.id !== previousId) {
+                                appScope.refreshTree();
                             }
                         }
 
@@ -666,17 +680,19 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                 // app.dataObject directly (see onmove/create/remove above),
                 // outside of any form this script's own listeners can see.
                 window.BFQMApp = app;
-                var mdata = app.getProperties(app.selectedTreeElement);
-                if (mdata) {
-                    var item = app.findDataObjectItem('bfQuickModeRoot', app.dataObject);
-                    if (item) {
-                        mdata.title = BFQMConfig.formTitle;
-                        mdata.name = BFQMConfig.formName;
-                        mdata.description = BFQMConfig.formDesc;
-                        mdata.mailRecipient = BFQMConfig.formEmailadr;
-                        mdata.mailNotification = BFQMConfig.formEmailntf;
-                        item.properties = mdata;
-                    }
+                // Reads the root node's own properties directly rather than going
+                // through getProperties(app.selectedTreeElement): the initial root
+                // selection now happens in the tree's ready.jstree handler (jsTree 3
+                // parses its data asynchronously via core.worker), which fires after
+                // this load handler returns - selectedTreeElement would still be null
+                // here, silently skipping this sync entirely.
+                var item = app.findDataObjectItem('bfQuickModeRoot', app.dataObject);
+                if (item && item.properties) {
+                    item.properties.title = BFQMConfig.formTitle;
+                    item.properties.name = BFQMConfig.formName;
+                    item.properties.description = BFQMConfig.formDesc;
+                    item.properties.mailRecipient = BFQMConfig.formEmailadr;
+                    item.properties.mailNotification = BFQMConfig.formEmailntf;
                 }
                 window.dispatchEvent(new CustomEvent('bfqm:ready'));
             });
