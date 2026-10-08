@@ -1209,6 +1209,17 @@ class com_breezingformsngInstallerScript
         return $version;
     }
 
+    private function installModules(): void
+    {
+        $path = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/modules/mod_breezingforms';
+        $installer = new Installer();
+        $installer->setDatabase(Factory::getContainer()->get(DatabaseInterface::class));
+
+        if (!$installer->install($path)) {
+            $this->announce('Failed to install BreezingForms NG module.', 'error', Log::ERROR);
+        }
+    }
+
     private function installPlugins(): void
     {
         $basePath = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/plugins';
@@ -2765,6 +2776,7 @@ class com_breezingformsngInstallerScript
             $this->importStandardLibrary();
             $this->copyComponentImageAssets();
             $this->installPlugins();
+            $this->installModules();
             $this->cleanupLegacyBreezingFormsAfterInstall();
             $this->removeOldUpdateSite();
             $this->cleanupOldConfig();
@@ -2816,6 +2828,7 @@ class com_breezingformsngInstallerScript
         $plugins = array();
         $plugins['system'] = array();
         $plugins['system'][] = 'bfcompat';
+        $plugins['content'] = ['breezingforms'];
         return $plugins;
     }
 

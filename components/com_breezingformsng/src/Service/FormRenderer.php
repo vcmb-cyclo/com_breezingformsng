@@ -120,13 +120,13 @@ $ff_request = array();
 
             $formname = htmlentities($this->application->getInput()->getString('ff_name', ''), ENT_QUOTES, 'UTF-8');
             $page = $this->application->getInput()->getInt('ff_page', 1);
-            $inframe = htmlentities($this->application->getInput()->getString('ff_frame', ''), ENT_QUOTES, 'UTF-8');
-            $border = htmlentities($this->application->getInput()->getString('ff_border', ''), ENT_QUOTES, 'UTF-8');
-            $align = htmlentities($this->application->getInput()->getString('ff_align', ''), ENT_QUOTES, 'UTF-8');
+            $inframe = $this->application->getInput()->getInt('ff_frame', 0);
+            $border = $this->application->getInput()->getInt('ff_border', 0);
+            $align = $this->application->getInput()->getInt('ff_align', 1);
             $editable = intval($plg_editable);
             $editable_override = intval($plg_editable_override);
-            $left = '';
-            $top = '';
+            $left = 0;
+            $top = 0;
             $suffix = htmlentities($this->application->getInput()->getString('ff_suffix', ''), ENT_QUOTES, 'UTF-8');
             $parprv = '';
             $ff_request = array_replace($ff_request, $this->requestParameterParser->parse(''));
@@ -191,18 +191,18 @@ $ff_request = array();
 
         $task = $this->application->getInput()->getString('ff_task', $task);
         $page = $this->application->getInput()->getInt('ff_page', $page);
-        $inframe = $this->application->getInput()->getString('ff_frame', $inframe);
-        $border = $this->application->getInput()->getString('ff_border', $border);
-        $align1 = $this->application->getInput()->getString('ff_align', -1);
+        $inframe = $this->application->getInput()->getInt('ff_frame', $inframe);
+        $border = $this->application->getInput()->getInt('ff_border', $border);
+        $align1 = $this->application->getInput()->getInt('ff_align', -1);
         if ($align1 >= 0) {
-            $align = $this->application->getInput()->getString('ff_align', $align);
+            $align = $this->application->getInput()->getInt('ff_align', $align);
             $left = 0;
             if ($align > 2) {
                 $left = $align;
                 $align = 3;
             }
         } // if
-        $top = $this->application->getInput()->getString('ff_top', $top);
+        $top = $this->application->getInput()->getInt('ff_top', $top);
         $suffix = $this->application->getInput()->getString('ff_suffix', $suffix);
     }
 

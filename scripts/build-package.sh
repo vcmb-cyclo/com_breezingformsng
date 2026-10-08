@@ -22,10 +22,11 @@ rm -rf "${package_dir}"
 mkdir -p "${package_dir}" "${output_dir}"
 
 while IFS= read -r -d '' path; do
+    [[ -f "${root_dir}/${path}" ]] || continue
     mkdir -p "${package_dir}/$(dirname "${path}")"
     cp "${root_dir}/${path}" "${package_dir}/${path}"
 done < <(
-    git -C "${root_dir}" ls-files -z \
+    git -C "${root_dir}" ls-files --cached --others --exclude-standard -z \
         administrator \
         components \
         media \
