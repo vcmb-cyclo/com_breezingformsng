@@ -89,6 +89,9 @@ final class Breezingforms extends CMSPlugin implements SubscriberInterface
             'ff_target' => $target,
             'raw' => false,
             'ff_task' => $isTarget ? $input->getCmd('ff_task', 'view') : 'view',
+            'ff_form_submitted' => $isTarget ? $input->getInt('ff_form_submitted', 0) : 0,
+            'ff_status' => $isTarget ? $input->getCmd('ff_status', '') : '',
+            'ff_message' => $isTarget ? $input->getString('ff_message', '') : '',
         ];
         parse_str(html_entity_decode($matches[4] ?? '', ENT_QUOTES, 'UTF-8'), $parameters);
         foreach ($parameters as $key => $value) {
@@ -131,7 +134,8 @@ final class Breezingforms extends CMSPlugin implements SubscriberInterface
                 . '" src="' . $escape($url) . '" width="'
                 . $escape((string) $form->width . ($form->widthmode ? '%' : ''))
                 . '" height="' . (int) $form->height . '" style="border:' . ($values['ff_border'] ? '1px solid' : '0')
-                . '" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"></iframe>';
+                . '" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals'
+                . ' allow-top-navigation"></iframe>';
         }
 
         if ($values['ff_task'] === 'submit' && !Session::checkToken('post')) {

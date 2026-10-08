@@ -8,6 +8,7 @@ use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Event\Content\ContentPrepareEvent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Session\Session;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\Mysqli\MysqliQuery;
 use Joomla\Input\Input;
@@ -63,6 +64,9 @@ final class ContentPluginTest extends TestCase
             'form' => $input->getInt('ff_form'),
             'source' => $input->getString('ff_param_source'),
             'foreign' => $input->getString('ff_param_foreign', ''),
+            'submitted' => $input->getInt('ff_form_submitted'),
+            'status' => $input->getCmd('ff_status'),
+            'message' => $input->getString('ff_message'),
         ]) . "\n";
 PHP);
     }
@@ -83,19 +87,22 @@ PHP);
         Factory::$application = null;
     }
 
-    private function plugin(Input $input): Breezingforms
+    private function plugin(Input $input, bool $iframe = false): Breezingforms
     {
         $database = $this->createStub(DatabaseInterface::class);
         $database->method('getQuery')->willReturnCallback(static fn () => new MysqliQuery());
         $database->method('quoteName')->willReturnArgument(0);
         $database->method('setQuery')->willReturnSelf();
-        $database->method('loadObject')->willReturn((object) ['id' => 10, 'name' => 'Contact']);
+        $database->method('loadObject')->willReturn((object) [
+            'id' => 10, 'name' => 'Contact', 'title' => 'Contact form', 'autoheight' => 0,
+            'width' => 600, 'widthmode' => 0, 'height' => 400,
+        ]);
         $session = $this->createStub(Session::class);
         $application = $this->createStub(CMSApplication::class);
         $application->method('isClient')->willReturn(true);
         $application->method('getInput')->willReturn($input);
         $application->method('getSession')->willReturn($session);
-        $plugin = new Breezingforms(['name' => 'breezingforms', 'type' => 'content', 'params' => '{}']);
+        $plugin = new Breezingforms(['name' => 'breezingforms', 'type' => 'content', 'params' => json_encode(['load_in_iframe' => $iframe])]);
         $plugin->setApplication($application);
         $plugin->setDatabase($database);
 
@@ -117,7 +124,10 @@ PHP);
 
     public function testOnlySubmittedFormReceivesRequestPageAndParameters(): void
     {
-        $input = new Input(['ff_target' => 2, 'ff_page' => 7, 'ff_param_foreign' => 'request']);
+        $input = new Input([
+            'ff_target' => 2, 'ff_page' => 7, 'ff_param_foreign' => 'request',
+            'ff_form_submitted' => 1, 'ff_status' => 'success', 'ff_message' => 'Thank you',
+        ]);
         $output = $this->render($this->plugin($input),
             '{BreezingForms:First,1,0,&ff_param_source=article}{BreezingForms:Second}');
         $forms = array_map(static fn ($line) => json_decode($line, true), explode("\n", trim($output)));
@@ -127,6 +137,12 @@ PHP);
         self::assertSame(7, $forms[1]['page']);
         self::assertSame('request', $forms[1]['foreign']);
         self::assertSame([1, 2], array_column($forms, 'target'));
+        self::assertSame([0, 1], array_column($forms, 'submitted'));
+        self::assertSame(['', 'success'], array_column($forms, 'status'));
+        self::assertSame(['', 'Thank you'], array_column($forms, 'message'));
+        self::assertSame(1, $input->getInt('ff_form_submitted'));
+        self::assertSame('success', $input->getCmd('ff_status'));
+        self::assertSame('Thank you', $input->getString('ff_message'));
     }
 
     public function testSharesTargetCounterWithExistingModule(): void
@@ -152,7 +168,10 @@ PHP);
 
     public function testFailureRestoresInputAndOutputBuffer(): void
     {
-        $input = new Input(['throw_fixture' => true, 'ff_name' => 'original']);
+        $input = new Input([
+            'throw_fixture' => true, 'ff_name' => 'original', 'ff_target' => 2,
+            'ff_form_submitted' => 1, 'ff_status' => 'success', 'ff_message' => '<b>original</b>',
+        ]);
         $level = ob_get_level();
         try {
             $this->render($this->plugin($input), '{BreezingForms:Contact}');
@@ -162,6 +181,24 @@ PHP);
         }
         self::assertSame('original', $input->getString('ff_name'));
         self::assertSame($level, ob_get_level());
+        self::assertSame(1, $input->getInt('ff_form_submitted'));
+        self::assertSame('success', $input->getCmd('ff_status'));
+        self::assertSame('<b>original</b>', $input->get('ff_message', null, 'raw'));
+    }
+
+    public function testIframeAllowsStandardTopAndParentRedirects(): void
+    {
+        Uri::reset();
+        (new \ReflectionProperty(Uri::class, 'base'))->setValue(null, [
+            'prefix' => 'https://example.test', 'path' => '',
+        ]);
+        $output = $this->render($this->plugin(new Input([]), true), '{BreezingForms:Contact}');
+        self::assertSame(1, preg_match('/sandbox="([^"]+)"/', $output, $matches));
+        $permissions = explode(' ', $matches[1]);
+        self::assertContains('allow-top-navigation', $permissions);
+        self::assertContains('allow-forms', $permissions);
+        self::assertContains('allow-scripts', $permissions);
+        self::assertStringContainsString('option=com_breezingformsng', $output);
     }
 
     public function testUnrelatedAndMalformedTagsRemainUnchanged(): void
