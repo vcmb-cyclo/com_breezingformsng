@@ -472,5 +472,23 @@ docker exec "${web_container}" php -r '
     exit(str_starts_with($image, "\x89PNG\r\n\x1a\n") ? 0 : 1);
 '
 
+module_count="$(docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "SELECT COUNT(*) FROM \`${table_prefix}extensions\` WHERE type = 'module' AND element = 'mod_breezingforms' AND client_id = 0;")"
+[[ "${module_count}" -eq 1 ]] || { echo 'Module registration missing or duplicated'; exit 1; }
+fixture_module_id="$(docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "INSERT INTO \`${table_prefix}modules\` (title, position, published, module, access, showtitle, params, client_id, language) VALUES ('BFNG module smoke', 'sidebar-right', 1, 'mod_breezingforms', 1, 0, '{\"ff_mod_name\":\"bfng-smoke-update-form\",\"cache\":0}', 0, '*'); SELECT LAST_INSERT_ID();")"
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "INSERT INTO \`${table_prefix}modules_menu\` (moduleid, menuid) VALUES (${fixture_module_id}, 0);"
+docker exec "${web_container}" php -r '
+    $html = file_get_contents("http://127.0.0.1/index.php", false, stream_context_create(["http" => ["ignore_errors" => true]]));
+    if ($html === false || !str_contains($html, "name=\"ff_form\"")) {
+        fwrite(STDERR, "Module inline form render failed\n" . strip_tags((string) $html)); exit(1);
+    }
+'
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "UPDATE \`${table_prefix}modules\` SET params = '{\"ff_mod_name\":\"bfng-smoke-update-form\",\"ff_mod_frame\":1,\"cache\":0}' WHERE id = ${fixture_module_id};"
+docker exec "${web_container}" php -r '
+    $html = file_get_contents("http://127.0.0.1/index.php", false, stream_context_create(["http" => ["ignore_errors" => true]]));
+    if ($html === false || !str_contains($html, "<iframe") || !str_contains($html, "ff_module_id=")) {
+        fwrite(STDERR, "Module iframe render failed\n"); exit(1);
+    }
+'
+echo 'Module installation, update, inline and iframe rendering passed.'
 
 echo "Joomla installation, update and frontend smoke tests passed."
