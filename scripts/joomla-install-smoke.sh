@@ -328,6 +328,16 @@ if [[ "${plugin_count}" -ne 1 ]]; then
     exit 1
 fi
 
+content_plugin_count="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "SELECT COUNT(*) FROM \`${table_prefix}extensions\` WHERE type = 'plugin' AND element = 'breezingforms' AND folder = 'content' AND enabled = 1;"
+)"
+
+if [[ "${content_plugin_count}" -ne 1 ]]; then
+    echo "The BreezingForms NG content plugin was not installed and enabled correctly." >&2
+    exit 1
+fi
+
 # Component tables are prefixed facileforms_ (carried over from the
 # original FacileForms/BreezingForms naming), not breezingformsng_.
 table_count="$(
@@ -379,6 +389,39 @@ if [[ "${fixture_count_after_update}" -ne 1 ]]; then
     exit 1
 fi
 
+# Render the installed content plugin through Joomla's article view.
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+    -e "UPDATE \`${table_prefix}facileforms_forms\` SET template_code_processed = 'QuickMode', template_code = 'eyJhdHRyaWJ1dGVzIjogeyJpZCI6ICJiZlF1aWNrTW9kZVJvb3QifSwgInByb3BlcnRpZXMiOiB7InR5cGUiOiAicm9vdCIsICJ0aXRsZSI6ICJTbW9rZSBmb3JtIiwgIm5hbWUiOiAiYmZuZy1zbW9rZS11cGRhdGUtZm9ybSIsICJyb2xsb3ZlciI6IGZhbHNlLCAicm9sbG92ZXJDb2xvciI6ICIjZmZjIiwgInRvZ2dsZUZpZWxkcyI6ICIiLCAiZGVzY3JpcHRpb24iOiAiIiwgIm1haWxOb3RpZmljYXRpb24iOiBmYWxzZSwgIm1haWxSZWNpcGllbnQiOiAiIiwgInN1Ym1pdEluY2x1ZGUiOiB0cnVlLCAic3VibWl0TGFiZWwiOiAiU3VibWl0IiwgImNhbmNlbEluY2x1ZGUiOiBmYWxzZSwgImNhbmNlbExhYmVsIjogIlJlc2V0IiwgInBhZ2luZ0luY2x1ZGUiOiB0cnVlLCAicGFnaW5nTmV4dExhYmVsIjogIk5leHQiLCAicGFnaW5nUHJldkxhYmVsIjogIkJhY2siLCAidGhlbWUiOiAiZGVmYXVsdCIsICJ0aGVtZWJvb3RzdHJhcCI6ICIiLCAidGhlbWVib290c3RyYXBiZWZvcmUiOiAiIiwgInRoZW1lYm9vdHN0cmFwTGFiZWxUb3AiOiBmYWxzZSwgInRoZW1lYm9vdHN0cmFwVGhlbWVFbmdpbmUiOiAiYm9vdHN0cmFwIiwgInRoZW1lYm9vdHN0cmFwVXNlSGVyb1VuaXQiOiBmYWxzZSwgInRoZW1lYm9vdHN0cmFwVXNlV2VsbCI6IGZhbHNlLCAidGhlbWVib290c3RyYXBVc2VQcm9ncmVzcyI6IGZhbHNlLCAiZmFkZUluIjogZmFsc2UsICJsYXN0UGFnZVRoYW5rWW91IjogZmFsc2UsICJzdWJtaXR0ZWRTY3JpcHRDb25kaWR0aW9uIjogMCwgInN1Ym1pdHRlZFNjcmlwdENvZGUiOiAiIiwgInVzZUVycm9yQWxlcnRzIjogZmFsc2UsICJ1c2VEZWZhdWx0RXJyb3JzIjogdHJ1ZSwgInVzZUJhbGxvb25FcnJvcnMiOiBmYWxzZSwgImpvb21sYUhpbnQiOiBmYWxzZX0sICJjaGlsZHJlbiI6IFtdfQ==' WHERE name = 'bfng-smoke-update-form';"
+
+fixture_article_id="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "INSERT INTO \`${table_prefix}content\` (title, alias, introtext, \`fulltext\`, state, catid, created, modified, created_by, access, language, attribs, metadata, images, urls, metadesc) VALUES ('BFNG content plugin smoke', 'bfng-content-plugin-smoke', '{BreezingForms:bfng-smoke-update-form}', '', 1, (SELECT id FROM \`${table_prefix}categories\` WHERE extension = 'com_content' AND published = 1 ORDER BY id LIMIT 1), UTC_TIMESTAMP(), UTC_TIMESTAMP(), 0, 1, '*', '{}', '{}', '{}', '{}', ''); SELECT LAST_INSERT_ID();"
+)"
+
+docker exec -e BFNG_ARTICLE_ID="${fixture_article_id}" "${web_container}" php -r '
+    $url = "http://127.0.0.1/index.php?option=com_content&view=article&id=" . getenv("BFNG_ARTICLE_ID");
+    $html = file_get_contents($url);
+    if ($html === false || str_contains($html, "{BreezingForms:") || !str_contains($html, "name=\"ff_form\"")) {
+        fwrite(STDERR, "The installed content plugin did not render its form in an article.\n");
+        exit(1);
+    }
+'
+
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+    -e "UPDATE \`${table_prefix}extensions\` SET params = '{\"load_in_iframe\":1}' WHERE type = 'plugin' AND folder = 'content' AND element = 'breezingforms';"
+
+docker exec -e BFNG_ARTICLE_ID="${fixture_article_id}" "${web_container}" php -r '
+    $url = "http://127.0.0.1/index.php?option=com_content&view=article&id=" . getenv("BFNG_ARTICLE_ID");
+    $html = file_get_contents($url);
+    if ($html === false || !str_contains($html, "class=\"breezingforms_iframe_plg\"") || !str_contains($html, "option=com_breezingformsng")) {
+        fwrite(STDERR, "The installed content plugin did not render an iframe.\n");
+        exit(1);
+    }
+'
+
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+    -e "UPDATE \`${table_prefix}extensions\` SET params = '{\"load_in_iframe\":0}' WHERE type = 'plugin' AND folder = 'content' AND element = 'breezingforms'; DELETE FROM \`${table_prefix}content\` WHERE id = ${fixture_article_id};"
+
 # Frontend sanity check: the site must still render after installation
 # (catches a fatal error in the system plugin or a broken menu item).
 frontend_status="$(
@@ -428,5 +471,24 @@ docker exec "${web_container}" php -r '
     $image = ob_get_clean();
     exit(str_starts_with($image, "\x89PNG\r\n\x1a\n") ? 0 : 1);
 '
+
+module_count="$(docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "SELECT COUNT(*) FROM \`${table_prefix}extensions\` WHERE type = 'module' AND element = 'mod_breezingforms' AND client_id = 0;")"
+[[ "${module_count}" -eq 1 ]] || { echo 'Module registration missing or duplicated'; exit 1; }
+fixture_module_id="$(docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "INSERT INTO \`${table_prefix}modules\` (title, position, published, module, access, showtitle, params, client_id, language) VALUES ('BFNG module smoke', 'sidebar-right', 1, 'mod_breezingforms', 1, 0, '{\"ff_mod_name\":\"bfng-smoke-update-form\",\"cache\":0}', 0, '*'); SELECT LAST_INSERT_ID();")"
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "INSERT INTO \`${table_prefix}modules_menu\` (moduleid, menuid) VALUES (${fixture_module_id}, 0);"
+docker exec "${web_container}" php -r '
+    $html = file_get_contents("http://127.0.0.1/index.php", false, stream_context_create(["http" => ["ignore_errors" => true]]));
+    if ($html === false || !str_contains($html, "name=\"ff_form\"")) {
+        fwrite(STDERR, "Module inline form render failed\n" . strip_tags((string) $html)); exit(1);
+    }
+'
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "UPDATE \`${table_prefix}modules\` SET params = '{\"ff_mod_name\":\"bfng-smoke-update-form\",\"ff_mod_frame\":1,\"cache\":0}' WHERE id = ${fixture_module_id};"
+docker exec "${web_container}" php -r '
+    $html = file_get_contents("http://127.0.0.1/index.php", false, stream_context_create(["http" => ["ignore_errors" => true]]));
+    if ($html === false || !str_contains($html, "<iframe") || !str_contains($html, "ff_module_id=")) {
+        fwrite(STDERR, "Module iframe render failed\n"); exit(1);
+    }
+'
+echo 'Module installation, update, inline and iframe rendering passed.'
 
 echo "Joomla installation, update and frontend smoke tests passed."

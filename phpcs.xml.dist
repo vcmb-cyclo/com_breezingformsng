@@ -2,6 +2,8 @@
 <ruleset name="BreezingFormsNG">
     <description>PSR-12 coding standard for BreezingForms NG (Joomla 6 / PHP 8.3).</description>
 
+    <file>administrator/components/com_breezingformsng/plugins/breezingforms/src</file>
+    <file>administrator/components/com_breezingformsng/plugins/breezingforms/services</file>
     <file>administrator/components/com_breezingformsng/src/Service/AjaxStateService.php</file>
     <file>administrator/components/com_breezingformsng/src/Service/DatabaseAuditService.php</file>
     <file>components/com_breezingformsng/src/Service/Runtime</file>

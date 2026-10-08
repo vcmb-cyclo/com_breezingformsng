@@ -6,6 +6,8 @@ parameters:
     bootstrapFiles:
         - phpstan-bootstrap.php
     paths:
+        - administrator/components/com_breezingformsng/plugins/breezingforms/src
+        - administrator/components/com_breezingformsng/plugins/breezingforms/services
         - administrator/components/com_breezingformsng/src
         - administrator/components/com_breezingformsng/layouts
         - administrator/components/com_breezingformsng/tmpl
