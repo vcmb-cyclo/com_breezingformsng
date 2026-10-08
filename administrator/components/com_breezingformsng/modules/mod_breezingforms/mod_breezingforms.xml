@@ -1,92 +1,75 @@
-<?xml version="1.0" encoding="utf-8"?>
-<extension type="module" version="5.0.0" client="site" method="upgrade">
-   <name>BreezingForms</name>
-    <creationDate>18/07/2024</creationDate>
-    <author>XDA + GIL | Until Version 1.8.4 Markus Bopp - Crosstec Solutions | Until Version 1.4.7: Peter Koch</author>
-    <copyright>This Joomla! component is released under the GNU/GPL license</copyright>
-    <license>GNU/GPLv2 http://www.gnu.org/licenses/gpl-2.0.html</license>
-	<authorUrl>breezingforms.vcmb.fr</authorUrl>
-    <version>5.0.0-RC1/version>
-    <administration></administration>
-    <description>
-		Enter the form name for displaying in the desired module position.
-    </description>
+<?xml version='1.0' encoding='utf-8'?>
+<extension type="module" client="site" method="upgrade">
+    <name>MOD_BREEZINGFORMS</name>
+    <author>XDA/GIL</author>
+    <creationDate>2026-10-08</creationDate>
+    <copyright>Copyright 2008-2020 Markus Bopp; 2024-2026 XDA+GIL</copyright>
+    <license>GNU General Public License version 2 or later</license>
+    <version>6.1.0-RC06</version>
+    <description>MOD_BREEZINGFORMS_XML_DESCRIPTION</description>
+    <namespace path="src">Vcmb\Module\Breezingforms</namespace>
     <files>
-        <filename module="mod_breezingforms">mod_breezingforms.php</filename>
+        <folder module="mod_breezingforms">services</folder>
+        <folder>src</folder>
+        <folder>tmpl</folder>
+        <folder>language</folder>
+        <filename>LICENSE</filename>
     </files>
+    <languages folder="language">
+        <language tag="en-GB">en-GB/mod_breezingforms.ini</language>
+        <language tag="en-GB">en-GB/mod_breezingforms.sys.ini</language>
+        <language tag="fr-FR">fr-FR/mod_breezingforms.ini</language>
+        <language tag="fr-FR">fr-FR/mod_breezingforms.sys.ini</language>
+        <language tag="de-DE">de-DE/mod_breezingforms.ini</language>
+        <language tag="de-DE">de-DE/mod_breezingforms.sys.ini</language>
+        <language tag="it-IT">it-IT/mod_breezingforms.ini</language>
+        <language tag="it-IT">it-IT/mod_breezingforms.sys.ini</language>
+        <language tag="es-ES">es-ES/mod_breezingforms.ini</language>
+        <language tag="es-ES">es-ES/mod_breezingforms.sys.ini</language>
+        <language tag="hu-HU">hu-HU/mod_breezingforms.ini</language>
+        <language tag="hu-HU">hu-HU/mod_breezingforms.sys.ini</language>
+        <language tag="nl-NL">nl-NL/mod_breezingforms.ini</language>
+        <language tag="nl-NL">nl-NL/mod_breezingforms.sys.ini</language>
+        <language tag="tr-TR">tr-TR/mod_breezingforms.ini</language>
+        <language tag="tr-TR">tr-TR/mod_breezingforms.sys.ini</language>
+    </languages>
     <config>
         <fields name="params">
             <fieldset name="basic">
-            <field name="ff_mod_name" type="text" default="" label="Form Name" description="Enter the name of the form here" />
-            <field name="ff_mod_page" type="text" default="1" label="Page Number" description="Enter the starting page number here" />
-            <field name="ff_mod_editable" type="radio" default="0" label="Submission editable by user?" description="Should the form be editable by the user?">
-                <option value="0">No</option>
-                <option value="1">Yes</option>
-            </field>
-            <field name="ff_mod_editable_override" type="radio" default="0" label="Remove existing submissions?" description="If submission is editable: Should previous submission for this form removed?">
-                <option value="0">No</option>
-                <option value="1">Yes</option>
-            </field>
-            <field name="ff_mod_frame" type="radio" default="0" label="Run in iframe" description="Run the form in an iframe">
-                <option value="0">No</option>
-                <option value="1">Yes</option>
-            </field>
-            <field name="ff_mod_border" type="radio" default="0" label="Border" description="Select border mode">
-                <option value="0">No</option>
-                <option value="1">Yes</option>
-            </field>
-            <field name="ff_mod_align" type="list" default="1" label="Horizontal align" description="Choose the horizontal align here">
-                <option value="0">Left</option>
-                <option value="1">Center</option>
-                <option value="2">Right</option>
-                <option value="3">Position</option>
-            </field>
-            <field name="ff_mod_left" type="text" default="0" label="Left position (pixels)" description="Left position in pixels (when Horizontal align=Position)" />
-            <field name="ff_mod_top" type="text" default="0" label="Top position (pixels)" description="Top position in pixels" />
-            <field name="ff_mod_parprv" type="text" default="" label="Private parameters" description="Parameters private to main form. Example: &amp;ff_param_foo=1&amp;ff_param_xy=blah" />
-            <field name="ff_mod_parpub" type="text" default="" label="Public parameters" description="Parameters inherited by subforms. Example: &amp;ff_param_foo=1&amp;ff_param_xy=blah" />
-            <field name="moduleclass_sfx" type="text" default="" label="CSS class suffix" description="Suffix to append to every CSS class name" />
-            <field name="owncache" type="radio" default="0" label="Caching Enabled" description="Disable caching for this module">
-                <option value="0">No</option>
-                <option value="1">Yes</option>
-            </field>
+                <field name="ff_mod_name" type="text" default="" label="MOD_BREEZINGFORMS_FORM_NAME" required="true" />
+                <field name="ff_mod_page" type="number" default="1" label="MOD_BREEZINGFORMS_PAGE" min="1" />
+                <field name="ff_mod_editable" type="radio" default="0" label="MOD_BREEZINGFORMS_EDITABLE" layout="joomla.form.field.radio.switcher">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="ff_mod_editable_override" type="radio" default="0" label="MOD_BREEZINGFORMS_EDITABLE_OVERRIDE" layout="joomla.form.field.radio.switcher">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="ff_mod_frame" type="radio" default="0" label="MOD_BREEZINGFORMS_IFRAME" layout="joomla.form.field.radio.switcher">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="ff_mod_border" type="radio" default="0" label="MOD_BREEZINGFORMS_BORDER" layout="joomla.form.field.radio.switcher">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="ff_mod_align" type="list" default="1" label="MOD_BREEZINGFORMS_ALIGN">
+                    <option value="0">MOD_BREEZINGFORMS_LEFT</option>
+                    <option value="1">MOD_BREEZINGFORMS_CENTER</option>
+                    <option value="2">MOD_BREEZINGFORMS_RIGHT</option>
+                    <option value="3">MOD_BREEZINGFORMS_POSITION</option>
+                </field>
+                <field name="ff_mod_left" type="number" default="0" label="MOD_BREEZINGFORMS_LEFT_POSITION" />
+                <field name="ff_mod_top" type="number" default="0" label="MOD_BREEZINGFORMS_TOP_POSITION" />
+                <field name="ff_mod_parprv" type="text" default="" label="MOD_BREEZINGFORMS_PRIVATE_PARAMETERS" />
+                <field name="ff_mod_parpub" type="text" default="" label="MOD_BREEZINGFORMS_PUBLIC_PARAMETERS" />
+                <field name="ff_mod_suffix" type="text" default="" label="MOD_BREEZINGFORMS_SUFFIX" />
+            </fieldset>
+            <fieldset name="advanced">
+                <field name="layout" type="modulelayout" label="JFIELD_ALT_LAYOUT_LABEL" class="form-select" />
+                <field name="cache" type="hidden" default="0" />
             </fieldset>
         </fields>
     </config>
-    <!-- J! 1.5 compatibility -->
-    <params name="ff_mod_params" description="FacileForms - Parameter Settings">
-        <param name="ff_mod_name" type="text" default="" label="Form Name" description="Enter the name of the form here" />
-        <param name="ff_mod_page" type="text" default="1" label="Page Number" description="Enter the starting page number here" />
-        <param name="ff_mod_editable" type="radio" default="0" label="Submission editable by user?" description="Should the form be editable by the user?">
-            <option value="0">No</option>
-            <option value="1">Yes</option>
-        </param>
-        <param name="ff_mod_editable_override" type="radio" default="0" label="Remove existing submissions?" description="If submission is editable: Should previous submission for this form removed?">
-            <option value="0">No</option>
-            <option value="1">Yes</option>
-        </param>
-        <param name="ff_mod_frame" type="radio" default="0" label="Run in iframe" description="Run the form in an iframe">
-            <option value="0">No</option>
-            <option value="1">Yes</option>
-        </param>
-        <param name="ff_mod_border" type="radio" default="0" label="Border" description="Select border mode">
-            <option value="0">No</option>
-            <option value="1">Yes</option>
-        </param>
-        <param name="ff_mod_align" type="list" default="1" label="Horizontal align" description="Choose the horizontal align here">
-            <option value="0">Left</option>
-            <option value="1">Center</option>
-            <option value="2">Right</option>
-            <option value="3">Position</option>
-        </param>
-        <param name="ff_mod_left" type="text" default="0" label="Left position (pixels)" description="Left position in pixels (when Horizontal align=Position)" />
-        <param name="ff_mod_top" type="text" default="0" label="Top position (pixels)" description="Top position in pixels" />
-        <param name="ff_mod_parprv" type="text" default="" label="Private parameters" description="Parameters private to main form. Example: &amp;ff_param_foo=1&amp;ff_param_xy=blah" />
-        <param name="ff_mod_parpub" type="text" default="" label="Public parameters" description="Parameters inherited by subforms. Example: &amp;ff_param_foo=1&amp;ff_param_xy=blah" />
-        <param name="moduleclass_sfx" type="text" default="" label="CSS class suffix" description="Suffix to append to every CSS class name" />
-        <param name="owncache" type="radio" default="0" label="Caching Enabled" description="Disable caching for this module">
-            <option value="0">No</option>
-            <option value="1">Yes</option>
-        </param>
-    </params>
 </extension>

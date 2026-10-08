@@ -99,6 +99,7 @@
 			<folder>tmpl</folder>
 			<folder>vendor</folder>
 			<folder>plugins</folder>
+			<folder>modules</folder>
 		</files>
 
 		<languages folder="administrator/components/com_breezingformsng/language">
