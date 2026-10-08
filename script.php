@@ -2829,6 +2829,7 @@ class com_breezingformsngInstallerScript
         $plugins['system'] = array();
         $plugins['system'][] = 'bfcompat';
         $plugins['content'] = ['breezingforms'];
+        $plugins['content'] = ['breezingforms'];
         return $plugins;
     }
 
