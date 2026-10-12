@@ -2350,6 +2350,9 @@ class com_breezingformsngInstallerScript
             JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/jq.min.js',
             JPATH_SITE . '/components/com_breezingformsng/src/Helper/legacy/route.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src/Model/LegacyPackageModel.php',
+            // Manifest renamed to breezingformsng.xml, the name Joomla resolves
+            // for a component (element without its com_ prefix).
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng.xml',
         ];
 
         foreach ($obsolete as $file) {
@@ -2396,6 +2399,11 @@ class com_breezingformsngInstallerScript
         $this->ensureUtf8mb4Columns();
         $this->migrateLegacyComponentOptionReferences();
 
+        $this->migrateDatabase();
+    }
+
+    private function migrateDatabase(): void
+    {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $textCollationClause = $this->getTextCollationClause();
         $tables = self::getTableFields($db->getTableList());
@@ -2770,9 +2778,12 @@ class com_breezingformsngInstallerScript
             // never drops them), so it needs the same cleanup. Idempotent - only
             // rewrites rows that still contain the literal old reference.
             $this->migrateLegacyComponentOptionReferences();
-            if ($type === 'update') {
-                $this->migrateLegacyConfig();
+            // A first NG installation can reuse BF Pro tables. The install SQL
+            // preserves them, so apply the same migrations as an NG update.
+            if ($type !== 'update') {
+                $this->migrateDatabase();
             }
+            $this->migrateLegacyConfig();
             $this->importStandardLibrary();
             $this->copyComponentImageAssets();
             $this->installPlugins();

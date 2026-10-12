@@ -64,7 +64,7 @@ techniques sont conservés dans le plan d'architecture associé.
 ## État actuel
 
 ### ✅ Déjà migré
-- [x] Manifest + namespace PSR-4 (`com_breezingformsng.xml`)
+- [x] Manifest + namespace PSR-4 (`breezingformsng.xml`)
 - [x] DI container / services (`services/provider.php`, `src/Extension/`)
 - [x] Pipeline d'assets (`joomla.asset.json`)
 - [x] Fichiers de langue structure Joomla 6 (`language/{lang}/`)
@@ -161,7 +161,7 @@ techniques sont conservés dans le plan d'architecture associé.
 
 ### Fichiers à modifier
 - [x] `config.xml` — fieldsets `general` (disable_ip, emailadr, uploads) + `csv` (csvdelimiter, csvquote, cellnewline) + `permissions`
-- [x] `com_breezingformsng.xml` — entrée submenu Configuration → `com_config`
+- [x] `breezingformsng.xml` — entrée submenu Configuration → `com_config`
 - [x] `src/View/BreezingformsNG/HtmlView.php` — lien sidebar Configuration → `com_config`
 - [x] `src/Model/RecordModel::getExportConfig()` — lit depuis `ComponentHelper::getParams()` au lieu de `#__facileforms_config`
 

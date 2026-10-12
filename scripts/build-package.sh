@@ -10,7 +10,7 @@ if [[ "${output_dir}" != /* ]]; then
 fi
 
 package_dir="${output_dir}/package"
-manifest="${root_dir}/com_breezingformsng.xml"
+manifest="${root_dir}/breezingformsng.xml"
 version="$(sed -n 's:.*<version>\([^<]*\)</version>.*:\1:p' "${manifest}" | head -n 1)"
 
 if [[ -z "${version}" ]]; then
@@ -30,7 +30,7 @@ done < <(
         administrator \
         components \
         media \
-        com_breezingformsng.xml \
+        breezingformsng.xml \
         script.php
 )
 
@@ -38,7 +38,7 @@ build_timestamp="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 sed -i \
     -e 's|<buildType>development</buildType>|<buildType>production</buildType>|' \
     -e "s|<buildTimestamp></buildTimestamp>|<buildTimestamp>${build_timestamp}</buildTimestamp>|" \
-    "${package_dir}/com_breezingformsng.xml"
+    "${package_dir}/breezingformsng.xml"
 
 # Install PHP dependencies (managed by Composer) into the package.
 # Some dependencies declare hard PHP extension requirements: tecnickcom/

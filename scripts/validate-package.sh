@@ -12,7 +12,7 @@ fi
 entries="$(unzip -Z1 "${archive}")"
 
 required=(
-    "com_breezingformsng.xml"
+    "breezingformsng.xml"
     "script.php"
     "administrator/components/com_breezingformsng/modules/mod_breezingforms/mod_breezingforms.xml"
     "administrator/components/com_breezingformsng/modules/mod_breezingforms/services/provider.php"
@@ -102,19 +102,19 @@ for path in "${obsolete_entries[@]}"; do
     fi
 done
 
-if ! unzip -p "${archive}" com_breezingformsng.xml \
+if ! unzip -p "${archive}" breezingformsng.xml \
     | grep -Fq '<extension type="component" version="6.0" method="upgrade">'; then
     echo "Invalid Joomla component manifest." >&2
     exit 1
 fi
 
-if ! unzip -p "${archive}" com_breezingformsng.xml \
+if ! unzip -p "${archive}" breezingformsng.xml \
     | grep -Fq '<media folder="media">'; then
     echo "BreezingForms themes media directory is not declared in the manifest." >&2
     exit 1
 fi
 
-if ! unzip -p "${archive}" com_breezingformsng.xml \
+if ! unzip -p "${archive}" breezingformsng.xml \
     | grep -Fq '<folder>breezingforms/themes</folder>'; then
     echo "BreezingForms themes folder is not declared in the manifest." >&2
     exit 1

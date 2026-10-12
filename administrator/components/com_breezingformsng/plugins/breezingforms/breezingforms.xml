@@ -5,7 +5,7 @@
     <creationDate>2026-10-08</creationDate>
     <copyright>Copyright 2008-2020 Markus Bopp; 2024-2026 XDA+GIL</copyright>
     <license>GNU General Public License version 2 or later</license>
-    <version>6.1.0-RC06</version>
+    <version>6.1.0-RC07</version>
     <description>PLG_CONTENT_BREEZINGFORMS_XML_DESCRIPTION</description>
     <namespace path="src">Vcmb\Plugin\Content\Breezingforms</namespace>
     <files>

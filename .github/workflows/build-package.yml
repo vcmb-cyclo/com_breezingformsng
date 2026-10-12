@@ -52,7 +52,7 @@ jobs:
 
       - name: Check version consistency
         run: |
-          manifest_version="$(grep -oPm1 '(?<=<version>)[^<]+' com_breezingformsng.xml)"
+          manifest_version="$(grep -oPm1 '(?<=<version>)[^<]+' breezingformsng.xml)"
           update_version="$(grep -oPm1 '(?<=<version>)[^<]+' com_breezingformsng_update.xml)"
           if [ "${manifest_version}" != "${update_version}" ]; then
             echo "::error::Version mismatch: manifest ${manifest_version} vs update stream ${update_version}."
@@ -223,9 +223,9 @@ jobs:
         run: |
           creation_date="$(TZ=Europe/Paris date +%F)"
           build_timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          perl -0pi -e "s#<creationDate>.*?</creationDate>#<creationDate>${creation_date}</creationDate>#" com_breezingformsng.xml
-          perl -0pi -e "s#\\n\\s*<buildType>.*?</buildType>##g; s#(<creationDate>.*?</creationDate>)#\$1\n\t<buildType>production</buildType>#" com_breezingformsng.xml
-          perl -0pi -e "s#\\n\\s*<buildTimestamp>.*?</buildTimestamp>##g; s#(<buildType>.*?</buildType>)#\$1\n\t<buildTimestamp>${build_timestamp}</buildTimestamp>#" com_breezingformsng.xml
+          perl -0pi -e "s#<creationDate>.*?</creationDate>#<creationDate>${creation_date}</creationDate>#" breezingformsng.xml
+          perl -0pi -e "s#\\n\\s*<buildType>.*?</buildType>##g; s#(<creationDate>.*?</creationDate>)#\$1\n\t<buildType>production</buildType>#" breezingformsng.xml
+          perl -0pi -e "s#\\n\\s*<buildTimestamp>.*?</buildTimestamp>##g; s#(<buildType>.*?</buildType>)#\$1\n\t<buildTimestamp>${build_timestamp}</buildTimestamp>#" breezingformsng.xml
 
       - name: Build production package
         id: package
@@ -270,7 +270,7 @@ jobs:
       - name: Resolve release metadata
         id: release
         run: |
-          version="$(grep -oPm1 '(?<=<version>)[^<]+' com_breezingformsng.xml)"
+          version="$(grep -oPm1 '(?<=<version>)[^<]+' breezingformsng.xml)"
           archive="build/com_breezingformsng-${version}.zip"
           test -f "${archive}"
           if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
