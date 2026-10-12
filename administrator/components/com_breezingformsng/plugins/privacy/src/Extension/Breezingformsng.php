@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Vcmb\Plugin\Privacy\Breezingformsng\Extension;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Event\Model\AfterDeleteEvent;
+use Joomla\CMS\Event\Model\BeforeDeleteEvent;
 use Joomla\CMS\Event\Privacy\CanRemoveDataEvent;
 use Joomla\CMS\Event\Privacy\ExportRequestEvent;
 use Joomla\CMS\Event\Privacy\RemoveDataEvent;
 use Joomla\CMS\Log\Log;
+use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\Component\Privacy\Administrator\Plugin\PrivacyPlugin;
 use Joomla\Component\Privacy\Administrator\Removal\Status;
 use Joomla\Database\ParameterType;
@@ -16,6 +20,7 @@ use Joomla\Event\SubscriberInterface;
 use Joomla\Filesystem\Exception\FilesystemException;
 use Joomla\Filesystem\File;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\SubmissionFileGuard;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
 
 \defined('_JEXEC') or die;
 
@@ -29,8 +34,8 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\SubmissionFileGuard;
  * Removal either deletes the user's submissions or anonymises them: the rows
  * stay, emptied of every submitted value and identifier. Either way the
  * uploaded files and signatures those submissions point to are deleted
- * first. Copies sent outside the site (Dropbox, e-mail attachments) are out
- * of reach.
+ * first, as are the articles ContentBuilder NG generated from them. Copies
+ * sent outside the site (Dropbox, e-mail attachments) are out of reach.
  */
 final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
 {
@@ -47,6 +52,11 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
         'opt_ip' => '',
         'opt_token' => '',
         'paypal_tx_id' => '',
+    ];
+
+    /** ContentBuilder NG record columns identifying the person or their device. */
+    private const CONTENTBUILDER_IDENTITY_COLUMNS = [
+        'lastip', 'session_id', 'metakey', 'metadesc', 'author', 'rights', 'xreference',
     ];
 
     public static function getSubscribedEvents(): array
@@ -150,10 +160,13 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
             return;
         }
 
+        $removeRecords = (int) $this->params->get('remove_records', 0) === 1;
+
         // While the values still say where the files are.
         $this->removeSubmittedFiles($recordIds);
+        $this->removeContentBuilderCopies($recordIds, $removeRecords);
 
-        if ((int) $this->params->get('remove_records', 0) === 1) {
+        if ($removeRecords) {
             $query = $db->createQuery()
                 ->delete($db->quoteName('#__facileforms_subrecords'))
                 ->whereIn($db->quoteName('record'), $recordIds);
@@ -220,49 +233,18 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
             return;
         }
 
-        $query = $db->createQuery()
-            ->select('DISTINCT ' . $db->quoteName('value'))
-            ->from($db->quoteName('#__facileforms_subrecords'))
-            ->whereNotIn($db->quoteName('record'), $recordIds)
-            ->whereIn($db->quoteName('type'), $types, ParameterType::STRING)
-            ->whereIn(
-                $db->quoteName('value'),
-                array_values(array_unique(array_column($references, 'value'))),
-                ParameterType::STRING
-            );
-        $shared = array_flip($db->setQuery($query)->loadColumn());
-
         $uploads = ComponentHelper::getParams('com_breezingformsng')
             ->get('uploads', '{mospath}/media/breezingforms/uploads');
-        $guard = new SubmissionFileGuard(JPATH_SITE, (string) $uploads);
-        $done = [];
-        $left = [];
+        $plan = (new SubmissionFileGuard(JPATH_SITE, (string) $uploads))
+            ->plan($references, $this->keptFileReferences($recordIds, $types));
+        $left = $plan['leave'];
 
-        foreach ($references as $reference) {
-            $value = (string) $reference['value'];
-            $path = $guard->locate((string) $reference['type'], $value);
-
-            if ($path === null || isset($shared[$value]) || isset($done[$path])) {
-                continue;
+        foreach ($plan['remove'] as $path => $recordId) {
+            try {
+                File::delete($path);
+            } catch (FilesystemException) {
+                $left[$path] = $recordId;
             }
-
-            $done[$path] = true;
-
-            if (!file_exists($path) && !is_link($path)) {
-                continue;
-            }
-
-            if ($guard->isRemovable((string) $reference['type'], $path, (string) $reference['data1'])) {
-                try {
-                    File::delete($path);
-
-                    continue;
-                } catch (FilesystemException) {
-                    // Reported below.
-                }
-            }
-
-            $left[$path] = (int) $reference['record'];
         }
 
         if ($left === []) {
@@ -278,6 +260,147 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
                 self::LOG_CATEGORY
             );
         }
+    }
+
+    /**
+     * File references held by the submissions that stay. Queried only when
+     * a file is about to be deleted.
+     *
+     * @param int[]    $recordIds
+     * @param string[] $types
+     *
+     * @return \Generator<array{type: string, value: ?string}>
+     */
+    private function keptFileReferences(array $recordIds, array $types): \Generator
+    {
+        $db = $this->getDatabase();
+
+        $query = $db->createQuery()
+            ->select('DISTINCT ' . $db->quoteName('type') . ', ' . $db->quoteName('value'))
+            ->from($db->quoteName('#__facileforms_subrecords'))
+            ->whereNotIn($db->quoteName('record'), $recordIds)
+            ->whereIn($db->quoteName('type'), $types, ParameterType::STRING)
+            ->where($db->quoteName('value') . ' <> ' . $db->quote(''));
+
+        yield from $db->setQuery($query)->loadAssocList();
+    }
+
+    /**
+     * ContentBuilder NG keeps its own data about a submission: an article
+     * generated from the submitted values, and a row of record metadata.
+     * The article is a copy of those values, so it is deleted in both modes,
+     * whatever the form's "delete articles" setting says about ordinary
+     * deletions.
+     *
+     * @param int[] $recordIds
+     */
+    private function removeContentBuilderCopies(array $recordIds, bool $removeRecords): void
+    {
+        if (!ContentBuilderInstallation::isInstalled()) {
+            return;
+        }
+
+        $db = $this->getDatabase();
+        $type = 'com_breezingformsng';
+
+        $query = $db->createQuery()
+            ->select($db->quoteName('id'))
+            ->from($db->quoteName('#__contentbuilderng_forms'))
+            ->where($db->quoteName('type') . ' = :type')
+            ->bind(':type', $type);
+        $formIds = array_map('intval', $db->setQuery($query)->loadColumn());
+
+        if ($formIds === []) {
+            return;
+        }
+
+        $query = $db->createQuery()
+            ->select($db->quoteName(['id', 'article_id']))
+            ->from($db->quoteName('#__contentbuilderng_articles'))
+            ->whereIn($db->quoteName('form_id'), $formIds)
+            ->whereIn($db->quoteName('record_id'), $recordIds);
+        $articles = $db->setQuery($query)->loadAssocList('id', 'article_id');
+
+        if ($articles !== []) {
+            $this->deleteArticles(array_values(array_unique(array_map('intval', $articles))));
+
+            $query = $db->createQuery()
+                ->delete($db->quoteName('#__contentbuilderng_articles'))
+                ->whereIn($db->quoteName('id'), array_map('intval', array_keys($articles)));
+            $db->setQuery($query)->execute();
+        }
+
+        if (!$removeRecords) {
+            $query = $db->createQuery()
+                ->update($db->quoteName('#__contentbuilderng_records'))
+                ->where($db->quoteName('type') . ' = :type')
+                ->whereIn($db->quoteName('record_id'), $recordIds)
+                ->bind(':type', $type);
+
+            foreach (self::CONTENTBUILDER_IDENTITY_COLUMNS as $column) {
+                $query->set($db->quoteName($column) . ' = ' . $db->quote(''));
+            }
+
+            $db->setQuery($query)->execute();
+
+            return;
+        }
+
+        $query = $db->createQuery()
+            ->delete($db->quoteName('#__contentbuilderng_list_records'))
+            ->whereIn($db->quoteName('form_id'), $formIds)
+            ->whereIn($db->quoteName('record_id'), $recordIds);
+        $db->setQuery($query)->execute();
+
+        $query = $db->createQuery()
+            ->delete($db->quoteName('#__contentbuilderng_records'))
+            ->where($db->quoteName('type') . ' = :type')
+            ->whereIn($db->quoteName('record_id'), $recordIds)
+            ->bind(':type', $type);
+        $db->setQuery($query)->execute();
+    }
+
+    /**
+     * @param int[] $articleIds
+     */
+    private function deleteArticles(array $articleIds): void
+    {
+        $app = $this->getApplication();
+        $component = $app->bootComponent('com_content');
+
+        if (!$component instanceof MVCFactoryServiceInterface) {
+            throw new \RuntimeException('com_content is not available.');
+        }
+
+        PluginHelper::importPlugin('content');
+        $dispatcher = $app->getDispatcher();
+        $context = 'com_content.article';
+
+        foreach ($articleIds as $articleId) {
+            $table = $component->getMVCFactory()->createTable('Article', 'Administrator');
+
+            if (!$table->load($articleId)) {
+                continue;
+            }
+
+            $dispatcher->dispatch(
+                'onContentBeforeDelete',
+                new BeforeDeleteEvent('onContentBeforeDelete', ['context' => $context, 'subject' => $table])
+            );
+            $table->delete();
+            $dispatcher->dispatch(
+                'onContentAfterDelete',
+                new AfterDeleteEvent('onContentAfterDelete', ['context' => $context, 'subject' => $table])
+            );
+        }
+
+        $db = $this->getDatabase();
+        $query = $db->createQuery()
+            ->delete($db->quoteName('#__workflow_associations'))
+            ->where($db->quoteName('extension') . ' = :extension')
+            ->whereIn($db->quoteName('item_id'), $articleIds)
+            ->bind(':extension', $context);
+        $db->setQuery($query)->execute();
     }
 
     /**

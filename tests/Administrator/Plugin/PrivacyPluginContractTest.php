@@ -78,8 +78,27 @@ final class PrivacyPluginContractTest extends TestCase
         self::assertIsInt($erase);
         self::assertLessThan($delete, $files);
         self::assertLessThan($erase, $files);
-        self::assertStringContainsString('$guard->isRemovable(', $source);
-        self::assertStringContainsString('isset($shared[$value])', $source);
+        self::assertStringContainsString('->plan($references, $this->keptFileReferences($recordIds, $types))', $source);
+    }
+
+    public function testContentBuilderCopiesAreRemovedInBothModesBeforeTheRecords(): void
+    {
+        $source = file_get_contents(self::PLUGIN . '/src/Extension/Breezingformsng.php');
+
+        self::assertIsString($source);
+
+        $copies = strpos($source, '$this->removeContentBuilderCopies($recordIds, $removeRecords);');
+        $mode = strpos($source, 'if ($removeRecords) {');
+
+        self::assertIsInt($copies);
+        self::assertIsInt($mode);
+        self::assertLessThan($mode, $copies);
+        self::assertStringContainsString("new BeforeDeleteEvent('onContentBeforeDelete'", $source);
+        self::assertStringContainsString("new AfterDeleteEvent('onContentAfterDelete'", $source);
+
+        foreach (['lastip', 'session_id', 'metakey', 'metadesc', 'author', 'rights', 'xreference'] as $column) {
+            self::assertStringContainsString("'" . $column . "'", $source, $column);
+        }
     }
 
     public function testExportReturnsEditorTracesWithoutOtherPeoplesContent(): void

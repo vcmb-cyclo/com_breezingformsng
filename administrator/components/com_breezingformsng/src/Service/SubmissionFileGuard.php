@@ -36,6 +36,59 @@ final class SubmissionFileGuard
     }
 
     /**
+     * Sorts the files referenced by submissions about to be erased. Files are
+     * compared by their real path, since one file can be stored as an
+     * absolute path by one submission and as {cbsite}/... by another.
+     *
+     * @param iterable<array{record: int|string, type: string, value: ?string, data1: ?string}> $references
+     * @param iterable<array{type: string, value: ?string}> $kept References held by submissions that stay.
+     *
+     * @return array{remove: array<string, int>, leave: array<string, int>} Path => submission id.
+     */
+    public function plan(iterable $references, iterable $kept): array
+    {
+        $files = [];
+
+        foreach ($references as $reference) {
+            $path = $this->locate((string) $reference['type'], (string) $reference['value']);
+
+            if ($path !== null && (file_exists($path) || is_link($path))) {
+                $files[realpath($path) ?: $path][] = [$path, $reference];
+            }
+        }
+
+        $plan = ['remove' => [], 'leave' => []];
+
+        if ($files === []) {
+            return $plan;
+        }
+
+        foreach ($kept as $reference) {
+            $path = $this->locate((string) $reference['type'], (string) $reference['value']);
+
+            if ($path !== null && realpath($path) !== false) {
+                unset($files[realpath($path)]);
+            }
+        }
+
+        // One file may be referenced several times: a single reference whose
+        // field still vouches for it is enough.
+        foreach ($files as $candidates) {
+            foreach ($candidates as [$path, $reference]) {
+                if ($this->isRemovable((string) $reference['type'], $path, (string) $reference['data1'])) {
+                    $plan['remove'][$path] = (int) $reference['record'];
+
+                    continue 2;
+                }
+            }
+
+            $plan['leave'][$candidates[0][0]] = (int) $candidates[0][1]['record'];
+        }
+
+        return $plan;
+    }
+
+    /**
      * Path of the file a stored value refers to, null when it names none.
      */
     public function locate(string $type, string $value): ?string

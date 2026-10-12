@@ -158,6 +158,83 @@ final class SubmissionFileGuardTest extends TestCase
         self::assertNull($guard->locate('Text', $this->site . '/configuration.php'));
     }
 
+    public function testFileKeptByAnotherSubmissionUnderAnotherSpellingIsNotPlanned(): void
+    {
+        $absolute = $this->site . '/media/breezingforms/uploads/cv.pdf';
+        $relative = '{cbsite}/media/breezingforms/uploads/cv.pdf';
+
+        foreach ([[$absolute, $relative], [$relative, $absolute]] as [$erased, $kept]) {
+            $plan = $this->guard()->plan(
+                [['record' => 7, 'type' => 'File Upload', 'value' => $erased, 'data1' => '{ff_uploads}']],
+                [['type' => 'File Upload', 'value' => $kept]]
+            );
+
+            self::assertSame(['remove' => [], 'leave' => []], $plan);
+        }
+    }
+
+    public function testPlanSeparatesRemovableFilesFromThoseLeftForManualHandling(): void
+    {
+        $uploads = $this->site . '/media/breezingforms/uploads';
+        $plan = $this->guard()->plan(
+            [
+                ['record' => 7, 'type' => 'File Upload', 'value' => $uploads . '/cv.pdf', 'data1' => '{ff_uploads}'],
+                ['record' => 7, 'type' => 'File Upload', 'value' => $uploads . '/gone.pdf', 'data1' => '{ff_uploads}'],
+                ['record' => 7, 'type' => 'Signature', 'value' => 'sign-abc.png', 'data1' => null],
+                [
+                    'record' => 8,
+                    'type' => 'File Upload',
+                    'value' => $this->site . '/images/logo.png',
+                    'data1' => '{ff_uploads}',
+                ],
+                ['record' => 8, 'type' => 'Text', 'value' => $this->site . '/configuration.php', 'data1' => null],
+            ],
+            [['type' => 'File Upload', 'value' => $uploads . '/jane_42/id.pdf']]
+        );
+
+        self::assertSame(
+            [
+                $uploads . '/cv.pdf' => 7,
+                $this->site . '/media/breezingforms/signatures/sign-abc.png' => 7,
+            ],
+            $plan['remove']
+        );
+        self::assertSame([$this->site . '/images/logo.png' => 8], $plan['leave']);
+    }
+
+    public function testOneValidReferenceIsEnoughWhenAnEarlierOneIsStale(): void
+    {
+        $file = $this->site . '/media/breezingforms/uploads/cv.pdf';
+        $plan = $this->guard()->plan(
+            [
+                ['record' => 7, 'type' => 'File Upload', 'value' => $file, 'data1' => $this->outside . '/uploads'],
+                [
+                    'record' => 9,
+                    'type' => 'File Upload',
+                    'value' => '{cbsite}/media/breezingforms/uploads/cv.pdf',
+                    'data1' => '{ff_uploads}',
+                ],
+            ],
+            []
+        );
+
+        self::assertSame(['remove' => [$file => 9], 'leave' => []], $plan);
+    }
+
+    public function testKeptReferencesAreNotReadWhenNothingIsToBeDeleted(): void
+    {
+        $kept = (static function (): \Generator {
+            self::fail('Kept references must not be queried.');
+
+            yield [];
+        })();
+
+        self::assertSame(
+            ['remove' => [], 'leave' => []],
+            $this->guard()->plan([['record' => 7, 'type' => 'Text', 'value' => 'x', 'data1' => null]], $kept)
+        );
+    }
+
     private function guard(): SubmissionFileGuard
     {
         return new SubmissionFileGuard($this->site, self::UPLOADS);

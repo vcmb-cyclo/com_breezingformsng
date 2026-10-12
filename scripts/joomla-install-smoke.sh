@@ -192,6 +192,7 @@ if [[ -n "${contentbuilder_archive}" ]]; then
         require "/var/www/html/components/com_breezingformsng/src/Service/Rendering/ContentBuilderHydrationScriptBuilder.php";
         require "/var/www/html/components/com_breezingformsng/src/Service/Rendering/ContentBuilderFileSupportBuilder.php";
         require "/var/www/html/components/com_breezingformsng/src/Service/Rendering/ContentBuilderSignatureImageEncoder.php";
+        require "/var/www/html/components/com_breezingformsng/src/Service/Integration/ContentBuilderInstallation.php";
         require "/var/www/html/components/com_breezingformsng/src/Support/processor_facade.php";
 
         $db = \Joomla\CMS\Factory::getContainer()->get(\Joomla\Database\DatabaseInterface::class);
