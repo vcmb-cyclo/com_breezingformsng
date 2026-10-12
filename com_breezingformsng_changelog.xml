@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changelogs>
+	<changelog>
+		<element>com_breezingformsng</element>
+		<type>component</type>
+		<version>6.1.0-RC07</version>
+		<fix>
+			<item>Add the columns BreezingForms NG needs when it is installed over existing BreezingForms Pro tables. Records, Forms, Scripts and Pieces no longer fail with "Unknown column" errors.</item>
+			<item>Remove the "Database update version does not match" warning shown for BreezingForms NG in Joomla's database maintenance screen.</item>
+			<item>Keep each plugin's enabled or disabled state on install and update instead of enabling all plugins again.</item>
+			<item>Stop re-applying unchanged column definitions on every update.</item>
+			<item>Display script descriptions containing HTML characters correctly in the script editor.</item>
+			<item>Fix untranslated text in the audit report and after copying scripts or pieces with nothing selected.</item>
+		</fix>
+		<addition>
+			<item>The audit now reports table columns that are missing and forms left with debug mode enabled.</item>
+			<item>Pieces and scripts can be published or unpublished from their editor with a single click, saved immediately.</item>
+		</addition>
+		<change>
+			<item>In the piece and script editors, help text now appears when hovering a field label, and the piece description is a resizable text area.</item>
+			<item>The About screen shows version information first, with a shorter introduction and collapsed library lists.</item>
+			<item>The audit toolbar button is now labelled "Audit".</item>
+		</change>
+	</changelog>
+</changelogs>
