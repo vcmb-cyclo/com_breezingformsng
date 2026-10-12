@@ -36,6 +36,9 @@ final class DatabaseAuditService
 
     private const FALLBACK_COLLATION = 'utf8mb4_unicode_ci';
 
+    /** Missing parents listed per orphan relation; the rest is only counted. */
+    private const ORPHAN_GROUP_LIMIT = 10;
+
     private const INSTALL_SQL = '/components/com_breezingformsng/sql/install.mysql.utf8.sql';
 
     private ?string $resolvedTargetCollation = null;
@@ -357,23 +360,31 @@ final class DatabaseAuditService
 
     private function findOrphans(array $tableList): array
     {
+        // [child table, parent table, child foreign key, parent kind,
+        //  child column holding a copy of the parent name, child date column]
         $checks = [
-            'records_without_form' => ['facileforms_records', 'facileforms_forms', 'child.form = parent.id'],
-            'elements_without_form' => ['facileforms_elements', 'facileforms_forms', 'child.form = parent.id'],
+            'records_without_form' => ['facileforms_records', 'facileforms_forms', 'form', 'form', 'name', 'submitted'],
+            'elements_without_form' => ['facileforms_elements', 'facileforms_forms', 'form', 'form', null, null],
             'subrecords_without_record' => [
                 'facileforms_subrecords',
                 'facileforms_records',
-                'child.record = parent.id',
+                'record',
+                'record',
+                null,
+                null,
             ],
             'subrecords_without_element' => [
                 'facileforms_subrecords',
                 'facileforms_elements',
-                'child.element = parent.id',
+                'element',
+                'element',
+                'name',
+                null,
             ],
         ];
         $result = [];
 
-        foreach ($checks as $id => [$child, $parent, $join]) {
+        foreach ($checks as $id => [$child, $parent, $foreignKey, $parentKind, $labelColumn, $dateColumn]) {
             if (
                 !in_array($this->db->getPrefix() . $child, $tableList, true)
                 || !in_array($this->db->getPrefix() . $parent, $tableList, true)
@@ -381,18 +392,127 @@ final class DatabaseAuditService
                 continue;
             }
 
-            $sql = 'SELECT COUNT(*) FROM ' . $this->db->quoteName('#__' . $child) . ' AS child'
-                . ' LEFT JOIN ' . $this->db->quoteName('#__' . $parent) . ' AS parent ON ' . $join
-                . ' WHERE parent.id IS NULL';
             try {
-                $this->db->setQuery($sql);
-                $result[] = ['id' => $id, 'count' => (int) $this->db->loadResult()];
+                $result[] = ['id' => $id, 'parent' => $parentKind]
+                    + $this->summarizeOrphans($child, $parent, $foreignKey, $labelColumn, $dateColumn);
             } catch (\Throwable $exception) {
                 $this->addError('Unable to inspect orphan references for ' . $id . ': ' . $exception->getMessage());
             }
         }
 
-        return $result;
+        return $this->labelOrphanForms($result);
+    }
+
+    /**
+     * Counts the orphan rows of one relation and groups them by missing
+     * parent, most represented first.
+     *
+     * @return array{count: int, parents: int, groups: list<array<string, mixed>>}
+     */
+    private function summarizeOrphans(
+        string $child,
+        string $parent,
+        string $foreignKey,
+        ?string $labelColumn,
+        ?string $dateColumn
+    ): array {
+        $key = $this->db->quoteName('child.' . $foreignKey);
+        $orphans = fn() => $this->db->getQuery(true)
+            ->from($this->db->quoteName('#__' . $child, 'child'))
+            ->join(
+                'LEFT',
+                $this->db->quoteName('#__' . $parent, 'parent'),
+                $key . ' = ' . $this->db->quoteName('parent.id')
+            )
+            ->where($this->db->quoteName('parent.id') . ' IS NULL');
+
+        $totals = $this->db->setQuery(
+            $orphans()->select(['COUNT(*) AS ' . $this->db->quoteName('total'), 'COUNT(DISTINCT ' . $key . ') AS '
+                . $this->db->quoteName('parents')])
+        )->loadAssoc() ?? [];
+        $count = (int) ($totals['total'] ?? 0);
+
+        if ($count === 0) {
+            return ['count' => 0, 'parents' => 0, 'groups' => []];
+        }
+
+        $query = $orphans()
+            ->select([
+                $key . ' AS ' . $this->db->quoteName('parent_id'),
+                'COUNT(*) AS ' . $this->db->quoteName('total'),
+            ])
+            ->group($key)
+            ->order($this->db->quoteName('total') . ' DESC, ' . $key . ' ASC')
+            ->setLimit(self::ORPHAN_GROUP_LIMIT);
+
+        if ($labelColumn !== null) {
+            $query->select(
+                'MAX(' . $this->db->quoteName('child.' . $labelColumn) . ') AS ' . $this->db->quoteName('label')
+            );
+        }
+
+        if ($dateColumn !== null) {
+            $date = $this->db->quoteName('child.' . $dateColumn);
+            $query->select([
+                'MIN(' . $date . ') AS ' . $this->db->quoteName('first'),
+                'MAX(' . $date . ') AS ' . $this->db->quoteName('last'),
+            ]);
+        }
+
+        $groups = [];
+
+        foreach ($this->db->setQuery($query)->loadAssocList() as $row) {
+            $groups[] = [
+                'parent_id' => (int) $row['parent_id'],
+                'count' => (int) $row['total'],
+                'label' => (string) ($row['label'] ?? ''),
+                'first' => (string) ($row['first'] ?? ''),
+                'last' => (string) ($row['last'] ?? ''),
+            ];
+        }
+
+        return ['count' => $count, 'parents' => (int) ($totals['parents'] ?? 0), 'groups' => $groups];
+    }
+
+    /**
+     * Elements keep no copy of their form name: reuse the one stored by the
+     * orphan records pointing at the same missing form.
+     *
+     * @param list<array<string, mixed>> $checks
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function labelOrphanForms(array $checks): array
+    {
+        $names = [];
+
+        foreach ($checks as $check) {
+            if (($check['parent'] ?? '') !== 'form') {
+                continue;
+            }
+
+            foreach ($check['groups'] as $group) {
+                if ($group['label'] !== '') {
+                    $names[$group['parent_id']] = $group['label'];
+                }
+            }
+        }
+
+        foreach ($checks as &$check) {
+            if (($check['parent'] ?? '') !== 'form') {
+                continue;
+            }
+
+            foreach ($check['groups'] as &$group) {
+                if ($group['label'] === '') {
+                    $group['label'] = $names[$group['parent_id']] ?? '';
+                }
+            }
+            unset($group);
+        }
+        unset($check);
+
+        return $checks;
     }
 
     /**
