@@ -93,6 +93,7 @@ final class PrivacyPluginContractTest extends TestCase
         self::assertIsInt($copies);
         self::assertIsInt($mode);
         self::assertLessThan($mode, $copies);
+        self::assertStringContainsString('if ((int) $deletesArticles[$article[\'form_id\']] === 1) {', $source);
         self::assertStringContainsString("new BeforeDeleteEvent('onContentBeforeDelete'", $source);
         self::assertStringContainsString("new AfterDeleteEvent('onContentAfterDelete'", $source);
 

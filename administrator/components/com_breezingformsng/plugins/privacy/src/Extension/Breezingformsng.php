@@ -34,8 +34,9 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstal
  * Removal either deletes the user's submissions or anonymises them: the rows
  * stay, emptied of every submitted value and identifier. Either way the
  * uploaded files and signatures those submissions point to are deleted
- * first, as are the articles ContentBuilder NG generated from them. Copies
- * sent outside the site (Dropbox, e-mail attachments) are out of reach.
+ * first, as are the articles ContentBuilder NG generated from them when its
+ * form deletes articles with their records. Copies sent outside the site
+ * (Dropbox, e-mail attachments) are out of reach.
  */
 final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
 {
@@ -58,6 +59,8 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
     private const CONTENTBUILDER_IDENTITY_COLUMNS = [
         'lastip', 'session_id', 'metakey', 'metadesc', 'author', 'rights', 'xreference',
     ];
+
+    private bool $logging = false;
 
     public static function getSubscribedEvents(): array
     {
@@ -247,19 +250,24 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
             }
         }
 
-        if ($left === []) {
-            return;
-        }
-
-        Log::addLogger(['text_file' => self::LOG_CATEGORY . '.php'], Log::ALL, [self::LOG_CATEGORY]);
-
         foreach ($left as $path => $recordId) {
-            Log::add(
-                \sprintf('Submission %d: file left in place, to be handled manually: %s', $recordId, $path),
-                Log::WARNING,
-                self::LOG_CATEGORY
+            $this->logLeftover(
+                \sprintf('Submission %d: file left in place, to be handled manually: %s', $recordId, $path)
             );
         }
+    }
+
+    /**
+     * The plugin log is the only trace of what a removal could not erase.
+     */
+    private function logLeftover(string $message): void
+    {
+        if (!$this->logging) {
+            Log::addLogger(['text_file' => self::LOG_CATEGORY . '.php'], Log::ALL, [self::LOG_CATEGORY]);
+            $this->logging = true;
+        }
+
+        Log::add($message, Log::WARNING, self::LOG_CATEGORY);
     }
 
     /**
@@ -288,9 +296,9 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
     /**
      * ContentBuilder NG keeps its own data about a submission: an article
      * generated from the submitted values, and a row of record metadata.
-     * The article is a copy of those values, so it is deleted in both modes,
-     * whatever the form's "delete articles" setting says about ordinary
-     * deletions.
+     * The article is a copy of those values. It is deleted when the form
+     * deletes its articles along with their records; otherwise it is left in
+     * place, as for an ordinary deletion, and written to the plugin log.
      *
      * @param int[] $recordIds
      */
@@ -304,29 +312,54 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
         $type = 'com_breezingformsng';
 
         $query = $db->createQuery()
-            ->select($db->quoteName('id'))
+            ->select($db->quoteName(['id', 'delete_articles']))
             ->from($db->quoteName('#__contentbuilderng_forms'))
             ->where($db->quoteName('type') . ' = :type')
             ->bind(':type', $type);
-        $formIds = array_map('intval', $db->setQuery($query)->loadColumn());
+        $deletesArticles = $db->setQuery($query)->loadAssocList('id', 'delete_articles');
+        $formIds = array_map('intval', array_keys($deletesArticles));
 
         if ($formIds === []) {
             return;
         }
 
         $query = $db->createQuery()
-            ->select($db->quoteName(['id', 'article_id']))
+            ->select($db->quoteName(['id', 'article_id', 'form_id', 'record_id']))
             ->from($db->quoteName('#__contentbuilderng_articles'))
             ->whereIn($db->quoteName('form_id'), $formIds)
             ->whereIn($db->quoteName('record_id'), $recordIds);
-        $articles = $db->setQuery($query)->loadAssocList('id', 'article_id');
+        $deleted = [];
+        $links = [];
 
-        if ($articles !== []) {
-            $this->deleteArticles(array_values(array_unique(array_map('intval', $articles))));
+        foreach ($db->setQuery($query)->loadAssocList() as $article) {
+            if ((int) $deletesArticles[$article['form_id']] === 1) {
+                $deleted[] = (int) $article['article_id'];
+                $links[] = (int) $article['id'];
 
+                continue;
+            }
+
+            $this->logLeftover(\sprintf(
+                'Submission %d: ContentBuilder NG article %d left in place, to be handled manually:'
+                . ' its form keeps the articles of deleted records',
+                $article['record_id'],
+                $article['article_id']
+            ));
+
+            // The submission itself goes: nothing is left to link the article to.
+            if ($removeRecords) {
+                $links[] = (int) $article['id'];
+            }
+        }
+
+        if ($deleted !== []) {
+            $this->deleteArticles(array_values(array_unique($deleted)));
+        }
+
+        if ($links !== []) {
             $query = $db->createQuery()
                 ->delete($db->quoteName('#__contentbuilderng_articles'))
-                ->whereIn($db->quoteName('id'), array_map('intval', array_keys($articles)));
+                ->whereIn($db->quoteName('id'), $links);
             $db->setQuery($query)->execute();
         }
 
