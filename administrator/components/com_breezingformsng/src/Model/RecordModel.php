@@ -416,7 +416,7 @@ class RecordModel extends BaseDatabaseModel
 
         $fixedHeaders = [
             'id', 'submitted', 'form', 'name', 'bf_form_name', 'title', 'bf_form_title',
-            'ip', 'browser', 'opsys', 'provider', 'viewed', 'exported', 'state',
+            'ip', 'browser', 'opsys', 'provider', 'viewed', 'exported', 'state', 'archived',
             'user_id', 'username', 'user_full_name', 'paypal_tx_id', 'paypal_payment_date',
             'paypal_testaccount', 'paypal_download_tries', 'double_opt_in', 'opted',
         ];
@@ -452,9 +452,10 @@ class RecordModel extends BaseDatabaseModel
                     'provider' => (string) $valueAt($row, $normalizedHeader, 'provider', ''),
                     'viewed' => (int) (bool) $valueAt($row, $normalizedHeader, 'viewed', 0),
                     'exported' => (int) (bool) $valueAt($row, $normalizedHeader, 'exported', 0),
-                    'state' => RecordState::isValid((int) $valueAt($row, $normalizedHeader, 'state', RecordState::PUBLISHED))
-                        ? (int) $valueAt($row, $normalizedHeader, 'state', RecordState::PUBLISHED)
-                        : RecordState::PUBLISHED,
+                    'state' => RecordState::fromImport(
+                        $valueAt($row, $normalizedHeader, 'state', null),
+                        $valueAt($row, $normalizedHeader, 'archived', null)
+                    ),
                     'user_id' => (int) $valueAt($row, $normalizedHeader, 'user_id', $identity->id),
                     'username' => (string) $valueAt($row, $normalizedHeader, 'username', $identity->username),
                     'user_full_name' => (string) $valueAt($row, $normalizedHeader, 'user_full_name', $identity->name),

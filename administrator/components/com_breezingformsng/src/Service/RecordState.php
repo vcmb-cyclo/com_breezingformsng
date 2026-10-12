@@ -34,6 +34,20 @@ final class RecordState
         return in_array($state, self::STATES, true);
     }
 
+    /**
+     * State of an imported record. A file written for the former `archived`
+     * flag (0/1) has no `state` column: its archived records stay archived.
+     * This reading of older files is intended.
+     */
+    public static function fromImport(mixed $state, mixed $archived): int
+    {
+        if ($state !== null) {
+            return is_numeric($state) && self::isValid((int) $state) ? (int) $state : self::PUBLISHED;
+        }
+
+        return (bool) $archived ? self::ARCHIVED : self::PUBLISHED;
+    }
+
     public static function label(int $state): string
     {
         return self::LABELS[$state] ?? self::LABELS[self::PUBLISHED];

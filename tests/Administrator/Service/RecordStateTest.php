@@ -24,6 +24,40 @@ final class RecordStateTest extends TestCase
         self::assertFalse(RecordState::isValid(3));
     }
 
+    public static function importProvider(): array
+    {
+        return [
+            'state column'              => ['2', null, 2],
+            'trashed state'             => ['-2', null, -2],
+            'state wins over archived'  => ['1', '1', 1],
+            'unknown state'             => ['0', null, 1],
+            'empty state'               => ['', '1', 1],
+            'former archived flag set'  => [null, '1', 2],
+            'former archived flag off'  => [null, '0', 1],
+            'neither column'            => [null, null, 1],
+        ];
+    }
+
+    #[DataProvider('importProvider')]
+    public function testImportReadsTheStateOrTheFormerArchivedFlag(?string $state, ?string $archived, int $expected): void
+    {
+        self::assertSame($expected, RecordState::fromImport($state, $archived));
+    }
+
+    public function testCsvImportReadsBothStatusColumns(): void
+    {
+        $model = file_get_contents(
+            __DIR__ . '/../../../administrator/components/com_breezingformsng/src/Model/RecordModel.php'
+        );
+
+        self::assertIsString($model);
+        self::assertStringContainsString("'viewed', 'exported', 'state', 'archived',", $model);
+        self::assertMatchesRegularExpression(
+            "/RecordState::fromImport\\(\\s+\\\$valueAt\\(\\\$row, \\\$normalizedHeader, 'state', null\\),\\s+\\\$valueAt\\(\\\$row, \\\$normalizedHeader, 'archived', null\\)/",
+            $model
+        );
+    }
+
     public static function filterProvider(): array
     {
         return [
