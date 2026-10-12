@@ -381,22 +381,9 @@ if ($logDisplayContent !== '') {
 
 $logTruncated = (int) ($logReport['truncated'] ?? 0) === 1;
 $logTailBytes = (int) ($logReport['tail_bytes'] ?? 0);
-$aboutDescription = (string) Text::_('COM_BREEZINGFORMSNG_ABOUT_DESC');
-$aboutDescription = str_replace(
-    '<strong>BreezingForms</strong>',
-    '<strong>BreezingForms NG</strong>',
-    $aboutDescription
-);
-$aboutDescription = str_replace(
-    'GPL-2.0-or-later',
-    '<a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html" target="_blank" rel="noopener noreferrer">GPL-2.0-or-later</a>',
-    $aboutDescription
-);
-$aboutDescription = str_replace(
-    'GPL-2.0+',
-    '<a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html" target="_blank" rel="noopener noreferrer">GPL-2.0+</a>',
-    $aboutDescription
-);
+$aboutDescription = Text::_('COM_BREEZINGFORMSNG_ABOUT_DESC');
+
+HTMLHelper::_('bootstrap.collapse');
 ?>
 
 <form action="index.php?option=com_breezingformsng&task=about.display&amp;view=about" method="post" name="adminForm" id="adminForm">
@@ -428,7 +415,49 @@ $aboutDescription = str_replace(
                     loading="lazy"
                 ></iframe>
                 <a class="bf-about-intro-link bf-about-intro-link--license" href="<?php echo htmlspecialchars($licenseUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo Text::_('COM_BREEZINGFORMSNG_LICENSE_LINK'); ?></a>
-                <a class="bf-about-intro-link bf-about-intro-link--log" href="#bf-about-log"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_SHOW_LOG'); ?></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 bf-about-version-card">
+        <div class="card-body p-3 p-lg-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 bf-about-version-header">
+                <h3 class="h5 mb-0 bf-about-version-title"><?php echo Text::_('COM_BREEZINGFORMSNG_VERSION_INFORMATION'); ?></h3>
+                <span class="bf-about-version-meta">
+                    <span class="bf-about-version-badge">BreezingForms NG</span>
+                    <span class="bf-about-version-badge <?php echo $isProductionBuild ? 'bf-about-version-badge--production' : 'bf-about-version-badge--dev'; ?>"><?php echo htmlspecialchars($buildTypeDisplay, ENT_QUOTES, 'UTF-8'); ?></span>
+                    <span class="bf-about-platform-badges" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_BADGES_LABEL'), ENT_QUOTES, 'UTF-8'); ?>">
+                        <span class="bf-about-platform-badge"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_JOOMLA_6'); ?></span>
+                        <span class="bf-about-platform-badge"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_PHP_83'); ?></span>
+                    </span>
+                </span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6 col-lg-2">
+                    <div class="bf-about-version-tile bf-about-version-tile--version">
+                        <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_VERSION_LABEL'); ?></span>
+                        <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $versionValue, ENT_QUOTES, 'UTF-8'); ?></p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-2">
+                    <div class="bf-about-version-tile bf-about-version-tile--date">
+                        <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_CREATION_DATE_LABEL'); ?></span>
+                        <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $creationDateValue, ENT_QUOTES, 'UTF-8'); ?></p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="bf-about-version-tile bf-about-version-tile--author">
+                        <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_AUTHOR_LABEL'); ?></span>
+                        <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $copyrightValue, ENT_QUOTES, 'UTF-8'); ?></p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-12 col-lg-4">
+                    <div class="bf-about-version-tile bf-about-version-tile--license">
+                        <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_LICENSE_LABEL'); ?></span>
+                        <a class="bf-about-version-value d-block" href="<?php echo htmlspecialchars($licenseUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars((string) $licenseValue, ENT_QUOTES, 'UTF-8'); ?></a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -936,49 +965,6 @@ $aboutDescription = str_replace(
         </div>
     </div>
 
-    <div class="card mt-3 bf-about-version-card">
-        <div class="card-body p-3 p-lg-4">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 bf-about-version-header">
-                <h3 class="h5 mb-0 bf-about-version-title"><?php echo Text::_('COM_BREEZINGFORMSNG_VERSION_INFORMATION'); ?></h3>
-                <span class="bf-about-version-meta">
-                    <span class="bf-about-version-badge">BreezingForms NG</span>
-                    <span class="bf-about-version-badge <?php echo $isProductionBuild ? 'bf-about-version-badge--production' : 'bf-about-version-badge--dev'; ?>"><?php echo htmlspecialchars($buildTypeDisplay, ENT_QUOTES, 'UTF-8'); ?></span>
-                    <span class="bf-about-platform-badges" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_BADGES_LABEL'), ENT_QUOTES, 'UTF-8'); ?>">
-                        <span class="bf-about-platform-badge"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_JOOMLA_6'); ?></span>
-                        <span class="bf-about-platform-badge"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_PHP_83'); ?></span>
-                    </span>
-                </span>
-            </div>
-
-            <div class="row g-3">
-                <div class="col-12 col-md-6 col-lg-2">
-                    <div class="bf-about-version-tile bf-about-version-tile--version">
-                        <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_VERSION_LABEL'); ?></span>
-                        <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $versionValue, ENT_QUOTES, 'UTF-8'); ?></p>
-                    </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-2">
-                    <div class="bf-about-version-tile bf-about-version-tile--date">
-                        <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_CREATION_DATE_LABEL'); ?></span>
-                        <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $creationDateValue, ENT_QUOTES, 'UTF-8'); ?></p>
-                    </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="bf-about-version-tile bf-about-version-tile--author">
-                        <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_COPYRIGHT_LABEL'); ?></span>
-                        <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $copyrightValue, ENT_QUOTES, 'UTF-8'); ?></p>
-                    </div>
-                </div>
-                <div class="col-12 col-md-12 col-lg-4">
-                    <div class="bf-about-version-tile bf-about-version-tile--license">
-                        <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_LICENSE_LABEL'); ?></span>
-                        <a class="bf-about-version-value d-block" href="<?php echo htmlspecialchars($licenseUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars((string) $licenseValue, ENT_QUOTES, 'UTF-8'); ?></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="card mt-3" id="bf-about-log">
         <div class="card-body">
             <h3 class="h6 card-title mb-3"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_LOG_TITLE'); ?></h3>
@@ -1008,74 +994,116 @@ $aboutDescription = str_replace(
     </div>
 
     <div class="card mt-3">
-        <div class="card-body">
-            <h3 class="h6 card-title mb-3"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARIES'); ?></h3>
-            <?php if (empty($phpLibraries)) : ?>
-                <div class="alert alert-info mb-0">
-                    <?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARIES_NOT_AVAILABLE'); ?>
+        <div class="card-body p-0">
+            <div class="accordion accordion-flush" id="bf-about-php-libraries-accordion">
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="bf-about-php-libraries-heading">
+                        <button
+                            class="accordion-button collapsed fw-semibold"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#bf-about-php-libraries-collapse"
+                            aria-expanded="false"
+                            aria-controls="bf-about-php-libraries-collapse"
+                        >
+                            <?php echo Text::plural('COM_BREEZINGFORMSNG_N_PHP_LIBRARIES', count($phpLibraries)); ?>
+                        </button>
+                    </h3>
+                    <div
+                        id="bf-about-php-libraries-collapse"
+                        class="accordion-collapse collapse"
+                        aria-labelledby="bf-about-php-libraries-heading"
+                        data-bs-parent="#bf-about-php-libraries-accordion"
+                    >
+                        <div class="accordion-body">
+                        <?php if (empty($phpLibraries)) : ?>
+                            <div class="alert alert-info mb-0">
+                                <?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARIES_NOT_AVAILABLE'); ?>
+                            </div>
+                        <?php else : ?>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped align-middle mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARY'); ?></th>
+                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARY_VERSION'); ?></th>
+                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE'); ?></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach ($phpLibraries as $library) : ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars((string) ($library['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars((string) (($library['version'] ?? '') !== '' ? $library['version'] : $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo Text::_(!empty($library['is_dev']) ? 'COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE_DEV' : 'COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE_RUNTIME'); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
-            <?php else : ?>
-                <p class="text-muted small">
-                    <?php echo Text::plural('COM_BREEZINGFORMSNG_PHP_LIBRARIES_COUNT', count($phpLibraries)); ?>
-                </p>
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped align-middle mb-0">
-                        <thead>
-                        <tr>
-                            <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARY'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARY_VERSION'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE'); ?></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($phpLibraries as $library) : ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars((string) ($library['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td><?php echo htmlspecialchars((string) (($library['version'] ?? '') !== '' ? $library['version'] : $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td><?php echo Text::_(!empty($library['is_dev']) ? 'COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE_DEV' : 'COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE_RUNTIME'); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
+            </div>
         </div>
     </div>
 
     <div class="card mt-3">
-        <div class="card-body">
-            <h3 class="h6 card-title mb-3"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARIES'); ?></h3>
-            <?php if (empty($javascriptLibraries)) : ?>
-                <div class="alert alert-info mb-0">
-                    <?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARIES_NOT_AVAILABLE'); ?>
+        <div class="card-body p-0">
+            <div class="accordion accordion-flush" id="bf-about-js-libraries-accordion">
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="bf-about-js-libraries-heading">
+                        <button
+                            class="accordion-button collapsed fw-semibold"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#bf-about-js-libraries-collapse"
+                            aria-expanded="false"
+                            aria-controls="bf-about-js-libraries-collapse"
+                        >
+                            <?php echo Text::plural('COM_BREEZINGFORMSNG_N_JS_LIBRARIES', count($javascriptLibraries)); ?>
+                        </button>
+                    </h3>
+                    <div
+                        id="bf-about-js-libraries-collapse"
+                        class="accordion-collapse collapse"
+                        aria-labelledby="bf-about-js-libraries-heading"
+                        data-bs-parent="#bf-about-js-libraries-accordion"
+                    >
+                        <div class="accordion-body">
+                        <?php if (empty($javascriptLibraries)) : ?>
+                            <div class="alert alert-info mb-0">
+                                <?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARIES_NOT_AVAILABLE'); ?>
+                            </div>
+                        <?php else : ?>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped align-middle mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY'); ?></th>
+                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_VERSION'); ?></th>
+                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_ASSETS'); ?></th>
+                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_SOURCE'); ?></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach ($javascriptLibraries as $library) : ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars((string) ($library['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars((string) ($library['version'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars((string) ($library['assets'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars((string) ($library['source'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
-            <?php else : ?>
-                <p class="text-muted small">
-                    <?php echo Text::plural('COM_BREEZINGFORMSNG_JS_LIBRARIES_COUNT', count($javascriptLibraries)); ?>
-                </p>
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped align-middle mb-0">
-                        <thead>
-                        <tr>
-                            <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_VERSION'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_ASSETS'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_SOURCE'); ?></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($javascriptLibraries as $library) : ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars((string) ($library['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td><?php echo htmlspecialchars((string) ($library['version'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td><?php echo htmlspecialchars((string) ($library['assets'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td><?php echo htmlspecialchars((string) ($library['source'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
+            </div>
         </div>
     </div>
 
