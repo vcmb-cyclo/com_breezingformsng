@@ -10,12 +10,11 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
-use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
-use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderRecordCleanup;
 
 class RecordModel extends BaseDatabaseModel
 {
@@ -216,7 +215,11 @@ class RecordModel extends BaseDatabaseModel
         ));
     }
 
-    public function deleteRecords(array $ids, MVCFactoryInterface $contentFactory): void
+    /**
+     * Permanently deletes records, together with what ContentBuilder NG keeps
+     * about them.
+     */
+    public function deleteRecords(array $ids, ContentBuilderRecordCleanup $contentBuilderCleanup): void
     {
         $ids = array_values(array_filter(array_map('intval', $ids)));
         if (!$ids) {
@@ -224,70 +227,18 @@ class RecordModel extends BaseDatabaseModel
         }
 
         $db = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->select($db->quoteName(['id', 'form']))
+            ->from($db->quoteName('#__facileforms_records'))
+            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
+        $idsByForm = [];
 
-        if (ContentBuilderInstallation::isInstalled()) {
-            $query = $db->getQuery(true)
-                ->select(['form.id AS form_id', 'form.reference_id', 'form.delete_articles', 'r.id AS record_id'])
-                ->from($db->quoteName('#__facileforms_records', 'r'))
-                ->join('INNER', $db->quoteName('#__contentbuilderng_forms', 'form') . ' ON form.reference_id = r.form')
-                ->whereIn('r.id', $ids, ParameterType::INTEGER);
-            $db->setQuery($query);
+        foreach ($db->setQuery($query)->loadAssocList() as $record) {
+            $idsByForm[(int) $record['form']][] = (int) $record['id'];
+        }
 
-            foreach ($db->loadAssocList() as $cbRecord) {
-                $formId = (int) $cbRecord['form_id'];
-                $recordId = (int) $cbRecord['record_id'];
-                $referenceId = (string) $cbRecord['reference_id'];
-
-                $delListRecords = $db->getQuery(true)
-                    ->delete($db->quoteName('#__contentbuilderng_list_records'))
-                    ->where($db->quoteName('form_id') . ' = :formId')
-                    ->where($db->quoteName('record_id') . ' = :recordId')
-                    ->bind(':formId', $formId, ParameterType::INTEGER)
-                    ->bind(':recordId', $recordId, ParameterType::INTEGER);
-                $db->setQuery($delListRecords)->execute();
-
-                $delCbRecords = $db->getQuery(true)
-                    ->delete($db->quoteName('#__contentbuilderng_records'))
-                    ->where($db->quoteName('type') . ' = ' . $db->quote('com_breezingformsng'))
-                    ->where($db->quoteName('reference_id') . ' = :referenceId')
-                    ->where($db->quoteName('record_id') . ' = :recordId')
-                    ->bind(':referenceId', $referenceId, ParameterType::STRING)
-                    ->bind(':recordId', $recordId, ParameterType::INTEGER);
-                $db->setQuery($delCbRecords)->execute();
-
-                if ((int) $cbRecord['delete_articles'] === 1) {
-                    $articleQuery = $db->getQuery(true)
-                        ->select($db->quoteName('article_id'))
-                        ->from($db->quoteName('#__contentbuilderng_articles'))
-                        ->where($db->quoteName('form_id') . ' = :formId')
-                        ->where($db->quoteName('record_id') . ' = :recordId')
-                        ->bind(':formId', $formId, ParameterType::INTEGER)
-                        ->bind(':recordId', $recordId, ParameterType::INTEGER);
-                    $db->setQuery($articleQuery);
-
-                    $articleIds = array_map('intval', $db->loadColumn() ?: []);
-
-                    if ($articleIds) {
-                        $articleModel = $contentFactory->createModel('Article', 'Administrator');
-
-                        if (!$articleModel instanceof \Joomla\CMS\MVC\Model\AdminModel) {
-                            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-                        }
-
-                        if (!$articleModel->delete($articleIds)) {
-                            throw new \RuntimeException((string) ($articleModel->getError() ?: Text::_('JERROR_AN_ERROR_HAS_OCCURRED')));
-                        }
-                    }
-                }
-
-                $delCbArticles = $db->getQuery(true)
-                    ->delete($db->quoteName('#__contentbuilderng_articles'))
-                    ->where($db->quoteName('form_id') . ' = :formId')
-                    ->where($db->quoteName('record_id') . ' = :recordId')
-                    ->bind(':formId', $formId, ParameterType::INTEGER)
-                    ->bind(':recordId', $recordId, ParameterType::INTEGER);
-                $db->setQuery($delCbArticles)->execute();
-            }
+        foreach ($idsByForm as $formId => $recordIds) {
+            $contentBuilderCleanup->remove($formId, $recordIds);
         }
 
         $delSubrecords = $db->getQuery(true)
@@ -301,9 +252,74 @@ class RecordModel extends BaseDatabaseModel
         $db->setQuery($delRecords)->execute();
     }
 
+    /**
+     * Empties the trash for the given records: those that are not trashed are
+     * left alone. Returns the ids actually deleted.
+     *
+     * @return int[]
+     */
+    public function deleteTrashed(array $ids, ContentBuilderRecordCleanup $contentBuilderCleanup): array
+    {
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+        if (!$ids) {
+            return [];
+        }
+
+        $db = $this->getDatabase();
+        $trashed = RecordState::TRASHED;
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('id'))
+            ->from($db->quoteName('#__facileforms_records'))
+            ->where($db->quoteName('state') . ' = :trashed')
+            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER)
+            ->bind(':trashed', $trashed, ParameterType::INTEGER);
+        $trashedIds = array_map('intval', $db->setQuery($query)->loadColumn());
+
+        $this->deleteRecords($trashedIds, $contentBuilderCleanup);
+
+        return $trashedIds;
+    }
+
+    /**
+     * Empties the whole trash. Returns the ids actually deleted.
+     *
+     * @return int[]
+     */
+    public function emptyTrash(ContentBuilderRecordCleanup $contentBuilderCleanup): array
+    {
+        $db = $this->getDatabase();
+        $trashed = RecordState::TRASHED;
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('id'))
+            ->from($db->quoteName('#__facileforms_records'))
+            ->where($db->quoteName('state') . ' = :trashed')
+            ->bind(':trashed', $trashed, ParameterType::INTEGER);
+        $trashedIds = array_map('intval', $db->setQuery($query)->loadColumn());
+
+        $this->deleteRecords($trashedIds, $contentBuilderCleanup);
+
+        return $trashedIds;
+    }
+
+    public function changeState(array $ids, int $state): void
+    {
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+        if (!$ids || !RecordState::isValid($state)) {
+            return;
+        }
+
+        $db = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->update($db->quoteName('#__facileforms_records'))
+            ->set($db->quoteName('state') . ' = :state')
+            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER)
+            ->bind(':state', $state, ParameterType::INTEGER);
+        $db->setQuery($query)->execute();
+    }
+
     public function setFlagsBatch(array $ids, string $column, int $value = 1): void
     {
-        if (!in_array($column, ['viewed', 'exported', 'archived'], true)) {
+        if (!in_array($column, ['viewed', 'exported'], true)) {
             return;
         }
         $ids = array_values(array_filter(array_map('intval', $ids)));
@@ -323,7 +339,7 @@ class RecordModel extends BaseDatabaseModel
     public function setFlagSingle(int $recordId, string $column, int $value): void
     {
         $col = preg_replace('/^bfrecord_/', '', $column);
-        if (!in_array($col, ['viewed', 'exported', 'archived'], true)) {
+        if (!in_array($col, ['viewed', 'exported'], true)) {
             return;
         }
         $db = $this->getDatabase();
@@ -400,7 +416,7 @@ class RecordModel extends BaseDatabaseModel
 
         $fixedHeaders = [
             'id', 'submitted', 'form', 'name', 'bf_form_name', 'title', 'bf_form_title',
-            'ip', 'browser', 'opsys', 'provider', 'viewed', 'exported', 'archived',
+            'ip', 'browser', 'opsys', 'provider', 'viewed', 'exported', 'state', 'archived',
             'user_id', 'username', 'user_full_name', 'paypal_tx_id', 'paypal_payment_date',
             'paypal_testaccount', 'paypal_download_tries', 'double_opt_in', 'opted',
         ];
@@ -436,7 +452,10 @@ class RecordModel extends BaseDatabaseModel
                     'provider' => (string) $valueAt($row, $normalizedHeader, 'provider', ''),
                     'viewed' => (int) (bool) $valueAt($row, $normalizedHeader, 'viewed', 0),
                     'exported' => (int) (bool) $valueAt($row, $normalizedHeader, 'exported', 0),
-                    'archived' => (int) (bool) $valueAt($row, $normalizedHeader, 'archived', 0),
+                    'state' => RecordState::fromImport(
+                        $valueAt($row, $normalizedHeader, 'state', null),
+                        $valueAt($row, $normalizedHeader, 'archived', null)
+                    ),
                     'user_id' => (int) $valueAt($row, $normalizedHeader, 'user_id', $identity->id),
                     'username' => (string) $valueAt($row, $normalizedHeader, 'username', $identity->username),
                     'user_full_name' => (string) $valueAt($row, $normalizedHeader, 'user_full_name', $identity->name),

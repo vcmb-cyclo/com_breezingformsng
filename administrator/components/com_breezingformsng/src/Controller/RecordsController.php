@@ -10,12 +10,15 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Cache\CacheControllerFactoryInterface;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
+use Joomla\Database\QueryInterface;
 use Joomla\Utilities\ArrayHelper;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
@@ -27,6 +30,8 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfDocument;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfFontDirectoryScanner;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderRecordCleanup;
 
 /** @property CMSApplication $app */
 class RecordsController extends BaseController
@@ -93,27 +98,41 @@ class RecordsController extends BaseController
         );
     }
 
-    public function remove(): void
+    public function publish(): void
+    {
+        $this->changeState(RecordState::PUBLISHED, 'COM_BREEZINGFORMSNG_RECORDS_N_ITEMS_RESTORED');
+    }
+
+    public function archive(): void
+    {
+        $this->changeState(RecordState::ARCHIVED, 'COM_BREEZINGFORMSNG_RECORDS_N_MARKED_ARCHIVED');
+    }
+
+    public function trash(): void
+    {
+        $this->changeState(RecordState::TRASHED, 'COM_BREEZINGFORMSNG_RECORDS_N_ITEMS_TRASHED');
+    }
+
+    /**
+     * Empties the trash: only trashed records are deleted for good.
+     */
+    public function delete(): void
     {
         $this->checkToken();
 
         $app = $this->app;
         $input = $app->getInput();
-        $ids = array_values(array_filter(
-            ArrayHelper::toInteger($input->post->get('cid', [], 'array')),
-            static fn (int $id): bool => $id > 0
-        ));
-        $contentComponent = $app->bootComponent('com_content');
+        $model = $this->getRecordModel();
+        $cleanup = new ContentBuilderRecordCleanup(
+            $model->getDatabaseConnection(),
+            $app,
+            Factory::getContainer()->get(CacheControllerFactoryInterface::class)
+        );
+        $deleted = $model->deleteTrashed($this->selectedIds($input), $cleanup);
 
-        if (!$contentComponent instanceof MVCFactoryServiceInterface) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-        }
-
-        $contentFactory = $contentComponent->getMVCFactory();
-        $this->getRecordModel()->deleteRecords($ids, $contentFactory);
-
-        if ($ids !== []) {
-            (new ActionLogger($app))->log(ActionLogger::DELETED, ActionLogger::RECORD, $ids);
+        if ($deleted !== []) {
+            (new ActionLogger($app))->log(ActionLogger::DELETED, ActionLogger::RECORD, $deleted);
+            $app->enqueueMessage(Text::plural('COM_BREEZINGFORMSNG_RECORDS_N_ITEMS_DELETED', count($deleted)), 'message');
         }
 
         $app->redirect($this->listUrl($input));
@@ -123,8 +142,6 @@ class RecordsController extends BaseController
     public function unviewed(): void   { $this->batchFlag('viewed', 0); }
     public function exported(): void   { $this->batchFlag('exported', 1); }
     public function unexported(): void { $this->batchFlag('exported', 0); }
-    public function archived(): void   { $this->batchFlag('archived', 1); }
-    public function unarchived(): void { $this->batchFlag('archived', 0); }
 
     public function setFlag(): void
     {
@@ -497,7 +514,7 @@ class RecordsController extends BaseController
                     . $ind(2) . '<provider>' . htmlspecialchars((string) ($rec->provider ?? '')) . '</provider>' . "\n"
                     . $ind(2) . '<viewed>' . (int) $rec->viewed . '</viewed>' . "\n"
                     . $ind(2) . '<exported>' . (int) $rec->exported . '</exported>' . "\n"
-                    . $ind(2) . '<archived>' . (int) $rec->archived . '</archived>' . "\n"
+                    . $ind(2) . '<state>' . (int) $rec->state . '</state>' . "\n"
                     . $ind(2) . '<pptxid>' . htmlspecialchars((string) $rec->paypal_tx_id) . '</pptxid>' . "\n"
                     . $ind(2) . '<pppdate>' . htmlspecialchars((string) $rec->paypal_payment_date) . '</pppdate>' . "\n"
                     . $ind(2) . '<pptestacc>' . (int) $rec->paypal_testaccount . '</pptestacc>' . "\n"
@@ -541,6 +558,33 @@ class RecordsController extends BaseController
         $app->close();
     }
 
+    private function changeState(int $state, string $messageKey): void
+    {
+        $this->checkToken();
+
+        $app = $this->app;
+        $input = $app->getInput();
+        $ids = $this->selectedIds($input);
+        $this->getRecordModel()->changeState($ids, $state);
+
+        if ($ids !== []) {
+            $app->enqueueMessage(Text::plural($messageKey, count($ids)), 'message');
+        }
+
+        $app->redirect($this->listUrl($input));
+    }
+
+    /**
+     * @return int[]
+     */
+    private function selectedIds(\Joomla\Input\Input $input): array
+    {
+        return array_values(array_filter(
+            ArrayHelper::toInteger($input->post->get('cid', [], 'array')),
+            static fn (int $id): bool => $id > 0
+        ));
+    }
+
     private function batchFlag(string $column, int $value = 1): void
     {
         $this->checkToken();
@@ -554,7 +598,6 @@ class RecordsController extends BaseController
         $keyBases = [
             'viewed'   => $value ? 'COM_BREEZINGFORMSNG_RECORDS_N_MARKED_VIEWED' : 'COM_BREEZINGFORMSNG_RECORDS_N_UNMARKED_VIEWED',
             'exported' => $value ? 'COM_BREEZINGFORMSNG_RECORDS_N_MARKED_EXPORTED' : 'COM_BREEZINGFORMSNG_RECORDS_N_UNMARKED_EXPORTED',
-            'archived' => $value ? 'COM_BREEZINGFORMSNG_RECORDS_N_MARKED_ARCHIVED' : 'COM_BREEZINGFORMSNG_RECORDS_N_UNMARKED_ARCHIVED',
         ];
         if (isset($keyBases[$column])) {
             $app->enqueueMessage(Text::plural($keyBases[$column], count($ids)), 'message');
@@ -620,7 +663,8 @@ class RecordsController extends BaseController
         $headers = [
             'id', 'submitted', 'user_id', 'username', 'user_full_name', 'bf_form_title', 'ip',
             'browser', 'opsys', 'paypal_tx_id', 'paypal_payment_date', 'paypal_testaccount',
-            'paypal_download_tries', 'double_opt_in', ...array_values($fieldKeys),
+            'paypal_download_tries', 'double_opt_in', 'viewed', 'exported', 'state',
+            ...array_values($fieldKeys),
         ];
 
         if (count($headers) > $maxColumns) {
@@ -666,6 +710,9 @@ class RecordsController extends BaseController
                     (string) $record->paypal_testaccount,
                     (string) $record->paypal_download_tries,
                     (string) ($record->opted ?? ''),
+                    (string) $record->viewed,
+                    (string) $record->exported,
+                    (string) $record->state,
                 ];
                 foreach ($fieldKeys as $key => $name) {
                     $row[] = isset($subValues[$key]) ? implode('|', $subValues[$key]) : '';
@@ -696,13 +743,30 @@ class RecordsController extends BaseController
 
         if ($ids) {
             $query->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
-        } elseif ($formSelection) {
-            $query->where($db->quoteName('form') . ' = :formSelection')
-                ->bind(':formSelection', $formSelection, ParameterType::INTEGER);
+        } else {
+            $this->applyListFilters($query, $db, $formSelection);
         }
 
         $db->setQuery($query);
         return $db->loadObjectList();
+    }
+
+    /**
+     * Without an explicit selection, an export covers what the list shows:
+     * the chosen form and the chosen state.
+     */
+    private function applyListFilters(QueryInterface $query, DatabaseInterface $db, int $formSelection): void
+    {
+        if ($formSelection) {
+            $query->where($db->quoteName('form') . ' = :formSelection')
+                ->bind(':formSelection', $formSelection, ParameterType::INTEGER);
+        }
+
+        $states = RecordState::filterStates((string) $this->app->getInput()->getString('filter_state', ''));
+
+        if ($states !== null) {
+            $query->whereIn($db->quoteName('state'), $states);
+        }
     }
 
     /**
@@ -717,9 +781,8 @@ class RecordsController extends BaseController
 
         if ($ids) {
             $query->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
-        } elseif ($formSelection) {
-            $query->where($db->quoteName('form') . ' = :formSelection')
-                ->bind(':formSelection', $formSelection, ParameterType::INTEGER);
+        } else {
+            $this->applyListFilters($query, $db, $formSelection);
         }
 
         $db->setQuery($query);
@@ -758,9 +821,13 @@ class RecordsController extends BaseController
         $searchTerm = trim((string) $input->getString('searchterm', ''));
         $filterOrder = trim((string) $input->getString('filter_order', ''));
         $filterDir = strtolower(trim((string) $input->getString('filter_order_Dir', '')));
+        $stateFilter = RecordState::normalizeFilter((string) $input->getString('filter_state', ''));
 
         if ($searchTerm !== '') {
             $query .= '&searchterm=' . rawurlencode($searchTerm);
+        }
+        if ($stateFilter !== '') {
+            $query .= '&filter_state=' . rawurlencode($stateFilter);
         }
         if ($filterOrder !== '') {
             $query .= '&filter_order=' . rawurlencode($filterOrder);

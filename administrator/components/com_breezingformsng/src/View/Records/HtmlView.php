@@ -20,6 +20,7 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordsModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
 
 class HtmlView extends BaseHtmlView
@@ -30,6 +31,7 @@ class HtmlView extends BaseHtmlView
     public int $total = 0;
     public int $formSelection = 0;
     public string $searchTerm = '';
+    public string $stateFilter = '';
     public int $limitStart = 0;
     public int $limit = 20;
     public string $listOrder = 'records.submitted';
@@ -46,7 +48,7 @@ class HtmlView extends BaseHtmlView
     private const ALLOWED_SORTS = [
         'records.id', 'records.submitted', 'forms.title',
         'records.ip', 'records.username',
-        'records.viewed', 'records.exported', 'records.archived',
+        'records.viewed', 'records.exported', 'records.state',
         'records.modified',
     ];
 
@@ -114,7 +116,6 @@ class HtmlView extends BaseHtmlView
                 ['defer' => true],
                 ['core', 'com_breezingformsng.record-flags']
             );
-            Text::script('COM_BREEZINGFORMSNG_CONFIRM_DELETE_RECORDS');
             Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
         }
 
@@ -135,14 +136,15 @@ class HtmlView extends BaseHtmlView
         $model = $component->getMVCFactory()->createModel('Records', 'Administrator');
 
         $this->forms = $model->getForms();
-        $this->total = $model->getTotal($this->formSelection, $this->searchTerm);
+        $this->total = $model->getTotal($this->formSelection, $this->searchTerm, $this->stateFilter);
         $this->records = $model->getItems(
             $this->formSelection,
             $this->searchTerm,
             $this->limitStart,
             $this->limit,
             $this->listOrder,
-            $this->listDirn
+            $this->listDirn,
+            $this->stateFilter
         );
 
         $app->getDocument()->getWebAssetManager()->useScript('table.columns');
@@ -154,6 +156,7 @@ class HtmlView extends BaseHtmlView
 
         $this->formSelection = $input->getInt('form_selection', 0);
         $this->searchTerm = trim((string) $input->getString('searchterm', ''));
+        $this->stateFilter = RecordState::normalizeFilter((string) $input->getString('filter_state', ''));
         $this->limit = max(1, $input->getInt('limit', 20));
         $this->limitStart = max(0, $input->getInt('limitstart', 0));
 
@@ -224,7 +227,8 @@ class HtmlView extends BaseHtmlView
             $this->searchTerm,
             $this->listOrder,
             $this->listDirn,
-            'prev'
+            'prev',
+            $this->stateFilter
         );
         $this->nextRecordId = $recordsModel->getAdjacentRecordId(
             $recordId,
@@ -232,7 +236,8 @@ class HtmlView extends BaseHtmlView
             $this->searchTerm,
             $this->listOrder,
             $this->listDirn,
-            'next'
+            'next',
+            $this->stateFilter
         );
     }
 
@@ -297,20 +302,43 @@ class HtmlView extends BaseHtmlView
             ->icon('icon-cancel-circle')
             ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_EXPORTED_DESC')])
             ->listCheck(true);
-        $markChild->standardButton('markArchived')
-            ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_ARCHIVED'))
-            ->task('records.archived')
-            ->icon('icon-archive')
-            ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_ARCHIVED_DESC')])
-            ->listCheck(true);
-        $markChild->standardButton('unmarkArchived')
-            ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_ARCHIVED'))
-            ->task('records.unarchived')
-            ->icon('icon-out-2')
-            ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_ARCHIVED_DESC')])
-            ->listCheck(true);
 
-        ToolbarHelper::custom('records.remove', 'delete', 'delete', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_DELETE'), false);
+        $statusDropdown = $toolbar->dropdownButton('status-group');
+
+        if (!$statusDropdown instanceof DropdownButton) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $statusDropdown->toggleSplit(false);
+        $statusDropdown
+            ->text('JTOOLBAR_CHANGE_STATUS')
+            ->icon('icon-ellipsis-h')
+            ->buttonClass('btn btn-action')
+            ->listCheck(true);
+        $statusChild = $statusDropdown->getChildToolbar();
+        $trashed = (string) RecordState::TRASHED;
+        $archived = (string) RecordState::ARCHIVED;
+
+        if ($this->stateFilter === $archived) {
+            $statusChild->unarchive('records.publish')->listCheck(true);
+        } elseif ($this->stateFilter !== '') {
+            $statusChild->publish('records.publish')->listCheck(true);
+        }
+
+        if ($this->stateFilter !== $archived) {
+            $statusChild->archive('records.archive')->listCheck(true);
+        }
+
+        if ($this->stateFilter !== $trashed) {
+            $statusChild->trash('records.trash')->listCheck(true);
+        }
+
+        if ($this->stateFilter === $trashed) {
+            $toolbar->delete('records.delete', 'JTOOLBAR_EMPTY_TRASH')
+                ->message('COM_BREEZINGFORMSNG_CONFIRM_DELETE_RECORDS')
+                ->listCheck(true);
+        }
+
         $user = Factory::getApplication()->getIdentity();
 
         if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
@@ -365,10 +393,25 @@ class HtmlView extends BaseHtmlView
         $markChild->standardButton('unmarkViewed')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_VIEWED'))->task('records.unviewed')->icon('icon-eye-close')->listCheck(false);
         $markChild->standardButton('markExported')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_EXPORTED'))->task('records.exported')->icon('icon-share')->listCheck(false);
         $markChild->standardButton('unmarkExported')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_EXPORTED'))->task('records.unexported')->icon('icon-cancel-circle')->listCheck(false);
-        $markChild->standardButton('markArchived')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_ARCHIVED'))->task('records.archived')->icon('icon-archive')->listCheck(false);
-        $markChild->standardButton('unmarkArchived')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_ARCHIVED'))->task('records.unarchived')->icon('icon-out-2')->listCheck(false);
 
-        ToolbarHelper::custom('records.remove', 'delete', 'delete', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_DELETE'), false);
+        $state = (int) ($this->record->state ?? RecordState::PUBLISHED);
+
+        if ($state === RecordState::ARCHIVED) {
+            $toolbar->unarchive('records.publish')->listCheck(false);
+        } elseif ($state === RecordState::TRASHED) {
+            $toolbar->publish('records.publish')->listCheck(false);
+        } else {
+            $toolbar->archive('records.archive')->listCheck(false);
+        }
+
+        if ($state === RecordState::TRASHED) {
+            $toolbar->delete('records.delete', 'JTOOLBAR_EMPTY_TRASH')
+                ->message('COM_BREEZINGFORMSNG_CONFIRM_DELETE_RECORDS')
+                ->listCheck(false);
+        } else {
+            $toolbar->trash('records.trash')->listCheck(false);
+        }
+
         ToolbarHelper::custom('records.save', 'save', 'save', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_SAVE'), false);
         ToolbarHelper::cancel('records.cancel', 'JTOOLBAR_CLOSE');
 
@@ -394,14 +437,13 @@ class HtmlView extends BaseHtmlView
             'cancelTask' => 'records.cancel',
             'saveTask'   => 'records.save',
             'validateTask' => 'records.save',
-            'confirmDeleteTask' => 'records.remove',
             'exportTasks' => ['records.exportPdf', 'records.exportCsv', 'records.exportXlsx', 'records.exportXml'],
             'discardTasks' => [
                 'records.viewed', 'records.unviewed', 'records.exported',
-                'records.unexported', 'records.archived', 'records.unarchived',
+                'records.unexported', 'records.publish', 'records.archive',
+                'records.trash', 'records.delete',
             ],
         ]);
-        Text::script('JGLOBAL_CONFIRM_DELETE');
         Text::script('COM_BREEZINGFORMSNG_TEST_NO_CHANGES');
         Text::script('COM_BREEZINGFORMSNG_CONFIRM_DISCARD_CHANGES');
         Text::script('COM_BREEZINGFORMSNG_EXPORT_SAVE_FIRST');

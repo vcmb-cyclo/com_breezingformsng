@@ -20,20 +20,22 @@ $limitStart = $this->limitStart;
 $limit      = $this->limit;
 $formSelection = $this->formSelection;
 $searchTerm = $this->searchTerm;
+$stateFilter = $this->stateFilter;
 
 $totalPages  = ($limit > 0) ? (int) ceil($total / $limit) : 1;
 $currentPage = ($limit > 0) ? (int) floor($limitStart / $limit) : 0;
 
-$pageUrl = function (int $start) use ($listOrder, $listDirn, $formSelection, $searchTerm): string {
+$pageUrl = function (int $start) use ($listOrder, $listDirn, $formSelection, $searchTerm, $stateFilter): string {
     return 'index.php?option=com_breezingformsng&view=records'
         . '&filter_order=' . rawurlencode($listOrder)
         . '&filter_order_Dir=' . $listDirn
         . '&form_selection=' . $formSelection
         . ($searchTerm !== '' ? '&searchterm=' . rawurlencode($searchTerm) : '')
+        . ($stateFilter !== '' ? '&filter_state=' . rawurlencode($stateFilter) : '')
         . '&limitstart=' . $start;
 };
 
-$editUrl = static function (int $recordId) use ($listOrder, $listDirn, $formSelection, $searchTerm, $limit, $limitStart): string {
+$editUrl = static function (int $recordId) use ($listOrder, $listDirn, $formSelection, $searchTerm, $stateFilter, $limit, $limitStart): string {
     $query = [
         'option'            => 'com_breezingformsng',
         'view'              => 'records',
@@ -48,6 +50,9 @@ $editUrl = static function (int $recordId) use ($listOrder, $listDirn, $formSele
     if ($searchTerm !== '') {
         $query['searchterm'] = $searchTerm;
     }
+    if ($stateFilter !== '') {
+        $query['filter_state'] = $stateFilter;
+    }
 
     return 'index.php?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
 };
@@ -57,7 +62,7 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
 <form action="index.php?option=com_breezingformsng&amp;view=records" method="post" name="adminForm" id="adminForm">
 
   <div class="row mb-3">
-    <div class="col-md-4">
+    <div class="col-md-3">
       <select name="form_selection" id="form_selection" class="form-select" onchange="this.form.limitstart.value=0;this.form.submit();">
         <option value="0"><?= Text::_('COM_BREEZINGFORMSNG_ALL_FORMS'); ?></option>
         <?php foreach ($this->forms as $form): ?>
@@ -65,6 +70,13 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
             <?= htmlspecialchars($form['title']); ?>
           </option>
         <?php endforeach; ?>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="visually-hidden" for="filter_state"><?= Text::_('JSTATUS'); ?></label>
+      <select name="filter_state" id="filter_state" class="form-select" onchange="this.form.limitstart.value=0;this.form.submit();">
+        <option value=""><?= Text::_('JOPTION_SELECT_PUBLISHED'); ?></option>
+        <?= HTMLHelper::_('select.options', HTMLHelper::_('jgrid.publishedOptions', ['unpublished' => false]), 'value', 'text', $stateFilter, true); ?>
       </select>
     </div>
     <div class="col-md-4">
@@ -75,11 +87,11 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
           <span class="icon-search" aria-hidden="true"></span>
         </button>
         <?php if ($this->searchTerm !== ''): ?>
-          <a href="index.php?option=com_breezingformsng&view=records&form_selection=<?= $this->formSelection; ?>" id="filter_search_clear" class="btn btn-secondary" title="<?= $headerTitle('JSEARCH_FILTER_CLEAR'); ?>"><?= Text::_('JSEARCH_FILTER_CLEAR'); ?></a>
+          <a href="index.php?option=com_breezingformsng&view=records&form_selection=<?= $this->formSelection; ?><?= $stateFilter !== '' ? '&amp;filter_state=' . rawurlencode($stateFilter) : ''; ?>" id="filter_search_clear" class="btn btn-secondary" title="<?= $headerTitle('JSEARCH_FILTER_CLEAR'); ?>"><?= Text::_('JSEARCH_FILTER_CLEAR'); ?></a>
         <?php endif; ?>
       </div>
     </div>
-    <div class="col-md-4 text-end">
+    <div class="col-md-3 text-end">
       <span class="badge bg-secondary"><?= (int) $total; ?> <?= Text::_('COM_BREEZINGFORMSNG_RECORDS'); ?></span>
     </div>
   </div>
@@ -94,7 +106,7 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
         <th title="<?= $headerTitle('COM_BREEZINGFORMSNG_USER_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_USER', 'records.username', $listDirn, $listOrder); ?></th>
         <th class="text-center" title="<?= $headerTitle('COM_BREEZINGFORMSNG_VIEWED_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_VIEWED', 'records.viewed', $listDirn, $listOrder); ?></th>
         <th class="text-center" title="<?= $headerTitle('COM_BREEZINGFORMSNG_EXPORTED_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_EXPORTED', 'records.exported', $listDirn, $listOrder); ?></th>
-        <th class="text-center" title="<?= $headerTitle('COM_BREEZINGFORMSNG_ARCHIVED_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_ARCHIVED', 'records.archived', $listDirn, $listOrder); ?></th>
+        <th class="text-center" title="<?= $headerTitle('COM_BREEZINGFORMSNG_RECORDS_STATE_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'JSTATUS', 'records.state', $listDirn, $listOrder); ?></th>
         <th title="<?= $headerTitle('COM_BREEZINGFORMSNG_SUBMITTED_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_SUBMITTED', 'records.submitted', $listDirn, $listOrder); ?></th>
         <th title="<?= $headerTitle('COM_BREEZINGFORMSNG_MODIFIED_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_MODIFIED', 'records.modified', $listDirn, $listOrder); ?></th>
       </tr>
@@ -125,11 +137,7 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
                 <span class="<?= $rec['exported'] ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
               </a>
             </td>
-            <td class="text-center">
-              <a href="#" onclick="bfToggleFlag(<?= $recId; ?>, 'bfrecord_archived', this); return false;" title="<?= Text::_('COM_BREEZINGFORMSNG_TOGGLE_ARCHIVED'); ?>">
-                <span class="<?= $rec['archived'] ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
-              </a>
-            </td>
+            <td class="text-center"><?= HTMLHelper::_('jgrid.published', (int) $rec['state'], $i, 'records.', false); ?></td>
             <td><?= htmlspecialchars((string) $rec['submitted']); ?></td>
             <td><?= $rec['modified'] ? htmlspecialchars((string) $rec['modified']) : '—'; ?></td>
           </tr>

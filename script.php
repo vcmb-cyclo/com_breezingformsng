@@ -2559,6 +2559,23 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                     $this->log('Updated browser column definition in facileforms_records.');
                 }
             }
+
+            // The archived flag (0/1) became the Joomla publication state:
+            // 1 published, 2 archived, -2 trashed. Each step can be replayed.
+            if (!isset($columns['state'])) {
+                $db->setQuery(
+                    "ALTER TABLE `{$recordsTable}` ADD `state` TINYINT NOT NULL DEFAULT '1' AFTER `exported`, ADD INDEX (`state`)"
+                )->execute();
+                $this->log('Added column state to facileforms_records.');
+            }
+
+            if (isset($columns['archived'])) {
+                $db->setQuery(
+                    "UPDATE `{$recordsTable}` SET `state` = 2 WHERE `archived` = 1 AND `state` = 1"
+                )->execute();
+                $db->setQuery("ALTER TABLE `{$recordsTable}` DROP `archived`")->execute();
+                $this->log('Moved the archived flag of facileforms_records to the state column.');
+            }
         }
 
         if (isset($tables[$formsTable])) {

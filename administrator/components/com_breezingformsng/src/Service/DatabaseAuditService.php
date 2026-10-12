@@ -12,6 +12,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 
 use Joomla\CMS\Date\Date;
 use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 
 final class DatabaseAuditService
 {
@@ -130,6 +131,7 @@ final class DatabaseAuditService
         $extensionIssues = $this->findExtensionIssues();
         $duplicateForms = $this->findDuplicateForms();
         $debugForms = $this->findDebugModeForms($tableList);
+        $trashedRecords = $this->findTrashedRecords($tableList);
         $missingColumnsTotal = array_sum(array_map(
             static fn (array $entry): int => count($entry['columns']),
             $missingColumns
@@ -149,6 +151,7 @@ final class DatabaseAuditService
             'missing_tables' => $missingTables,
             'missing_columns' => $missingColumns,
             'debug_forms' => $debugForms,
+            'trashed_records' => $trashedRecords,
             'unexpected_tables' => $unexpectedTables,
             'collation_issues' => $collationIssues,
             'column_collation_issues' => $columnCollationIssues,
@@ -168,6 +171,7 @@ final class DatabaseAuditService
                 'missing_tables' => count($missingTables),
                 'missing_columns' => $missingColumnsTotal,
                 'debug_forms' => count($debugForms),
+                'trashed_records' => array_sum(array_column($trashedRecords, 'count')),
                 'unexpected_tables' => count($unexpectedTables),
                 'total_rows' => $totalRows,
                 'total_data_bytes' => $totalDataBytes,
@@ -933,6 +937,49 @@ final class DatabaseAuditService
             'title' => trim((string) ($row['title'] ?? '')),
             'package' => trim((string) ($row['package'] ?? '')),
             'published' => (int) ($row['published'] ?? 0),
+        ], $rows);
+    }
+
+    /**
+     * Trashed records per form. A trash that is not empty is a normal state:
+     * it is reported for information and never counted as an issue.
+     */
+    private function findTrashedRecords(array $tableList): array
+    {
+        $physicalTable = $this->db->getPrefix() . 'facileforms_records';
+
+        if (!in_array($physicalTable, $tableList, true)) {
+            return [];
+        }
+
+        try {
+            if (!array_key_exists('state', $this->db->getTableColumns($physicalTable))) {
+                return [];
+            }
+
+            $trashed = RecordState::TRASHED;
+            $query = $this->db->getQuery(true)
+                ->select($this->db->quoteName('r.form'))
+                ->select('MAX(' . $this->db->quoteName('f.name') . ') AS ' . $this->db->quoteName('name'))
+                ->select('COUNT(*) AS ' . $this->db->quoteName('record_count'))
+                ->from($this->db->quoteName('#__facileforms_records', 'r'))
+                ->join('LEFT', $this->db->quoteName('#__facileforms_forms', 'f'), 'f.id = r.form')
+                ->where($this->db->quoteName('r.state') . ' = :trashed')
+                ->group($this->db->quoteName('r.form'))
+                ->order($this->db->quoteName('r.form') . ' ASC')
+                ->bind(':trashed', $trashed, ParameterType::INTEGER);
+            $this->db->setQuery($query);
+            $rows = $this->db->loadAssocList() ?: [];
+        } catch (\Throwable $exception) {
+            $this->addError('Unable to inspect trashed records: ' . $exception->getMessage());
+
+            return [];
+        }
+
+        return array_map(static fn (array $row): array => [
+            'form' => (int) ($row['form'] ?? 0),
+            'name' => trim((string) ($row['name'] ?? '')),
+            'count' => (int) ($row['record_count'] ?? 0),
         ], $rows);
     }
 

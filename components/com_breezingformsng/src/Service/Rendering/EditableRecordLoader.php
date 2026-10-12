@@ -18,7 +18,8 @@ use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 
 /**
- * Loads the latest non-archived editable record for a user and form.
+ * Loads the latest published editable record for a user and form: archived
+ * and trashed records are left alone.
  */
 final class EditableRecordLoader
 {
@@ -34,7 +35,7 @@ final class EditableRecordLoader
             ->where($this->database->quoteName('form') . ' = :formValue')
             ->where($this->database->quoteName('user_id') . ' = :userId')
             ->where($this->database->quoteName('user_id') . ' <> 0')
-            ->where($this->database->quoteName('archived') . ' = 0')
+            ->where($this->database->quoteName('state') . ' = 1')
             ->order($this->database->quoteName('id') . ' DESC')
             ->bind(':formValue', $formId, ParameterType::INTEGER)
             ->bind(':userId', $userId, ParameterType::INTEGER);

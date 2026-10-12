@@ -12,7 +12,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 
 final class AjaxStateService
 {
-    private const RECORD_COLUMNS = ['viewed', 'exported', 'archived'];
+    private const RECORD_COLUMNS = ['viewed', 'exported'];
 
     public static function normalizeState(int $state): int
     {

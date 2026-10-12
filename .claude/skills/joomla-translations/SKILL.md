@@ -129,3 +129,11 @@ COM_CONTENTBUILDERNG_MSG_REINDEXED="%1$s Elemente in %2$s Sekunden neu indiziert
   périmètre, cf. `AGENTS.md`/`CLAUDE.md`).
 - La logique de fallback de langue Joomla (gérée nativement par le cœur,
   pas de workaround à coder).
+
+## 7. Priorité en cas de conflit
+
+En cas de divergence entre les instructions de Gilles, `AGENTS.md`, cette
+spécification, Joomla et une traduction amont, appliquer cet ordre : instructions
+explicites de Gilles et `AGENTS.md`, règles de cette skill, conventions Joomla 6,
+puis valeur amont. Conserver les clés et placeholders existants et signaler une
+divergence qui nécessiterait de modifier le comportement.

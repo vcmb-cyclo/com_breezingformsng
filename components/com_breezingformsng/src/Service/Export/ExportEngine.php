@@ -51,6 +51,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfFontDirectoryScanner
 use Vcmb\Component\BreezingformsNG\Site\Service\Notification\MailSender;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\SubmissionTimestampFormatter;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderRecordCleanup;
 
 /**
  * Database logging, mailing primitives and PDF/CSV/XML exports.
@@ -86,6 +87,11 @@ final class ExportEngine
                 ->bind(':editableUserId', $editableUserId, ParameterType::INTEGER);
             $this->processor->database->setQuery($recordsQuery);
             $records = $this->processor->database->loadObjectList();
+            (new ContentBuilderRecordCleanup(
+                $this->processor->database,
+                $this->processor->app,
+                $this->cacheControllerFactory
+            ))->remove((int) $editableFormValue, array_column($records, 'id'));
             foreach ($records as $record) {
                 $recordIdToDelete = (int) $record->id;
                 $delSubrecordsQuery = $this->processor->database->getQuery(true)
@@ -114,7 +120,7 @@ final class ExportEngine
         $record->provider = $this->processor->provider;
         $record->viewed = 0;
         $record->exported = 0;
-        $record->archived = 0;
+        $record->state = 1;
         if ($this->processor->app->getIdentity()->get('id', 0) > 0) {
             $record->user_id = $this->processor->app->getIdentity()->get('id', 0);
             $record->username = $this->processor->app->getIdentity()->get('username', '');
@@ -969,7 +975,7 @@ final class ExportEngine
             indent(2) . '<provider>' . $this->processor->provider . '</provider>' . nl() .
             indent(2) . '<viewed>0</viewed>' . nl() .
             indent(2) . '<exported>0</exported>' . nl() .
-            indent(2) . '<archived>0</archived>' . nl();
+            indent(2) . '<state>1</state>' . nl();
         $processed = array();
 
         $xmldata = $this->processor->xmldata;

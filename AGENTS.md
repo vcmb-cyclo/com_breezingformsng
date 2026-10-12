@@ -39,6 +39,9 @@
 - French must use correct spelling, grammar, typography, and accents.
 - Italian must use correct spelling, grammar, typography, and accents.
 - Spanish, Hungarian, Dutch, and Turkish must use correct spelling, grammar, typography, and accents.
+- In translation conflicts, apply explicit instructions from Gilles and this
+  repository's `AGENTS.md` before the translation skill, Joomla conventions and
+  upstream wording. Preserve keys and placeholders.
 
 ## Output
 - Return final code directly when coding is requested.

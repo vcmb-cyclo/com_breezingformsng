@@ -74,7 +74,7 @@ final class AreaAccessArchitectureTest extends TestCase
 
         self::assertIsString($controller);
         self::assertIsString($template);
-        self::assertSame(5, substr_count($controller, 'AreaAccess::assertRepair('));
+        self::assertSame(6, substr_count($controller, 'AreaAccess::assertRepair('));
         self::assertStringContainsString("\$this->canRepair ? '' : ' disabled'", $template);
     }
 

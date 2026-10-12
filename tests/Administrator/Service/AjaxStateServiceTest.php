@@ -25,12 +25,12 @@ final class AjaxStateServiceTest extends TestCase
     {
         self::assertSame('viewed', AjaxStateService::normalizeRecordColumn('viewed'));
         self::assertSame('exported', AjaxStateService::normalizeRecordColumn('bfrecord_exported'));
-        self::assertSame('archived', AjaxStateService::normalizeRecordColumn('bfrecord_archived'));
     }
 
     public function testRejectsUnknownRecordColumn(): void
     {
         self::assertNull(AjaxStateService::normalizeRecordColumn('published'));
+        self::assertNull(AjaxStateService::normalizeRecordColumn('bfrecord_state'));
     }
 
     public function testBuildsStableSuccessPayload(): void
