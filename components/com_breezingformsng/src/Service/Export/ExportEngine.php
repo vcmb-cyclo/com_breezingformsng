@@ -51,6 +51,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfFontDirectoryScanner
 use Vcmb\Component\BreezingformsNG\Site\Service\Notification\MailSender;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\SubmissionTimestampFormatter;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderRecordCleanup;
 
 /**
  * Database logging, mailing primitives and PDF/CSV/XML exports.
@@ -86,6 +87,11 @@ final class ExportEngine
                 ->bind(':editableUserId', $editableUserId, ParameterType::INTEGER);
             $this->processor->database->setQuery($recordsQuery);
             $records = $this->processor->database->loadObjectList();
+            (new ContentBuilderRecordCleanup(
+                $this->processor->database,
+                $this->processor->app,
+                $this->cacheControllerFactory
+            ))->remove((int) $editableFormValue, array_column($records, 'id'));
             foreach ($records as $record) {
                 $recordIdToDelete = (int) $record->id;
                 $delSubrecordsQuery = $this->processor->database->getQuery(true)
