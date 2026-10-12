@@ -37,6 +37,7 @@ use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Mail\Mail;
 use Joomla\CMS\Mail\MailerFactoryInterface;
+use Vcmb\Component\BreezingformsNG\Site\Event\AfterSubmitEvent;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\DropboxUploader;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\RecaptchaVerifier;
 use Vcmb\Component\BreezingformsNG\Site\Service\Export\ExportEngine;
@@ -878,6 +879,12 @@ final class SubmissionEngine
 
                             PluginHelper::importPlugin('breezingforms_addons');
                             $dispatcher = $this->processor->app->getDispatcher();
+                            $dispatcher->dispatch(AfterSubmitEvent::NAME, new AfterSubmitEvent(
+                                (int) $this->processor->form,
+                                (string) $this->processor->formrow->name,
+                                (int) $this->processor->record_id,
+                                (array) $this->processor->submitdata
+                            ));
                             $dispatcher->dispatch('onPropertiesExecute', new Event('onPropertiesExecute',
                                 array(
                                     $this

@@ -1,7 +1,7 @@
 # PHPStan stubs — com_contentbuilderng
 
 `com_contentbuilderng` is an optional, separately-installed sibling component
-(see `RenderingEngine::view()`'s `is_file($cbngBasePath . '/com_contentbuilderng.xml')`
+(see `RenderingEngine::view()`'s `ContentBuilderInstallation::isInstalled()`
 guards). Its source isn't part of this repository or CI's checkout, so
 PHPStan has nothing to resolve the handful of `CB\Component\Contentbuilderng\*`
 symbols this component calls against, once installed at runtime.

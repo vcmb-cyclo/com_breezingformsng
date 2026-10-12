@@ -105,6 +105,7 @@ class ScriptManager
 			return;
 		}
 
+		(new ActionLogger($app))->log(ActionLogger::SAVED, ActionLogger::SCRIPT, [(int) $row->id], (string) $row->name);
 		$app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_SAVED'));
 		$app->redirect("index.php?option=$option&task=scripts.edit&pkg=$pkg&ids[]=" . (int) $row->id);
 	}
@@ -129,6 +130,9 @@ class ScriptManager
 			$row->modified_by = $row->created_by;
 			$row->store();
 		} // foreach
+		if ($ids !== []) {
+			(new ActionLogger($this->app))->log(ActionLogger::COPIED, ActionLogger::SCRIPT, $ids);
+		}
 		$msg = Text::plural('COM_BREEZINGFORMSNG_SCRIPTS_N_COPIED', $total);
 		$this->app->enqueueMessage($msg);
 		$this->app->redirect("index.php?option=$option&view=scripts&pkg=$pkg");
@@ -145,6 +149,7 @@ class ScriptManager
 		}
 
 		if ($total) {
+			(new ActionLogger($this->app))->log(ActionLogger::DELETED, ActionLogger::SCRIPT, (array) $ids);
 			$this->app->enqueueMessage(
 				Text::plural('COM_BREEZINGFORMSNG_SCRIPTS_N_DELETED', $total),
 				'message'
@@ -157,6 +162,11 @@ class ScriptManager
 	{
 		try {
 			$this->model->publishByIds($ids, (bool) $publish);
+			(new ActionLogger($this->app))->log(
+				$publish ? ActionLogger::PUBLISHED : ActionLogger::UNPUBLISHED,
+				ActionLogger::SCRIPT,
+				(array) $ids
+			);
 		} catch (RuntimeException $e) {
 			$this->app->enqueueMessage($e->getMessage(), 'error');
 			$this->app->redirect("index.php?option=$option&view=scripts&pkg=$pkg");

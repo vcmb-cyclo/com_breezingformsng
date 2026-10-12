@@ -33,6 +33,7 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Rendering\RenderingEngine;
 use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SubmissionEngine;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadRuntime;
 use Vcmb\Component\BreezingformsNG\Site\Table\FormTable;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
 
 $ff_processor = null;
 
@@ -76,7 +77,7 @@ define('_FF_TRACEMODE_TOPIC', 120);
 define('_FF_TRACEMODE_VARIABLE', 248);
 
 $cbngBasePath = JPATH_ADMINISTRATOR . '/components/com_contentbuilderng';
-if (is_file($cbngBasePath . '/com_contentbuilderng.xml')) {
+if (ContentBuilderInstallation::isInstalled($cbngBasePath)) {
     require_once $cbngBasePath . '/src/Helper/ContentbuilderngHelper.php';
     require_once $cbngBasePath . '/src/Helper/FormSourceFactory.php';
     require_once $cbngBasePath . '/src/Service/ArticleService.php';

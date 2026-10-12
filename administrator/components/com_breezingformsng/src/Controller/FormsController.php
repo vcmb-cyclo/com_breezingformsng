@@ -17,6 +17,7 @@ use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 
 /** @property CMSApplication $app */
 class FormsController extends BaseController
@@ -203,6 +204,7 @@ class FormsController extends BaseController
             $ids = $this->selectedIds($input);
             if (!empty($ids)) {
                 $this->getFormModel()->deleteItems($ids);
+                (new ActionLogger($app))->log(ActionLogger::DELETED, ActionLogger::FORM, $ids);
                 $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_DELETE_SUCCESS'), 'message');
             }
         }

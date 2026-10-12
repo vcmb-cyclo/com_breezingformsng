@@ -50,6 +50,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfDocument;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfFontDirectoryScanner;
 use Vcmb\Component\BreezingformsNG\Site\Service\Notification\MailSender;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\SubmissionTimestampFormatter;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
 
 /**
  * Database logging, mailing primitives and PDF/CSV/XML exports.
@@ -134,7 +135,7 @@ final class ExportEngine
 
             $record_return = $record->id;
 
-            if ($record_return && file_exists(JPATH_ADMINISTRATOR . '/components/com_contentbuilderng/com_contentbuilderng.xml')) {
+            if ($record_return && ContentBuilderInstallation::isInstalled()) {
                 $last_update = new \Joomla\CMS\Date\Date();
                 $last_update = $last_update->toSql();
                 $db = $this->processor->database;
