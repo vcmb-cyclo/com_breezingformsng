@@ -437,13 +437,18 @@ final class DatabaseAuditService
         }
 
         $query = $orphans()
-            ->select([$key . ' AS ' . $this->db->quoteName('parent_id'), 'COUNT(*) AS ' . $this->db->quoteName('total')])
+            ->select([
+                $key . ' AS ' . $this->db->quoteName('parent_id'),
+                'COUNT(*) AS ' . $this->db->quoteName('total'),
+            ])
             ->group($key)
             ->order($this->db->quoteName('total') . ' DESC, ' . $key . ' ASC')
             ->setLimit(self::ORPHAN_GROUP_LIMIT);
 
         if ($labelColumn !== null) {
-            $query->select('MAX(' . $this->db->quoteName('child.' . $labelColumn) . ') AS ' . $this->db->quoteName('label'));
+            $query->select(
+                'MAX(' . $this->db->quoteName('child.' . $labelColumn) . ') AS ' . $this->db->quoteName('label')
+            );
         }
 
         if ($dateColumn !== null) {
