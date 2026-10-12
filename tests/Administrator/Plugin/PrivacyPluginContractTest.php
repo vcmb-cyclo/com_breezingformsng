@@ -63,6 +63,38 @@ final class PrivacyPluginContractTest extends TestCase
         self::assertStringContainsString("'modified_by'", $export);
     }
 
+    public function testFilesAreRemovedWhileTheValuesStillLocateThem(): void
+    {
+        $source = file_get_contents(self::PLUGIN . '/src/Extension/Breezingformsng.php');
+
+        self::assertIsString($source);
+
+        $files = strpos($source, '$this->removeSubmittedFiles($recordIds);');
+        $delete = strpos($source, "->delete(\$db->quoteName('#__facileforms_subrecords'))");
+        $erase = strpos($source, "->set(\$db->quoteName('value') . ' = ' . \$db->quote(''))");
+
+        self::assertIsInt($files);
+        self::assertIsInt($delete);
+        self::assertIsInt($erase);
+        self::assertLessThan($delete, $files);
+        self::assertLessThan($erase, $files);
+        self::assertStringContainsString('$guard->isRemovable(', $source);
+        self::assertStringContainsString('isset($shared[$value])', $source);
+    }
+
+    public function testExportReturnsEditorTracesWithoutOtherPeoplesContent(): void
+    {
+        $source = file_get_contents(self::PLUGIN . '/src/Extension/Breezingformsng.php');
+
+        self::assertIsString($source);
+        self::assertStringContainsString(
+            "->select(\$db->quoteName(['id', 'form', 'modified', 'modified_by']))",
+            $source
+        );
+        self::assertStringContainsString("->where(\$db->quoteName('user_id') . ' <> :userId')", $source);
+        self::assertStringContainsString('$event->addResult([$records, $values, $edits]);', $source);
+    }
+
     public function testAnonymisationIsTheDefaultRemovalMode(): void
     {
         $manifest = simplexml_load_file(self::PLUGIN . '/breezingformsng.xml');

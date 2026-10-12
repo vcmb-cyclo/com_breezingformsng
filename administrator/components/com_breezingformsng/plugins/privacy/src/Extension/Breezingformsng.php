@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace Vcmb\Plugin\Privacy\Breezingformsng\Extension;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Event\Privacy\CanRemoveDataEvent;
 use Joomla\CMS\Event\Privacy\ExportRequestEvent;
 use Joomla\CMS\Event\Privacy\RemoveDataEvent;
+use Joomla\CMS\Log\Log;
 use Joomla\Component\Privacy\Administrator\Plugin\PrivacyPlugin;
 use Joomla\Component\Privacy\Administrator\Removal\Status;
 use Joomla\Database\ParameterType;
 use Joomla\Event\SubscriberInterface;
+use Joomla\Filesystem\Exception\FilesystemException;
+use Joomla\Filesystem\File;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\SubmissionFileGuard;
 
 \defined('_JEXEC') or die;
 
@@ -22,10 +27,15 @@ use Joomla\Event\SubscriberInterface;
  * therefore outside the scope of export and removal requests.
  *
  * Removal either deletes the user's submissions or anonymises them: the rows
- * stay, emptied of every submitted value and identifier.
+ * stay, emptied of every submitted value and identifier. Either way the
+ * uploaded files and signatures those submissions point to are deleted
+ * first. Copies sent outside the site (Dropbox, e-mail attachments) are out
+ * of reach.
  */
 final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
 {
+    private const LOG_CATEGORY = 'plg_privacy_breezingformsng';
+
     /** Record columns identifying the person or their device. */
     public const IDENTITY_COLUMNS = [
         'ip' => '',
@@ -60,6 +70,7 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
         $userId = (int) $user->id;
         $records = $this->createDomain('breezingformsng_records', 'breezingformsng_form_submissions');
         $values = $this->createDomain('breezingformsng_values', 'breezingformsng_submitted_values');
+        $edits = $this->createDomain('breezingformsng_edits', 'breezingformsng_edited_submissions');
 
         $query = $db->createQuery()
             ->select($db->quoteName([
@@ -92,7 +103,22 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
             $values->addItem($this->createItemFromArray($value, (int) $value['id']));
         }
 
-        $event->addResult([$records, $values]);
+        // Submissions of other people the user edited: only the trace
+        // naming them, never the content.
+        $query = $db->createQuery()
+            ->select($db->quoteName(['id', 'form', 'modified', 'modified_by']))
+            ->from($db->quoteName('#__facileforms_records'))
+            ->where($db->quoteName('modified_user_id') . ' = :editorId')
+            ->where($db->quoteName('user_id') . ' <> :userId')
+            ->order($db->quoteName('id') . ' ASC')
+            ->bind(':editorId', $userId, ParameterType::INTEGER)
+            ->bind(':userId', $userId, ParameterType::INTEGER);
+
+        foreach ($db->setQuery($query)->loadAssocList() as $edit) {
+            $edits->addItem($this->createItemFromArray($edit, (int) $edit['id']));
+        }
+
+        $event->addResult([$records, $values, $edits]);
     }
 
     public function onPrivacyCanRemoveData(CanRemoveDataEvent $event): void
@@ -123,6 +149,9 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
         if ($recordIds === []) {
             return;
         }
+
+        // While the values still say where the files are.
+        $this->removeSubmittedFiles($recordIds);
 
         if ((int) $this->params->get('remove_records', 0) === 1) {
             $query = $db->createQuery()
@@ -159,6 +188,96 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
         }
 
         $db->setQuery($query)->execute();
+    }
+
+    /**
+     * Deletes the uploaded files and signatures the given records refer to.
+     * A file still referenced by another submission is kept; one that cannot
+     * be vouched for or deleted is written to the plugin log, the only trace
+     * left of it once the values are gone.
+     *
+     * @param int[] $recordIds
+     */
+    private function removeSubmittedFiles(array $recordIds): void
+    {
+        $db = $this->getDatabase();
+        $types = [SubmissionFileGuard::FILE_UPLOAD, SubmissionFileGuard::SIGNATURE];
+
+        $query = $db->createQuery()
+            ->select($db->quoteName(['value.record', 'value.type', 'value.value', 'element.data1']))
+            ->from($db->quoteName('#__facileforms_subrecords', 'value'))
+            ->join(
+                'LEFT',
+                $db->quoteName('#__facileforms_elements', 'element'),
+                $db->quoteName('element.id') . ' = ' . $db->quoteName('value.element')
+            )
+            ->whereIn($db->quoteName('value.record'), $recordIds)
+            ->whereIn($db->quoteName('value.type'), $types, ParameterType::STRING)
+            ->where($db->quoteName('value.value') . ' <> ' . $db->quote(''));
+        $references = $db->setQuery($query)->loadAssocList();
+
+        if ($references === []) {
+            return;
+        }
+
+        $query = $db->createQuery()
+            ->select('DISTINCT ' . $db->quoteName('value'))
+            ->from($db->quoteName('#__facileforms_subrecords'))
+            ->whereNotIn($db->quoteName('record'), $recordIds)
+            ->whereIn($db->quoteName('type'), $types, ParameterType::STRING)
+            ->whereIn(
+                $db->quoteName('value'),
+                array_values(array_unique(array_column($references, 'value'))),
+                ParameterType::STRING
+            );
+        $shared = array_flip($db->setQuery($query)->loadColumn());
+
+        $uploads = ComponentHelper::getParams('com_breezingformsng')
+            ->get('uploads', '{mospath}/media/breezingforms/uploads');
+        $guard = new SubmissionFileGuard(JPATH_SITE, (string) $uploads);
+        $done = [];
+        $left = [];
+
+        foreach ($references as $reference) {
+            $value = (string) $reference['value'];
+            $path = $guard->locate((string) $reference['type'], $value);
+
+            if ($path === null || isset($shared[$value]) || isset($done[$path])) {
+                continue;
+            }
+
+            $done[$path] = true;
+
+            if (!file_exists($path) && !is_link($path)) {
+                continue;
+            }
+
+            if ($guard->isRemovable((string) $reference['type'], $path, (string) $reference['data1'])) {
+                try {
+                    File::delete($path);
+
+                    continue;
+                } catch (FilesystemException) {
+                    // Reported below.
+                }
+            }
+
+            $left[$path] = (int) $reference['record'];
+        }
+
+        if ($left === []) {
+            return;
+        }
+
+        Log::addLogger(['text_file' => self::LOG_CATEGORY . '.php'], Log::ALL, [self::LOG_CATEGORY]);
+
+        foreach ($left as $path => $recordId) {
+            Log::add(
+                \sprintf('Submission %d: file left in place, to be handled manually: %s', $recordId, $path),
+                Log::WARNING,
+                self::LOG_CATEGORY
+            );
+        }
     }
 
     /**

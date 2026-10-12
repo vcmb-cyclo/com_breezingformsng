@@ -99,8 +99,10 @@ class RecordsController extends BaseController
 
         $app = $this->app;
         $input = $app->getInput();
-        $ids = $input->post->get('cid', [], 'array');
-        ArrayHelper::toInteger($ids);
+        $ids = array_values(array_filter(
+            ArrayHelper::toInteger($input->post->get('cid', [], 'array')),
+            static fn (int $id): bool => $id > 0
+        ));
         $contentComponent = $app->bootComponent('com_content');
 
         if (!$contentComponent instanceof MVCFactoryServiceInterface) {
