@@ -10,14 +10,17 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseAuditService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseRepairService;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderRecordCleanup;
 
 /** @property CMSApplication $app */
 class AboutController extends BaseController
@@ -314,6 +317,37 @@ class AboutController extends BaseController
         }
 
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false));
+    }
+
+    public function emptyRecordsTrash(): void
+    {
+        $this->checkToken();
+
+        try {
+            $application = $this->getAuthorizedApplication();
+            AreaAccess::assertRepair($application->getIdentity());
+
+            $model = $application
+                ->bootComponent('com_breezingformsng')
+                ->getMVCFactory()
+                ->createModel('Record', 'Administrator', ['ignore_request' => true]);
+            $deleted = $model->emptyTrash(new ContentBuilderRecordCleanup(
+                $this->getDatabase(),
+                $application,
+                Factory::getContainer()->get(CacheControllerFactoryInterface::class)
+            ));
+
+            if ($deleted !== []) {
+                (new ActionLogger($application))->log(ActionLogger::DELETED, ActionLogger::RECORD, $deleted);
+            }
+
+            $application->setUserState('com_breezingformsng.about.audit', $this->getAuditService()->run());
+            $this->setMessage(Text::plural('COM_BREEZINGFORMSNG_RECORDS_N_ITEMS_DELETED', count($deleted)), 'message');
+        } catch (\Throwable $exception) {
+            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASH_EMPTY_FAILED', $exception->getMessage()), 'error');
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
     }
 
     public function showLog(): void

@@ -280,6 +280,27 @@ class RecordModel extends BaseDatabaseModel
         return $trashedIds;
     }
 
+    /**
+     * Empties the whole trash. Returns the ids actually deleted.
+     *
+     * @return int[]
+     */
+    public function emptyTrash(ContentBuilderRecordCleanup $contentBuilderCleanup): array
+    {
+        $db = $this->getDatabase();
+        $trashed = RecordState::TRASHED;
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('id'))
+            ->from($db->quoteName('#__facileforms_records'))
+            ->where($db->quoteName('state') . ' = :trashed')
+            ->bind(':trashed', $trashed, ParameterType::INTEGER);
+        $trashedIds = array_map('intval', $db->setQuery($query)->loadColumn());
+
+        $this->deleteRecords($trashedIds, $contentBuilderCleanup);
+
+        return $trashedIds;
+    }
+
     public function changeState(array $ids, int $state): void
     {
         $ids = array_values(array_filter(array_map('intval', $ids)));

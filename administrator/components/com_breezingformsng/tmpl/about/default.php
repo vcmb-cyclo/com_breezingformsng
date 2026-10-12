@@ -312,6 +312,8 @@ $auditMissingTables = (array) ($auditReport['missing_tables'] ?? array());
 $auditUnexpectedTables = (array) ($auditReport['unexpected_tables'] ?? array());
 $auditMissingColumns = (array) ($auditReport['missing_columns'] ?? array());
 $auditDebugForms = (array) ($auditReport['debug_forms'] ?? array());
+$auditTrashedRecords = (array) ($auditReport['trashed_records'] ?? array());
+$auditTrashedRecordsTotal = (int) ($auditSummary['trashed_records'] ?? 0);
 $auditStaleLanguageFiles = (array) ($auditReport['stale_language_files'] ?? array());
 $auditStaleInstallerTempDirs = (array) ($auditReport['stale_installer_temp_dirs'] ?? array());
 $auditCollationIssues = (array) ($auditReport['collation_issues'] ?? array());
@@ -562,6 +564,11 @@ HTMLHelper::_('bootstrap.collapse');
                                 <td class="text-muted text-end pe-2">8</td>
                                 <th scope="row"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS'); ?></th>
                                 <td><?php echo count($auditDebugForms); ?></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted text-end pe-2">9</td>
+                                <th scope="row"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_RECORDS'); ?></th>
+                                <td><?php echo $auditTrashedRecordsTotal; ?></td>
                             </tr>
                         </tbody>
                     </table>
@@ -982,6 +989,33 @@ HTMLHelper::_('bootstrap.collapse');
                                 </div>
                             </details>
                         <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($auditTrashedRecords !== array()) : ?>
+                    <div class="bf-audit-section-block mb-3">
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_RECORDS'); ?></h4>
+                        <p class="text-muted small mb-2"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_RECORDS_DESC'); ?></p>
+                        <ul class="mb-2">
+                            <?php foreach ($auditTrashedRecords as $entry) : ?>
+                                <?php $trashFormId = (int) ($entry['form'] ?? 0); ?>
+                                <li>
+                                    <code><?php echo htmlspecialchars((string) ($entry['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code>
+                                    <span class="text-muted">(#<?php echo $trashFormId; ?>)</span>
+                                    &mdash;
+                                    <?php echo (int) ($entry['count'] ?? 0); ?>
+                                    <a class="btn btn-sm btn-outline-secondary ms-2"
+                                        href="index.php?option=com_breezingformsng&amp;view=records&amp;form_selection=<?php echo $trashFormId; ?>&amp;filter_state=-2">
+                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASH_VIEW'); ?>
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            onclick="if (window.confirm('<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASH_EMPTY_CONFIRM', $auditTrashedRecordsTotal), ENT_QUOTES, 'UTF-8'); ?>')) { Joomla.submitform('about.emptyRecordsTrash'); }"
+                        ><span class="icon-trash" aria-hidden="true"></span> <?php echo Text::_('JTOOLBAR_EMPTY_TRASH'); ?></button>
                     </div>
                 <?php endif; ?>
 
