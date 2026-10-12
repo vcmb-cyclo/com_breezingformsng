@@ -2396,6 +2396,11 @@ class com_breezingformsngInstallerScript
         $this->ensureUtf8mb4Columns();
         $this->migrateLegacyComponentOptionReferences();
 
+        $this->migrateDatabase();
+    }
+
+    private function migrateDatabase(): void
+    {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $textCollationClause = $this->getTextCollationClause();
         $tables = self::getTableFields($db->getTableList());
@@ -2770,9 +2775,12 @@ class com_breezingformsngInstallerScript
             // never drops them), so it needs the same cleanup. Idempotent - only
             // rewrites rows that still contain the literal old reference.
             $this->migrateLegacyComponentOptionReferences();
-            if ($type === 'update') {
-                $this->migrateLegacyConfig();
+            // A first NG installation can reuse BF Pro tables. The install SQL
+            // preserves them, so apply the same migrations as an NG update.
+            if ($type !== 'update') {
+                $this->migrateDatabase();
             }
+            $this->migrateLegacyConfig();
             $this->importStandardLibrary();
             $this->copyComponentImageAssets();
             $this->installPlugins();
