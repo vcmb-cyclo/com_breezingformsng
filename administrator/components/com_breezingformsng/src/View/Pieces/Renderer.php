@@ -23,6 +23,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\BreadcrumbHelper;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 
 class Renderer
 {
@@ -58,6 +59,7 @@ class Renderer
 		/** @var CMSApplication $app */
 		$app = Factory::getApplication();
 		$app->getInput()->set('hidemainmenu', 1);
+		$canEdit = AreaAccess::isAllowed($app->getIdentity(), AreaAccess::CODE);
 		$action = $row->id ? Text::_('COM_BREEZINGFORMSNG_PIECES_EDITPIECE') : Text::_('COM_BREEZINGFORMSNG_PIECES_ADDPIECE');
 
 		$pageTitle = BreadcrumbHelper::render([
@@ -86,9 +88,13 @@ class Renderer
 		if ($row->id) {
 			ToolBarHelper::custom('pieces.previous', 'arrow-left', '', Text::_('COM_BREEZINGFORMSNG_PROCESS_PAGEPREV'), false);
 			ToolBarHelper::custom('pieces.next', 'arrow-right', '', Text::_('COM_BREEZINGFORMSNG_PROCESS_PAGENEXT'), false);
-			ToolBarHelper::custom('pieces.test', 'eye', '', Text::_('COM_BREEZINGFORMSNG_TEST'), false);
+			if ($canEdit) {
+				ToolBarHelper::custom('pieces.test', 'eye', '', Text::_('COM_BREEZINGFORMSNG_TEST'), false);
+			}
 		}
-		ToolBarHelper::custom('pieces.save', 'save.png', 'save_f2.png', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_SAVE'), false);
+		if ($canEdit) {
+			ToolBarHelper::custom('pieces.save', 'save.png', 'save_f2.png', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_SAVE'), false);
+		}
 		ToolBarHelper::custom('pieces.cancel', 'cancel.png', 'cancel_f2.png', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_QUICKMODE_CLOSE'), false);
 		?>
 		<?php
@@ -115,6 +121,10 @@ class Renderer
 		self::registerEditLabels();
 		?>
 		<form action="index.php?option=<?php echo htmlspecialchars($option, ENT_QUOTES); ?>&amp;view=pieces" method="post" name="adminForm" id="adminForm" class="adminForm">
+			<?php if (!$canEdit) : ?>
+				<div class="alert alert-info"><?php echo Text::_('COM_BREEZINGFORMSNG_READ_ONLY_NOTICE'); ?></div>
+			<?php endif; ?>
+			<fieldset class="border-0 p-0 m-0"<?php echo $canEdit ? '' : ' disabled'; ?>>
 			<table cellpadding="4" cellspacing="1" border="0" class="adminform" style="width:100%;">
 				<tr>
 					<td></td>
@@ -243,6 +253,7 @@ class Renderer
 					</td>
 				</tr>
 			</table>
+			</fieldset>
 			<input type="hidden" name="pkg" value="<?php echo $pkg; ?>" />
 			<input type="hidden" name="id" value="<?php echo $row->id; ?>" />
 			<input type="hidden" name="option" value="<?php echo $option; ?>" />
@@ -275,6 +286,7 @@ class Renderer
 
 	static function listitems($option, &$rows, &$pkglist, $pkg, $search, $total, $limit, $limitstart, $pagination = null, $listOrder = 'a.name', $listDirn = 'asc', $filterState = '')
 	{
+		$canEdit = AreaAccess::isAllowed(Factory::getApplication()->getIdentity(), AreaAccess::CODE);
 		Factory::getApplication()->getInput()->set('hidemainmenu', 0);
 		$listOrder = (string) $listOrder;
 		$listDirn = strtolower((string) $listDirn);
@@ -398,7 +410,11 @@ class Renderer
 						</td>
 						<td class="text-center">
 							<?php
-							if ($row->published == "1") {
+							if (!$canEdit) {
+								?><span class="tbody-icon<?php echo $row->published == "1" ? ' active' : ''; ?>"><span class="<?php echo $row->published == "1" ? 'icon-publish' : 'icon-unpublish'; ?>"
+										aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_($row->published == "1" ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?></span></span>
+								<?php
+							} elseif ($row->published == "1") {
 								?><a class="tbody-icon active" href="javascript:void(0);"
 									onClick="return listItemTask('cb<?php echo $i; ?>','unpublish')"><span class="icon-publish"
 										aria-hidden="true"></span></a>

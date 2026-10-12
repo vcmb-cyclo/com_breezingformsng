@@ -14,6 +14,7 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Factory;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\ScriptsModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
 
 class HtmlView extends BaseHtmlView
@@ -88,12 +89,18 @@ class HtmlView extends BaseHtmlView
         );
         $app->getDocument()->getWebAssetManager()->useScript('table.columns');
 
-        ToolbarHelper::custom('scripts.add', 'new.png', 'new_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_NEW', false);
-        ToolbarHelper::custom('scripts.copy', 'copy.png', 'copy_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_COPY', false);
-        ToolbarHelper::custom('scripts.publish', 'publish.png', 'publish_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_PUBLISH', false);
-        ToolbarHelper::custom('scripts.unpublish', 'unpublish.png', 'unpublish_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_UNPUBLISH', false);
-        ToolbarHelper::custom('scripts.remove', 'delete.png', 'delete_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_DELETE', false);
-        ToolbarHelper::preferences('com_breezingformsng');
+        if (AreaAccess::isAllowed(Factory::getApplication()->getIdentity(), AreaAccess::CODE)) {
+            ToolbarHelper::custom('scripts.add', 'new.png', 'new_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_NEW', false);
+            ToolbarHelper::custom('scripts.copy', 'copy.png', 'copy_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_COPY', false);
+            ToolbarHelper::custom('scripts.publish', 'publish.png', 'publish_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_PUBLISH', false);
+            ToolbarHelper::custom('scripts.unpublish', 'unpublish.png', 'unpublish_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_UNPUBLISH', false);
+            ToolbarHelper::custom('scripts.remove', 'delete.png', 'delete_f2.png', 'COM_BREEZINGFORMSNG_TOOLBAR_DELETE', false);
+        }
+        $user = Factory::getApplication()->getIdentity();
+
+        if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
+            ToolbarHelper::preferences('com_breezingformsng');
+        }
         ToolbarHelper::help(
             'COM_BREEZINGFORMSNG_HELP_SCRIPTS_TITLE',
             false,

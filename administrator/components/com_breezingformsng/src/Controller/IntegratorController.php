@@ -13,10 +13,18 @@ use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\IntegratorModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 
 /** @property CMSApplication $app */
 class IntegratorController extends BaseController
 {
+    public function execute($task)
+    {
+        AreaAccess::assert($this->app->getIdentity(), AreaAccess::CODE);
+
+        return parent::execute($task);
+    }
+
     public function display($cachable = false, $urlparams = [])
     {
         $input = $this->app->getInput();

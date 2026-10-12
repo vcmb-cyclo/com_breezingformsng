@@ -23,6 +23,7 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\RuntimeAssetLoader;
 use Joomla\Database\ParameterType;
 use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\RequestParameterParser;
+use Vcmb\Component\BreezingformsNG\Site\Service\Upload\TemporaryUploadDirectory;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadFileCleaner;
 
 /**
@@ -466,14 +467,9 @@ $ff_request = array();
             if ($left > 3)
                 $align = $left;
             // remove temporary flash and chunked upload files if any
-            $this->uploadFileCleaner->purgeTemporaryUploads(
-                JPATH_SITE . '/components/com_breezingformsng/uploads/',
-                '_flashtmp'
-            );
-            $this->uploadFileCleaner->purgeTemporaryUploads(
-                JPATH_SITE . '/components/com_breezingformsng/uploads/chunks',
-                '_chunktmp'
-            );
+            $temporaryUploads = new TemporaryUploadDirectory((string) $this->application->get('tmp_path'));
+            $this->uploadFileCleaner->purgeTemporaryUploads($temporaryUploads->path(), '_flashtmp');
+            $this->uploadFileCleaner->purgeTemporaryUploads($temporaryUploads->chunksPath(), '_chunktmp');
             $this->uploadFileCleaner->purgePaymentCache(
                 JPATH_SITE . '/media/breezingforms/payment_cache/'
             );

@@ -1293,9 +1293,12 @@ class com_breezingformsngInstallerScript
         $siteId = $db->loadResult();
 
         if ($siteId) {
-            $db->setQuery('DELETE FROM #__update_sites WHERE update_site_id = ' . (int)$siteId)->execute();
-            $db->setQuery('DELETE FROM #__update_sites_extensions WHERE update_site_id = ' . (int)$siteId)->execute();
-            $db->setQuery('DELETE FROM #__updates WHERE update_site_id = ' . (int)$siteId)->execute();
+            foreach (['#__update_sites', '#__update_sites_extensions', '#__updates'] as $table) {
+                $query = $db->getQuery(true)
+                    ->delete($db->quoteName($table))
+                    ->where($db->quoteName('update_site_id') . ' = ' . (int) $siteId);
+                $db->setQuery($query)->execute();
+            }
 
             $this->log('Old BreezingForms Free update site removed.');
         }
@@ -2381,11 +2384,15 @@ class com_breezingformsngInstallerScript
             // jsTree 0.9.8 + its bundled jQuery 1.3.2 clone, replaced by the
             // native jsTree 3.x vendored under libraries/jquery/jstree3.
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/jtree',
+            // Chunked uploads are staged in Joomla's temporary folder and the
+            // QuickMode save cache lives under media/breezingforms.
+            JPATH_SITE . '/components/com_breezingformsng/uploads',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/ajax_cache',
         ];
 
         foreach ($obsoleteDirectories as $directory) {
             if (Folder::exists($directory) && Folder::delete($directory)) {
-                $this->log('Obsolete library directory removed: ' . basename($directory));
+                $this->log('Obsolete directory removed: ' . basename($directory));
             }
         }
     }
@@ -2732,21 +2739,36 @@ class com_breezingformsngInstallerScript
     function uninstall($parent)
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $plugins = $this->getPlugins();
 
         $installer = new Installer();
         $installer->setDatabase($db);
 
-        foreach ($plugins as $folder => $subplugs) {
-            if (is_array($subplugs)) {
-                foreach ($subplugs as $plugin) {
-                    $db->setQuery('SELECT `extension_id` FROM #__extensions WHERE `type` = "plugin" AND `element` = "' . $plugin . '" AND `folder` = "' . $folder . '"');
-                    $id = $db->loadResult();
-                    if ($id) {
-                        $installer->uninstall('plugin', $id);
-                    }
+        foreach ($this->getPlugins() as $folder => $plugins) {
+            foreach ($plugins as $plugin) {
+                $query = $db->getQuery(true)
+                    ->select($db->quoteName('extension_id'))
+                    ->from($db->quoteName('#__extensions'))
+                    ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
+                    ->where($db->quoteName('element') . ' = ' . $db->quote($plugin))
+                    ->where($db->quoteName('folder') . ' = ' . $db->quote($folder));
+                $id = (int) $db->setQuery($query)->loadResult();
+
+                if ($id > 0) {
+                    $installer->uninstall('plugin', $id);
                 }
             }
+        }
+
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('extension_id'))
+            ->from($db->quoteName('#__extensions'))
+            ->where($db->quoteName('type') . ' = ' . $db->quote('module'))
+            ->where($db->quoteName('element') . ' = ' . $db->quote('mod_breezingforms'))
+            ->where($db->quoteName('client_id') . ' = 0');
+        $moduleId = (int) $db->setQuery($query)->loadResult();
+
+        if ($moduleId > 0) {
+            $installer->uninstall('module', $moduleId);
         }
 
         $this->cleanupOldConfig();

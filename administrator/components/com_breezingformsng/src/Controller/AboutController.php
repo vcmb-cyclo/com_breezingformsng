@@ -15,6 +15,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseAuditService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseRepairService;
 
@@ -85,7 +86,7 @@ class AboutController extends BaseController
         $this->checkToken();
 
         try {
-            $this->getAuthorizedApplication();
+            AreaAccess::assertRepair($this->getAuthorizedApplication()->getIdentity());
             $singleToken = trim((string) $this->input->post->getString('duplicate_index_group', ''));
             $selectedTokens = $singleToken !== ''
                 ? [$singleToken]
@@ -132,7 +133,7 @@ class AboutController extends BaseController
         $this->checkToken();
 
         try {
-            $this->getAuthorizedApplication();
+            AreaAccess::assertRepair($this->getAuthorizedApplication()->getIdentity());
             $singleToken = trim((string) $this->input->post->getString('column_collation_issue', ''));
             $selectedTokens = $singleToken !== ''
                 ? [$singleToken]
@@ -177,7 +178,7 @@ class AboutController extends BaseController
         $this->checkToken();
 
         try {
-            $this->getAuthorizedApplication();
+            AreaAccess::assertRepair($this->getAuthorizedApplication()->getIdentity());
             $singleToken = trim((string) $this->input->post->getString('table_collation_issue', ''));
             $selectedTokens = $singleToken !== ''
                 ? [$singleToken]
@@ -222,7 +223,7 @@ class AboutController extends BaseController
         $this->checkToken();
 
         try {
-            $this->getAuthorizedApplication();
+            AreaAccess::assertRepair($this->getAuthorizedApplication()->getIdentity());
             $singlePath = trim((string) $this->input->post->getString('stale_installer_temp_dir', ''));
             $selectedPaths = $singlePath !== ''
                 ? [$singlePath]
@@ -270,6 +271,7 @@ class AboutController extends BaseController
 
         try {
             $application = $this->getAuthorizedApplication();
+            AreaAccess::assertRepair($application->getIdentity());
 
             // Revalidate against a fresh audit: only a currently detected
             // "drop" candidate may be deleted, and never one still holding
@@ -338,6 +340,7 @@ class AboutController extends BaseController
 
         try {
             $app = $this->getAuthorizedApplication();
+            AreaAccess::assert($app->getIdentity(), AreaAccess::CONFIGURATION);
             $db = $this->getDatabase();
             $tables = [];
 
@@ -386,7 +389,7 @@ class AboutController extends BaseController
     public function importConfiguration(): void
     {
         $this->checkToken();
-        $this->getAuthorizedApplication();
+        AreaAccess::assert($this->getAuthorizedApplication()->getIdentity(), AreaAccess::CONFIGURATION);
         $this->setMessage(Text::_('COM_BREEZINGFORMSNG_ABOUT_IMPORT_CONFIGURATION_PREPARE'), 'warning');
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false));
     }

@@ -43,6 +43,7 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Export\ExportEngine;
 use Vcmb\Component\BreezingformsNG\Site\Service\Notification\NotificationEngine;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\SubmissionTimestampFormatter;
 use Vcmb\Component\BreezingformsNG\Site\Service\Scripting\ScriptingEngine;
+use Vcmb\Component\BreezingformsNG\Site\Service\Upload\TemporaryUploadDirectory;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FlashUploadFileMatcher;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadError;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadRuntime;
@@ -244,7 +245,7 @@ final class SubmissionEngine
                                 $tickets = $this->processor->app->getSession()->get('bfFlashUploadTickets', array());
                                 mt_srand();
                                 if (isset($tickets[$this->processor->app->getInput()->getString('bfFlashUploadTicket', (string) mt_rand(0, mt_getrandmax()))])) {
-                                    $sourcePath = JPATH_SITE . '/components/com_breezingformsng/uploads/';
+                                    $sourcePath = (new TemporaryUploadDirectory((string) $this->processor->app->get('tmp_path')))->path();
                                     if (is_dir($sourcePath) && is_readable($sourcePath)) {
 
                                         $timezone = (string) $this->processor->app->get('offset');

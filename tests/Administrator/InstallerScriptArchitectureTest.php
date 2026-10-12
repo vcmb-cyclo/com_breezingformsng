@@ -29,6 +29,14 @@ final class InstallerScriptArchitectureTest extends TestCase
         self::assertSame(2, substr_count($source, "->uninstall('plugin', \$"));
     }
 
+    public function testUninstallAlsoRemovesTheSiteModule(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../script.php');
+
+        self::assertIsString($source);
+        self::assertSame(1, substr_count($source, "->uninstall('module', \$moduleId)"));
+    }
+
     public function testPostflightRemovesTheObsoleteGlobalPdfTemplate(): void
     {
         $source = file_get_contents(__DIR__ . '/../../script.php');

@@ -19,6 +19,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\Database\ParameterType;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Filesystem\File;
+use Vcmb\Component\BreezingformsNG\Site\Service\Upload\TemporaryUploadDirectory;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FlashChunkAssembler;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FlashUploadSizeValidator;
 
@@ -64,8 +65,9 @@ final class FlashUploadCallback
         $formIdCount = count($objectList);
         if ($formIdCount > 0) {
             $tempFile = (string) ($uploadedFile['tmp_name'] ?? '');
-            $targetPath = JPATH_SITE . '/components/com_breezingformsng/uploads/';
-            if (is_dir($targetPath)) {
+            $temporaryUploads = new TemporaryUploadDirectory((string) $this->application->get('tmp_path'));
+            $targetPath = $temporaryUploads->path();
+            if ($temporaryUploads->ensure()) {
                 $secureTicket = $this->application->getSession()->get('secure_ticket', '');
                 if ($secureTicket == '') {
                     mt_srand();
