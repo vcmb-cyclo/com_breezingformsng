@@ -13,6 +13,7 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\Database\QueryInterface;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
 class RecordsModel extends BaseDatabaseModel
 {
@@ -24,7 +25,7 @@ class RecordsModel extends BaseDatabaseModel
         'records.username'  => 'records.username',
         'records.viewed'    => 'records.viewed',
         'records.exported'  => 'records.exported',
-        'records.archived'  => 'records.archived',
+        'records.state'     => 'records.state',
         'records.modified'  => 'records.modified',
     ];
 
@@ -39,32 +40,39 @@ class RecordsModel extends BaseDatabaseModel
         return $db->loadAssocList();
     }
 
-    public function getTotal(int $formSelection, string $searchTerm): int
+    public function getTotal(int $formSelection, string $searchTerm, string $stateFilter = ''): int
     {
         $db = $this->getDatabase();
         $query = $db->getQuery(true)
             ->select('COUNT(*)')
             ->from($db->quoteName('#__facileforms_records', 'records'))
             ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form');
-        $this->applyWhere($query, $db, $formSelection, $searchTerm);
+        $this->applyWhere($query, $db, $formSelection, $searchTerm, $stateFilter);
         $db->setQuery($query);
         return (int) $db->loadResult();
     }
 
-    public function getItems(int $formSelection, string $searchTerm, int $limitStart, int $limit, string $listOrder, string $listDirn): array
-    {
+    public function getItems(
+        int $formSelection,
+        string $searchTerm,
+        int $limitStart,
+        int $limit,
+        string $listOrder,
+        string $listDirn,
+        string $stateFilter = ''
+    ): array {
         $db = $this->getDatabase();
         $query = $db->getQuery(true)
             ->select([
                 'records.id', 'records.submitted', 'records.modified', 'records.ip',
                 'records.user_id', 'records.username', 'records.user_full_name',
-                'records.viewed', 'records.exported', 'records.archived', 'records.paypal_tx_id',
+                'records.viewed', 'records.exported', 'records.state', 'records.paypal_tx_id',
                 'forms.title AS form_title', 'forms.name AS form_name', 'forms.id AS form_id',
             ])
             ->from($db->quoteName('#__facileforms_records', 'records'))
             ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form')
             ->order($this->getOrderSql($listOrder, $listDirn));
-        $this->applyWhere($query, $db, $formSelection, $searchTerm);
+        $this->applyWhere($query, $db, $formSelection, $searchTerm, $stateFilter);
         $db->setQuery($query, $limitStart, $limit);
         return $db->loadAssocList();
     }
@@ -79,7 +87,8 @@ class RecordsModel extends BaseDatabaseModel
         string $searchTerm,
         string $listOrder,
         string $listDirn,
-        string $direction
+        string $direction,
+        string $stateFilter = ''
     ): ?int {
         $db = $this->getDatabase();
         $query = $db->getQuery(true)
@@ -87,7 +96,7 @@ class RecordsModel extends BaseDatabaseModel
             ->from($db->quoteName('#__facileforms_records', 'records'))
             ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form')
             ->order($this->getOrderSql($listOrder, $listDirn));
-        $this->applyWhere($query, $db, $formSelection, $searchTerm);
+        $this->applyWhere($query, $db, $formSelection, $searchTerm, $stateFilter);
         $db->setQuery($query);
 
         $recordIds = array_map('intval', $db->loadColumn());
@@ -110,11 +119,22 @@ class RecordsModel extends BaseDatabaseModel
         return $orderCol . ' ' . $dir . ($orderCol !== 'records.id' ? ', records.id ' . $dir : '');
     }
 
-    private function applyWhere(QueryInterface $query, DatabaseInterface $db, int $formSelection, string $searchTerm): void
-    {
+    private function applyWhere(
+        QueryInterface $query,
+        DatabaseInterface $db,
+        int $formSelection,
+        string $searchTerm,
+        string $stateFilter
+    ): void {
         if ($formSelection > 0) {
             $query->where('records.form = :formSelection')
                 ->bind(':formSelection', $formSelection, ParameterType::INTEGER);
+        }
+
+        $states = RecordState::filterStates($stateFilter);
+
+        if ($states !== null) {
+            $query->whereIn($db->quoteName('records.state'), $states);
         }
 
         if ($searchTerm !== '') {
@@ -129,7 +149,7 @@ class RecordsModel extends BaseDatabaseModel
                 $db->quoteName('records.paypal_tx_id') . ' LIKE :searchLike6',
             ];
 
-            if ($formSelection > 0) {
+            if ($formSelection > 0 || $states !== null) {
                 $query->extendWhere('AND', $conditions, 'OR');
             } else {
                 $query->where($conditions, 'OR');

@@ -120,7 +120,7 @@ final class ExportEngine
         $record->provider = $this->processor->provider;
         $record->viewed = 0;
         $record->exported = 0;
-        $record->archived = 0;
+        $record->state = 1;
         if ($this->processor->app->getIdentity()->get('id', 0) > 0) {
             $record->user_id = $this->processor->app->getIdentity()->get('id', 0);
             $record->username = $this->processor->app->getIdentity()->get('username', '');
@@ -975,7 +975,7 @@ final class ExportEngine
             indent(2) . '<provider>' . $this->processor->provider . '</provider>' . nl() .
             indent(2) . '<viewed>0</viewed>' . nl() .
             indent(2) . '<exported>0</exported>' . nl() .
-            indent(2) . '<archived>0</archived>' . nl();
+            indent(2) . '<state>1</state>' . nl();
         $processed = array();
 
         $xmldata = $this->processor->xmldata;

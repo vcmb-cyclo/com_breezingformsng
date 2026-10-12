@@ -236,7 +236,7 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_records` (
   `provider` varchar(255) NOT NULL DEFAULT '',
   `viewed` tinyint(1) NOT NULL DEFAULT '0',
   `exported` tinyint(1) NOT NULL DEFAULT '0',
-  `archived` tinyint(1) NOT NULL DEFAULT '0',
+  `state` tinyint NOT NULL DEFAULT '1',
   `user_id` int(11) NOT NULL DEFAULT '0',
   `username` varchar(255) NOT NULL DEFAULT '',
   `user_full_name` varchar(255) NOT NULL DEFAULT '',
@@ -255,7 +255,8 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_records` (
   KEY `opt_token` (`opt_token`),
   KEY `form` (`form`),
   KEY `name` (`name`),
-  KEY `user_id` (`user_id`)
+  KEY `user_id` (`user_id`),
+  KEY `state` (`state`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `#__facileforms_subrecords` (

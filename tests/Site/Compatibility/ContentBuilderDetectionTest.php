@@ -72,7 +72,9 @@ final class ContentBuilderDetectionTest extends TestCase
         yield 'processor facade' => ['components/com_breezingformsng/src/Support/processor_facade.php'];
         yield 'export engine' => ['components/com_breezingformsng/src/Service/Export/ExportEngine.php'];
         yield 'rendering engine' => ['components/com_breezingformsng/src/Service/Rendering/RenderingEngine.php'];
-        yield 'record model' => ['administrator/components/com_breezingformsng/src/Model/RecordModel.php'];
+        yield 'record cleanup' => [
+            'components/com_breezingformsng/src/Service/Integration/ContentBuilderRecordCleanup.php',
+        ];
         yield 'quickmode controller' => [
             'administrator/components/com_breezingformsng/src/Controller/QuickmodeController.php',
         ];

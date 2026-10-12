@@ -47,6 +47,7 @@ final class RecordsNavigationTest extends TestCase
         self::assertSame(
             [
                 'records.form = :formSelection',
+                'records.state IN (1)',
                 'records.id = :searchExact',
                 'records.ip LIKE :searchLike1',
                 'records.username LIKE :searchLike2',
@@ -70,7 +71,7 @@ final class RecordsNavigationTest extends TestCase
             ],
             $database->query->bindings
         );
-        self::assertSame(['AND', 'AND', 'OR'], $database->query->whereGlue);
+        self::assertSame(['AND', 'AND', 'AND', 'OR'], $database->query->whereGlue);
     }
 
     public function testPreviousRecordFollowsAscendingListOrderAcrossForms(): void
@@ -89,7 +90,18 @@ final class RecordsNavigationTest extends TestCase
             )
         );
         self::assertSame('records.id ASC', $database->query->order);
-        self::assertSame([], $database->query->where);
+        self::assertSame(['records.state IN (1)'], $database->query->where);
+    }
+
+    public function testNavigationFollowsTheStateFilterOfTheList(): void
+    {
+        $trash = new RecordsNavigationDatabaseDouble([20, 30]);
+        $this->model($trash)->getAdjacentRecordId(30, 0, '', 'records.id', 'asc', 'prev', '-2');
+        self::assertSame(['records.state IN (-2)'], $trash->query->where);
+
+        $all = new RecordsNavigationDatabaseDouble([20, 30]);
+        $this->model($all)->getAdjacentRecordId(30, 0, '', 'records.id', 'asc', 'prev', '*');
+        self::assertSame([], $all->query->where);
     }
 
     public function testReturnsNoAdjacentRecordWhenCurrentRecordIsOutsideTheFilteredList(): void

@@ -51,6 +51,11 @@ final class RecordsNavigationQueryDouble implements QueryInterface
         return $this;
     }
 
+    public function whereIn(string $column, array $values, mixed $type = null): self
+    {
+        return $this->where($column . ' IN (' . implode(',', $values) . ')');
+    }
+
     public function extendWhere(string $outerGlue, array $conditions, string $innerGlue = 'AND'): self
     {
         $this->whereGlue[] = $outerGlue;

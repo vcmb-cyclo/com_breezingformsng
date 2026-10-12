@@ -33,7 +33,7 @@ final class RecordTable extends Table
 	public $provider = null;    // provider
 	public $viewed = null;     	// view status
 	public $exported = null;    // export status
-	public $archived = null;    // archive status
+	public $state = null;       // publication state: 1 published, 2 archived, -2 trashed
 	public $paypal_tx_id = null;
 	public $paypal_payment_date = null;
 	public $paypal_testaccount = null;

@@ -39,7 +39,7 @@ final class EditableRecordLoaderTest extends TestCase
                 'form = :formValue',
                 'user_id = :userId',
                 'user_id <> 0',
-                'archived = 0',
+                'state = 1',
             ],
             $database->queryObjects[0]->where
         );
@@ -86,7 +86,7 @@ final class EditableRecordLoaderTest extends TestCase
                 'form = :formValue',
                 'user_id = :userId',
                 'user_id <> 0',
-                'archived = 0',
+                'state = 1',
             ],
             $database->queryObjects[0]->where
         );

@@ -13,12 +13,14 @@
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Factory;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
 $record = $this->record;
 $tz = Factory::getApplication()->get('offset');
 $submitted = htmlspecialchars((string) ($record->submitted ?? ''));
 $formSelection = $this->formSelection;
 $searchTerm = $this->searchTerm;
+$stateFilter = $this->stateFilter;
 $listOrder = $this->listOrder;
 $listDirn = $this->listDirn;
 $limit = $this->limit;
@@ -46,7 +48,7 @@ $sectionHeader = static function (string $id, string $label) use (&$sectionOpene
     );
 };
 $formEditorUrl = 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . (int) $record->form;
-$recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $listOrder, $listDirn, $limit, $limitStart): string {
+$recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $stateFilter, $listOrder, $listDirn, $limit, $limitStart): string {
   $query = [
     'option'           => 'com_breezingformsng',
     'view'             => 'records',
@@ -60,6 +62,9 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
   ];
   if ($searchTerm !== '') {
     $query['searchterm'] = $searchTerm;
+  }
+  if ($stateFilter !== '') {
+    $query['filter_state'] = $stateFilter;
   }
 
   return 'index.php?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
@@ -120,12 +125,6 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
             <span class="<?= $record->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
             <?= Text::_('COM_BREEZINGFORMSNG_RECORDS_EXPORTED'); ?>
           </a>
-          <a href="#" class="text-decoration-none"
-            onclick="bfToggleFlag(<?= (int) $record->id; ?>, 'bfrecord_archived', this, 'record-flag-value-archived'); return false;"
-            title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_TOGGLE_ARCHIVED'), ENT_QUOTES, 'UTF-8'); ?>">
-            <span class="<?= $record->archived ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
-            <?= Text::_('COM_BREEZINGFORMSNG_RECORDS_ARCHIVED'); ?>
-          </a>
         </div>
       </div>
     </div>
@@ -169,7 +168,7 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_RECORDID', 'COM_BREEZINGFORMSNG_ID_DESC'); ?></th><td><?= (int) $record->id; ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_VIEWED', 'COM_BREEZINGFORMSNG_RECORDS_VIEWED_DESC'); ?></th><td id="record-flag-value-viewed"><?= $yesNo($record->viewed); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_EXPORTED', 'COM_BREEZINGFORMSNG_RECORDS_EXPORTED_DESC'); ?></th><td id="record-flag-value-exported"><?= $yesNo($record->exported); ?></td></tr>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_ARCHIVED', 'COM_BREEZINGFORMSNG_RECORDS_ARCHIVED_DESC'); ?></th><td id="record-flag-value-archived"><?= $yesNo($record->archived); ?></td></tr>
+            <tr><th><?= $systemLabel('JSTATUS', 'COM_BREEZINGFORMSNG_RECORDS_STATE_DESC'); ?></th><td><?= Text::_(RecordState::label((int) $record->state)); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPTED', 'COM_BREEZINGFORMSNG_RECORDS_OPTED_DESC'); ?></th><td><?= $yesNo($record->opted); ?></td></tr>
             <?= $sectionHeader('record-section-payment', 'COM_BREEZINGFORMSNG_PAYMENT_INFORMATION'); ?>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PAYMENT_TX_ID', 'COM_BREEZINGFORMSNG_PAYMENT_TX_ID_DESC'); ?></th><td><?= $value($record->paypal_tx_id); ?></td></tr>
@@ -198,6 +197,7 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
   <input type="hidden" name="cid[]" value="<?= (int) $record->id; ?>">
   <input type="hidden" name="form_selection" value="<?= $formSelection; ?>">
   <input type="hidden" name="searchterm" value="<?= htmlspecialchars($searchTerm, ENT_QUOTES, 'UTF-8'); ?>">
+  <input type="hidden" name="filter_state" value="<?= htmlspecialchars($stateFilter, ENT_QUOTES, 'UTF-8'); ?>">
   <input type="hidden" name="filter_order" value="<?= htmlspecialchars($listOrder, ENT_QUOTES, 'UTF-8'); ?>">
   <input type="hidden" name="filter_order_Dir" value="<?= htmlspecialchars($listDirn, ENT_QUOTES, 'UTF-8'); ?>">
   <input type="hidden" name="limit" value="<?= $limit; ?>">
