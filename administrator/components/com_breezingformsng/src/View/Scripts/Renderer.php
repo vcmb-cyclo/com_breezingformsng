@@ -20,6 +20,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\BreadcrumbHelper;
 
@@ -123,6 +124,19 @@ class Renderer
 		<?php
 		$document = $app->getDocument();
 		$document->getWebAssetManager()->useScript('com_breezingformsng.scripts-edit');
+		$document->getWebAssetManager()->registerAndUseScript(
+			'com_breezingformsng.admin-toggle-published',
+			'media/com_breezingformsng/js/admin/admin-toggle-published.js',
+			['version' => 'auto'],
+			['defer' => true],
+			['core']
+		);
+		$document->addScriptOptions('com_breezingformsng.admin-toggle-published', [
+			'csrfToken' => Session::getFormToken(),
+		]);
+		Text::script('JPUBLISHED');
+		Text::script('JUNPUBLISHED');
+		Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
 		$document->addScriptOptions('com_breezingformsng.scripts-edit', [
 			'initialState' => $initialState,
 			'persistedUnitTests' => (string) $row->unit_tests,
@@ -189,11 +203,24 @@ class Renderer
 						?>
 					</td>
 					<td nowrap>
-						<?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_PUBLISHED'); ?>:
-						<?php echo HTMLHelper::_('select.booleanlist', "published", "", $row->published); ?>
-						<?php
-						echo '<span><span title="' . HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPPUBLISHED')) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
-						?>
+						<span class="d-inline-flex align-items-center gap-2">
+							<span class="fw-semibold"><?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_PUBLISHED'); ?>:</span>
+							<button type="button" class="tbody-icon js-bf-edit-published<?php echo (int) $row->published === 1 ? ' active' : ''; ?>"
+								data-item-form-id="<?php echo (int) $row->id; ?>"
+								data-item-task="scripts.setPublished" data-state-type="published"
+								data-edit-options="com_breezingformsng.scripts-edit"
+								title="<?php echo htmlspecialchars(Text::_((int) $row->published === 1 ? 'JPUBLISHED' : 'JUNPUBLISHED'), ENT_QUOTES); ?>"
+								aria-label="<?php echo htmlspecialchars(Text::_((int) $row->published === 1 ? 'JPUBLISHED' : 'JUNPUBLISHED'), ENT_QUOTES); ?>"
+								aria-pressed="<?php echo (int) $row->published === 1 ? 'true' : 'false'; ?>" hidden>
+								<span class="<?php echo (int) $row->published === 1 ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+							</button>
+							<span class="js-bf-published-fallback">
+								<?php echo HTMLHelper::_('select.booleanlist', "published", "", $row->published); ?>
+							</span>
+							<?php
+							echo '<span><span title="' . HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPPUBLISHED')) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
+							?>
+						</span>
 					</td>
 				</tr>
 				<tr>
