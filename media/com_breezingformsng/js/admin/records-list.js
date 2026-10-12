@@ -1,19 +1,10 @@
+// An export downloads a file without reloading the page: the task has to be
+// cleared afterwards, or the next filter change would run the export again.
 Joomla.submitbutton = function (task) {
 	var form = document.getElementById('adminForm');
-	form.querySelector('input[name="task"]').value = task;
-	form.submit();
-	return true;
-};
+	Joomla.submitform(task, form);
 
-document.addEventListener('DOMContentLoaded', function () {
-	var markToggle = document.querySelector('#toolbar-mark-options button.button-mark-options');
-	var boxchecked = document.querySelector('#adminForm input[name="boxchecked"]');
-	if (!markToggle || !boxchecked) {
-		return;
+	if (task.indexOf('records.export') === 0) {
+		form.task.value = '';
 	}
-	var updateMarkToggle = function () {
-		markToggle.disabled = parseInt(boxchecked.value, 10) === 0;
-	};
-	boxchecked.addEventListener('change', updateMarkToggle);
-	updateMarkToggle();
-});
+};

@@ -18,13 +18,6 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 $record = $this->record;
 $tz = Factory::getApplication()->get('offset');
 $submitted = htmlspecialchars((string) ($record->submitted ?? ''));
-$formSelection = $this->formSelection;
-$searchTerm = $this->searchTerm;
-$stateFilter = $this->stateFilter;
-$listOrder = $this->listOrder;
-$listDirn = $this->listDirn;
-$limit = $this->limit;
-$limitStart = $this->limitStart;
 $value = static fn(mixed $field): string => htmlspecialchars((string) ($field ?? ''), ENT_QUOTES, 'UTF-8');
 $yesNo = static fn(mixed $field): string => Text::_((bool) $field ? 'JYES' : 'JNO');
 $systemLabel = static fn(string $label, string $description): string => sprintf(
@@ -48,27 +41,7 @@ $sectionHeader = static function (string $id, string $label) use (&$sectionOpene
     );
 };
 $formEditorUrl = 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . (int) $record->form;
-$recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $stateFilter, $listOrder, $listDirn, $limit, $limitStart): string {
-  $query = [
-    'option'           => 'com_breezingformsng',
-    'view'             => 'records',
-    'layout'           => 'edit',
-    'record_id'        => $recordId,
-    'form_selection'   => $formSelection,
-    'filter_order'     => $listOrder,
-    'filter_order_Dir' => $listDirn,
-    'limit'            => $limit,
-    'limitstart'       => $limitStart,
-  ];
-  if ($searchTerm !== '') {
-    $query['searchterm'] = $searchTerm;
-  }
-  if ($stateFilter !== '') {
-    $query['filter_state'] = $stateFilter;
-  }
-
-  return 'index.php?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
-};
+$recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezingformsng&view=records&layout=edit&record_id=' . $recordId;
 ?>
 <form action="index.php?option=com_breezingformsng" method="post" name="adminForm" id="adminForm">
 
@@ -195,13 +168,6 @@ $recordUrl = static function (int $recordId) use ($formSelection, $searchTerm, $
   <input type="hidden" name="task" value="records.save">
   <input type="hidden" name="record_id" value="<?= (int) $record->id; ?>">
   <input type="hidden" name="cid[]" value="<?= (int) $record->id; ?>">
-  <input type="hidden" name="form_selection" value="<?= $formSelection; ?>">
-  <input type="hidden" name="searchterm" value="<?= htmlspecialchars($searchTerm, ENT_QUOTES, 'UTF-8'); ?>">
-  <input type="hidden" name="filter_state" value="<?= htmlspecialchars($stateFilter, ENT_QUOTES, 'UTF-8'); ?>">
-  <input type="hidden" name="filter_order" value="<?= htmlspecialchars($listOrder, ENT_QUOTES, 'UTF-8'); ?>">
-  <input type="hidden" name="filter_order_Dir" value="<?= htmlspecialchars($listDirn, ENT_QUOTES, 'UTF-8'); ?>">
-  <input type="hidden" name="limit" value="<?= $limit; ?>">
-  <input type="hidden" name="limitstart" value="<?= $limitStart; ?>">
   <?= HTMLHelper::_('form.token'); ?>
 </form>
 

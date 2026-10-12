@@ -33,11 +33,10 @@ use Joomla\CMS\Language\Text;
         </select>
       </div>
       <button type="submit" class="btn btn-primary"><?= Text::_('COM_BREEZINGFORMSNG_IMPORT'); ?></button>
-      <a href="index.php?option=com_breezingformsng&view=records&form_selection=<?= $this->formSelection; ?>" class="btn btn-secondary ms-2"><?= Text::_('JCANCEL'); ?></a>
+      <a href="index.php?option=com_breezingformsng&amp;view=records" class="btn btn-secondary ms-2"><?= Text::_('JCANCEL'); ?></a>
 
       <input type="hidden" name="task" value="records.setCsvImport">
       <input type="hidden" name="form_id" value="<?= $this->formSelection; ?>">
-      <input type="hidden" name="form_selection" value="<?= $this->formSelection; ?>">
       <?= HTMLHelper::_('form.token'); ?>
     </form>
   </div>

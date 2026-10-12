@@ -10,11 +10,12 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
-use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
-use Joomla\CMS\MVC\Controller\BaseController;
+use Joomla\CMS\MVC\Controller\AdminController;
+use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
@@ -26,16 +27,22 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfDocument;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfFontDirectoryScanner;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
-use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderRecordCleanup;
 
 /** @property CMSApplication $app */
-class RecordsController extends BaseController
+class RecordsController extends AdminController
 {
+    protected $text_prefix = 'COM_BREEZINGFORMSNG_RECORDS';
+
+    private ?RecordsModel $listModel = null;
+
+    private const LIST_URL = 'index.php?option=com_breezingformsng&view=records';
+
     private const EXPORT_SUBRECORD_BATCH_SIZE = 200;
 
     /**
@@ -52,6 +59,20 @@ class RecordsController extends BaseController
      */
     private const EXPORT_XLSX_MAX_COLUMNS = 16384;
 
+    public function __construct($config = [], ?MVCFactoryInterface $factory = null, $app = null, $input = null)
+    {
+        parent::__construct($config, $factory, $app, $input);
+
+        // A record is published, archived or trashed, never unpublished.
+        $this->unregisterTask('unpublish');
+        $this->unregisterTask('report');
+    }
+
+    public function getModel($name = 'Record', $prefix = 'Administrator', $config = ['ignore_request' => true])
+    {
+        return parent::getModel($name, $prefix, $config);
+    }
+
     public function display($cachable = false, $urlparams = [])
     {
         $this->app->getInput()->set('view', 'records');
@@ -64,14 +85,13 @@ class RecordsController extends BaseController
         $this->app->redirect(
             'index.php?option=com_breezingformsng&view=records&layout=edit'
             . '&record_id=' . $input->getInt('record_id', 0)
-            . $this->listStateQuery($input)
         );
     }
 
     public function cancel(): void
     {
         $this->checkToken();
-        $this->app->redirect($this->listUrl($this->app->getInput()));
+        $this->app->redirect(self::LIST_URL);
     }
 
     public function save(): void
@@ -94,48 +114,19 @@ class RecordsController extends BaseController
         $app->redirect(
             'index.php?option=com_breezingformsng&view=records&layout=edit'
             . '&record_id=' . $recordId
-            . $this->listStateQuery($input)
         );
-    }
-
-    public function publish(): void
-    {
-        $this->changeState(RecordState::PUBLISHED, 'COM_BREEZINGFORMSNG_RECORDS_N_ITEMS_RESTORED');
-    }
-
-    public function archive(): void
-    {
-        $this->changeState(RecordState::ARCHIVED, 'COM_BREEZINGFORMSNG_RECORDS_N_MARKED_ARCHIVED');
-    }
-
-    public function trash(): void
-    {
-        $this->changeState(RecordState::TRASHED, 'COM_BREEZINGFORMSNG_RECORDS_N_ITEMS_TRASHED');
     }
 
     /**
-     * Empties the trash: only trashed records are deleted for good.
+     * The model prunes the ids to those actually deleted.
      */
-    public function delete(): void
+    protected function postDeleteHook(BaseDatabaseModel $model, $id = null)
     {
-        $this->checkToken();
-
-        $app = $this->app;
-        $input = $app->getInput();
-        $model = $this->getRecordModel();
-        $cleanup = new ContentBuilderRecordCleanup(
-            $model->getDatabaseConnection(),
-            $app,
-            Factory::getContainer()->get(CacheControllerFactoryInterface::class)
-        );
-        $deleted = $model->deleteTrashed($this->selectedIds($input), $cleanup);
+        $deleted = array_values(array_map('intval', (array) $id));
 
         if ($deleted !== []) {
-            (new ActionLogger($app))->log(ActionLogger::DELETED, ActionLogger::RECORD, $deleted);
-            $app->enqueueMessage(Text::plural('COM_BREEZINGFORMSNG_RECORDS_N_ITEMS_DELETED', count($deleted)), 'message');
+            (new ActionLogger($this->app))->log(ActionLogger::DELETED, ActionLogger::RECORD, $deleted);
         }
-
-        $app->redirect($this->listUrl($input));
     }
 
     public function viewed(): void     { $this->batchFlag('viewed', 1); }
@@ -180,10 +171,9 @@ class RecordsController extends BaseController
         $app = $this->app;
         $input = $app->getInput();
         $formId = $input->getInt('form_id', 0);
-        $formSelection = $input->getInt('form_selection', $formId);
 
         if ($formId < 1) {
-            $app->redirect($this->listUrl($input));
+            $app->redirect(self::LIST_URL);
             return;
         }
 
@@ -192,7 +182,7 @@ class RecordsController extends BaseController
         $tmpFile = is_array($upload) ? (string) ($upload['tmp_name'] ?? '') : '';
 
         if ($tmpFile === '' || !is_uploaded_file($tmpFile)) {
-            $app->redirect($this->listUrl($input));
+            $app->redirect(self::LIST_URL);
             return;
         }
 
@@ -204,7 +194,7 @@ class RecordsController extends BaseController
             $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_RECORDS_IMPORT_NONE'), 'warning');
         }
 
-        $app->redirect('index.php?option=com_breezingformsng&view=records&form_selection=' . $formSelection);
+        $app->redirect(self::LIST_URL);
     }
 
     public function exportPdf(): void
@@ -215,7 +205,7 @@ class RecordsController extends BaseController
         $input = $app->getInput();
         $ids = $input->post->get('cid', [], 'array');
         ArrayHelper::toInteger($ids);
-        $formSelection = $input->getInt('form_selection', 0);
+        $formSelection = $this->listFormId();
 
         $model = $this->getRecordModel();
         $tz = $this->getTimezone();
@@ -324,7 +314,7 @@ class RecordsController extends BaseController
         $input = $app->getInput();
         $ids = $input->post->get('cid', [], 'array');
         ArrayHelper::toInteger($ids);
-        $formSelection = $input->getInt('form_selection', 0);
+        $formSelection = $this->listFormId();
 
         $model = $this->getRecordModel();
         $config = $model->getExportConfig();
@@ -373,7 +363,7 @@ class RecordsController extends BaseController
         $input = $app->getInput();
         $ids = $input->post->get('cid', [], 'array');
         ArrayHelper::toInteger($ids);
-        $formSelection = $input->getInt('form_selection', 0);
+        $formSelection = $this->listFormId();
 
         $model = $this->getRecordModel();
 
@@ -382,7 +372,7 @@ class RecordsController extends BaseController
                 Text::sprintf('COM_BREEZINGFORMSNG_RECORDS_XLSX_TOO_MANY_ROWS', self::EXPORT_XLSX_MAX_ROWS),
                 'warning'
             );
-            $app->redirect($this->listUrl($input));
+            $app->redirect(self::LIST_URL);
 
             return;
         }
@@ -396,7 +386,7 @@ class RecordsController extends BaseController
             );
         } catch (\RangeException) {
             $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_RECORDS_XLSX_TOO_MANY_COLUMNS'), 'warning');
-            $app->redirect($this->listUrl($input));
+            $app->redirect(self::LIST_URL);
 
             return;
         }
@@ -461,7 +451,7 @@ class RecordsController extends BaseController
         $input = $app->getInput();
         $ids = $input->post->get('cid', [], 'array');
         ArrayHelper::toInteger($ids);
-        $formSelection = $input->getInt('form_selection', 0);
+        $formSelection = $this->listFormId();
 
         $model = $this->getRecordModel();
         $tz = $this->getTimezone();
@@ -558,33 +548,6 @@ class RecordsController extends BaseController
         $app->close();
     }
 
-    private function changeState(int $state, string $messageKey): void
-    {
-        $this->checkToken();
-
-        $app = $this->app;
-        $input = $app->getInput();
-        $ids = $this->selectedIds($input);
-        $this->getRecordModel()->changeState($ids, $state);
-
-        if ($ids !== []) {
-            $app->enqueueMessage(Text::plural($messageKey, count($ids)), 'message');
-        }
-
-        $app->redirect($this->listUrl($input));
-    }
-
-    /**
-     * @return int[]
-     */
-    private function selectedIds(\Joomla\Input\Input $input): array
-    {
-        return array_values(array_filter(
-            ArrayHelper::toInteger($input->post->get('cid', [], 'array')),
-            static fn (int $id): bool => $id > 0
-        ));
-    }
-
     private function batchFlag(string $column, int $value = 1): void
     {
         $this->checkToken();
@@ -603,7 +566,30 @@ class RecordsController extends BaseController
             $app->enqueueMessage(Text::plural($keyBases[$column], count($ids)), 'message');
         }
 
-        $app->redirect($this->listUrl($input));
+        $app->redirect(self::LIST_URL);
+    }
+
+    /**
+     * The list model, holding the filters of the records list.
+     */
+    private function getListModel(): RecordsModel
+    {
+        if ($this->listModel === null) {
+            $model = $this->factory->createModel('Records', 'Administrator');
+
+            if (!$model instanceof RecordsModel) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            $this->listModel = $model;
+        }
+
+        return $this->listModel;
+    }
+
+    private function listFormId(): int
+    {
+        return (int) $this->getListModel()->getState('filter.form');
     }
 
     private function getRecordModel(): RecordModel
@@ -762,7 +748,7 @@ class RecordsController extends BaseController
                 ->bind(':formSelection', $formSelection, ParameterType::INTEGER);
         }
 
-        $states = RecordState::filterStates((string) $this->app->getInput()->getString('filter_state', ''));
+        $states = RecordState::filterStates((string) $this->getListModel()->getState('filter.state'));
 
         if ($states !== null) {
             $query->whereIn($db->quoteName('state'), $states);
@@ -808,37 +794,5 @@ class RecordsController extends BaseController
 
         $db->setQuery($query);
         return $db->loadObjectList();
-    }
-
-    private function listUrl(\Joomla\Input\Input $input): string
-    {
-        return 'index.php?option=com_breezingformsng&view=records' . $this->listStateQuery($input);
-    }
-
-    private function listStateQuery(\Joomla\Input\Input $input): string
-    {
-        $query = '&form_selection=' . $input->getInt('form_selection', 0);
-        $searchTerm = trim((string) $input->getString('searchterm', ''));
-        $filterOrder = trim((string) $input->getString('filter_order', ''));
-        $filterDir = strtolower(trim((string) $input->getString('filter_order_Dir', '')));
-        $stateFilter = RecordState::normalizeFilter((string) $input->getString('filter_state', ''));
-
-        if ($searchTerm !== '') {
-            $query .= '&searchterm=' . rawurlencode($searchTerm);
-        }
-        if ($stateFilter !== '') {
-            $query .= '&filter_state=' . rawurlencode($stateFilter);
-        }
-        if ($filterOrder !== '') {
-            $query .= '&filter_order=' . rawurlencode($filterOrder);
-        }
-        if ($filterDir !== '') {
-            $query .= '&filter_order_Dir=' . rawurlencode($filterDir);
-        }
-
-        $query .= '&limit=' . max(1, $input->getInt('limit', 20));
-        $query .= '&limitstart=' . max(0, $input->getInt('limitstart', 0));
-
-        return $query;
     }
 }

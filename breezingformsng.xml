@@ -81,6 +81,7 @@
 			<filename>composer.json</filename>
 			<filename>composer.lock</filename>
 			<filename>config.xml</filename>
+			<folder>forms</folder>
 			<folder>images</folder>
 			<folder>language</folder>
 			<folder>layouts</folder>

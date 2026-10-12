@@ -12,12 +12,15 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Records;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Form\Form;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Toolbar\Button\DropdownButton;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Registry\Registry;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
@@ -26,16 +29,13 @@ use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView a
 class HtmlView extends BaseHtmlView
 {
     // list
-    public array $records = [];
-    public array $forms = [];
-    public int $total = 0;
+    /** @var object[] */
+    public array $items = [];
+    public ?Pagination $pagination = null;
+    public ?Registry $state = null;
+    public ?Form $filterForm = null;
+    public array $activeFilters = [];
     public int $formSelection = 0;
-    public string $searchTerm = '';
-    public string $stateFilter = '';
-    public int $limitStart = 0;
-    public int $limit = 20;
-    public string $listOrder = 'records.submitted';
-    public string $listDirn = 'desc';
 
     // edit
     public ?\stdClass $record = null;
@@ -45,12 +45,8 @@ class HtmlView extends BaseHtmlView
 
     private string $layout = 'default';
 
-    private const ALLOWED_SORTS = [
-        'records.id', 'records.submitted', 'forms.title',
-        'records.ip', 'records.username',
-        'records.viewed', 'records.exported', 'records.state',
-        'records.modified',
-    ];
+    private bool $canEditState = false;
+    private bool $canDelete = false;
 
     public function display($tpl = null)
     {
@@ -61,6 +57,10 @@ class HtmlView extends BaseHtmlView
         $this->layout = $layout;
 
         $app->getDocument()->getWebAssetManager()->useScript('keepalive');
+
+        $user = $app->getIdentity();
+        $this->canEditState = $user->authorise('core.edit.state', 'com_breezingformsng');
+        $this->canDelete = $user->authorise('core.delete', 'com_breezingformsng');
 
         if ($layout === 'edit') {
             $this->prepareEditData($input);
@@ -84,20 +84,14 @@ class HtmlView extends BaseHtmlView
             Text::script('JYES');
             Text::script('JNO');
         } elseif ($layout === 'csvimport') {
-            $this->formSelection = $input->getInt('form_selection', 0);
+            $this->formSelection = (int) $this->getRecordsModel()->getState('filter.form');
             $this->prepareImportToolbar();
         } else {
-            $this->prepareListData($app, $input);
+            $this->prepareListData();
             $this->prepareListToolbar();
 
             $document = $app->getDocument();
-            $document->getWebAssetManager()->registerAndUseScript(
-                'com_breezingformsng.admin-sort',
-                'media/com_breezingformsng/js/admin/admin-sort.js',
-                ['version' => 'auto'],
-                ['defer' => true],
-                ['core']
-            );
+            $document->getWebAssetManager()->useScript('table.columns')->useScript('multiselect');
             $document->getWebAssetManager()->registerAndUseScript(
                 'com_breezingformsng.record-flags',
                 'media/com_breezingformsng/js/admin/record-flags.js',
@@ -122,64 +116,26 @@ class HtmlView extends BaseHtmlView
         parent::display($tpl);
     }
 
-    private function prepareListData(\Joomla\CMS\Application\CMSApplication $app, \Joomla\Input\Input $input): void
+    private function getRecordsModel(): RecordsModel
     {
-        $this->prepareListState($app, $input);
+        $model = $this->getModel('Records');
 
-        $component = $app->bootComponent('com_breezingformsng');
-
-        if (!$component instanceof MVCFactoryServiceInterface) {
+        if (!$model instanceof RecordsModel) {
             throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 
-        /** @var RecordsModel $model */
-        $model = $component->getMVCFactory()->createModel('Records', 'Administrator');
-
-        $this->forms = $model->getForms();
-        $this->total = $model->getTotal($this->formSelection, $this->searchTerm, $this->stateFilter);
-        $this->records = $model->getItems(
-            $this->formSelection,
-            $this->searchTerm,
-            $this->limitStart,
-            $this->limit,
-            $this->listOrder,
-            $this->listDirn,
-            $this->stateFilter
-        );
-
-        $app->getDocument()->getWebAssetManager()->useScript('table.columns');
+        return $model;
     }
 
-    private function prepareListState(\Joomla\CMS\Application\CMSApplication $app, \Joomla\Input\Input $input): void
+    private function prepareListData(): void
     {
-        $session = $app->getSession();
+        $model = $this->getRecordsModel();
 
-        $this->formSelection = $input->getInt('form_selection', 0);
-        $this->searchTerm = trim((string) $input->getString('searchterm', ''));
-        $this->stateFilter = RecordState::normalizeFilter((string) $input->getString('filter_state', ''));
-        $this->limit = max(1, $input->getInt('limit', 20));
-        $this->limitStart = max(0, $input->getInt('limitstart', 0));
-
-        $filterOrder = trim((string) $input->getString('filter_order', ''));
-        $filterDir = strtolower(trim((string) $input->getString('filter_order_Dir', '')));
-
-        if (in_array($filterOrder, self::ALLOWED_SORTS, true)) {
-            $this->listOrder = $filterOrder;
-            $session->set('bf.records_sort', $this->listOrder);
-        } else {
-            $this->listOrder = (string) $session->get('bf.records_sort', 'records.submitted');
-            if (!in_array($this->listOrder, self::ALLOWED_SORTS, true)) {
-                $this->listOrder = 'records.submitted';
-            }
-        }
-
-        if ($filterDir !== '') {
-            $this->listDirn = $filterDir === 'asc' ? 'asc' : 'desc';
-            $session->set('bf.records_dir', $this->listDirn);
-        } else {
-            $this->listDirn = (string) $session->get('bf.records_dir', 'desc');
-            $this->listDirn = $this->listDirn === 'asc' ? 'asc' : 'desc';
-        }
+        $this->items = $model->getItems() ?: [];
+        $this->pagination = $model->getPagination();
+        $this->state = $model->getState();
+        $this->filterForm = $model->getFilterForm();
+        $this->activeFilters = $model->getActiveFilters();
     }
 
     private function prepareEditData(\Joomla\Input\Input $input): void
@@ -187,7 +143,6 @@ class HtmlView extends BaseHtmlView
         $recordId = $input->getInt('record_id', 0);
         /** @var CMSApplication $app */
         $app = Factory::getApplication();
-        $this->prepareListState($app, $input);
 
         if ($recordId < 1) {
             $app->redirect('index.php?option=com_breezingformsng&view=records');
@@ -215,30 +170,9 @@ class HtmlView extends BaseHtmlView
             (string) $this->record->name
         );
 
-        /** @var RecordsModel $recordsModel */
-        $recordsModel = $component->getMVCFactory()->createModel('Records', 'Administrator');
-        if (!$recordsModel instanceof RecordsModel) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-        }
-
-        $this->prevRecordId = $recordsModel->getAdjacentRecordId(
-            $recordId,
-            $this->formSelection,
-            $this->searchTerm,
-            $this->listOrder,
-            $this->listDirn,
-            'prev',
-            $this->stateFilter
-        );
-        $this->nextRecordId = $recordsModel->getAdjacentRecordId(
-            $recordId,
-            $this->formSelection,
-            $this->searchTerm,
-            $this->listOrder,
-            $this->listDirn,
-            'next',
-            $this->stateFilter
-        );
+        $recordsModel = $this->getRecordsModel();
+        $this->prevRecordId = $recordsModel->getAdjacentRecordId($recordId, 'prev');
+        $this->nextRecordId = $recordsModel->getAdjacentRecordId($recordId, 'next');
     }
 
     private function prepareListToolbar(): void
@@ -276,7 +210,8 @@ class HtmlView extends BaseHtmlView
         $markDropdown
             ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK'))
             ->icon('icon-check')
-            ->buttonClass('btn btn-action');
+            ->buttonClass('btn btn-action')
+            ->listCheck(true);
         $markChild = $markDropdown->getChildToolbar();
         $markChild->standardButton('markViewed')
             ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_VIEWED'))
@@ -303,37 +238,41 @@ class HtmlView extends BaseHtmlView
             ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_EXPORTED_DESC')])
             ->listCheck(true);
 
-        $statusDropdown = $toolbar->dropdownButton('status-group');
-
-        if (!$statusDropdown instanceof DropdownButton) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-        }
-
-        $statusDropdown->toggleSplit(false);
-        $statusDropdown
-            ->text('JTOOLBAR_CHANGE_STATUS')
-            ->icon('icon-ellipsis-h')
-            ->buttonClass('btn btn-action')
-            ->listCheck(true);
-        $statusChild = $statusDropdown->getChildToolbar();
+        $stateFilter = (string) $this->state->get('filter.state');
         $trashed = (string) RecordState::TRASHED;
         $archived = (string) RecordState::ARCHIVED;
 
-        if ($this->stateFilter === $archived) {
-            $statusChild->unarchive('records.publish')->listCheck(true);
-        } elseif ($this->stateFilter !== '') {
-            $statusChild->publish('records.publish')->listCheck(true);
+        if ($this->canEditState) {
+            $statusDropdown = $toolbar->dropdownButton('status-group');
+
+            if (!$statusDropdown instanceof DropdownButton) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            $statusDropdown->toggleSplit(false);
+            $statusDropdown
+                ->text('JTOOLBAR_CHANGE_STATUS')
+                ->icon('icon-ellipsis-h')
+                ->buttonClass('btn btn-action')
+                ->listCheck(true);
+            $statusChild = $statusDropdown->getChildToolbar();
+
+            if ($stateFilter === $archived) {
+                $statusChild->unarchive('records.publish')->listCheck(true);
+            } elseif ($stateFilter !== '') {
+                $statusChild->publish('records.publish')->listCheck(true);
+            }
+
+            if ($stateFilter !== $archived) {
+                $statusChild->archive('records.archive')->listCheck(true);
+            }
+
+            if ($stateFilter !== $trashed) {
+                $statusChild->trash('records.trash')->listCheck(true);
+            }
         }
 
-        if ($this->stateFilter !== $archived) {
-            $statusChild->archive('records.archive')->listCheck(true);
-        }
-
-        if ($this->stateFilter !== $trashed) {
-            $statusChild->trash('records.trash')->listCheck(true);
-        }
-
-        if ($this->stateFilter === $trashed) {
+        if ($stateFilter === $trashed && $this->canDelete) {
             $toolbar->delete('records.delete', 'JTOOLBAR_EMPTY_TRASH')
                 ->message('COM_BREEZINGFORMSNG_CONFIRM_DELETE_RECORDS')
                 ->listCheck(true);
@@ -396,20 +335,24 @@ class HtmlView extends BaseHtmlView
 
         $state = (int) ($this->record->state ?? RecordState::PUBLISHED);
 
-        if ($state === RecordState::ARCHIVED) {
-            $toolbar->unarchive('records.publish')->listCheck(false);
-        } elseif ($state === RecordState::TRASHED) {
-            $toolbar->publish('records.publish')->listCheck(false);
-        } else {
-            $toolbar->archive('records.archive')->listCheck(false);
+        if ($this->canEditState) {
+            if ($state === RecordState::ARCHIVED) {
+                $toolbar->unarchive('records.publish')->listCheck(false);
+            } elseif ($state === RecordState::TRASHED) {
+                $toolbar->publish('records.publish')->listCheck(false);
+            } else {
+                $toolbar->archive('records.archive')->listCheck(false);
+            }
+
+            if ($state !== RecordState::TRASHED) {
+                $toolbar->trash('records.trash')->listCheck(false);
+            }
         }
 
-        if ($state === RecordState::TRASHED) {
+        if ($state === RecordState::TRASHED && $this->canDelete) {
             $toolbar->delete('records.delete', 'JTOOLBAR_EMPTY_TRASH')
                 ->message('COM_BREEZINGFORMSNG_CONFIRM_DELETE_RECORDS')
                 ->listCheck(false);
-        } else {
-            $toolbar->trash('records.trash')->listCheck(false);
         }
 
         ToolbarHelper::custom('records.save', 'save', 'save', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_SAVE'), false);

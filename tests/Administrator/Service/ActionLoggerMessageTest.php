@@ -38,7 +38,7 @@ final class ActionLoggerMessageTest extends TestCase
 
         self::assertIsString($controller);
         self::assertMatchesRegularExpression(
-            '/if \(\$deleted !== \[\]\) \{\s+\(new ActionLogger\(\$app\)\)->log\(ActionLogger::DELETED, ActionLogger::RECORD/',
+            '/if \(\$deleted !== \[\]\) \{\s+\(new ActionLogger\(\$this->app\)\)->log\(ActionLogger::DELETED, ActionLogger::RECORD/',
             $controller
         );
     }

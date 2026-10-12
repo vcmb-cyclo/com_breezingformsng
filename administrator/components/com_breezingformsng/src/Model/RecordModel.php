@@ -9,14 +9,18 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Component\ComponentHelper;
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
+use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderRecordCleanup;
 
-class RecordModel extends BaseDatabaseModel
+class RecordModel extends AdminModel
 {
     private const BULK_ID_BATCH_SIZE = 500;
 
@@ -215,69 +219,66 @@ class RecordModel extends BaseDatabaseModel
         ));
     }
 
-    /**
-     * Permanently deletes records, together with what ContentBuilder NG keeps
-     * about them.
-     */
-    public function deleteRecords(array $ids, ContentBuilderRecordCleanup $contentBuilderCleanup): void
+    public function getTable($name = 'Record', $prefix = 'Site', $options = [])
     {
-        $ids = array_values(array_filter(array_map('intval', $ids)));
-        if (!$ids) {
-            return;
-        }
+        return parent::getTable($name, $prefix, $options);
+    }
 
-        $db = $this->getDatabase();
-        $query = $db->getQuery(true)
-            ->select($db->quoteName(['id', 'form']))
-            ->from($db->quoteName('#__facileforms_records'))
-            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
-        $idsByForm = [];
-
-        foreach ($db->setQuery($query)->loadAssocList() as $record) {
-            $idsByForm[(int) $record['form']][] = (int) $record['id'];
-        }
-
-        foreach ($idsByForm as $formId => $recordIds) {
-            $contentBuilderCleanup->remove($formId, $recordIds);
-        }
-
-        $delSubrecords = $db->getQuery(true)
-            ->delete($db->quoteName('#__facileforms_subrecords'))
-            ->whereIn($db->quoteName('record'), $ids, ParameterType::INTEGER);
-        $db->setQuery($delSubrecords)->execute();
-
-        $delRecords = $db->getQuery(true)
-            ->delete($db->quoteName('#__facileforms_records'))
-            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
-        $db->setQuery($delRecords)->execute();
+    public function getForm($data = [], $loadData = true)
+    {
+        return $this->loadForm('com_breezingformsng.record', 'record', ['control' => 'jform', 'load_data' => $loadData]);
     }
 
     /**
-     * Empties the trash for the given records: those that are not trashed are
-     * left alone. Returns the ids actually deleted.
-     *
-     * @return int[]
+     * As in Joomla content, a record is deleted for good only from the trash.
      */
-    public function deleteTrashed(array $ids, ContentBuilderRecordCleanup $contentBuilderCleanup): array
+    protected function canDelete($record)
     {
-        $ids = array_values(array_filter(array_map('intval', $ids)));
-        if (!$ids) {
-            return [];
+        return (int) $record->state === RecordState::TRASHED && parent::canDelete($record);
+    }
+
+    public function publish(&$pks, $value = 1)
+    {
+        if (!RecordState::isValid((int) $value)) {
+            throw new \InvalidArgumentException(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'));
         }
 
-        $db = $this->getDatabase();
-        $trashed = RecordState::TRASHED;
-        $query = $db->getQuery(true)
-            ->select($db->quoteName('id'))
-            ->from($db->quoteName('#__facileforms_records'))
-            ->where($db->quoteName('state') . ' = :trashed')
-            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER)
-            ->bind(':trashed', $trashed, ParameterType::INTEGER);
-        $trashedIds = array_map('intval', $db->setQuery($query)->loadColumn());
+        return parent::publish($pks, $value);
+    }
 
-        $this->deleteRecords($trashedIds, $contentBuilderCleanup);
+    /**
+     * Deletes trashed records, then what ContentBuilder NG keeps about them.
+     */
+    public function delete(&$pks)
+    {
+        $pks = ArrayHelper::toInteger((array) $pks);
+        $formIds = $this->getFormIds($pks);
 
-        return $trashedIds;
+        if (!parent::delete($pks)) {
+            return false;
+        }
+
+        $idsByForm = [];
+
+        foreach ($pks as $pk) {
+            if (isset($formIds[$pk])) {
+                $idsByForm[$formIds[$pk]][] = $pk;
+            }
+        }
+
+        $application = Factory::getApplication();
+
+        if (!$application instanceof CMSApplication) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $cleanup = new ContentBuilderRecordCleanup($this->getDatabase(), $application, $this->getCacheControllerFactory());
+
+        foreach ($idsByForm as $formId => $recordIds) {
+            $cleanup->remove($formId, $recordIds);
+        }
+
+        return true;
     }
 
     /**
@@ -285,7 +286,7 @@ class RecordModel extends BaseDatabaseModel
      *
      * @return int[]
      */
-    public function emptyTrash(ContentBuilderRecordCleanup $contentBuilderCleanup): array
+    public function emptyTrash(): array
     {
         $db = $this->getDatabase();
         $trashed = RecordState::TRASHED;
@@ -296,25 +297,31 @@ class RecordModel extends BaseDatabaseModel
             ->bind(':trashed', $trashed, ParameterType::INTEGER);
         $trashedIds = array_map('intval', $db->setQuery($query)->loadColumn());
 
-        $this->deleteRecords($trashedIds, $contentBuilderCleanup);
+        if ($trashedIds !== [] && !$this->delete($trashedIds)) {
+            throw new \RuntimeException((string) $this->getError());
+        }
 
         return $trashedIds;
     }
 
-    public function changeState(array $ids, int $state): void
+    /**
+     * @param int[] $ids
+     *
+     * @return array<int, int> Form id by record id.
+     */
+    private function getFormIds(array $ids): array
     {
-        $ids = array_values(array_filter(array_map('intval', $ids)));
-        if (!$ids || !RecordState::isValid($state)) {
-            return;
+        if ($ids === []) {
+            return [];
         }
 
         $db = $this->getDatabase();
         $query = $db->getQuery(true)
-            ->update($db->quoteName('#__facileforms_records'))
-            ->set($db->quoteName('state') . ' = :state')
-            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER)
-            ->bind(':state', $state, ParameterType::INTEGER);
-        $db->setQuery($query)->execute();
+            ->select($db->quoteName(['id', 'form']))
+            ->from($db->quoteName('#__facileforms_records'))
+            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
+
+        return array_map('intval', $db->setQuery($query)->loadAssocList('id', 'form'));
     }
 
     public function setFlagsBatch(array $ids, string $column, int $value = 1): void

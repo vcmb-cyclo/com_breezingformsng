@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Vcmb\Component\BreezingformsNG\Tests\Administrator;
 
-require_once __DIR__ . '/../Support/joomla-base-database-model-stub.php';
+require_once __DIR__ . '/../Support/joomla-list-model-stub.php';
 
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\QueryInterface;
@@ -33,20 +33,18 @@ final class RecordsNavigationTest extends TestCase
     {
         $database = new RecordsNavigationDatabaseDouble([50, 30, 20]);
 
-        $next = $this->model($database)->getAdjacentRecordId(
-            30,
-            7,
-            'alice',
-            'records.submitted',
-            'desc',
-            'next'
-        );
+        $next = $this->model($database, [
+            'filter.form' => '7',
+            'filter.search' => ' alice ',
+            'list.ordering' => 'records.submitted',
+            'list.direction' => 'desc',
+        ])->getAdjacentRecordId(30, 'next');
 
         self::assertSame(20, $next);
         self::assertSame('records.submitted DESC, records.id DESC', $database->query->order);
         self::assertSame(
             [
-                'records.form = :formSelection',
+                'records.form = :formId',
                 'records.state IN (1)',
                 'records.id = :searchExact',
                 'records.ip LIKE :searchLike1',
@@ -60,7 +58,7 @@ final class RecordsNavigationTest extends TestCase
         );
         self::assertSame(
             [
-                [':formSelection', 7, 1],
+                [':formId', 7, 1],
                 [':searchExact', 'alice', 2],
                 [':searchLike1', '%alice%', 2],
                 [':searchLike2', '%alice%', 2],
@@ -80,14 +78,8 @@ final class RecordsNavigationTest extends TestCase
 
         self::assertSame(
             20,
-            $this->model($database)->getAdjacentRecordId(
-                30,
-                0,
-                '',
-                'records.id',
-                'asc',
-                'prev'
-            )
+            $this->model($database, ['list.ordering' => 'records.id', 'list.direction' => 'ASC'])
+                ->getAdjacentRecordId(30, 'prev')
         );
         self::assertSame('records.id ASC', $database->query->order);
         self::assertSame(['records.state IN (1)'], $database->query->where);
@@ -96,12 +88,21 @@ final class RecordsNavigationTest extends TestCase
     public function testNavigationFollowsTheStateFilterOfTheList(): void
     {
         $trash = new RecordsNavigationDatabaseDouble([20, 30]);
-        $this->model($trash)->getAdjacentRecordId(30, 0, '', 'records.id', 'asc', 'prev', '-2');
+        $this->model($trash, ['filter.state' => '-2'])->getAdjacentRecordId(30, 'prev');
         self::assertSame(['records.state IN (-2)'], $trash->query->where);
 
         $all = new RecordsNavigationDatabaseDouble([20, 30]);
-        $this->model($all)->getAdjacentRecordId(30, 0, '', 'records.id', 'asc', 'prev', '*');
+        $this->model($all, ['filter.state' => '*'])->getAdjacentRecordId(30, 'prev');
         self::assertSame([], $all->query->where);
+    }
+
+    public function testAnUnknownSortColumnFallsBackToTheSubmissionDate(): void
+    {
+        $database = new RecordsNavigationDatabaseDouble([20, 30]);
+        $this->model($database, ['list.ordering' => 'records.id; DROP TABLE x', 'list.direction' => 'up'])
+            ->getAdjacentRecordId(30, 'prev');
+
+        self::assertSame('records.submitted DESC, records.id DESC', $database->query->order);
     }
 
     public function testReturnsNoAdjacentRecordWhenCurrentRecordIsOutsideTheFilteredList(): void
@@ -109,58 +110,56 @@ final class RecordsNavigationTest extends TestCase
         $database = new RecordsNavigationDatabaseDouble([50, 20]);
 
         self::assertNull(
-            $this->model($database)->getAdjacentRecordId(
-                30,
-                7,
-                'alice',
-                'records.submitted',
-                'desc',
-                'next'
-            )
+            $this->model($database, ['filter.form' => 7, 'filter.search' => 'alice'])->getAdjacentRecordId(30, 'next')
         );
     }
 
-    public function testRecordLinksCarryTheListStateIntoTheEditView(): void
+    public function testTheListStateStaysInTheSessionNotInTheLinks(): void
     {
-        $listTemplate = file_get_contents(
-            __DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/records/default.php'
-        );
-        $editTemplate = file_get_contents(
-            __DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/records/edit.php'
-        );
+        $admin = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $listTemplate = file_get_contents($admin . '/tmpl/records/default.php');
+        $editTemplate = file_get_contents($admin . '/tmpl/records/edit.php');
 
         self::assertIsString($listTemplate);
         self::assertIsString($editTemplate);
-        self::assertStringContainsString('http_build_query($query, \'\', \'&\', PHP_QUERY_RFC3986)', $listTemplate);
-        self::assertStringContainsString('$editUrl($recId)', $listTemplate);
-        self::assertStringContainsString('name="searchterm"', $editTemplate);
-        self::assertStringContainsString('name="filter_order"', $editTemplate);
-        self::assertStringContainsString('name="filter_order_Dir"', $editTemplate);
-        self::assertStringContainsString('name="limitstart"', $editTemplate);
+        self::assertStringContainsString('layout=edit&amp;record_id=<?= $recId; ?>', $listTemplate);
+        self::assertStringNotContainsString('filter_order', $listTemplate . $editTemplate);
+        self::assertStringNotContainsString('form_selection', $listTemplate . $editTemplate);
         self::assertStringContainsString('$recordUrl($this->prevRecordId)', $editTemplate);
         self::assertStringContainsString('$recordUrl($this->nextRecordId)', $editTemplate);
+        self::assertStringContainsString('name="cid[]"', $editTemplate);
         self::assertStringContainsString('$record->browser', $editTemplate);
         self::assertStringContainsString('$record->paypal_testaccount', $editTemplate);
         self::assertStringContainsString('$record->paypal_download_tries', $editTemplate);
         self::assertStringContainsString('$record->opted', $editTemplate);
     }
 
-    public function testRecordsSearchUsesOneSubmittedFieldAndStableControlIds(): void
+    public function testTheListUsesTheNativeSearchToolsAndPagination(): void
     {
-        $listTemplate = file_get_contents(
-            __DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/records/default.php'
-        );
+        $admin = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $listTemplate = file_get_contents($admin . '/tmpl/records/default.php');
+        $filterForm = simplexml_load_file($admin . '/forms/filter_records.xml');
 
         self::assertIsString($listTemplate);
-        self::assertSame(1, substr_count($listTemplate, 'name="searchterm"'));
-        self::assertStringContainsString('id="filter_search"', $listTemplate);
-        self::assertStringContainsString('id="filter_search_submit"', $listTemplate);
-        self::assertStringContainsString('id="filter_search_clear"', $listTemplate);
-        self::assertStringContainsString('class="icon-search" aria-hidden="true"', $listTemplate);
+        self::assertNotFalse($filterForm);
+        self::assertStringContainsString('LayoutHelper::render(\'joomla.searchtools.default\', [\'view\' => $this])', $listTemplate);
+        self::assertStringContainsString('$this->pagination->getListFooter()', $listTemplate);
+        self::assertSame(
+            ['search', 'form', 'state'],
+            array_map('strval', $filterForm->xpath('/form/fields[@name="filter"]/field/@name'))
+        );
+        self::assertSame('*,1,2,-2', (string) $filterForm->xpath('//field[@name="state"]/@optionsFilter')[0]);
     }
 
-    private function model(RecordsNavigationDatabaseDouble $database): RecordsNavigationModelDouble
+    /** @param array<string, mixed> $state */
+    private function model(RecordsNavigationDatabaseDouble $database, array $state = []): RecordsNavigationModelDouble
     {
-        return new RecordsNavigationModelDouble($database);
+        $model = new RecordsNavigationModelDouble($database);
+
+        foreach ($state as $key => $value) {
+            $model->setState($key, $value);
+        }
+
+        return $model;
     }
 }

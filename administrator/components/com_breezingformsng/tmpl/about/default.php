@@ -1005,7 +1005,7 @@ HTMLHelper::_('bootstrap.collapse');
                                     &mdash;
                                     <?php echo (int) ($entry['count'] ?? 0); ?>
                                     <a class="btn btn-sm btn-outline-secondary ms-2"
-                                        href="index.php?option=com_breezingformsng&amp;view=records&amp;form_selection=<?php echo $trashFormId; ?>&amp;filter_state=-2">
+                                        href="index.php?option=com_breezingformsng&amp;view=records&amp;filter[form]=<?php echo $trashFormId; ?>&amp;filter[state]=-2&amp;filter[search]=">
                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASH_VIEW'); ?>
                                     </a>
                                 </li>
