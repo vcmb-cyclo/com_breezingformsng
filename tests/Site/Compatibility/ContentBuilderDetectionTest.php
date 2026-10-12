@@ -50,6 +50,22 @@ final class ContentBuilderDetectionTest extends TestCase
         self::assertSame($expected, ContentBuilderInstallation::isInstalled($this->directory));
     }
 
+    public function testStandardLibraryPieceAcceptsBothManifestNames(): void
+    {
+        $package = file_get_contents(
+            \dirname(__DIR__, 3) . '/administrator/components/com_breezingformsng/packages/stdlib.english.xml'
+        );
+
+        self::assertIsString($package);
+
+        foreach (ContentBuilderInstallation::MANIFESTS as $manifest) {
+            self::assertStringContainsString(
+                '/components/com_contentbuilderng/' . $manifest . '\x27)',
+                $package
+            );
+        }
+    }
+
     /** @return iterable<string, array{string}> */
     public static function integrationFiles(): iterable
     {

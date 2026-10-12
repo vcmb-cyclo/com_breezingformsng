@@ -257,6 +257,11 @@ jobs:
     needs: [lint, frontend-checks, phpstan, unit-tests, package]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # One publication at a time, whatever the tag: two tags must not rewrite
+    # the "latest" release and the update stream concurrently.
+    concurrency:
+      group: release-publication
+      cancel-in-progress: false
     permissions:
       contents: write
 
@@ -272,6 +277,12 @@ jobs:
           name: installation-package
           path: build
 
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
       - name: Resolve release metadata
         id: release
         run: |
@@ -284,6 +295,17 @@ jobs:
           fi
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "archive=${archive}" >> "$GITHUB_OUTPUT"
+          # Re-running an old tag must not downgrade what sites are offered:
+          # only a version at least as recent as the published update stream
+          # may become the latest release and rewrite that stream.
+          git fetch origin main
+          stream_version="$(git show origin/main:com_breezingformsng_update.xml | grep -oPm1 '(?<=<version>)[^<]+')"
+          if php -r 'exit(version_compare($argv[1], $argv[2], ">=") ? 0 : 1);' "${version}" "${stream_version}"; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::v${version} is older than the published update stream (${stream_version}); the release is refreshed without becoming latest."
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Calculate package checksum
         id: checksum
@@ -301,20 +323,27 @@ jobs:
           else
             gh release create "${GITHUB_REF_NAME}" \
               "${archive}" \
+              --latest="${{ steps.release.outputs.current }}" \
               --target "${GITHUB_SHA}" \
               --title "BreezingForms NG ${GITHUB_REF_NAME}" \
               --generate-notes \
               --notes "SHA-256: ${{ steps.checksum.outputs.sha256 }}"
           fi
 
-      - name: Ensure release is published and latest
+      - name: Ensure release is published
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: gh release edit "${GITHUB_REF_NAME}" --draft=false --latest
+        run: |
+          if [ "${{ steps.release.outputs.current }}" = "true" ]; then
+            gh release edit "${GITHUB_REF_NAME}" --draft=false --latest
+          else
+            gh release edit "${GITHUB_REF_NAME}" --draft=false --latest=false
+          fi
 
       # Same mechanism as ContentBuilder NG: the update stream served from main
       # is rewritten only once the archive is published, with its checksum.
       - name: Publish update manifest to main
+        if: steps.release.outputs.current == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

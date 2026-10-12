@@ -20,6 +20,9 @@ use Joomla\Event\SubscriberInterface;
  * Submissions are tied to a person through the account that sent them
  * (records.user_id). Guest submissions carry no reliable identifier and are
  * therefore outside the scope of export and removal requests.
+ *
+ * Removal either deletes the user's submissions or anonymises them: the rows
+ * stay, emptied of every submitted value and identifier.
  */
 final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
 {
@@ -32,6 +35,8 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
         'username' => '',
         'user_full_name' => '',
         'opt_ip' => '',
+        'opt_token' => '',
+        'paypal_tx_id' => '',
     ];
 
     public static function getSubscribedEvents(): array
@@ -58,8 +63,9 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
 
         $query = $db->createQuery()
             ->select($db->quoteName([
-                'id', 'submitted', 'form', 'title', 'name', 'ip', 'browser', 'opsys', 'provider',
-                'user_id', 'username', 'user_full_name', 'opted', 'opt_ip', 'opt_date',
+                'id', 'submitted', 'modified', 'modified_by', 'form', 'title', 'name', 'ip', 'browser', 'opsys',
+                'provider', 'user_id', 'username', 'user_full_name', 'paypal_tx_id', 'paypal_payment_date',
+                'opted', 'opt_ip', 'opt_date',
             ]))
             ->from($db->quoteName('#__facileforms_records'))
             ->where($db->quoteName('user_id') . ' = :userId')
@@ -112,6 +118,8 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
             ->bind(':userId', $userId, ParameterType::INTEGER);
         $recordIds = array_map('intval', $db->setQuery($query)->loadColumn());
 
+        $this->clearEditorTraces($userId);
+
         if ($recordIds === []) {
             return;
         }
@@ -130,7 +138,16 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
             return;
         }
 
-        // Keep the submissions (e.g. paid orders) but detach them from the person.
+        // Keep the fact that a submission existed (form and dates) but
+        // nothing that identifies the person: once user_id is
+        // cleared these rows can no longer be found by a later request, so
+        // every submitted value and identifier is erased first.
+        $query = $db->createQuery()
+            ->update($db->quoteName('#__facileforms_subrecords'))
+            ->set($db->quoteName('value') . ' = ' . $db->quote(''))
+            ->whereIn($db->quoteName('record'), $recordIds);
+        $db->setQuery($query)->execute();
+
         $query = $db->createQuery()
             ->update($db->quoteName('#__facileforms_records'))
             ->set($db->quoteName('user_id') . ' = 0')
@@ -141,6 +158,23 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
             $query->set($db->quoteName($column) . ' = ' . $db->quote($blank));
         }
 
+        $db->setQuery($query)->execute();
+    }
+
+    /**
+     * Records edited by the user keep their content (it belongs to whoever
+     * submitted them) but no longer name the user as their last editor.
+     */
+    private function clearEditorTraces(int $userId): void
+    {
+        $db = $this->getDatabase();
+
+        $query = $db->createQuery()
+            ->update($db->quoteName('#__facileforms_records'))
+            ->set($db->quoteName('modified_by') . ' = ' . $db->quote(''))
+            ->set($db->quoteName('modified_user_id') . ' = 0')
+            ->where($db->quoteName('modified_user_id') . ' = :userId')
+            ->bind(':userId', $userId, ParameterType::INTEGER);
         $db->setQuery($query)->execute();
     }
 }

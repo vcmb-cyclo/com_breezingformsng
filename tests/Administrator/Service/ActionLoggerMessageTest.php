@@ -30,6 +30,19 @@ final class ActionLoggerMessageTest extends TestCase
         self::assertSame('#3, #5', $message['ids']);
     }
 
+    public function testRecordDeletionIsNotLoggedForAnEmptySelection(): void
+    {
+        $controller = file_get_contents(
+            __DIR__ . '/../../../administrator/components/com_breezingformsng/src/Controller/RecordsController.php'
+        );
+
+        self::assertIsString($controller);
+        self::assertMatchesRegularExpression(
+            '/if \(\$ids !== \[\]\) \{\s+\(new ActionLogger\(\$app\)\)->log\(ActionLogger::DELETED, ActionLogger::RECORD/',
+            $controller
+        );
+    }
+
     public function testEveryMessageKeyIsTranslatedInEnglish(): void
     {
         $ini = file_get_contents(
