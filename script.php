@@ -2941,7 +2941,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         $durationSeconds = max(0.0, microtime(true) - $this->installStartedAt);
         $actionLabel = strtoupper((string) $type);
-        $packageVersion = $this->incomingPackageVersion !== '' ? $this->incomingPackageVersion : $this->getIncomingVersion($parent);
+        $packageVersion = $this->incomingPackageVersion !== '' ? $this->incomingPackageVersion : $this->getIncomingVersion($adapter);
         $installedVersion = $this->getCurrentInstalledVersion();
 
         $finishedWithFailure = $this->hasCriticalFailure();

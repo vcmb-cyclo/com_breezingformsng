@@ -13,6 +13,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 use Joomla\CMS\Application\CMSApplicationInterface;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\Component\Actionlogs\Administrator\Model\ActionlogModel;
 
 /** Records administrator actions in Joomla's User Actions Log. */
 final class ActionLogger
@@ -56,9 +57,13 @@ final class ActionLogger
         $user = $this->app->getIdentity();
         $message = self::buildMessage($action, $type, $ids, $title, (int) $user->id, (string) $user->username);
 
-        $component->getMVCFactory()
-            ->createModel('Actionlog', 'Administrator', ['ignore_request' => true])
-            ->addLog([$message], self::languageKey($action), self::EXTENSION, (int) $user->id);
+        $model = $component->getMVCFactory()->createModel('Actionlog', 'Administrator', ['ignore_request' => true]);
+
+        if (!$model instanceof ActionlogModel) {
+            return;
+        }
+
+        $model->addLog([$message], self::languageKey($action), self::EXTENSION, (int) $user->id);
     }
 
     public static function languageKey(string $action): string
