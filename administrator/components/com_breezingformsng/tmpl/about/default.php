@@ -310,6 +310,8 @@ $auditSummary = (array) ($auditReport['summary'] ?? array());
 $auditTables = (array) ($auditReport['tables'] ?? array());
 $auditMissingTables = (array) ($auditReport['missing_tables'] ?? array());
 $auditUnexpectedTables = (array) ($auditReport['unexpected_tables'] ?? array());
+$auditMissingColumns = (array) ($auditReport['missing_columns'] ?? array());
+$auditDebugForms = (array) ($auditReport['debug_forms'] ?? array());
 $auditStaleLanguageFiles = (array) ($auditReport['stale_language_files'] ?? array());
 $auditStaleInstallerTempDirs = (array) ($auditReport['stale_installer_temp_dirs'] ?? array());
 $auditCollationIssues = (array) ($auditReport['collation_issues'] ?? array());
@@ -518,6 +520,16 @@ $aboutDescription = str_replace(
                                 <th scope="row"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ROWS'); ?></th>
                                 <td><?php echo number_format((int) ($auditSummary['total_rows'] ?? 0), 0, '.', ' '); ?></td>
                             </tr>
+                            <tr class="<?php echo $auditMissingColumns !== array() ? 'table-warning' : ''; ?>">
+                                <td class="text-muted text-end pe-2">7</td>
+                                <th scope="row"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_COLUMNS'); ?></th>
+                                <td><?php echo (int) ($auditSummary['missing_columns'] ?? 0); ?></td>
+                            </tr>
+                            <tr class="<?php echo $auditDebugForms !== array() ? 'table-warning' : ''; ?>">
+                                <td class="text-muted text-end pe-2">8</td>
+                                <th scope="row"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS'); ?></th>
+                                <td><?php echo count($auditDebugForms); ?></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -530,6 +542,44 @@ $aboutDescription = str_replace(
                         <ul class="mb-0">
                             <?php foreach ($auditMissingTables as $table) : ?>
                                 <li><code><?php echo htmlspecialchars((string) $table, ENT_QUOTES, 'UTF-8'); ?></code></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($auditMissingColumns !== array()) : ?>
+                    <div class="bf-audit-section-block mb-3">
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_COLUMNS'); ?></h4>
+                        <p class="text-muted small mb-2"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_COLUMNS_DESC'); ?></p>
+                        <ul class="mb-0">
+                            <?php foreach ($auditMissingColumns as $entry) : ?>
+                                <li>
+                                    <code><?php echo htmlspecialchars((string) ($entry['table'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code>
+                                    &mdash;
+                                    <?php foreach ((array) ($entry['columns'] ?? array()) as $column) : ?>
+                                        <code><?php echo htmlspecialchars((string) $column, ENT_QUOTES, 'UTF-8'); ?></code>
+                                    <?php endforeach; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($auditDebugForms !== array()) : ?>
+                    <div class="bf-audit-section-block mb-3">
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS'); ?></h4>
+                        <p class="text-muted small mb-2"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS_DESC'); ?></p>
+                        <ul class="mb-0">
+                            <?php foreach ($auditDebugForms as $form) : ?>
+                                <?php $debugFormId = (int) ($form['id'] ?? 0); ?>
+                                <li>
+                                    <code><?php echo htmlspecialchars((string) ($form['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code>
+                                    <span class="text-muted">(#<?php echo $debugFormId; ?>)</span>
+                                    <a class="btn btn-sm btn-outline-secondary ms-2" target="_blank" rel="noopener"
+                                        href="index.php?option=com_breezingformsng&amp;task=quickmode.display&amp;form=<?php echo $debugFormId; ?>&amp;pkg=<?php echo rawurlencode((string) ($form['package'] ?? '')); ?>">
+                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_FORM_EDIT'); ?>
+                                    </a>
+                                </li>
                             <?php endforeach; ?>
                         </ul>
                     </div>

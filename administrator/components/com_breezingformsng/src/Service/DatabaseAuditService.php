@@ -36,6 +36,8 @@ final class DatabaseAuditService
 
     private const FALLBACK_COLLATION = 'utf8mb4_unicode_ci';
 
+    private const INSTALL_SQL = '/components/com_breezingformsng/sql/install.mysql.utf8.sql';
+
     private ?string $resolvedTargetCollation = null;
 
     /** @var array<int, string> */
@@ -54,6 +56,8 @@ final class DatabaseAuditService
         $tableList = $this->db->getTableList();
         $tables = [];
         $missingTables = [];
+        $missingColumns = [];
+        $expectedColumns = $this->getExpectedColumns();
         $collationIssues = [];
         $columnCollationIssues = [];
         $duplicateIndexes = [];
@@ -99,6 +103,11 @@ final class DatabaseAuditService
                 ];
             }
 
+            $missing = $this->findMissingColumns($physicalTable, $alias, $expectedColumns[$table] ?? []);
+            if ($missing !== []) {
+                $missingColumns[] = ['table' => $alias, 'columns' => $missing];
+            }
+
             foreach ($this->findColumnCollationIssues($physicalTable, $alias, $targetCollation) as $columnIssue) {
                 $columnCollationIssues[] = $columnIssue;
             }
@@ -117,7 +126,13 @@ final class DatabaseAuditService
         $menuIssues = $this->findMenuIssues();
         $extensionIssues = $this->findExtensionIssues();
         $duplicateForms = $this->findDuplicateForms();
-        $issuesTotal = count($missingTables) + count($collationIssues) + count($columnCollationIssues)
+        $debugForms = $this->findDebugModeForms($tableList);
+        $missingColumnsTotal = array_sum(array_map(
+            static fn (array $entry): int => count($entry['columns']),
+            $missingColumns
+        ));
+        $issuesTotal = count($missingTables) + $missingColumnsTotal + count($debugForms)
+            + count($collationIssues) + count($columnCollationIssues)
             + count($duplicateIndexes) + $orphanRows + count($unexpectedTables)
             + count($staleLanguageFiles) + count($staleInstallerTempDirs)
             + count($menuIssues) + count($extensionIssues['duplicates']) + count($extensionIssues['legacy'])
@@ -129,6 +144,8 @@ final class DatabaseAuditService
             'target_collation' => $targetCollation,
             'tables' => $tables,
             'missing_tables' => $missingTables,
+            'missing_columns' => $missingColumns,
+            'debug_forms' => $debugForms,
             'unexpected_tables' => $unexpectedTables,
             'collation_issues' => $collationIssues,
             'column_collation_issues' => $columnCollationIssues,
@@ -146,6 +163,8 @@ final class DatabaseAuditService
                 'expected_tables' => count(self::EXPECTED_TABLES),
                 'scanned_tables' => count($tables),
                 'missing_tables' => count($missingTables),
+                'missing_columns' => $missingColumnsTotal,
+                'debug_forms' => count($debugForms),
                 'unexpected_tables' => count($unexpectedTables),
                 'total_rows' => $totalRows,
                 'total_data_bytes' => $totalDataBytes,
@@ -474,7 +493,7 @@ final class DatabaseAuditService
                 // Joomla names these folders with a random suffix, not the
                 // extension name, so check the extracted contents instead of
                 // the folder name itself.
-                $manifestMatches = glob($realMatch . '/*com_breezingformsng*.xml') ?: [];
+                $manifestMatches = glob($realMatch . '/*breezingformsng*.xml') ?: [];
                 if ($manifestMatches === []) {
                     continue;
                 }
@@ -697,6 +716,104 @@ final class DatabaseAuditService
         }
 
         return $duplicates;
+    }
+
+    /**
+     * Column names per table, read from the packaged install schema so the
+     * audit and a fresh installation can never disagree on what is expected.
+     *
+     * @return array<string, array<int, string>>
+     */
+    public static function parseExpectedColumns(string $sql): array
+    {
+        $expected = [];
+        preg_match_all('/CREATE TABLE IF NOT EXISTS `#__(\w+)` \((.*?)\n\) ENGINE/s', $sql, $tables, PREG_SET_ORDER);
+
+        foreach ($tables as $table) {
+            preg_match_all('/^\s*`(\w+)`\s/m', $table[2], $columns);
+            $expected[$table[1]] = $columns[1];
+        }
+
+        return $expected;
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    private function getExpectedColumns(): array
+    {
+        $sql = file_get_contents(JPATH_ADMINISTRATOR . self::INSTALL_SQL);
+
+        if ($sql === false) {
+            $this->addError('Unable to read the install schema to verify table columns.');
+
+            return [];
+        }
+
+        return self::parseExpectedColumns($sql);
+    }
+
+    /**
+     * Columns the current schema defines but the table lacks - the state a
+     * legacy table is left in when it was preserved without being migrated.
+     *
+     * @param array<int, string> $expected
+     *
+     * @return array<int, string>
+     */
+    private function findMissingColumns(string $physicalTable, string $alias, array $expected): array
+    {
+        try {
+            $actual = array_map('strtolower', array_keys($this->db->getTableColumns($physicalTable)));
+        } catch (\Throwable $exception) {
+            $this->addError('Unable to inspect columns for ' . $alias . ': ' . $exception->getMessage());
+
+            return [];
+        }
+
+        return array_values(array_filter(
+            $expected,
+            static fn (string $column): bool => !in_array(strtolower($column), $actual, true)
+        ));
+    }
+
+    /**
+     * Forms left with debug mode enabled, which shows diagnostic output to
+     * site visitors.
+     */
+    private function findDebugModeForms(array $tableList): array
+    {
+        $physicalTable = $this->db->getPrefix() . 'facileforms_forms';
+
+        if (!in_array($physicalTable, $tableList, true)) {
+            return [];
+        }
+
+        try {
+            if (!array_key_exists('debug_mode', $this->db->getTableColumns($physicalTable))) {
+                return [];
+            }
+
+            $query = $this->db->getQuery(true)
+                ->select($this->db->quoteName(['id', 'name', 'title', 'package', 'published']))
+                ->from($this->db->quoteName('#__facileforms_forms'))
+                ->where($this->db->quoteName('debug_mode') . ' = 1')
+                ->order($this->db->quoteName('id') . ' ASC');
+            $this->db->setQuery($query);
+            $rows = $this->db->loadAssocList() ?: [];
+        } catch (\Throwable $exception) {
+            $this->addError('Unable to inspect forms with debug mode enabled: ' . $exception->getMessage());
+
+            return [];
+        }
+
+        return array_map(static fn (array $row): array => [
+            'id' => (int) ($row['id'] ?? 0),
+            'name' => trim((string) ($row['name'] ?? '')),
+            'title' => trim((string) ($row['title'] ?? '')),
+            'package' => trim((string) ($row['package'] ?? '')),
+            'published' => (int) ($row['published'] ?? 0),
+        ], $rows);
     }
 
     private function addError(string $message): void
