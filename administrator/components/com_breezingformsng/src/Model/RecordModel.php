@@ -15,6 +15,7 @@ use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
 
 class RecordModel extends BaseDatabaseModel
 {
@@ -224,7 +225,7 @@ class RecordModel extends BaseDatabaseModel
 
         $db = $this->getDatabase();
 
-        if (file_exists(JPATH_SITE . '/administrator/components/com_contentbuilderng/com_contentbuilderng.xml')) {
+        if (ContentBuilderInstallation::isInstalled()) {
             $query = $db->getQuery(true)
                 ->select(['form.id AS form_id', 'form.reference_id', 'form.delete_articles', 'r.id AS record_id'])
                 ->from($db->quoteName('#__facileforms_records', 'r'))

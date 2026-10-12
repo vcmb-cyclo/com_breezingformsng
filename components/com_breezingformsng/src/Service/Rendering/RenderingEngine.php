@@ -45,6 +45,7 @@ use CB\Component\Contentbuilderng\Administrator\Service\PermissionService;
 use CB\Component\Contentbuilderng\Administrator\Helper\RuntimeContextHelper;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\TokenizedDirectoryResolver;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\RuntimeAssetLoader;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
 
 /**
  * Page header, ContentBuilder path handling and form view rendering.
@@ -415,7 +416,7 @@ final class RenderingEngine
         $cbFrontend = true;
         $cbFull = false;
 
-        if (file_exists(JPATH_ADMINISTRATOR . '/components/com_contentbuilderng/com_contentbuilderng.xml')) {
+        if (ContentBuilderInstallation::isInstalled()) {
             $input = $this->processor->app->getInput();
 
             if ($this->processor->app->isClient('administrator')) {

@@ -20,6 +20,7 @@ use Joomla\Filesystem\File;
 use Joomla\Filesystem\Folder;
 use Joomla\Filesystem\Path;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
 
 class QuickmodeController extends BaseController
 {
@@ -95,7 +96,7 @@ class QuickmodeController extends BaseController
 
             // Optional ContentBuilderNG integration
             $cbngBasePath = JPATH_SITE . '/administrator/components/com_contentbuilderng';
-            if (is_file($cbngBasePath . '/com_contentbuilderng.xml')) {
+            if (ContentBuilderInstallation::isInstalled($cbngBasePath)) {
                 require_once $cbngBasePath . '/src/Helper/FormSourceFactory.php';
                 require_once $cbngBasePath . '/src/Service/PathService.php';
                 require_once $cbngBasePath . '/src/Service/TemplateSampleService.php';
