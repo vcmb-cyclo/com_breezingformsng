@@ -149,20 +149,14 @@ class Renderer
 				<tr>
 					<td></td>
 					<td nowrap>
-						<?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TITLE'); ?>:
+						<label for="title" class="hasTooltip mb-0" title="<?php echo HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPTITLE')); ?>"><?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TITLE'); ?>:</label>
 					</td>
 					<td nowrap>
 						<input type="text" size="70" maxlength="50" id="title" name="title" value="<?php echo $row->title; ?>"
 							class="inputbox" />
-						<?php
-						echo '<span><span title="' . HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPTITLE')) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
-						?>
 					</td>
 					<td nowrap>
-						<?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TYPE'); ?>:
-						<?php
-						echo '<span><span title="' . HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPTYPE')) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
-						?>
+						<label for="type" class="hasTooltip mb-0" title="<?php echo HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPTYPE')); ?>"><?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TYPE'); ?>:</label>
 						<select id="type" name="type" class="inputbox" size="1">
 							<?php
 							for ($t = 0; $t < count($typelist); $t++) {
@@ -179,32 +173,26 @@ class Renderer
 				<tr>
 					<td></td>
 					<td nowrap>
-						<?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_PACKAGE'); ?>:
+						<label for="package" class="hasTooltip mb-0" title="<?php echo HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPPACKAGE')); ?>"><?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_PACKAGE'); ?>:</label>
 					</td>
 					<td nowrap>
 						<input type="text" size="30" maxlength="30" id="package" name="package"
 							value="<?php echo $row->package; ?>" class="inputbox" />
-						<?php
-						echo '<span><span title="' . HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPPACKAGE')) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
-						?>
 					</td>
 					<td></td>
 				</tr>
 				<tr>
 					<td></td>
 					<td nowrap>
-						<?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_NAME'); ?>:
+						<label for="name" class="hasTooltip mb-0" title="<?php echo HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPNAME')); ?>"><?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_NAME'); ?>:</label>
 					</td>
 					<td nowrap>
 						<input type="text" size="30" maxlength="30" id="name" name="name" value="<?php echo $row->name; ?>"
 							class="inputbox" />
-						<?php
-						echo '<span><span title="' . HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPNAME')) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
-						?>
 					</td>
 					<td nowrap>
 						<span class="d-inline-flex align-items-center gap-2">
-							<span class="fw-semibold"><?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_PUBLISHED'); ?>:</span>
+							<span class="fw-semibold hasTooltip" title="<?php echo HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPPUBLISHED')); ?>"><?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_PUBLISHED'); ?>:</span>
 							<button type="button" class="tbody-icon js-bf-edit-published<?php echo (int) $row->published === 1 ? ' active' : ''; ?>"
 								data-item-form-id="<?php echo (int) $row->id; ?>"
 								data-item-task="scripts.setPublished" data-state-type="published"
@@ -217,35 +205,26 @@ class Renderer
 							<span class="js-bf-published-fallback">
 								<?php echo HTMLHelper::_('select.booleanlist', "published", "", $row->published); ?>
 							</span>
-							<?php
-							echo '<span><span title="' . HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPPUBLISHED')) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
-							?>
 						</span>
 					</td>
 				</tr>
 				<tr>
 					<td></td>
 					<td nowrap colspan="3">
-						<?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_DESCRIPTION'); ?>:
-						<?php
-						echo '<span><span title="' . HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPDESCRIPTION')) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
-						?>
+						<label for="description" class="hasTooltip mb-0" title="<?php echo HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPDESCRIPTION')); ?>"><?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_DESCRIPTION'); ?>:</label>
 						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('description').rows = <?php echo self::AREA_SMALL; ?>;">[<?php echo self::AREA_SMALL; ?>]</button>
 						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('description').rows = <?php echo self::AREA_MEDIUM; ?>;">[<?php echo self::AREA_MEDIUM; ?>]</button>
 						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('description').rows = <?php echo self::AREA_LARGE; ?>;">[<?php echo self::AREA_LARGE; ?>]</button>
 						<br />
 						<textarea wrap="off" name="description" id="description" style="width:100%;" rows="12"
-							class="inputbox"><?php echo $row->description; ?></textarea>
+							class="inputbox"><?php echo htmlspecialchars((string) $row->description, ENT_QUOTES); ?></textarea>
 					</td>
 				</tr>
 
 				<tr>
 					<td></td>
 					<td nowrap colspan="3">
-						<?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_CODE'); ?>:
-						<?php
-						echo '<span><span title="' . HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPCODE')) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
-						?>
+						<label for="code" class="hasTooltip mb-0" title="<?php echo HTMLHelper::tooltipText(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPCODE')); ?>"><?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPTS_CODE'); ?>:</label>
 						<br />
 
 						<?php
@@ -259,10 +238,7 @@ class Renderer
 				<tr>
 					<td></td>
 					<td nowrap colspan="3">
-						<?php echo Text::_('COM_BREEZINGFORMSNG_TEST_UNIT_TESTS'); ?>:
-						<?php
-						echo '<span><span title="' . htmlspecialchars($unitTestsHelp, ENT_QUOTES) . '" class="icon-question-circle hasTooltip" aria-hidden="true"></span></span>';
-						?>
+						<label for="unit_tests" class="hasTooltip mb-0" title="<?php echo htmlspecialchars($unitTestsHelp, ENT_QUOTES); ?>"><?php echo Text::_('COM_BREEZINGFORMSNG_TEST_UNIT_TESTS'); ?>:</label>
 						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('unit_tests').rows = <?php echo self::AREA_SMALL; ?>;">[<?php echo self::AREA_SMALL; ?>]</button>
 						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('unit_tests').rows = <?php echo self::AREA_MEDIUM; ?>;">[<?php echo self::AREA_MEDIUM; ?>]</button>
 						<button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('unit_tests').rows = <?php echo self::AREA_LARGE; ?>;">[<?php echo self::AREA_LARGE; ?>]</button>
