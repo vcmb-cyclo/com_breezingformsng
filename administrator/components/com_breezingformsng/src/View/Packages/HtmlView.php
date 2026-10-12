@@ -15,6 +15,7 @@ use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 
 final class HtmlView extends BaseHtmlView
 {
@@ -24,6 +25,8 @@ final class HtmlView extends BaseHtmlView
 
     public function display($tpl = null)
     {
+        AreaAccess::assert(Factory::getApplication()->getIdentity(), AreaAccess::CONFIGURATION);
+
         $app = Factory::getApplication();
         $component = $app->bootComponent('com_breezingformsng');
         if (!$component instanceof MVCFactoryServiceInterface) {
@@ -37,7 +40,11 @@ final class HtmlView extends BaseHtmlView
         $this->choices = $model->getExportChoices();
         $this->profiles = $model->getPackageProfiles();
         ToolbarHelper::title(Text::_("COM_BREEZINGFORMSNG_CONFIGURATION"));
-        ToolbarHelper::preferences("com_breezingformsng");
+        $user = Factory::getApplication()->getIdentity();
+
+        if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
+            ToolbarHelper::preferences('com_breezingformsng');
+        }
         parent::display($tpl);
     }
 }

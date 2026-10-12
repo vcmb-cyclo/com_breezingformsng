@@ -464,6 +464,10 @@ HTMLHelper::_('bootstrap.collapse');
 
     <div class="card mt-3" id="bf-audit-section">
         <div class="card-body p-3 p-lg-4">
+        <?php if (!$this->canRepair) : ?>
+            <div class="alert alert-info"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_READ_ONLY_NOTICE'); ?></div>
+        <?php endif; ?>
+        <fieldset class="border-0 p-0 m-0"<?php echo $this->canRepair ? '' : ' disabled'; ?>>
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <h3 class="h5 mb-0"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_REPORT_TITLE'); ?></h3>
                 <?php if ($auditReport !== array()) : ?>
@@ -1002,6 +1006,7 @@ HTMLHelper::_('bootstrap.collapse');
                 </div>
                 </div>
             <?php endif; ?>
+        </fieldset>
         </div>
     </div>
 

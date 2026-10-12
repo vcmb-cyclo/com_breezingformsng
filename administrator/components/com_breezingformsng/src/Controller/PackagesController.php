@@ -16,6 +16,7 @@ use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 
 final class PackagesController extends BaseController
 {
@@ -84,9 +85,7 @@ final class PackagesController extends BaseController
 
     private function assertAuthorised(): void
     {
-        if (!$this->app->getIdentity()->authorise('core.manage', 'com_breezingformsng')) {
-            throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
-        }
+        AreaAccess::assert($this->app->getIdentity(), AreaAccess::CONFIGURATION);
     }
 
     private function model(): PackageTransferModel

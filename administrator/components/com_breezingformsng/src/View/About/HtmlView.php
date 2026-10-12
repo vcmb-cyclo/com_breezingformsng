@@ -19,6 +19,7 @@ use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\AboutModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
 
 class HtmlView extends BaseHtmlView
@@ -26,6 +27,7 @@ class HtmlView extends BaseHtmlView
     public array $plugins = [];
     public array $logReport = [];
     public array $auditReport = [];
+    public bool $canRepair = false;
 
     public function display($tpl = null)
     {
@@ -36,6 +38,7 @@ class HtmlView extends BaseHtmlView
 
         /** @var CMSApplication $app */
         $app = Factory::getApplication();
+        $this->canRepair = AreaAccess::canRepair($app->getIdentity());
         /** @var HtmlDocument $document */
         $document = $app->getDocument();
         $wa = $document->getWebAssetManager();
@@ -62,17 +65,19 @@ class HtmlView extends BaseHtmlView
                 ->icon('fa-solid fa-stethoscope')
                 ->listCheck(false);
 
-            $actionsChildToolbar->standardButton('about_export_configuration')
-                ->task('about.exportConfiguration')
-                ->text('COM_BREEZINGFORMSNG_ABOUT_EXPORT_CONFIGURATION')
-                ->icon('fa-solid fa-download')
-                ->listCheck(false);
+            if (AreaAccess::isAllowed(Factory::getApplication()->getIdentity(), AreaAccess::CONFIGURATION)) {
+                $actionsChildToolbar->standardButton('about_export_configuration')
+                    ->task('about.exportConfiguration')
+                    ->text('COM_BREEZINGFORMSNG_ABOUT_EXPORT_CONFIGURATION')
+                    ->icon('fa-solid fa-download')
+                    ->listCheck(false);
 
-            $actionsChildToolbar->standardButton('about_import_configuration')
-                ->task('about.importConfiguration')
-                ->text('COM_BREEZINGFORMSNG_ABOUT_IMPORT_CONFIGURATION')
-                ->icon('fa-solid fa-upload')
-                ->listCheck(false);
+                $actionsChildToolbar->standardButton('about_import_configuration')
+                    ->task('about.importConfiguration')
+                    ->text('COM_BREEZINGFORMSNG_ABOUT_IMPORT_CONFIGURATION')
+                    ->icon('fa-solid fa-upload')
+                    ->listCheck(false);
+            }
 
             $toolbar->standardButton('about_show_log')
                 ->task('about.showLog')
@@ -86,7 +91,11 @@ class HtmlView extends BaseHtmlView
                 ->icon('fa-solid fa-plug');
         }
 
-        ToolbarHelper::preferences('com_breezingformsng');
+        $user = Factory::getApplication()->getIdentity();
+
+        if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
+            ToolbarHelper::preferences('com_breezingformsng');
+        }
         ToolbarHelper::help(
             'COM_BREEZINGFORMSNG_HELP_ABOUT_TITLE',
             false,

@@ -19,6 +19,7 @@ use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\IntegratorModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 
 class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView
 {
@@ -38,6 +39,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
 
     public function display($tpl = null): void
     {
+        AreaAccess::assert(Factory::getApplication()->getIdentity(), AreaAccess::CODE);
+
         $input  = Factory::getApplication()->getInput();
         $layout = $input->getCmd('layout', 'default');
         $model  = $this->getIntegratorModel();
@@ -72,7 +75,11 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         $this->rules = $model->getRules($this->listOrder, $this->listDirn);
         ToolbarHelper::addNew('integrator.edit');
         ToolbarHelper::deleteList('', 'integrator.remove');
-        ToolbarHelper::preferences('com_breezingformsng');
+        $user = Factory::getApplication()->getIdentity();
+
+        if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
+            ToolbarHelper::preferences('com_breezingformsng');
+        }
         ToolbarHelper::help(
             'COM_BREEZINGFORMSNG_HELP_INTEGRATOR_TITLE',
             false,

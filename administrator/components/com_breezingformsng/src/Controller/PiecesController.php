@@ -18,6 +18,7 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PieceManager;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PieceModel;
 use Vcmb\Component\BreezingformsNG\Site\Table\PieceTable;
@@ -25,6 +26,18 @@ use Vcmb\Component\BreezingformsNG\Site\Table\PieceTable;
 /** @property CMSApplication $app */
 class PiecesController extends BaseController
 {
+    /** Tasks that only display data; every other task changes or runs code. */
+    private const READ_ONLY_TASKS = ['display', 'edit', 'cancel', 'previous', 'next'];
+
+    public function execute($task)
+    {
+        if (!\in_array(strtolower((string) $task), self::READ_ONLY_TASKS, true)) {
+            AreaAccess::assert($this->app->getIdentity(), AreaAccess::CODE);
+        }
+
+        return parent::execute($task);
+    }
+
     public function add(): void
     {
         $this->runLegacyTask('edit', []);

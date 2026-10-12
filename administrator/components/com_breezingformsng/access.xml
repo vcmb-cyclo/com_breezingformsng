@@ -1,6 +1,10 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <access component="com_breezingformsng">
 	<section name="component">
-                <action name="core.manage" title="JACTION_MANAGE" description="JACTION_MANAGE_COMPONENT_DESC" />
-        </section>
+		<action name="core.admin" title="JACTION_ADMIN" description="JACTION_ADMIN_COMPONENT_DESC" />
+		<action name="core.options" title="JACTION_OPTIONS" description="JACTION_OPTIONS_COMPONENT_DESC" />
+		<action name="core.manage" title="JACTION_MANAGE" description="JACTION_MANAGE_COMPONENT_DESC" />
+		<action name="breezingformsng.code" title="COM_BREEZINGFORMSNG_ACTION_CODE" description="COM_BREEZINGFORMSNG_ACTION_CODE_DESC" />
+		<action name="breezingformsng.configuration" title="COM_BREEZINGFORMSNG_ACTION_CONFIGURATION" description="COM_BREEZINGFORMSNG_ACTION_CONFIGURATION_DESC" />
+	</section>
 </access>

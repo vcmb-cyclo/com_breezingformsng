@@ -43,16 +43,13 @@
 	</updateservers>
 
 	<files folder="components/com_breezingformsng">
-		<filename>index.html</filename>
 		<filename>breezingformsng.php</filename>
 		<folder>downloadtpl</folder>
-		<folder>exports</folder>
 		<folder>language</folder>
 		<folder>libraries</folder>
 		<folder>src</folder>
 		<folder>themes</folder>
 		<folder>tmpl</folder>
-		<folder>uploads</folder>
 	</files>
 
 	<languages folder="components/com_breezingformsng/language">
@@ -80,19 +77,16 @@
 		</submenu>
 
 		<files folder="administrator/components/com_breezingformsng">
-			<filename>index.html</filename>
 			<filename>access.xml</filename>
 			<filename>composer.json</filename>
 			<filename>composer.lock</filename>
 			<filename>config.xml</filename>
-			<folder>ajax_cache</folder>
 			<folder>images</folder>
 			<folder>language</folder>
 			<folder>layouts</folder>
 			<folder>libraries</folder>
 			<folder>mailtpl</folder>
 			<folder>packages</folder>
-			<folder>payment_cache</folder>
 			<folder>pdftpl</folder>
 			<folder>services</folder>
 			<folder>sql</folder>

@@ -192,7 +192,11 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             ToolbarHelper::publish('forms.publish', 'JTOOLBAR_PUBLISH', true);
             ToolbarHelper::unpublish('forms.unpublish', 'JTOOLBAR_UNPUBLISH', true);
             ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'forms.remove');
-            ToolbarHelper::preferences('com_breezingformsng');
+            $user = Factory::getApplication()->getIdentity();
+
+            if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
+                ToolbarHelper::preferences('com_breezingformsng');
+            }
         }
 
         parent::display($tpl);
