@@ -933,11 +933,51 @@ HTMLHelper::_('bootstrap.collapse');
                 <?php if ($auditOrphanChecks !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
                         <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES'); ?></h4>
-                        <ul class="mb-0">
-                            <?php foreach ($auditOrphanChecks as $check) : ?>
-                                <li><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_' . strtoupper((string) ($check['id'] ?? ''))); ?>: <strong><?php echo (int) ($check['count'] ?? 0); ?></strong></li>
-                            <?php endforeach; ?>
-                        </ul>
+                        <?php foreach ($auditOrphanChecks as $check) : ?>
+                            <?php
+                            $orphanGroups = (array) ($check['groups'] ?? array());
+                            $orphanParent = strtoupper((string) ($check['parent'] ?? ''));
+                            $orphanHidden = (int) ($check['parents'] ?? 0) - count($orphanGroups);
+                            $orphanHasLabel = array_filter(array_column($orphanGroups, 'label')) !== array();
+                            $orphanHasPeriod = array_filter(array_column($orphanGroups, 'first')) !== array();
+                            ?>
+                            <details class="bf-audit-orphans mb-1">
+                                <summary><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_' . strtoupper((string) ($check['id'] ?? ''))); ?>: <strong><?php echo (int) ($check['count'] ?? 0); ?></strong></summary>
+                                <div class="table-responsive mt-2 mb-3">
+                                    <table class="table table-sm table-striped align-middle mb-0 w-auto">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_PARENT_' . $orphanParent); ?></th>
+                                                <?php if ($orphanHasLabel) : ?>
+                                                    <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_LABEL'); ?></th>
+                                                <?php endif; ?>
+                                                <th scope="col" class="text-end"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ROWS'); ?></th>
+                                                <?php if ($orphanHasPeriod) : ?>
+                                                    <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_PERIOD'); ?></th>
+                                                <?php endif; ?>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($orphanGroups as $orphanGroup) : ?>
+                                                <tr>
+                                                    <td>#<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?></td>
+                                                    <?php if ($orphanHasLabel) : ?>
+                                                        <td><?php echo htmlspecialchars((string) ($orphanGroup['label'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                                    <?php endif; ?>
+                                                    <td class="text-end"><?php echo (int) ($orphanGroup['count'] ?? 0); ?></td>
+                                                    <?php if ($orphanHasPeriod) : ?>
+                                                        <td class="text-nowrap"><?php echo htmlspecialchars(substr((string) ($orphanGroup['first'] ?? ''), 0, 10) . ' → ' . substr((string) ($orphanGroup['last'] ?? ''), 0, 10), ENT_QUOTES, 'UTF-8'); ?></td>
+                                                    <?php endif; ?>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                    <?php if ($orphanHidden > 0) : ?>
+                                        <p class="small text-muted mb-0 mt-1"><?php echo Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_MORE', $orphanHidden); ?></p>
+                                    <?php endif; ?>
+                                </div>
+                            </details>
+                        <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
 
