@@ -10,7 +10,7 @@ final class ManifestMediaTest extends TestCase
 {
     public function testDeclaresTheBreezingFormsThemeDirectoryForInstallation(): void
     {
-        $manifest = simplexml_load_file(__DIR__ . '/../../com_breezingformsng.xml');
+        $manifest = simplexml_load_file(__DIR__ . '/../../breezingformsng.xml');
 
         self::assertInstanceOf(\SimpleXMLElement::class, $manifest);
 

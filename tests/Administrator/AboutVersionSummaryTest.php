@@ -11,7 +11,7 @@ final class AboutVersionSummaryTest extends TestCase
     public function testVersionSummaryDisplaysBuildAndPlatformMetadata(): void
     {
         $template = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/default.php');
-        $manifest = file_get_contents(__DIR__ . '/../../com_breezingformsng.xml');
+        $manifest = file_get_contents(__DIR__ . '/../../breezingformsng.xml');
         $buildScript = file_get_contents(__DIR__ . '/../../scripts/build-package.sh');
 
         self::assertIsString($template);

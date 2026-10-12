@@ -68,11 +68,12 @@ final class InstallerScriptArchitectureTest extends TestCase
             1,
             substr_count(
                 $source,
-                "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng.xml'"
+                "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/breezingformsng.xml'"
             )
         );
 
         foreach ([
+            "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng.xml'",
             "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/breezingforms.xml'",
             "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng_ng.xml'",
             "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng-ng.xml'",

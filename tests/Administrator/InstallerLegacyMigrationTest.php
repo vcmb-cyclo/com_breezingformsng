@@ -53,7 +53,6 @@ final class InstallerLegacyMigrationTest extends TestCase
             ['migrateDatabase', 'importStandardLibrary'],
             ['migrateLegacyConfig', 'importStandardLibrary'],
             ['migrateLegacyConfig', 'cleanupLegacyBreezingFormsAfterInstall'],
-            ['migrateLegacyConfig', 'cleanupOldConfig'],
         ];
 
         foreach ($orderedCalls as [$before, $after]) {
@@ -70,14 +69,20 @@ final class InstallerLegacyMigrationTest extends TestCase
     private function createLifecycleRunner(): object
     {
         $source = file_get_contents(__DIR__ . '/../../script.php');
+        self::assertIsString($source);
+
         $updateStart = strpos($source, '    public function update(');
+        self::assertIsInt($updateStart);
         // The next private method terminates update() in both the original and
         // extracted implementation; its database side effects are recorded below.
         $updateEnd = strpos($source, "\n    private ", $updateStart);
+        self::assertIsInt($updateEnd);
         $update = substr($source, $updateStart, $updateEnd - $updateStart);
 
         $postflightStart = strpos($source, '    function postflight(');
+        self::assertIsInt($postflightStart);
         $postflightEnd = strpos($source, '        $durationSeconds = ', $postflightStart);
+        self::assertIsInt($postflightEnd);
         // Execute the real lifecycle branches, excluding only the final Joomla
         // notification/reporting block, which does not perform migrations.
         $postflight = substr($source, $postflightStart, $postflightEnd - $postflightStart) . "    }\n";

@@ -2350,6 +2350,9 @@ class com_breezingformsngInstallerScript
             JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/jq.min.js',
             JPATH_SITE . '/components/com_breezingformsng/src/Helper/legacy/route.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src/Model/LegacyPackageModel.php',
+            // Manifest renamed to breezingformsng.xml, the name Joomla resolves
+            // for a component (element without its com_ prefix).
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng.xml',
         ];
 
         foreach ($obsolete as $file) {
