@@ -158,6 +158,38 @@ final class ClassicRendererCharacterizationTest extends TestCase
         self::assertStringContainsString("ff_resetForm(this, 'click');", $lastPageHtml);
     }
 
+    /**
+     * Issue #69: a start page coming only from the menu item (no ff_page in
+     * the request) reaches the renderer through the processor.
+     */
+    public function testStartPageResolvedByTheProcessorIsTheVisibleOne(): void
+    {
+        $renderer = $this->makeRenderer();
+        $this->setPrivate($renderer, 'rootMdata', [
+            'joomlaHint' => false,
+            'useErrorAlerts' => true,
+            'lastPageThankYou' => false,
+            'pagingInclude' => false,
+            'submitInclude' => false,
+            'cancelInclude' => false,
+        ]);
+        $this->setPrivate($renderer, 'dataObject', ['children' => [[], [], []]]);
+
+        $processor = (new ReflectionClass($renderer))->getProperty('p')->getValue($renderer);
+        $processor->page = 3;
+
+        $page = static fn(int $number): array => [
+            'attributes' => ['id' => 'page' . $number],
+            'properties' => ['type' => 'page', 'pageNumber' => $number, 'pageIntro' => ''],
+        ];
+
+        self::assertStringContainsString('<div id="bfPage3" class="bfPage">', $this->render($renderer, $page(3)));
+        self::assertStringContainsString(
+            '<div id="bfPage1" class="bfPage" style="display:none;">',
+            $this->render($renderer, $page(1))
+        );
+    }
+
     public function testTextareaElement(): void
     {
         $renderer = $this->makeRenderer();

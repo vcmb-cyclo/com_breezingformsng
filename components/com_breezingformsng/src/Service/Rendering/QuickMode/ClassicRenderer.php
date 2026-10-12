@@ -343,7 +343,7 @@ float:left;
                 }
 
                 $display = ' style="display:none;"';
-                if ($this->p->app->getInput()->getInt('ff_form_submitted', 0) == 0 && $this->p->app->getInput()->getInt('ff_page', 1) == $parentPage['pageNumber']) {
+                if ($this->p->app->getInput()->getInt('ff_form_submitted', 0) == 0 && (int) $this->p->page == $parentPage['pageNumber']) {
                     $display = '';
                 } elseif ($this->p->app->getInput()->getInt('ff_form_submitted', 0) == 1 && $this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->dataObject['children'])) {
                     $display = '';

@@ -460,9 +460,9 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                     $display = ' style="pointer-events:none;opacity:0.4"';
                 }
 
-                if ($this->p->app->getInput()->getInt('ff_page', 1) >= $parentPage['pageNumber'] && !($this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->dataObject['children']))) {
+                if ((int) $this->p->page >= $parentPage['pageNumber'] && !($this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->dataObject['children']))) {
                     $display = ' style="pointer-events:auto;opacity:1.0"';
-                } elseif ($this->p->app->getInput()->getInt('ff_page', 1) < $parentPage['pageNumber'] && !($this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->dataObject['children']))) {
+                } elseif ((int) $this->p->page < $parentPage['pageNumber'] && !($this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->dataObject['children']))) {
                     $display = ' style="pointer-events:none;opacity:0.4"';
                 } elseif ($this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->dataObject['children'])) {
                     $display = ' style="display:none;"';
