@@ -1751,3 +1751,11 @@ Cette skill ne couvre pas :
 
 Ne pas implémenter de contournement personnalisé du fallback Joomla dans le
 cadre d’une tâche de traduction.
+
+## 21. Priorité en cas de conflit
+
+En cas de divergence entre les instructions de Gilles, `AGENTS.md`, cette
+spécification, Joomla et une traduction amont, appliquer cet ordre : instructions
+explicites de Gilles et `AGENTS.md`, règles de cette skill, conventions Joomla 6,
+puis valeur amont. Conserver les clés et placeholders existants et signaler une
+divergence qui nécessiterait de modifier le comportement.
