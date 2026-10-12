@@ -1229,6 +1229,16 @@ class com_breezingformsngInstallerScript
             return;
         }
 
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $query = $db->getQuery(true)
+            ->select(['folder', 'element', 'enabled'])
+            ->from($db->quoteName('#__extensions'))
+            ->where('type = ' . $db->quote('plugin'));
+        $existingPlugins = [];
+        foreach ($db->setQuery($query)->loadObjectList() as $plugin) {
+            $existingPlugins[$plugin->folder][$plugin->element] = (int) $plugin->enabled;
+        }
+
         $folders = Folder::folders($basePath);
         if (empty($folders)) {
             return;
@@ -1249,20 +1259,22 @@ class com_breezingformsngInstallerScript
             }
         }
 
-        // Activation avec driver standard (safe)
+        // Preserve existing plugin states; enable newly installed plugins only.
         $standardDb = Factory::getContainer()->get(DatabaseInterface::class);
 
         foreach ($this->getPlugins() as $folder => $plugins) {
             foreach ($plugins as $plugin) {
                 $query = $standardDb->getQuery(true)
                     ->update('#__extensions')
-                    ->set('enabled = 1')
+                    ->set('enabled = ' . ($existingPlugins[$folder][$plugin] ?? 1))
                     ->where('type = ' . $standardDb->quote('plugin'))
                     ->where('element = ' . $standardDb->quote($plugin))
                     ->where('folder = ' . $standardDb->quote($folder));
 
                 $standardDb->setQuery($query)->execute();
-                $this->log("Plugin {$plugin} enabled.");
+                if (!isset($existingPlugins[$folder][$plugin])) {
+                    $this->log("Plugin {$plugin} enabled.");
+                }
             }
         }
     }
@@ -2406,6 +2418,7 @@ class com_breezingformsngInstallerScript
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $textCollationClause = $this->getTextCollationClause();
+        $auditCollation = $this->utf8mb4Supported ? $this->utf8mb4Collation : null;
         $tables = self::getTableFields($db->getTableList());
         $prefix = $db->getPrefix();
 
@@ -2413,6 +2426,14 @@ class com_breezingformsngInstallerScript
         $formsTable   = $prefix . 'facileforms_forms';
         $scriptsTable = $prefix . 'facileforms_scripts';
         $piecesTable  = $prefix . 'facileforms_pieces';
+
+        foreach ([$recordsTable, $formsTable, $scriptsTable, $piecesTable] as $tableName) {
+            if (isset($tables[$tableName])) {
+                $tables[$tableName] = $db->setQuery(
+                    'SHOW FULL COLUMNS FROM ' . $db->quoteName($tableName)
+                )->loadObjectList('Field');
+            }
+        }
 
         if (isset($tables[$recordsTable])) {
             $columns = $tables[$recordsTable];
@@ -2444,21 +2465,23 @@ class com_breezingformsngInstallerScript
                 }
             }
 
-            if (isset($columns['opt_date'])) {
+            if (
+                isset($columns['opt_date'])
+                && !self::columnDefinitionMatches($columns['opt_date'], 'datetime', true, null)
+            ) {
                 $db->setQuery("ALTER TABLE `{$recordsTable}` MODIFY `opt_date` DATETIME NULL DEFAULT NULL")->execute();
                 $this->log('Updated opt_date column definition in facileforms_records.');
             }
 
             if (isset($columns['ip'])) {
-                $ipType = strtolower((string) $columns['ip']);
-                if ($ipType !== 'varchar(45)') {
+                if (!self::columnDefinitionMatches($columns['ip'], 'varchar(45)', false, '')) {
                     $db->setQuery("ALTER TABLE `{$recordsTable}` MODIFY `ip` VARCHAR(45) NOT NULL DEFAULT ''")->execute();
                     $this->log('Updated ip column definition in facileforms_records.');
                 }
             }
 
             if (isset($columns['browser'])) {
-                $browserType = strtolower((string) $columns['browser']);
+                $browserType = strtolower((string) $columns['browser']->Type);
                 if (strpos($browserType, 'text') === false) {
                     $db->setQuery("ALTER TABLE `{$recordsTable}` MODIFY `browser` TEXT NOT NULL")->execute();
                     $this->log('Updated browser column definition in facileforms_records.');
@@ -2502,11 +2525,17 @@ class com_breezingformsngInstallerScript
                 }
             }
 
-            if (isset($columns['created_by'])) {
+            if (
+                isset($columns['created_by'])
+                && !self::columnDefinitionMatches($columns['created_by'], 'varchar(255)', false, '', $auditCollation)
+            ) {
                 $db->setQuery("ALTER TABLE `{$formsTable}` MODIFY `created_by` VARCHAR(255){$textCollationClause} NOT NULL DEFAULT ''")->execute();
                 $this->log("Updated created_by column definition in facileforms_forms.");
             }
-            if (isset($columns['modified_by'])) {
+            if (
+                isset($columns['modified_by'])
+                && !self::columnDefinitionMatches($columns['modified_by'], 'varchar(255)', false, '', $auditCollation)
+            ) {
                 $db->setQuery("ALTER TABLE `{$formsTable}` MODIFY `modified_by` VARCHAR(255){$textCollationClause} NOT NULL DEFAULT ''")->execute();
                 $this->log("Updated modified_by column definition in facileforms_forms.");
             }
@@ -2550,11 +2579,17 @@ class com_breezingformsngInstallerScript
                 }
             }
 
-            if (isset($columns['created_by'])) {
+            if (
+                isset($columns['created_by'])
+                && !self::columnDefinitionMatches($columns['created_by'], 'varchar(255)', false, '', $auditCollation)
+            ) {
                 $db->setQuery("ALTER TABLE `{$tableName}` MODIFY `created_by` VARCHAR(255){$textCollationClause} NOT NULL DEFAULT ''")->execute();
                 $this->log("Updated created_by column definition in {$tableName}.");
             }
-            if (isset($columns['modified_by'])) {
+            if (
+                isset($columns['modified_by'])
+                && !self::columnDefinitionMatches($columns['modified_by'], 'varchar(255)', false, '', $auditCollation)
+            ) {
                 $db->setQuery("ALTER TABLE `{$tableName}` MODIFY `modified_by` VARCHAR(255){$textCollationClause} NOT NULL DEFAULT ''")->execute();
                 $this->log("Updated modified_by column definition in {$tableName}.");
             }
@@ -2564,6 +2599,19 @@ class com_breezingformsngInstallerScript
         $this->migrateQuickmodeIconPaths();
 
         $this->log('BreezingForms database update completed.');
+    }
+
+    private static function columnDefinitionMatches(
+        object $column,
+        string $type,
+        bool $nullable,
+        ?string $default,
+        ?string $collation = null
+    ): bool {
+        return strtolower($column->Type) === $type
+            && ($column->Null === 'YES') === $nullable
+            && $column->Default === $default
+            && ($collation === null || $column->Collation === $collation);
     }
 
     private function migrateQuickmodeIconPaths(): void
