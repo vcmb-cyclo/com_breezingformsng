@@ -26,6 +26,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfDocument;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfFontDirectoryScanner;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 
 /** @property CMSApplication $app */
 class RecordsController extends BaseController
@@ -108,6 +109,7 @@ class RecordsController extends BaseController
 
         $contentFactory = $contentComponent->getMVCFactory();
         $this->getRecordModel()->deleteRecords($ids, $contentFactory);
+        (new ActionLogger($app))->log(ActionLogger::DELETED, ActionLogger::RECORD, $ids);
         $app->redirect($this->listUrl($input));
     }
 

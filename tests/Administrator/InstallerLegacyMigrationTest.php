@@ -11,7 +11,7 @@ final class InstallerLegacyMigrationTest extends TestCase
     public function testInstallationMigratesPreservedTablesBeforeImportingLibrary(): void
     {
         $installer = $this->createLifecycleRunner();
-        $installer->postflight('install', null);
+        $installer->postflight('install', $this->adapter());
 
         $this->assertMigrationOrder($installer->calls);
     }
@@ -19,7 +19,7 @@ final class InstallerLegacyMigrationTest extends TestCase
     public function testDiscoveryInstallationAlsoMigratesPreservedTables(): void
     {
         $installer = $this->createLifecycleRunner();
-        $installer->postflight('discover_install', null);
+        $installer->postflight('discover_install', $this->adapter());
 
         $this->assertMigrationOrder($installer->calls);
     }
@@ -27,8 +27,8 @@ final class InstallerLegacyMigrationTest extends TestCase
     public function testUpdateMigratesOnceAndPreservesConfigurationBeforeCleanup(): void
     {
         $installer = $this->createLifecycleRunner();
-        $installer->update(null);
-        $installer->postflight('update', null);
+        $installer->update($this->adapter());
+        $installer->postflight('update', $this->adapter());
 
         $this->assertMigrationOrder($installer->calls);
     }
@@ -36,7 +36,7 @@ final class InstallerLegacyMigrationTest extends TestCase
     public function testUninstallDoesNotMigrateOrImportData(): void
     {
         $installer = $this->createLifecycleRunner();
-        $installer->postflight('uninstall', null);
+        $installer->postflight('uninstall', $this->adapter());
 
         self::assertNotContains('migrateDatabase', $installer->calls);
         self::assertNotContains('migrateLegacyConfig', $installer->calls);
@@ -66,6 +66,15 @@ final class InstallerLegacyMigrationTest extends TestCase
         }
     }
 
+    private function adapter(): object
+    {
+        if (!class_exists(\Joomla\CMS\Installer\InstallerAdapter::class)) {
+            eval('namespace Joomla\\CMS\\Installer; class InstallerAdapter {}');
+        }
+
+        return (new \ReflectionClass(\Joomla\CMS\Installer\InstallerAdapter::class))->newInstanceWithoutConstructor();
+    }
+
     private function createLifecycleRunner(): object
     {
         $source = file_get_contents(__DIR__ . '/../../script.php');
@@ -79,15 +88,15 @@ final class InstallerLegacyMigrationTest extends TestCase
         self::assertIsInt($updateEnd);
         $update = substr($source, $updateStart, $updateEnd - $updateStart);
 
-        $postflightStart = strpos($source, '    function postflight(');
+        $postflightStart = strpos($source, '    public function postflight(');
         self::assertIsInt($postflightStart);
         $postflightEnd = strpos($source, '        $durationSeconds = ', $postflightStart);
         self::assertIsInt($postflightEnd);
         // Execute the real lifecycle branches, excluding only the final Joomla
         // notification/reporting block, which does not perform migrations.
-        $postflight = substr($source, $postflightStart, $postflightEnd - $postflightStart) . "    }\n";
+        $postflight = substr($source, $postflightStart, $postflightEnd - $postflightStart) . "        return true;\n    }\n";
 
-        return eval('return new class { public array $calls = [];'
+        return eval('use Joomla\\CMS\\Installer\\InstallerAdapter; return new class { public array $calls = [];'
             . 'public function __call(string $name, array $arguments): mixed {'
             . '$this->calls[] = $name; return $name === "getCurrentInstalledVersion" ? "5.0.0-RC11" : null; }'
             . $update . $postflight . ' };');

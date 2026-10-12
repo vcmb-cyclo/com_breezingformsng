@@ -338,6 +338,26 @@ if [[ "${content_plugin_count}" -ne 1 ]]; then
     exit 1
 fi
 
+privacy_plugin_count="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "SELECT COUNT(*) FROM \`${table_prefix}extensions\` WHERE type = 'plugin' AND element = 'breezingformsng' AND folder = 'privacy' AND enabled = 1;"
+)"
+
+if [[ "${privacy_plugin_count}" -ne 1 ]]; then
+    echo "The BreezingForms NG privacy plugin was not installed and enabled correctly." >&2
+    exit 1
+fi
+
+action_log_extension_count="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "SELECT COUNT(*) FROM \`${table_prefix}action_logs_extensions\` WHERE extension = 'com_breezingformsng';"
+)"
+
+if [[ "${action_log_extension_count}" -ne 1 ]]; then
+    echo "BreezingForms NG was not registered in the User Actions Log." >&2
+    exit 1
+fi
+
 # Component tables are prefixed facileforms_ (carried over from the
 # original FacileForms/BreezingForms naming), not breezingformsng_.
 table_count="$(

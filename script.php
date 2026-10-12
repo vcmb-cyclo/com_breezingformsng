@@ -17,6 +17,8 @@ use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\CMS\Installer\Installer;
+use Joomla\CMS\Installer\InstallerAdapter;
+use Joomla\CMS\Installer\InstallerScriptInterface;
 use Joomla\CMS\Language\Text;
 use Joomla\Filesystem\Folder;
 use Joomla\CMS\Log\Log;
@@ -39,7 +41,7 @@ Log::add('PHP Version: ' . PHP_VERSION . '.', Log::INFO, 'com_breezingformsng.in
 Log::add('Joomla Version : ' . JVERSION . '.', Log::INFO, 'com_breezingformsng.install');
 Log::add('User Agent: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'CLI') . '.', Log::INFO, 'com_breezingformsng.install');
 
-class com_breezingformsngInstallerScript
+class com_breezingformsngInstallerScript implements InstallerScriptInterface
 {
     private const TARGET_COMPONENT = 'com_breezingformsng';
     private const MINIMUM_PHP = '8.3';
@@ -1393,6 +1395,65 @@ class com_breezingformsngInstallerScript
         ];
     }
 
+    /**
+     * Lists the component in Joomla's User Actions Log. On first registration
+     * it is also added to the logged extensions; afterwards that setting
+     * belongs to the administrator.
+     */
+    private function registerActionLogExtension(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $extension = 'com_breezingformsng';
+
+        $query = $db->getQuery(true)
+            ->select('COUNT(*)')
+            ->from($db->quoteName('#__action_logs_extensions'))
+            ->where($db->quoteName('extension') . ' = ' . $db->quote($extension));
+
+        if ((int) $db->setQuery($query)->loadResult() > 0) {
+            return;
+        }
+
+        $query = $db->getQuery(true)
+            ->insert($db->quoteName('#__action_logs_extensions'))
+            ->columns($db->quoteName('extension'))
+            ->values($db->quote($extension));
+        $db->setQuery($query)->execute();
+
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('params'))
+            ->from($db->quoteName('#__extensions'))
+            ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
+            ->where($db->quoteName('element') . ' = ' . $db->quote('com_actionlogs'));
+        $params = json_decode((string) $db->setQuery($query)->loadResult(), true);
+        $params = is_array($params) ? $params : [];
+        $loggable = (array) ($params['loggable_extensions'] ?? []);
+
+        if (!in_array($extension, $loggable, true)) {
+            $loggable[] = $extension;
+            $params['loggable_extensions'] = array_values($loggable);
+
+            $query = $db->getQuery(true)
+                ->update($db->quoteName('#__extensions'))
+                ->set($db->quoteName('params') . ' = ' . $db->quote(json_encode($params)))
+                ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
+                ->where($db->quoteName('element') . ' = ' . $db->quote('com_actionlogs'));
+            $db->setQuery($query)->execute();
+        }
+
+        $this->log('Component registered in the User Actions Log.');
+    }
+
+    private function unregisterActionLogExtension(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+
+        $query = $db->getQuery(true)
+            ->delete($db->quoteName('#__action_logs_extensions'))
+            ->where($db->quoteName('extension') . ' = ' . $db->quote('com_breezingformsng'));
+        $db->setQuery($query)->execute();
+    }
+
     private function removeBreezingFormsMenuEntries(): void
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
@@ -2401,24 +2462,28 @@ class com_breezingformsngInstallerScript
     /**
      * method to install the component
      *
-     * @return void
+     * @return bool
      */
-    public function install($parent): void
+    public function install(InstallerAdapter $adapter): bool
     {
         $this->log('Fresh installation of BreezingForms.');
+
+        return true;
     }
     /**
      * method to update the component
      *
-     * @return void
+     * @return bool
      */
-    public function update($parent): void
+    public function update(InstallerAdapter $adapter): bool
     {
         $this->log('Updating BreezingForms from version ' . $this->getCurrentInstalledVersion());
         $this->ensureUtf8mb4Columns();
         $this->migrateLegacyComponentOptionReferences();
 
         $this->migrateDatabase();
+
+        return true;
     }
 
     private function migrateDatabase(): void
@@ -2734,9 +2799,9 @@ class com_breezingformsngInstallerScript
     /**
      * method to uninstall the component
      *
-     * @return void
+     * @return bool
      */
-    function uninstall($parent)
+    public function uninstall(InstallerAdapter $adapter): bool
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
 
@@ -2775,6 +2840,8 @@ class com_breezingformsngInstallerScript
         $this->cleanupComponentLogFile();
         $this->removeBreezingFormsMenuEntries();
         $this->log('BreezingForms uninstallation completed.');
+
+        return true;
     }
 
     /**
@@ -2783,12 +2850,12 @@ class com_breezingformsngInstallerScript
      * @return bool
      */
 
-    public function preflight(string $type, $parent): bool
+    public function preflight(string $type, InstallerAdapter $adapter): bool
     {
         $this->resetCriticalFailures();
 
         $type = strtolower((string) $type);
-        $this->incomingPackageVersion = $this->getIncomingVersion($parent);
+        $this->incomingPackageVersion = $this->getIncomingVersion($adapter);
 
         if (!$this->checkRequirements()) {
             return false;
@@ -2830,9 +2897,9 @@ class com_breezingformsngInstallerScript
     /**
      * method to run after an install/update/uninstall method
      *
-     * @return void
+     * @return bool
      */
-    function postflight($type, $parent)
+    public function postflight(string $type, InstallerAdapter $adapter): bool
     {
         $type = strtolower((string) $type);
 
@@ -2858,13 +2925,15 @@ class com_breezingformsngInstallerScript
             $this->copyComponentImageAssets();
             $this->installPlugins();
             $this->installModules();
+            $this->registerActionLogExtension();
             $this->cleanupLegacyBreezingFormsAfterInstall();
             $this->removeOldUpdateSite();
             $this->cleanupOldConfig();
             $this->purgeCaches('postflight:' . $type);
-            $this->verifyInstalledExtensionConsistency($parent);
+            $this->verifyInstalledExtensionConsistency($adapter);
         } elseif ($type === 'uninstall') {
             $this->removeBreezingFormsMenuEntries();
+            $this->unregisterActionLogExtension();
             $this->cleanupOldConfig();
             $this->cleanupComponentLogFile();
             $this->purgeCaches('postflight:' . $type);
@@ -2902,6 +2971,8 @@ class com_breezingformsngInstallerScript
         }
 
         $this->log('BreezingForms installation/update process finished successfully.');
+
+        return true;
     }
 
     function getPlugins()
@@ -2910,6 +2981,7 @@ class com_breezingformsngInstallerScript
         $plugins['system'] = array();
         $plugins['system'][] = 'bfcompat';
         $plugins['content'] = ['breezingforms'];
+        $plugins['privacy'] = ['breezingformsng'];
         return $plugins;
     }
 

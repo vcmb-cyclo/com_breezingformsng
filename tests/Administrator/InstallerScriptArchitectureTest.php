@@ -15,8 +15,31 @@ final class InstallerScriptArchitectureTest extends TestCase
         self::assertIsString($source);
         self::assertStringContainsString(
             '* @return bool',
-            $this->sectionBefore($source, 'public function preflight(string $type, $parent): bool')
+            $this->sectionBefore($source, 'public function preflight(string $type, InstallerAdapter $adapter): bool')
         );
+    }
+
+    public function testScriptImplementsTheInstallerScriptInterface(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../script.php');
+
+        self::assertIsString($source);
+        self::assertStringContainsString(
+            'class com_breezingformsngInstallerScript implements InstallerScriptInterface',
+            $source
+        );
+
+        foreach (
+            [
+                'public function install(InstallerAdapter $adapter): bool',
+                'public function update(InstallerAdapter $adapter): bool',
+                'public function uninstall(InstallerAdapter $adapter): bool',
+                'public function preflight(string $type, InstallerAdapter $adapter): bool',
+                'public function postflight(string $type, InstallerAdapter $adapter): bool',
+            ] as $signature
+        ) {
+            self::assertStringContainsString($signature, $source);
+        }
     }
 
     public function testPluginUninstallUsesTheJoomlaSixArgumentList(): void

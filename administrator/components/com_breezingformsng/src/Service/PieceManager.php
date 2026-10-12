@@ -226,6 +226,7 @@ class PieceManager
 			return;
 		}
 
+		(new ActionLogger($app))->log(ActionLogger::SAVED, ActionLogger::PIECE, [(int) $row->id], (string) $row->name);
 		$app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PIECES_SAVED'));
 		$app->redirect("index.php?option=$option&task=pieces.edit&pkg=$pkg&ids[]=" . (int) $row->id);
 	}
@@ -252,6 +253,9 @@ class PieceManager
 				$row->modified_by = $row->created_by;
 				$row->store();
 			} // foreach
+		if ($ids !== []) {
+			(new ActionLogger($this->app))->log(ActionLogger::COPIED, ActionLogger::PIECE, $ids);
+		}
 		$msg = Text::plural('COM_BREEZINGFORMSNG_PIECES_N_COPIED', $total);
 		$this->app->enqueueMessage($msg);
 		$this->app->redirect("index.php?option=$option&view=pieces&pkg=$pkg");
@@ -269,6 +273,7 @@ class PieceManager
 		}
 
 		if ($total) {
+			(new ActionLogger($this->app))->log(ActionLogger::DELETED, ActionLogger::PIECE, (array) $ids);
 			$msg = Text::plural('COM_BREEZINGFORMSNG_PIECES_N_DELETED', $total);
 			$this->app->enqueueMessage($msg);
 			$this->app->redirect("index.php?option=$option&view=pieces&pkg=$pkg");
@@ -282,6 +287,11 @@ class PieceManager
 	{
 		try {
 			$this->model->publishByIds($ids, (bool) $publish);
+			(new ActionLogger($this->app))->log(
+				$publish ? ActionLogger::PUBLISHED : ActionLogger::UNPUBLISHED,
+				ActionLogger::PIECE,
+				(array) $ids
+			);
 		} catch (RuntimeException $e) {
 			$this->app->enqueueMessage($e->getMessage(), 'error');
 			$this->app->redirect("index.php?option=$option&view=pieces&pkg=$pkg");

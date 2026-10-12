@@ -34,6 +34,7 @@ required=(
     "administrator/components/com_breezingformsng/src/Extension/BreezingFormsNGComponent.php"
     "administrator/components/com_breezingformsng/sql/install.mysql.utf8.sql"
     "administrator/components/com_breezingformsng/plugins/bfcompat/bfcompat.xml"
+    "administrator/components/com_breezingformsng/plugins/privacy/breezingformsng.xml"
     "administrator/components/com_breezingformsng/vendor/bgli100/securimage/securimage.php"
     "administrator/components/com_breezingformsng/vendor/bgli100/securimage/CaptchaObject.php"
     "administrator/components/com_breezingformsng/vendor/bgli100/securimage/StorageAdapter/Session.php"

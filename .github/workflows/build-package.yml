@@ -8,6 +8,8 @@ on:
       - main
     tags:
       - 'v*'
+    paths-ignore:
+      - com_breezingformsng_update.xml
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -54,8 +56,11 @@ jobs:
         run: |
           manifest_version="$(grep -oPm1 '(?<=<version>)[^<]+' breezingformsng.xml)"
           update_version="$(grep -oPm1 '(?<=<version>)[^<]+' com_breezingformsng_update.xml)"
-          if [ "${manifest_version}" != "${update_version}" ]; then
-            echo "::error::Version mismatch: manifest ${manifest_version} vs update stream ${update_version}."
+          # The release job publishes the update stream once the archive
+          # exists, so the stream may lag behind the package, never lead it.
+          if ! php -r 'exit(version_compare($argv[1], $argv[2], "<=") ? 0 : 1);' \
+            "${update_version}" "${manifest_version}"; then
+            echo "::error::Update stream ${update_version} is newer than package ${manifest_version}."
             exit 1
           fi
 
@@ -306,3 +311,37 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: gh release edit "${GITHUB_REF_NAME}" --draft=false --latest
+
+      # Same mechanism as ContentBuilder NG: the update stream served from main
+      # is rewritten only once the archive is published, with its checksum.
+      - name: Publish update manifest to main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          release_version="${{ steps.release.outputs.version }}"
+          release_url="https://github.com/vcmb-cyclo/com_breezingformsng/releases/download/v${release_version}/com_breezingformsng-${release_version}.zip"
+          gh release view "v${release_version}" --json assets \
+            --jq '.assets[].name' | grep -Fx "com_breezingformsng-${release_version}.zip"
+          stability=stable
+          if [[ "${release_version}" =~ -RC[0-9]+$ ]]; then
+            stability=rc
+          fi
+          git fetch origin main
+          git switch -C main origin/main
+          RELEASE_VERSION="${release_version}" RELEASE_URL="${release_url}" RELEASE_STABILITY="${stability}" \
+            perl -0pi -e '
+              s#(<version>)[^<]*(</version>)#$1$ENV{RELEASE_VERSION}$2#;
+              s#(<downloadurl type="full" format="zip">)[^<]*(</downloadurl>)#$1$ENV{RELEASE_URL}$2#;
+              s#(<tag>)[^<]*(</tag>)#$1$ENV{RELEASE_STABILITY}$2#;
+              s#\n\s*<sha256>.*?</sha256>##g;
+              s#(\n\s*</downloads>)#$1\n\t\t<sha256>${{ steps.checksum.outputs.sha256 }}</sha256>#;
+            ' com_breezingformsng_update.xml
+          if git diff --quiet -- com_breezingformsng_update.xml; then
+            echo "Update manifest already current."
+            exit 0
+          fi
+          git add com_breezingformsng_update.xml
+          git commit -m "Publish update manifest for ${release_version}"
+          git push origin main

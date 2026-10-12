@@ -17,6 +17,7 @@ use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 
 final class PackagesController extends BaseController
 {
@@ -76,6 +77,7 @@ final class PackagesController extends BaseController
                 throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_FILE_REQUIRED'));
             }
             $this->model()->import($path);
+            (new ActionLogger($app))->log(ActionLogger::IMPORTED, ActionLogger::PACKAGE);
             $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORTED'), 'message');
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
