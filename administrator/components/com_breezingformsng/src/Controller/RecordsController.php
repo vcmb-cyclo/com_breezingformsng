@@ -663,7 +663,8 @@ class RecordsController extends BaseController
         $headers = [
             'id', 'submitted', 'user_id', 'username', 'user_full_name', 'bf_form_title', 'ip',
             'browser', 'opsys', 'paypal_tx_id', 'paypal_payment_date', 'paypal_testaccount',
-            'paypal_download_tries', 'double_opt_in', ...array_values($fieldKeys),
+            'paypal_download_tries', 'double_opt_in', 'viewed', 'exported', 'state',
+            ...array_values($fieldKeys),
         ];
 
         if (count($headers) > $maxColumns) {
@@ -709,6 +710,9 @@ class RecordsController extends BaseController
                     (string) $record->paypal_testaccount,
                     (string) $record->paypal_download_tries,
                     (string) ($record->opted ?? ''),
+                    (string) $record->viewed,
+                    (string) $record->exported,
+                    (string) $record->state,
                 ];
                 foreach ($fieldKeys as $key => $name) {
                     $row[] = isset($subValues[$key]) ? implode('|', $subValues[$key]) : '';

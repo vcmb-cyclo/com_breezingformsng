@@ -58,6 +58,22 @@ final class RecordStateTest extends TestCase
         );
     }
 
+    public function testTabularExportWritesTheStatusColumnsTheImportReads(): void
+    {
+        $admin = __DIR__ . '/../../../administrator/components/com_breezingformsng/src';
+        $controller = file_get_contents($admin . '/Controller/RecordsController.php');
+        $model = file_get_contents($admin . '/Model/RecordModel.php');
+
+        self::assertIsString($controller);
+        self::assertIsString($model);
+        self::assertStringContainsString("'double_opt_in', 'viewed', 'exported', 'state',", $controller);
+        self::assertMatchesRegularExpression(
+            '/\\(string\\) \\$record->viewed,\\s+\\(string\\) \\$record->exported,\\s+\\(string\\) \\$record->state,/',
+            $controller
+        );
+        self::assertStringContainsString("'viewed', 'exported', 'state', 'archived',", $model);
+    }
+
     public static function filterProvider(): array
     {
         return [
