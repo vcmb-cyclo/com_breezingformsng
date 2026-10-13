@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<fieldset name="import">
+		<field
+			name="form_id"
+			type="sql"
+			label="COM_BREEZINGFORMSNG_FORM"
+			sql_select="id, title"
+			sql_from="#__facileforms_forms"
+			sql_order="title ASC"
+			key_field="id"
+			value_field="title"
+			required="true"
+			validate="options"
+			>
+			<option value="">JGLOBAL_SELECT_AN_OPTION</option>
+		</field>
+		<field
+			name="csv_file"
+			type="file"
+			label="COM_BREEZINGFORMSNG_CSV_FILE"
+			accept=".csv,text/csv"
+			required="true"
+		/>
+		<field
+			name="encoding"
+			type="list"
+			label="COM_BREEZINGFORMSNG_CSV_ENCODING"
+			default="0"
+			validate="options"
+			>
+			<option value="0">COM_BREEZINGFORMSNG_CSV_ENCODING_UTF8</option>
+			<option value="ISO-8859-1">ISO-8859-1</option>
+			<option value="Windows-1252">Windows-1252</option>
+			<option value="UTF-16">UTF-16</option>
+		</field>
+	</fieldset>
+</form>

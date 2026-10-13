@@ -15,6 +15,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Pagination\Pagination;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Toolbar\Button\DropdownButton;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
@@ -31,9 +32,6 @@ class HtmlView extends BaseHtmlView
     public ?Registry $state = null;
     public ?Form $filterForm = null;
     public array $activeFilters = [];
-    public int $formSelection = 0;
-
-    private string $layout = 'default';
 
     public bool $canOpen = false;
 
@@ -44,9 +42,6 @@ class HtmlView extends BaseHtmlView
     {
         /** @var CMSApplication $app */
         $app = Factory::getApplication();
-        $input = $app->getInput();
-        $layout = $input->getCmd('layout', 'default');
-        $this->layout = $layout;
 
         $app->getDocument()->getWebAssetManager()->useScript('keepalive');
 
@@ -55,35 +50,30 @@ class HtmlView extends BaseHtmlView
         $this->canDelete = $user->authorise('core.delete', 'com_breezingformsng');
         $this->canOpen = $user->authorise('core.edit', 'com_breezingformsng');
 
-        if ($layout === 'csvimport') {
-            $this->formSelection = (int) $this->getRecordsModel()->getState('filter.form');
-            $this->prepareImportToolbar();
-        } else {
-            $this->prepareListData();
-            $this->prepareListToolbar();
+        $this->prepareListData();
+        $this->prepareListToolbar();
 
-            $document = $app->getDocument();
-            $document->getWebAssetManager()->useScript('table.columns')->useScript('multiselect');
-            $document->getWebAssetManager()->registerAndUseScript(
-                'com_breezingformsng.record-flags',
-                'media/com_breezingformsng/js/admin/record-flags.js',
-                ['version' => 'auto'],
-                ['defer' => true],
-                ['core']
-            );
-            $document->addScriptOptions(
-                'com_breezingformsng.record-flags',
-                ['csrfToken' => \Joomla\CMS\Session\Session::getFormToken()]
-            );
-            $document->getWebAssetManager()->registerAndUseScript(
-                'com_breezingformsng.records-list',
-                'media/com_breezingformsng/js/admin/records-list.js',
-                ['version' => 'auto'],
-                ['defer' => true],
-                ['core', 'com_breezingformsng.record-flags']
-            );
-            Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
-        }
+        $document = $app->getDocument();
+        $document->getWebAssetManager()->useScript('table.columns')->useScript('multiselect');
+        $document->getWebAssetManager()->registerAndUseScript(
+            'com_breezingformsng.record-flags',
+            'media/com_breezingformsng/js/admin/record-flags.js',
+            ['version' => 'auto'],
+            ['defer' => true],
+            ['core']
+        );
+        $document->addScriptOptions(
+            'com_breezingformsng.record-flags',
+            ['csrfToken' => \Joomla\CMS\Session\Session::getFormToken()]
+        );
+        $document->getWebAssetManager()->registerAndUseScript(
+            'com_breezingformsng.records-list',
+            'media/com_breezingformsng/js/admin/records-list.js',
+            ['version' => 'auto'],
+            ['defer' => true],
+            ['core', 'com_breezingformsng.record-flags']
+        );
+        Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
 
         parent::display($tpl);
     }
@@ -133,7 +123,11 @@ class HtmlView extends BaseHtmlView
         $child->standardButton('exportXlsx')->text(Text::_('COM_BREEZINGFORMSNG_XLSX'))->task('records.exportXlsx')->icon('icon-download')->listCheck(false);
         $child->standardButton('exportXml')->text(Text::_('COM_BREEZINGFORMSNG_XML'))->task('records.exportXml')->icon('icon-download')->listCheck(false);
 
-        ToolbarHelper::custom('records.csvImport', 'upload', 'upload', Text::_('COM_BREEZINGFORMSNG_BTN_IMPORT_CSV'), false);
+        if (Factory::getApplication()->getIdentity()->authorise('core.create', 'com_breezingformsng')) {
+            $toolbar->linkButton('import', 'COM_BREEZINGFORMSNG_BTN_IMPORT_CSV')
+                ->url(Route::_('index.php?option=com_breezingformsng&view=recordsimport'))
+                ->icon('icon-upload');
+        }
 
         $markDropdown = $toolbar->dropdownButton('mark-options');
 
@@ -226,19 +220,5 @@ class HtmlView extends BaseHtmlView
             ->iframeWidth(900)
             ->iframeHeight(700)
             ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_HELP_RECORDS_TITLE')]);
-    }
-
-    private function prepareImportToolbar(): void
-    {
-        ToolbarHelper::cancel('records.display', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_CANCEL'));
-    }
-
-    protected function getDetailLabel(): ?string
-    {
-        if ($this->layout === 'csvimport') {
-            return Text::_('COM_BREEZINGFORMSNG_BTN_IMPORT_CSV');
-        }
-
-        return null;
     }
 }

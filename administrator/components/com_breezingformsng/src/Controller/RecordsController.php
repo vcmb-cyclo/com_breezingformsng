@@ -94,47 +94,6 @@ class RecordsController extends AdminController
         $this->app->close();
     }
 
-    public function csvImport(): void
-    {
-        $input = $this->app->getInput();
-        $input->set('view', 'records');
-        $input->set('layout', 'csvimport');
-        parent::display();
-    }
-
-    public function setCsvImport(): void
-    {
-        $this->checkToken();
-
-        $app = $this->app;
-        $input = $app->getInput();
-        $formId = $input->getInt('form_id', 0);
-
-        if ($formId < 1) {
-            $app->redirect(self::LIST_URL);
-            return;
-        }
-
-        $encoding = $input->getString('encoding', '0');
-        $upload = $input->files->get('csv_file', [], 'array');
-        $tmpFile = is_array($upload) ? (string) ($upload['tmp_name'] ?? '') : '';
-
-        if ($tmpFile === '' || !is_uploaded_file($tmpFile)) {
-            $app->redirect(self::LIST_URL);
-            return;
-        }
-
-        $imported = $this->getRecordModel()->importCsv($formId, $tmpFile, $encoding);
-
-        if ($imported > 0) {
-            $app->enqueueMessage(Text::plural('COM_BREEZINGFORMSNG_RECORDS_N_IMPORTED', $imported), 'message');
-        } else {
-            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_RECORDS_IMPORT_NONE'), 'warning');
-        }
-
-        $app->redirect(self::LIST_URL);
-    }
-
     public function exportPdf(): void
     {
         $this->checkToken();

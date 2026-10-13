@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The CSV import of records has its own screen with a native Joomla form
+  (`forms/recordsimport.xml`): the target form is now chosen on the screen and is
+  required, and the form is validated before the file is read. The import code moves
+  from `RecordModel` to the `RecordImporter` service. Importing requires the
+  `core.create` permission.
 - The record exports (PDF, CSV, Excel, XML) move out of `RecordsController`: the
   queries go to `RecordsExportModel` and the file formats to the `RecordExporter`
   service. The controller only checks the token, asks for the export and sends it.
