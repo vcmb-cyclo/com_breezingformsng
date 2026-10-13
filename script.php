@@ -2431,6 +2431,92 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             // Manifest renamed to breezingformsng.xml, the name Joomla resolves
             // for a component (element without its com_ prefix).
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng.xml',
+            // Files a release shipped and a later one dropped. Joomla leaves them
+            // in place on update, since their folder is still in the manifest.
+            // Administration classes and layouts replaced by the native MVC.
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src/Model/PackageModel.php',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src/Service/PieceManager.php',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src/Service/ScriptManager.php',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src/View/Pieces/Renderer.php',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src/View/Scripts/Renderer.php',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/tmpl/menus/edit.php',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/tmpl/records/csvimport.php',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/tmpl/records/edit.php',
+            // Libraries removed from the administration.
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/crosstec/classes/BFQuickModeMobile.php',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/crosstec/constants.php',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/jquery.validationEngine-en.js',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/jquery.validationEngine.js',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/jq-ui.min.js',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/plugins/json.js',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/plugins/md5.js',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/tooltip.js',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/validationEngine.jquery.css',
+            // Site classes merged or replaced.
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderChoiceHydrationScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderEditableRecordScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderFileHydrationScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderFileUploadScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderFlashUploadValidationBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderFormAssociationLoader.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderFormDataLoader.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderReadonlyScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderSelectHydrationScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderSignatureScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderTechnicalFieldsBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderValueHydrationScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/FormClosingMarkupBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/FormModeFinalizationBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/FormOpeningMarkupBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/FormOptionalContextFieldsBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QueryListNavigationBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QueryListPaginationTailBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QueryListRowsRefreshBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/MobileRenderer.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/QuickModeCheckboxBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/QuickModePaymentImageBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/QuickModeUploadFileAddedHandlerBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/QuickModeUploadQueueEntryScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Upload/PaymentCacheCleaner.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Upload/TemporaryUploadFileCleaner.php',
+            // Libraries removed from the site.
+            JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/jq.mobile.min.js',
+            JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/jquery.validationEngine-en.js',
+            JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/jquery.validationEngine.js',
+            JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/jq-ui.min.js',
+            JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/plupload/Moxie.swf',
+            JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/tooltip.css',
+            JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/tooltip.js',
+            JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/validationEngine.jquery.css',
+            JPATH_SITE . '/components/com_breezingformsng/libraries/js/overlib_mini.js',
+            JPATH_SITE . '/components/com_breezingformsng/libraries/js/sweetalert.min.js',
+            // Theme files no longer shipped.
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/ajax-loader.gif',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/ajax-loader.png',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/cancel.png',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/img/icon_info_old.png',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/jq.mobile.1.4.5.icons.min.css',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/jq.mobile.1.4.5.min.css',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/jq.mobile.min.css',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/mobile-system.css',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/system.ie6.css',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/system.ie7.css',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/system.ie.css',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/upload.png',
+            // Media files no longer shipped.
+            JPATH_SITE . '/media/com_breezingformsng/images/site/captcha/AHGBold.ttf',
+            JPATH_SITE . '/media/com_breezingformsng/images/site/captcha/LICENSE.txt',
+            JPATH_SITE . '/media/com_breezingformsng/images/site/captcha/README.FONT.txt',
+            JPATH_SITE . '/media/com_breezingformsng/images/site/captcha/securimage.php',
+            JPATH_SITE . '/media/com_breezingformsng/images/site/captcha/words/words.txt',
+            JPATH_SITE . '/media/com_breezingformsng/js/admin/admin-sort.js',
+            JPATH_SITE . '/media/com_breezingformsng/js/admin/pieces-list.js',
+            JPATH_SITE . '/media/com_breezingformsng/js/admin/scripts-list.js',
+            JPATH_SITE . '/media/com_breezingformsng/js/site/quickmode-calendar-mobile.js',
+            JPATH_SITE . '/media/com_breezingformsng/js/site/quickmode-core-helpers-mobile.js',
+            JPATH_SITE . '/media/com_breezingformsng/js/site/quickmode-flash-upload-mobile.js',
+            JPATH_SITE . '/media/com_breezingformsng/js/site/quickmode-post-init-mobile.js',
+            JPATH_SITE . '/media/com_breezingformsng/js/site/quickmode-recaptcha-invisible-mobile.js',
         ];
 
         foreach ($obsolete as $file) {
@@ -2451,6 +2537,19 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             // QuickMode save cache lives under media/breezingforms.
             JPATH_SITE . '/components/com_breezingformsng/uploads',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/ajax_cache',
+            // Folders a release shipped and a later one dropped. The six classic
+            // skins formerly under themes/quickmode are left alone: a site may
+            // have customised them before they moved to media/breezingforms/themes.
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/themes/easymode',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/securimage',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/wz_dragdrop',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/plugins/sysbreezingforms',
+            JPATH_SITE . '/components/com_breezingformsng/legacy',
+            JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/jtable',
+            JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/ladda',
+            JPATH_SITE . '/components/com_breezingformsng/src/Helper',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode-bootstrap4',
+            JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/images',
         ];
 
         foreach ($obsoleteDirectories as $directory) {

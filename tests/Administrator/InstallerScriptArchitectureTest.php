@@ -131,4 +131,36 @@ final class InstallerScriptArchitectureTest extends TestCase
 
         return substr($source, max(0, $position - 250), 250);
     }
+
+    /**
+     * The cleanup must never name a file or a folder the package still ships:
+     * it would delete it right after the update installed it.
+     */
+    public function testObsoleteCleanupOnlyNamesPathsThePackageNoLongerShips(): void
+    {
+        $root = __DIR__ . '/../..';
+        $source = file_get_contents($root . '/script.php');
+
+        self::assertIsString($source);
+
+        $start = strpos($source, 'private function removeObsoleteComponentFiles(): void');
+        self::assertNotFalse($start);
+        $body = substr($source, $start, strpos($source, "\n    }\n", $start) - $start);
+
+        self::assertSame(
+            1,
+            preg_match_all("/JPATH_(SITE|ADMINISTRATOR) \\. '(\\/[^']+)'/", $body, $matches, PREG_SET_ORDER) > 100 ? 1 : 0
+        );
+
+        foreach ($matches as [, $base, $path]) {
+            $shipped = $root . ($base === 'ADMINISTRATOR' ? '/administrator' : '') . $path;
+
+            self::assertFileDoesNotExist($shipped, "The cleanup would delete a shipped path: {$path}");
+        }
+
+        self::assertStringContainsString("/components/com_breezingformsng/libraries/jquery/ladda',", $body);
+        self::assertStringContainsString("/components/com_breezingformsng/src/Service/ScriptManager.php',", $body);
+        // The classic skins may hold site customisations: they are not removed.
+        self::assertStringNotContainsString("/themes/quickmode/aqua'", $body);
+    }
 }

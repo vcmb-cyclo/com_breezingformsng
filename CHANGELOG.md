@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- The installer now removes, on install and on update, the files and folders earlier
+  releases shipped and later ones dropped (78 files and 10 folders: classes replaced
+  by the native MVC, removed JavaScript libraries, Ladda among them, mobile and
+  Internet Explorer theme files). Joomla leaves such files in place because their
+  parent folder is still in the manifest. The six classic skins formerly under
+  `themes/quickmode` are left alone, in case a site customised them.
 - Fixed QuickMode forms in one-page mode: two generated scripts held literal `\t`
   sequences, a JavaScript syntax error that disabled the whole page script, so the
   form could not be submitted.
