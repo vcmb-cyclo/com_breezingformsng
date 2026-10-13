@@ -373,9 +373,10 @@ class RecordModel extends AdminModel
 
     /**
      * Deletes trashed records, then what ContentBuilder NG keeps about them.
-     * The selection is checked as a whole before anything is deleted, and
-     * everything is undone when a step fails or when a selected record is
-     * still there afterwards: $pks ends up holding the ids actually deleted.
+     * The selected records are locked, then checked as a whole before anything
+     * is deleted, and everything is undone when a step fails or when a
+     * selected record is still there afterwards: $pks ends up holding the ids
+     * actually deleted.
      */
     public function delete(&$pks)
     {
@@ -385,6 +386,7 @@ class RecordModel extends AdminModel
         $db->transactionStart();
 
         try {
+            $this->lockRecords($ids);
             $records = $this->getFormsAndStates($ids);
             $refusal = RecordState::deletionRefusal($ids, array_column($records, 'state', 'id'));
 
@@ -453,6 +455,27 @@ class RecordModel extends AdminModel
         }
 
         return $trashedIds;
+    }
+
+    /**
+     * Locks the records until the end of the transaction, with an update that
+     * changes nothing: they are then read as they are now, and a change made
+     * by someone else, such as restoring one from the trash, waits for the end.
+     *
+     * @param int[] $ids
+     */
+    private function lockRecords(array $ids): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        $db = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->update($db->quoteName('#__facileforms_records'))
+            ->set($db->quoteName('state') . ' = ' . $db->quoteName('state'))
+            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
+        $db->setQuery($query)->execute();
     }
 
     /**

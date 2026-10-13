@@ -149,6 +149,8 @@ final class RecordStateTest extends TestCase
         self::assertIsString($model);
 
         $start = strpos($model, '$db->transactionStart();');
+        $lock = strpos($model, '$this->lockRecords($ids);');
+        $read = strpos($model, '$records = $this->getFormsAndStates($ids);');
         $refusal = strpos($model, 'RecordState::deletionRefusal(');
         $delete = strpos($model, 'parent::delete($ids)');
         $leftover = strpos($model, 'if ($this->getFormsAndStates($ids) !== []) {');
@@ -156,13 +158,21 @@ final class RecordStateTest extends TestCase
         $commit = strpos($model, '$db->transactionCommit();');
         $rollback = strpos($model, '$db->transactionRollback();');
 
-        foreach ([$start, $refusal, $delete, $leftover, $cleanup, $commit, $rollback] as $position) {
+        foreach ([$start, $lock, $read, $refusal, $delete, $leftover, $cleanup, $commit, $rollback] as $position) {
             self::assertNotFalse($position);
         }
 
         // The selection is read and checked inside the transaction, and a
         // record still there after the deletion undoes it before any cleanup.
-        self::assertLessThan($refusal, $start);
+        // The records are locked before they are read: a record restored by
+        // someone else meanwhile is then seen as restored, not as trashed.
+        self::assertLessThan($lock, $start);
+        self::assertLessThan($read, $lock);
+        self::assertLessThan($refusal, $read);
+        self::assertStringContainsString(
+            "->set(\$db->quoteName('state') . ' = ' . \$db->quoteName('state'))",
+            $model
+        );
         self::assertLessThan($delete, $refusal);
         self::assertLessThan($leftover, $delete);
         self::assertLessThan($cleanup, $leftover);
