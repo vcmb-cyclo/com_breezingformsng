@@ -40,7 +40,7 @@ class DisplayController extends BaseController
 
         // List screens must keep the main admin menu enabled; only the edit
         // layouts re-enable hidemainmenu themselves (same fix as ContentBuilderNG).
-        if (!\in_array($input->getCmd('layout', ''), ['edit', 'csvimport'], true)) {
+        if (!\in_array($input->getCmd('layout', ''), ['edit'], true)) {
             $input->set('hidemainmenu', 0);
         }
 
@@ -54,6 +54,10 @@ class DisplayController extends BaseController
         }
 
         if ($task === '' && $view === 'about') {
+            return parent::display($cachable, $urlparams);
+        }
+
+        if ($task === '' && $view === 'recordsimport') {
             return parent::display($cachable, $urlparams);
         }
 

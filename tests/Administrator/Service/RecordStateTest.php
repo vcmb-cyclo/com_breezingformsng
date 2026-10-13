@@ -57,7 +57,7 @@ final class RecordStateTest extends TestCase
     public function testCsvImportReadsBothStatusColumns(): void
     {
         $model = file_get_contents(
-            __DIR__ . '/../../../administrator/components/com_breezingformsng/src/Model/RecordModel.php'
+            __DIR__ . '/../../../administrator/components/com_breezingformsng/src/Service/RecordImporter.php'
         );
 
         self::assertIsString($model);
@@ -72,7 +72,7 @@ final class RecordStateTest extends TestCase
     {
         $admin = __DIR__ . '/../../../administrator/components/com_breezingformsng/src';
         $controller = file_get_contents($admin . '/Service/RecordExporter.php');
-        $model = file_get_contents($admin . '/Model/RecordModel.php');
+        $model = file_get_contents($admin . '/Service/RecordImporter.php');
 
         self::assertIsString($controller);
         self::assertIsString($model);
@@ -199,5 +199,32 @@ final class RecordStateTest extends TestCase
         self::assertStringNotContainsString('setQuery', $exporter);
         self::assertStringContainsString('public function getRecords(array $ids, int $formSelection, string $stateFilter): array', $model);
         self::assertStringContainsString('public function getSubrecords(int $recordId): array', $exporter);
+    }
+
+    public function testTheCsvImportUsesANativeFormAndAService(): void
+    {
+        $admin = __DIR__ . '/../../../administrator/components/com_breezingformsng';
+        $controller = file_get_contents($admin . '/src/Controller/RecordsimportController.php');
+        $records = file_get_contents($admin . '/src/Controller/RecordsController.php');
+        $model = file_get_contents($admin . '/src/Model/RecordModel.php');
+        $form = simplexml_load_file($admin . '/forms/recordsimport.xml');
+
+        self::assertIsString($controller);
+        self::assertIsString($records);
+        self::assertIsString($model);
+        self::assertNotFalse($form);
+        self::assertSame(
+            ['form_id', 'csv_file', 'encoding'],
+            array_map('strval', $form->xpath('/form/fieldset[@name="import"]/field/@name'))
+        );
+        self::assertSame('true', (string) $form->xpath('//field[@name="form_id"]/@required')[0]);
+        self::assertSame('true', (string) $form->xpath('//field[@name="csv_file"]/@required')[0]);
+        // The form is validated by Joomla before the file is read, and importing creates records.
+        self::assertLessThan(strpos($controller, '->import('), strpos($controller, '$model->validate($form, $data)'));
+        self::assertStringContainsString("authorise('core.create', 'com_breezingformsng')", $controller);
+        self::assertStringContainsString('$this->checkToken();', $controller);
+        self::assertStringNotContainsString('importCsv', $model);
+        self::assertStringNotContainsString('csvImport', $records);
+        self::assertFileDoesNotExist($admin . '/tmpl/records/csvimport.php');
     }
 }
