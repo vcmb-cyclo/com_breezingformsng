@@ -10,7 +10,7 @@ Remplacer la treeview jTree par un composant JavaScript moderne, accessible et
 intégré à l'administration Joomla, en préservant les formulaires existants et
 les interactions avec leurs propriétés.
 
-- Cible exclusive : Joomla 6 et PHP 8.3+.
+- Cible exclusive : Joomla 6 et PHP 8.4+.
 - Conserver le format de données et le parcours de sauvegarde existants.
 - Réutiliser les variables CSS `--bfng-*` et les conventions natives de Joomla.
 - Ne pas ajouter de framework frontend, de shim, de polyfill ou de moteur de secours.

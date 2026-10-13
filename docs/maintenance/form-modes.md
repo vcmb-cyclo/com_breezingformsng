@@ -1,6 +1,6 @@
 # BreezingForms NG Form Mode
 
-This Joomla 6 / PHP 8.1+ codebase keeps only one form creation mode:
+This Joomla 6 / PHP 8.4+ codebase keeps only one form creation mode:
 QuickMode.
 
 ## Supported Mode
@@ -52,7 +52,7 @@ The forms list and post-save redirects should point to QuickMode.
 - Preserve the QuickMode-specific copy/import ID reset path.
 - If unsupported persisted form data must be migrated, create an explicit
   migration into QuickMode.
-- Keep new maintenance work aligned with Joomla 6 APIs and PHP 8.1+ only.
+- Keep new maintenance work aligned with Joomla 6 APIs and PHP 8.4+ only.
 
 ## Useful Searches
 

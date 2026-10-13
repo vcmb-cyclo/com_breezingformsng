@@ -2,7 +2,7 @@
 
 This file records useful information extracted from archived Crosstec
 BreezingForms documentation. It is maintenance context only; the implementation
-in this repository must remain Joomla 6 / PHP 8.1+ only.
+in this repository must remain Joomla 6 / PHP 8.4+ only.
 
 Primary archived source:
 https://web.archive.org/web/20251013050040/https://crosstec.org/en/support/online-documentation/breezingforms.html

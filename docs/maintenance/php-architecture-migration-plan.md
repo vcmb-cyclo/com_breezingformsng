@@ -1,6 +1,6 @@
 # Plan de migration de l'architecture PHP
 
-> Feuille de route de la modernisation Joomla 6 / PHP 8.3+. Les anciennes
+> Feuille de route de la modernisation Joomla 6 / PHP 8.4+. Les anciennes
 > versions de Joomla et PHP ne font pas partie du périmètre.
 
 ## Objectifs
@@ -2832,4 +2832,4 @@ Un lot est terminé lorsque :
 - Changement volontaire du JavaScript historique sans caractérisation et
   validation fonctionnelle.
 - Refonte visuelle des formulaires pendant la migration d'architecture.
-- Compatibilité avec Joomla 5 ou antérieur et PHP 8.2 ou antérieur.
+- Compatibilité avec Joomla 5 ou antérieur et PHP 8.3 ou antérieur.
