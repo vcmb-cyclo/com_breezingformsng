@@ -1244,7 +1244,6 @@ float:left;
             $exts = $uploadOptions['extensions'];
             $bytes = $uploadOptions['maxFileSize'];
             $multiSelection = $uploadOptions['multiSelection'];
-            $runtimes = $uploadOptions['runtimes'];
             $flashUploader = "
                                                         <label id=\"bfUploadContainer" . $mdata['dbId'] . "\">
 							<img alt=\"\" style=\"cursor: pointer;\" id=\"bfPickFiles" . $mdata['dbId'] . "\" src=\"" . $this->uploadImagePath . "\" width=\"" . $uploadOptions['buttonWidth'] . "\" height=\"" . $uploadOptions['buttonHeight'] . "\"/>
@@ -1256,7 +1255,7 @@ float:left;
                                                         <!--
 							bfFlashUploaders.push('ff_elem" . $mdata['dbId'] . "');
                                                         var bfFlashFileQueue" . $mdata['dbId'] . " = {};
-" . QuickModeUploadThumbnailScriptBuilder::build($base, chr(10)) . "
+" . QuickModeUploadThumbnailScriptBuilder::build(chr(10)) . "
                                                         JQuery(document).ready(
                                                             function() {
 " . (new QuickModeUploadConfigurationBuilder())->build(
@@ -1265,7 +1264,6 @@ float:left;
     (string) $this->flashUploadTicket,
     (string) $base,
     (int) $mdata['dbId'],
-    (string) $runtimes,
     (string) $exts,
     (string) $multiSelection,
     (string) json_encode(Text::_('COM_BREEZINGFORMSNG_CHOOSE_FILE'))

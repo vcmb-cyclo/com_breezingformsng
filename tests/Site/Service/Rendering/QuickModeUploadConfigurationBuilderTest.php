@@ -27,13 +27,14 @@ final class QuickModeUploadConfigurationBuilderTest extends TestCase
             'ticket',
             '/site/',
             44,
-            'html5,flash',
             'jpg,png',
             'true',
             '"Choose file"'
         );
 
         self::assertStringContainsString('max_retries: 10', $script);
+        self::assertStringContainsString("runtimes : 'html5',", $script);
+        self::assertStringNotContainsString('swf', $script);
         self::assertStringContainsString("multipart_params: { form: 12, itemName : 'upload'", $script);
         self::assertStringContainsString("url : '/site/index.php'", $script);
         self::assertStringContainsString('{title : "Choose file", extensions : \'jpg,png\'}', $script);
@@ -47,7 +48,6 @@ final class QuickModeUploadConfigurationBuilderTest extends TestCase
             "ticket'Value",
             "/site/'",
             44,
-            "html5'",
             "jpg');alert(1);//",
             'true',
             '"Choose file"'

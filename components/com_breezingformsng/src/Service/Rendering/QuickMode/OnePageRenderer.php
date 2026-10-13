@@ -791,7 +791,6 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                         $exts = $uploadOptions['extensions'];
                         $bytes = $uploadOptions['maxFileSize'];
                         $multiSelection = $uploadOptions['multiSelection'];
-                        $runtimes = $uploadOptions['runtimes'];
                         echo "
                                                         <span id=\"bfUploadContainer" . $mdata['dbId'] . "\">
                                                             <button type=\"button\" class=\"" . $this->bsClass('btn') . " " . $this->bsClass('btn-primary') . " bfUploadButton button\" id=\"bfPickFiles" . $mdata['dbId'] . "\"><i class=\"" . $this->bsClass('icon-upload') . "\"></i></button>
@@ -802,7 +801,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                                                         <!--
 							bfFlashUploaders.push('ff_elem" . $mdata['dbId'] . "');
                                                         var bfFlashFileQueue" . $mdata['dbId'] . " = {};
-" . QuickModeUploadThumbnailScriptBuilder::build($base, chr(10)) . "
+" . QuickModeUploadThumbnailScriptBuilder::build(chr(10)) . "
                                                         JQuery(document).ready(
                                                             function() {
 " . (new QuickModeUploadConfigurationBuilder())->build(
@@ -811,7 +810,6 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
     (string) $this->flashUploadTicket,
     (string) $base,
     (int) $mdata['dbId'],
-    (string) $runtimes,
     (string) $exts,
     (string) $multiSelection,
     (string) json_encode(Text::_('COM_BREEZINGFORMSNG_CHOOSE_FILE')),

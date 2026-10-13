@@ -711,7 +711,6 @@ class BootstrapRenderer
                             $exts = $uploadOptions['extensions'];
                             $bytes = $uploadOptions['maxFileSize'];
                             $multiSelection = $uploadOptions['multiSelection'];
-                            $runtimes = $uploadOptions['runtimes'];
                             echo "
 							<label id=\"bfUploadContainer" . $mdata['dbId'] . "\">
 							<div class=\"" . $this->bsClass('btn') . " " . $this->bsClass('btn-primary') . " bfUploadButton button\" id=\"bfPickFiles" . $mdata['dbId'] . "\"><i class=\"" . $this->bsClass('icon-upload') . "\"></i></div>
@@ -722,7 +721,7 @@ class BootstrapRenderer
                                                         <!--
 							bfFlashUploaders.push('ff_elem" . $mdata['dbId'] . "');
                                                         var bfFlashFileQueue" . $mdata['dbId'] . " = {};
-" . QuickModeUploadThumbnailScriptBuilder::build($base, chr(10)) . "
+" . QuickModeUploadThumbnailScriptBuilder::build(chr(10)) . "
                                                         JQuery(document).ready(
                                                             function() {
 " . (new QuickModeUploadConfigurationBuilder())->build(
@@ -731,7 +730,6 @@ class BootstrapRenderer
     (string) $this->flashUploadTicket,
     (string) $base,
     (int) $mdata['dbId'],
-    (string) $runtimes,
     (string) $exts,
     (string) $multiSelection,
     (string) json_encode(Text::_('COM_BREEZINGFORMSNG_CHOOSE_FILE')),
