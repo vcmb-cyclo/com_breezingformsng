@@ -19,40 +19,9 @@ class IntegratorModel extends BaseDatabaseModel
 {
     private const ALLOWED_OPERATORS = ['=', '<>', '>', '<', '>=', '<=', '%...%', '%...', '...%'];
 
-    private const RULE_SORTS = [
-        'rules.name' => 'rules.name',
-        'rules.type' => 'rules.type',
-        'forms.name' => 'forms.name',
-        'rules.reference_table' => 'rules.reference_table',
-        'rules.published' => 'rules.published',
-    ];
-
     private function db(): DatabaseInterface
     {
         return $this->getDatabase();
-    }
-
-    public function getRules(string $ordering = 'rules.name', string $direction = 'asc'): array
-    {
-        $db = $this->db();
-        $query = $db->getQuery(true)
-            ->select([
-                'rules.*',
-                'rules.id AS id',
-                "CONCAT(" . $db->quote($db->getPrefix()) . ", rules.reference_table) AS reference_table",
-                'forms.name AS form_name',
-                'forms.id AS form_id',
-            ])
-            ->from($db->quoteName('#__facileforms_integrator_rules', 'rules'))
-            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON rules.form_id = forms.id')
-            ->group('rules.id')
-            ->order(
-                $db->quoteName(self::RULE_SORTS[$ordering] ?? 'rules.name')
-                . (strtolower($direction) === 'desc' ? ' DESC' : ' ASC')
-                . ', ' . $db->quoteName('rules.id') . ' ASC'
-            );
-        $db->setQuery($query);
-        return $db->loadObjectList() ?: [];
     }
 
     public function getRule(int $id): ?\stdClass

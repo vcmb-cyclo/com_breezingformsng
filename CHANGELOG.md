@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- The integrator rules list now uses a native Joomla list model
+  (`IntegratorRulesModel`): search tools with search and status filters, native
+  pagination and column sorting.
 - The pieces screen now uses the native Joomla MVC, on the same shared bases as the
   scripts screen (`PackageListModel`, `PackageItemModel`, `PackageListController`,
   `PackageItemController`): native list, edit form defined in `forms/piece.xml`, and
