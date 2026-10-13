@@ -36,14 +36,14 @@ final class QuickModePreviousPageValidationBuilder
             '                                   bfShowErrors(error);' . $newline .
             '                                }' . $newline .
             '                                ff_validationFocus("");' . $newline .
-            '\t\t\t\t\t\t\t\t/* need to test this */' . $newline .
-            '\t\t\t\t\t\t\t\t/*' . $newline .
-            '\t\t\t\t\t\t\t\tJQuery(".bfErrorMessage").css("display","none");' . $newline .
+            '                                /* need to test this */' . $newline .
+            '                                /*' . $newline .
+            '                                JQuery(".bfErrorMessage").css("display","none");' . $newline .
             '                                ff_currentpage = ff_getPageByName(ff_validationFocusName);' . $newline .
             '                                JQuery("#bfPage"+ff_currentpage+" .bfErrorMessage")'
             . '.css("display","block");' . $newline .
-            '\t\t\t\t\t\t\t\tladda_button.ladda("stop");' . $newline .
-            '\t\t\t\t\t\t\t\t*/' . $newline .
+            '                                bfSubmitSpinner.stop();' . $newline .
+            '                                */' . $newline .
             $newline .
             '                            } else{' . $newline .
             $newline .

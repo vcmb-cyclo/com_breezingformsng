@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Fixed QuickMode forms in one-page mode: two generated scripts held literal `\t`
+  sequences, a JavaScript syntax error that disabled the whole page script, so the
+  form could not be submitted.
+- Replaced the vendored Ladda 1.0.6 library (submit button spinner of the one-page
+  mode) with the Bootstrap 5 spinner, driven by a small first-party script.
 - The CSV import of records has its own screen with a native Joomla form
   (`forms/recordsimport.xml`): the target form is now chosen on the screen and is
   required, and the form is validated before the file is read. The import code moves

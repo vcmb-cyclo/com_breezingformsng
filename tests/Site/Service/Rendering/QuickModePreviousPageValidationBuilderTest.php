@@ -30,4 +30,11 @@ final class QuickModePreviousPageValidationBuilderTest extends TestCase
         self::assertStringContainsString('/* need to test this */', $script);
         self::assertStringEndsWith('} // ff_validate_prevpage' . "\n", $script);
     }
+
+    public function testTheScriptHoldsNoLiteralEscapeSequence(): void
+    {
+        // A "\t" written in a single-quoted PHP string reaches the page as a
+        // backslash and a letter, which is a JavaScript syntax error.
+        self::assertStringNotContainsString('\\', (new QuickModePreviousPageValidationBuilder())->build("\n"));
+    }
 }

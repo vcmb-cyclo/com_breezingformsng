@@ -78,7 +78,7 @@ final class CaptchaReCaptchaValidationScriptBuilder
                                                                     document.getElementById("bfSubmitButton").disabled = false;
                                                                 }
                                                                 if(typeof JQuery != "undefined"){JQuery(".bfCustomSubmitButton").prop("disabled", false);}
-                                                                if(typeof ladda_button != "undefined"){
+                                                                if(typeof bfSubmitSpinner != "undefined"){
                                                                     bf_restore_submitbutton();
                                                                 }
                                                                 
@@ -113,7 +113,7 @@ final class CaptchaReCaptchaValidationScriptBuilder
                                                                 document.getElementById("bfSubmitButton").disabled = false;
                                                             }
                                                             if(typeof JQuery != "undefined"){JQuery(".bfCustomSubmitButton").prop("disabled", false);}
-                                                            if(typeof ladda_button != "undefined"){
+                                                            if(typeof bfSubmitSpinner != "undefined"){
                                                                 bf_restore_submitbutton();
                                                             }
                                                             
