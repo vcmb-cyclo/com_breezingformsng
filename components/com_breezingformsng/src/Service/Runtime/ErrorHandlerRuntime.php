@@ -154,11 +154,8 @@ final class ErrorHandlerRuntime
                             $what = $rows[0]->name;
                         }
                         $what = 'script ' . $what;
-                        $url .= '&task=scripts.edit' .
-                            '&ids[]=' . $id;
-                        if ($package != '') {
-                            $url .= '&pkg=' . urlencode($package);
-                        }
+                        $url .= '&task=script.edit' .
+                            '&id=' . $id;
                         break;
                     default:
                         $url = null;

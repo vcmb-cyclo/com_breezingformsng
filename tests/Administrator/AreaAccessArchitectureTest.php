@@ -54,27 +54,44 @@ final class AreaAccessArchitectureTest extends TestCase
         self::assertSame(2, substr_count($source, 'AreaAccess::CONFIGURATION);'));
     }
 
-    public function testPiecesAndScriptsStayReadableWithoutTheCodePermission(): void
+    public function testPiecesStayReadableWithoutTheCodePermission(): void
     {
-        foreach (['Pieces', 'Scripts'] as $area) {
-            $view = file_get_contents(self::ADMIN . '/src/View/' . $area . '/HtmlView.php');
-            $renderer = file_get_contents(self::ADMIN . '/src/View/' . $area . '/Renderer.php');
-            $controller = file_get_contents(self::ADMIN . '/src/Controller/' . $area . 'Controller.php');
+        $view = file_get_contents(self::ADMIN . '/src/View/Pieces/HtmlView.php');
+        $renderer = file_get_contents(self::ADMIN . '/src/View/Pieces/Renderer.php');
+        $controller = file_get_contents(self::ADMIN . '/src/Controller/PiecesController.php');
 
-            self::assertIsString($view);
-            self::assertIsString($renderer);
-            self::assertIsString($controller);
-            self::assertStringNotContainsString('AreaAccess::assert(', $view);
-            self::assertStringContainsString("\$canEdit ? '' : ' disabled'", $renderer);
-            self::assertStringContainsString('READ_ONLY_TASKS', $controller);
+        self::assertIsString($view);
+        self::assertIsString($renderer);
+        self::assertIsString($controller);
+        self::assertStringNotContainsString('AreaAccess::assert(', $view);
+        self::assertStringContainsString("\$canEdit ? '' : ' disabled'", $renderer);
+        self::assertStringContainsString('READ_ONLY_TASKS', $controller);
 
-            foreach (['save', 'copy', 'remove', 'publish', 'unpublish', 'setpublished', 'add'] as $writeTask) {
-                self::assertDoesNotMatchRegularExpression(
-                    "/READ_ONLY_TASKS = \\[[^\\]]*'" . $writeTask . "'/",
-                    $controller
-                );
-            }
+        foreach (['save', 'copy', 'remove', 'publish', 'unpublish', 'setpublished', 'add'] as $writeTask) {
+            self::assertDoesNotMatchRegularExpression(
+                "/READ_ONLY_TASKS = \\[[^\\]]*'" . $writeTask . "'/",
+                $controller
+            );
         }
+    }
+
+    public function testScriptsStayReadableWithoutTheCodePermission(): void
+    {
+        $view = file_get_contents(self::ADMIN . '/src/View/Script/HtmlView.php');
+        $template = file_get_contents(self::ADMIN . '/tmpl/script/edit.php');
+        $item = file_get_contents(self::ADMIN . '/src/Controller/ScriptController.php');
+        $list = file_get_contents(self::ADMIN . '/src/Controller/ScriptsController.php');
+
+        self::assertIsString($view);
+        self::assertIsString($template);
+        self::assertIsString($item);
+        self::assertIsString($list);
+        self::assertStringNotContainsString('AreaAccess::assert(', $view);
+        self::assertStringContainsString("\$this->canEdit ? '' : ' disabled'", $template);
+        self::assertStringContainsString("READ_ONLY_TASKS = ['edit', 'cancel', 'previous', 'next', 'test'];", $item);
+        self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CODE);', $item);
+        self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CODE);', $list);
+        self::assertStringNotContainsString('READ_ONLY_TASKS', $list);
     }
 
     public function testAuditRepairsRequireAnAdministrator(): void

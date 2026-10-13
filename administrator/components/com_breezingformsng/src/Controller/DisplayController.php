@@ -14,9 +14,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
-use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PieceModel;
-use Vcmb\Component\BreezingformsNG\Administrator\Model\ScriptModel;
 
 /** @property CMSApplication $app */
 class DisplayController extends BaseController
@@ -24,7 +22,7 @@ class DisplayController extends BaseController
     /**
      * Edit views of the native form MVC, with the list each one returns to.
      */
-    private const ITEM_VIEWS = ['record' => 'records', 'menu' => 'menus'];
+    private const ITEM_VIEWS = ['record' => 'records', 'menu' => 'menus', 'script' => 'scripts'];
 
     public function display($cachable = false, $urlparams = [])
     {
@@ -129,8 +127,12 @@ class DisplayController extends BaseController
             return parent::display($cachable, $urlparams);
         }
 
-        if ($task === '' && in_array($view, ['pieces', 'scripts'], true)) {
-            $this->prepareListPackage($view);
+        if ($task === '' && $view === 'scripts') {
+            return parent::display($cachable, $urlparams);
+        }
+
+        if ($task === '' && $view === 'pieces') {
+            $this->prepareListPackage();
 
             return parent::display($cachable, $urlparams);
         }
@@ -139,16 +141,18 @@ class DisplayController extends BaseController
         return $this;
     }
 
-    private function prepareListPackage(string $view): void
+    /**
+     * Keeps the package of the pieces list across requests.
+     */
+    private function prepareListPackage(): void
     {
         $input      = $this->app->getInput();
         $session    = $this->app->getSession();
-        $sessionKey = $view === 'pieces' ? 'bf.piecepkg' : 'bf.scriptpkg';
 
         $package = $input->get('pkg', null, 'STRING');
 
         if ($package === null) {
-            $package = (string) ($session->get($sessionKey) ?? '');
+            $package = (string) ($session->get('bf.piecepkg') ?? '');
         } elseif ($package === '- blank -') {
             $package = '';
         }
@@ -160,17 +164,9 @@ class DisplayController extends BaseController
                 throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
 
-            $model = $component->getMVCFactory()
-                ->createModel($view === 'pieces' ? 'Piece' : 'Script', 'Administrator', ['ignore_request' => true]);
+            $model = $component->getMVCFactory()->createModel('Piece', 'Administrator', ['ignore_request' => true]);
 
-            if (!$model instanceof PackageModel) {
-                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-            }
-
-            if (
-                ($view === 'pieces' && !$model instanceof PieceModel)
-                || ($view === 'scripts' && !$model instanceof ScriptModel)
-            ) {
+            if (!$model instanceof PieceModel) {
                 throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
 
@@ -179,8 +175,7 @@ class DisplayController extends BaseController
             }
         }
 
-        $session->set($sessionKey, $package);
+        $session->set('bf.piecepkg', $package);
         $input->set('pkg', $package);
     }
-
 }

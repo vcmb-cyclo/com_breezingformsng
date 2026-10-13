@@ -18,16 +18,14 @@ use PHPUnit\Framework\TestCase;
 
 final class EditorTextareaResizeTest extends TestCase
 {
-    public function testScriptAndPieceEditorsResizeTextareasWithoutTheLegacyGlobalFunction(): void
+    public function testPieceEditorResizesTextareasWithoutTheLegacyGlobalFunction(): void
     {
-        foreach (['Scripts', 'Pieces'] as $view) {
-            $source = file_get_contents(
-                __DIR__ . '/../../administrator/components/com_breezingformsng/src/View/' . $view . '/Renderer.php'
-            );
+        $source = file_get_contents(
+            __DIR__ . '/../../administrator/components/com_breezingformsng/src/View/Pieces/Renderer.php'
+        );
 
-            self::assertIsString($source);
-            self::assertStringNotContainsString('textAreaResize(', $source);
-            self::assertStringContainsString("document.getElementById('unit_tests').rows", $source);
-        }
+        self::assertIsString($source);
+        self::assertStringNotContainsString('textAreaResize(', $source);
+        self::assertStringContainsString("document.getElementById('unit_tests').rows", $source);
     }
 }

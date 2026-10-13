@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The scripts screen now uses the native Joomla MVC: a list with the search tools and
+  pagination, native publish, unpublish and delete actions, and an edit form defined
+  in `forms/script.xml` with the native code editor field, Save and Save & Close. The
+  script test page is a layout of the same view. The legacy `ScriptManager` service,
+  the HTML renderer and the list script are removed.
 - The forms list now uses the native Joomla list model: search tools (search,
   package and status filters), native pagination and column sorting, with the list
   state kept in the session instead of the links.

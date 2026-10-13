@@ -39,7 +39,6 @@ final class LegacyRendererAssetRegistryTest extends TestCase
     public static function controllerProvider(): array
     {
         return [
-            'scripts' => ['ScriptsController.php'],
             'pieces' => ['PiecesController.php'],
         ];
     }

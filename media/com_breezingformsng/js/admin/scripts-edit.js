@@ -20,27 +20,27 @@ function checkIdentifier(value, name)
 					alert(Joomla.Text._('COM_BREEZINGFORMSNG_TEST_SAVE_SCRIPT_BEFORE_CONTINUE'));
 					return;
 				}
-				if (action != 'cancel' && action != 'previous' && action != 'next' && action != 'test') {
-					error += checkIdentifier(form.name.value, 'name');
-					if (form.title.value == '') error += Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_ENTTITLE') + "\n";
+				if (action == 'apply' || action == 'save') {
+					error += checkIdentifier(getFieldValue('name'), 'name');
+					if (getFieldValue('title') == '') error += Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_ENTTITLE') + "\n";
 				} // if
 				if (error != '') {
 					alert(error);
 					return;
 				}
-				Joomla.submitform('scripts.' + action, form);
+				Joomla.submitform('script.' + action, form);
 			} // submitbutton
 			Joomla.submitbutton = submitbutton;
 			window.submitbutton = submitbutton;
 
 			function createCode() {
 				form = document.adminForm;
-				name = form.name.value;
+				name = getFieldValue('name');
 				if (name == '') {
 					alert(Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_ENTNAMEFIRST'));
 					return;
 				} // if
-				stype = form.type.value;
+				stype = getFieldValue('type');
 				code = '';
 				switch (stype) {
 
@@ -128,107 +128,42 @@ function checkIdentifier(value, name)
 						alert(Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_UNKNOWNTYPE') + " " + stype);
 
 				} // switch
-				oldcode = form.code.value;
+				oldcode = getFieldValue('code');
 				if (oldcode != '')
-					form.code.value =
+					getFormField('code').value =
 						code +
 						"\n// -------------- " + Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_OLDBELOW') + " --------------\n\n" +
 						oldcode;
 				else
-					form.code.value = code;
+					getFormField('code').value = code;
 			} // createCode
 
 			onload = function () {
-				document.adminForm.title.focus();
+				var titleField = getFormField('title');
+				if (titleField) titleField.focus();
 			} // onload
 
-			function getEditTestToolbarButton() {
-				return findToolbarButton('test', ['test']);
+			function findToolbarButtons(tasks) {
+				var selector = tasks.map(function (task) {
+					return 'joomla-toolbar-button[task="script.' + task + '"] button';
+				}).join(', ');
+				return Array.prototype.slice.call(document.querySelectorAll(selector));
 			}
 
 			function getEditTestToolbarButtons() {
-				return findToolbarButtons('test', ['test']);
+				return findToolbarButtons(['test']);
 			}
 
-			function getEditSaveToolbarButton() {
-				return findToolbarButton('save', ['save', 'enregistrer']);
+			function getEditSaveToolbarButtons() {
+				return findToolbarButtons(['apply', 'save']);
 			}
 
 			function getEditPrevToolbarButton() {
-				return findToolbarButton('prev', ['prev', 'precedent']);
+				return findToolbarButtons(['previous'])[0] || null;
 			}
 
 			function getEditNextToolbarButton() {
-				return findToolbarButton('next', ['next', 'suivant']);
-			}
-
-			function findToolbarButton(taskName, textHints) {
-				var buttons = findToolbarButtons(taskName, textHints);
-				return buttons.length ? buttons[0] : null;
-			}
-
-			function findToolbarButtons(taskName, textHints) {
-				var toolbarRoots = document.querySelectorAll('#toolbar, .toolbar, .subhead, .btn-toolbar, joomla-toolbar, .joomla-toolbar-button');
-				var matches = [];
-				var seen = [];
-				function pushMatch(node) {
-					if (!node || node.id === 'bf-edit-unit-tests-button') {
-						return;
-					}
-					var target = node.closest ? (node.closest('button, a, [role="button"], li, .btn, .toolbar-item') || node) : node;
-					if (seen.indexOf(target) === -1) {
-						seen.push(target);
-						matches.push(target);
-					}
-				}
-				var selectors = [
-					'#toolbar-' + taskName,
-					'.toolbar-' + taskName,
-					'.button-' + taskName,
-					'[data-task="' + taskName + '"]',
-					"[onclick*='" + taskName + "']",
-					"[href*='" + taskName + "']"
-				];
-				for (var r = 0; r < toolbarRoots.length; r++) {
-					for (var s = 0; s < selectors.length; s++) {
-						var scopedMatches = toolbarRoots[r].querySelectorAll(selectors[s]);
-						for (var m = 0; m < scopedMatches.length; m++) {
-							pushMatch(scopedMatches[m]);
-						}
-					}
-				}
-				for (var s = 0; s < selectors.length; s++) {
-					var directMatches = document.querySelectorAll(selectors[s]);
-					for (var d = 0; d < directMatches.length; d++) {
-						pushMatch(directMatches[d]);
-					}
-				}
-				var candidates = document.querySelectorAll('#toolbar button, #toolbar a, .toolbar button, .toolbar a, .subhead button, .subhead a, .btn-toolbar button, .btn-toolbar a, joomla-toolbar button, joomla-toolbar a, .joomla-toolbar-button button, .joomla-toolbar-button a');
-				if (!candidates.length) {
-					candidates = document.querySelectorAll('button, a, [role="button"]');
-				}
-				for (var i = 0; i < candidates.length; i++) {
-					var candidate = candidates[i];
-					var haystack = [
-						candidate.id || '',
-						candidate.className || '',
-						candidate.getAttribute('data-task') || '',
-						candidate.getAttribute('onclick') || '',
-						candidate.getAttribute('href') || '',
-						candidate.textContent || '',
-						candidate.title || '',
-						candidate.getAttribute('aria-label') || ''
-					].join(' ').toLowerCase();
-					if (haystack.indexOf(taskName.toLowerCase()) !== -1) {
-						pushMatch(candidate);
-					}
-					for (var h = 0; h < textHints.length; h++) {
-						if (haystack.indexOf(String(textHints[h]).toLowerCase()) !== -1) {
-							pushMatch(candidate);
-						}
-					}
-				}
-				return matches;
+				return findToolbarButtons(['next'])[0] || null;
 			}
 
 			function normalizeUnitTestsValue(value) {
@@ -255,31 +190,25 @@ function checkIdentifier(value, name)
 				return null;
 			}
 
-			function getFieldValue(fieldId) {
-				var field = document.getElementById(fieldId);
-				if (!field && document.adminForm && document.adminForm.elements && document.adminForm.elements[fieldId]) {
-					field = document.adminForm.elements[fieldId];
-				}
-				if (!field) {
-					return '';
-				}
-				if (typeof RadioNodeList !== 'undefined' && field instanceof RadioNodeList) {
-					return field.value;
-				}
-				if (field.length && typeof field.value !== 'undefined' && !field.tagName) {
-					return field.value;
-				}
+			function getFormField(name) {
+				return document.getElementById('jform_' + name);
+			}
+
+			function getFieldValue(name) {
+				var fieldId = 'jform_' + name;
+				var named = document.adminForm && document.adminForm.elements ? document.adminForm.elements['jform[' + name + ']'] : null;
 				if (window.Joomla && Joomla.editors && Joomla.editors.instances && Joomla.editors.instances[fieldId] && typeof Joomla.editors.instances[fieldId].getValue === 'function') {
 					return Joomla.editors.instances[fieldId].getValue();
 				}
-				if (typeof field.value !== 'undefined') {
-					var codeMirrorInstance = getCodeMirrorInstance(field);
-					if (codeMirrorInstance) {
-						return codeMirrorInstance.getValue();
-					}
-					return field.value;
+				if (typeof RadioNodeList !== 'undefined' && named instanceof RadioNodeList) {
+					return named.value;
 				}
-				return '';
+				var field = getFormField(name) || named;
+				if (!field || typeof field.value === 'undefined') {
+					return '';
+				}
+				var codeMirrorInstance = getCodeMirrorInstance(field);
+				return codeMirrorInstance ? codeMirrorInstance.getValue() : field.value;
 			}
 
 			function getCurrentEditState() {
@@ -313,25 +242,21 @@ function checkIdentifier(value, name)
 			}
 
 			function syncEditSaveToolbarButton() {
-				var button = getEditSaveToolbarButton();
-				if (!button) {
-					return;
-				}
 				var isDirty = isEditDirty();
-				button.classList.toggle('disabled', !isDirty);
-				button.setAttribute('aria-disabled', isDirty ? 'false' : 'true');
-				button.style.pointerEvents = isDirty ? '' : 'none';
-				button.style.opacity = isDirty ? '' : '0.5';
-				if (button.tagName === 'BUTTON') {
+				getEditSaveToolbarButtons().forEach(function (button) {
+					button.classList.toggle('disabled', !isDirty);
+					button.setAttribute('aria-disabled', isDirty ? 'false' : 'true');
+					button.style.pointerEvents = isDirty ? '' : 'none';
+					button.style.opacity = isDirty ? '' : '0.5';
 					button.disabled = !isDirty;
-				}
-				if (!isDirty) {
-					button.setAttribute('tabindex', '-1');
-					button.title = Joomla.Text._('COM_BREEZINGFORMSNG_TEST_NO_CHANGES');
-				} else {
-					button.removeAttribute('tabindex');
-					button.title = '';
-				}
+					if (!isDirty) {
+						button.setAttribute('tabindex', '-1');
+						button.title = Joomla.Text._('COM_BREEZINGFORMSNG_TEST_NO_CHANGES');
+					} else {
+						button.removeAttribute('tabindex');
+						button.title = '';
+					}
+				});
 			}
 
 			function syncEditTestToolbarButton() {
@@ -387,7 +312,7 @@ function checkIdentifier(value, name)
 
 			function syncEditUnitTestsButton() {
 				var button = document.getElementById('bf-edit-unit-tests-button');
-				var field = document.getElementById('unit_tests');
+				var field = getFormField('unit_tests');
 				if (!button || !field) {
 					return;
 				}
@@ -415,13 +340,13 @@ function checkIdentifier(value, name)
 					return false;
 				}
 
-				var codeField = document.getElementById('code');
-				var unitTestsField = document.getElementById('unit_tests');
+				var codeField = getFormField('code');
+				var unitTestsField = getFormField('unit_tests');
 				var resultBox = document.getElementById('bf-edit-script-unit-tests-status');
 				var summary = document.getElementById('bf-edit-script-unit-tests-summary');
 				var detailsWrap = document.getElementById('bf-edit-script-unit-tests-details-wrap');
 				var details = document.getElementById('bf-edit-script-unit-tests-details');
-				var functionField = document.getElementById('name');
+				var functionField = getFormField('name');
 
 				if (!codeField || !unitTestsField || !resultBox || !summary || !detailsWrap || !details) {
 					return false;
@@ -542,7 +467,7 @@ function checkIdentifier(value, name)
 				try {
 					var runner = new Function(
 						'console',
-						'"use strict";\n' + String(codeField.value || '') + '\nif (typeof ' + functionName + ' !== "function") { throw new Error("Fonction introuvable: ' + functionName + '"); }\nreturn ' + functionName + ';'
+						'"use strict";\n' + String(getFieldValue('code') || '') + '\nif (typeof ' + functionName + ' !== "function") { throw new Error("Fonction introuvable: ' + functionName + '"); }\nreturn ' + functionName + ';'
 					);
 					var fn = runner(fakeConsole);
 					for (var t = 0; t < tests.length; t++) {

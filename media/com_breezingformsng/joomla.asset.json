@@ -141,14 +141,6 @@
     },
 
     {
-      "name": "com_breezingformsng.scripts-list",
-      "type": "script",
-      "uri": "com_breezingformsng/js/admin/scripts-list.js",
-      "dependencies": ["core", "com_breezingformsng.admin-sort"],
-      "version": "auto"
-    },
-
-    {
       "name": "com_breezingformsng.scripts-test",
       "type": "script",
       "uri": "com_breezingformsng/js/admin/scripts-test.js",

@@ -27,7 +27,6 @@ final class PackageLibraryUiRegressionTest extends TestCase
     public static function libraryProvider(): iterable
     {
         yield 'pieces' => ['Pieces', 'pieces'];
-        yield 'scripts' => ['Scripts', 'scripts'];
     }
 
     #[DataProvider('libraryProvider')]
@@ -105,18 +104,34 @@ final class PackageLibraryUiRegressionTest extends TestCase
         self::assertStringContainsString("'a.title' => 'a.title'", $source);
     }
 
-    public function testPieceAndScriptModelsShareListPreparationInPackageModel(): void
+    public function testPieceModelSharesListPreparationInPackageModel(): void
     {
         $packageModel = $this->read('administrator/components/com_breezingformsng/src/Model/PackageModel.php');
         $pieceModel = $this->read('administrator/components/com_breezingformsng/src/Model/PieceModel.php');
-        $scriptModel = $this->read('administrator/components/com_breezingformsng/src/Model/ScriptModel.php');
 
         self::assertStringContainsString('public function prepareList(', $packageModel);
         self::assertStringContainsString('abstract protected function getSessionPrefix(): string;', $packageModel);
         self::assertStringContainsString("return 'pieces';", $pieceModel);
-        self::assertStringContainsString("return 'scripts';", $scriptModel);
         self::assertStringNotContainsString('public function prepareList(', $pieceModel);
-        self::assertStringNotContainsString('public function prepareList(', $scriptModel);
+    }
+
+    public function testScriptsUseTheNativeListAndFormMvc(): void
+    {
+        $admin = 'administrator/components/com_breezingformsng';
+        $list = $this->read($admin . '/tmpl/scripts/default.php');
+        $edit = $this->read($admin . '/tmpl/script/edit.php');
+
+        self::assertStringContainsString('extends ListModel', $this->read($admin . '/src/Model/ScriptsModel.php'));
+        self::assertStringContainsString('extends AdminModel', $this->read($admin . '/src/Model/ScriptModel.php'));
+        self::assertStringContainsString('extends AdminController', $this->read($admin . '/src/Controller/ScriptsController.php'));
+        self::assertStringContainsString('extends FormController', $this->read($admin . '/src/Controller/ScriptController.php'));
+        self::assertStringContainsString("LayoutHelper::render('joomla.searchtools.default', ['view' => \$this])", $list);
+        self::assertStringContainsString('$this->pagination->getListFooter()', $list);
+        self::assertStringContainsString('task=script.edit&id=', $list);
+        self::assertStringContainsString("\$this->form->renderFieldset('details')", $edit);
+        self::assertStringContainsString("\$this->form->renderField('code')", $edit);
+        self::assertFileDoesNotExist(self::ROOT . '/' . $admin . '/src/View/Scripts/Renderer.php');
+        self::assertFileDoesNotExist(self::ROOT . '/' . $admin . '/src/Service/ScriptManager.php');
     }
 
     public function testSortInitialisationSupportsLateAssetLoading(): void

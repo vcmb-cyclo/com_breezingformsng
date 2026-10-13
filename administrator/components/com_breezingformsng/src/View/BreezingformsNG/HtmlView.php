@@ -105,7 +105,7 @@ class HtmlView extends BaseHtmlView
         $act = $input->getCmd('act', '');
 
         return match (true) {
-            $view === 'scripts', $act === 'managescripts' => [
+            $view === 'scripts', $view === 'script', $act === 'managescripts' => [
                 'label' => Text::_('COM_BREEZINGFORMSNG_MANAGESCRIPTS'),
                 'url' => 'index.php?option=com_breezingformsng&view=scripts',
             ],
