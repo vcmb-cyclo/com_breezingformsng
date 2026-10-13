@@ -157,14 +157,6 @@
     },
 
     {
-      "name": "com_breezingformsng.pieces-list",
-      "type": "script",
-      "uri": "com_breezingformsng/js/admin/pieces-list.js",
-      "dependencies": ["core", "com_breezingformsng.admin-sort"],
-      "version": "auto"
-    },
-
-    {
       "name": "com_breezingformsng.record-flags",
       "type": "script",
       "uri": "com_breezingformsng/js/admin/record-flags.js",

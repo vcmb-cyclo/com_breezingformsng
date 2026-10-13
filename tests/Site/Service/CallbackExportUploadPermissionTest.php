@@ -265,8 +265,8 @@ final class CallbackExportUploadPermissionTest extends TestCase
         $controllers = [
             'AboutController.php',
             'DisplayController.php',
-            'ScriptsController.php',
-            'PiecesController.php',
+            'PackageListController.php',
+            'PackageItemController.php',
         ];
         foreach ($controllers as $controller) {
             $source = $this->read("administrator/components/com_breezingformsng/src/Controller/{$controller}");

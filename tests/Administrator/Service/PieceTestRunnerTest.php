@@ -19,13 +19,13 @@ use PHPUnit\Framework\TestCase;
 use Joomla\Database\DatabaseInterface;
 use ReflectionClass;
 use ReflectionMethod;
-use Vcmb\Component\BreezingformsNG\Administrator\Service\PieceManager;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\PieceTestRunner;
 
 if (!interface_exists(DatabaseInterface::class)) {
     eval('namespace Joomla\\Database; interface DatabaseInterface {}');
 }
 
-final class PieceManagerUnitParserTest extends TestCase
+final class PieceTestRunnerTest extends TestCase
 {
     #[DataProvider('pieceValueProvider')]
     public function testParsesStoredUnitTestValues(string $value, mixed $expected): void
@@ -80,7 +80,7 @@ final class PieceManagerUnitParserTest extends TestCase
 
     private function invokeStatic(string $methodName, mixed ...$arguments): mixed
     {
-        $method = new ReflectionMethod(PieceManager::class, $methodName);
+        $method = new ReflectionMethod(PieceTestRunner::class, $methodName);
         $method->setAccessible(true);
 
         return $method->invoke(null, ...$arguments);

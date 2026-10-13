@@ -109,7 +109,7 @@ class HtmlView extends BaseHtmlView
                 'label' => Text::_('COM_BREEZINGFORMSNG_MANAGESCRIPTS'),
                 'url' => 'index.php?option=com_breezingformsng&view=scripts',
             ],
-            $view === 'pieces', $act === 'managepieces' => [
+            $view === 'pieces', $view === 'piece', $act === 'managepieces' => [
                 'label' => Text::_('COM_BREEZINGFORMSNG_MANAGEPIECES'),
                 'url' => 'index.php?option=com_breezingformsng&view=pieces',
             ],

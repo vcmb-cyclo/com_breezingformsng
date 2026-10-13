@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- The pieces screen now uses the native Joomla MVC, on the same shared bases as the
+  scripts screen (`PackageListModel`, `PackageItemModel`, `PackageListController`,
+  `PackageItemController`): native list, edit form defined in `forms/piece.xml`, and
+  the test page as a layout of the view. The PHP test runner moves unchanged to the
+  `PieceTestRunner` service and still requires the code permission. The legacy
+  `PieceManager`, `PackageModel`, the HTML renderer and the list script are removed.
 - The scripts screen now uses the native Joomla MVC: a list with the search tools and
   pagination, native publish, unpublish and delete actions, and an edit form defined
   in `forms/script.xml` with the native code editor field, Save and Save & Close. The

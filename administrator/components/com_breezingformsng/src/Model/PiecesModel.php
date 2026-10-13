@@ -1,14 +1,23 @@
 <?php
+
 /**
+ * BreezingForms NG - A Joomla Forms Application
+ *
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
  * @license GNU General Public License version 2 or later; see LICENSE.txt
- */
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ **/
 
 namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 \defined('_JEXEC') or die;
 
-class PiecesModel extends PieceModel
+class PiecesModel extends PackageListModel
 {
+    protected function getTableName(): string
+    {
+        return '#__facileforms_pieces';
+    }
 }

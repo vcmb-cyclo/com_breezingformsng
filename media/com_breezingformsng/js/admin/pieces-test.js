@@ -2,7 +2,7 @@ var __bfOpts = Joomla.getOptions('com_breezingformsng.pieces-test') || {};
 
 Joomla.submitbutton = function (pressbutton) {
 	var action = pressbutton.indexOf('.') === -1 ? pressbutton : pressbutton.split('.').pop();
-	Joomla.submitform('pieces.' + action, document.getElementById('adminForm'));
+	Joomla.submitform('piece.' + action, document.getElementById('adminForm'));
 };
 window.submitbutton = Joomla.submitbutton;
 

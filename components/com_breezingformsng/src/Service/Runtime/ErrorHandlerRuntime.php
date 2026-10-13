@@ -134,11 +134,8 @@ final class ErrorHandlerRuntime
                             $what = $rows[0]->name;
                         }
                         $what = 'piece ' . $what;
-                        $url .= '&task=pieces.edit' .
-                            '&ids[]=' . $id;
-                        if ($package != '') {
-                            $url .= '&pkg=' . urlencode($package);
-                        }
+                        $url .= '&task=piece.edit' .
+                            '&id=' . $id;
                         break;
                     case 's':
                         $package = '';

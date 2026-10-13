@@ -23,11 +23,11 @@ final class PerformanceRegressionTest extends TestCase
     public function testAdminListQueriesDoNotLoadLargeUnusedColumns(): void
     {
         $forms = $this->read('administrator/components/com_breezingformsng/src/Model/FormsModel.php');
-        $packages = $this->read('administrator/components/com_breezingformsng/src/Model/PackageModel.php');
+        $packages = $this->read('administrator/components/com_breezingformsng/src/Model/PackageListModel.php');
 
         self::assertStringNotContainsString("->select('*')", $forms);
-        self::assertStringNotContainsString("->select('a.*')", $packages);
-        self::assertStringContainsString("\$db->quoteName('a.description')", $packages);
+        self::assertStringNotContainsString("->select('*')", $packages);
+        self::assertStringNotContainsString("'code'", $packages);
     }
 
     public function testIntegratorItemsAreCachedPerRule(): void

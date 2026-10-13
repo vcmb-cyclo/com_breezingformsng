@@ -24,7 +24,8 @@ final class AreaAccessArchitectureTest extends TestCase
     /** @return iterable<string, array{string, string}> */
     public static function guardedFiles(): iterable
     {
-        foreach (['Pieces', 'Scripts', 'Integrator'] as $area) {
+        // PackageList and PackageItem are the bases of the pieces and scripts controllers.
+        foreach (['PackageList', 'PackageItem', 'Integrator'] as $area) {
             yield $area . ' controller' => ['/src/Controller/' . $area . 'Controller.php', 'AreaAccess::CODE'];
         }
 
@@ -54,44 +55,48 @@ final class AreaAccessArchitectureTest extends TestCase
         self::assertSame(2, substr_count($source, 'AreaAccess::CONFIGURATION);'));
     }
 
-    public function testPiecesStayReadableWithoutTheCodePermission(): void
+    public function testPiecesAndScriptsStayReadableWithoutTheCodePermission(): void
     {
-        $view = file_get_contents(self::ADMIN . '/src/View/Pieces/HtmlView.php');
-        $renderer = file_get_contents(self::ADMIN . '/src/View/Pieces/Renderer.php');
-        $controller = file_get_contents(self::ADMIN . '/src/Controller/PiecesController.php');
+        $item = file_get_contents(self::ADMIN . '/src/Controller/PackageItemController.php');
+        $list = file_get_contents(self::ADMIN . '/src/Controller/PackageListController.php');
+        $script = file_get_contents(self::ADMIN . '/src/Controller/ScriptController.php');
+        $piece = file_get_contents(self::ADMIN . '/src/Controller/PieceController.php');
 
-        self::assertIsString($view);
-        self::assertIsString($renderer);
-        self::assertIsString($controller);
-        self::assertStringNotContainsString('AreaAccess::assert(', $view);
-        self::assertStringContainsString("\$canEdit ? '' : ' disabled'", $renderer);
-        self::assertStringContainsString('READ_ONLY_TASKS', $controller);
+        self::assertIsString($item);
+        self::assertIsString($list);
+        self::assertIsString($script);
+        self::assertIsString($piece);
+        self::assertStringContainsString('if (!\\in_array(strtolower((string) $task), $this->readOnlyTasks(), true)) {', $item);
+        self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CODE);', $item);
+        self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CODE);', $list);
+        self::assertStringNotContainsString('readOnlyTasks', $list);
+        self::assertStringContainsString("return ['edit', 'cancel', 'previous', 'next', 'test'];", $script);
+        // A piece is PHP run on the server: testing it is not read-only.
+        self::assertStringContainsString("return ['edit', 'cancel', 'previous', 'next'];", $piece);
 
-        foreach (['save', 'copy', 'remove', 'publish', 'unpublish', 'setpublished', 'add'] as $writeTask) {
-            self::assertDoesNotMatchRegularExpression(
-                "/READ_ONLY_TASKS = \\[[^\\]]*'" . $writeTask . "'/",
-                $controller
-            );
+        foreach (['Script', 'Piece'] as $area) {
+            $view = file_get_contents(self::ADMIN . '/src/View/' . $area . '/HtmlView.php');
+            $template = file_get_contents(self::ADMIN . '/tmpl/' . strtolower($area) . '/edit.php');
+
+            self::assertIsString($view);
+            self::assertIsString($template);
+            self::assertStringNotContainsString('AreaAccess::assert(', $view);
+            self::assertStringContainsString("\$this->canEdit ? '' : ' disabled'", $template);
         }
     }
 
-    public function testScriptsStayReadableWithoutTheCodePermission(): void
+    public function testThePieceTestPageRequiresTheCodePermission(): void
     {
-        $view = file_get_contents(self::ADMIN . '/src/View/Script/HtmlView.php');
-        $template = file_get_contents(self::ADMIN . '/tmpl/script/edit.php');
-        $item = file_get_contents(self::ADMIN . '/src/Controller/ScriptController.php');
-        $list = file_get_contents(self::ADMIN . '/src/Controller/ScriptsController.php');
+        $view = file_get_contents(self::ADMIN . '/src/View/Piece/HtmlView.php');
+        $controller = file_get_contents(self::ADMIN . '/src/Controller/PieceController.php');
 
         self::assertIsString($view);
-        self::assertIsString($template);
-        self::assertIsString($item);
-        self::assertIsString($list);
-        self::assertStringNotContainsString('AreaAccess::assert(', $view);
-        self::assertStringContainsString("\$this->canEdit ? '' : ' disabled'", $template);
-        self::assertStringContainsString("READ_ONLY_TASKS = ['edit', 'cancel', 'previous', 'next', 'test'];", $item);
-        self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CODE);', $item);
-        self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CODE);', $list);
-        self::assertStringNotContainsString('READ_ONLY_TASKS', $list);
+        self::assertIsString($controller);
+        self::assertMatchesRegularExpression(
+            "/getLayout\\(\\) === 'test'\\) \\{\\s+\\/\\/ [^\\n]+\\s+if \\(!\\\$this->canEdit\\) \\{\\s+throw new \\\\Exception\\(Text::_\\('JERROR_ALERTNOAUTHOR'\\), 403\\);/",
+            $view
+        );
+        self::assertSame(2, substr_count($controller, '$this->checkToken();'));
     }
 
     public function testAuditRepairsRequireAnAdministrator(): void

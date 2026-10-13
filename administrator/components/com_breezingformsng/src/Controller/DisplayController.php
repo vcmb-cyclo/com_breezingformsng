@@ -12,9 +12,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
-use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
-use Vcmb\Component\BreezingformsNG\Administrator\Model\PieceModel;
 
 /** @property CMSApplication $app */
 class DisplayController extends BaseController
@@ -22,7 +20,12 @@ class DisplayController extends BaseController
     /**
      * Edit views of the native form MVC, with the list each one returns to.
      */
-    private const ITEM_VIEWS = ['record' => 'records', 'menu' => 'menus', 'script' => 'scripts'];
+    private const ITEM_VIEWS = [
+        'record' => 'records',
+        'menu' => 'menus',
+        'script' => 'scripts',
+        'piece' => 'pieces',
+    ];
 
     public function display($cachable = false, $urlparams = [])
     {
@@ -127,55 +130,11 @@ class DisplayController extends BaseController
             return parent::display($cachable, $urlparams);
         }
 
-        if ($task === '' && $view === 'scripts') {
-            return parent::display($cachable, $urlparams);
-        }
-
-        if ($task === '' && $view === 'pieces') {
-            $this->prepareListPackage();
-
+        if ($task === '' && in_array($view, ['pieces', 'scripts'], true)) {
             return parent::display($cachable, $urlparams);
         }
 
         // No valid route matched — return without invoking the removed legacy bridge.
         return $this;
-    }
-
-    /**
-     * Keeps the package of the pieces list across requests.
-     */
-    private function prepareListPackage(): void
-    {
-        $input      = $this->app->getInput();
-        $session    = $this->app->getSession();
-
-        $package = $input->get('pkg', null, 'STRING');
-
-        if ($package === null) {
-            $package = (string) ($session->get('bf.piecepkg') ?? '');
-        } elseif ($package === '- blank -') {
-            $package = '';
-        }
-
-        if ($package !== '') {
-            $component = $this->app->bootComponent('com_breezingformsng');
-
-            if (!$component instanceof MVCFactoryServiceInterface) {
-                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-            }
-
-            $model = $component->getMVCFactory()->createModel('Piece', 'Administrator', ['ignore_request' => true]);
-
-            if (!$model instanceof PieceModel) {
-                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-            }
-
-            if (!$model->packageExists((string) $package)) {
-                $package = '';
-            }
-        }
-
-        $session->set('bf.piecepkg', $package);
-        $input->set('pkg', $package);
     }
 }
