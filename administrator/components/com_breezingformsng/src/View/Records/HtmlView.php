@@ -13,22 +13,18 @@ use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
-use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Toolbar\Button\DropdownButton;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
-use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
 
 class HtmlView extends BaseHtmlView
 {
-    // list
     /** @var object[] */
     public array $items = [];
     public ?Pagination $pagination = null;
@@ -36,12 +32,6 @@ class HtmlView extends BaseHtmlView
     public ?Form $filterForm = null;
     public array $activeFilters = [];
     public int $formSelection = 0;
-
-    // edit
-    public ?\stdClass $record = null;
-    public array $recordRows = [];
-    public ?int $prevRecordId = null;
-    public ?int $nextRecordId = null;
 
     private string $layout = 'default';
 
@@ -62,28 +52,7 @@ class HtmlView extends BaseHtmlView
         $this->canEditState = $user->authorise('core.edit.state', 'com_breezingformsng');
         $this->canDelete = $user->authorise('core.delete', 'com_breezingformsng');
 
-        if ($layout === 'edit') {
-            $this->prepareEditData($input);
-            $this->prepareEditToolbar();
-            HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
-
-            $document = $app->getDocument();
-            $document->getWebAssetManager()->useStyle('com_breezingformsng.admin-style');
-            $document->getWebAssetManager()->registerAndUseScript(
-                'com_breezingformsng.record-flags',
-                'media/com_breezingformsng/js/admin/record-flags.js',
-                ['version' => 'auto'],
-                ['defer' => true],
-                ['core']
-            );
-            $document->addScriptOptions(
-                'com_breezingformsng.record-flags',
-                ['csrfToken' => \Joomla\CMS\Session\Session::getFormToken()]
-            );
-            Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
-            Text::script('JYES');
-            Text::script('JNO');
-        } elseif ($layout === 'csvimport') {
+        if ($layout === 'csvimport') {
             $this->formSelection = (int) $this->getRecordsModel()->getState('filter.form');
             $this->prepareImportToolbar();
         } else {
@@ -136,43 +105,6 @@ class HtmlView extends BaseHtmlView
         $this->state = $model->getState();
         $this->filterForm = $model->getFilterForm();
         $this->activeFilters = $model->getActiveFilters();
-    }
-
-    private function prepareEditData(\Joomla\Input\Input $input): void
-    {
-        $recordId = $input->getInt('record_id', 0);
-        /** @var CMSApplication $app */
-        $app = Factory::getApplication();
-
-        if ($recordId < 1) {
-            $app->redirect('index.php?option=com_breezingformsng&view=records');
-            return;
-        }
-
-        $component = $app->bootComponent('com_breezingformsng');
-
-        if (!$component instanceof MVCFactoryServiceInterface) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-        }
-
-        /** @var RecordModel $model */
-        $model = $component->getMVCFactory()->createModel('Record', 'Administrator');
-
-        $this->record = $model->getRecord($recordId);
-        if (!$this->record) {
-            $app->redirect('index.php?option=com_breezingformsng&view=records');
-            return;
-        }
-
-        $this->recordRows = $model->getEditableRows(
-            $recordId,
-            (int) $this->record->form,
-            (string) $this->record->name
-        );
-
-        $recordsModel = $this->getRecordsModel();
-        $this->prevRecordId = $recordsModel->getAdjacentRecordId($recordId, 'prev');
-        $this->nextRecordId = $recordsModel->getAdjacentRecordId($recordId, 'next');
     }
 
     private function prepareListToolbar(): void
@@ -293,105 +225,6 @@ class HtmlView extends BaseHtmlView
             ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_HELP_RECORDS_TITLE')]);
     }
 
-    private function prepareEditToolbar(): void
-    {
-        /** @var HtmlDocument $document */
-        $document = $this->getDocument();
-        $toolbar = $document->getToolbar();
-
-        $exportDropdown = $toolbar->dropdownButton('export-options');
-
-        if (!$exportDropdown instanceof DropdownButton) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-        }
-
-        $exportDropdown->toggleSplit(false);
-        $exportDropdown
-            ->text(Text::_('COM_BREEZINGFORMSNG_EXPORT_DOWNLOAD'))
-            ->icon('icon-download')
-            ->buttonClass('btn btn-action');
-        $exportChild = $exportDropdown->getChildToolbar();
-        $exportChild->standardButton('exportPdf')->text(Text::_('COM_BREEZINGFORMSNG_PDF'))->task('records.exportPdf')->icon('icon-download')->listCheck(false);
-        $exportChild->standardButton('exportCsv')->text(Text::_('COM_BREEZINGFORMSNG_CSV'))->task('records.exportCsv')->icon('icon-download')->listCheck(false);
-        $exportChild->standardButton('exportXlsx')->text(Text::_('COM_BREEZINGFORMSNG_XLSX'))->task('records.exportXlsx')->icon('icon-download')->listCheck(false);
-        $exportChild->standardButton('exportXml')->text(Text::_('COM_BREEZINGFORMSNG_XML'))->task('records.exportXml')->icon('icon-download')->listCheck(false);
-
-        $markDropdown = $toolbar->dropdownButton('mark-options');
-
-        if (!$markDropdown instanceof DropdownButton) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-        }
-
-        $markDropdown->toggleSplit(false);
-        $markDropdown
-            ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK'))
-            ->icon('icon-check')
-            ->buttonClass('btn btn-action');
-        $markChild = $markDropdown->getChildToolbar();
-        $markChild->standardButton('markViewed')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_VIEWED'))->task('records.viewed')->icon('icon-eye-open')->listCheck(false);
-        $markChild->standardButton('unmarkViewed')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_VIEWED'))->task('records.unviewed')->icon('icon-eye-close')->listCheck(false);
-        $markChild->standardButton('markExported')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_EXPORTED'))->task('records.exported')->icon('icon-share')->listCheck(false);
-        $markChild->standardButton('unmarkExported')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_EXPORTED'))->task('records.unexported')->icon('icon-cancel-circle')->listCheck(false);
-
-        $state = (int) ($this->record->state ?? RecordState::PUBLISHED);
-
-        if ($this->canEditState) {
-            if ($state === RecordState::ARCHIVED) {
-                $toolbar->unarchive('records.publish')->listCheck(false);
-            } elseif ($state === RecordState::TRASHED) {
-                $toolbar->publish('records.publish')->listCheck(false);
-            } else {
-                $toolbar->archive('records.archive')->listCheck(false);
-            }
-
-            if ($state !== RecordState::TRASHED) {
-                $toolbar->trash('records.trash')->listCheck(false);
-            }
-        }
-
-        if ($state === RecordState::TRASHED && $this->canDelete) {
-            $toolbar->delete('records.delete', 'JTOOLBAR_EMPTY_TRASH')
-                ->message('COM_BREEZINGFORMSNG_CONFIRM_DELETE_RECORDS')
-                ->listCheck(false);
-        }
-
-        ToolbarHelper::custom('records.save', 'save', 'save', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_SAVE'), false);
-        ToolbarHelper::cancel('records.cancel', 'JTOOLBAR_CLOSE');
-
-        /** @var CMSApplication $app */
-        $app      = Factory::getApplication();
-        $document = $app->getDocument();
-        $wa       = $document->getWebAssetManager();
-        $wa->registerAndUseScript(
-            'com_breezingformsng.admin-form',
-            'media/com_breezingformsng/js/admin/admin-form.js',
-            ['version' => 'auto'],
-            ['defer' => true],
-            ['core']
-        );
-        $wa->registerAndUseScript(
-            'com_breezingformsng.admin-form-dirty',
-            'media/com_breezingformsng/js/admin/admin-form-dirty.js',
-            ['version' => 'auto'],
-            ['defer' => true],
-            ['com_breezingformsng.admin-form']
-        );
-        $document->addScriptOptions('com_breezingformsng.admin-form', [
-            'cancelTask' => 'records.cancel',
-            'saveTask'   => 'records.save',
-            'validateTask' => 'records.save',
-            'exportTasks' => ['records.exportPdf', 'records.exportCsv', 'records.exportXlsx', 'records.exportXml'],
-            'discardTasks' => [
-                'records.viewed', 'records.unviewed', 'records.exported',
-                'records.unexported', 'records.publish', 'records.archive',
-                'records.trash', 'records.delete',
-            ],
-        ]);
-        Text::script('COM_BREEZINGFORMSNG_TEST_NO_CHANGES');
-        Text::script('COM_BREEZINGFORMSNG_CONFIRM_DISCARD_CHANGES');
-        Text::script('COM_BREEZINGFORMSNG_EXPORT_SAVE_FIRST');
-    }
-
     private function prepareImportToolbar(): void
     {
         ToolbarHelper::cancel('records.display', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_CANCEL'));
@@ -399,12 +232,6 @@ class HtmlView extends BaseHtmlView
 
     protected function getDetailLabel(): ?string
     {
-        if ($this->layout === 'edit') {
-            $recordId = Factory::getApplication()->getInput()->getInt('record_id', 0);
-
-            return $recordId > 0 ? (string) $recordId : null;
-        }
-
         if ($this->layout === 'csvimport') {
             return Text::_('COM_BREEZINGFORMSNG_BTN_IMPORT_CSV');
         }

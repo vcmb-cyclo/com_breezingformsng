@@ -128,11 +128,13 @@ final class RecordsNavigationTest extends TestCase
     {
         $admin = __DIR__ . '/../../administrator/components/com_breezingformsng';
         $listTemplate = file_get_contents($admin . '/tmpl/records/default.php');
-        $editTemplate = file_get_contents($admin . '/tmpl/records/edit.php');
+        $editTemplate = file_get_contents($admin . '/tmpl/record/edit.php');
 
         self::assertIsString($listTemplate);
         self::assertIsString($editTemplate);
-        self::assertStringContainsString('layout=edit&amp;record_id=<?= $recId; ?>', $listTemplate);
+        self::assertStringContainsString('task=record.edit&amp;id=<?= $recId; ?>', $listTemplate);
+        self::assertStringContainsString('task=record.edit&id=', $editTemplate);
+        self::assertStringContainsString('$this->form->renderFieldset(\'values\')', $editTemplate);
         self::assertStringNotContainsString('filter_order', $listTemplate . $editTemplate);
         self::assertStringNotContainsString('form_selection', $listTemplate . $editTemplate);
         self::assertStringContainsString('$recordUrl($this->prevRecordId)', $editTemplate);

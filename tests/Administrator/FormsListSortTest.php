@@ -18,14 +18,17 @@ use PHPUnit\Framework\TestCase;
 
 final class FormsListSortTest extends TestCase
 {
-    public function testFormsListRegistersItsSortScriptBeforeTheTemplateIsRendered(): void
+    public function testFormsListSortsThroughTheNativeSearchTools(): void
     {
-        $source = file_get_contents(
-            __DIR__ . '/../../administrator/components/com_breezingformsng/src/View/Forms/HtmlView.php'
-        );
+        $admin = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $view = file_get_contents($admin . '/src/View/Forms/HtmlView.php');
+        $template = file_get_contents($admin . '/tmpl/forms/default.php');
 
-        self::assertIsString($source);
-        self::assertStringContainsString("registerAndUseScript(\n                'com_breezingformsng.admin-sort'", $source);
-        self::assertStringContainsString("'media/com_breezingformsng/js/admin/admin-sort.js'", $source);
+        self::assertIsString($view);
+        self::assertIsString($template);
+        self::assertStringNotContainsString('admin-sort', $view);
+        self::assertStringContainsString("LayoutHelper::render('joomla.searchtools.default', ['view' => \$this])", $template);
+        self::assertStringContainsString("HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_TITLE', 'title'", $template);
+        self::assertStringNotContainsString('filter_order', $template);
     }
 }

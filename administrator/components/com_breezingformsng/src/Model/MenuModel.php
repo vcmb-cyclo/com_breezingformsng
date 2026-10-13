@@ -1,357 +1,207 @@
 <?php
+
 /**
+ * BreezingForms NG - A Joomla Forms Application
+ *
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
  * @license GNU General Public License version 2 or later; see LICENSE.txt
- */
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ **/
 
 namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 \defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Joomla\CMS\Language\Text;
+use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Filter\OutputFilter;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
-use Joomla\Database\DatabaseInterface;
+use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\Database\ParameterType;
-use Joomla\Database\QueryInterface;
+use Joomla\Utilities\ArrayHelper;
 
-class MenuModel extends BaseDatabaseModel
+class MenuModel extends AdminModel
 {
-    private function db(): DatabaseInterface
+    public function getTable($name = 'Menu', $prefix = 'Site', $options = [])
     {
-        return $this->getDatabase();
+        return parent::getTable($name, $prefix, $options);
     }
 
-    public function getPackages(): array
+    public function getForm($data = [], $loadData = true)
     {
-        $db = $this->db();
-        $q  = $db->getQuery(true)
-            ->select('DISTINCT ' . $db->quoteName('package'))
+        return $this->loadForm('com_breezingformsng.menu', 'menu', ['control' => 'jform', 'load_data' => $loadData]);
+    }
+
+    protected function loadFormData()
+    {
+        $application = Factory::getApplication();
+
+        if (!$application instanceof CMSApplication) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $data = $application->getUserState('com_breezingformsng.edit.menu.data', []);
+
+        if (empty($data)) {
+            $data = $this->getItem();
+        }
+
+        $this->preprocessData('com_breezingformsng.menu', $data);
+
+        return $data;
+    }
+
+    /**
+     * The params column holds free text here, not a registry.
+     */
+    public function getItem($pk = null)
+    {
+        $pk = (int) ($pk ?: $this->getState($this->getName() . '.id'));
+        $table = $this->getTable();
+
+        if ($pk > 0 && !$table->load($pk)) {
+            $this->setError($table->getError() ?: Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
+
+            return false;
+        }
+
+        return ArrayHelper::toObject(get_object_vars($table));
+    }
+
+    /**
+     * A new item goes last among its siblings.
+     */
+    protected function prepareTable($table)
+    {
+        $table->package = (string) $table->package;
+
+        if ((int) $table->id > 0) {
+            return;
+        }
+
+        $db = $this->getDatabase();
+        $parent = (int) $table->parent;
+        $package = $table->package;
+        $query = $db->getQuery(true)
+            ->select('COALESCE(MAX(' . $db->quoteName('ordering') . '), 0) + 1')
             ->from($db->quoteName('#__facileforms_compmenus'))
-            ->order($db->quoteName('package') . ' ASC');
-
-        return $db->setQuery($q)->loadColumn() ?: [];
+            ->where($db->quoteName('parent') . ' = :parent')
+            ->where($db->quoteName('package') . ' = :package')
+            ->bind(':parent', $parent, ParameterType::INTEGER)
+            ->bind(':package', $package);
+        $table->ordering = (int) $db->setQuery($query)->loadResult();
     }
 
-    public function getItems(string $pkg): array
+    /**
+     * Items are ordered among the siblings of their package.
+     */
+    protected function getReorderConditions($table)
     {
-        $db = $this->db();
-        $q  = $db->getQuery(true)
-            ->select([
-                $db->quoteName('m.id'),
-                $db->quoteName('m.package'),
-                $db->quoteName('m.parent'),
-                $db->quoteName('m.ordering'),
-                $db->quoteName('m.published'),
-                $db->quoteName('m.title'),
-                $db->quoteName('m.name'),
-                $db->quoteName('m.page'),
-            ])
-            ->from($db->quoteName('#__facileforms_compmenus', 'm'))
-            ->order([$db->quoteName('m.parent') . ' ASC', $db->quoteName('m.ordering') . ' ASC']);
+        $db = $this->getDatabase();
 
-        if ($pkg !== '') {
-            $q->where($db->quoteName('m.package') . ' = :package')
-                ->bind(':package', $pkg);
+        return [
+            $db->quoteName('parent') . ' = ' . (int) $table->parent,
+            $db->quoteName('package') . ' = ' . $db->quote((string) $table->package),
+        ];
+    }
+
+    public function save($data)
+    {
+        if (!parent::save($data)) {
+            return false;
         }
 
-        return $db->setQuery($q)->loadObjectList() ?: [];
-    }
+        $table = $this->getTable();
 
-    public function getItem(int $id): ?\stdClass
-    {
-        if ($id <= 0) {
-            $obj            = new \stdClass();
-            $obj->id        = 0;
-            $obj->package   = '';
-            $obj->parent    = 0;
-            $obj->ordering  = 0;
-            $obj->published = 1;
-            $obj->img       = '';
-            $obj->title     = '';
-            $obj->name      = '';
-            $obj->page      = 1;
-            $obj->frame     = 0;
-            $obj->border    = 0;
-            $obj->params    = '';
-            return $obj;
+        if ($table->load((int) $this->getState($this->getName() . '.id'))) {
+            $table->reorder($this->getReorderConditions($table));
         }
 
-        $db = $this->db();
-        $q  = $db->getQuery(true)
-            ->select('*')
-            ->from($db->quoteName('#__facileforms_compmenus'))
-            ->where($db->quoteName('id') . ' = :id')
-            ->bind(':id', $id, ParameterType::INTEGER);
-
-        return $db->setQuery($q)->loadObject() ?: null;
+        return true;
     }
 
-    public function getForms(): array
+    /**
+     * Deletes the items together with their children.
+     */
+    public function delete(&$pks)
     {
-        $db = $this->db();
-        $q  = $db->getQuery(true)
-            ->select([$db->quoteName('id'), $db->quoteName('name'), $db->quoteName('title')])
-            ->from($db->quoteName('#__facileforms_forms'))
-            ->order($db->quoteName('title') . ' ASC');
+        $pks = ArrayHelper::toInteger((array) $pks);
 
-        return $db->setQuery($q)->loadObjectList() ?: [];
-    }
-
-    public function getParents(string $pkg): array
-    {
-        $db = $this->db();
-        $q  = $db->getQuery(true)
-            ->select([$db->quoteName('id'), $db->quoteName('title')])
-            ->from($db->quoteName('#__facileforms_compmenus'))
-            ->where($db->quoteName('parent') . ' = 0')
-            ->order($db->quoteName('ordering') . ' ASC');
-
-        if ($pkg !== '') {
-            $q->where($db->quoteName('package') . ' = :package')
-                ->bind(':package', $pkg);
-        }
-
-        return $db->setQuery($q)->loadObjectList() ?: [];
-    }
-
-    public function prefillFromForm(int $formId): \stdClass
-    {
-        $db  = $this->db();
-        $q   = $db->getQuery(true)
-            ->select([$db->quoteName('name'), $db->quoteName('title')])
-            ->from($db->quoteName('#__facileforms_forms'))
-            ->where($db->quoteName('id') . ' = :formId')
-            ->bind(':formId', $formId, ParameterType::INTEGER);
-        $form = $db->setQuery($q)->loadObject();
-
-        $obj            = new \stdClass();
-        $obj->id        = 0;
-        $obj->package   = '';
-        $obj->parent    = 0;
-        $obj->ordering  = 0;
-        $obj->published = 1;
-        $obj->img       = '';
-        $obj->title     = $form ? (string) $form->title : '';
-        $obj->name      = $form ? (string) $form->name  : '';
-        $obj->page      = 1;
-        $obj->frame     = 0;
-        $obj->border    = 0;
-        $obj->params    = '';
-        return $obj;
-    }
-
-    public function saveItem(array $data): int
-    {
-        $db = $this->db();
-
-        $id      = (int) ($data['id'] ?? 0);
-        $pkg     = (string) ($data['package'] ?? '');
-        $parent  = (int) ($data['parent']  ?? 0);
-        $title   = (string) ($data['title']   ?? '');
-        $name    = (string) ($data['name']    ?? '');
-        $page    = (int) ($data['page']    ?? 1);
-        $frame   = (int) ($data['frame']   ?? 0);
-        $border  = (int) ($data['border']  ?? 0);
-        $img     = (string) ($data['img']     ?? '');
-        $params  = (string) ($data['params']  ?? '');
-        $pub     = (int) ($data['published'] ?? 1);
-
-        if ($title === '') {
-            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_MENUS_TITLEEMPTY'));
-        }
-
-        if ($id > 0) {
-            $q = $db->getQuery(true)
-                ->update($db->quoteName('#__facileforms_compmenus'))
-                ->set([
-                    $db->quoteName('package') . ' = :package',
-                    $db->quoteName('parent') . ' = :parent',
-                    $db->quoteName('title') . ' = :title',
-                    $db->quoteName('name') . ' = :name',
-                    $db->quoteName('page') . ' = :page',
-                    $db->quoteName('frame') . ' = :frame',
-                    $db->quoteName('border') . ' = :border',
-                    $db->quoteName('img') . ' = :image',
-                    $db->quoteName('params') . ' = :params',
-                    $db->quoteName('published') . ' = :published',
-                ])
-                ->where($db->quoteName('id') . ' = :id')
-                ->bind(':id', $id, ParameterType::INTEGER);
-            $this->bindMenuValues($q, $pkg, $parent, $title, $name, $page, $frame, $border, $img, $params, $pub);
-            $db->setQuery($q)->execute();
-        } else {
-            $maxQ = $db->getQuery(true)
-                ->select('COALESCE(MAX(' . $db->quoteName('ordering') . '), 0) + 1')
+        if ($pks !== []) {
+            $db = $this->getDatabase();
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('id'))
                 ->from($db->quoteName('#__facileforms_compmenus'))
-                ->where($db->quoteName('parent') . ' = :parent')
-                ->where($db->quoteName('package') . ' = :package')
-                ->bind(':parent', $parent, ParameterType::INTEGER)
-                ->bind(':package', $pkg);
-            $ordering = (int) $db->setQuery($maxQ)->loadResult();
-
-            $q = $db->getQuery(true)
-                ->insert($db->quoteName('#__facileforms_compmenus'))
-                ->columns([
-                    $db->quoteName('package'), $db->quoteName('parent'), $db->quoteName('ordering'),
-                    $db->quoteName('published'), $db->quoteName('img'), $db->quoteName('title'),
-                    $db->quoteName('name'), $db->quoteName('page'), $db->quoteName('frame'),
-                    $db->quoteName('border'), $db->quoteName('params'),
-                ])
-                ->values(':package, :parent, :ordering, :published, :image, :title, :name, :page, :frame, :border, :params')
-                ->bind(':ordering', $ordering, ParameterType::INTEGER);
-            $this->bindMenuValues($q, $pkg, $parent, $title, $name, $page, $frame, $border, $img, $params, $pub);
-            $db->setQuery($q)->execute();
-            $id = (int) $db->insertid();
+                ->whereIn($db->quoteName('parent'), $pks);
+            $children = array_map('intval', $db->setQuery($query)->loadColumn());
+            $pks = array_values(array_unique([...$pks, ...$children]));
         }
 
-        $this->reorder($parent, $pkg);
-        return $id;
+        return parent::delete($pks);
     }
 
-    public function deleteItems(array $ids): void
+    /**
+     * Copies the items together with their children.
+     *
+     * @param int[] $ids
+     */
+    public function copy(array $ids): void
     {
-        if (empty($ids)) {
-            return;
-        }
+        $db = $this->getDatabase();
 
-        $db      = $this->db();
-        $intIds = array_values(array_filter(array_map('intval', $ids)));
+        foreach ($ids as $id) {
+            $source = $this->getTable();
 
-        if ($intIds === []) {
-            return;
-        }
-
-        $childQ = $db->getQuery(true)
-            ->select($db->quoteName('id'))
-            ->from($db->quoteName('#__facileforms_compmenus'))
-            ->whereIn($db->quoteName('parent'), $intIds);
-        $childIds = $db->setQuery($childQ)->loadColumn();
-
-        $allIds = array_merge($intIds, array_map('intval', $childIds ?: []));
-        $allIds = array_values(array_unique($allIds));
-
-        $db->setQuery(
-            $db->getQuery(true)
-                ->delete($db->quoteName('#__facileforms_compmenus'))
-                ->whereIn($db->quoteName('id'), $allIds)
-        )->execute();
-    }
-
-    public function copyItems(array $ids): void
-    {
-        if (empty($ids)) {
-            return;
-        }
-
-        $db = $this->db();
-        foreach (array_map('intval', $ids) as $id) {
-            $src = $this->getItem($id);
-            if ($src === null) {
+            if (!$source->load($id)) {
                 continue;
             }
 
-            $data           = (array) $src;
-            $data['id']     = 0;
-            $data['title']  = $src->title . ' (copy)';
-            $newId          = $this->saveItem($data);
+            $data = get_object_vars($source);
+            $data['id'] = 0;
+            $data['title'] = $source->title . ' (copy)';
+            $newId = $this->store($data);
 
-            $childQ = $db->getQuery(true)
-                ->select('*')
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('id'))
                 ->from($db->quoteName('#__facileforms_compmenus'))
                 ->where($db->quoteName('parent') . ' = :parent')
                 ->bind(':parent', $id, ParameterType::INTEGER);
-            $children = $db->setQuery($childQ)->loadObjectList() ?: [];
 
-            foreach ($children as $child) {
-                $cd          = (array) $child;
-                $cd['id']    = 0;
-                $cd['parent']= $newId;
-                $this->saveItem($cd);
+            foreach (array_map('intval', $db->setQuery($query)->loadColumn()) as $childId) {
+                $child = $this->getTable();
+
+                if (!$child->load($childId)) {
+                    continue;
+                }
+
+                $childData = get_object_vars($child);
+                $childData['id'] = 0;
+                $childData['parent'] = $newId;
+                $this->store($childData);
             }
         }
     }
 
-    public function publish(array $ids, int $state): void
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function store(array $data): int
     {
-        if (empty($ids)) {
-            return;
+        $this->setState($this->getName() . '.id', 0);
+
+        if (!$this->save($data)) {
+            throw new \RuntimeException((string) $this->getError());
         }
 
-        $db     = $this->db();
-        $intIds = array_values(array_filter(array_map('intval', $ids)));
-
-        if ($intIds === []) {
-            return;
-        }
-
-        $db->setQuery(
-            $db->getQuery(true)
-                ->update($db->quoteName('#__facileforms_compmenus'))
-                ->set($db->quoteName('published') . ' = :state')
-                ->whereIn($db->quoteName('id'), $intIds)
-                ->bind(':state', $state, ParameterType::INTEGER)
-        )->execute();
-    }
-
-    public function moveOrder(int $id, int $inc, string $pkg): void
-    {
-        $item = $this->getItem($id);
-        if ($item === null) {
-            return;
-        }
-
-        $db = $this->db();
-
-        $dir      = $inc > 0 ? '>' : '<';
-        $sort     = $inc > 0 ? 'ASC' : 'DESC';
-        $parent = (int) $item->parent;
-        $ordering = (int) $item->ordering;
-        $neighbor = $db->setQuery(
-            $db->getQuery(true)
-                ->select(['id', 'ordering'])
-                ->from($db->quoteName('#__facileforms_compmenus'))
-                ->where($db->quoteName('parent') . ' = :parent')
-                ->where($db->quoteName('package') . ' = :package')
-                ->where($db->quoteName('ordering') . ' ' . $dir . ' :ordering')
-                ->order($db->quoteName('ordering') . ' ' . $sort)
-                ->bind(':parent', $parent, ParameterType::INTEGER)
-                ->bind(':package', $pkg)
-                ->bind(':ordering', $ordering, ParameterType::INTEGER)
-                ->setLimit(1)
-        )->loadObject();
-
-        if ($neighbor === null) {
-            return;
-        }
-
-        $neighborId = (int) $neighbor->id;
-        $neighborOrdering = (int) $neighbor->ordering;
-
-        $db->setQuery(
-            $db->getQuery(true)
-                ->update($db->quoteName('#__facileforms_compmenus'))
-                ->set($db->quoteName('ordering') . ' = :ordering')
-                ->where($db->quoteName('id') . ' = :id')
-                ->bind(':ordering', $neighborOrdering, ParameterType::INTEGER)
-                ->bind(':id', $id, ParameterType::INTEGER)
-        )->execute();
-
-        $db->setQuery(
-            $db->getQuery(true)
-                ->update($db->quoteName('#__facileforms_compmenus'))
-                ->set($db->quoteName('ordering') . ' = :ordering')
-                ->where($db->quoteName('id') . ' = :id')
-                ->bind(':ordering', $ordering, ParameterType::INTEGER)
-                ->bind(':id', $neighborId, ParameterType::INTEGER)
-        )->execute();
+        return (int) $this->getState($this->getName() . '.id');
     }
 
     public function syncToJoomlaMenu(MVCFactoryInterface $menusFactory): void
     {
-        $db = $this->db();
+        $db = $this->getDatabase();
         $linkPattern = 'index.php?option=com_breezingformsng&act=run%';
         $existingQuery = $db->getQuery(true)
             ->select($db->quoteName('id'))
@@ -451,60 +301,6 @@ class MenuModel extends BaseDatabaseModel
         } catch (\Throwable $exception) {
             $db->transactionRollback();
             throw $exception;
-        }
-    }
-
-    private function bindMenuValues(
-        QueryInterface $query,
-        string $package,
-        int $parent,
-        string $title,
-        string $name,
-        int $page,
-        int $frame,
-        int $border,
-        string $image,
-        string $params,
-        int $published
-    ): void {
-        $query
-            ->bind(':package', $package)
-            ->bind(':parent', $parent, ParameterType::INTEGER)
-            ->bind(':title', $title)
-            ->bind(':name', $name)
-            ->bind(':page', $page, ParameterType::INTEGER)
-            ->bind(':frame', $frame, ParameterType::INTEGER)
-            ->bind(':border', $border, ParameterType::INTEGER)
-            ->bind(':image', $image)
-            ->bind(':params', $params)
-            ->bind(':published', $published, ParameterType::INTEGER);
-    }
-
-    private function reorder(int $parent, string $pkg): void
-    {
-        $db = $this->db();
-        $q  = $db->getQuery(true)
-            ->select($db->quoteName('id'))
-            ->from($db->quoteName('#__facileforms_compmenus'))
-            ->where($db->quoteName('parent') . ' = :parent')
-            ->where($db->quoteName('package') . ' = :package')
-            ->bind(':parent', $parent, ParameterType::INTEGER)
-            ->bind(':package', $pkg)
-            ->order($db->quoteName('ordering') . ' ASC');
-
-        $ids = $db->setQuery($q)->loadColumn() ?: [];
-
-        foreach (array_values($ids) as $pos => $rowId) {
-            $ordering = $pos + 1;
-            $rowId = (int) $rowId;
-            $db->setQuery(
-                $db->getQuery(true)
-                    ->update($db->quoteName('#__facileforms_compmenus'))
-                    ->set($db->quoteName('ordering') . ' = :ordering')
-                    ->where($db->quoteName('id') . ' = :id')
-                    ->bind(':ordering', $ordering, ParameterType::INTEGER)
-                    ->bind(':id', $rowId, ParameterType::INTEGER)
-            )->execute();
         }
     }
 }

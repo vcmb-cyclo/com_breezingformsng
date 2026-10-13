@@ -11,65 +11,32 @@
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\Pagination\Pagination;
+use Joomla\CMS\Layout\LayoutHelper;
 
 $pkg = $this->pkg;
-
-$pagination = new Pagination($this->total, $this->limitStart, $this->limit);
+$listOrder = $this->escape((string) $this->state->get('list.ordering'));
+$listDirn  = $this->escape((string) $this->state->get('list.direction'));
+$pagination = $this->pagination;
 $itemCount  = count($this->items);
-$saveOrder  = $this->listOrder === 'ordering' && strtolower($this->listDirn) === 'asc';
+$saveOrder  = $listOrder === 'ordering' && strtolower($listDirn) === 'asc';
 ?>
 <form action="index.php?option=com_breezingformsng&amp;view=forms" method="post" name="adminForm" id="adminForm">
-  <input type="hidden" name="view" value="forms">
-
-  <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
-
-    <?php if (!empty($this->packages)): ?>
-    <label class="visually-hidden" for="filter_package"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PACKAGE'); ?></label>
-    <select class="form-select w-auto" name="pkg" id="filter_package" onchange="this.form.submit()">
-      <option value=""<?= $pkg === '' ? ' selected' : ''; ?>><?= Text::_('JALL'); ?></option>
-      <?php foreach ($this->packages as $p): ?>
-        <option value="<?= htmlspecialchars($p); ?>"<?= $pkg === $p ? ' selected' : ''; ?>><?= htmlspecialchars($p); ?></option>
-      <?php endforeach; ?>
-    </select>
-    <?php endif; ?>
-
-    <label class="visually-hidden" for="filter_state"><?= Text::_('JOPTION_SELECT_PUBLISHED'); ?></label>
-    <select class="form-select w-auto" name="filter_state" id="filter_state" onchange="this.form.submit()">
-      <option value=""<?= $this->filterState === '' ? ' selected' : ''; ?>><?= Text::_('JOPTION_SELECT_PUBLISHED'); ?></option>
-      <option value="P"<?= $this->filterState === 'P' ? ' selected' : ''; ?>><?= Text::_('JPUBLISHED'); ?></option>
-      <option value="U"<?= $this->filterState === 'U' ? ' selected' : ''; ?>><?= Text::_('JUNPUBLISHED'); ?></option>
-    </select>
-
-    <div class="input-group w-auto">
-      <label class="visually-hidden" for="filter_search"><?= Text::_('JSEARCH_FILTER'); ?></label>
-      <input type="text" class="form-control" name="search" id="filter_search"
-             value="<?= htmlspecialchars($this->search); ?>"
-             placeholder="<?= Text::_('JSEARCH_FILTER'); ?>">
-      <button type="submit" class="btn btn-primary" id="filter_search_submit" title="<?= Text::_('JSEARCH_FILTER_SUBMIT'); ?>" aria-label="<?= Text::_('JSEARCH_FILTER_SUBMIT'); ?>">
-        <span class="icon-search" aria-hidden="true"></span>
-      </button>
-      <?php if ($this->search !== ''): ?>
-        <a href="index.php?option=com_breezingformsng&view=forms&search=&pkg=<?= rawurlencode($pkg); ?>"
-           class="btn btn-secondary" id="filter_search_clear"><?= Text::_('JSEARCH_FILTER_CLEAR'); ?></a>
-      <?php endif; ?>
-    </div>
-
-  </div>
+  <div id="j-main-container" class="j-main-container">
+  <?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this]); ?>
 
   <table class="table table-striped table-hover">
     <thead>
       <tr>
         <th class="w-1 text-center">
-          <input type="checkbox" class="form-check-input" onclick="Joomla.checkAll(this)" title="<?= Text::_('JGLOBAL_CHECK_ALL'); ?>">
+          <?= HTMLHelper::_('grid.checkall'); ?>
         </th>
-        <th class="text-center"><?= HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'id', $this->listDirn, $this->listOrder); ?></th>
-        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_TITLE', 'title', $this->listDirn, $this->listOrder); ?></th>
-        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_NAME', 'name', $this->listDirn, $this->listOrder); ?></th>
-        <th class="text-center"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_PAGES', 'pages', $this->listDirn, $this->listOrder); ?></th>
-        <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JPUBLISHED', 'published', $this->listDirn, $this->listOrder); ?></th>
-        <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ORDERING', 'ordering', $this->listDirn, $this->listOrder); ?></th>
-        <th class="text-nowrap"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_MODIFIED', 'modified', $this->listDirn, $this->listOrder); ?></th>
+        <th class="text-center"><?= HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'id', $listDirn, $listOrder); ?></th>
+        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_TITLE', 'title', $listDirn, $listOrder); ?></th>
+        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_NAME', 'name', $listDirn, $listOrder); ?></th>
+        <th class="text-center"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_PAGES', 'pages', $listDirn, $listOrder); ?></th>
+        <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JPUBLISHED', 'published', $listDirn, $listOrder); ?></th>
+        <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ORDERING', 'ordering', $listDirn, $listOrder); ?></th>
+        <th class="text-nowrap"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_MODIFIED', 'modified', $listDirn, $listOrder); ?></th>
       </tr>
     </thead>
     <tbody>
@@ -133,10 +100,9 @@ $saveOrder  = $this->listOrder === 'ordering' && strtolower($this->listDirn) ===
   <?= $pagination->getListFooter(); ?>
 
   <input type="hidden" name="task" value="">
-  <input type="hidden" name="filter_order" value="<?= htmlspecialchars($this->listOrder); ?>">
-  <input type="hidden" name="filter_order_Dir" value="<?= htmlspecialchars($this->listDirn); ?>">
   <input type="hidden" name="boxchecked" value="0">
   <?= HTMLHelper::_('form.token'); ?>
+  </div>
 </form>
 
 <?php

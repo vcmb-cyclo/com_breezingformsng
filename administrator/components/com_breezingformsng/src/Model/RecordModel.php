@@ -12,6 +12,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\Database\DatabaseInterface;
@@ -24,22 +25,57 @@ class RecordModel extends AdminModel
 {
     private const BULK_ID_BATCH_SIZE = 500;
 
+    /**
+     * Form group and field name prefix of the submitted values: the field of
+     * element 12 is element.e12.
+     */
+    private const ELEMENT_GROUP = 'element';
+    private const ELEMENT_PREFIX = 'e';
+
+    /** @var array<int, \stdClass> */
+    private array $items = [];
+
     public function getDatabaseConnection(): DatabaseInterface
     {
         return $this->getDatabase();
     }
 
-    public function getRecord(int $id): ?\stdClass
+    /**
+     * The record with the title and name of its form, and its submitted
+     * values keyed by form field name.
+     */
+    public function getItem($pk = null)
     {
+        $pk = (int) ($pk ?: $this->getState($this->getName() . '.id'));
+
+        if (isset($this->items[$pk])) {
+            return $this->items[$pk];
+        }
+
+        $item = $pk > 0 ? parent::getItem($pk) : false;
+
+        if ($item === false) {
+            return false;
+        }
+
         $db = $this->getDatabase();
+        $formId = (int) $item->form;
         $query = $db->getQuery(true)
-            ->select(['records.*', 'forms.title AS form_title', 'forms.name AS form_name'])
-            ->from($db->quoteName('#__facileforms_records', 'records'))
-            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form')
-            ->where('records.id = :id')
-            ->bind(':id', $id, ParameterType::INTEGER);
-        $db->setQuery($query);
-        return $db->loadObject() ?: null;
+            ->select($db->quoteName(['title', 'name']))
+            ->from($db->quoteName('#__facileforms_forms'))
+            ->where($db->quoteName('id') . ' = :formId')
+            ->bind(':formId', $formId, ParameterType::INTEGER);
+        $form = $db->setQuery($query)->loadObject();
+
+        $item->form_title = (string) ($form->title ?? '');
+        $item->form_name = (string) ($form->name ?? '');
+        $item->{self::ELEMENT_GROUP} = [];
+
+        foreach ($this->getEditableRows($pk, $formId, (string) $item->name) as $row) {
+            $item->{self::ELEMENT_GROUP}[self::ELEMENT_PREFIX . $row['element_id']] = $row['value'];
+        }
+
+        return $this->items[$pk] = $item;
     }
 
     public function getEditableElements(int $formId): array
@@ -100,7 +136,7 @@ class RecordModel extends AdminModel
         return $rows;
     }
 
-    public function saveRecord(int $recordId, array $values, \DateTimeZone $timezone): void
+    private function saveRecord(int $recordId, array $values, \DateTimeZone $timezone): void
     {
         $db = $this->getDatabase();
         $query = $db->getQuery(true)
@@ -226,7 +262,96 @@ class RecordModel extends AdminModel
 
     public function getForm($data = [], $loadData = true)
     {
+        // The fields depend on the record: keep the id of the submitted one.
+        if ((int) ($data['id'] ?? 0) > 0) {
+            $this->setState($this->getName() . '.id', (int) $data['id']);
+        }
+
         return $this->loadForm('com_breezingformsng.record', 'record', ['control' => 'jform', 'load_data' => $loadData]);
+    }
+
+    protected function loadFormData()
+    {
+        $data = $this->getApplication()->getUserState('com_breezingformsng.edit.record.data', []);
+
+        if (empty($data)) {
+            $data = $this->getItem();
+        }
+
+        $this->preprocessData('com_breezingformsng.record', $data);
+
+        return $data;
+    }
+
+    /**
+     * Adds one field per editable element of the form the record belongs to.
+     */
+    protected function preprocessForm(Form $form, $data, $group = 'content')
+    {
+        $record = (array) $data;
+        $recordId = (int) ($record['id'] ?? 0) ?: (int) $this->getState($this->getName() . '.id');
+        $formId = $this->getFormIds([$recordId])[$recordId] ?? 0;
+        $values = (array) ($record[self::ELEMENT_GROUP] ?? []);
+
+        $xml = new \SimpleXMLElement('<form><fields name="' . self::ELEMENT_GROUP . '"><fieldset name="values"/></fields></form>');
+        $fieldset = $xml->fields->fieldset;
+
+        foreach ($this->getEditableElements($formId) as $element) {
+            $name = self::ELEMENT_PREFIX . (int) $element['id'];
+            $lines = substr_count((string) ($values[$name] ?? ''), "\n");
+
+            $field = $fieldset->addChild('field');
+            $field->addAttribute('name', $name);
+            $field->addAttribute('type', 'textarea');
+            $field->addAttribute('label', (string) $element['title']);
+            $field->addAttribute('description', (string) $element['name']);
+            $field->addAttribute('translateLabel', 'false');
+            $field->addAttribute('translateDescription', 'false');
+            $field->addAttribute('rows', (string) ($lines > 0 ? min(10, $lines + 2) : 1));
+            $field->addAttribute('filter', 'raw');
+        }
+
+        $form->load($xml);
+
+        parent::preprocessForm($form, $data, $group);
+    }
+
+    /**
+     * Saves the submitted values of an existing record.
+     */
+    public function save($data)
+    {
+        $recordId = (int) ($data['id'] ?? 0);
+
+        if ($recordId < 1 || !isset($this->getFormIds([$recordId])[$recordId])) {
+            $this->setError(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
+
+            return false;
+        }
+
+        $values = [];
+
+        foreach ((array) ($data[self::ELEMENT_GROUP] ?? []) as $name => $value) {
+            $values[(int) substr((string) $name, strlen(self::ELEMENT_PREFIX))] = (string) $value;
+        }
+
+        $timezone = new \DateTimeZone((string) $this->getApplication()->get('offset', 'UTC'));
+        $this->saveRecord($recordId, $values, $timezone);
+        unset($this->items[$recordId]);
+        $this->setState($this->getName() . '.id', $recordId);
+
+        return true;
+    }
+
+    private function getApplication(): CMSApplication
+    {
+        $application = Factory::getApplication();
+
+        if (!$application instanceof CMSApplication) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        return $application;
     }
 
     /**
@@ -266,13 +391,7 @@ class RecordModel extends AdminModel
             }
         }
 
-        $application = Factory::getApplication();
-
-        if (!$application instanceof CMSApplication) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-        }
-
-        $cleanup = new ContentBuilderRecordCleanup($this->getDatabase(), $application, $this->getCacheControllerFactory());
+        $cleanup = new ContentBuilderRecordCleanup($this->getDatabase(), $this->getApplication(), $this->getCacheControllerFactory());
 
         foreach ($idsByForm as $formId => $recordIds) {
             $cleanup->remove($formId, $recordIds);

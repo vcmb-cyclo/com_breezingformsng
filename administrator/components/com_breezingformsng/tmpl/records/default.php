@@ -54,7 +54,7 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
               <td class="text-center"><?= HTMLHelper::_('grid.id', $i, $recId, false, 'cid', 'cb', (string) $recId); ?></td>
               <td><?= $recId; ?></td>
               <th scope="row">
-                <a href="index.php?option=com_breezingformsng&amp;view=records&amp;layout=edit&amp;record_id=<?= $recId; ?>" title="<?= $headerTitle('JACTION_EDIT'); ?>">
+                <a href="index.php?option=com_breezingformsng&amp;task=record.edit&amp;id=<?= $recId; ?>" title="<?= $headerTitle('JACTION_EDIT'); ?>">
                   <?= $this->escape((string) $rec->form_title); ?>
                 </a>
               </th>

@@ -13,6 +13,7 @@ use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\CMS\Router\Route;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PieceModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\ScriptModel;
@@ -20,6 +21,11 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\ScriptModel;
 /** @property CMSApplication $app */
 class DisplayController extends BaseController
 {
+    /**
+     * Edit views of the native form MVC, with the list each one returns to.
+     */
+    private const ITEM_VIEWS = ['record' => 'records', 'menu' => 'menus'];
+
     public function display($cachable = false, $urlparams = [])
     {
         if (!$this->app->getIdentity()->authorise('core.manage', 'com_breezingformsng')) {
@@ -51,6 +57,20 @@ class DisplayController extends BaseController
         }
 
         if ($task === '' && $view === 'packages') {
+            return parent::display($cachable, $urlparams);
+        }
+
+        if ($task === '' && isset(self::ITEM_VIEWS[$view])) {
+            $itemId = $input->getInt('id', 0);
+
+            // An item is opened through its edit task, which holds its id.
+            if (!$this->checkEditId('com_breezingformsng.edit.' . $view, $itemId)) {
+                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_UNHELD_ID', $itemId), 'error');
+                $this->setRedirect(Route::_('index.php?option=com_breezingformsng&view=' . self::ITEM_VIEWS[$view], false));
+
+                return $this;
+            }
+
             return parent::display($cachable, $urlparams);
         }
 

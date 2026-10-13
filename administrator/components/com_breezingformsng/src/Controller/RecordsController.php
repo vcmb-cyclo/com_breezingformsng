@@ -79,44 +79,6 @@ class RecordsController extends AdminController
         return parent::display($cachable, $urlparams);
     }
 
-    public function edit(): void
-    {
-        $input = $this->app->getInput();
-        $this->app->redirect(
-            'index.php?option=com_breezingformsng&view=records&layout=edit'
-            . '&record_id=' . $input->getInt('record_id', 0)
-        );
-    }
-
-    public function cancel(): void
-    {
-        $this->checkToken();
-        $this->app->redirect(self::LIST_URL);
-    }
-
-    public function save(): void
-    {
-        $this->checkToken();
-
-        $app = $this->app;
-        $input = $app->getInput();
-        $recordId = $input->getInt('record_id', 0);
-
-        if ($recordId > 0) {
-            $values = $input->post->get('element', [], 'array');
-            $this->getRecordModel()->saveRecord(
-                $recordId,
-                is_array($values) ? $values : [],
-                $this->getTimezone()
-            );
-        }
-
-        $app->redirect(
-            'index.php?option=com_breezingformsng&view=records&layout=edit'
-            . '&record_id=' . $recordId
-        );
-    }
-
     /**
      * The model prunes the ids to those actually deleted.
      */

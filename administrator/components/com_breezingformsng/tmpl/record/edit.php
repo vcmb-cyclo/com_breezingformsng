@@ -8,14 +8,14 @@
 
 \defined('_JEXEC') or die;
 
-/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Records\HtmlView $this */
+/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Record\HtmlView $this */
 
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Factory;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
-$record = $this->record;
+$record = $this->item;
 $tz = Factory::getApplication()->get('offset');
 $submitted = htmlspecialchars((string) ($record->submitted ?? ''));
 $value = static fn(mixed $field): string => htmlspecialchars((string) ($field ?? ''), ENT_QUOTES, 'UTF-8');
@@ -41,9 +41,9 @@ $sectionHeader = static function (string $id, string $label) use (&$sectionOpene
     );
 };
 $formEditorUrl = 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . (int) $record->form;
-$recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezingformsng&view=records&layout=edit&record_id=' . $recordId;
+$recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezingformsng&task=record.edit&id=' . $recordId;
 ?>
-<form action="index.php?option=com_breezingformsng" method="post" name="adminForm" id="adminForm">
+<form action="index.php?option=com_breezingformsng&amp;view=record&amp;layout=edit&amp;id=<?= (int) $record->id; ?>" method="post" name="adminForm" id="adminForm">
 
   <div class="card mb-3">
     <div class="card-header d-flex align-items-center">
@@ -106,21 +106,7 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
   <div class="card mb-3">
     <div class="card-header"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_VALUES'); ?></div>
     <div class="card-body">
-      <?php foreach ($this->recordRows as $row): ?>
-        <div class="row mb-3">
-          <label class="col-sm-3 col-form-label" for="element_<?= (int) $row['element_id']; ?>">
-            <strong><?= htmlspecialchars($row['title']); ?></strong>
-            <small class="text-muted">(<?= htmlspecialchars($row['name']); ?>)</small>
-          </label>
-          <div class="col-sm-9">
-            <textarea
-              id="element_<?= (int) $row['element_id']; ?>"
-              name="element[<?= (int) $row['element_id']; ?>]"
-              class="form-control"
-              rows="<?= (substr_count($row['value'], "\n") > 0) ? min(10, substr_count($row['value'], "\n") + 2) : 1; ?>"><?= htmlspecialchars($row['value']); ?></textarea>
-          </div>
-        </div>
-      <?php endforeach; ?>
+      <?= $this->form->renderFieldset('values'); ?>
     </div>
   </div>
 
@@ -165,8 +151,8 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
     </div>
   </div>
 
-  <input type="hidden" name="task" value="records.save">
-  <input type="hidden" name="record_id" value="<?= (int) $record->id; ?>">
+  <?= $this->form->getInput('id'); ?>
+  <input type="hidden" name="task" value="">
   <input type="hidden" name="cid[]" value="<?= (int) $record->id; ?>">
   <?= HTMLHelper::_('form.token'); ?>
 </form>
@@ -192,6 +178,6 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
 </nav>
 
 <?php
-// Web assets for this view are registered in Records\HtmlView::prepareEditToolbar() —
+// Web assets for this view are registered in Record\HtmlView::addToolbar() —
 // useScript() calls placed in the template body do not take effect here.
 ?>

@@ -113,7 +113,7 @@ class HtmlView extends BaseHtmlView
                 'label' => Text::_('COM_BREEZINGFORMSNG_MANAGEPIECES'),
                 'url' => 'index.php?option=com_breezingformsng&view=pieces',
             ],
-            $view === 'records', $act === 'managerecs', $act === 'recordmanagement' => [
+            $view === 'records', $view === 'record', $act === 'managerecs', $act === 'recordmanagement' => [
                 'label' => Text::_('COM_BREEZINGFORMSNG_RECORDS_SECTION_TITLE'),
                 'url' => 'index.php?option=com_breezingformsng&view=records',
             ],
@@ -121,7 +121,7 @@ class HtmlView extends BaseHtmlView
                 'label' => Text::_('COM_BREEZINGFORMSNG_MANAGEFORMS'),
                 'url' => 'index.php?option=com_breezingformsng&view=forms',
             ],
-            $view === 'menus', $act === 'managemenus' => [
+            $view === 'menus', $view === 'menu', $act === 'managemenus' => [
                 'label' => Text::_('COM_BREEZINGFORMSNG_MANAGEMENUS'),
                 'url' => 'index.php?option=com_breezingformsng&view=menus',
             ],

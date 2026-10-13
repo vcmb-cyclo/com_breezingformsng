@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<fields name="filter">
+		<field
+			name="search"
+			type="text"
+			inputmode="search"
+			label="JSEARCH_FILTER"
+			hint="JSEARCH_FILTER"
+		/>
+		<field
+			name="package"
+			type="sql"
+			label="COM_BREEZINGFORMSNG_FORMS_PACKAGE"
+			sql_select="DISTINCT package"
+			sql_from="#__facileforms_forms"
+			sql_where="package &lt;&gt; ''"
+			sql_order="package ASC"
+			key_field="package"
+			value_field="package"
+			class="js-select-submit-on-change"
+			>
+			<option value="">COM_BREEZINGFORMSNG_ALL_PACKAGES</option>
+		</field>
+		<field
+			name="published"
+			type="status"
+			label="JSTATUS"
+			optionsFilter="*,0,1"
+			class="js-select-submit-on-change"
+			>
+			<option value="">JOPTION_SELECT_PUBLISHED</option>
+		</field>
+	</fields>
+	<fields name="list">
+		<field
+			name="limit"
+			type="limitbox"
+			label="JGLOBAL_LIST_LIMIT"
+			default="25"
+			class="js-select-submit-on-change"
+		/>
+	</fields>
+</form>

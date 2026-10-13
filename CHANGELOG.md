@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- The forms list now uses the native Joomla list model: search tools (search,
+  package and status filters), native pagination and column sorting, with the list
+  state kept in the session instead of the links.
+- The administration menus screen now uses the native Joomla MVC: a list with the
+  search tools (search, package and status filters) and pagination, native publish,
+  unpublish, reorder and delete actions, and an edit form defined in `forms/menu.xml`
+  with Save and Save & Close. Creating an item requires the new `core.create`
+  permission.
+- A record is now edited through the native Joomla form MVC: `RecordController`
+  (`FormController`), a `Record` view and a form whose fields are built from the
+  elements of the record's form. The toolbar has the native Save and Save & Close
+  buttons, and editing requires the new `core.edit` permission.
 - Fixed the About screen's database/menu audit tables using a non-existent
   `JGRID_HEADING_ACTIONS` language key (rendered untranslated); added a real
   `COM_BREEZINGFORMSNG_ABOUT_AUDIT_ACTIONS` key, and added an "Edit menu item" link

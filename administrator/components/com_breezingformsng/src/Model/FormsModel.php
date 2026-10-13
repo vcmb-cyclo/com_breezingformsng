@@ -9,81 +9,82 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 \defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
+use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 
-class FormsModel extends BaseDatabaseModel
+class FormsModel extends ListModel
 {
-    private const ALLOWED_SORTS = [
-        'id'          => 'id',
-        'title'       => 'title',
-        'name'        => 'name',
-        'pages'       => 'pages',
-        'description' => 'description',
-        'modified'    => 'modified',
-        'published'   => 'published',
-        'ordering'    => 'ordering',
-    ];
+    private const SORTS = ['id', 'title', 'name', 'pages', 'published', 'ordering', 'modified'];
+
+    public function __construct($config = [], ?MVCFactoryInterface $factory = null)
+    {
+        $config['filter_fields'] ??= [...self::SORTS, 'package'];
+
+        parent::__construct($config, $factory);
+    }
 
     private function db(): DatabaseInterface
     {
         return $this->getDatabase();
     }
 
-    public function getPackages(): array
+    protected function populateState($ordering = 'ordering', $direction = 'ASC')
     {
-        $db = $this->db();
-        $q  = $db->getQuery(true)
-            ->select('DISTINCT ' . $db->quoteName('package'))
-            ->from($db->quoteName('#__facileforms_forms'))
-            ->where($db->quoteName('package') . ' IS NOT NULL')
-            ->where($db->quoteName('package') . ' != ' . $db->quote(''))
-            ->order($db->quoteName('package') . ' ASC');
-
-        return $db->setQuery($q)->loadColumn() ?: [];
+        parent::populateState($ordering, $direction);
     }
 
-    public function getItems(
-        string $pkg,
-        string $search,
-        string $filterState,
-        string $sort,
-        string $dir,
-        int $limit,
-        int $limitStart
-    ): array {
-        $db      = $this->db();
-        $sortCol = self::ALLOWED_SORTS[$sort] ?? 'ordering';
-        $dirSql  = strtoupper($dir) === 'DESC' ? 'DESC' : 'ASC';
+    protected function getStoreId($id = '')
+    {
+        $id .= ':' . $this->getState('filter.search');
+        $id .= ':' . $this->getState('filter.package');
+        $id .= ':' . $this->getState('filter.published');
 
-        $q = $db->getQuery(true)
-            ->select([
-                $db->quoteName('id'),
-                $db->quoteName('title'),
-                $db->quoteName('name'),
-                $db->quoteName('pages'),
-                $db->quoteName('published'),
-                $db->quoteName('ordering'),
-                $db->quoteName('modified'),
-            ])
-            ->from($db->quoteName('#__facileforms_forms'));
-
-        $this->applyFilters($q, $db, $pkg, $search, $filterState);
-        $q->order($db->quoteName($sortCol) . ' ' . $dirSql . ', ' . $db->quoteName('id') . ' DESC');
-
-        return $db->setQuery($q, $limitStart, $limit)->loadObjectList() ?: [];
+        return parent::getStoreId($id);
     }
 
-    public function getTotal(string $pkg, string $search, string $filterState): int
+    protected function getListQuery()
     {
         $db = $this->db();
-        $q  = $db->getQuery(true)
-            ->select('COUNT(*)')
+        $query = $db->getQuery(true)
+            ->select($db->quoteName(['id', 'title', 'name', 'pages', 'published', 'ordering', 'modified']))
             ->from($db->quoteName('#__facileforms_forms'));
 
-        $this->applyFilters($q, $db, $pkg, $search, $filterState);
+        $package = (string) $this->getState('filter.package');
 
-        return (int) $db->setQuery($q)->loadResult();
+        if ($package !== '') {
+            $query->where($db->quoteName('package') . ' = :package')
+                ->bind(':package', $package);
+        }
+
+        $published = (string) $this->getState('filter.published');
+
+        if (is_numeric($published)) {
+            $published = (int) $published;
+            $query->where($db->quoteName('published') . ' = :published')
+                ->bind(':published', $published, ParameterType::INTEGER);
+        }
+
+        $search = trim((string) $this->getState('filter.search'));
+
+        if ($search !== '') {
+            $like = '%' . $search . '%';
+            $query->where(
+                '(' . $db->quoteName('title') . ' LIKE :searchTitle'
+                . ' OR ' . $db->quoteName('name') . ' LIKE :searchName'
+                . ' OR ' . $db->quoteName('description') . ' LIKE :searchDescription)'
+            )
+                ->bind(':searchTitle', $like)
+                ->bind(':searchName', $like)
+                ->bind(':searchDescription', $like);
+        }
+
+        $ordering = (string) $this->getState('list.ordering', 'ordering');
+        $ordering = in_array($ordering, self::SORTS, true) ? $ordering : 'ordering';
+        $direction = strtoupper((string) $this->getState('list.direction', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
+
+        return $query->order($db->quoteName($ordering) . ' ' . $direction . ', ' . $db->quoteName('id') . ' DESC');
     }
 
     public function getScripts(string $type): array
@@ -111,25 +112,4 @@ class FormsModel extends BaseDatabaseModel
 
         return $db->setQuery($q)->loadObjectList() ?: [];
     }
-
-    private function applyFilters(\Joomla\Database\QueryInterface $q, DatabaseInterface $db, string $pkg, string $search, string $filterState): void
-    {
-        if ($pkg !== '') {
-            $q->where($db->quoteName('package') . ' = ' . $db->quote($pkg));
-        }
-        if ($search !== '') {
-            $like = $db->quote('%' . $db->escape($search, true) . '%');
-            $q->where('(' .
-                $db->quoteName('title') . ' LIKE ' . $like . ' OR ' .
-                $db->quoteName('name')  . ' LIKE ' . $like . ' OR ' .
-                $db->quoteName('description') . ' LIKE ' . $like .
-            ')');
-        }
-        if ($filterState === 'P') {
-            $q->where($db->quoteName('published') . ' = 1');
-        } elseif ($filterState === 'U') {
-            $q->where($db->quoteName('published') . ' = 0');
-        }
-    }
-
 }
