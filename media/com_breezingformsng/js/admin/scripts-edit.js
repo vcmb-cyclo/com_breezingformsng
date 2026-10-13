@@ -33,111 +33,6 @@ function checkIdentifier(value, name)
 			Joomla.submitbutton = submitbutton;
 			window.submitbutton = submitbutton;
 
-			function createCode() {
-				form = document.adminForm;
-				name = getFieldValue('name');
-				if (name == '') {
-					alert(Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_ENTNAMEFIRST'));
-					return;
-				} // if
-				stype = getFieldValue('type');
-				code = '';
-				switch (stype) {
-
-					case 'Element Action':
-						if (!confirm(Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_CREATEACTCODE') + "\n" + Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_EXISTAPP'))) return;
-						code =
-							"function " + name + "(element, action)\n" +
-							"{\n" +
-							"    switch (action) {\n" +
-							"        case 'click':\n" +
-							"            break;\n" +
-							"        case 'blur':\n" +
-							"            break;\n" +
-							"        case 'change':\n" +
-							"            break;\n" +
-							"        case 'focus':\n" +
-							"            break;\n" +
-							"        case 'select':\n" +
-							"            break;\n" +
-							"        default:;\n" +
-							"    } // switch\n" +
-							"} // " + name + "\n";
-						break;
-
-					case 'Element Init':
-						if (!confirm(Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_CREATEINICODE') + "\n" + Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_EXISTAPP'))) return;
-						code =
-							"function " + name + "(element, condition)\n" +
-							"{\n" +
-							"} // " + name + "\n";
-						break;
-
-					case 'Element Validation':
-						if (!confirm(Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_CREATEVALCODE') + "\n" + Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_EXISTAPP'))) return;
-						code =
-							"function " + name + "(element, message)\n" +
-							"{\n" +
-							"    if (element_fails_my_test) {\n" +
-							"        if (message=='') message = element.name+\" faild in my test.\\n\"\n" +
-							"        ff_validationFocus(element.name);\n" +
-							"        return message;\n" +
-							"    } // if\n" +
-							"    return '';\n" +
-							"} // " + name + "\n";
-						break;
-
-					case 'Form Init':
-						if (!confirm(Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_CREATEFINICODE') + "\n" + Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_EXISTAPP'))) return;
-						code =
-							"function " + name + "()\n" +
-							"{\n" +
-							"} // " + name + "\n";
-						break;
-
-					case 'Form Submitted':
-						if (!confirm(Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_CREATESUBCODE') + "\n" + Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_EXISTAPP'))) return;
-						code =
-							"function " + name + "(status, message)\n" +
-							"{\n" +
-							"    switch (status) {\n" +
-							"        case FF_STATUS_OK:\n" +
-							"           // do whatever desired on success\n" +
-							"           break;\n" +
-							"        case FF_STATUS_UNPUBLISHED:\n" +
-							"        case FF_STATUS_SAVERECORD_FAILED:\n" +
-							"        case FF_STATUS_SAVESUBRECORD_FAILED:\n" +
-							"        case FF_STATUS_UPLOAD_FAILED:\n" +
-							"        case FF_STATUS_ATTACHMENT_FAILED:\n" +
-							"        case FF_STATUS_SENDMAIL_FAILED:\n" +
-							"        default:\n" +
-							"           alert(message);\n" +
-							"    } // switch\n" +
-							"} // " + name + "\n";
-						break;
-
-					case 'Untyped':
-						if (!confirm(Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_CREATEUNTCODE') + "\n" + Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_EXISTAPP'))) return;
-						code =
-							"function " + name + "()\n" +
-							"{\n" +
-							"} // " + name + "\n";
-						break;
-
-					default:
-						alert(Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_UNKNOWNTYPE') + " " + stype);
-
-				} // switch
-				oldcode = getFieldValue('code');
-				if (oldcode != '')
-					getFormField('code').value =
-						code +
-						"\n// -------------- " + Joomla.Text._('COM_BREEZINGFORMSNG_SCRIPTS_OLDBELOW') + " --------------\n\n" +
-						oldcode;
-				else
-					getFormField('code').value = code;
-			} // createCode
-
 			onload = function () {
 				var titleField = getFormField('title');
 				if (titleField) titleField.focus();
@@ -170,26 +65,6 @@ function checkIdentifier(value, name)
 				return String(value || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 			}
 
-			function getCodeMirrorInstance(field) {
-				if (!field || !field.parentNode) {
-					return null;
-				}
-				var sibling = field.nextElementSibling;
-				while (sibling) {
-					if (sibling.CodeMirror) {
-						return sibling.CodeMirror;
-					}
-					sibling = sibling.nextElementSibling;
-				}
-				var wrappers = field.parentNode.querySelectorAll('.CodeMirror');
-				for (var i = 0; i < wrappers.length; i++) {
-					if (field.compareDocumentPosition(wrappers[i]) & Node.DOCUMENT_POSITION_FOLLOWING) {
-						return wrappers[i].CodeMirror || null;
-					}
-				}
-				return null;
-			}
-
 			function getFormField(name) {
 				return document.getElementById('jform_' + name);
 			}
@@ -207,8 +82,7 @@ function checkIdentifier(value, name)
 				if (!field || typeof field.value === 'undefined') {
 					return '';
 				}
-				var codeMirrorInstance = getCodeMirrorInstance(field);
-				return codeMirrorInstance ? codeMirrorInstance.getValue() : field.value;
+				return field.value;
 			}
 
 			function getCurrentEditState() {

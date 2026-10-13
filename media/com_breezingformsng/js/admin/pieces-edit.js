@@ -65,26 +65,6 @@ function checkIdentifier(value)
 				return String(value || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 			}
 
-			function getCodeMirrorInstance(field) {
-				if (!field || !field.parentNode) {
-					return null;
-				}
-				var sibling = field.nextElementSibling;
-				while (sibling) {
-					if (sibling.CodeMirror) {
-						return sibling.CodeMirror;
-					}
-					sibling = sibling.nextElementSibling;
-				}
-				var wrappers = field.parentNode.querySelectorAll('.CodeMirror');
-				for (var i = 0; i < wrappers.length; i++) {
-					if (field.compareDocumentPosition(wrappers[i]) & Node.DOCUMENT_POSITION_FOLLOWING) {
-						return wrappers[i].CodeMirror || null;
-					}
-				}
-				return null;
-			}
-
 			function getFormField(name) {
 				return document.getElementById('jform_' + name);
 			}
@@ -102,8 +82,7 @@ function checkIdentifier(value)
 				if (!field || typeof field.value === 'undefined') {
 					return '';
 				}
-				var codeMirrorInstance = getCodeMirrorInstance(field);
-				return codeMirrorInstance ? codeMirrorInstance.getValue() : field.value;
+				return field.value;
 			}
 
 			function getCurrentEditState() {

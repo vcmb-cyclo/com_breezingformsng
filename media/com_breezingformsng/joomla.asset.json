@@ -133,14 +133,6 @@
     },
 
     {
-      "name": "com_breezingformsng.admin-sort",
-      "type": "script",
-      "uri": "com_breezingformsng/js/admin/admin-sort.js",
-      "dependencies": ["core"],
-      "version": "auto"
-    },
-
-    {
       "name": "com_breezingformsng.scripts-test",
       "type": "script",
       "uri": "com_breezingformsng/js/admin/scripts-test.js",
@@ -191,7 +183,7 @@
       "name": "com_breezingformsng.admin-form",
       "type": "script",
       "uri": "com_breezingformsng/js/admin/admin-form.js",
-      "dependencies": ["core", "com_breezingformsng.admin-sort"],
+      "dependencies": ["core"],
       "version": "auto"
     },
 

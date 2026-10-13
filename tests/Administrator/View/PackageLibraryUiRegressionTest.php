@@ -63,15 +63,6 @@ final class PackageLibraryUiRegressionTest extends TestCase
         self::assertFileDoesNotExist(self::ROOT . '/' . $admin . '/Model/PackageModel.php');
     }
 
-    public function testSortInitialisationSupportsLateAssetLoading(): void
-    {
-        $source = $this->read('media/com_breezingformsng/js/admin/admin-sort.js');
-
-        self::assertStringContainsString("document.readyState === 'loading'", $source);
-        self::assertStringContainsString('initialiseAdminSort();', $source);
-        self::assertStringContainsString('data-bf-sort-initialised', str_replace('dataset.bfSortInitialised', 'data-bf-sort-initialised', $source));
-    }
-
     private function read(string $path): string
     {
         $source = file_get_contents(self::ROOT . '/' . $path);
