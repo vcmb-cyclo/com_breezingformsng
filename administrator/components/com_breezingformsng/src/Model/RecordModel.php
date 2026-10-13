@@ -15,7 +15,6 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\AdminModel;
-use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
@@ -34,11 +33,6 @@ class RecordModel extends AdminModel
 
     /** @var array<int, \stdClass> */
     private array $items = [];
-
-    public function getDatabaseConnection(): DatabaseInterface
-    {
-        return $this->getDatabase();
-    }
 
     /**
      * The record with the title and name of its form, and its submitted

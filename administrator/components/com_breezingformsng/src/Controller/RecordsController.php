@@ -10,29 +10,20 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\MVC\Controller\AdminController;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Response\JsonResponse;
-use Joomla\Database\DatabaseInterface;
-use Joomla\Database\ParameterType;
-use Joomla\Database\QueryInterface;
 use Joomla\Utilities\ArrayHelper;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordsExportModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
-use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfDocument;
-use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfFontDirectoryScanner;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
-use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordExporter;
 
 /** @property CMSApplication $app */
 class RecordsController extends AdminController
@@ -42,22 +33,6 @@ class RecordsController extends AdminController
     private ?RecordsModel $listModel = null;
 
     private const LIST_URL = 'index.php?option=com_breezingformsng&view=records';
-
-    private const EXPORT_SUBRECORD_BATCH_SIZE = 200;
-
-    /**
-     * Row ceiling for the Excel export. PhpSpreadsheet keeps every cell in
-     * memory, so a very large selection has to fall back to the streamed CSV
-     * export instead.
-     */
-    private const EXPORT_XLSX_MAX_ROWS = 25000;
-
-    /**
-     * Column ceiling for the Excel export. This is the hard limit of the
-     * .xlsx format itself; an unfiltered "all forms" export can gather more
-     * distinct field names than that.
-     */
-    private const EXPORT_XLSX_MAX_COLUMNS = 16384;
 
     public function __construct($config = [], ?MVCFactoryInterface $factory = null, $app = null, $input = null)
     {
@@ -164,145 +139,21 @@ class RecordsController extends AdminController
     {
         $this->checkToken();
 
-        $app = $this->app;
-        $input = $app->getInput();
-        $ids = $input->post->get('cid', [], 'array');
-        ArrayHelper::toInteger($ids);
-        $formSelection = $this->listFormId();
+        $export = $this->getExporter()->pdf($this->selectedIds());
+        $this->getRecordModel()->markExported($export['ids']);
 
-        $model = $this->getRecordModel();
-        $tz = $this->getTimezone();
-        $db = $model->getDatabaseConnection();
-
-        $recs = $this->fetchRecords($db, $ids, $formSelection);
-
-        $formName = ($formSelection && $recs) ? ($recs[0]->name ?? '') : '';
-
-        $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_custom_pdf.php';
-        if (!file_exists($file)) {
-            $file = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/pdftpl/export_pdf.php';
-        }
-        if ($formName !== '') {
-            $custom = JPATH_SITE . '/media/breezingforms/pdftpl/' . $formName . '_export_pdf.php';
-            if (file_exists($custom)) {
-                $file = $custom;
-            }
-        }
-
-        $updIds = [];
-        foreach ($recs as $i => $rec) {
-            $updIds[] = (int) $rec->id;
-            $date = new \Joomla\CMS\Date\Date($rec->submitted, $tz);
-            $offset = $date->getOffsetFromGMT();
-            if ($offset > 0) {
-                $date->add(new \DateInterval('PT' . $offset . 'S'));
-            } elseif ($offset < 0) {
-                $date->sub(new \DateInterval('PT' . abs($offset) . 'S'));
-            }
-            $recs[$i]->submitted = $date->format('Y-m-d H:i:s', true);
-        }
-
-        if ($updIds) {
-            $model->markExported($updIds);
-        }
-
-        $datestamp = new \Joomla\CMS\Date\Date('now', $tz);
-        $dsOffset = $datestamp->getOffsetFromGMT();
-        if ($dsOffset > 0) {
-            $datestamp->add(new \DateInterval('PT' . $dsOffset . 'S'));
-        } elseif ($dsOffset < 0) {
-            $datestamp->sub(new \DateInterval('PT' . abs($dsOffset) . 'S'));
-        }
-
-        $pdf = new PdfDocument();
-        $pdf->setFormName($formName);
-        $pdf->setWhich('export');
-
-        if (ob_get_level() > 0) {
-            ob_end_clean();
-        }
-        ob_start();
-        require_once $file;
-        $content = ob_get_clean();
-
-        $activeFound = false;
-        $ttfName = '';
-        $fontDir = JPATH_SITE . '/media/breezingforms/pdftpl/fonts/';
-        foreach ((new PdfFontDirectoryScanner())->scan($fontDir) as $f) {
-                $lower = strtolower($f);
-                if (str_ends_with($lower, '.php')) {
-                    $parts = explode('.', $f);
-                    array_pop($parts);
-                    $pdf->AddFont(implode('_', $parts), '', $fontDir . $f);
-                }
-                if (str_ends_with($lower, '.ttf')) {
-                    $ttfName = PdfDocument::importTtfFont($fontDir . $f);
-                }
-                if (str_ends_with($lower, '_active')) {
-                    $parts = explode('_', $f);
-                    array_pop($parts);
-                    $pdf->SetFont($ttfName ?: implode('_', $parts));
-                    $activeFound = true;
-                }
-        }
-
-        if (!$activeFound) {
-            PdfDocument::importTtfFont(JPATH_SITE . '/media/com_breezingformsng/fonts/verdana.ttf');
-            $pdf->SetFont('verdana');
-        }
-
-        $pdf->setPrintFooter($pdf->getFooterTemplate() !== '');
-        $pdf->setPrintHeader($pdf->getHeaderTemplate() !== '');
-        $pdf->AddPage();
-        $pdf->writeHTML($content);
-        $pdfName = ($formName ? $formName . '-' : '') . 'ffexport-pdf-' . $datestamp->format('YmdHis', true) . '.pdf';
-        $pdf->lastPage();
-        $pdf->Output($pdfName, 'D');
-        $app->close();
-    }
-
-    /**
-     * Exposed for the PDF export templates, which call $this->getSubrecords().
-     */
-    public function getSubrecords(int $recordId): array
-    {
-        return $this->getRecordModel()->getSubrecords($recordId);
+        $export['document']->Output($export['name'], 'D');
+        $this->app->close();
     }
 
     public function exportCsv(): void
     {
         $this->checkToken();
 
+        $export = $this->getExporter()->csv($this->selectedIds());
+        $this->getRecordModel()->markExported($export['ids']);
+
         $app = $this->app;
-        $input = $app->getInput();
-        $ids = $input->post->get('cid', [], 'array');
-        ArrayHelper::toInteger($ids);
-        $formSelection = $this->listFormId();
-
-        $model = $this->getRecordModel();
-        $config = $model->getExportConfig();
-
-        $delimiter = stripslashes((string) $config->csvdelimiter);
-        $quote = stripslashes((string) $config->csvquote);
-        $cellNewline = ((int) $config->cellnewline === 0) ? "\n" : "\\n";
-
-        [$formName, $headers, $rows, $updIds] = $this->buildTabularExport($model, $ids, $formSelection);
-
-        $q = fn($val) => $quote
-            . str_replace($quote, $quote . $quote, str_replace("\n", $cellNewline, str_replace("\r", '', (string) $val)))
-            . $quote;
-
-        $header = implode($delimiter, array_map($q, $headers)) . "\n";
-        $body = '';
-        foreach ($rows as $row) {
-            $body .= implode($delimiter, array_map($q, $row)) . "\n";
-        }
-
-        if ($updIds) {
-            $model->markExported($updIds);
-        }
-
-        $fileName = ($formName ? $formName . '-' : '') . 'ffexport-' . date('YmdHis') . '.csv';
 
         if (ob_get_level() > 0) {
             ob_end_clean();
@@ -311,10 +162,9 @@ class RecordsController extends AdminController
         $app->setHeader('Expires', '0', true);
         $app->setHeader('Cache-Control', 'private', true);
         $app->setHeader('Content-Type', 'text/csv; charset=UTF-8', true);
-        $app->setHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"', true);
+        $app->setHeader('Content-Disposition', 'attachment; filename="' . $export['name'] . '"', true);
         $app->sendHeaders();
-        echo "\xEF\xBB\xBF";
-        echo $header . $body;
+        echo $export['content'];
         $app->close();
     }
 
@@ -323,16 +173,12 @@ class RecordsController extends AdminController
         $this->checkToken();
 
         $app = $this->app;
-        $input = $app->getInput();
-        $ids = $input->post->get('cid', [], 'array');
-        ArrayHelper::toInteger($ids);
-        $formSelection = $this->listFormId();
+        $ids = $this->selectedIds();
+        $exporter = $this->getExporter();
 
-        $model = $this->getRecordModel();
-
-        if ($this->countRecords($model->getDatabaseConnection(), $ids, $formSelection) > self::EXPORT_XLSX_MAX_ROWS) {
+        if ($exporter->exceedsSpreadsheetRows($ids)) {
             $app->enqueueMessage(
-                Text::sprintf('COM_BREEZINGFORMSNG_RECORDS_XLSX_TOO_MANY_ROWS', self::EXPORT_XLSX_MAX_ROWS),
+                Text::sprintf('COM_BREEZINGFORMSNG_RECORDS_XLSX_TOO_MANY_ROWS', RecordExporter::EXPORT_XLSX_MAX_ROWS),
                 'warning'
             );
             $app->redirect(self::LIST_URL);
@@ -341,12 +187,7 @@ class RecordsController extends AdminController
         }
 
         try {
-            [$formName, $headers, $rows, $updIds] = $this->buildTabularExport(
-                $model,
-                $ids,
-                $formSelection,
-                self::EXPORT_XLSX_MAX_COLUMNS
-            );
+            $export = $exporter->spreadsheet($ids);
         } catch (\RangeException) {
             $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_RECORDS_XLSX_TOO_MANY_COLUMNS'), 'warning');
             $app->redirect(self::LIST_URL);
@@ -354,55 +195,19 @@ class RecordsController extends AdminController
             return;
         }
 
-        VendorHelper::load();
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheetTitle = preg_replace('/[\\\\\\/:*?\[\]]/', '', (string) $formName) ?: Text::_('COM_BREEZINGFORMSNG_RECORDS_RECORDINFO');
-        $sheet->setTitle(mb_substr($sheetTitle, 0, 31));
-
-        foreach ($headers as $columnIndex => $header) {
-            $sheet->setCellValueExplicit(
-                Coordinate::stringFromColumnIndex($columnIndex + 1) . '1',
-                (string) $header,
-                DataType::TYPE_STRING,
-            );
-        }
-
-        foreach ($rows as $rowIndex => $row) {
-            foreach ($row as $columnIndex => $value) {
-                $sheet->setCellValueExplicit(
-                    Coordinate::stringFromColumnIndex($columnIndex + 1) . (string) ($rowIndex + 2),
-                    (string) $value,
-                    DataType::TYPE_STRING,
-                );
-            }
-        }
-
-        if ($headers) {
-            $lastColumn = Coordinate::stringFromColumnIndex(count($headers));
-            $sheet->getStyle('A1:' . $lastColumn . '1')->getFont()->setBold(true);
-            $sheet->freezePane('A2');
-            $sheet->setAutoFilter('A1:' . $lastColumn . (string) max(1, count($rows) + 1));
-        }
-
-        if ($updIds) {
-            $model->markExported($updIds);
-        }
-
-        $filePrefix = preg_replace('/[^A-Za-z0-9_.-]/', '_', (string) $formName);
-        $fileName = ($filePrefix ? $filePrefix . '-' : '') . 'ffexport-' . date('YmdHis') . '.xlsx';
+        $this->getRecordModel()->markExported($export['ids']);
 
         while (ob_get_level() > 0) {
             ob_end_clean();
         }
         $app->setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', true);
-        $app->setHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"', true);
+        $app->setHeader('Content-Disposition', 'attachment; filename="' . $export['name'] . '"', true);
         $app->setHeader('Cache-Control', 'max-age=0', true);
         $app->sendHeaders();
-        $writer = new Xlsx($spreadsheet);
+        $writer = new Xlsx($export['spreadsheet']);
         $writer->setPreCalculateFormulas(false);
         $writer->save('php://output');
-        $spreadsheet->disconnectWorksheets();
+        $export['spreadsheet']->disconnectWorksheets();
         $app->close();
     }
 
@@ -410,93 +215,10 @@ class RecordsController extends AdminController
     {
         $this->checkToken();
 
+        $export = $this->getExporter()->xml($this->selectedIds());
+        $this->getRecordModel()->markExported($export['ids']);
+
         $app = $this->app;
-        $input = $app->getInput();
-        $ids = $input->post->get('cid', [], 'array');
-        ArrayHelper::toInteger($ids);
-        $formSelection = $this->listFormId();
-
-        $model = $this->getRecordModel();
-        $tz = $this->getTimezone();
-        $db = $model->getDatabaseConnection();
-
-        $recs = $this->fetchRecords($db, $ids, $formSelection);
-        $formName = ($formSelection && $recs) ? ($recs[0]->name ?? '') : '';
-
-        $datestamp = new \Joomla\CMS\Date\Date('now', $tz);
-        $dsOffset = $datestamp->getOffsetFromGMT();
-        if ($dsOffset > 0) {
-            $datestamp->add(new \DateInterval('PT' . $dsOffset . 'S'));
-        } elseif ($dsOffset < 0) {
-            $datestamp->sub(new \DateInterval('PT' . abs($dsOffset) . 'S'));
-        }
-
-        $ind = fn(int $n) => str_repeat('  ', $n);
-
-        $xml = '<?xml version="1.0" encoding="utf-8" ?>' . "\n"
-            . '<FacileFormsExport type="records">' . "\n"
-            . $ind(1) . '<exportdate>' . $datestamp->format('Y-m-d H:i:s', true) . '</exportdate>' . "\n";
-
-        $updIds = [];
-        foreach (array_chunk($recs, self::EXPORT_SUBRECORD_BATCH_SIZE) as $recordBatch) {
-            $subrecordsByRecord = $model->getSubrecordsByRecordIds(
-                array_map(static fn (object $record): int => (int) $record->id, $recordBatch)
-            );
-
-            foreach ($recordBatch as $rec) {
-                $updIds[] = (int) $rec->id;
-                $date = new \Joomla\CMS\Date\Date($rec->submitted, $tz);
-                $offset = $date->getOffsetFromGMT();
-                if ($offset > 0) {
-                    $date->add(new \DateInterval('PT' . $offset . 'S'));
-                } elseif ($offset < 0) {
-                    $date->sub(new \DateInterval('PT' . abs($offset) . 'S'));
-                }
-
-                $xml .= $ind(1) . '<record id="' . (int) $rec->id . '">' . "\n"
-                    . $ind(2) . '<submitted>' . $date->format('Y-m-d H:i:s', true) . '</submitted>' . "\n"
-                    . $ind(2) . '<user_id>' . (int) $rec->user_id . '</user_id>' . "\n"
-                    . $ind(2) . '<username>' . htmlspecialchars((string) $rec->username) . '</username>' . "\n"
-                    . $ind(2) . '<user_full_name>' . htmlspecialchars((string) $rec->user_full_name) . '</user_full_name>' . "\n"
-                    . $ind(2) . '<form>' . (int) $rec->form . '</form>' . "\n"
-                    . $ind(2) . '<title>' . htmlspecialchars((string) $rec->title) . '</title>' . "\n"
-                    . $ind(2) . '<name>' . htmlspecialchars((string) $rec->name) . '</name>' . "\n"
-                    . $ind(2) . '<ip>' . htmlspecialchars((string) $rec->ip) . '</ip>' . "\n"
-                    . $ind(2) . '<browser>' . htmlspecialchars((string) $rec->browser) . '</browser>' . "\n"
-                    . $ind(2) . '<opsys>' . htmlspecialchars((string) $rec->opsys) . '</opsys>' . "\n"
-                    . $ind(2) . '<provider>' . htmlspecialchars((string) ($rec->provider ?? '')) . '</provider>' . "\n"
-                    . $ind(2) . '<viewed>' . (int) $rec->viewed . '</viewed>' . "\n"
-                    . $ind(2) . '<exported>' . (int) $rec->exported . '</exported>' . "\n"
-                    . $ind(2) . '<state>' . (int) $rec->state . '</state>' . "\n"
-                    . $ind(2) . '<pptxid>' . htmlspecialchars((string) $rec->paypal_tx_id) . '</pptxid>' . "\n"
-                    . $ind(2) . '<pppdate>' . htmlspecialchars((string) $rec->paypal_payment_date) . '</pppdate>' . "\n"
-                    . $ind(2) . '<pptestacc>' . (int) $rec->paypal_testaccount . '</pptestacc>' . "\n"
-                    . $ind(2) . '<ppdltries>' . (int) $rec->paypal_download_tries . '</ppdltries>' . "\n"
-                    . $ind(2) . '<opted>' . (int) ($rec->opted ?? 0) . '</opted>' . "\n";
-
-                foreach ($subrecordsByRecord[(int) $rec->id] ?? [] as $sub) {
-                    $value = (string) $sub->value;
-                    if ($sub->type === 'File Upload' && stripos($value, '{cbsite}') !== false) {
-                        $value = str_ireplace('{cbsite}', JPATH_SITE, $value);
-                    }
-                    $xml .= $ind(2) . '<subrecord id="' . (int) $sub->id . '">' . "\n"
-                        . $ind(3) . '<element>' . (int) $sub->element . '</element>' . "\n"
-                        . $ind(3) . '<name>' . htmlspecialchars((string) $sub->name) . '</name>' . "\n"
-                        . $ind(3) . '<title>' . htmlspecialchars((string) $sub->title) . '</title>' . "\n"
-                        . $ind(3) . '<type>' . htmlspecialchars((string) $sub->type) . '</type>' . "\n"
-                        . $ind(3) . '<value>' . htmlspecialchars($value) . '</value>' . "\n"
-                        . $ind(2) . '</subrecord>' . "\n";
-                }
-                $xml .= $ind(1) . '</record>' . "\n";
-            }
-        }
-        $xml .= '</FacileFormsExport>' . "\n";
-
-        if ($updIds) {
-            $model->markExported($updIds);
-        }
-
-        $fileName = ($formName ? $formName . '-' : '') . 'ffexport-' . $datestamp->format('YmdHis', true) . '.xml';
 
         if (ob_get_level() > 0) {
             ob_end_clean();
@@ -505,9 +227,9 @@ class RecordsController extends AdminController
         $app->setHeader('Expires', '0', true);
         $app->setHeader('Cache-Control', 'private', true);
         $app->setHeader('Content-Type', 'application/octet-stream', true);
-        $app->setHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"', true);
+        $app->setHeader('Content-Disposition', 'attachment; filename="' . $export['name'] . '"', true);
         $app->sendHeaders();
-        echo $xml;
+        echo $export['content'];
         $app->close();
     }
 
@@ -572,190 +294,31 @@ class RecordsController extends AdminController
         return $model;
     }
 
-    private function getTimezone(): \DateTimeZone
+    /**
+     * @return int[] The ids selected in the list, if any.
+     */
+    private function selectedIds(): array
     {
-        return new \DateTimeZone((string) $this->app->get('offset', 'UTC'));
+        return ArrayHelper::toInteger((array) $this->app->getInput()->post->get('cid', [], 'array'));
     }
 
     /**
-     * Builds the shared data set used by the CSV and Excel exports.
-     *
-     * @param int $maxColumns Hard cap on the column count; a \RangeException is
-     *                        thrown before any rows are built when it is exceeded.
-     *
-     * @return array{string, list<string>, list<list<string>>, list<int>}
+     * The exporter of what the list shows: its form and state filters.
      */
-    private function buildTabularExport(
-        RecordModel $model,
-        array $ids,
-        int $formSelection,
-        int $maxColumns = PHP_INT_MAX
-    ): array {
-        $timezone = $this->getTimezone();
-        $db = $model->getDatabaseConnection();
-        $records = $this->fetchRecords($db, $ids, $formSelection);
-
-        if ($ids) {
-            $formIds = array_unique(array_map(static fn (object $record): int => (int) $record->form, $records));
-        } elseif ($formSelection) {
-            $formIds = [$formSelection];
-        } else {
-            $formIds = [];
-        }
-
-        $fieldKeys = [];
-        foreach ($this->fetchElementFields($db, $formIds) as $field) {
-            $key = md5(strip_tags((string) $field->name));
-            $fieldKeys[$key] ??= strip_tags((string) $field->name);
-        }
-
-        $headers = [
-            'id', 'submitted', 'user_id', 'username', 'user_full_name', 'bf_form_title', 'ip',
-            'browser', 'opsys', 'paypal_tx_id', 'paypal_payment_date', 'paypal_testaccount',
-            'paypal_download_tries', 'double_opt_in', 'viewed', 'exported', 'state',
-            ...array_values($fieldKeys),
-        ];
-
-        if (count($headers) > $maxColumns) {
-            throw new \RangeException('Export column count exceeds the requested maximum.');
-        }
-
-        $rows = [];
-        $updateIds = [];
-
-        foreach (array_chunk($records, self::EXPORT_SUBRECORD_BATCH_SIZE) as $recordBatch) {
-            $subrecordsByRecord = $model->getSubrecordsByRecordIds(
-                array_map(static fn (object $record): int => (int) $record->id, $recordBatch)
-            );
-
-            foreach ($recordBatch as $record) {
-                $updateIds[] = (int) $record->id;
-                $date = new \Joomla\CMS\Date\Date($record->submitted, $timezone);
-                $offset = $date->getOffsetFromGMT();
-                if ($offset > 0) {
-                    $date->add(new \DateInterval('PT' . $offset . 'S'));
-                } elseif ($offset < 0) {
-                    $date->sub(new \DateInterval('PT' . abs($offset) . 'S'));
-                }
-
-                $subValues = [];
-                foreach ($subrecordsByRecord[(int) $record->id] ?? [] as $subrecord) {
-                    $key = md5(strip_tags((string) $subrecord->name));
-                    $subValues[$key][] = (string) $subrecord->value;
-                }
-
-                $row = [
-                    (string) $record->id,
-                    $date->format('Y-m-d H:i:s', true),
-                    (string) $record->user_id,
-                    (string) $record->username,
-                    (string) $record->user_full_name,
-                    (string) $record->title,
-                    (string) $record->ip,
-                    (string) $record->browser,
-                    (string) $record->opsys,
-                    (string) $record->paypal_tx_id,
-                    (string) $record->paypal_payment_date,
-                    (string) $record->paypal_testaccount,
-                    (string) $record->paypal_download_tries,
-                    (string) ($record->opted ?? ''),
-                    (string) $record->viewed,
-                    (string) $record->exported,
-                    (string) $record->state,
-                ];
-                foreach ($fieldKeys as $key => $name) {
-                    $row[] = isset($subValues[$key]) ? implode('|', $subValues[$key]) : '';
-                }
-                $rows[] = $row;
-            }
-        }
-
-        return [
-            ($formSelection && $records) ? (string) ($records[0]->name ?? '') : '',
-            $headers,
-            $rows,
-            $updateIds,
-        ];
-    }
-
-    /**
-     * Shared by exportPdf()/exportCsv()/exportXml(): fetch the records
-     * matching either an explicit id selection, a form filter, or all
-     * records, always ordered by submission date descending.
-     */
-    private function fetchRecords(DatabaseInterface $db, array $ids, int $formSelection): array
+    private function getExporter(): RecordExporter
     {
-        $query = $db->getQuery(true)
-            ->select('*')
-            ->from($db->quoteName('#__facileforms_records'))
-            ->order($db->quoteName('submitted') . ' DESC');
+        $records = $this->factory->createModel('RecordsExport', 'Administrator');
 
-        if ($ids) {
-            $query->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
-        } else {
-            $this->applyListFilters($query, $db, $formSelection);
+        if (!$records instanceof RecordsExportModel) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 
-        $db->setQuery($query);
-        return $db->loadObjectList();
-    }
-
-    /**
-     * Without an explicit selection, an export covers what the list shows:
-     * the chosen form and the chosen state.
-     */
-    private function applyListFilters(QueryInterface $query, DatabaseInterface $db, int $formSelection): void
-    {
-        if ($formSelection) {
-            $query->where($db->quoteName('form') . ' = :formSelection')
-                ->bind(':formSelection', $formSelection, ParameterType::INTEGER);
-        }
-
-        $states = RecordState::filterStates((string) $this->getListModel()->getState('filter.state'));
-
-        if ($states !== null) {
-            $query->whereIn($db->quoteName('state'), $states);
-        }
-    }
-
-    /**
-     * Counts the records matching the current export selection, without
-     * loading them. Used to keep the Excel export within its row ceiling.
-     */
-    private function countRecords(DatabaseInterface $db, array $ids, int $formSelection): int
-    {
-        $query = $db->getQuery(true)
-            ->select('COUNT(*)')
-            ->from($db->quoteName('#__facileforms_records'));
-
-        if ($ids) {
-            $query->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
-        } else {
-            $this->applyListFilters($query, $db, $formSelection);
-        }
-
-        $db->setQuery($query);
-        return (int) $db->loadResult();
-    }
-
-    /**
-     * Shared by exportCsv(): the distinct published element fields for the
-     * form(s) covered by the current export selection.
-     */
-    private function fetchElementFields(DatabaseInterface $db, array $formIds): array
-    {
-        $query = $db->getQuery(true)
-            ->select('DISTINCT *')
-            ->from($db->quoteName('#__facileforms_elements'))
-            ->where($db->quoteName('published') . ' = 1')
-            ->whereNotIn($db->quoteName('name'), ['bfFakeName', 'bfFakeName2', 'bfFakeName3', 'bfFakeName4', 'bfFakeName5'], ParameterType::STRING)
-            ->order($db->quoteName('ordering'));
-
-        if ($formIds) {
-            $query->whereIn($db->quoteName('form'), $formIds, ParameterType::INTEGER);
-        }
-
-        $db->setQuery($query);
-        return $db->loadObjectList();
+        return new RecordExporter(
+            $records,
+            $this->getRecordModel(),
+            new \DateTimeZone((string) $this->app->get('offset', 'UTC')),
+            $this->listFormId(),
+            (string) $this->getListModel()->getState('filter.state')
+        );
     }
 }

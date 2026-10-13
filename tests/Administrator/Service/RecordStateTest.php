@@ -71,7 +71,7 @@ final class RecordStateTest extends TestCase
     public function testTabularExportWritesTheStatusColumnsTheImportReads(): void
     {
         $admin = __DIR__ . '/../../../administrator/components/com_breezingformsng/src';
-        $controller = file_get_contents($admin . '/Controller/RecordsController.php');
+        $controller = file_get_contents($admin . '/Service/RecordExporter.php');
         $model = file_get_contents($admin . '/Model/RecordModel.php');
 
         self::assertIsString($controller);
@@ -178,5 +178,26 @@ final class RecordStateTest extends TestCase
         self::assertLessThan($cleanup, $leftover);
         self::assertLessThan($commit, $cleanup);
         self::assertLessThan($rollback, $commit);
+    }
+
+    public function testTheExportsLiveOutsideTheController(): void
+    {
+        $admin = __DIR__ . '/../../../administrator/components/com_breezingformsng/src';
+        $controller = file_get_contents($admin . '/Controller/RecordsController.php');
+        $exporter = file_get_contents($admin . '/Service/RecordExporter.php');
+        $model = file_get_contents($admin . '/Model/RecordsExportModel.php');
+
+        self::assertIsString($controller);
+        self::assertIsString($exporter);
+        self::assertIsString($model);
+        // The controller only checks the token, asks for the export and sends it.
+        self::assertStringNotContainsString('setQuery', $controller);
+        self::assertStringNotContainsString('getQuery', $controller);
+        self::assertStringNotContainsString('FacileFormsExport', $controller);
+        self::assertSame(4, substr_count($controller, "->markExported(\$export['ids']);"));
+        // The queries are in the model, the file formats in the service.
+        self::assertStringNotContainsString('setQuery', $exporter);
+        self::assertStringContainsString('public function getRecords(array $ids, int $formSelection, string $stateFilter): array', $model);
+        self::assertStringContainsString('public function getSubrecords(int $recordId): array', $exporter);
     }
 }

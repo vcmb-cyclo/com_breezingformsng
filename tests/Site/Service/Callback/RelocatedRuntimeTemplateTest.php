@@ -53,7 +53,7 @@ final class RelocatedRuntimeTemplateTest extends TestCase
     public function testAdminPdfExportDoesNotUseTheRemovedGlobalTemplate(): void
     {
         $source = file_get_contents(
-            __DIR__ . '/../../../../administrator/components/com_breezingformsng/src/Controller/RecordsController.php'
+            __DIR__ . '/../../../../administrator/components/com_breezingformsng/src/Service/RecordExporter.php'
         );
 
         self::assertIsString($source);
