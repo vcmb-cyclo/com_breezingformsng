@@ -35,6 +35,7 @@ class HtmlView extends BaseHtmlView
     public ?Form $filterForm = null;
     public array $activeFilters = [];
     public bool $canEdit = false;
+    public bool $canOpen = false;
 
     public function display($tpl = null)
     {
@@ -62,6 +63,7 @@ class HtmlView extends BaseHtmlView
         $toolbar = $document->getToolbar();
         $user = Factory::getApplication()->getIdentity();
         $this->canEdit = AreaAccess::isAllowed($user, AreaAccess::CODE);
+        $this->canOpen = $user->authorise('core.edit', 'com_breezingformsng');
 
         if ($this->canEdit) {
             if ($user->authorise('core.create', 'com_breezingformsng')) {

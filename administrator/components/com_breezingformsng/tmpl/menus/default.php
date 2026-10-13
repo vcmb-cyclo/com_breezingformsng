@@ -49,9 +49,13 @@ use Joomla\CMS\Router\Route;
               <td class="text-center"><?= HTMLHelper::_('jgrid.published', (int) $row->published, $i, 'menus.', $this->canEditState); ?></td>
               <th scope="row">
                 <?= (int) $row->parent > 0 ? '&mdash; ' : ''; ?>
-                <a href="<?= Route::_('index.php?option=com_breezingformsng&task=menu.edit&id=' . (int) $row->id); ?>" title="<?= Text::_('JACTION_EDIT'); ?>">
+                <?php if ($this->canOpen): ?>
+                  <a href="<?= Route::_('index.php?option=com_breezingformsng&task=menu.edit&id=' . (int) $row->id); ?>" title="<?= Text::_('JACTION_EDIT'); ?>">
+                    <?= $this->escape((string) $row->title); ?>
+                  </a>
+                <?php else: ?>
                   <?= $this->escape((string) $row->title); ?>
-                </a>
+                <?php endif; ?>
               </th>
               <td><?= $this->escape((string) $row->name); ?></td>
               <td><?= (int) $row->parent > 0 ? $this->escape((string) $row->parent_title) : '—'; ?></td>

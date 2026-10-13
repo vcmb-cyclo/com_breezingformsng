@@ -54,9 +54,13 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
               <td class="text-center"><?= HTMLHelper::_('grid.id', $i, $recId, false, 'cid', 'cb', (string) $recId); ?></td>
               <td><?= $recId; ?></td>
               <th scope="row">
-                <a href="index.php?option=com_breezingformsng&amp;task=record.edit&amp;id=<?= $recId; ?>" title="<?= $headerTitle('JACTION_EDIT'); ?>">
+                <?php if ($this->canOpen): ?>
+                  <a href="index.php?option=com_breezingformsng&amp;task=record.edit&amp;id=<?= $recId; ?>" title="<?= $headerTitle('JACTION_EDIT'); ?>">
+                    <?= $this->escape((string) $rec->form_title); ?>
+                  </a>
+                <?php else: ?>
                   <?= $this->escape((string) $rec->form_title); ?>
-                </a>
+                <?php endif; ?>
               </th>
               <td><?= $this->escape((string) $rec->ip); ?></td>
               <td><?= $this->escape((string) ($rec->user_full_name ?: $rec->username)); ?></td>

@@ -80,7 +80,8 @@ class RecordsController extends AdminController
     }
 
     /**
-     * The model prunes the ids to those actually deleted.
+     * Joomla calls this hook after a failed deletion too: the model leaves in
+     * the ids only those actually deleted.
      */
     protected function postDeleteHook(BaseDatabaseModel $model, $id = null)
     {

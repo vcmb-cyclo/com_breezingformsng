@@ -54,8 +54,13 @@ $listDirn  = $this->escape((string) $this->state->get('list.direction'));
             <tr class="row<?= $i % 2; ?>">
               <td class="text-center"><?= HTMLHelper::_('grid.id', $i, (int) $row->id, false, 'cid', 'cb', (string) $row->title); ?></td>
               <td class="text-center"><?= HTMLHelper::_('jgrid.published', (int) $row->published, $i, 'scripts.', $this->canEdit); ?></td>
-              <th scope="row"><a href="<?= $editUrl; ?>" title="<?= Text::_('JACTION_EDIT'); ?>"><?= $this->escape((string) $row->title); ?></a></th>
-              <td><a href="<?= $editUrl; ?>"><?= $this->escape((string) $row->name); ?></a></td>
+              <?php if ($this->canOpen): ?>
+                <th scope="row"><a href="<?= $editUrl; ?>" title="<?= Text::_('JACTION_EDIT'); ?>"><?= $this->escape((string) $row->title); ?></a></th>
+                <td><a href="<?= $editUrl; ?>"><?= $this->escape((string) $row->name); ?></a></td>
+              <?php else: ?>
+                <th scope="row"><?= $this->escape((string) $row->title); ?></th>
+                <td><?= $this->escape((string) $row->name); ?></td>
+              <?php endif; ?>
               <td><?= $this->escape((string) $row->package); ?></td>
               <td><?= isset(ScriptModel::TYPES[$row->type]) ? Text::_(ScriptModel::TYPES[$row->type]) : '???'; ?></td>
               <td><?= $this->escape(mb_strimwidth((string) $row->description, 0, 100, '...')); ?></td>

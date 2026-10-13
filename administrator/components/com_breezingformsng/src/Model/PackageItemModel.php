@@ -19,6 +19,7 @@ use Joomla\CMS\Date\Date;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\Utilities\ArrayHelper;
 
 /**
  * A code item kept in a package: a script or a piece.
@@ -70,6 +71,29 @@ abstract class PackageItemModel extends AdminModel
         $table->package = (string) $table->package;
         $table->modified = $now;
         $table->modified_by = $username;
+    }
+
+    /**
+     * Joomla stops at the first item it cannot delete and still runs the
+     * controller hook: $pks ends up holding the ids actually deleted.
+     */
+    public function delete(&$pks)
+    {
+        $ids = array_values(array_unique(ArrayHelper::toInteger((array) $pks)));
+        $deleted = parent::delete($pks);
+        $pks = $ids;
+
+        if ($ids !== []) {
+            $db = $this->getDatabase();
+            $table = $this->getTable();
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('id'))
+                ->from($db->quoteName($table->getTableName()))
+                ->whereIn($db->quoteName('id'), $ids);
+            $pks = array_values(array_diff($ids, array_map('intval', $db->setQuery($query)->loadColumn())));
+        }
+
+        return $deleted;
     }
 
     /**

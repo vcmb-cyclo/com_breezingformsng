@@ -112,4 +112,57 @@ final class RecordStateTest extends TestCase
         self::assertSame('JTRASHED', RecordState::label(-2));
         self::assertSame('JPUBLISHED', RecordState::label(0));
     }
+
+    public function testASelectionOfTrashedRecordsCanBeDeleted(): void
+    {
+        self::assertNull(RecordState::deletionRefusal([4, 9], [4 => -2, 9 => -2]));
+        self::assertNull(RecordState::deletionRefusal([], []));
+    }
+
+    public function testAMixedSelectionIsRefusedWhateverItsOrder(): void
+    {
+        $states = [4 => RecordState::TRASHED, 9 => RecordState::PUBLISHED];
+
+        self::assertSame('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED', RecordState::deletionRefusal([4, 9], $states));
+        self::assertSame('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED', RecordState::deletionRefusal([9, 4], $states));
+        self::assertSame(
+            'JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED',
+            RecordState::deletionRefusal([4, 9], [4 => RecordState::TRASHED, 9 => RecordState::ARCHIVED])
+        );
+    }
+
+    public function testASelectionWithAMissingRecordIsRefusedWhateverItsOrder(): void
+    {
+        $states = [4 => RecordState::TRASHED, 9 => RecordState::TRASHED];
+
+        self::assertSame('JLIB_APPLICATION_ERROR_NOT_EXIST', RecordState::deletionRefusal([4, 77, 9], $states));
+        self::assertSame('JLIB_APPLICATION_ERROR_NOT_EXIST', RecordState::deletionRefusal([77, 4, 9], $states));
+        self::assertSame('JLIB_APPLICATION_ERROR_NOT_EXIST', RecordState::deletionRefusal([4, 9, 77], $states));
+    }
+
+    public function testTheModelChecksTheSelectionBeforeDeletingAndUndoesAFailedDeletion(): void
+    {
+        $model = file_get_contents(
+            __DIR__ . '/../../../administrator/components/com_breezingformsng/src/Model/RecordModel.php'
+        );
+
+        self::assertIsString($model);
+
+        $refusal = strpos($model, 'RecordState::deletionRefusal(');
+        $start = strpos($model, '$db->transactionStart();');
+        $delete = strpos($model, 'parent::delete($ids)');
+        $cleanup = strpos($model, '$cleanup->remove($formId, $recordIds);');
+        $commit = strpos($model, '$db->transactionCommit();');
+        $rollback = strpos($model, '$db->transactionRollback();');
+
+        foreach ([$refusal, $start, $delete, $cleanup, $commit, $rollback] as $position) {
+            self::assertNotFalse($position);
+        }
+
+        self::assertLessThan($start, $refusal);
+        self::assertLessThan($delete, $start);
+        self::assertLessThan($cleanup, $delete);
+        self::assertLessThan($commit, $cleanup);
+        self::assertLessThan($rollback, $commit);
+    }
 }

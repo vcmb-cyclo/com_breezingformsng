@@ -373,29 +373,56 @@ class RecordModel extends AdminModel
 
     /**
      * Deletes trashed records, then what ContentBuilder NG keeps about them.
+     * The selection is checked as a whole before anything is deleted, and the
+     * deletion is undone when a step fails: $pks ends up holding the ids
+     * actually deleted.
      */
     public function delete(&$pks)
     {
-        $pks = ArrayHelper::toInteger((array) $pks);
-        $formIds = $this->getFormIds($pks);
+        $ids = array_values(array_unique(ArrayHelper::toInteger((array) $pks)));
+        $pks = [];
+        $records = $this->getFormsAndStates($ids);
+        $refusal = RecordState::deletionRefusal($ids, array_column($records, 'state', 'id'));
 
-        if (!parent::delete($pks)) {
+        if ($refusal === null && !$this->getCurrentUser()->authorise('core.delete', $this->option)) {
+            $refusal = 'JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED';
+        }
+
+        if ($refusal !== null) {
+            $this->setError(Text::_($refusal));
+
             return false;
         }
 
         $idsByForm = [];
 
-        foreach ($pks as $pk) {
-            if (isset($formIds[$pk])) {
-                $idsByForm[$formIds[$pk]][] = $pk;
+        foreach ($records as $record) {
+            $idsByForm[$record['form']][] = $record['id'];
+        }
+
+        $db = $this->getDatabase();
+        $db->transactionStart();
+
+        try {
+            if (!parent::delete($ids)) {
+                throw new \RuntimeException((string) $this->getError());
             }
+
+            $cleanup = new ContentBuilderRecordCleanup($db, $this->getApplication(), $this->getCacheControllerFactory());
+
+            foreach ($idsByForm as $formId => $recordIds) {
+                $cleanup->remove($formId, $recordIds);
+            }
+
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+            $this->setError($exception->getMessage());
+
+            return false;
         }
 
-        $cleanup = new ContentBuilderRecordCleanup($this->getDatabase(), $this->getApplication(), $this->getCacheControllerFactory());
-
-        foreach ($idsByForm as $formId => $recordIds) {
-            $cleanup->remove($formId, $recordIds);
-        }
+        $pks = $ids;
 
         return true;
     }
@@ -426,9 +453,9 @@ class RecordModel extends AdminModel
     /**
      * @param int[] $ids
      *
-     * @return array<int, int> Form id by record id.
+     * @return list<array{id: int, form: int, state: int}> The records that exist.
      */
-    private function getFormIds(array $ids): array
+    private function getFormsAndStates(array $ids): array
     {
         if ($ids === []) {
             return [];
@@ -436,11 +463,24 @@ class RecordModel extends AdminModel
 
         $db = $this->getDatabase();
         $query = $db->getQuery(true)
-            ->select($db->quoteName(['id', 'form']))
+            ->select($db->quoteName(['id', 'form', 'state']))
             ->from($db->quoteName('#__facileforms_records'))
             ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
 
-        return array_map('intval', $db->setQuery($query)->loadAssocList('id', 'form'));
+        return array_map(
+            static fn (array $row): array => ['id' => (int) $row['id'], 'form' => (int) $row['form'], 'state' => (int) $row['state']],
+            $db->setQuery($query)->loadAssocList()
+        );
+    }
+
+    /**
+     * @param int[] $ids
+     *
+     * @return array<int, int> Form id by record id.
+     */
+    private function getFormIds(array $ids): array
+    {
+        return array_column($this->getFormsAndStates($ids), 'form', 'id');
     }
 
     public function setFlagsBatch(array $ids, string $column, int $value = 1): void

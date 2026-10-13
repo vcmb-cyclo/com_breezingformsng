@@ -35,6 +35,8 @@ class HtmlView extends BaseHtmlView
 
     private string $layout = 'default';
 
+    public bool $canOpen = false;
+
     private bool $canEditState = false;
     private bool $canDelete = false;
 
@@ -51,6 +53,7 @@ class HtmlView extends BaseHtmlView
         $user = $app->getIdentity();
         $this->canEditState = $user->authorise('core.edit.state', 'com_breezingformsng');
         $this->canDelete = $user->authorise('core.delete', 'com_breezingformsng');
+        $this->canOpen = $user->authorise('core.edit', 'com_breezingformsng');
 
         if ($layout === 'csvimport') {
             $this->formSelection = (int) $this->getRecordsModel()->getState('filter.form');
