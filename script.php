@@ -1,14 +1,16 @@
 <?php
 
 /**
- * @package BreezingFormsNG
- * @version 6.0.0
- * @author      Markus Bopp
- * @link        http://breezings.vcmb.fr
- *  * @copyright Copyright (C) 2008-2020 Markus Bopp
- * @copyright Copyright (C) 2025 XDA+GIL
- * @license     GNU/GPL
- */
+ * @package   BreezingFormsNG
+ * @author    Markus Bopp
+ * @link      http://breezings.vcmb.fr
+ * @copyright Copyright (C) 2008-2020 Markus Bopp
+ * @copyright Copyright (C) 2024-2026 XDA+GIL
+ * @license GNU General Public License version 2 or later; see LICENSE.txt
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ **/
+
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\Filesystem\File;

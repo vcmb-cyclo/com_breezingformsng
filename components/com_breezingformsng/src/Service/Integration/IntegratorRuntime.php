@@ -13,7 +13,6 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Scripting\StoredPhpExecutor;
 
 /**
  * BreezingForms NG - A Joomla Forms Application
- * @version 6.0.0
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2008-2020 by Markus Bopp
  * @copyright @copyright  Copyright (C) 2024-2026 by XDA+GIL

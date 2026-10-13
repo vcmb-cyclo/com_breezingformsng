@@ -4,7 +4,6 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\CMS\Language\Text;
 /**
 * BreezingForms - A Joomla Forms Application
-* @version 6.0
 * @package BreezingFormsNG
 * @copyright (C) 2008-2020 by Markus Bopp
 * @license Released under the terms of the GNU General Public License

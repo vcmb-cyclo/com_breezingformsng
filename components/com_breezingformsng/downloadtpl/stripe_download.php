@@ -3,7 +3,6 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 /**
  * BreezingForms NG - A Joomla Forms Application
  * 
- * @version 6.0.0
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2008-2020 by Markus Bopp
  * @license GNU General Public License version 2 or later; see LICENSE.txt
