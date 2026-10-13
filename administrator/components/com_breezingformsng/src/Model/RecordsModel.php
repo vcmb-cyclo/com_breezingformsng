@@ -9,58 +9,51 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 \defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Joomla\Database\DatabaseInterface;
+use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
+use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\Database\ParameterType;
 use Joomla\Database\QueryInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
-class RecordsModel extends BaseDatabaseModel
+class RecordsModel extends ListModel
 {
-    private const ALLOWED_SORTS = [
-        'records.id'        => 'records.id',
-        'records.submitted' => 'records.submitted',
-        'forms.title'       => 'forms.title',
-        'records.ip'        => 'records.ip',
-        'records.username'  => 'records.username',
-        'records.viewed'    => 'records.viewed',
-        'records.exported'  => 'records.exported',
-        'records.state'     => 'records.state',
-        'records.modified'  => 'records.modified',
+    private const DEFAULT_ORDERING = 'records.submitted';
+
+    private const SORTS = [
+        'records.id',
+        'records.submitted',
+        'forms.title',
+        'records.ip',
+        'records.username',
+        'records.viewed',
+        'records.exported',
+        'records.state',
+        'records.modified',
     ];
 
-    public function getForms(): array
+    public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
-        $db = $this->getDatabase();
-        $query = $db->getQuery(true)
-            ->select(['id', 'title', 'name'])
-            ->from($db->quoteName('#__facileforms_forms'))
-            ->order($db->quoteName('title'));
-        $db->setQuery($query);
-        return $db->loadAssocList();
+        $config['filter_fields'] ??= [...self::SORTS, 'form', 'state'];
+
+        parent::__construct($config, $factory);
     }
 
-    public function getTotal(int $formSelection, string $searchTerm, string $stateFilter = ''): int
+    protected function populateState($ordering = self::DEFAULT_ORDERING, $direction = 'DESC')
     {
-        $db = $this->getDatabase();
-        $query = $db->getQuery(true)
-            ->select('COUNT(*)')
-            ->from($db->quoteName('#__facileforms_records', 'records'))
-            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form');
-        $this->applyWhere($query, $db, $formSelection, $searchTerm, $stateFilter);
-        $db->setQuery($query);
-        return (int) $db->loadResult();
+        parent::populateState($ordering, $direction);
     }
 
-    public function getItems(
-        int $formSelection,
-        string $searchTerm,
-        int $limitStart,
-        int $limit,
-        string $listOrder,
-        string $listDirn,
-        string $stateFilter = ''
-    ): array {
+    protected function getStoreId($id = '')
+    {
+        $id .= ':' . $this->getState('filter.search');
+        $id .= ':' . $this->getState('filter.form');
+        $id .= ':' . $this->getState('filter.state');
+
+        return parent::getStoreId($id);
+    }
+
+    protected function getListQuery()
+    {
         $db = $this->getDatabase();
         $query = $db->getQuery(true)
             ->select([
@@ -70,34 +63,27 @@ class RecordsModel extends BaseDatabaseModel
                 'forms.title AS form_title', 'forms.name AS form_name', 'forms.id AS form_id',
             ])
             ->from($db->quoteName('#__facileforms_records', 'records'))
-            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form')
-            ->order($this->getOrderSql($listOrder, $listDirn));
-        $this->applyWhere($query, $db, $formSelection, $searchTerm, $stateFilter);
-        $db->setQuery($query, $limitStart, $limit);
-        return $db->loadAssocList();
+            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form');
+
+        $this->applyFilters($query);
+
+        return $query->order($this->getOrderSql());
     }
 
     /**
      * Return the record immediately before or after the current one in the
      * same ordered result set as the records list.
      */
-    public function getAdjacentRecordId(
-        int $recordId,
-        int $formSelection,
-        string $searchTerm,
-        string $listOrder,
-        string $listDirn,
-        string $direction,
-        string $stateFilter = ''
-    ): ?int {
+    public function getAdjacentRecordId(int $recordId, string $direction): ?int
+    {
         $db = $this->getDatabase();
         $query = $db->getQuery(true)
             ->select($db->quoteName('records.id'))
             ->from($db->quoteName('#__facileforms_records', 'records'))
-            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form')
-            ->order($this->getOrderSql($listOrder, $listDirn));
-        $this->applyWhere($query, $db, $formSelection, $searchTerm, $stateFilter);
-        $db->setQuery($query);
+            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form');
+
+        $this->applyFilters($query);
+        $db->setQuery($query->order($this->getOrderSql()));
 
         $recordIds = array_map('intval', $db->loadColumn());
         $position = array_search($recordId, $recordIds, true);
@@ -111,57 +97,59 @@ class RecordsModel extends BaseDatabaseModel
         return $recordIds[$adjacentPosition] ?? null;
     }
 
-    private function getOrderSql(string $listOrder, string $listDirn): string
+    private function getOrderSql(): string
     {
-        $orderCol = self::ALLOWED_SORTS[$listOrder] ?? 'records.submitted';
-        $dir = strtoupper($listDirn) === 'ASC' ? 'ASC' : 'DESC';
+        $orderCol = (string) $this->getState('list.ordering', self::DEFAULT_ORDERING);
+        $orderCol = in_array($orderCol, self::SORTS, true) ? $orderCol : self::DEFAULT_ORDERING;
+        $dir = strtoupper((string) $this->getState('list.direction', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
 
         return $orderCol . ' ' . $dir . ($orderCol !== 'records.id' ? ', records.id ' . $dir : '');
     }
 
-    private function applyWhere(
-        QueryInterface $query,
-        DatabaseInterface $db,
-        int $formSelection,
-        string $searchTerm,
-        string $stateFilter
-    ): void {
-        if ($formSelection > 0) {
-            $query->where('records.form = :formSelection')
-                ->bind(':formSelection', $formSelection, ParameterType::INTEGER);
+    private function applyFilters(QueryInterface $query): void
+    {
+        $db = $this->getDatabase();
+        $formId = (int) $this->getState('filter.form');
+        $searchTerm = trim((string) $this->getState('filter.search'));
+
+        if ($formId > 0) {
+            $query->where('records.form = :formId')
+                ->bind(':formId', $formId, ParameterType::INTEGER);
         }
 
-        $states = RecordState::filterStates($stateFilter);
+        $states = RecordState::filterStates((string) $this->getState('filter.state'));
 
         if ($states !== null) {
             $query->whereIn($db->quoteName('records.state'), $states);
         }
 
-        if ($searchTerm !== '') {
-            $like = '%' . $searchTerm . '%';
-            $conditions = [
-                'records.id = :searchExact',
-                $db->quoteName('records.ip') . ' LIKE :searchLike1',
-                $db->quoteName('records.username') . ' LIKE :searchLike2',
-                $db->quoteName('records.user_full_name') . ' LIKE :searchLike3',
-                $db->quoteName('forms.title') . ' LIKE :searchLike4',
-                $db->quoteName('forms.name') . ' LIKE :searchLike5',
-                $db->quoteName('records.paypal_tx_id') . ' LIKE :searchLike6',
-            ];
-
-            if ($formSelection > 0 || $states !== null) {
-                $query->extendWhere('AND', $conditions, 'OR');
-            } else {
-                $query->where($conditions, 'OR');
-            }
-
-            $query->bind(':searchExact', $searchTerm, ParameterType::STRING)
-                ->bind(':searchLike1', $like, ParameterType::STRING)
-                ->bind(':searchLike2', $like, ParameterType::STRING)
-                ->bind(':searchLike3', $like, ParameterType::STRING)
-                ->bind(':searchLike4', $like, ParameterType::STRING)
-                ->bind(':searchLike5', $like, ParameterType::STRING)
-                ->bind(':searchLike6', $like, ParameterType::STRING);
+        if ($searchTerm === '') {
+            return;
         }
+
+        $like = '%' . $searchTerm . '%';
+        $conditions = [
+            'records.id = :searchExact',
+            $db->quoteName('records.ip') . ' LIKE :searchLike1',
+            $db->quoteName('records.username') . ' LIKE :searchLike2',
+            $db->quoteName('records.user_full_name') . ' LIKE :searchLike3',
+            $db->quoteName('forms.title') . ' LIKE :searchLike4',
+            $db->quoteName('forms.name') . ' LIKE :searchLike5',
+            $db->quoteName('records.paypal_tx_id') . ' LIKE :searchLike6',
+        ];
+
+        if ($formId > 0 || $states !== null) {
+            $query->extendWhere('AND', $conditions, 'OR');
+        } else {
+            $query->where($conditions, 'OR');
+        }
+
+        $query->bind(':searchExact', $searchTerm, ParameterType::STRING)
+            ->bind(':searchLike1', $like, ParameterType::STRING)
+            ->bind(':searchLike2', $like, ParameterType::STRING)
+            ->bind(':searchLike3', $like, ParameterType::STRING)
+            ->bind(':searchLike4', $like, ParameterType::STRING)
+            ->bind(':searchLike5', $like, ParameterType::STRING)
+            ->bind(':searchLike6', $like, ParameterType::STRING);
     }
 }

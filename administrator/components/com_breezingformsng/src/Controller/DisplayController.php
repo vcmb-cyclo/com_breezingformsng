@@ -12,14 +12,21 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
-use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
-use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageModel;
-use Vcmb\Component\BreezingformsNG\Administrator\Model\PieceModel;
-use Vcmb\Component\BreezingformsNG\Administrator\Model\ScriptModel;
+use Joomla\CMS\Router\Route;
 
 /** @property CMSApplication $app */
 class DisplayController extends BaseController
 {
+    /**
+     * Edit views of the native form MVC, with the list each one returns to.
+     */
+    private const ITEM_VIEWS = [
+        'record' => 'records',
+        'menu' => 'menus',
+        'script' => 'scripts',
+        'piece' => 'pieces',
+    ];
+
     public function display($cachable = false, $urlparams = [])
     {
         if (!$this->app->getIdentity()->authorise('core.manage', 'com_breezingformsng')) {
@@ -51,6 +58,20 @@ class DisplayController extends BaseController
         }
 
         if ($task === '' && $view === 'packages') {
+            return parent::display($cachable, $urlparams);
+        }
+
+        if ($task === '' && isset(self::ITEM_VIEWS[$view])) {
+            $itemId = $input->getInt('id', 0);
+
+            // An item is opened through its edit task, which holds its id.
+            if (!$this->checkEditId('com_breezingformsng.edit.' . $view, $itemId)) {
+                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_UNHELD_ID', $itemId), 'error');
+                $this->setRedirect(Route::_('index.php?option=com_breezingformsng&view=' . self::ITEM_VIEWS[$view], false));
+
+                return $this;
+            }
+
             return parent::display($cachable, $urlparams);
         }
 
@@ -110,57 +131,10 @@ class DisplayController extends BaseController
         }
 
         if ($task === '' && in_array($view, ['pieces', 'scripts'], true)) {
-            $this->prepareListPackage($view);
-
             return parent::display($cachable, $urlparams);
         }
 
         // No valid route matched — return without invoking the removed legacy bridge.
         return $this;
     }
-
-    private function prepareListPackage(string $view): void
-    {
-        $input      = $this->app->getInput();
-        $session    = $this->app->getSession();
-        $sessionKey = $view === 'pieces' ? 'bf.piecepkg' : 'bf.scriptpkg';
-
-        $package = $input->get('pkg', null, 'STRING');
-
-        if ($package === null) {
-            $package = (string) ($session->get($sessionKey) ?? '');
-        } elseif ($package === '- blank -') {
-            $package = '';
-        }
-
-        if ($package !== '') {
-            $component = $this->app->bootComponent('com_breezingformsng');
-
-            if (!$component instanceof MVCFactoryServiceInterface) {
-                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-            }
-
-            $model = $component->getMVCFactory()
-                ->createModel($view === 'pieces' ? 'Piece' : 'Script', 'Administrator', ['ignore_request' => true]);
-
-            if (!$model instanceof PackageModel) {
-                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-            }
-
-            if (
-                ($view === 'pieces' && !$model instanceof PieceModel)
-                || ($view === 'scripts' && !$model instanceof ScriptModel)
-            ) {
-                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-            }
-
-            if (!$model->packageExists((string) $package)) {
-                $package = '';
-            }
-        }
-
-        $session->set($sessionKey, $package);
-        $input->set('pkg', $package);
-    }
-
 }

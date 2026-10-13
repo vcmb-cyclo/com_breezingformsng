@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * BreezingForms NG - A Joomla Forms Application
+ *
+ * @package BreezingFormsNG
+ * @copyright Copyright (C) 2024-2026 by XDA+GIL
+ * @license GNU General Public License version 2 or later; see LICENSE.txt
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ **/
+
 declare(strict_types=1);
 
 namespace Vcmb\Component\BreezingformsNG\Tests\Administrator\Service;
@@ -101,5 +111,72 @@ final class RecordStateTest extends TestCase
         self::assertSame('JARCHIVED', RecordState::label(2));
         self::assertSame('JTRASHED', RecordState::label(-2));
         self::assertSame('JPUBLISHED', RecordState::label(0));
+    }
+
+    public function testASelectionOfTrashedRecordsCanBeDeleted(): void
+    {
+        self::assertNull(RecordState::deletionRefusal([4, 9], [4 => -2, 9 => -2]));
+        self::assertNull(RecordState::deletionRefusal([], []));
+    }
+
+    public function testAMixedSelectionIsRefusedWhateverItsOrder(): void
+    {
+        $states = [4 => RecordState::TRASHED, 9 => RecordState::PUBLISHED];
+
+        self::assertSame('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED', RecordState::deletionRefusal([4, 9], $states));
+        self::assertSame('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED', RecordState::deletionRefusal([9, 4], $states));
+        self::assertSame(
+            'JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED',
+            RecordState::deletionRefusal([4, 9], [4 => RecordState::TRASHED, 9 => RecordState::ARCHIVED])
+        );
+    }
+
+    public function testASelectionWithAMissingRecordIsRefusedWhateverItsOrder(): void
+    {
+        $states = [4 => RecordState::TRASHED, 9 => RecordState::TRASHED];
+
+        self::assertSame('JLIB_APPLICATION_ERROR_NOT_EXIST', RecordState::deletionRefusal([4, 77, 9], $states));
+        self::assertSame('JLIB_APPLICATION_ERROR_NOT_EXIST', RecordState::deletionRefusal([77, 4, 9], $states));
+        self::assertSame('JLIB_APPLICATION_ERROR_NOT_EXIST', RecordState::deletionRefusal([4, 9, 77], $states));
+    }
+
+    public function testTheModelChecksTheSelectionBeforeDeletingAndUndoesAFailedDeletion(): void
+    {
+        $model = file_get_contents(
+            __DIR__ . '/../../../administrator/components/com_breezingformsng/src/Model/RecordModel.php'
+        );
+
+        self::assertIsString($model);
+
+        $start = strpos($model, '$db->transactionStart();');
+        $lock = strpos($model, '$this->lockRecords($ids);');
+        $read = strpos($model, '$records = $this->getFormsAndStates($ids);');
+        $refusal = strpos($model, 'RecordState::deletionRefusal(');
+        $delete = strpos($model, 'parent::delete($ids)');
+        $leftover = strpos($model, 'if ($this->getFormsAndStates($ids) !== []) {');
+        $cleanup = strpos($model, '$cleanup->remove($formId, $recordIds);');
+        $commit = strpos($model, '$db->transactionCommit();');
+        $rollback = strpos($model, '$db->transactionRollback();');
+
+        foreach ([$start, $lock, $read, $refusal, $delete, $leftover, $cleanup, $commit, $rollback] as $position) {
+            self::assertNotFalse($position);
+        }
+
+        // The selection is read and checked inside the transaction, and a
+        // record still there after the deletion undoes it before any cleanup.
+        // The records are locked before they are read: a record restored by
+        // someone else meanwhile is then seen as restored, not as trashed.
+        self::assertLessThan($lock, $start);
+        self::assertLessThan($read, $lock);
+        self::assertLessThan($refusal, $read);
+        self::assertStringContainsString(
+            "->set(\$db->quoteName('state') . ' = ' . \$db->quoteName('state'))",
+            $model
+        );
+        self::assertLessThan($delete, $refusal);
+        self::assertLessThan($leftover, $delete);
+        self::assertLessThan($cleanup, $leftover);
+        self::assertLessThan($commit, $cleanup);
+        self::assertLessThan($rollback, $commit);
     }
 }

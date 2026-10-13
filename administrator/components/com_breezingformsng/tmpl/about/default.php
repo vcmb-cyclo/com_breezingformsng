@@ -2,7 +2,6 @@
 /**
  * BreezingForms NG - A Joomla Forms Application
  * 
- * @version 6.0.0
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
  * @license GNU General Public License version 2 or later; see LICENSE.txt
@@ -1005,7 +1004,7 @@ HTMLHelper::_('bootstrap.collapse');
                                     &mdash;
                                     <?php echo (int) ($entry['count'] ?? 0); ?>
                                     <a class="btn btn-sm btn-outline-secondary ms-2"
-                                        href="index.php?option=com_breezingformsng&amp;view=records&amp;form_selection=<?php echo $trashFormId; ?>&amp;filter_state=-2">
+                                        href="index.php?option=com_breezingformsng&amp;view=records&amp;filter[form]=<?php echo $trashFormId; ?>&amp;filter[state]=-2&amp;filter[search]=">
                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASH_VIEW'); ?>
                                     </a>
                                 </li>

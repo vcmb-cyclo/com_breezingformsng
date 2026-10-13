@@ -1,11 +1,14 @@
 <?php
+
 /**
- * @package     Joomla.Administrator
- * @subpackage  com_cpanel
+ * BreezingForms NG - A Joomla Forms Application
  *
- * @copyright   Copyright (C) 2005 - 2012 Open Source Matters, Inc. All rights reserved.
+ * @package BreezingFormsNG
+ * @copyright Copyright (C) 2024-2026 by XDA+GIL
  * @license GNU General Public License version 2 or later; see LICENSE.txt
- */
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ **/
 
 defined('_JEXEC') or die;
 

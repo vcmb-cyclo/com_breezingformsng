@@ -13,17 +13,26 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Integrator;
 
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Pagination\Pagination;
+use Joomla\Registry\Registry;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\IntegratorModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\IntegratorRulesModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 
 class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView
 {
-    public array $rules        = [];
+    /** @var object[] */
+    public array $rules = [];
+    public ?Pagination $pagination = null;
+    public ?Registry $state = null;
+    public ?Form $filterForm = null;
+    public array $activeFilters = [];
     public ?\stdClass $rule    = null;
     public array $items        = [];
     public array $tableNames   = [];
@@ -34,9 +43,6 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
     public array $criteriaJoomla   = [];
     public array $criteriaFixed    = [];
     public string $formFilter  = 'all';
-    public string $listOrder = 'rules.name';
-    public string $listDirn = 'asc';
-
     public function display($tpl = null): void
     {
         AreaAccess::assert(Factory::getApplication()->getIdentity(), AreaAccess::CODE);
@@ -57,22 +63,32 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         } elseif ($layout === 'help') {
             // The help layout is self-contained.
         } else {
-            $this->prepareList($model, $input);
+            $this->prepareList();
         }
 
         parent::display($tpl);
     }
 
-    private function prepareList(IntegratorModel $model, \Joomla\Input\Input $input): void
+    private function prepareList(): void
     {
-        $allowedSorts = [
-            'rules.name', 'rules.type', 'forms.name',
-            'rules.reference_table', 'rules.published',
-        ];
-        $requestedOrder = $input->getCmd('filter_order', 'rules.name');
-        $this->listOrder = in_array($requestedOrder, $allowedSorts, true) ? $requestedOrder : 'rules.name';
-        $this->listDirn = strtolower($input->getCmd('filter_order_Dir', 'asc')) === 'desc' ? 'desc' : 'asc';
-        $this->rules = $model->getRules($this->listOrder, $this->listDirn);
+        $component = Factory::getApplication()->bootComponent('com_breezingformsng');
+
+        if (!$component instanceof MVCFactoryServiceInterface) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $list = $component->getMVCFactory()->createModel('IntegratorRules', 'Administrator');
+
+        if (!$list instanceof IntegratorRulesModel) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $this->rules = $list->getItems() ?: [];
+        $this->pagination = $list->getPagination();
+        $this->state = $list->getState();
+        $this->filterForm = $list->getFilterForm();
+        $this->activeFilters = $list->getActiveFilters();
+
         ToolbarHelper::addNew('integrator.edit');
         ToolbarHelper::deleteList('', 'integrator.remove');
         $user = Factory::getApplication()->getIdentity();
@@ -90,7 +106,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         $app      = Factory::getApplication();
         $document = $app->getDocument();
         $wa       = $document->getWebAssetManager();
-        $wa->useScript('com_breezingformsng.admin-sort');
+        $wa->useScript('table.columns')->useScript('multiselect');
         $wa->registerAndUseScript(
             'com_breezingformsng.admin-form',
             'media/com_breezingformsng/js/admin/admin-form.js',

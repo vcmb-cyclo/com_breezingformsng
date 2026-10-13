@@ -11,21 +11,26 @@
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\Session\Session;
+use Joomla\CMS\Layout\LayoutHelper;
+
+$listOrder = $this->escape((string) $this->state->get('list.ordering'));
+$listDirn  = $this->escape((string) $this->state->get('list.direction'));
 ?>
 <form action="index.php?option=com_breezingformsng&amp;view=integrator" method="post" name="adminForm" id="adminForm">
+  <div id="j-main-container" class="j-main-container">
+  <?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this]); ?>
 
   <table class="table table-striped table-hover">
     <thead>
       <tr>
         <th class="w-1 text-center">
-          <input type="checkbox" class="form-check-input" onclick="Joomla.checkAll(this)" title="<?= Text::_('JGLOBAL_CHECK_ALL'); ?>">
+          <?= HTMLHelper::_('grid.checkall'); ?>
         </th>
-        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_INTEGRATOR_RULENAME', 'rules.name', $this->listDirn, $this->listOrder); ?></th>
-        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_TYPE', 'rules.type', $this->listDirn, $this->listOrder); ?></th>
-        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORM', 'forms.name', $this->listDirn, $this->listOrder); ?></th>
-        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_INTEGRATOR_TABLE', 'rules.reference_table', $this->listDirn, $this->listOrder); ?></th>
-        <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JPUBLISHED', 'rules.published', $this->listDirn, $this->listOrder); ?></th>
+        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_INTEGRATOR_RULENAME', 'rules.name', $listDirn, $listOrder); ?></th>
+        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_TYPE', 'rules.type', $listDirn, $listOrder); ?></th>
+        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORM', 'forms.name', $listDirn, $listOrder); ?></th>
+        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_INTEGRATOR_TABLE', 'rules.reference_table', $listDirn, $listOrder); ?></th>
+        <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JPUBLISHED', 'rules.published', $listDirn, $listOrder); ?></th>
       </tr>
     </thead>
     <tbody>
@@ -55,12 +60,13 @@ use Joomla\CMS\Session\Session;
     </tbody>
   </table>
 
+  <?= $this->pagination->getListFooter(); ?>
+
   <input type="hidden" name="task" value="">
   <input type="hidden" name="publish_id" value="0">
   <input type="hidden" name="boxchecked" value="0">
-  <input type="hidden" name="filter_order" value="<?= htmlspecialchars($this->listOrder, ENT_QUOTES, 'UTF-8'); ?>">
-  <input type="hidden" name="filter_order_Dir" value="<?= htmlspecialchars($this->listDirn, ENT_QUOTES, 'UTF-8'); ?>">
   <?= HTMLHelper::_('form.token'); ?>
+  </div>
 </form>
 
 <?php

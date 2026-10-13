@@ -347,12 +347,17 @@ class FormModel extends BaseDatabaseModel
         )->execute();
     }
 
-    public function moveOrder(int $id, int $inc, string $pkg): void
+    /**
+     * Moves a form among the forms of its package.
+     */
+    public function moveOrder(int $id, int $inc): void
     {
         $item = $this->getForm($id);
         if ($item === null) {
             return;
         }
+
+        $pkg = (string) $item->package;
 
         $db  = $this->db();
         $dir = $inc > 0 ? '>' : '<';

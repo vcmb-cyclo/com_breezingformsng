@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<fieldset name="details">
+		<field
+			name="id"
+			type="hidden"
+			filter="integer"
+		/>
+		<field
+			name="title"
+			type="text"
+			label="COM_BREEZINGFORMSNG_SCRIPTS_TITLE"
+			description="COM_BREEZINGFORMSNG_SCRIPTS_TIPTITLE"
+			maxlength="50"
+			required="true"
+		/>
+		<field
+			name="name"
+			type="text"
+			label="COM_BREEZINGFORMSNG_SCRIPTS_NAME"
+			description="COM_BREEZINGFORMSNG_SCRIPTS_TIPNAME"
+			maxlength="30"
+			required="true"
+			pattern="\w+"
+		/>
+		<field
+			name="type"
+			type="list"
+			label="COM_BREEZINGFORMSNG_SCRIPTS_TYPE"
+			description="COM_BREEZINGFORMSNG_SCRIPTS_TIPTYPE"
+			default="Untyped"
+			validate="options"
+			>
+			<option value="Untyped">COM_BREEZINGFORMSNG_SCRIPTS_UNTYPED</option>
+			<option value="Element Init">COM_BREEZINGFORMSNG_SCRIPTS_ELEMENTINIT</option>
+			<option value="Element Action">COM_BREEZINGFORMSNG_SCRIPTS_ELEMENTACTION</option>
+			<option value="Element Validation">COM_BREEZINGFORMSNG_SCRIPTS_ELEMENTVALID</option>
+			<option value="Form Init">COM_BREEZINGFORMSNG_SCRIPTS_FORMINIT</option>
+			<option value="Form Submitted">COM_BREEZINGFORMSNG_SCRIPTS_FORMSUBMIT</option>
+		</field>
+		<field
+			name="package"
+			type="text"
+			label="COM_BREEZINGFORMSNG_SCRIPTS_PACKAGE"
+			description="COM_BREEZINGFORMSNG_SCRIPTS_TIPPACKAGE"
+			maxlength="30"
+		/>
+		<field
+			name="published"
+			type="radio"
+			label="COM_BREEZINGFORMSNG_SCRIPTS_PUBLISHED"
+			description="COM_BREEZINGFORMSNG_SCRIPTS_TIPPUBLISHED"
+			layout="joomla.form.field.radio.switcher"
+			default="1"
+			filter="integer"
+			>
+			<option value="0">JNO</option>
+			<option value="1">JYES</option>
+		</field>
+		<field
+			name="description"
+			type="textarea"
+			label="COM_BREEZINGFORMSNG_SCRIPTS_DESCRIPTION"
+			description="COM_BREEZINGFORMSNG_SCRIPTS_TIPDESCRIPTION"
+			rows="6"
+			filter="raw"
+		/>
+	</fieldset>
+	<fieldset name="code">
+		<field
+			name="code"
+			type="editor"
+			label="COM_BREEZINGFORMSNG_SCRIPTS_CODE"
+			description="COM_BREEZINGFORMSNG_SCRIPTS_TIPCODE"
+			editor="codemirror"
+			syntax="javascript"
+			buttons="false"
+			height="300"
+			filter="raw"
+		/>
+		<field
+			name="unit_tests"
+			type="textarea"
+			label="COM_BREEZINGFORMSNG_TEST_UNIT_TESTS"
+			description="COM_BREEZINGFORMSNG_TEST_UNIT_TESTS_HELP"
+			rows="8"
+			filter="raw"
+		/>
+	</fieldset>
+</form>

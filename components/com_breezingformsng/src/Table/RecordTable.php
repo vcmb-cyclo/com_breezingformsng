@@ -19,6 +19,7 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Table\Table;
 use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 
 final class RecordTable extends Table
 {
@@ -42,7 +43,29 @@ final class RecordTable extends Table
 	public function __construct(DatabaseInterface $db)
 	{
 		parent::__construct('#__facileforms_records', 'id', $db);
+		$this->setColumnAlias('published', 'state');
 	} // constructor
+
+	/**
+	 * Deletes the record together with its submitted values.
+	 */
+	public function delete($pk = null)
+	{
+		$recordId = (int) ($pk ?? $this->id);
+
+		if (!parent::delete($pk)) {
+			return false;
+		}
+
+		$db = $this->getDatabase();
+		$query = $db->getQuery(true)
+			->delete($db->quoteName('#__facileforms_subrecords'))
+			->where($db->quoteName('record') . ' = :recordId')
+			->bind(':recordId', $recordId, ParameterType::INTEGER);
+		$db->setQuery($query)->execute();
+
+		return true;
+	}
 
 	public function load($id = null, $reset = true)
 	{

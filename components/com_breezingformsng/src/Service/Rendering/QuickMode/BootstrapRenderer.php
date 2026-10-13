@@ -2,7 +2,6 @@
 
 /**
  * BreezingForms NG - A Joomla Forms Application
- * @version   5.0
  * @package   BreezingForms
  * @copyright Copyright (C) 2008-2020 by Markus Bopp
  * @copyright Copyright (C) 2024-2026 by XDA+GIL- EVH

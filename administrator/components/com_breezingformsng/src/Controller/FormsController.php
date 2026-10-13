@@ -22,6 +22,8 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 /** @property CMSApplication $app */
 class FormsController extends BaseController
 {
+    private const LIST_URL = 'index.php?option=com_breezingformsng&view=forms';
+
     public function display($cachable = false, $urlparams = []): static
     {
         $this->app->getInput()->set('view', 'forms');
@@ -57,7 +59,7 @@ class FormsController extends BaseController
 
         if (!$this->checkToken()) {
             $app->enqueueMessage(Text::_('JINVALID_TOKEN'), 'error');
-            $app->redirect(Route::_($this->listUrl($input->getString('pkg', '')), false));
+            $app->redirect(Route::_(self::LIST_URL, false));
             return;
         }
 
@@ -189,8 +191,7 @@ class FormsController extends BaseController
 
     public function cancel(): void
     {
-        $pkg = $this->app->getInput()->getString('pkg', '');
-        $this->app->redirect(Route::_($this->listUrl($pkg), false));
+        $this->app->redirect(Route::_(self::LIST_URL, false));
     }
 
     public function remove(): void
@@ -209,7 +210,7 @@ class FormsController extends BaseController
             }
         }
 
-        $app->redirect(Route::_($this->listUrl($input->getString('pkg', '')), false));
+        $app->redirect(Route::_(self::LIST_URL, false));
     }
 
     public function copy(): void
@@ -230,7 +231,7 @@ class FormsController extends BaseController
             }
         }
 
-        $app->redirect(Route::_($this->listUrl($input->getString('pkg', '')), false));
+        $app->redirect(Route::_(self::LIST_URL, false));
     }
 
     public function publish(): void
@@ -259,7 +260,7 @@ class FormsController extends BaseController
         $formId = $input->getInt('id', 0);
 
         if ($formId <= 0) {
-            $this->app->redirect(Route::_($this->listUrl($input->getString('pkg', '')), false));
+            $this->app->redirect(Route::_(self::LIST_URL, false));
             return;
         }
 
@@ -293,7 +294,7 @@ class FormsController extends BaseController
             }
         }
 
-        $app->redirect(Route::_($this->listUrl($input->getString('pkg', '')), false));
+        $app->redirect(Route::_(self::LIST_URL, false));
     }
 
     private function setAjaxState(string $property): void
@@ -340,19 +341,12 @@ class FormsController extends BaseController
             $app->enqueueMessage(Text::_('JINVALID_TOKEN'), 'error');
         } else {
             $ids = $this->selectedIds($input);
-            $pkg = $input->getString('pkg', '');
             if (!empty($ids)) {
-                $this->getFormModel()->moveOrder((int) $ids[0], $inc, $pkg);
+                $this->getFormModel()->moveOrder((int) $ids[0], $inc);
             }
         }
 
-        $app->redirect(Route::_($this->listUrl($input->getString('pkg', '')), false));
-    }
-
-    private function listUrl(string $pkg): string
-    {
-        return 'index.php?option=com_breezingformsng&view=forms'
-            . ($pkg !== '' ? '&pkg=' . rawurlencode($pkg) : '');
+        $app->redirect(Route::_(self::LIST_URL, false));
     }
 
     private function selectedIds(\Joomla\Input\Input $input): array

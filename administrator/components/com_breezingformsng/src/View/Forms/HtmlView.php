@@ -11,27 +11,25 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Forms;
 
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Form\Form;
+use Joomla\Registry\Registry;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
-use Joomla\Session\SessionInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormsModel;
 
 class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView
 {
-    public array      $items    = [];
-    public array      $packages = [];
-    public int        $total    = 0;
-    public string     $pkg      = '';
-    public string     $search   = '';
-    public string     $listOrder= 'ordering';
-    public string     $listDirn = 'asc';
-    public string     $filterState = '';
-    public int        $limit    = 20;
-    public int        $limitStart = 0;
+    /** @var object[] */
+    public array $items = [];
+    public ?Pagination $pagination = null;
+    public ?Registry $state = null;
+    public ?Form $filterForm = null;
+    public array $activeFilters = [];
+    public string $pkg = '';
     public ?\stdClass $form     = null;
     public array      $initScripts = [];
     public array      $submittedScripts = [];
@@ -109,14 +107,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         } else {
             $document = $app->getDocument();
             $wa       = $document->getWebAssetManager();
-            $wa->useScript('table.columns');
-            $wa->registerAndUseScript(
-                'com_breezingformsng.admin-sort',
-                'media/com_breezingformsng/js/admin/admin-sort.js',
-                ['version' => 'auto'],
-                ['defer' => true],
-                ['core']
-            );
+            $wa->useScript('table.columns')->useScript('multiselect');
             $wa->registerAndUseScript(
                 'com_breezingformsng.admin-form',
                 'media/com_breezingformsng/js/admin/admin-form.js',
@@ -142,50 +133,18 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             Text::script('JUNPUBLISHED');
             Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
 
-            $session = $app->getSession();
-            $pkgIn   = $input->getString('pkg', '__unset__');
-            $this->pkg   = $this->resolvePackage($pkgIn, $listModel, $session);
+            $model = $this->getModel();
 
-            $searchReq = $input->getString('search', '__unset__');
-            if ($searchReq === '__unset__') {
-                $this->search = (string) $session->get('bf.forms_search', '');
-            } else {
-                $this->search = trim($searchReq);
-                $session->set('bf.forms_search', $this->search);
+            if (!$model instanceof FormsModel) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
 
-            $filterStateIn = $input->getString('filter_state', '__unset__');
-            if ($filterStateIn !== '__unset__') {
-                $this->filterState = in_array(strtoupper($filterStateIn), ['P', 'U'], true)
-                    ? strtoupper($filterStateIn) : '';
-                $session->set('bf.forms_filter_state', $this->filterState);
-            } else {
-                $this->filterState = (string) $session->get('bf.forms_filter_state', '');
-            }
-
-            $sortIn = $input->getString('filter_order', '__unset__');
-            if ($sortIn !== '__unset__') {
-                $this->listOrder = $sortIn;
-                $session->set('bf.forms_sort', $sortIn);
-            } else {
-                $this->listOrder = (string) $session->get('bf.forms_sort', 'ordering');
-            }
-
-            $dirIn = strtolower($input->getString('filter_order_Dir', '__unset__'));
-            if ($dirIn !== '__unset__') {
-                $this->listDirn = $dirIn === 'desc' ? 'desc' : 'asc';
-                $session->set('bf.forms_dir', $this->listDirn);
-            } else {
-                $this->listDirn = strtolower((string) $session->get('bf.forms_dir', 'asc'));
-            }
-
-            $this->limit      = (int) $app->getUserStateFromRequest(
-                'global.list.limit', 'limit', (int) $app->get('list_limit'), 'int'
-            );
-            $this->limitStart = $input->getInt('limitstart', 0);
-            $this->total      = $listModel->getTotal($this->pkg, $this->search, $this->filterState);
-            $this->items      = $listModel->getItems($this->pkg, $this->search, $this->filterState, $this->listOrder, $this->listDirn, $this->limit, $this->limitStart);
-            $this->packages   = $listModel->getPackages();
+            $this->items = $model->getItems() ?: [];
+            $this->pagination = $model->getPagination();
+            $this->state = $model->getState();
+            $this->filterForm = $model->getFilterForm();
+            $this->activeFilters = $model->getActiveFilters();
+            $this->pkg = (string) $this->state->get('filter.package');
 
             ToolbarHelper::addNew('forms.edit');
             ToolbarHelper::custom('forms.copy', 'copy', '', 'JLIB_HTML_BATCH_COPY', true);
@@ -200,25 +159,6 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         }
 
         parent::display($tpl);
-    }
-
-    private function resolvePackage(string $package, FormsModel $model, SessionInterface $session): string
-    {
-        $packages = $model->getPackages();
-
-        if ($package === '__unset__') {
-            $package = (string) $session->get('bf.forms_pkg', '');
-        } elseif ($package === '- blank -') {
-            $package = '';
-        }
-
-        if ($package !== '' && !in_array($package, $packages, true)) {
-            $package = $packages[0] ?? '';
-        }
-
-        $session->set('bf.forms_pkg', $package);
-
-        return $package;
     }
 
     protected function getDetailLabel(): ?string

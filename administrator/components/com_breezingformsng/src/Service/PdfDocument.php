@@ -1,12 +1,16 @@
 <?php
+
 /**
  * BreezingForms NG - A Joomla Forms Application
  * 
- * @version 6.0.0
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2008-2020 by Markus Bopp
+ * @copyright Copyright (C) 2024-2026 by XDA+GIL
  * @license GNU General Public License version 2 or later; see LICENSE.txt
- * */
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ **/
+
 namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
@@ -38,23 +42,26 @@ class PdfDocument extends \TCPDF
     public bool $mailback = false;
     public string $which = 'attachment';
 
-    public function __construct($orientation='P', $unit='mm', $format='A4', $unicode=true, $encoding='UTF-8', $diskcache=false, $pdfa=false){
+    public function __construct($orientation = 'P', $unit = 'mm', $format = 'A4', $unicode = true, $encoding = 'UTF-8', $diskcache = false, $pdfa = false)
+    {
 
         parent::__construct($orientation, $unit, $format, $unicode, $encoding, $diskcache, $pdfa);
-
     }
 
-    public function setFormName(string $name): void{
+    public function setFormName(string $name): void
+    {
 
         $this->form_name = $name;
     }
 
-    public function setMailback(bool $mailback): void{
+    public function setMailback(bool $mailback): void
+    {
 
         $this->mailback = $mailback;
     }
 
-    public function setWhich(string $which = 'attachment'): void{
+    public function setWhich(string $which = 'attachment'): void
+    {
         $this->which = $which;
     }
 
@@ -82,7 +89,8 @@ class PdfDocument extends \TCPDF
         return $name;
     }
 
-    public function Header(){
+    public function Header()
+    {
 
         $pdf = $this;
 
@@ -90,49 +98,49 @@ class PdfDocument extends \TCPDF
         $font_loaded = false;
         $ttf_name = '';
 
-        if( is_dir(JPATH_SITE.'/media/breezingforms/pdftpl/fonts/') ){
+        if (is_dir(JPATH_SITE . '/media/breezingforms/pdftpl/fonts/')) {
 
-            $sourcePath = JPATH_SITE.'/media/breezingforms/pdftpl/fonts/';
+            $sourcePath = JPATH_SITE . '/media/breezingforms/pdftpl/fonts/';
             foreach ($this->fontDirectoryScanner()->scan($sourcePath) as $file) {
-                    if($file!="." && $file!=".." && $this->endsWith(strtolower($file), '.php')) {
-                        $file_sep = explode('.', $file);
-                        if(count($file_sep) > 1){
-                            unset($file_sep[count($file_sep)-1]);
-                            $pdf->AddFont(implode('_',$file_sep), '', $sourcePath.$file);
-                            $font_loaded = true;
-                        }
-                    }
-                    if($file!="." && $file!=".." && $this->endsWith(strtolower($file), '.ttf')) {
-                        $ttf_name = self::importTtfFont($sourcePath.$file);
+                if ($file != "." && $file != ".." && $this->endsWith(strtolower($file), '.php')) {
+                    $file_sep = explode('.', $file);
+                    if (count($file_sep) > 1) {
+                        unset($file_sep[count($file_sep) - 1]);
+                        $pdf->AddFont(implode('_', $file_sep), '', $sourcePath . $file);
                         $font_loaded = true;
                     }
-                    if($this->endsWith(strtolower($file), '_active')){
-                        $active = explode('_', $file);
-                        if(count($active) > 1){
-                            unset($active[count($active)-1]);
-                            $font_name = '';
-                            if( $ttf_name != '' ){
-                                $font_name = $ttf_name;
-                            }else{
-                                $font_name = implode('_',$active);
-                            }
-                            $pdf->SetFont($font_name);
-                            if($font_loaded){
-                                $active_found = true;
-                            }
+                }
+                if ($file != "." && $file != ".." && $this->endsWith(strtolower($file), '.ttf')) {
+                    $ttf_name = self::importTtfFont($sourcePath . $file);
+                    $font_loaded = true;
+                }
+                if ($this->endsWith(strtolower($file), '_active')) {
+                    $active = explode('_', $file);
+                    if (count($active) > 1) {
+                        unset($active[count($active) - 1]);
+                        $font_name = '';
+                        if ($ttf_name != '') {
+                            $font_name = $ttf_name;
+                        } else {
+                            $font_name = implode('_', $active);
+                        }
+                        $pdf->SetFont($font_name);
+                        if ($font_loaded) {
+                            $active_found = true;
                         }
                     }
+                }
             }
         }
 
-        if(!$active_found){
+        if (!$active_found) {
             self::importTtfFont(JPATH_SITE . '/media/com_breezingformsng/fonts/verdana.ttf');
             $pdf->SetFont('verdana');
         }
 
         $file = $this->getHeaderTemplate();
 
-        if($file != '') {
+        if ($file != '') {
 
             ob_start();
             require($file);
@@ -143,7 +151,8 @@ class PdfDocument extends \TCPDF
         }
     }
 
-    public function Footer(){
+    public function Footer()
+    {
 
         $pdf = $this;
 
@@ -151,64 +160,69 @@ class PdfDocument extends \TCPDF
         $font_loaded = false;
         $ttf_name = '';
 
-        if( is_dir(JPATH_SITE.'/media/breezingforms/pdftpl/fonts/') ){
+        if (is_dir(JPATH_SITE . '/media/breezingforms/pdftpl/fonts/')) {
 
-            $sourcePath = JPATH_SITE.'/media/breezingforms/pdftpl/fonts/';
+            $sourcePath = JPATH_SITE . '/media/breezingforms/pdftpl/fonts/';
             foreach ($this->fontDirectoryScanner()->scan($sourcePath) as $file) {
-                    if($file!="." && $file!=".." && $this->endsWith(strtolower($file), '.php')) {
-                        $file_sep = explode('.', $file);
-                        if(count($file_sep) > 1){
-                            unset($file_sep[count($file_sep)-1]);
-                            $pdf->AddFont(implode('_',$file_sep), '', $sourcePath.$file);
-                            $font_loaded = true;
-                        }
-                    }
-                    if($file!="." && $file!=".." && $this->endsWith(strtolower($file), '.ttf')) {
-                        $ttf_name = self::importTtfFont($sourcePath.$file);
+                if ($file != "." && $file != ".." && $this->endsWith(strtolower($file), '.php')) {
+                    $file_sep = explode('.', $file);
+                    if (count($file_sep) > 1) {
+                        unset($file_sep[count($file_sep) - 1]);
+                        $pdf->AddFont(implode('_', $file_sep), '', $sourcePath . $file);
                         $font_loaded = true;
                     }
-                    if($this->endsWith(strtolower($file), '_active')){
-                        $active = explode('_', $file);
-                        if(count($active) > 1){
-                            unset($active[count($active)-1]);
-                            $font_name = '';
-                            if( $ttf_name != '' ){
-                                $font_name = $ttf_name;
-                            }else{
-                                $font_name = implode('_',$active);
-                            }
-                            $pdf->SetFont($font_name);
-                            if($font_loaded){
-                                $active_found = true;
-                            }
+                }
+                if ($file != "." && $file != ".." && $this->endsWith(strtolower($file), '.ttf')) {
+                    $ttf_name = self::importTtfFont($sourcePath . $file);
+                    $font_loaded = true;
+                }
+                if ($this->endsWith(strtolower($file), '_active')) {
+                    $active = explode('_', $file);
+                    if (count($active) > 1) {
+                        unset($active[count($active) - 1]);
+                        $font_name = '';
+                        if ($ttf_name != '') {
+                            $font_name = $ttf_name;
+                        } else {
+                            $font_name = implode('_', $active);
+                        }
+                        $pdf->SetFont($font_name);
+                        if ($font_loaded) {
+                            $active_found = true;
                         }
                     }
+                }
             }
         }
 
-        if(!$active_found){
+        if (!$active_found) {
             self::importTtfFont(JPATH_SITE . '/media/com_breezingformsng/fonts/verdana.ttf');
             $pdf->SetFont('verdana');
         }
 
         $file = $this->getFooterTemplate();
 
-        if($file != '') {
+        if ($file != '') {
 
             ob_start();
             require($file);
             $contents = ob_get_contents();
             ob_end_clean();
 
-            $this->writeHTML($contents, true, true, true, false, '');
+            // The footer sits below the bottom margin, where TCPDF breaks an
+            // unbounded HTML block to the next page: bound it to the space
+            // left on this page so it stays here.
+            $y = $this->GetY();
+            $this->writeHTMLCell(0, $this->getPageHeight() - $y, $this->GetX(), $y, $contents, 0, 1, false, true, '');
         }
     }
 
-    public function getHeaderTemplate(){
+    public function getHeaderTemplate()
+    {
 
         $file = '';
 
-        if($this->which == 'attachment') {
+        if ($this->which == 'attachment') {
 
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_pdf_attachment_header.php';
 
@@ -227,24 +241,23 @@ class PdfDocument extends \TCPDF
                     }
                 }
             }
-        }
-        else if($this->which == 'export'){
+        } else if ($this->which == 'export') {
 
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_custom_header_pdf.php';
             if (!file_exists($file)) {
                 $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_header_pdf.php';
             }
 
-            if($this->form_name != ''){
+            if ($this->form_name != '') {
 
-                $file2 = JPATH_SITE . '/media/breezingforms/pdftpl/'.$this->form_name.'_export_header_pdf.php';
+                $file2 = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_export_header_pdf.php';
                 if (file_exists($file2)) {
-                    $file = JPATH_SITE . '/media/breezingforms/pdftpl/'.$this->form_name.'_export_header_pdf.php';
+                    $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_export_header_pdf.php';
                 }
             }
         }
 
-        if($file == '' || !file_exists($file)){
+        if ($file == '' || !file_exists($file)) {
 
             return '';
         }
@@ -252,11 +265,12 @@ class PdfDocument extends \TCPDF
         return $file;
     }
 
-    public function getFooterTemplate(){
+    public function getFooterTemplate()
+    {
 
         $file = '';
 
-        if($this->which == 'attachment') {
+        if ($this->which == 'attachment') {
 
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_pdf_attachment_footer.php';
 
@@ -275,23 +289,23 @@ class PdfDocument extends \TCPDF
                     }
                 }
             }
-        }else if($this->which == 'export'){
+        } else if ($this->which == 'export') {
 
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_custom_footer_pdf.php';
             if (!file_exists($file)) {
                 $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_footer_pdf.php';
             }
 
-            if($this->form_name != ''){
+            if ($this->form_name != '') {
 
-                $file2 = JPATH_SITE . '/media/breezingforms/pdftpl/'.$this->form_name.'_export_footer_pdf.php';
+                $file2 = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_export_footer_pdf.php';
                 if (file_exists($file2)) {
-                    $file = JPATH_SITE . '/media/breezingforms/pdftpl/'.$this->form_name.'_export_footer_pdf.php';
+                    $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_export_footer_pdf.php';
                 }
             }
         }
 
-        if($file == '' || !file_exists($file)){
+        if ($file == '' || !file_exists($file)) {
 
             return '';
         }

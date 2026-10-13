@@ -48,6 +48,31 @@ final class RecordState
         return (bool) $archived ? self::ARCHIVED : self::PUBLISHED;
     }
 
+    /**
+     * Language key of the reason a selection cannot be deleted for good, or
+     * null when it can: every record has to exist and to be in the trash. The
+     * whole selection is refused, whatever the order of its records.
+     *
+     * @param int[]           $ids    Selected record ids.
+     * @param array<int, int> $states State by id of the records that exist.
+     */
+    public static function deletionRefusal(array $ids, array $states): ?string
+    {
+        foreach ($ids as $id) {
+            if (!isset($states[$id])) {
+                return 'JLIB_APPLICATION_ERROR_NOT_EXIST';
+            }
+        }
+
+        foreach ($ids as $id) {
+            if ($states[$id] !== self::TRASHED) {
+                return 'JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED';
+            }
+        }
+
+        return null;
+    }
+
     public static function label(int $state): string
     {
         return self::LABELS[$state] ?? self::LABELS[self::PUBLISHED];

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<field
+		name="id"
+		type="hidden"
+		filter="integer"
+	/>
+	<field
+		name="state"
+		type="list"
+		label="JSTATUS"
+		default="1"
+		filter="integer"
+		validate="options"
+		>
+		<option value="1">JPUBLISHED</option>
+		<option value="2">JARCHIVED</option>
+		<option value="-2">JTRASHED</option>
+	</field>
+</form>

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * BreezingForms NG - A Joomla Forms Application
+ *
+ * @package BreezingFormsNG
+ * @copyright Copyright (C) 2024-2026 by XDA+GIL
+ * @license GNU General Public License version 2 or later; see LICENSE.txt
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ **/
+
 declare(strict_types=1);
 
 namespace Vcmb\Component\BreezingformsNG\Tests\Administrator\Service;
@@ -38,7 +48,7 @@ final class ActionLoggerMessageTest extends TestCase
 
         self::assertIsString($controller);
         self::assertMatchesRegularExpression(
-            '/if \(\$deleted !== \[\]\) \{\s+\(new ActionLogger\(\$app\)\)->log\(ActionLogger::DELETED, ActionLogger::RECORD/',
+            '/if \(\$deleted !== \[\]\) \{\s+\(new ActionLogger\(\$this->app\)\)->log\(ActionLogger::DELETED, ActionLogger::RECORD/',
             $controller
         );
     }

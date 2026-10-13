@@ -9,33 +9,73 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Component\ComponentHelper;
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Form\Form;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
+use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderRecordCleanup;
 
-class RecordModel extends BaseDatabaseModel
+class RecordModel extends AdminModel
 {
     private const BULK_ID_BATCH_SIZE = 500;
+
+    /**
+     * Form group and field name prefix of the submitted values: the field of
+     * element 12 is element.e12.
+     */
+    private const ELEMENT_GROUP = 'element';
+    private const ELEMENT_PREFIX = 'e';
+
+    /** @var array<int, \stdClass> */
+    private array $items = [];
 
     public function getDatabaseConnection(): DatabaseInterface
     {
         return $this->getDatabase();
     }
 
-    public function getRecord(int $id): ?\stdClass
+    /**
+     * The record with the title and name of its form, and its submitted
+     * values keyed by form field name.
+     */
+    public function getItem($pk = null)
     {
+        $pk = (int) ($pk ?: $this->getState($this->getName() . '.id'));
+
+        if (isset($this->items[$pk])) {
+            return $this->items[$pk];
+        }
+
+        $item = $pk > 0 ? parent::getItem($pk) : false;
+
+        if ($item === false) {
+            return false;
+        }
+
         $db = $this->getDatabase();
+        $formId = (int) $item->form;
         $query = $db->getQuery(true)
-            ->select(['records.*', 'forms.title AS form_title', 'forms.name AS form_name'])
-            ->from($db->quoteName('#__facileforms_records', 'records'))
-            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form')
-            ->where('records.id = :id')
-            ->bind(':id', $id, ParameterType::INTEGER);
-        $db->setQuery($query);
-        return $db->loadObject() ?: null;
+            ->select($db->quoteName(['title', 'name']))
+            ->from($db->quoteName('#__facileforms_forms'))
+            ->where($db->quoteName('id') . ' = :formId')
+            ->bind(':formId', $formId, ParameterType::INTEGER);
+        $form = $db->setQuery($query)->loadObject();
+
+        $item->form_title = (string) ($form->title ?? '');
+        $item->form_name = (string) ($form->name ?? '');
+        $item->{self::ELEMENT_GROUP} = [];
+
+        foreach ($this->getEditableRows($pk, $formId, (string) $item->name) as $row) {
+            $item->{self::ELEMENT_GROUP}[self::ELEMENT_PREFIX . $row['element_id']] = $row['value'];
+        }
+
+        return $this->items[$pk] = $item;
     }
 
     public function getEditableElements(int $formId): array
@@ -96,7 +136,7 @@ class RecordModel extends BaseDatabaseModel
         return $rows;
     }
 
-    public function saveRecord(int $recordId, array $values, \DateTimeZone $timezone): void
+    private function saveRecord(int $recordId, array $values, \DateTimeZone $timezone): void
     {
         $db = $this->getDatabase();
         $query = $db->getQuery(true)
@@ -215,69 +255,183 @@ class RecordModel extends BaseDatabaseModel
         ));
     }
 
-    /**
-     * Permanently deletes records, together with what ContentBuilder NG keeps
-     * about them.
-     */
-    public function deleteRecords(array $ids, ContentBuilderRecordCleanup $contentBuilderCleanup): void
+    public function getTable($name = 'Record', $prefix = 'Site', $options = [])
     {
-        $ids = array_values(array_filter(array_map('intval', $ids)));
-        if (!$ids) {
-            return;
+        return parent::getTable($name, $prefix, $options);
+    }
+
+    public function getForm($data = [], $loadData = true)
+    {
+        // The fields depend on the record: keep the id of the submitted one.
+        if ((int) ($data['id'] ?? 0) > 0) {
+            $this->setState($this->getName() . '.id', (int) $data['id']);
         }
 
-        $db = $this->getDatabase();
-        $query = $db->getQuery(true)
-            ->select($db->quoteName(['id', 'form']))
-            ->from($db->quoteName('#__facileforms_records'))
-            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
-        $idsByForm = [];
+        return $this->loadForm('com_breezingformsng.record', 'record', ['control' => 'jform', 'load_data' => $loadData]);
+    }
 
-        foreach ($db->setQuery($query)->loadAssocList() as $record) {
-            $idsByForm[(int) $record['form']][] = (int) $record['id'];
+    protected function loadFormData()
+    {
+        $data = $this->getApplication()->getUserState('com_breezingformsng.edit.record.data', []);
+
+        if (empty($data)) {
+            $data = $this->getItem();
         }
 
-        foreach ($idsByForm as $formId => $recordIds) {
-            $contentBuilderCleanup->remove($formId, $recordIds);
-        }
+        $this->preprocessData('com_breezingformsng.record', $data);
 
-        $delSubrecords = $db->getQuery(true)
-            ->delete($db->quoteName('#__facileforms_subrecords'))
-            ->whereIn($db->quoteName('record'), $ids, ParameterType::INTEGER);
-        $db->setQuery($delSubrecords)->execute();
-
-        $delRecords = $db->getQuery(true)
-            ->delete($db->quoteName('#__facileforms_records'))
-            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
-        $db->setQuery($delRecords)->execute();
+        return $data;
     }
 
     /**
-     * Empties the trash for the given records: those that are not trashed are
-     * left alone. Returns the ids actually deleted.
-     *
-     * @return int[]
+     * Adds one field per editable element of the form the record belongs to.
      */
-    public function deleteTrashed(array $ids, ContentBuilderRecordCleanup $contentBuilderCleanup): array
+    protected function preprocessForm(Form $form, $data, $group = 'content')
     {
-        $ids = array_values(array_filter(array_map('intval', $ids)));
-        if (!$ids) {
-            return [];
+        $record = (array) $data;
+        $recordId = (int) ($record['id'] ?? 0) ?: (int) $this->getState($this->getName() . '.id');
+        $formId = $this->getFormIds([$recordId])[$recordId] ?? 0;
+        $values = (array) ($record[self::ELEMENT_GROUP] ?? []);
+
+        $xml = new \SimpleXMLElement('<form><fields name="' . self::ELEMENT_GROUP . '"><fieldset name="values"/></fields></form>');
+        $fieldset = $xml->fields->fieldset;
+
+        foreach ($this->getEditableElements($formId) as $element) {
+            $name = self::ELEMENT_PREFIX . (int) $element['id'];
+            $lines = substr_count((string) ($values[$name] ?? ''), "\n");
+
+            $field = $fieldset->addChild('field');
+            $field->addAttribute('name', $name);
+            $field->addAttribute('type', 'textarea');
+            $field->addAttribute('label', (string) $element['title']);
+            $field->addAttribute('description', (string) $element['name']);
+            $field->addAttribute('translateLabel', 'false');
+            $field->addAttribute('translateDescription', 'false');
+            $field->addAttribute('rows', (string) ($lines > 0 ? min(10, $lines + 2) : 1));
+            $field->addAttribute('filter', 'raw');
         }
 
+        $form->load($xml);
+
+        parent::preprocessForm($form, $data, $group);
+    }
+
+    /**
+     * Saves the submitted values of an existing record.
+     */
+    public function save($data)
+    {
+        $recordId = (int) ($data['id'] ?? 0);
+
+        if ($recordId < 1 || !isset($this->getFormIds([$recordId])[$recordId])) {
+            $this->setError(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
+
+            return false;
+        }
+
+        $values = [];
+
+        foreach ((array) ($data[self::ELEMENT_GROUP] ?? []) as $name => $value) {
+            $values[(int) substr((string) $name, strlen(self::ELEMENT_PREFIX))] = (string) $value;
+        }
+
+        $timezone = new \DateTimeZone((string) $this->getApplication()->get('offset', 'UTC'));
+        $this->saveRecord($recordId, $values, $timezone);
+        unset($this->items[$recordId]);
+        $this->setState($this->getName() . '.id', $recordId);
+
+        return true;
+    }
+
+    private function getApplication(): CMSApplication
+    {
+        $application = Factory::getApplication();
+
+        if (!$application instanceof CMSApplication) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        return $application;
+    }
+
+    /**
+     * As in Joomla content, a record is deleted for good only from the trash.
+     */
+    protected function canDelete($record)
+    {
+        return (int) $record->state === RecordState::TRASHED && parent::canDelete($record);
+    }
+
+    public function publish(&$pks, $value = 1)
+    {
+        if (!RecordState::isValid((int) $value)) {
+            throw new \InvalidArgumentException(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'));
+        }
+
+        return parent::publish($pks, $value);
+    }
+
+    /**
+     * Deletes trashed records, then what ContentBuilder NG keeps about them.
+     * The selected records are locked, then checked as a whole before anything
+     * is deleted, and everything is undone when a step fails or when a
+     * selected record is still there afterwards: $pks ends up holding the ids
+     * actually deleted.
+     */
+    public function delete(&$pks)
+    {
+        $ids = array_values(array_unique(ArrayHelper::toInteger((array) $pks)));
+        $pks = [];
         $db = $this->getDatabase();
-        $trashed = RecordState::TRASHED;
-        $query = $db->getQuery(true)
-            ->select($db->quoteName('id'))
-            ->from($db->quoteName('#__facileforms_records'))
-            ->where($db->quoteName('state') . ' = :trashed')
-            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER)
-            ->bind(':trashed', $trashed, ParameterType::INTEGER);
-        $trashedIds = array_map('intval', $db->setQuery($query)->loadColumn());
+        $db->transactionStart();
 
-        $this->deleteRecords($trashedIds, $contentBuilderCleanup);
+        try {
+            $this->lockRecords($ids);
+            $records = $this->getFormsAndStates($ids);
+            $refusal = RecordState::deletionRefusal($ids, array_column($records, 'state', 'id'));
 
-        return $trashedIds;
+            if ($refusal === null && !$this->getCurrentUser()->authorise('core.delete', $this->option)) {
+                $refusal = 'JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED';
+            }
+
+            if ($refusal !== null) {
+                throw new \RuntimeException(Text::_($refusal));
+            }
+
+            if (!parent::delete($ids)) {
+                throw new \RuntimeException((string) $this->getError());
+            }
+
+            // Joomla stops without an error at an id it no longer finds, as
+            // when someone else deleted it meanwhile: the records after it are
+            // then still there, and their ContentBuilder NG data has to stay.
+            if ($this->getFormsAndStates($ids) !== []) {
+                throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
+            }
+
+            $idsByForm = [];
+
+            foreach ($records as $record) {
+                $idsByForm[$record['form']][] = $record['id'];
+            }
+
+            $cleanup = new ContentBuilderRecordCleanup($db, $this->getApplication(), $this->getCacheControllerFactory());
+
+            foreach ($idsByForm as $formId => $recordIds) {
+                $cleanup->remove($formId, $recordIds);
+            }
+
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+            $this->setError($exception->getMessage());
+
+            return false;
+        }
+
+        $pks = $ids;
+
+        return true;
     }
 
     /**
@@ -285,7 +439,7 @@ class RecordModel extends BaseDatabaseModel
      *
      * @return int[]
      */
-    public function emptyTrash(ContentBuilderRecordCleanup $contentBuilderCleanup): array
+    public function emptyTrash(): array
     {
         $db = $this->getDatabase();
         $trashed = RecordState::TRASHED;
@@ -296,25 +450,65 @@ class RecordModel extends BaseDatabaseModel
             ->bind(':trashed', $trashed, ParameterType::INTEGER);
         $trashedIds = array_map('intval', $db->setQuery($query)->loadColumn());
 
-        $this->deleteRecords($trashedIds, $contentBuilderCleanup);
+        if ($trashedIds !== [] && !$this->delete($trashedIds)) {
+            throw new \RuntimeException((string) $this->getError());
+        }
 
         return $trashedIds;
     }
 
-    public function changeState(array $ids, int $state): void
+    /**
+     * Locks the records until the end of the transaction, with an update that
+     * changes nothing: they are then read as they are now, and a change made
+     * by someone else, such as restoring one from the trash, waits for the end.
+     *
+     * @param int[] $ids
+     */
+    private function lockRecords(array $ids): void
     {
-        $ids = array_values(array_filter(array_map('intval', $ids)));
-        if (!$ids || !RecordState::isValid($state)) {
+        if ($ids === []) {
             return;
         }
 
         $db = $this->getDatabase();
         $query = $db->getQuery(true)
             ->update($db->quoteName('#__facileforms_records'))
-            ->set($db->quoteName('state') . ' = :state')
-            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER)
-            ->bind(':state', $state, ParameterType::INTEGER);
+            ->set($db->quoteName('state') . ' = ' . $db->quoteName('state'))
+            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
         $db->setQuery($query)->execute();
+    }
+
+    /**
+     * @param int[] $ids
+     *
+     * @return list<array{id: int, form: int, state: int}> The records that exist.
+     */
+    private function getFormsAndStates(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $db = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->select($db->quoteName(['id', 'form', 'state']))
+            ->from($db->quoteName('#__facileforms_records'))
+            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
+
+        return array_map(
+            static fn (array $row): array => ['id' => (int) $row['id'], 'form' => (int) $row['form'], 'state' => (int) $row['state']],
+            $db->setQuery($query)->loadAssocList()
+        );
+    }
+
+    /**
+     * @param int[] $ids
+     *
+     * @return array<int, int> Form id by record id.
+     */
+    private function getFormIds(array $ids): array
+    {
+        return array_column($this->getFormsAndStates($ids), 'form', 'id');
     }
 
     public function setFlagsBatch(array $ids, string $column, int $value = 1): void

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<fields name="filter">
+		<field
+			name="search"
+			type="text"
+			inputmode="search"
+			label="JSEARCH_FILTER"
+			hint="JSEARCH_FILTER"
+		/>
+		<field
+			name="form"
+			type="sql"
+			label="COM_BREEZINGFORMSNG_FORM"
+			sql_select="id, title"
+			sql_from="#__facileforms_forms"
+			sql_order="title ASC"
+			key_field="id"
+			value_field="title"
+			class="js-select-submit-on-change"
+			>
+			<option value="">COM_BREEZINGFORMSNG_ALL_FORMS</option>
+		</field>
+		<field
+			name="state"
+			type="status"
+			label="JSTATUS"
+			optionsFilter="*,1,2,-2"
+			class="js-select-submit-on-change"
+			>
+			<option value="">JOPTION_SELECT_PUBLISHED</option>
+		</field>
+	</fields>
+	<fields name="list">
+		<field
+			name="limit"
+			type="limitbox"
+			label="JGLOBAL_LIST_LIMIT"
+			default="25"
+			class="js-select-submit-on-change"
+		/>
+	</fields>
+</form>

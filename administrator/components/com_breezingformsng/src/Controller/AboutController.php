@@ -10,7 +10,6 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
-use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
@@ -20,7 +19,6 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseAuditService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseRepairService;
-use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderRecordCleanup;
 
 /** @property CMSApplication $app */
 class AboutController extends BaseController
@@ -331,11 +329,7 @@ class AboutController extends BaseController
                 ->bootComponent('com_breezingformsng')
                 ->getMVCFactory()
                 ->createModel('Record', 'Administrator', ['ignore_request' => true]);
-            $deleted = $model->emptyTrash(new ContentBuilderRecordCleanup(
-                $this->getDatabase(),
-                $application,
-                Factory::getContainer()->get(CacheControllerFactoryInterface::class)
-            ));
+            $deleted = $model->emptyTrash();
 
             if ($deleted !== []) {
                 (new ActionLogger($application))->log(ActionLogger::DELETED, ActionLogger::RECORD, $deleted);

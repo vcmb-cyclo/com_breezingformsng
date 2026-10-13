@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * BreezingForms NG - A Joomla Forms Application
+ *
+ * @package BreezingFormsNG
+ * @copyright Copyright (C) 2024-2026 by XDA+GIL
+ * @license GNU General Public License version 2 or later; see LICENSE.txt
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ **/
+
 declare(strict_types=1);
 
 namespace Vcmb\Component\BreezingformsNG\Tests\Performance;
@@ -13,11 +23,11 @@ final class PerformanceRegressionTest extends TestCase
     public function testAdminListQueriesDoNotLoadLargeUnusedColumns(): void
     {
         $forms = $this->read('administrator/components/com_breezingformsng/src/Model/FormsModel.php');
-        $packages = $this->read('administrator/components/com_breezingformsng/src/Model/PackageModel.php');
+        $packages = $this->read('administrator/components/com_breezingformsng/src/Model/PackageListModel.php');
 
         self::assertStringNotContainsString("->select('*')", $forms);
-        self::assertStringNotContainsString("->select('a.*')", $packages);
-        self::assertStringContainsString("\$db->quoteName('a.description')", $packages);
+        self::assertStringNotContainsString("->select('*')", $packages);
+        self::assertStringNotContainsString("'code'", $packages);
     }
 
     public function testIntegratorItemsAreCachedPerRule(): void

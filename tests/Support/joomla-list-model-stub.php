@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * BreezingForms NG - A Joomla Forms Application
+ *
+ * @package BreezingFormsNG
+ * @copyright Copyright (C) 2024-2026 by XDA+GIL
+ * @license GNU General Public License version 2 or later; see LICENSE.txt
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ **/
+
+declare(strict_types=1);
+
+namespace Joomla\CMS\MVC\Model;
+
+if (!class_exists(ListModel::class)) {
+    class ListModel
+    {
+        /** @var array<string, mixed> */
+        private array $stubState = [];
+
+        public function getState($property = null, $default = null)
+        {
+            return $this->stubState[$property] ?? $default;
+        }
+
+        public function setState($property, $value = null)
+        {
+            $this->stubState[$property] = $value;
+        }
+    }
+}

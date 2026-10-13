@@ -133,22 +133,6 @@
     },
 
     {
-      "name": "com_breezingformsng.admin-sort",
-      "type": "script",
-      "uri": "com_breezingformsng/js/admin/admin-sort.js",
-      "dependencies": ["core"],
-      "version": "auto"
-    },
-
-    {
-      "name": "com_breezingformsng.scripts-list",
-      "type": "script",
-      "uri": "com_breezingformsng/js/admin/scripts-list.js",
-      "dependencies": ["core", "com_breezingformsng.admin-sort"],
-      "version": "auto"
-    },
-
-    {
       "name": "com_breezingformsng.scripts-test",
       "type": "script",
       "uri": "com_breezingformsng/js/admin/scripts-test.js",
@@ -165,14 +149,6 @@
     },
 
     {
-      "name": "com_breezingformsng.pieces-list",
-      "type": "script",
-      "uri": "com_breezingformsng/js/admin/pieces-list.js",
-      "dependencies": ["core", "com_breezingformsng.admin-sort"],
-      "version": "auto"
-    },
-
-    {
       "name": "com_breezingformsng.record-flags",
       "type": "script",
       "uri": "com_breezingformsng/js/admin/record-flags.js",
@@ -184,7 +160,7 @@
       "name": "com_breezingformsng.records-list",
       "type": "script",
       "uri": "com_breezingformsng/js/admin/records-list.js",
-      "dependencies": ["core", "com_breezingformsng.admin-sort", "com_breezingformsng.record-flags"],
+      "dependencies": ["core", "com_breezingformsng.record-flags"],
       "version": "auto"
     },
 
@@ -207,7 +183,7 @@
       "name": "com_breezingformsng.admin-form",
       "type": "script",
       "uri": "com_breezingformsng/js/admin/admin-form.js",
-      "dependencies": ["core", "com_breezingformsng.admin-sort"],
+      "dependencies": ["core"],
       "version": "auto"
     },
 
