@@ -200,7 +200,11 @@ class PdfDocument extends \TCPDF
             $contents = ob_get_contents();
             ob_end_clean();
 
-            $this->writeHTML($contents, true, true, true, false, '');
+            // The footer sits below the bottom margin, where TCPDF breaks an
+            // unbounded HTML block to the next page: bound it to the space
+            // left on this page so it stays here.
+            $y = $this->GetY();
+            $this->writeHTMLCell(0, $this->getPageHeight() - $y, $this->GetX(), $y, $contents, 0, 1, false, true, '');
         }
     }
 
