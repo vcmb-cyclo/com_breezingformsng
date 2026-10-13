@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- The record exports (PDF, CSV, Excel, XML) move out of `RecordsController`: the
+  queries go to `RecordsExportModel` and the file formats to the `RecordExporter`
+  service. The controller only checks the token, asks for the export and sends it.
+  The exported files are unchanged.
 - The integrator rules list now uses a native Joomla list model
   (`IntegratorRulesModel`): search tools with search and status filters, native
   pagination and column sorting.

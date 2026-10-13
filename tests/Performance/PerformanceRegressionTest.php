@@ -42,7 +42,7 @@ final class PerformanceRegressionTest extends TestCase
     public function testExportsLoadSubrecordsInBoundedBatches(): void
     {
         $model = $this->read('administrator/components/com_breezingformsng/src/Model/RecordModel.php');
-        $controller = $this->read('administrator/components/com_breezingformsng/src/Controller/RecordsController.php');
+        $controller = $this->read('administrator/components/com_breezingformsng/src/Service/RecordExporter.php');
 
         self::assertStringContainsString('public function getSubrecordsByRecordIds(array $recordIds): array', $model);
         self::assertStringContainsString('whereIn($db->quoteName(\'subs.record\')', $model);
