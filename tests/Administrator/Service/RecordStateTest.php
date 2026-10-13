@@ -148,20 +148,24 @@ final class RecordStateTest extends TestCase
 
         self::assertIsString($model);
 
-        $refusal = strpos($model, 'RecordState::deletionRefusal(');
         $start = strpos($model, '$db->transactionStart();');
+        $refusal = strpos($model, 'RecordState::deletionRefusal(');
         $delete = strpos($model, 'parent::delete($ids)');
+        $leftover = strpos($model, 'if ($this->getFormsAndStates($ids) !== []) {');
         $cleanup = strpos($model, '$cleanup->remove($formId, $recordIds);');
         $commit = strpos($model, '$db->transactionCommit();');
         $rollback = strpos($model, '$db->transactionRollback();');
 
-        foreach ([$refusal, $start, $delete, $cleanup, $commit, $rollback] as $position) {
+        foreach ([$start, $refusal, $delete, $leftover, $cleanup, $commit, $rollback] as $position) {
             self::assertNotFalse($position);
         }
 
-        self::assertLessThan($start, $refusal);
-        self::assertLessThan($delete, $start);
-        self::assertLessThan($cleanup, $delete);
+        // The selection is read and checked inside the transaction, and a
+        // record still there after the deletion undoes it before any cleanup.
+        self::assertLessThan($refusal, $start);
+        self::assertLessThan($delete, $refusal);
+        self::assertLessThan($leftover, $delete);
+        self::assertLessThan($cleanup, $leftover);
         self::assertLessThan($commit, $cleanup);
         self::assertLessThan($rollback, $commit);
     }

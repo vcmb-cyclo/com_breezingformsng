@@ -373,39 +373,44 @@ class RecordModel extends AdminModel
 
     /**
      * Deletes trashed records, then what ContentBuilder NG keeps about them.
-     * The selection is checked as a whole before anything is deleted, and the
-     * deletion is undone when a step fails: $pks ends up holding the ids
-     * actually deleted.
+     * The selection is checked as a whole before anything is deleted, and
+     * everything is undone when a step fails or when a selected record is
+     * still there afterwards: $pks ends up holding the ids actually deleted.
      */
     public function delete(&$pks)
     {
         $ids = array_values(array_unique(ArrayHelper::toInteger((array) $pks)));
         $pks = [];
-        $records = $this->getFormsAndStates($ids);
-        $refusal = RecordState::deletionRefusal($ids, array_column($records, 'state', 'id'));
-
-        if ($refusal === null && !$this->getCurrentUser()->authorise('core.delete', $this->option)) {
-            $refusal = 'JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED';
-        }
-
-        if ($refusal !== null) {
-            $this->setError(Text::_($refusal));
-
-            return false;
-        }
-
-        $idsByForm = [];
-
-        foreach ($records as $record) {
-            $idsByForm[$record['form']][] = $record['id'];
-        }
-
         $db = $this->getDatabase();
         $db->transactionStart();
 
         try {
+            $records = $this->getFormsAndStates($ids);
+            $refusal = RecordState::deletionRefusal($ids, array_column($records, 'state', 'id'));
+
+            if ($refusal === null && !$this->getCurrentUser()->authorise('core.delete', $this->option)) {
+                $refusal = 'JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED';
+            }
+
+            if ($refusal !== null) {
+                throw new \RuntimeException(Text::_($refusal));
+            }
+
             if (!parent::delete($ids)) {
                 throw new \RuntimeException((string) $this->getError());
+            }
+
+            // Joomla stops without an error at an id it no longer finds, as
+            // when someone else deleted it meanwhile: the records after it are
+            // then still there, and their ContentBuilder NG data has to stay.
+            if ($this->getFormsAndStates($ids) !== []) {
+                throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
+            }
+
+            $idsByForm = [];
+
+            foreach ($records as $record) {
+                $idsByForm[$record['form']][] = $record['id'];
             }
 
             $cleanup = new ContentBuilderRecordCleanup($db, $this->getApplication(), $this->getCacheControllerFactory());
