@@ -4,6 +4,64 @@
 > Le suivi détaillé de l’architecture est maintenu dans
 > [`docs/maintenance/php-architecture-migration-plan.md`](docs/maintenance/php-architecture-migration-plan.md).
 
+## État de la migration — 2026-10-15
+
+La migration du code principal vers Joomla 6 et PHP 8.3+ est réalisée : les
+écrans administrateur, le routeur, le rendu et le moteur de soumission utilisent
+les services et API du composant modernisé. Les façades publiques encore
+nécessaires au PHP stocké dans les formulaires restent conservées volontairement.
+
+### Prérequis techniques de Joomla 6.x
+
+| Logiciel | Recommandé | Pris en charge | Minimum |
+| --- | --- | --- | --- |
+| PHP | 8.4 | 8.3.0 | 8.3.0 |
+| **Bases de données** | | | |
+| MySQL | 8.4 | 8.0.13 | 8.0.13 |
+| MariaDB | 12.0 | 10.6 | 10.4 |
+| PostgreSQL | 17.6 | 14.0 | 12.0 |
+
+Source : [exigences techniques officielles de Joomla 6.x](https://manual.joomla.org/docs/next/get-started/technical-requirements/).
+Le composant conserve PHP 8.3+ comme minimum ; PHP 8.4 est recommandé par
+Joomla, sans être obligatoire pour cette migration.
+
+### Travaux restants
+
+La clôture du chantier dépend des vérifications et corrections suivantes :
+
+- [ ] Tester l’installation et les parcours principaux sur Joomla 6 avec le
+  plugin **Joomla Backward Compatibility désactivé**. Le README ne revendique
+  actuellement qu’un essai avec ce plugin activé ; le plugin `bfcompat` fourni
+  par BreezingForms NG est distinct.
+- [ ] Tester une mise à niveau depuis une version antérieure avec des formulaires
+  et enregistrements existants. `scripts/joomla-install-smoke.sh` réinstalle
+  actuellement la même archive et vérifie la conservation d’un enregistrement.
+- [ ] Exécuter la recette ContentBuilder complète : matrice ACL et export d’un
+  enregistrement. Le parcours ContentBuilder du smoke test est optionnel et
+  n’est pas activé par le workflow CI courant.
+- [ ] Valider Stripe, PayPal et Sofort avec des comptes sandbox dédiés.
+- [ ] Remplacer les derniers appels administrateur à `getError()` et
+  `setError()` dans `RecordModel`, `MenuModel` et `PackageItemModel` par la
+  gestion d’erreurs native retenue pour le reste du composant.
+- [ ] Corriger la fermeture de balise du CAPTCHA Bootstrap et trancher les deux
+  différences de comportement ReCaptcha entre Bootstrap et OnePage décrites
+  ci-dessous.
+- [ ] Après la fusion de la [PR #101](https://github.com/vcmb-cyclo/com_breezingformsng/pull/101),
+  vérifier en navigateur un véritable upload HTML5, les formulaires OnePage
+  multipages et la purge des anciens fichiers lors d’une mise à niveau. Ses
+  tests unitaires et navigateur passent en CI, mais ces parcours réels restent
+  à valider.
+
+Décision du 2026-10-15 : conserver PHP 8.3+ comme exigence minimale. Le
+relèvement à PHP 8.4 initialement proposé dans la
+[PR #102](https://github.com/vcmb-cyclo/com_breezingformsng/pull/102) a été
+annulé ; son diff ne contient plus que les corrections d’en-têtes de copyright.
+
+Le remplacement de la treeview QuickMode reste suivi dans
+[`docs/maintenance/quickmode-treeview-migration-plan.md`](docs/maintenance/quickmode-treeview-migration-plan.md).
+Il s’agit d’une modernisation de l’éditeur, distincte des validations Joomla 6
+ci-dessus.
+
 ## Mise à jour du plan — 2026-09-01
 
 Cette section résume l'état du chantier de modernisation. Les détails des lots
