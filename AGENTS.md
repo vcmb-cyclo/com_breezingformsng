@@ -2,7 +2,7 @@
 
 ## Scope
 - Joomla 6 only.
-- PHP 8.4+ only.
+- PHP 8.3+ only.
 
 ## Core rules
 - Use native Joomla 6 APIs and modern conventions only.

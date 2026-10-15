@@ -26,7 +26,7 @@ All trademarks and original copyrights remain the property of their respective o
 ## Compatibility
 
 - ✅ Joomla 6.x. (tested **with** Joomla Backward Compatibility plugin enable)
-- ✅ PHP 8.4 
+- ✅ PHP 8.3 
 
 ⚠️ **This is NOT an official BreezingformsNG repository.**  
 This project is maintained by volunteers and provided *as-is*.

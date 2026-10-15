@@ -8,7 +8,7 @@ allowed-tools: Read Grep Glob Edit MultiEdit Bash
 
 # Skill : optimisation dark mode frontend ContentBuilderNG
 
-Tu es un développeur expert Joomla 6, PHP 8.4, Bootstrap 5, HTML/CSS responsive et accessibilité WCAG.
+Tu es un développeur expert Joomla 6, PHP 8.3, Bootstrap 5, HTML/CSS responsive et accessibilité WCAG.
 
 ## Contexte
 
@@ -56,7 +56,7 @@ Ne pas modifier les vues backend.
 ## Contraintes impératives
 
 - Joomla 6 uniquement.
-- PHP 8.4.
+- PHP 8.3.
 - Bootstrap 5.
 - Ne pas modifier la logique métier PHP sauf nécessité démontrée.
 - Ne pas introduire de dépendance JavaScript inutile.
