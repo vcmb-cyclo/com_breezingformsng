@@ -116,7 +116,7 @@ class DisplayController extends BaseController
                 'save'      => 'forms.save',
                 'cancel'    => 'forms.cancel',
                 'copy'      => 'forms.copy',
-                'remove'    => 'forms.remove',
+                'remove'    => 'forms.delete',
                 'publish'   => 'forms.publish',
                 'unpublish' => 'forms.unpublish',
                 'orderup'   => 'forms.orderup',

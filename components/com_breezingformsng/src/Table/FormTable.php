@@ -124,5 +124,14 @@ final class FormTable extends Table
 		return parent::load($id, $reset ?? true);
 	}
 
+	/**
+	 * The move event of Joomla takes the conditions as one string, while
+	 * AdminModel::reorder() hands over the list of them.
+	 */
+	public function move($delta, $where = '')
+	{
+		return parent::move($delta, is_array($where) ? implode(' AND ', $where) : $where);
+	}
+
 } // class FormTable
 

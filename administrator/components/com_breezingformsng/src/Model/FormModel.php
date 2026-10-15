@@ -1,22 +1,30 @@
 <?php
+
 /**
+ * BreezingForms NG - A Joomla Forms Application
+ *
  * @package BreezingFormsNG
- * @copyright Copyright (C) 2024-2026 by XDA+GIL
+ * @copyright Copyright (C) 2026 by XDA+GIL
  * @license GNU General Public License version 2 or later; see LICENSE.txt
- */
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ **/
 
 namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 \defined('_JEXEC') or die;
 
-use Joomla\CMS\Factory;
+use Joomla\CMS\Date\Date;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Joomla\CMS\Plugin\PluginHelper;
-use Joomla\Database\DatabaseInterface;
-use Joomla\Event\Event;
+use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\Database\ParameterType;
+use Joomla\Utilities\ArrayHelper;
 
-class FormModel extends BaseDatabaseModel
+/**
+ * List actions on forms: publish, delete, copy and reorder. The form itself
+ * is edited in QuickMode, its options through FormOptionsModel.
+ */
+class FormModel extends AdminModel
 {
     private const INTEGER_COLUMNS = [
         'autoheight', 'ordering', 'published', 'debug_mode', 'runmode',
@@ -36,271 +44,159 @@ class FormModel extends BaseDatabaseModel
         'prevwidth',
     ];
 
-    private function db(): DatabaseInterface
+    public function getTable($name = 'Form', $prefix = 'Site', $options = [])
     {
-        return $this->getDatabase();
+        return parent::getTable($name, $prefix, $options);
     }
 
-    public function getForm(int $id): ?\stdClass
+    /**
+     * The list actions need no edit form.
+     */
+    public function getForm($data = [], $loadData = true)
     {
-        if ($id <= 0) {
-            return null;
-        }
-
-        $db = $this->db();
-        $q  = $db->getQuery(true)
-            ->select('*')
-            ->from($db->quoteName('#__facileforms_forms'))
-            ->where($db->quoteName('id') . ' = ' . $db->quote($id));
-
-        return $db->setQuery($q)->loadObject() ?: null;
+        return false;
     }
 
-    public function getDefaultForm(string $pkg): \stdClass
+    /**
+     * Forms are ordered among the forms of their package.
+     */
+    protected function getReorderConditions($table)
     {
-        $obj                         = new \stdClass();
-        $obj->id                     = 0;
-        $obj->package                = $pkg;
-        $obj->title                  = '';
-        $obj->name                   = '';
-        $obj->description            = '';
-        $obj->class1                 = 'content_outline';
-        $obj->width                  = 400;
-        $obj->widthmode              = 0;
-        $obj->height                 = 500;
-        $obj->heightmode             = 0;
-        $obj->pages                  = 1;
-        $obj->published              = 1;
-        $obj->ordering               = 0;
-        $obj->runmode                = 0;
-        $obj->prevmode               = 2;
-        $obj->prevwidth              = 400;
-        $obj->autoheight             = 0;
-        $obj->emailntf               = 1;
-        $obj->emaillog               = 1;
-        $obj->emailxml               = 0;
-        $obj->dblog                  = 1;
-        $obj->emailadr               = '';
-        $obj->custom_mail_subject    = '';
-        $obj->alt_mailfrom           = '';
-        $obj->alt_fromname           = '';
-        $obj->email_type             = 0;
-        $obj->email_custom_html      = 0;
-        $obj->email_custom_template  = '';
-        $obj->mb_emailntf            = 1;
-        $obj->mb_emaillog            = 1;
-        $obj->mb_emailxml            = 0;
-        $obj->mb_custom_mail_subject = '';
-        $obj->mb_alt_mailfrom        = '';
-        $obj->mb_alt_fromname        = '';
-        $obj->mb_email_type          = 0;
-        $obj->mb_email_custom_html   = 0;
-        $obj->mb_email_custom_template = '';
-        $obj->script1cond            = 0;
-        $obj->script1id              = 0;
-        $obj->script1code            = '';
-        $obj->script2cond            = 0;
-        $obj->script2id              = 0;
-        $obj->script2code            = '';
-        $obj->piece1cond             = 0;
-        $obj->piece1id               = 0;
-        $obj->piece1code             = '';
-        $obj->piece2cond             = 0;
-        $obj->piece2id               = 0;
-        $obj->piece2code             = '';
-        $obj->piece3cond             = 0;
-        $obj->piece3id               = 0;
-        $obj->piece3code             = '';
-        $obj->piece4cond             = 0;
-        $obj->piece4id               = 0;
-        $obj->piece4code             = '';
-        foreach (['mailchimp_email_field', 'mailchimp_checkbox_field', 'mailchimp_api_key', 'mailchimp_list_id',
-            'mailchimp_mergevars', 'mailchimp_text_html_mobile_field', 'mailchimp_unsubscribe_field',
-            'salesforce_token', 'salesforce_username', 'salesforce_password', 'salesforce_type', 'salesforce_fields',
-            'dropbox_email', 'dropbox_password', 'dropbox_folder'] as $column) {
-            $obj->$column = '';
-        }
-        $obj->mailchimp_double_optin = 1;
-        $obj->mailchimp_send_errors = 0;
-        $obj->mailchimp_default_type = 'text';
-        $obj->mailchimp_delete_member = 0;
-        $obj->salesforce_enabled = 0;
-        $obj->dropbox_submission_enabled = 0;
-        $obj->dropbox_submission_types = 'pdf';
-        $obj->created                = null;
-        $obj->created_by             = '';
-        $obj->modified               = null;
-        $obj->modified_by            = '';
+        $db = $this->getDatabase();
 
-        return $obj;
+        return [$db->quoteName('package') . ' = ' . $db->quote((string) $table->package)];
     }
 
-    public function saveForm(array $data): int
+    /**
+     * Deletes the forms with their elements, all of them or none.
+     */
+    public function delete(&$pks)
     {
-        $db  = $this->db();
-        $now = (new \Joomla\CMS\Date\Date())->toSql();
-        $uid = (string) $this->getCurrentUser()->username;
-        $id  = (int) ($data['id'] ?? 0);
+        $ids = array_values(array_unique(ArrayHelper::toInteger((array) $pks)));
+        $db = $this->getDatabase();
 
-        $title = trim((string) ($data['title'] ?? ''));
-        if ($title === '') {
-            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORMS_TITLEEMPTY'));
-        }
+        $db->transactionStart();
 
-        $cols = [
-            'package', 'title', 'name', 'description',
-            'class1', 'width', 'widthmode', 'height', 'heightmode', 'pages',
-            'published', 'ordering', 'runmode', 'prevmode', 'prevwidth', 'autoheight',
-            'emailntf', 'emaillog', 'emailxml', 'dblog', 'emailadr',
-            'custom_mail_subject', 'alt_mailfrom', 'alt_fromname',
-            'email_type', 'email_custom_html', 'email_custom_template',
-            'mb_emailntf', 'mb_emaillog', 'mb_emailxml',
-            'mb_custom_mail_subject', 'mb_alt_mailfrom', 'mb_alt_fromname',
-            'mb_email_type', 'mb_email_custom_html', 'mb_email_custom_template',
-            'script1cond', 'script1id', 'script1code',
-            'script2cond', 'script2id', 'script2code',
-            'piece1cond', 'piece1id', 'piece1code',
-            'piece2cond', 'piece2id', 'piece2code',
-            'piece3cond', 'piece3id', 'piece3code',
-            'piece4cond', 'piece4id', 'piece4code',
-            'mailchimp_email_field', 'mailchimp_checkbox_field', 'mailchimp_api_key', 'mailchimp_list_id',
-            'mailchimp_double_optin', 'mailchimp_mergevars', 'mailchimp_text_html_mobile_field',
-            'mailchimp_send_errors', 'mailchimp_default_type', 'mailchimp_delete_member',
-            'mailchimp_unsubscribe_field', 'salesforce_token', 'salesforce_username', 'salesforce_password',
-            'salesforce_type', 'salesforce_fields', 'salesforce_enabled', 'dropbox_email', 'dropbox_password',
-            'dropbox_folder', 'dropbox_submission_enabled', 'dropbox_submission_types',
-        ];
+        try {
+            if (!parent::delete($ids)) {
+                $db->transactionRollback();
+                $pks = [];
 
-        $sets = [];
-        foreach ($cols as $col) {
-            $val = $data[$col] ?? '';
-            $sets[$col] = in_array($col, ['width', 'widthmode', 'height', 'heightmode', 'pages',
-                'published', 'ordering', 'runmode', 'prevmode', 'prevwidth', 'autoheight',
-                'emailntf', 'emaillog', 'emailxml', 'dblog', 'email_custom_html', 'mb_email_custom_html',
-                'email_type', 'mb_email_type', 'mb_emailntf', 'mb_emaillog', 'mb_emailxml',
-                'script1cond', 'script1id', 'script2cond', 'script2id',
-                'piece1cond', 'piece1id', 'piece2cond', 'piece2id',
-                'piece3cond', 'piece3id', 'piece4cond', 'piece4id',
-                'mailchimp_double_optin', 'mailchimp_send_errors', 'mailchimp_delete_member',
-                'salesforce_enabled', 'dropbox_submission_enabled',
-            ], true) ? (int) $val : (string) $val;
-        }
-
-        if ($id > 0) {
-            $sets['modified']    = $now;
-            $sets['modified_by'] = $uid;
-
-            $q = $db->getQuery(true)->update($db->quoteName('#__facileforms_forms'));
-            foreach ($sets as $col => $val) {
-                $q->set($db->quoteName($col) . ' = ' . $db->quote($val));
+                return false;
             }
-            $q->set($db->quoteName('modified') . ' = ' . $db->quote($now));
-            $q->set($db->quoteName('modified_by') . ' = ' . $db->quote($uid));
-            $q->where($db->quoteName('id') . ' = ' . $db->quote($id));
-            $db->setQuery($q)->execute();
-        } else {
-            $sets['created']    = $now;
-            $sets['created_by'] = $uid;
-            $sets['modified']   = $now;
-            $sets['modified_by']= $uid;
 
-            $q = $db->getQuery(true)
-                ->insert($db->quoteName('#__facileforms_forms'))
-                ->columns(array_map(fn($c) => $db->quoteName($c), array_keys($sets)))
-                ->values(implode(',', array_map(fn($v) => $db->quote($v), array_values($sets))));
-            $db->setQuery($q)->execute();
-            $id = (int) $db->insertid();
+            if ($ids !== []) {
+                // Joomla can return true without visiting later IDs when one no longer exists.
+                $remaining = (int) $db->setQuery(
+                    $db->createQuery()
+                        ->select('COUNT(*)')
+                        ->from($db->quoteName('#__facileforms_forms'))
+                        ->whereIn($db->quoteName('id'), $ids)
+                )->loadResult();
+
+                if ($remaining > 0) {
+                    $db->transactionRollback();
+                    $this->setError(Text::_('JLIB_APPLICATION_ERROR_RECORD'));
+                    $pks = [];
+
+                    return false;
+                }
+
+                $db->setQuery(
+                    $db->createQuery()
+                        ->delete($db->quoteName('#__facileforms_elements'))
+                        ->whereIn($db->quoteName('form'), $ids)
+                )->execute();
+            }
+
+            $db->transactionCommit();
+        } catch (\Throwable $e) {
+            $db->transactionRollback();
+
+            throw $e;
         }
 
-        $this->reorder($sets['package'] ?? '');
+        $pks = $ids;
 
-        PluginHelper::importPlugin('breezingforms_addons');
-        $this->getDispatcher()
-            ->dispatch('onPropertiesSave', new Event('onPropertiesSave', [$id]));
-
-        return $id;
+        return true;
     }
 
-    public function deleteItems(array $ids): void
+    /**
+     * Copies the forms with their elements.
+     *
+     * @param int[] $ids
+     */
+    public function copy(array $ids): int
     {
-        if (empty($ids)) {
-            return;
-        }
-
-        $db     = $this->db();
-        $intIds = implode(',', array_map('intval', $ids));
-
-        $db->setQuery(
-            $db->getQuery(true)->delete($db->quoteName('#__facileforms_elements'))
-                ->where($db->quoteName('form') . ' IN (' . $intIds . ')')
-        )->execute();
-
-        $db->setQuery(
-            $db->getQuery(true)->delete($db->quoteName('#__facileforms_forms'))
-                ->where($db->quoteName('id') . ' IN (' . $intIds . ')')
-        )->execute();
-    }
-
-    public function copyItems(array $ids): void
-    {
-        if (empty($ids)) {
-            return;
-        }
-
-        $db  = $this->db();
-        $now = (new \Joomla\CMS\Date\Date())->toSql();
+        $db = $this->getDatabase();
+        $now = (new Date())->toSql();
         $uid = (string) $this->getCurrentUser()->username;
+        $copied = 0;
 
-        foreach (array_map('intval', $ids) as $id) {
-            $src = $this->getForm($id);
-            if ($src === null) {
+        foreach ($ids as $id) {
+            $query = $db->createQuery()
+                ->select('*')
+                ->from($db->quoteName('#__facileforms_forms'))
+                ->where($db->quoteName('id') . ' = :id')
+                ->bind(':id', $id, ParameterType::INTEGER);
+            $source = $db->setQuery($query)->loadObject();
+
+            if ($source === null) {
                 continue;
             }
 
-            $data              = (array) $src;
-            $data['id']        = 0;
-            $data['title']     = 'Copy of ' . $src->title;
-            $data['name']      = 'copy_' . $src->name;
-            $data['ordering']  = 999999;
-            $data['created']   = $now;
-            $data['created_by']= $uid;
-            $data['modified']  = $now;
-            $data['modified_by']= $uid;
-
+            $data = (array) $source;
             unset($data['id']);
+            $data['title'] = 'Copy of ' . $source->title;
+            $data['name'] = 'copy_' . $source->name;
+            $data['ordering'] = 999999;
+            $data['created'] = $now;
+            $data['created_by'] = $uid;
+            $data['modified'] = $now;
+            $data['modified_by'] = $uid;
             $data = $this->normaliseCloneData($data);
 
-            $q = $db->getQuery(true)
-                ->insert($db->quoteName('#__facileforms_forms'))
-                ->columns(array_map(fn($c) => $db->quoteName($c), array_keys($data)))
-                ->values(implode(',', array_map(
-                    fn($value) => $value === null ? 'NULL' : $db->quote($value),
-                    array_values($data)
-                )));
-            $db->setQuery($q)->execute();
+            $db->setQuery(
+                $db->createQuery()
+                    ->insert($db->quoteName('#__facileforms_forms'))
+                    ->columns($db->quoteName(array_keys($data)))
+                    ->values(implode(',', array_map(
+                        static fn($value) => $value === null ? 'NULL' : $db->quote($value),
+                        array_values($data)
+                    )))
+            )->execute();
             $newId = (int) $db->insertid();
 
-            $elemsQ = $db->getQuery(true)
+            $query = $db->createQuery()
                 ->select('*')
                 ->from($db->quoteName('#__facileforms_elements'))
-                ->where($db->quoteName('form') . ' = ' . $db->quote($id));
-            $elems = $db->setQuery($elemsQ)->loadObjectList() ?: [];
+                ->where($db->quoteName('form') . ' = :form')
+                ->bind(':form', $id, ParameterType::INTEGER);
 
-            foreach ($elems as $elem) {
-                $ed = (array) $elem;
-                unset($ed['id']);
-                $ed['form'] = $newId;
-                $eq = $db->getQuery(true)
-                    ->insert($db->quoteName('#__facileforms_elements'))
-                    ->columns(array_map(fn($c) => $db->quoteName($c), array_keys($ed)))
-                    ->values(implode(',', array_map(fn($v) => $db->quote($v), array_values($ed))));
-                $db->setQuery($eq)->execute();
+            foreach ($db->setQuery($query)->loadAssocList() as $element) {
+                unset($element['id']);
+                $element['form'] = $newId;
+
+                $db->setQuery(
+                    $db->createQuery()
+                        ->insert($db->quoteName('#__facileforms_elements'))
+                        ->columns($db->quoteName(array_keys($element)))
+                        ->values(implode(',', array_map([$db, 'quote'], array_values($element))))
+                )->execute();
             }
 
-            $this->reorder((string) ($src->package ?? ''));
+            $table = $this->getTable();
+            $table->reorder($this->getReorderConditions($source));
+            $copied++;
         }
+
+        return $copied;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
     private function normaliseCloneData(array $data): array
     {
         foreach (self::INTEGER_COLUMNS as $column) {
@@ -318,99 +214,5 @@ class FormModel extends BaseDatabaseModel
         }
 
         return $data;
-    }
-
-    public function publish(array $ids, int $state): void
-    {
-        if (empty($ids)) {
-            return;
-        }
-
-        $db     = $this->db();
-        $intIds = implode(',', array_map('intval', $ids));
-        $db->setQuery(
-            $db->getQuery(true)
-                ->update($db->quoteName('#__facileforms_forms'))
-                ->set($db->quoteName('published') . ' = ' . $db->quote($state))
-                ->where($db->quoteName('id') . ' IN (' . $intIds . ')')
-        )->execute();
-    }
-
-    public function setDebugMode(int $id, int $state): void
-    {
-        $db = $this->db();
-        $db->setQuery(
-            $db->getQuery(true)
-                ->update($db->quoteName('#__facileforms_forms'))
-                ->set($db->quoteName('debug_mode') . ' = ' . $db->quote($state))
-                ->where($db->quoteName('id') . ' = ' . $db->quote($id))
-        )->execute();
-    }
-
-    /**
-     * Moves a form among the forms of its package.
-     */
-    public function moveOrder(int $id, int $inc): void
-    {
-        $item = $this->getForm($id);
-        if ($item === null) {
-            return;
-        }
-
-        $pkg = (string) $item->package;
-
-        $db  = $this->db();
-        $dir = $inc > 0 ? '>' : '<';
-        $ord = $inc > 0 ? 'ASC' : 'DESC';
-
-        $neighbor = $db->setQuery(
-            $db->getQuery(true)
-                ->select(['id', 'ordering'])
-                ->from($db->quoteName('#__facileforms_forms'))
-                ->where($db->quoteName('package')  . ' = ' . $db->quote($pkg))
-                ->where($db->quoteName('ordering') . ' ' . $dir . ' ' . $db->quote($item->ordering))
-                ->order($db->quoteName('ordering') . ' ' . $ord)
-        )->loadObject();
-
-        if ($neighbor === null) {
-            return;
-        }
-
-        $db->setQuery(
-            $db->getQuery(true)
-                ->update($db->quoteName('#__facileforms_forms'))
-                ->set($db->quoteName('ordering') . ' = ' . $db->quote($neighbor->ordering))
-                ->where($db->quoteName('id') . ' = ' . $db->quote($id))
-        )->execute();
-
-        $db->setQuery(
-            $db->getQuery(true)
-                ->update($db->quoteName('#__facileforms_forms'))
-                ->set($db->quoteName('ordering') . ' = ' . $db->quote($item->ordering))
-                ->where($db->quoteName('id') . ' = ' . $db->quote((int) $neighbor->id))
-        )->execute();
-    }
-
-    private function reorder(string $pkg): void
-    {
-        $db = $this->db();
-        $q  = $db->getQuery(true)
-            ->select($db->quoteName('id'))
-            ->from($db->quoteName('#__facileforms_forms'))
-            ->order($db->quoteName('ordering') . ' ASC, ' . $db->quoteName('id') . ' ASC');
-
-        if ($pkg !== '') {
-            $q->where($db->quoteName('package') . ' = ' . $db->quote($pkg));
-        }
-
-        $ids = $db->setQuery($q)->loadColumn() ?: [];
-        foreach (array_values($ids) as $pos => $rowId) {
-            $db->setQuery(
-                $db->getQuery(true)
-                    ->update($db->quoteName('#__facileforms_forms'))
-                    ->set($db->quoteName('ordering') . ' = ' . $db->quote($pos + 1))
-                    ->where($db->quoteName('id') . ' = ' . $db->quote($rowId))
-            )->execute();
-        }
     }
 }
