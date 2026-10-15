@@ -50,11 +50,11 @@ class FormModel extends AdminModel
     }
 
     /**
-     * The list actions need no edit form.
+     * The list actions need no edit form: an empty one fulfils the contract.
      */
     public function getForm($data = [], $loadData = true)
     {
-        return false;
+        return $this->getFormFactory()->createForm('com_breezingformsng.form', ['control' => 'jform']);
     }
 
     /**
