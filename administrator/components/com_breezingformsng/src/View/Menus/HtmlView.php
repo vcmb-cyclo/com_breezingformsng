@@ -71,6 +71,7 @@ class HtmlView extends BaseHtmlView
         if ($this->canEditState) {
             $toolbar->publish('menus.publish')->listCheck(true);
             $toolbar->unpublish('menus.unpublish')->listCheck(true);
+            $toolbar->checkin('menus.checkin')->listCheck(true);
         }
 
         if ($user->authorise('core.delete', 'com_breezingformsng')) {

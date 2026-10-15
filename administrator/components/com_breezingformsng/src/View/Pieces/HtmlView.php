@@ -75,6 +75,7 @@ class HtmlView extends BaseHtmlView
             if ($user->authorise('core.edit.state', 'com_breezingformsng')) {
                 $toolbar->publish('pieces.publish')->listCheck(true);
                 $toolbar->unpublish('pieces.unpublish')->listCheck(true);
+                $toolbar->checkin('pieces.checkin')->listCheck(true);
             } else {
                 $this->canEdit = false;
             }

@@ -47,6 +47,18 @@ final class MenuTable extends Table
 	/** @var string|null */
 	public $params = null;     // additional parameters
 
+	/**
+	 * The check-out columns are nullable: checking in writes NULL, not 0.
+	 *
+	 * @var bool
+	 */
+	protected $_supportNullValue = true;
+
+	/** @var int|string|null */
+	public $checked_out = null;
+	/** @var string|null */
+	public $checked_out_time = null;
+
 	public function __construct(DatabaseInterface $db)
 	{
 		parent::__construct('#__facileforms_compmenus', 'id', $db);

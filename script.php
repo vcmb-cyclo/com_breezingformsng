@@ -2803,6 +2803,19 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             }
         }
 
+        // Joomla check-out of the items edited through the native forms.
+        foreach ([$prefix . 'facileforms_compmenus', $scriptsTable, $piecesTable, $recordsTable] as $tableName) {
+            if (!isset($tables[$tableName]) || isset($tables[$tableName]['checked_out'])) {
+                continue;
+            }
+
+            $db->setQuery(
+                "ALTER TABLE `{$tableName}` ADD `checked_out` INT UNSIGNED NULL DEFAULT NULL,"
+                . " ADD `checked_out_time` DATETIME NULL DEFAULT NULL, ADD INDEX `idx_checkout` (`checked_out`)"
+            )->execute();
+            $this->log("Added the check-out columns to {$tableName}.");
+        }
+
         foreach ([$scriptsTable, $piecesTable] as $tableName) {
             if (!isset($tables[$tableName])) {
                 continue;

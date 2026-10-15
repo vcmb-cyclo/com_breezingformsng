@@ -200,6 +200,8 @@ class HtmlView extends BaseHtmlView
             if ($stateFilter !== $trashed) {
                 $statusChild->trash('records.trash')->listCheck(true);
             }
+
+            $statusChild->checkin('records.checkin')->listCheck(true);
         }
 
         if ($stateFilter === $trashed && $this->canDelete) {
