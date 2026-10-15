@@ -20,6 +20,6 @@
 		<maintainer>XDA+GIL</maintainer>
 		<maintainerurl>https://breezingforms-ng.vcmb.fr</maintainerurl>
 		<targetplatform name="joomla" version="6.*"/>
-		<php_minimum>8.3</php_minimum>
+		<php_minimum>8.4</php_minimum>
 	</update>
 </updates>

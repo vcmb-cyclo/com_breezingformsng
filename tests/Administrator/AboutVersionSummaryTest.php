@@ -29,7 +29,7 @@ final class AboutVersionSummaryTest extends TestCase
         self::assertIsString($buildScript);
         self::assertStringContainsString("'buildType' => ''", $template);
         self::assertStringContainsString('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_JOOMLA_6', $template);
-        self::assertStringContainsString('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_PHP_83', $template);
+        self::assertStringContainsString('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_PHP_84', $template);
         self::assertStringContainsString('<buildType>development</buildType>', $manifest);
         self::assertStringContainsString('<buildType>production</buildType>', $buildScript);
     }
