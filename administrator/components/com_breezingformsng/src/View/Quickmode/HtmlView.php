@@ -20,7 +20,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Editor\Editor;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\BreadcrumbHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\FormsAdvancedOptionsHtml;
-use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
 
@@ -183,11 +183,11 @@ class HtmlView extends BaseHtmlView
      * Loads the "Options" tab's backing row - same model the classic
      * forms.edit&advanced=1 screen uses (View\Forms\HtmlView::display()).
      */
-    private function getFormModel(): FormModel
+    private function getFormModel(): FormOptionsModel
     {
-        $model = $this->getMVCFactory()->createModel('Form', 'Administrator', ['ignore_request' => true]);
+        $model = $this->getMVCFactory()->createModel('FormOptions', 'Administrator', ['ignore_request' => true]);
 
-        if (!$model instanceof FormModel) {
+        if (!$model instanceof FormOptionsModel) {
             throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 

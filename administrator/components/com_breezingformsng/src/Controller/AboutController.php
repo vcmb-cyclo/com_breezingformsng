@@ -302,11 +302,15 @@ class AboutController extends BaseController
                 ));
             }
 
-            $application
+            $formModel = $application
                 ->bootComponent('com_breezingformsng')
                 ->getMVCFactory()
-                ->createModel('Form', 'Administrator', ['ignore_request' => true])
-                ->deleteItems([$formId]);
+                ->createModel('Form', 'Administrator', ['ignore_request' => true]);
+            $pks = [$formId];
+
+            if (!$formModel->delete($pks)) {
+                throw new \RuntimeException((string) $formModel->getError());
+            }
 
             $application->setUserState('com_breezingformsng.about.audit', $auditService->run());
             $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_FORM_DELETED', $formId), 'message');
