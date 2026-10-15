@@ -34,8 +34,7 @@ final class QuickModeReCaptchaInitScriptBuilder
         bool $hasFlashUpload,
         bool $resetFlagOnCallback,
         string $submitFunction = 'ff_validate_submit'
-    ): array
-    {
+    ): array {
         $badge = str_replace('invisible_', '', trim((string) $field['theme']));
 
         $configuration = [
