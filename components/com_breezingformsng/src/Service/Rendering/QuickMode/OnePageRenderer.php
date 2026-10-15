@@ -885,10 +885,11 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                             $this->p->app,
                             $this->hasFlashUpload,
                             false,
-                            false,
+                            true,
                             $this->bsClass('control-group'),
                             $this->bsClass('controls'),
-                            true
+                            false,
+                            'bf_validate_submit'
                         );
 
                         echo '</span>';

@@ -306,6 +306,7 @@ final class BootstrapRendererCharacterizationTest extends TestCase
             'width' => '',
         ]));
 
+        self::assertStringContainsString('<button type="button" class="ff_elem btn btn-primary button"', $html);
         $this->assertMatchesSnapshot('bootstrap_bfCaptcha.html', $html);
     }
 

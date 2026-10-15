@@ -29,16 +29,26 @@ final class QuickModeReCaptchaInitScriptBuilder
     }
 
     /** @param array<string, mixed> $field */
-    public function invisibleConfiguration(array $field, bool $hasFlashUpload, bool $resetFlagOnCallback): array
-    {
+    public function invisibleConfiguration(
+        array $field,
+        bool $hasFlashUpload,
+        bool $resetFlagOnCallback,
+        string $submitFunction = 'ff_validate_submit'
+    ): array {
         $badge = str_replace('invisible_', '', trim((string) $field['theme']));
 
-        return [
+        $configuration = [
             'sitekey' => $field['pubkey'],
             'badge' => $badge === 'red' ? '' : $badge,
             'hasFlashUpload' => $hasFlashUpload,
             'resetFlagOnCallback' => $resetFlagOnCallback,
         ];
+
+        if ($submitFunction !== 'ff_validate_submit') {
+            $configuration['submitFunction'] = $submitFunction;
+        }
+
+        return $configuration;
     }
 
     public function visibleApiUrl(string $languageTag): string
