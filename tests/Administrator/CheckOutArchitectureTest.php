@@ -20,7 +20,8 @@ use PHPUnit\Framework\TestCase;
 /**
  * Menus, scripts, pieces and records are edited through Joomla's
  * FormController, which checks an item out while it is open when its table
- * has the check-out columns.
+ * has the check-out columns. Forms are edited in QuickMode, which does it
+ * itself.
  */
 final class CheckOutArchitectureTest extends TestCase
 {
@@ -33,6 +34,7 @@ final class CheckOutArchitectureTest extends TestCase
         yield 'scripts' => ['scripts', 'ScriptTable', 'scripts', 'Scripts'];
         yield 'pieces' => ['pieces', 'PieceTable', 'pieces', 'Pieces'];
         yield 'records' => ['records', 'RecordTable', 'records', 'Records'];
+        yield 'forms' => ['forms', 'FormTable', 'forms', 'Forms'];
     }
 
     #[DataProvider('itemProvider')]
@@ -56,8 +58,8 @@ final class CheckOutArchitectureTest extends TestCase
         self::assertStringContainsString("HTMLHelper::_('jgrid.checkedout', \$i,", $template);
         self::assertStringContainsString("'" . $list . ".', \$canManageCheckin", $template);
 
-        self::assertStringContainsString(
-            "checkin('" . $list . ".checkin')",
+        self::assertMatchesRegularExpression(
+            '/[cC]heckin\\(\'' . $list . '\\.checkin\'\\)/',
             $this->read('administrator/components/com_breezingformsng/src/View/' . $view . '/HtmlView.php')
         );
     }
@@ -67,7 +69,7 @@ final class CheckOutArchitectureTest extends TestCase
         $script = $this->read('script.php');
 
         self::assertStringContainsString(
-            "foreach ([\$prefix . 'facileforms_compmenus', \$scriptsTable, \$piecesTable, \$recordsTable] as \$tableName) {",
+            "foreach ([\$formsTable, \$prefix . 'facileforms_compmenus', \$scriptsTable, \$piecesTable, \$recordsTable] as \$tableName) {",
             $script
         );
         self::assertStringContainsString("isset(\$tables[\$tableName]['checked_out'])", $script);
@@ -81,6 +83,22 @@ final class CheckOutArchitectureTest extends TestCase
             '/if \(!\$model->checkout\(\$targetId\)\) \{.*?return;\s+\}\s+\$model->checkin\(\$itemId\);/s',
             $controller
         );
+    }
+
+    public function testQuickModeChecksTheFormOutAndCloseChecksItIn(): void
+    {
+        $controller = $this->read('administrator/components/com_breezingformsng/src/Controller/QuickmodeController.php');
+        $app = $this->read('media/com_breezingformsng/js/admin/quickmode-app.js');
+        $forms = $this->read('administrator/components/com_breezingformsng/src/Controller/FormsController.php');
+
+        self::assertMatchesRegularExpression('/if \(!\$model->checkout\(\$formId\)\) \{/', $controller);
+        self::assertMatchesRegularExpression(
+            '/public function close\(\): void\s+\{\s+\$this->checkToken\(\'get\'\);.*?->checkin\(\$formId\);/s',
+            $controller
+        );
+        self::assertStringContainsString('task=quickmode.close&form=', $app);
+        self::assertStringContainsString("Joomla.getOptions('csrf.token')", $app);
+        self::assertMatchesRegularExpression('/public function cancel\(\): void\s+\{\s+\$this->checkToken\(\);.*?->checkin\(\$id\);/s', $forms);
     }
 
     private function read(string $path): string

@@ -206,6 +206,14 @@ class FormsController extends AdminController
 
     public function cancel(): void
     {
+        $this->checkToken();
+
+        $id = $this->input->getInt('id', 0);
+
+        if ($id > 0) {
+            $this->getFormModel()->checkin($id);
+        }
+
         $this->app->redirect(Route::_(self::LIST_URL, false));
     }
 

@@ -2803,8 +2803,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             }
         }
 
-        // Joomla check-out of the items edited through the native forms.
-        foreach ([$prefix . 'facileforms_compmenus', $scriptsTable, $piecesTable, $recordsTable] as $tableName) {
+        // Joomla check-out of the items while they are edited.
+        foreach ([$formsTable, $prefix . 'facileforms_compmenus', $scriptsTable, $piecesTable, $recordsTable] as $tableName) {
             if (!isset($tables[$tableName]) || isset($tables[$tableName]['checked_out'])) {
                 continue;
             }

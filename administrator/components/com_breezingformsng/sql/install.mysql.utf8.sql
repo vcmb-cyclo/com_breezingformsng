@@ -130,12 +130,15 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_forms` (
   `modified` datetime NULL DEFAULT NULL,
   `created_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `modified_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `checked_out` int unsigned NULL DEFAULT NULL,
+  `checked_out_time` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `double_opt` (`double_opt`),
   KEY `opt_mail` (`opt_mail`),
   KEY `name` (`name`),
   KEY `published` (`published`),
-  KEY `ordering` (`ordering`)
+  KEY `ordering` (`ordering`),
+  KEY `idx_checkout` (`checked_out`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `#__facileforms_elements` (

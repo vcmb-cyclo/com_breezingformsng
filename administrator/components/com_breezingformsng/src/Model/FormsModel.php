@@ -50,8 +50,15 @@ class FormsModel extends ListModel
     protected function getListQuery()
     {
         $db = $this->db();
+        $editor = $db->createQuery()
+            ->select($db->quoteName('editor.name'))
+            ->from($db->quoteName('#__users', 'editor'))
+            ->where($db->quoteName('editor.id') . ' = ' . $db->quoteName('#__facileforms_forms.checked_out'));
         $query = $db->createQuery()
-            ->select($db->quoteName(['id', 'title', 'name', 'pages', 'published', 'ordering', 'modified']))
+            ->select($db->quoteName([
+                'id', 'title', 'name', 'pages', 'published', 'ordering', 'modified', 'checked_out', 'checked_out_time',
+            ]))
+            ->select('(' . $editor . ') AS ' . $db->quoteName('editor'))
             ->from($db->quoteName('#__facileforms_forms'));
 
         $package = (string) $this->getState('filter.package');

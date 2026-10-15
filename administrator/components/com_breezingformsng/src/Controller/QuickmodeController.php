@@ -14,11 +14,13 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\Filesystem\File;
 use Joomla\Filesystem\Folder;
 use Joomla\Filesystem\Path;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
 
@@ -29,8 +31,38 @@ class QuickmodeController extends BaseController
      */
     public function display($cachable = false, $urlparams = []): static
     {
+        $formId = $this->app->getInput()->getInt('form', 0);
+
+        // The form stays checked out while it is open in QuickMode; close() checks it in.
+        if ($formId > 0) {
+            $model = $this->getFormModel();
+
+            if (!$model->checkout($formId)) {
+                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', $model->getError()), 'error');
+                $this->setRedirect(Route::_('index.php?option=com_breezingformsng&view=forms', false));
+
+                return $this;
+            }
+        }
+
         $this->app->getInput()->set('view', 'quickmode');
         return parent::display($cachable, $urlparams);
+    }
+
+    /**
+     * Leaves QuickMode: checks the form in and goes back to the forms list.
+     */
+    public function close(): void
+    {
+        $this->checkToken('get');
+
+        $formId = $this->app->getInput()->getInt('form', 0);
+
+        if ($formId > 0) {
+            $this->getFormModel()->checkin($formId);
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&view=forms', false));
     }
 
     /**
@@ -161,6 +193,23 @@ class QuickmodeController extends BaseController
         $model = $component->getMVCFactory()->createModel('Quickmode', 'Administrator', ['ignore_request' => true]);
 
         if (!$model instanceof QuickmodeModel) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        return $model;
+    }
+
+    private function getFormModel(): FormModel
+    {
+        $component = $this->app->bootComponent('com_breezingformsng');
+
+        if (!$component instanceof MVCFactoryServiceInterface) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $model = $component->getMVCFactory()->createModel('Form', 'Administrator', ['ignore_request' => true]);
+
+        if (!$model instanceof FormModel) {
             throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 

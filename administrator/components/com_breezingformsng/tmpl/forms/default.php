@@ -19,6 +19,9 @@ $listDirn  = $this->escape((string) $this->state->get('list.direction'));
 $pagination = $this->pagination;
 $itemCount  = count($this->items);
 $saveOrder  = $listOrder === 'ordering' && strtolower($listDirn) === 'asc';
+$user = Factory::getApplication()->getIdentity();
+$userId = (int) $user->id;
+$canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 ?>
 <form action="index.php?option=com_breezingformsng&amp;view=forms" method="post" name="adminForm" id="adminForm">
   <div id="j-main-container" class="j-main-container">
@@ -48,6 +51,9 @@ $saveOrder  = $listOrder === 'ordering' && strtolower($listDirn) === 'asc';
             <td class="text-center"><?= HTMLHelper::_('grid.id', $i, $form->id); ?></td>
             <td class="text-center"><?= (int) $form->id; ?></td>
             <td>
+              <?php if ((int) $form->checked_out > 0): ?>
+                <?= HTMLHelper::_('jgrid.checkedout', $i, (string) $form->editor, $form->checked_out_time, 'forms.', $canManageCheckin || (int) $form->checked_out === $userId); ?>
+              <?php endif; ?>
               <a href="index.php?option=com_breezingformsng&task=quickmode.display&form=<?= (int) $form->id; ?>&pkg=<?= rawurlencode($pkg); ?>"
                  title="<?= Text::_('COM_BREEZINGFORMSNG_FORMS_OPEN_EDITOR'); ?>">
                 <?= htmlspecialchars($form->title); ?>

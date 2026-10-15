@@ -155,6 +155,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             ToolbarHelper::custom('forms.copy', 'copy', '', 'JLIB_HTML_BATCH_COPY', true);
             ToolbarHelper::publish('forms.publish', 'JTOOLBAR_PUBLISH', true);
             ToolbarHelper::unpublish('forms.unpublish', 'JTOOLBAR_UNPUBLISH', true);
+            ToolbarHelper::checkin('forms.checkin');
             ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'forms.delete');
             $user = Factory::getApplication()->getIdentity();
 
