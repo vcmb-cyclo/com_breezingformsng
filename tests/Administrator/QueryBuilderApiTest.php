@@ -14,32 +14,99 @@ declare(strict_types=1);
 
 namespace Vcmb\Component\BreezingformsNG\Tests\Administrator;
 
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
 final class QueryBuilderApiTest extends TestCase
 {
-    private const ADMIN = __DIR__ . '/../../administrator/components/com_breezingformsng';
+    private const ROOT = __DIR__ . '/../..';
 
     /**
-     * The pieces of the standard library are PHP stored in XML and installed
-     * on every site, so the PHP checks do not see them.
+     * PHP kept outside .php files: the standard library pieces are PHP stored
+     * in XML and installed on every site, the smoke test runs PHP from a
+     * shell script.
      */
-    public function testTheStandardLibraryPiecesUseCreateQuery(): void
+    public function testPhpOutsidePhpFilesUsesCreateQuery(): void
     {
-        $package = file_get_contents(self::ADMIN . '/packages/stdlib.english.xml');
+        $files = [
+            self::ROOT . '/administrator/components/com_breezingformsng/packages/stdlib.english.xml',
+            ...glob(self::ROOT . '/scripts/*.sh'),
+        ];
 
-        self::assertIsString($package);
-        self::assertStringNotContainsString('getQuery(true)', $package);
-        self::assertStringContainsString('$db-\x3EcreateQuery()', $package);
+        foreach ($files as $file) {
+            $source = file_get_contents($file);
+
+            self::assertIsString($source);
+            self::assertStringNotContainsString('getQuery(true)', $source, basename($file));
+        }
     }
 
-    public function testTheCompatibilityDatabaseOffersCreateQuery(): void
+    /**
+     * BFFactory.php declares BFFile, which extends Joomla's File: it is
+     * loaded with its own stubs, apart from the File stub of other tests.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testTheCompatibilityDatabaseBuildsNewQueriesWithCreateQuery(): void
     {
-        $factory = file_get_contents(self::ADMIN . '/plugins/bfcompat/src/Compat/BFFactory.php');
+        eval('namespace Joomla\Database; interface DatabaseInterface {}');
+        eval('namespace Joomla\Filesystem; class File {}');
+        eval('namespace Joomla\CMS; final class Factory {
+            public static object $container;
+            public static function getContainer(): object { return self::$container; }
+        }');
 
-        self::assertIsString($factory);
-        self::assertStringContainsString("public function createQuery()\n    {\n        return \$this->dbo->createQuery();", $factory);
-        self::assertStringContainsString('return $this->last_failed_query;', $factory);
-        self::assertStringNotContainsString('getQuery($new)', $factory);
+        $database = new class () implements \Joomla\Database\DatabaseInterface {
+            /** @var list<string> */
+            public array $calls = [];
+
+            public function setQuery($query, $offset = 0, $limit = 0): void
+            {
+                throw new \RuntimeException('Query failed');
+            }
+
+            public function createQuery(): string
+            {
+                $this->calls[] = 'createQuery';
+
+                return 'new query';
+            }
+
+            public function getQuery(...$arguments): string
+            {
+                $this->calls[] = $arguments === [] ? 'getQuery()' : 'getQuery($new)';
+
+                return 'current query';
+            }
+        };
+
+        \Joomla\CMS\Factory::$container = new class ($database) {
+            public function __construct(private readonly object $database)
+            {
+            }
+
+            public function get(string $id): object
+            {
+                return $this->database;
+            }
+        };
+
+        require_once self::ROOT
+            . '/administrator/components/com_breezingformsng/plugins/bfcompat/src/Compat/BFFactory.php';
+
+        $dbo = new \BFDbo();
+
+        self::assertSame('new query', $dbo->createQuery());
+        self::assertSame('new query', $dbo->getQuery(true));
+        self::assertSame('current query', $dbo->getQuery());
+
+        // After a failed query, getQuery() hands back that query, but a new
+        // query is still a new one.
+        $dbo->setQuery('SELECT broken');
+
+        self::assertSame('SELECT broken', $dbo->getQuery());
+        self::assertSame('new query', $dbo->getQuery(true));
+        self::assertSame(['createQuery', 'createQuery', 'getQuery()', 'createQuery'], $database->calls);
     }
 }

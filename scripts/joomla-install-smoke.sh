@@ -197,7 +197,7 @@ if [[ -n "${contentbuilder_archive}" ]]; then
 
         $db = \Joomla\CMS\Factory::getContainer()->get(\Joomla\Database\DatabaseInterface::class);
         $referenceId = 987654;
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->insert($db->quoteName("#__contentbuilderng_forms"))
             ->columns($db->quoteName(["type", "reference_id", "name", "published"]))
             ->values(implode(",", [
@@ -210,7 +210,7 @@ if [[ -n "${contentbuilder_archive}" ]]; then
         $db->execute();
         $formId = (int) $db->insertid();
 
-        $sourceQuery = $db->getQuery(true)
+        $sourceQuery = $db->createQuery()
             ->insert($db->quoteName("#__facileforms_forms"))
             ->columns($db->quoteName(["name", "title", "published", "template_code"]))
             ->values(implode(",", [
@@ -307,11 +307,11 @@ if [[ -n "${contentbuilder_archive}" ]]; then
                 }
             }
         } finally {
-            $db->setQuery($db->getQuery(true)
+            $db->setQuery($db->createQuery()
                 ->delete($db->quoteName("#__contentbuilderng_forms"))
                 ->where($db->quoteName("id") . " = " . $formId));
             $db->execute();
-            $db->setQuery($db->getQuery(true)
+            $db->setQuery($db->createQuery()
                 ->delete($db->quoteName("#__facileforms_forms"))
                 ->where($db->quoteName("id") . " = " . $sourceId));
             $db->execute();
