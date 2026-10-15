@@ -40,9 +40,10 @@ La clôture du chantier dépend des vérifications et corrections suivantes :
   enregistrement. Le parcours ContentBuilder du smoke test est optionnel et
   n’est pas activé par le workflow CI courant.
 - [ ] Valider Stripe, PayPal et Sofort avec des comptes sandbox dédiés.
-- [ ] Remplacer les derniers appels administrateur à `getError()` et
-  `setError()` dans `RecordModel`, `MenuModel` et `PackageItemModel` par la
-  gestion d’erreurs native retenue pour le reste du composant.
+- [x] Les appels administrateur à `getError()` et `setError()` dans
+  `RecordModel`, `MenuModel` et `PackageItemModel` ont été retirés. Les
+  contrôleurs de records gèrent désormais les exceptions afin de conserver les
+  messages, redirections et annulations de transaction.
 - [x] Les 219 créations de requêtes `$db->getQuery(true)` du code actif ont été
   remplacées par `$db->createQuery()`, méthode recommandée par
   [Joomla](https://manual.joomla.org/docs/5.4/general-concepts/database/insert-data/).

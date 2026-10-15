@@ -323,9 +323,7 @@ class RecordModel extends AdminModel
         $recordId = (int) ($data['id'] ?? 0);
 
         if ($recordId < 1 || !isset($this->getFormIds([$recordId])[$recordId])) {
-            $this->setError(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
-
-            return false;
+            throw new \OutOfBoundsException(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
         }
 
         $values = [];
@@ -398,7 +396,7 @@ class RecordModel extends AdminModel
             }
 
             if (!parent::delete($ids)) {
-                throw new \RuntimeException((string) $this->getError());
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
 
             // Joomla stops without an error at an id it no longer finds, as
@@ -423,9 +421,7 @@ class RecordModel extends AdminModel
             $db->transactionCommit();
         } catch (\Throwable $exception) {
             $db->transactionRollback();
-            $this->setError($exception->getMessage());
-
-            return false;
+            throw $exception;
         }
 
         $pks = $ids;
@@ -449,8 +445,8 @@ class RecordModel extends AdminModel
             ->bind(':trashed', $trashed, ParameterType::INTEGER);
         $trashedIds = array_map('intval', $db->setQuery($query)->loadColumn());
 
-        if ($trashedIds !== [] && !$this->delete($trashedIds)) {
-            throw new \RuntimeException((string) $this->getError());
+        if ($trashedIds !== []) {
+            $this->delete($trashedIds);
         }
 
         return $trashedIds;

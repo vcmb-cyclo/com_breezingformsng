@@ -63,8 +63,6 @@ class MenuModel extends AdminModel
         $table = $this->getTable();
 
         if ($pk > 0 && !$table->load($pk)) {
-            $this->setError($table->getError() ?: Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
-
             return false;
         }
 
@@ -193,7 +191,7 @@ class MenuModel extends AdminModel
         $this->setState($this->getName() . '.id', 0);
 
         if (!$this->save($data)) {
-            throw new \RuntimeException((string) $this->getError());
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 
         return (int) $this->getState($this->getName() . '.id');

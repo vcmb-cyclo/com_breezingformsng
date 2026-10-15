@@ -14,10 +14,32 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\FormController;
+use Joomla\CMS\Router\Route;
 
 class RecordController extends FormController
 {
+    public function save($key = null, $urlVar = null)
+    {
+        try {
+            return parent::save($key, $urlVar);
+        } catch (\OutOfBoundsException $exception) {
+            $this->app->setUserState(
+                $this->option . '.edit.' . $this->context . '.data',
+                $this->input->post->get('jform', [], 'array')
+            );
+            $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_SAVE_FAILED', $exception->getMessage()), 'error');
+            $this->setRedirect(Route::_(
+                'index.php?option=' . $this->option . '&view=' . $this->view_item
+                    . $this->getRedirectToItemAppend($this->input->getInt('id'), $urlVar ?? 'id'),
+                false
+            ));
+
+            return false;
+        }
+    }
+
     /**
      * Records come from the submitted forms; none is created here.
      */
