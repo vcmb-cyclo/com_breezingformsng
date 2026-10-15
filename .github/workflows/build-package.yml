@@ -28,10 +28,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Setup PHP 8.4
+      - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.3'
           tools: composer:v2
           coverage: none
 
@@ -104,10 +104,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Setup PHP 8.4
+      - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.3'
           tools: composer:v2
           coverage: none
 
@@ -119,8 +119,8 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-phpstan-8.4-${{ hashFiles('composer.lock', 'administrator/components/com_breezingformsng/composer.lock') }}
-          restore-keys: composer-phpstan-8.4-
+          key: composer-phpstan-8.3-${{ hashFiles('composer.lock', 'administrator/components/com_breezingformsng/composer.lock') }}
+          restore-keys: composer-phpstan-8.3-
 
       - name: Install analysis dependencies
         run: |
@@ -136,12 +136,12 @@ jobs:
         uses: actions/cache@v6
         with:
           path: joomla-stubs
-          key: joomla-stubs-6.1.2-php8.4
+          key: joomla-stubs-6.1.2-php8.3
 
       - name: Extract Joomla core for class discovery
         if: steps.joomla-stubs-cache.outputs.cache-hit != 'true'
         run: |
-          container="$(docker create joomla:6.1.2-php8.4-apache)"
+          container="$(docker create joomla:6.1.2-php8.3-apache)"
           mkdir -p joomla-stubs
           docker cp "${container}:/usr/src/joomla/libraries" joomla-stubs/libraries
           docker rm "${container}"
@@ -158,10 +158,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Setup PHP 8.4 with coverage
+      - name: Setup PHP 8.3 with coverage
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.3'
           tools: composer:v2
           coverage: pcov
 
@@ -173,8 +173,8 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-tests-8.4-${{ hashFiles('composer.json') }}
-          restore-keys: composer-tests-8.4-
+          key: composer-tests-8.3-${{ hashFiles('composer.json') }}
+          restore-keys: composer-tests-8.3-
 
       - name: Install test dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
@@ -205,10 +205,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Setup PHP 8.4
+      - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.3'
           tools: composer:v2
           coverage: none
 
@@ -221,8 +221,8 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-package-8.4-${{ hashFiles('administrator/components/com_breezingformsng/composer.lock') }}
-          restore-keys: composer-package-8.4-
+          key: composer-package-8.3-${{ hashFiles('administrator/components/com_breezingformsng/composer.lock') }}
+          restore-keys: composer-package-8.3-
 
       - name: Set package creation date
         run: |
@@ -277,10 +277,10 @@ jobs:
           name: installation-package
           path: build
 
-      - name: Setup PHP 8.4
+      - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.3'
           coverage: none
 
       - name: Resolve release metadata

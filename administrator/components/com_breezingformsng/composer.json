@@ -4,7 +4,7 @@
     "license": "GPL-2.0-or-later",
     "type": "project",
     "require": {
-        "php": ">=8.4",
+        "php": ">=8.3",
         "bgli100/securimage": "^4.0",
         "ext-bcmath": "*",
         "phpoffice/phpspreadsheet": "^5.8",

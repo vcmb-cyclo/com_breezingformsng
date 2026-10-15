@@ -429,7 +429,7 @@ HTMLHelper::_('bootstrap.collapse');
                     <span class="bf-about-version-badge <?php echo $isProductionBuild ? 'bf-about-version-badge--production' : 'bf-about-version-badge--dev'; ?>"><?php echo htmlspecialchars($buildTypeDisplay, ENT_QUOTES, 'UTF-8'); ?></span>
                     <span class="bf-about-platform-badges" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_BADGES_LABEL'), ENT_QUOTES, 'UTF-8'); ?>">
                         <span class="bf-about-platform-badge"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_JOOMLA_6'); ?></span>
-                        <span class="bf-about-platform-badge"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_PHP_84'); ?></span>
+                        <span class="bf-about-platform-badge"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_PHP_83'); ?></span>
                     </span>
                 </span>
             </div>

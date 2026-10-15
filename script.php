@@ -46,7 +46,7 @@ Log::add('User Agent: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'CLI') . '.', Log::INF
 class com_breezingformsngInstallerScript implements InstallerScriptInterface
 {
     private const TARGET_COMPONENT = 'com_breezingformsng';
-    private const MINIMUM_PHP = '8.4';
+    private const MINIMUM_PHP = '8.3';
     private const MINIMUM_JOOMLA = '6.0';
     private const LEGACY_COMPONENT_ALIASES = [
         'breezingforms',

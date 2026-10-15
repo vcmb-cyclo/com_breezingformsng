@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "778f62136e0f01dedc5f8e7feb8b0516",
+    "content-hash": "6ed1ae6fbb688f9d198a08f1accd51bf",
     "packages": [
         {
             "name": "bgli100/securimage",
@@ -1636,7 +1636,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.4",
+        "php": ">=8.3",
         "ext-bcmath": "*"
     },
     "platform-dev": {},
