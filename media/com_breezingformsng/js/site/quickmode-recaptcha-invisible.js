@@ -1,11 +1,9 @@
 /* Extracted from BFQuickMode's inline process() script (Phase 9c step 2b,
-   bfReCaptcha case, invisible-captcha variant). Identical between
-   ClassicRenderer and BootstrapRenderer. OnePageRenderer's callback never
-   reset window.bfInvisibleRecaptcha back to false on a successful check
-   (it used an inline anonymous callback instead of the named
-   recaptchaCheckedCallback the other two themes define) - a real,
-   pre-existing behavioral difference, preserved here via
-   `resetFlagOnCallback` rather than silently unified. */
+   bfReCaptcha case, invisible-captcha variant). Shared by the Classic,
+   Bootstrap and OnePage renderers. A successful check resets
+   window.bfInvisibleRecaptcha when `resetFlagOnCallback` is set, then
+   submits through `submitFunction`: ff_validate_submit by default,
+   bf_validate_submit for OnePage. */
 function bfInitInvisibleReCaptcha(options) {
 	window.bfInvisibleRecaptcha = true;
 
@@ -14,10 +12,10 @@ function bfInitInvisibleReCaptcha(options) {
 			if (typeof bfAjaxObject101 == 'undefined' && typeof bfReCaptchaLoaded == 'undefined') {
 				bfDoFlashUpload();
 			} else {
-				ff_validate_submit(this, 'click');
+				window[options.submitFunction || 'ff_validate_submit'](this, 'click');
 			}
 		} else {
-			ff_validate_submit(this, 'click');
+			window[options.submitFunction || 'ff_validate_submit'](this, 'click');
 		}
 	}
 

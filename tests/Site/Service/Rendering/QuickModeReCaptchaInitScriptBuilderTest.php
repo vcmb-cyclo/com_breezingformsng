@@ -45,6 +45,18 @@ final class QuickModeReCaptchaInitScriptBuilderTest extends TestCase
         ], true, true));
     }
 
+    public function testInvisibleConfigurationNamesOnlyANonDefaultSubmitFunction(): void
+    {
+        $builder = new QuickModeReCaptchaInitScriptBuilder();
+        $field = ['pubkey' => 'public-key', 'theme' => 'invisible_inline'];
+
+        self::assertArrayNotHasKey('submitFunction', $builder->invisibleConfiguration($field, false, true));
+        self::assertSame(
+            'bf_validate_submit',
+            $builder->invisibleConfiguration($field, false, true, 'bf_validate_submit')['submitFunction']
+        );
+    }
+
     public function testBuildsTheVisibleGoogleApiUrlForTheActiveLanguage(): void
     {
         $builder = new QuickModeReCaptchaInitScriptBuilder();
