@@ -3,9 +3,9 @@
    theme call stop() once a submission fails, or bind() again after they
    replaced the button (bf_restore_submitbutton()).
 
-   A click starts the spinner on the button that was clicked, not on the
-   one currently bound: when the click handler of the form replaced the
-   button before this one ran, the spinner stays on the discarded node. */
+   The spinner starts in the capture phase, before the onclick handler of
+   the button: that handler may refuse the submission and call stop()
+   synchronously, which must find the spinner already started. */
 var bfSubmitSpinner = (function () {
     var bound = null;
 
@@ -44,7 +44,7 @@ var bfSubmitSpinner = (function () {
         if (bound) {
             bound.addEventListener('click', function () {
                 start(this);
-            });
+            }, true);
         }
     }
 

@@ -35,3 +35,7 @@ administrator/components/com_breezingformsng/vendor/
 /joomla-stubs
 /node_modules/
 /coverage/
+
+# Playwright output
+test-results/
+playwright-report/

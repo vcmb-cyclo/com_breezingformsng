@@ -86,7 +86,7 @@ jobs:
           node-version: '24'
           cache: npm
 
-      - name: Install CSS lint dependencies
+      - name: Install frontend dependencies
         run: npm ci
 
       - name: Lint CSS
@@ -94,6 +94,12 @@ jobs:
 
       - name: Run JavaScript tests
         run: npm run test:tree-model
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser tests
+        run: npm run test:browser
 
   phpstan:
     name: PHPStan
