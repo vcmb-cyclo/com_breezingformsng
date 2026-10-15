@@ -27,7 +27,7 @@ final class FormElementLoader
      */
     public function loadPublished(int $formId): array
     {
-        $query = $this->database->getQuery(true)
+        $query = $this->database->createQuery()
             ->select('*')
             ->from($this->database->quoteName('#__facileforms_elements'))
             ->where($this->database->quoteName('form') . ' = :formId')

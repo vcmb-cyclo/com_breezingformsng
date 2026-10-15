@@ -81,7 +81,7 @@ final class FormElementLoaderDatabaseDouble implements DatabaseInterface
     {
     }
 
-    public function getQuery(bool $new = false): FormElementLoaderQueryDouble
+    public function createQuery(): FormElementLoaderQueryDouble
     {
         return $this->queries[] = new FormElementLoaderQueryDouble();
     }

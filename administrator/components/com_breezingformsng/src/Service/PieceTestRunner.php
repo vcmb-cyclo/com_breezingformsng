@@ -38,7 +38,7 @@ class BFAdminPieceTestContext
 			return null;
 		}
 
-		$query = $this->db->getQuery(true)
+		$query = $this->db->createQuery()
 			->select($this->db->quoteName('code'))
 			->from($this->db->quoteName('#__facileforms_pieces'))
 			->where($this->db->quoteName('name') . ' = :name')

@@ -27,7 +27,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function getRule(int $id): ?\stdClass
     {
         $db = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select([
                 'rules.*',
                 'rules.id AS id',
@@ -48,7 +48,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function getItems(int $ruleId): array
     {
         $db = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select(['items.*', 'elements.name AS element_name', 'elements.type AS element_type'])
             ->from($db->quoteName('#__facileforms_integrator_items', 'items'))
             ->join('INNER', $db->quoteName('#__facileforms_elements', 'elements') . ' ON elements.id = items.element_id')
@@ -77,7 +77,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function getForms(string $filter = 'all'): array
     {
         $db    = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select(['id', 'name', 'published'])
             ->from($db->quoteName('#__facileforms_forms', 'forms'));
 
@@ -94,7 +94,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function getFormElements(int $formId): array
     {
         $db = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select(['id', 'name', 'type'])
             ->from($db->quoteName('#__facileforms_elements'))
             ->where('form = :formId')
@@ -112,7 +112,7 @@ class IntegratorModel extends BaseDatabaseModel
             : $referenceTable;
         $type = \in_array($type, ['insert', 'update'], true) ? $type : 'insert';
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->insert($db->quoteName('#__facileforms_integrator_rules'))
             ->columns($db->quoteName(['name', 'form_id', 'reference_table', 'type']))
             ->values(':name, :formId, :referenceTable, :type')
@@ -138,7 +138,7 @@ class IntegratorModel extends BaseDatabaseModel
             ['#__facileforms_integrator_criteria_joomla', 'rule_id'],
             ['#__facileforms_integrator_criteria_fixed', 'rule_id'],
         ] as [$tbl, $col]) {
-            $query = $db->getQuery(true)
+            $query = $db->createQuery()
                 ->delete($db->quoteName($tbl))
                 ->whereIn($db->quoteName($col), $ids, ParameterType::INTEGER);
             $db->setQuery($query)->execute();
@@ -148,7 +148,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function publishRule(int $id, int $state): void
     {
         $db    = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->update($db->quoteName('#__facileforms_integrator_rules'))
             ->set($db->quoteName('published') . ' = :state')
             ->where($db->quoteName('id') . ' = :id')
@@ -160,7 +160,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function getCriteria(int $ruleId): array
     {
         $db = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select(['crit.*', 'elements.name AS element_name', 'elements.type AS element_type'])
             ->from($db->quoteName('#__facileforms_integrator_criteria_form', 'crit'))
             ->join('INNER', $db->quoteName('#__facileforms_elements', 'elements') . ' ON elements.id = crit.element_id')
@@ -179,7 +179,7 @@ class IntegratorModel extends BaseDatabaseModel
         }
         $andor = \in_array($andor, ['AND', 'OR'], true) ? $andor : 'AND';
         $db    = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->insert($db->quoteName('#__facileforms_integrator_criteria_form'))
             ->columns($db->quoteName(['rule_id', 'operator', 'reference_column', 'element_id', 'andor']))
             ->values(':ruleId, :operator, :referenceColumn, :elementId, :andor')
@@ -194,7 +194,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function removeCriteria(int $id): void
     {
         $db    = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->delete($db->quoteName('#__facileforms_integrator_criteria_form'))
             ->where($db->quoteName('id') . ' = :id')
             ->bind(':id', $id, ParameterType::INTEGER);
@@ -204,7 +204,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function getCriteriaJoomla(int $ruleId): array
     {
         $db = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select('crit.*')
             ->from($db->quoteName('#__facileforms_integrator_criteria_joomla', 'crit'))
             ->where('crit.rule_id = :ruleId')
@@ -224,7 +224,7 @@ class IntegratorModel extends BaseDatabaseModel
         $joomlaObject = \in_array($joomlaObject, $allowed, true) ? $joomlaObject : 'Userid';
         $andor = \in_array($andor, ['AND', 'OR'], true) ? $andor : 'AND';
         $db      = $this->db();
-        $query   = $db->getQuery(true)
+        $query   = $db->createQuery()
             ->insert($db->quoteName('#__facileforms_integrator_criteria_joomla'))
             ->columns($db->quoteName(['rule_id', 'operator', 'reference_column', 'joomla_object', 'andor']))
             ->values(':ruleId, :operator, :referenceColumn, :joomlaObject, :andor')
@@ -239,7 +239,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function removeCriteriaJoomla(int $id): void
     {
         $db    = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->delete($db->quoteName('#__facileforms_integrator_criteria_joomla'))
             ->where($db->quoteName('id') . ' = :id')
             ->bind(':id', $id, ParameterType::INTEGER);
@@ -249,7 +249,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function getCriteriaFixed(int $ruleId): array
     {
         $db = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select('crit.*')
             ->from($db->quoteName('#__facileforms_integrator_criteria_fixed', 'crit'))
             ->where('crit.rule_id = :ruleId')
@@ -267,7 +267,7 @@ class IntegratorModel extends BaseDatabaseModel
         }
         $andor = \in_array($andor, ['AND', 'OR'], true) ? $andor : 'AND';
         $db    = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->insert($db->quoteName('#__facileforms_integrator_criteria_fixed'))
             ->columns($db->quoteName(['rule_id', 'operator', 'reference_column', 'fixed_value', 'andor']))
             ->values(':ruleId, :operator, :referenceColumn, :fixedValue, :andor')
@@ -282,7 +282,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function removeCriteriaFixed(int $id): void
     {
         $db    = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->delete($db->quoteName('#__facileforms_integrator_criteria_fixed'))
             ->where($db->quoteName('id') . ' = :id')
             ->bind(':id', $id, ParameterType::INTEGER);
@@ -292,7 +292,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function addItem(int $ruleId, int $elementId, string $referenceColumn): void
     {
         $db    = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->insert($db->quoteName('#__facileforms_integrator_items'))
             ->columns($db->quoteName(['rule_id', 'element_id', 'reference_column']))
             ->values(':ruleId, :elementId, :referenceColumn')
@@ -305,7 +305,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function removeItem(int $id): void
     {
         $db    = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->delete($db->quoteName('#__facileforms_integrator_items'))
             ->where($db->quoteName('id') . ' = :id')
             ->bind(':id', $id, ParameterType::INTEGER);
@@ -315,7 +315,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function saveCode(int $itemId, int $ruleId, string $code): void
     {
         $db    = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->update($db->quoteName('#__facileforms_integrator_items'))
             ->set($db->quoteName('code') . ' = :code')
             ->where($db->quoteName('id') . ' = :itemId')
@@ -329,7 +329,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function saveFinalizeCode(int $ruleId, string $code): void
     {
         $db    = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->update($db->quoteName('#__facileforms_integrator_rules'))
             ->set($db->quoteName('finalize_code') . ' = :code')
             ->where($db->quoteName('id') . ' = :ruleId')
@@ -341,7 +341,7 @@ class IntegratorModel extends BaseDatabaseModel
     public function publishItem(int $id, int $state): void
     {
         $db    = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->update($db->quoteName('#__facileforms_integrator_items'))
             ->set($db->quoteName('published') . ' = :state')
             ->where($db->quoteName('id') . ' = :id')

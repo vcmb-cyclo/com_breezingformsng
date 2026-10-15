@@ -100,7 +100,7 @@ PHP);
     private function plugin(Input $input, bool $iframe = false): Breezingforms
     {
         $database = $this->createStub(DatabaseInterface::class);
-        $database->method('getQuery')->willReturnCallback(static fn () => new MysqliQuery());
+        $database->method('createQuery')->willReturnCallback(static fn () => new MysqliQuery());
         $database->method('quoteName')->willReturnArgument(0);
         $database->method('setQuery')->willReturnSelf();
         $database->method('loadObject')->willReturn((object) [

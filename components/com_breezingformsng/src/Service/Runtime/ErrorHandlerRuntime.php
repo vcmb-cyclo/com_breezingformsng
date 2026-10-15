@@ -122,7 +122,7 @@ final class ErrorHandlerRuntime
                         break;
                     case 'p':
                         $package = '';
-                        $piecesQuery = $database->getQuery(true)
+                        $piecesQuery = $database->createQuery()
                             ->select(['name', 'package'])
                             ->from('#__facileforms_pieces')
                             ->where($database->quoteName('id') . ' = :id')
@@ -139,7 +139,7 @@ final class ErrorHandlerRuntime
                         break;
                     case 's':
                         $package = '';
-                        $scriptsQuery = $database->getQuery(true)
+                        $scriptsQuery = $database->createQuery()
                             ->select(['name', 'package'])
                             ->from('#__facileforms_scripts')
                             ->where($database->quoteName('id') . ' = :id')

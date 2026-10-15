@@ -48,7 +48,7 @@ class IntegratorRulesModel extends ListModel
     protected function getListQuery()
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName(['rules.id', 'rules.name', 'rules.type', 'rules.published']))
             ->select('CONCAT(' . $db->quote($db->getPrefix()) . ', ' . $db->quoteName('rules.reference_table') . ') AS ' . $db->quoteName('reference_table'))
             ->select($db->quoteName('forms.name', 'form_name'))

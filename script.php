@@ -321,7 +321,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         $quotedTables = array_map([$db, 'quote'], $tables);
 
-        $tableQuery = $db->getQuery(true)
+        $tableQuery = $db->createQuery()
             ->select([
                 $db->quoteName('TABLE_NAME'),
                 $db->quoteName('TABLE_COLLATION'),
@@ -333,7 +333,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $db->setQuery($tableQuery);
         $tableRows = (array) $db->loadAssocList();
 
-        $columnQuery = $db->getQuery(true)
+        $columnQuery = $db->createQuery()
             ->select([
                 $db->quoteName('TABLE_NAME'),
                 $db->quoteName('COLUMN_NAME'),
@@ -389,7 +389,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     private function prepareTableForUtf8mb4Conversion(DatabaseInterface $db, string $tableName): void
     {
         $db->setQuery(
-            $db->getQuery(true)
+            $db->createQuery()
                 ->select([$db->quoteName('ENGINE'), $db->quoteName('ROW_FORMAT')])
                 ->from($db->quoteName('information_schema.TABLES'))
                 ->where($db->quoteName('TABLE_SCHEMA') . ' = DATABASE()')
@@ -412,7 +412,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     private function shrinkOversizedIndexes(DatabaseInterface $db, string $tableName): void
     {
         $db->setQuery(
-            $db->getQuery(true)
+            $db->createQuery()
                 ->select([
                     $db->quoteName('s.INDEX_NAME'),
                     $db->quoteName('s.SEQ_IN_INDEX'),
@@ -638,7 +638,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function migrateLegacyOptionInPlainColumns(DatabaseInterface $db, string $table, array $columns): void
     {
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select(array_merge([$db->quoteName('id')], array_map([$db, 'quoteName'], $columns)))
             ->from($db->quoteName($table));
         $rows = (array) $db->setQuery($query)->loadAssocList();
@@ -666,7 +666,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 continue;
             }
 
-            $update = $db->getQuery(true)->update($db->quoteName($table));
+            $update = $db->createQuery()->update($db->quoteName($table));
 
             foreach ($changes as $column => $value) {
                 $update->set($db->quoteName($column) . ' = :' . $column)
@@ -688,7 +688,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function migrateLegacyOptionInFormTrees(DatabaseInterface $db, string $table): void
     {
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select([$db->quoteName('id'), $db->quoteName('template_code')])
             ->from($db->quoteName($table));
         $rows = (array) $db->setQuery($query)->loadAssocList();
@@ -716,7 +716,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
             $newEncoded = base64_encode($rewritten);
             $id = (int) $row['id'];
-            $update = $db->getQuery(true)
+            $update = $db->createQuery()
                 ->update($db->quoteName($table))
                 ->set($db->quoteName('template_code') . ' = :templateCode')
                 ->bind(':templateCode', $newEncoded, ParameterType::STRING)
@@ -1194,7 +1194,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     private function getCurrentInstalledVersion()
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName('manifest_cache'))
             ->from($db->quoteName('#__extensions'))
             ->where($db->quoteName('element') . ' = ' . $db->quote('com_breezingformsng'));
@@ -1234,7 +1234,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select(['folder', 'element', 'enabled'])
             ->from($db->quoteName('#__extensions'))
             ->where('type = ' . $db->quote('plugin'));
@@ -1268,7 +1268,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         foreach ($this->getPlugins() as $folder => $plugins) {
             foreach ($plugins as $plugin) {
-                $query = $standardDb->getQuery(true)
+                $query = $standardDb->createQuery()
                     ->update('#__extensions')
                     ->set('enabled = ' . ($existingPlugins[$folder][$plugin] ?? 1))
                     ->where('type = ' . $standardDb->quote('plugin'))
@@ -1287,7 +1287,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select('update_site_id')
             ->from('#__update_sites')
             ->where('name = ' . $db->quote('BreezingForms Free'))
@@ -1298,7 +1298,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         if ($siteId) {
             foreach (['#__update_sites', '#__update_sites_extensions', '#__updates'] as $table) {
-                $query = $db->getQuery(true)
+                $query = $db->createQuery()
                     ->delete($db->quoteName($table))
                     ->where($db->quoteName('update_site_id') . ' = ' . (int) $siteId);
                 $db->setQuery($query)->execute();
@@ -1407,7 +1407,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $extension = 'com_breezingformsng';
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select('COUNT(*)')
             ->from($db->quoteName('#__action_logs_extensions'))
             ->where($db->quoteName('extension') . ' = ' . $db->quote($extension));
@@ -1416,13 +1416,13 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             return;
         }
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->insert($db->quoteName('#__action_logs_extensions'))
             ->columns($db->quoteName('extension'))
             ->values($db->quote($extension));
         $db->setQuery($query)->execute();
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName('params'))
             ->from($db->quoteName('#__extensions'))
             ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
@@ -1435,7 +1435,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $loggable[] = $extension;
             $params['loggable_extensions'] = array_values($loggable);
 
-            $query = $db->getQuery(true)
+            $query = $db->createQuery()
                 ->update($db->quoteName('#__extensions'))
                 ->set($db->quoteName('params') . ' = ' . $db->quote(json_encode($params)))
                 ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
@@ -1450,7 +1450,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->delete($db->quoteName('#__action_logs_extensions'))
             ->where($db->quoteName('extension') . ' = ' . $db->quote('com_breezingformsng'));
         $db->setQuery($query)->execute();
@@ -1471,7 +1471,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         try {
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->delete($db->quoteName('#__menu'))
                     ->where($db->quoteName('client_id') . ' = 1')
                     ->where('(' . implode(' OR ', $conditions) . ')')
@@ -1497,7 +1497,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         foreach (['#__schemas', '#__update_sites_extensions'] as $table) {
             try {
                 $db->setQuery(
-                    $db->getQuery(true)
+                    $db->createQuery()
                         ->delete($db->quoteName($table))
                         ->where($db->quoteName('extension_id') . ' IN (' . $ids . ')')
                 );
@@ -1514,7 +1514,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         try {
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->select($db->quoteName('extension_id'))
                     ->from($db->quoteName('#__extensions'))
                     ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
@@ -1544,7 +1544,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $legacyId = $this->getComponentExtensionId($legacyElement);
 
             try {
-                $query = $db->getQuery(true)
+                $query = $db->createQuery()
                     ->update($db->quoteName('#__menu'))
                     ->set($db->quoteName('component_id') . ' = ' . (int) $targetId)
                     ->set($db->quoteName('link') . ' = REPLACE(' . $db->quoteName('link') . ', ' . $db->quote('option=' . $legacyElement) . ', ' . $db->quote('option=' . $targetElement) . ')')
@@ -1575,7 +1575,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             if ($legacyId > 0) {
                 try {
                     $db->setQuery(
-                        $db->getQuery(true)
+                        $db->createQuery()
                             ->update($db->quoteName('#__menu'))
                             ->set($db->quoteName('component_id') . ' = ' . (int) $targetId)
                             ->where($db->quoteName('component_id') . ' = ' . (int) $legacyId)
@@ -1602,7 +1602,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         try {
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->select($db->quoteName(['id', 'title', 'alias', 'path', 'link', 'params']))
                     ->from($db->quoteName('#__menu'))
                     ->where($db->quoteName('client_id') . ' = 1')
@@ -1642,7 +1642,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $params = str_replace('"option":"breezingforms"', '"option":"' . self::TARGET_COMPONENT . '"', $params);
 
                 $db->setQuery(
-                    $db->getQuery(true)
+                    $db->createQuery()
                         ->update($db->quoteName('#__menu'))
                         ->set($db->quoteName('component_id') . ' = ' . (int) $targetId)
                         ->set($db->quoteName('title') . ' = ' . $db->quote($title))
@@ -1670,7 +1670,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         try {
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->select('COUNT(*)')
                     ->from($db->quoteName('#__assets'))
                     ->where($db->quoteName('name') . ' = ' . $db->quote($targetElement))
@@ -1682,7 +1682,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             }
 
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->update($db->quoteName('#__assets'))
                     ->set($db->quoteName('name') . ' = ' . $db->quote($targetElement))
                     ->set($db->quoteName('title') . ' = ' . $db->quote('COM_BREEZINGFORMSNG'))
@@ -1706,7 +1706,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         while (true) {
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->select('COUNT(*)')
                     ->from($db->quoteName('#__menu'))
                     ->where($db->quoteName('client_id') . ' = 1')
@@ -1735,7 +1735,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         try {
             $db = Factory::getContainer()->get(DatabaseInterface::class);
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->select($db->quoteName(['id', 'lft', 'rgt']))
                     ->from($db->quoteName('#__menu'))
                     ->where($db->quoteName('id') . ' = 1')
@@ -1771,7 +1771,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         try {
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->select($db->quoteName(['id', 'alias', 'path']))
                     ->from($db->quoteName('#__menu'))
                     ->where($db->quoteName('client_id') . ' = 1')
@@ -1801,7 +1801,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 }
 
                 $db->setQuery(
-                    $db->getQuery(true)
+                    $db->createQuery()
                         ->update($db->quoteName('#__menu'))
                         ->set($db->quoteName('title') . ' = ' . $db->quote('COM_BREEZINGFORMSNG'))
                         ->set($db->quoteName('alias') . ' = ' . $db->quote($alias))
@@ -1819,7 +1819,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             }
 
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->select($db->quoteName(['id', 'rgt']))
                     ->from($db->quoteName('#__menu'))
                     ->where($db->quoteName('id') . ' = 1')
@@ -1836,7 +1836,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $alias = $this->resolveMenuAlias($rootId, 'breezingformsng');
 
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->update($db->quoteName('#__menu'))
                     ->set($db->quoteName('rgt') . ' = ' . $db->quoteName('rgt') . ' + 2')
                     ->where($db->quoteName('rgt') . ' >= ' . (int) $rootRgt)
@@ -1844,7 +1844,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $db->execute();
 
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->update($db->quoteName('#__menu'))
                     ->set($db->quoteName('lft') . ' = ' . $db->quoteName('lft') . ' + 2')
                     ->where($db->quoteName('lft') . ' > ' . (int) $rootRgt)
@@ -1904,7 +1904,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             ];
 
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->insert($db->quoteName('#__menu'))
                     ->columns($db->quoteName($columns))
                     ->values(implode(', ', $values))
@@ -1929,7 +1929,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         try {
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->select($db->quoteName(['id', 'alias', 'path']))
                     ->from($db->quoteName('#__menu'))
                     ->where($db->quoteName('client_id') . ' = 1')
@@ -2011,7 +2011,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                     : 'index.php?option=' . self::TARGET_COMPONENT . '&' . $route;
 
                 $db->setQuery(
-                    $db->getQuery(true)
+                    $db->createQuery()
                         ->select($db->quoteName('id'))
                         ->from($db->quoteName('#__menu'))
                         ->where($db->quoteName('client_id') . ' = 1')
@@ -2065,7 +2065,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $checked++;
             }
 
-            $query = $db->getQuery(true)
+            $query = $db->createQuery()
                 ->delete($db->quoteName('#__menu'))
                 ->where($db->quoteName('client_id') . ' = 1')
                 ->where(
@@ -2102,7 +2102,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
             try {
                 $db->setQuery(
-                    $db->getQuery(true)
+                    $db->createQuery()
                         ->update($db->quoteName('#__extensions'))
                         ->set($db->quoteName('element') . ' = ' . $db->quote(self::TARGET_COMPONENT))
                         ->set($db->quoteName('name') . ' = ' . $db->quote(self::TARGET_COMPONENT))
@@ -2127,7 +2127,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         try {
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->select($db->quoteName(['extension_id', 'enabled', 'manifest_cache']))
                     ->from($db->quoteName('#__extensions'))
                     ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
@@ -2158,7 +2158,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         try {
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->select([$db->quoteName('component_id'), 'COUNT(1) AS refs'])
                     ->from($db->quoteName('#__menu'))
                     ->where($db->quoteName('client_id') . ' = 1')
@@ -2207,7 +2207,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         try {
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->update($db->quoteName('#__menu'))
                     ->set($db->quoteName('component_id') . ' = ' . (int) $keepId)
                     ->where($db->quoteName('component_id') . ' IN (' . implode(',', $removeIds) . ')')
@@ -2221,7 +2221,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         try {
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->delete($db->quoteName('#__extensions'))
                     ->where($db->quoteName('extension_id') . ' IN (' . implode(',', $removeIds) . ')')
             );
@@ -2251,7 +2251,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
             try {
                 $db->setQuery(
-                    $db->getQuery(true)
+                    $db->createQuery()
                         ->update($db->quoteName('#__menu'))
                         ->set($db->quoteName('component_id') . ' = ' . (int) $targetId)
                         ->set($db->quoteName('link') . ' = REPLACE(' . $db->quoteName('link') . ', ' . $db->quote('option=' . $legacyElement) . ', ' . $db->quote('option=' . self::TARGET_COMPONENT) . ')')
@@ -2266,7 +2266,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
             try {
                 $db->setQuery(
-                    $db->getQuery(true)
+                    $db->createQuery()
                         ->delete($db->quoteName('#__extensions'))
                         ->where($db->quoteName('extension_id') . ' = ' . (int) $legacyId)
                 );
@@ -2322,7 +2322,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         foreach ($replacements as $oldLink => $newLink) {
             try {
                 $db->setQuery(
-                    $db->getQuery(true)
+                    $db->createQuery()
                         ->update($db->quoteName('#__menu'))
                         ->set($db->quoteName('link') . ' = ' . $db->quote($newLink))
                         ->where($db->quoteName('client_id') . ' = 1')
@@ -2360,7 +2360,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     private function removeObsoleteSystemPlugin(): void
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName('extension_id'))
             ->from($db->quoteName('#__extensions'))
             ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
@@ -2928,7 +2928,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         foreach ($this->getPlugins() as $folder => $plugins) {
             foreach ($plugins as $plugin) {
-                $query = $db->getQuery(true)
+                $query = $db->createQuery()
                     ->select($db->quoteName('extension_id'))
                     ->from($db->quoteName('#__extensions'))
                     ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
@@ -2942,7 +2942,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             }
         }
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName('extension_id'))
             ->from($db->quoteName('#__extensions'))
             ->where($db->quoteName('type') . ' = ' . $db->quote('module'))

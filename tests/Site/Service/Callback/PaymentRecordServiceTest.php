@@ -43,7 +43,7 @@ final class PaymentRecordServiceTest extends TestCase
 
             public int $executions = 0;
 
-            public function getQuery(bool $new = false): object
+            public function createQuery(): object
             {
                 return $this->queries[] = new class {
                     /** @var array<string, string> */

@@ -38,7 +38,7 @@ final class PaymentRecordService
         string $paymentDate,
         int $testAccount
     ): void {
-        $query = $this->database->getQuery(true)
+        $query = $this->database->createQuery()
             ->update($this->database->quoteName('#__facileforms_records'))
             ->set($this->database->quoteName('paypal_tx_id') . ' = :paymentTransaction')
             ->set($this->database->quoteName('paypal_payment_date') . ' = :paymentDate')
@@ -58,7 +58,7 @@ final class PaymentRecordService
 
     private function findRecord(int $recordId, bool $unpaidOnly): ?object
     {
-        $query = $this->database->getQuery(true)
+        $query = $this->database->createQuery()
             ->select('*')
             ->from($this->database->quoteName('#__facileforms_records'))
             ->where($this->database->quoteName('id') . ' = :recordId')

@@ -77,7 +77,7 @@ final class StripeCallback
 
 
                     $stripePrefix = 'Stripe:%';
-                    $existsQuery = $db->getQuery(true)
+                    $existsQuery = $db->createQuery()
                         ->select($db->quoteName('paypal_tx_id'))
                         ->from($db->quoteName('#__facileforms_records'))
                         ->where($db->quoteName('id') . ' = :recordId')

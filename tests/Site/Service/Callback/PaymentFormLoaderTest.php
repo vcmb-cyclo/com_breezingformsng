@@ -83,7 +83,7 @@ final class PaymentFormLoaderTest extends TestCase
                 $this->results = $results;
             }
 
-            public function getQuery(bool $new = false): object
+            public function createQuery(): object
             {
                 return $this->query = new class {
                     /** @var array<string, string> */

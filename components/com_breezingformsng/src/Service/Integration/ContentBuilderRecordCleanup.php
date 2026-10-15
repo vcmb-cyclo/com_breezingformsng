@@ -58,7 +58,7 @@ final class ContentBuilderRecordCleanup
         $db = $this->db;
         $type = self::TYPE;
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->delete($db->quoteName('#__contentbuilderng_records'))
             ->where($db->quoteName('type') . ' = :type')
             ->where($db->quoteName('reference_id') . ' = :formId')
@@ -67,7 +67,7 @@ final class ContentBuilderRecordCleanup
             ->bind(':formId', $formId, ParameterType::INTEGER);
         $db->setQuery($query)->execute();
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName(['id', 'delete_articles']))
             ->from($db->quoteName('#__contentbuilderng_forms'))
             ->where($db->quoteName('type') . ' = :type')
@@ -81,13 +81,13 @@ final class ContentBuilderRecordCleanup
             return;
         }
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->delete($db->quoteName('#__contentbuilderng_list_records'))
             ->whereIn($db->quoteName('form_id'), $cbFormIds)
             ->whereIn($db->quoteName('record_id'), $recordIds);
         $db->setQuery($query)->execute();
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName(['article_id', 'form_id']))
             ->from($db->quoteName('#__contentbuilderng_articles'))
             ->whereIn($db->quoteName('form_id'), $cbFormIds)
@@ -104,7 +104,7 @@ final class ContentBuilderRecordCleanup
             $this->deleteArticles(array_values(array_unique($articleIds)));
         }
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->delete($db->quoteName('#__contentbuilderng_articles'))
             ->whereIn($db->quoteName('form_id'), $cbFormIds)
             ->whereIn($db->quoteName('record_id'), $recordIds);
@@ -145,7 +145,7 @@ final class ContentBuilderRecordCleanup
         }
 
         $db = $this->db;
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->delete($db->quoteName('#__workflow_associations'))
             ->where($db->quoteName('extension') . ' = :extension')
             ->whereIn($db->quoteName('item_id'), $articleIds)

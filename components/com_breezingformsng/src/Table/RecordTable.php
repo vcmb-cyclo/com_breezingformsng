@@ -58,7 +58,7 @@ final class RecordTable extends Table
 		}
 
 		$db = $this->getDatabase();
-		$query = $db->getQuery(true)
+		$query = $db->createQuery()
 			->delete($db->quoteName('#__facileforms_subrecords'))
 			->where($db->quoteName('record') . ' = :recordId')
 			->bind(':recordId', $recordId, ParameterType::INTEGER);

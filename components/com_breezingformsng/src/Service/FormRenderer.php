@@ -211,7 +211,7 @@ $ff_request = array();
     $ok = true;
     if (is_numeric($formid)) {
         $formIdInt = (int) $formid;
-        $query = $this->database->getQuery(true)
+        $query = $this->database->createQuery()
             ->select('*')
             ->from($this->database->quoteName('#__facileforms_forms'))
             ->where($this->database->quoteName('id') . ' = :formIdInt')
@@ -226,7 +226,7 @@ $ff_request = array();
             $form = $forms[0];
     } else
         if ($formname != null) {
-            $query = $this->database->getQuery(true)
+            $query = $this->database->createQuery()
                 ->select('*')
                 ->from($this->database->quoteName('#__facileforms_forms'))
                 ->where($this->database->quoteName('name') . ' = :formname')
@@ -393,7 +393,7 @@ $ff_request = array();
             $myUser = $this->application->getIdentity();
 
             $username = (string) $myUser->get('username', '');
-            $query = $this->database->getQuery(true)
+            $query = $this->database->createQuery()
                 ->select($this->database->quoteName('id'))
                 ->from($this->database->quoteName('#__users'))
                 ->where('LOWER(' . $this->database->quoteName('username') . ') = LOWER(:username)')

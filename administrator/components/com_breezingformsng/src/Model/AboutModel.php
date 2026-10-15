@@ -27,7 +27,7 @@ final class AboutModel extends BaseDatabaseModel
         $namePattern = '%BreezingForms%';
         $elementPattern = '%breezingforms%';
         $compatElement = 'bfcompat';
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select([
                 $db->quoteName('extension_id'),
                 $db->quoteName('name'),

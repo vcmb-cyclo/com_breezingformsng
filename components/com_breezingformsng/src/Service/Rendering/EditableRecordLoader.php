@@ -29,7 +29,7 @@ final class EditableRecordLoader
 
     public function load(int $formId, int $userId): ?EditableRecord
     {
-        $query = $this->database->getQuery(true)
+        $query = $this->database->createQuery()
             ->select(['id', 'form'])
             ->from($this->database->quoteName('#__facileforms_records'))
             ->where($this->database->quoteName('form') . ' = :formValue')
@@ -47,7 +47,7 @@ final class EditableRecordLoader
         }
 
         $recordId = (int) $records[0]->id;
-        $subrecordsQuery = $this->database->getQuery(true)
+        $subrecordsQuery = $this->database->createQuery()
             ->select('*')
             ->from($this->database->quoteName('#__facileforms_subrecords'))
             ->where($this->database->quoteName('record') . ' = :recordId')

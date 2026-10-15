@@ -22,7 +22,7 @@ final class Repository
 
     public function findPublishedPieceById(int $id): ?StoredCode
     {
-        $query = $this->database->getQuery(true)
+        $query = $this->database->createQuery()
             ->select($this->database->quoteName(['id', 'name', 'code']))
             ->from($this->database->quoteName('#__facileforms_pieces'))
             ->where($this->database->quoteName('id') . ' = :id')
@@ -36,7 +36,7 @@ final class Repository
 
     public function findPublishedPieceByName(string $name): ?StoredCode
     {
-        $query = $this->database->getQuery(true)
+        $query = $this->database->createQuery()
             ->select($this->database->quoteName(['id', 'name', 'code']))
             ->from($this->database->quoteName('#__facileforms_pieces'))
             ->where($this->database->quoteName('name') . ' = :name')
@@ -51,7 +51,7 @@ final class Repository
 
     public function findPublishedScriptById(int $id): ?StoredCode
     {
-        $query = $this->database->getQuery(true)
+        $query = $this->database->createQuery()
             ->select($this->database->quoteName(['id', 'name', 'code']))
             ->from($this->database->quoteName('#__facileforms_scripts'))
             ->where($this->database->quoteName('id') . ' = :id')
@@ -68,7 +68,7 @@ final class Repository
      */
     public function getPublishedScripts(): array
     {
-        $query = $this->database->getQuery(true)
+        $query = $this->database->createQuery()
             ->select($this->database->quoteName(['id', 'name', 'code']))
             ->from($this->database->quoteName('#__facileforms_scripts'))
             ->where($this->database->quoteName('published') . ' = 1')

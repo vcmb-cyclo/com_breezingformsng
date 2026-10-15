@@ -218,7 +218,7 @@ final class DatabaseAuditService
     private function isCollationSupported(string $collation): bool
     {
         try {
-            $query = $this->db->getQuery(true)
+            $query = $this->db->createQuery()
                 ->select('COLLATION_NAME')
                 ->from($this->db->quoteName('information_schema.COLLATIONS'))
                 ->where($this->db->quoteName('COLLATION_NAME') . ' = :collation')
@@ -240,7 +240,7 @@ final class DatabaseAuditService
     private function findColumnCollationIssues(string $physicalTable, string $alias, string $targetCollation): array
     {
         try {
-            $query = $this->db->getQuery(true)
+            $query = $this->db->createQuery()
                 ->select(['COLUMN_NAME', 'CHARACTER_SET_NAME', 'COLLATION_NAME'])
                 ->from($this->db->quoteName('information_schema.COLUMNS'))
                 ->where('TABLE_SCHEMA = DATABASE()')
@@ -294,7 +294,7 @@ final class DatabaseAuditService
 
     private function getTableStatus(string $physicalTable): array
     {
-        $query = $this->db->getQuery(true)
+        $query = $this->db->createQuery()
             ->select(['TABLE_ROWS', 'ENGINE', 'TABLE_COLLATION', 'DATA_LENGTH', 'INDEX_LENGTH'])
             ->from($this->db->quoteName('information_schema.TABLES'))
             ->where('TABLE_SCHEMA = DATABASE()')
@@ -421,7 +421,7 @@ final class DatabaseAuditService
         ?string $dateColumn
     ): array {
         $key = $this->db->quoteName('child.' . $foreignKey);
-        $orphans = fn() => $this->db->getQuery(true)
+        $orphans = fn() => $this->db->createQuery()
             ->from($this->db->quoteName('#__' . $child, 'child'))
             ->join(
                 'LEFT',
@@ -642,7 +642,7 @@ final class DatabaseAuditService
         $issues = [];
 
         try {
-            $query = $this->db->getQuery(true)
+            $query = $this->db->createQuery()
                 ->select($this->db->quoteName(['id', 'title', 'link', 'published', 'params']))
                 ->from($this->db->quoteName('#__menu'))
                 ->where($this->db->quoteName('client_id') . ' = 0')
@@ -652,7 +652,7 @@ final class DatabaseAuditService
             $this->db->setQuery($query);
             $menus = $this->db->loadAssocList() ?: [];
 
-            $query = $this->db->getQuery(true)
+            $query = $this->db->createQuery()
                 ->select($this->db->quoteName(['name', 'published']))
                 ->from($this->db->quoteName('#__facileforms_forms'));
             $this->db->setQuery($query);
@@ -717,7 +717,7 @@ final class DatabaseAuditService
     private function findExtensionIssues(): array
     {
         try {
-            $query = $this->db->getQuery(true)
+            $query = $this->db->createQuery()
                 ->select($this->db->quoteName([
                     'extension_id',
                     'name',
@@ -792,7 +792,7 @@ final class DatabaseAuditService
     private function findDuplicateForms(): array
     {
         try {
-            $query = $this->db->getQuery(true)
+            $query = $this->db->createQuery()
                 ->select($this->db->quoteName(['f.id', 'f.name', 'f.package', 'f.published']))
                 ->select('COUNT(' . $this->db->quoteName('r.id') . ') AS ' . $this->db->quoteName('record_count'))
                 ->from($this->db->quoteName('#__facileforms_forms', 'f'))
@@ -918,7 +918,7 @@ final class DatabaseAuditService
                 return [];
             }
 
-            $query = $this->db->getQuery(true)
+            $query = $this->db->createQuery()
                 ->select($this->db->quoteName(['id', 'name', 'title', 'package', 'published']))
                 ->from($this->db->quoteName('#__facileforms_forms'))
                 ->where($this->db->quoteName('debug_mode') . ' = 1')
@@ -958,7 +958,7 @@ final class DatabaseAuditService
             }
 
             $trashed = RecordState::TRASHED;
-            $query = $this->db->getQuery(true)
+            $query = $this->db->createQuery()
                 ->select($this->db->quoteName('r.form'))
                 ->select('MAX(' . $this->db->quoteName('f.name') . ') AS ' . $this->db->quoteName('name'))
                 ->select('COUNT(*) AS ' . $this->db->quoteName('record_count'))

@@ -209,7 +209,7 @@ final class PaymentDownloadDatabaseDouble implements DatabaseInterface
         $this->results = $results;
     }
 
-    public function getQuery(bool $new = false): PaymentDownloadQueryDouble
+    public function createQuery(): PaymentDownloadQueryDouble
     {
         return $this->queries[] = new PaymentDownloadQueryDouble();
     }

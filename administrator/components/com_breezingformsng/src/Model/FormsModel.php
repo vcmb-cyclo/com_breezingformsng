@@ -47,7 +47,7 @@ class FormsModel extends ListModel
     protected function getListQuery()
     {
         $db = $this->db();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName(['id', 'title', 'name', 'pages', 'published', 'ordering', 'modified']))
             ->from($db->quoteName('#__facileforms_forms'));
 
@@ -90,7 +90,7 @@ class FormsModel extends ListModel
     public function getScripts(string $type): array
     {
         $db = $this->db();
-        $q  = $db->getQuery(true)
+        $q  = $db->createQuery()
             ->select([$db->quoteName('id'), "CONCAT(" . $db->quoteName('package') . ", '::', " . $db->quoteName('name') . ") AS text"])
             ->from($db->quoteName('#__facileforms_scripts'))
             ->where($db->quoteName('published') . ' = 1')
@@ -103,7 +103,7 @@ class FormsModel extends ListModel
     public function getPieces(string $type): array
     {
         $db = $this->db();
-        $q  = $db->getQuery(true)
+        $q  = $db->createQuery()
             ->select([$db->quoteName('id'), "CONCAT(" . $db->quoteName('package') . ", '::', " . $db->quoteName('name') . ") AS text"])
             ->from($db->quoteName('#__facileforms_pieces'))
             ->where($db->quoteName('published') . ' = 1')

@@ -32,7 +32,7 @@ final class MenuparentField extends ListField
         $package = (string) $this->form->getValue('package');
 
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName(['id', 'title']))
             ->from($db->quoteName('#__facileforms_compmenus'))
             ->where($db->quoteName('parent') . ' = 0')

@@ -61,7 +61,7 @@ final class InstallerReinstallationTest extends TestCase
         $db = new class {
             public array $states = [];
             public string $state;
-            public function getQuery($new): self
+            public function createQuery(): self
             {
                 return $this;
             }

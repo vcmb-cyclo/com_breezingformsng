@@ -43,7 +43,7 @@ final class OptCallback
     $userSubmitedID = $jinput->getString('id', '');
     $token = $jinput->getString('token', '');
     $optDate = HTMLHelper::date('now', 'Y-m-d H:i:s');
-    $query = $database->getQuery(true)
+    $query = $database->createQuery()
         ->update($database->quoteName('#__facileforms_records'))
         ->set($database->quoteName('opted') . ' = 1')
         ->set($database->quoteName('opt_ip') . ' = :ip')
@@ -76,7 +76,7 @@ final class OptCallback
     $userSubmitedID = $jinput->getString('id', '');
     $token = $jinput->getString('token', '');
     $optDate = HTMLHelper::date('now', 'Y-m-d H:i:s');
-    $query = $database->getQuery(true)
+    $query = $database->createQuery()
         ->update($database->quoteName('#__facileforms_records'))
         ->set($database->quoteName('opted') . ' = 0')
         ->set($database->quoteName('opt_ip') . ' = :ip')
