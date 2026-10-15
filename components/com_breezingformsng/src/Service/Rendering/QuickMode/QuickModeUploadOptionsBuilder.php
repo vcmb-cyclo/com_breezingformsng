@@ -21,7 +21,6 @@ final class QuickModeUploadOptionsBuilder
      *     maxFileSize: string,
      *     maxBytes: string,
      *     multiSelection: string,
-     *     runtimes: string,
      *     buttonWidth: string,
      *     buttonHeight: string
      * }
@@ -33,8 +32,6 @@ final class QuickModeUploadOptionsBuilder
         $maxBytes = is_numeric($bytes) && $bytes > 0 ? (string) (int) $bytes : '0';
         $maxFileSize = $maxBytes !== '0' ? "max_file_size : '" . $maxBytes . "'," : '';
         $multiSelection = !empty($data['flashUploaderMulti']) ? 'true' : 'false';
-        $runtimes = (!empty($data['html5']) ? 'html5,' : '')
-            . (!empty($data['flashUploader']) ? 'flash,' : '') . 'html4';
         $buttonWidth = is_numeric($data['flashUploaderWidth'] ?? null) && $data['flashUploaderWidth'] > 0
             ? (string) (int) $data['flashUploaderWidth']
             : '64';
@@ -47,7 +44,6 @@ final class QuickModeUploadOptionsBuilder
             'maxFileSize' => $maxFileSize,
             'maxBytes' => $maxBytes,
             'multiSelection' => $multiSelection,
-            'runtimes' => $runtimes,
             'buttonWidth' => $buttonWidth,
             'buttonHeight' => $buttonHeight,
         ];

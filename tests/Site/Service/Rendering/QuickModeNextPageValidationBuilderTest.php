@@ -25,9 +25,16 @@ final class QuickModeNextPageValidationBuilderTest extends TestCase
 
         self::assertStringContainsString('function bf_validate_nextpage(page)', $script);
         self::assertStringContainsString('error = ff_validation(ff_currentpage);', $script);
-        self::assertStringContainsString('ladda_button.ladda("stop");', $script);
+        self::assertStringContainsString('bfSubmitSpinner.stop();', $script);
         self::assertStringContainsString('JQuery("#bfPage"+(page)).ScrollTo({offsetTop: 50});', $script);
         self::assertStringContainsString('ff_initialize("pageentry");', $script);
         self::assertStringContainsString('css("opacity","1")', $script);
+    }
+
+    public function testTheScriptHoldsNoLiteralEscapeSequence(): void
+    {
+        // A "\t" written in a single-quoted PHP string reaches the page as a
+        // backslash and a letter, which is a JavaScript syntax error.
+        self::assertStringNotContainsString('\\', (new QuickModeNextPageValidationBuilder())->build("\n"));
     }
 }

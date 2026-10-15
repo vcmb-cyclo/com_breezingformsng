@@ -18,14 +18,8 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering\QuickMode;
 // phpcs:disable Generic.Files.LineLength
 final class QuickModeUploadThumbnailScriptBuilder
 {
-    public static function build(string $base, string $newline): string
+    public static function build(string $newline): string
     {
-        $escapedBase = json_encode(
-            $base,
-            JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
-        );
-        $escapedBase = substr($escapedBase, 1, -1);
-
         return '                                                        function bfUploadImageThumb(file) {' . $newline .
             '                                                                var img;' . $newline .
             '                                                                var thumbId = \'#\' + file.id + \'thumb\';' . $newline .
@@ -80,8 +74,7 @@ final class QuickModeUploadThumbnailScriptBuilder
             '                                                                                        img.embed(thumbEl, {' . $newline .
             '                                                                                                width: 100,' . $newline .
             '                                                                                                height: 60,' . $newline .
-            '                                                                                                crop: true,' . $newline .
-            '                                                                                                swf_url: moxie.core.utils.Url.resolveUrl(\'' . $escapedBase . 'components/com_breezingformsng/libraries/jquery/plupload/Moxie.swf\')' . $newline .
+            '                                                                                                crop: true' . $newline .
             '                                                                                        });' . $newline .
             '                                                                                };' . $newline .
             $newline .

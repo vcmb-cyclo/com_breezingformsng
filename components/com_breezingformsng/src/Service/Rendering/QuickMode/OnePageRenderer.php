@@ -275,10 +275,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
             );
         }
 
-        RuntimeAssetLoader::style($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/ladda/ladda-themeless.min.css');
-        RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/ladda/spin.min.js');
-        RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/ladda/ladda.min.js');
-        RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/ladda/ladda.jq.min.js');
+        RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/media/com_breezingformsng/js/site/quickmode-submit-spinner.js');
 
         $this->p->app->getDocument()->getWebAssetManager()->addInlineScript(
             $jQuery . '
@@ -287,17 +284,15 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
 			var bfDeactivateField = new Array();
 			var bfDeactivateSection = new Array();
 			var bfCharsLeftLabel = ' . json_encode(Text::_('COM_BREEZINGFORMSNG_CHARS_LEFT')) . ';
-                        var ladda_button = null;
                         var orig_submit_button = null;
 
 			' . $toggleCode . '
 
                         JQuery(document).ready(function(){
-                            // due to a glitch in Ladda, we need to clone the submit buttons 2 times and reload ladda after submit errors
+                            // A submit error restores the button from this clone, see bf_restore_submitbutton().
                             orig_submit_button = JQuery( "#bfSubmitButton" ).clone(true);
                             JQuery(orig_submit_button).attr("id","bfSubmitButtonTmp");
-                            ladda_button = JQuery( "#bfSubmitButton" ).ladda();
-                            Ladda.bind("#bfSubmitButton");
+                            bfSubmitSpinner.bind("#bfSubmitButton");
                         });
 
                         ' . QuickModeAjaxSubmitScriptBuilder::build(
@@ -796,7 +791,6 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                         $exts = $uploadOptions['extensions'];
                         $bytes = $uploadOptions['maxFileSize'];
                         $multiSelection = $uploadOptions['multiSelection'];
-                        $runtimes = $uploadOptions['runtimes'];
                         echo "
                                                         <span id=\"bfUploadContainer" . $mdata['dbId'] . "\">
                                                             <button type=\"button\" class=\"" . $this->bsClass('btn') . " " . $this->bsClass('btn-primary') . " bfUploadButton button\" id=\"bfPickFiles" . $mdata['dbId'] . "\"><i class=\"" . $this->bsClass('icon-upload') . "\"></i></button>
@@ -807,7 +801,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                                                         <!--
 							bfFlashUploaders.push('ff_elem" . $mdata['dbId'] . "');
                                                         var bfFlashFileQueue" . $mdata['dbId'] . " = {};
-" . QuickModeUploadThumbnailScriptBuilder::build($base, chr(10)) . "
+" . QuickModeUploadThumbnailScriptBuilder::build(chr(10)) . "
                                                         JQuery(document).ready(
                                                             function() {
 " . (new QuickModeUploadConfigurationBuilder())->build(
@@ -816,7 +810,6 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
     (string) $this->flashUploadTicket,
     (string) $base,
     (int) $mdata['dbId'],
-    (string) $runtimes,
     (string) $exts,
     (string) $multiSelection,
     (string) json_encode(Text::_('COM_BREEZINGFORMSNG_CHOOSE_FILE')),
@@ -1053,7 +1046,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                         $this->rootMdata['submitLabel'] = $this->rootMdata['submitLabel_translation' . $this->language_tag];
                     }
                     /* translatables end */
-                    echo '<button data-style="zoom-in" type="button" id="bfSubmitButton" class="bfSubmitButton ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . ' ' . $this->bsClass('float-end') . ' button' . $this->fadingClass . '" onclick="this.disabled=true;if(typeof bf_htmltextareainit != \'undefined\'){ bf_htmltextareainit() }if(document.getElementById(\'bfPaymentMethod\')){document.getElementById(\'bfPaymentMethod\').value=\'\';};' . $callSubmit . ';" value="' . htmlentities(trim($this->rootMdata['submitLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['submitLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
+                    echo '<button type="button" id="bfSubmitButton" class="bfSubmitButton ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . ' ' . $this->bsClass('float-end') . ' button' . $this->fadingClass . '" onclick="this.disabled=true;if(typeof bf_htmltextareainit != \'undefined\'){ bf_htmltextareainit() }if(document.getElementById(\'bfPaymentMethod\')){document.getElementById(\'bfPaymentMethod\').value=\'\';};' . $callSubmit . ';" value="' . htmlentities(trim($this->rootMdata['submitLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['submitLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
                 }
 
                 if ($this->rootMdata['cancelInclude'] && $dataObject['properties']['pageNumber'] + 1 > count($this->dataObject['children']) - $last) {

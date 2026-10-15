@@ -83,7 +83,7 @@ final class CaptchaLegacyValidationScriptBuilder
                                                                                    }
 									           bfShowErrors(__CAPTCHA_ERROR__);
 									        }
-                                                                                if(typeof ladda_button != "undefined"){
+                                                                                if(typeof bfSubmitSpinner != "undefined"){
                                                                                     
                                                                                     bf_restore_submitbutton();
                                                                                 }

@@ -26,8 +26,7 @@ final class QuickModeOnePageCallbackScriptBuilder
             . '                            JQuery(old_submit).remove();' . $newline
             . '                            JQuery(cloned_submit).attr("id","bfSubmitButton");' . $newline
             . $newline
-            . '                            ladda_button = JQuery( "#bfSubmitButton" ).ladda();' . $newline
-            . '                            Ladda.bind("#bfSubmitButton");' . $newline
+            . '                            bfSubmitSpinner.bind("#bfSubmitButton");' . $newline
             . '                        }' . $newline;
     }
 

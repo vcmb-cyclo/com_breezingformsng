@@ -4,8 +4,8 @@
    enabled. Kept separate from the classic/Bootstrap variant
    (quickmode-flash-upload.js): OnePage always alert()s on validation
    failure instead of respecting bfUseErrorAlerts/bfShowErrors, resets the
-   submit button's Ladda spinner (global `ladda_button`, set up elsewhere
-   in this theme's inline script) on failure, and calls this theme's own
+   submit button's spinner (global `bfSubmitSpinner`, see
+   quickmode-submit-spinner.js) on failure, and calls this theme's own
    bf_validate_submit() instead of the shared ff_validate_submit() once
    all queued uploads finish. */
 var bfUploaders = [];
@@ -52,7 +52,7 @@ function bfDoFlashUpload(){
         }
         ff_validationFocus("");
         document.getElementById("bfSubmitButton").disabled = false;
-        ladda_button.ladda("stop");
+        bfSubmitSpinner.stop();
     }
 }
 function bfCheckFlashUploadProgress(){

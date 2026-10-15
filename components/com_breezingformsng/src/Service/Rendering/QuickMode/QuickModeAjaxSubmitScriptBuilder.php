@@ -37,7 +37,7 @@ final class QuickModeAjaxSubmitScriptBuilder
             '                            JQuery("#remodal-thankyou-msg").html("");' . $newline .
             $newline .
             '                            posting.fail(function(jqXHR, textStatus, errorThrown) {' . $newline .
-            '                                ladda_button.ladda("stop");' . $newline .
+            '                                bfSubmitSpinner.stop();' . $newline .
             '                                var err = ' . $errorMessage . ';' . $newline .
             '                                alert( err + ": " + textStatus );' . $newline .
             '                                console.log(errorThrown);' . $newline .
@@ -54,7 +54,7 @@ final class QuickModeAjaxSubmitScriptBuilder
             '                                JQuery("#bfSubmitMessage").css("display","none");' . $newline .
             '                                JQuery("#bfSubmitMessage").css("z-index","999999");' . $newline .
             '                                if(' . ($hasLastPage ? 'true' : 'false') . '){' . $newline .
-            '                                    ladda_button.ladda("stop");' . $newline .
+            '                                    bfSubmitSpinner.stop();' . $newline .
             '                                    var cloned = JQuery(".bfPage").last().clone();' . $newline .
             '                                    JQuery("#remodal-thankyou-msg").html(JQuery(".bfPage").last().clone().'
             . 'html());'
@@ -69,7 +69,7 @@ final class QuickModeAjaxSubmitScriptBuilder
             '                                    JQuery(".bfPage").css("pointer-events","auto");' . $newline .
             '                                    JQuery(".bfPage").css("opacity","1.0");' . $newline .
             '                                    ff_currentpage = JQuery(".bfPage").length + 1;' . $newline .
-            '                                    ladda_button.ladda("stop");' . $newline .
+            '                                    bfSubmitSpinner.stop();' . $newline .
             '                                    if(typeof crbc_cart_url != "undefined"){' . $newline .
             '                                        location.href = crbc_cart_url;' . $newline .
             '                                    }else{' . $newline .

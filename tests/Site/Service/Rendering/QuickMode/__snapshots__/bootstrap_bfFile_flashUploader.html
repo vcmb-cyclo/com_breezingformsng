@@ -64,8 +64,7 @@
                                                                                         img.embed(thumbEl, {
                                                                                                 width: 100,
                                                                                                 height: 60,
-                                                                                                crop: true,
-                                                                                                swf_url: moxie.core.utils.Url.resolveUrl('http://example.test/components/com_breezingformsng/libraries/jquery/plupload/Moxie.swf')
+                                                                                                crop: true
                                                                                         });
                                                                                 };
 
@@ -92,13 +91,12 @@
                                                                         multi_selection: false,
                                                                         unique_names: iOS,
                                                                         chunk_size: '100kb',
-                                                                        runtimes : 'html5,flash,html4',
+                                                                        runtimes : 'html5',
                                                                         browse_button : 'bfPickFiles62',
                                                                         container: 'bfUploadContainer62',
                                                                         file_data_name: 'Filedata',
                                                                         multipart_params: { form: 27, itemName : 'photo', bfFlashUploadTicket: '', option: 'com_breezingformsng', format: 'html', flashUpload: 'true', Itemid: 0 },
                                                                         url : 'http://example.test/index.php',
-                                                                        flash_swf_url : 'http://example.test/components/com_breezingformsng/libraries/jquery/plupload/Moxie.swf',
                                                                         filters : [
                                                                                 {title : "COM_BREEZINGFORMSNG_CHOOSE_FILE", extensions : 'jpg,png'}
                                                                         ]

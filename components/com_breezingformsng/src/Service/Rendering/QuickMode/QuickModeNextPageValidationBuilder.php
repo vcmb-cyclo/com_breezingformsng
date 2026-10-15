@@ -27,23 +27,23 @@ final class QuickModeNextPageValidationBuilder
             '                             JQuery(".bfErrorMessage").css("display","none");' . $newline .
             '                            }' . $newline .
             $newline .
-            '\t\t\t\t\t\t\t\terror = ff_validation(ff_currentpage);' . $newline .
+            '                                error = ff_validation(ff_currentpage);' . $newline .
             '                            if (error != "") {' . $newline .
-            '\t\t\t\t\t\t\t\t' . $newline .
+            '                                ' . $newline .
             '                               if(typeof bfUseErrorAlerts == "undefined"){' . $newline .
-            '\t\t\t\t\t\t\t\t\talert(error);' . $newline .
+            '                                    alert(error);' . $newline .
             '                                } else {' . $newline .
-            '\t\t\t\t\t\t\t\t\tbfShowErrors(error);' . $newline .
+            '                                    bfShowErrors(error);' . $newline .
             '                                   ' . $newline .
             '                                } ' . $newline .
             $newline .
-            '\t\t\t\t\t\t\t\tff_validationFocus("");' . $newline .
+            '                                ff_validationFocus("");' . $newline .
             $newline .
             '                                JQuery(".bfErrorMessage").css("display","none");' . $newline .
             '                                ff_currentpage = ff_getPageByName(ff_validationFocusName);' . $newline .
             '                                JQuery("#bfPage"+ff_currentpage+" .bfErrorMessage")'
             . '.css("display","block");' . $newline .
-            '                                ladda_button.ladda("stop");' . $newline .
+            '                                bfSubmitSpinner.stop();' . $newline .
             $newline .
             '                            } else {' . $newline .
             '                                JQuery("#bfPage"+(page)).ScrollTo({offsetTop: 50});' . $newline .

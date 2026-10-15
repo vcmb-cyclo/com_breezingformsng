@@ -25,7 +25,7 @@ final class QuickModeOnePageCallbackScriptBuilderTest extends TestCase
 
         self::assertStringContainsString('function bf_restore_submitbutton(){', $script);
         self::assertStringContainsString('replaceWith( JQuery(cloned_submit) );', $script);
-        self::assertStringContainsString('Ladda.bind("#bfSubmitButton");', $script);
+        self::assertStringContainsString('bfSubmitSpinner.bind("#bfSubmitButton");', $script);
     }
 
     public function testCloseRemodalUsesCartUrlOrTheEncodedRedirect(): void

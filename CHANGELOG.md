@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- The installer now removes, on install and on update, the files and folders earlier
+  releases shipped and later ones dropped (78 files and 10 folders: classes replaced
+  by the native MVC, removed JavaScript libraries, Ladda among them, mobile and
+  Internet Explorer theme files). Joomla leaves such files in place because their
+  parent folder is still in the manifest. The six classic skins formerly under
+  `themes/quickmode` are left alone, in case a site customised them.
+- Fixed QuickMode forms in one-page mode: two generated scripts held literal `\t`
+  sequences, a JavaScript syntax error that disabled the whole page script, so the
+  form could not be submitted.
+- Replaced the vendored Ladda 1.0.6 library (submit button spinner of the one-page
+  mode) with the Bootstrap 5 spinner, driven by a small first-party script.
 - The CSV import of records has its own screen with a native Joomla form
   (`forms/recordsimport.xml`): the target form is now chosen on the screen and is
   required, and the form is validated before the file is read. The import code moves
