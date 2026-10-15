@@ -25,6 +25,9 @@ class IntegratorRulesModel extends ListModel
 {
     private const SORTS = ['rules.name', 'rules.type', 'forms.name', 'rules.reference_table', 'rules.published'];
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
         $config['filter_fields'] ??= [...self::SORTS, 'published'];

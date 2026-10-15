@@ -76,6 +76,20 @@ final class SubmissionEngine
     ) {
     }
 
+    /**
+     * @param string $filename
+     * @param string $userfile_name
+     * @param string $destpath
+     * @param mixed $timestamp
+     * @param mixed $useUrl
+     * @param mixed $useUrlDownloadDirectory
+     * @param mixed $resize_target_width
+     * @param mixed $resize_target_height
+     * @param mixed $resize_type
+     * @param mixed $resize_bgcolor
+     * @param mixed $field_name
+     * @return array{default: string, server: string}|''
+     */
     public function saveUpload($filename, $userfile_name, $destpath, $timestamp, $useUrl = false, $useUrlDownloadDirectory = '', $resize_target_width = 0, $resize_target_height = 0, $resize_type = '', $resize_bgcolor = '#ffffff', $field_name = '')
     {
         global $mosConfig_fileperms;
@@ -133,6 +147,10 @@ final class SubmissionEngine
         return ((float) $time[0] + (float) $time[1]) / 1000;
     }
 
+    /**
+     * @param array<string, mixed>|null $cbResult
+     * @return string|void
+     */
     function collectSubmitdata($cbResult = null)
     {
         if ($this->processor->dying || $this->processor->submitdata)
@@ -679,6 +697,9 @@ final class SubmissionEngine
 
     // collectSubmitdata
 
+    /**
+     * @return null|void
+     */
     function submit()
     {
         global $ff_config, $ff_comsite, $ff_mossite, $ff_otherparams;
@@ -1665,8 +1686,8 @@ transition: box-shadow .15s linear;
             }
         }
 
-        $this->processor->app->getSession()->clear('ff_editable_overridePlg' . $this->processor->app->getInput()->getInt('ff_contentid', 0) . $this->processor->form_id);
-        $this->processor->app->getSession()->clear('ff_editablePlg' . $this->processor->app->getInput()->getInt('ff_contentid', 0) . $this->processor->form_id);
+        $this->processor->app->getSession()->remove('ff_editable_overridePlg' . $this->processor->app->getInput()->getInt('ff_contentid', 0) . $this->processor->form_id);
+        $this->processor->app->getSession()->remove('ff_editablePlg' . $this->processor->app->getInput()->getInt('ff_contentid', 0) . $this->processor->form_id);
         $this->processor->app->getSession()->set('ff_editableMod' . $this->processor->app->getInput()->getInt('ff_module_id', 0) . $this->processor->form_id, 0);
         $this->processor->app->getSession()->set('ff_editable_overrideMod' . $this->processor->app->getInput()->getInt('ff_module_id', 0) . $this->processor->form_id, 0);
 
@@ -1692,6 +1713,10 @@ transition: box-shadow .15s linear;
         return $this->uploadTimestampFormatterService ??= new SubmissionTimestampFormatter();
     }
 
+    /**
+     * @param mixed $value
+     * @return string
+     */
     function removeDangerousHtml($value)
     {
         return $this->htmlSanitizer()->sanitize((string) $value);

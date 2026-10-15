@@ -33,6 +33,7 @@ class HtmlView extends BaseHtmlView
     public ?Pagination $pagination = null;
     public ?Registry $state = null;
     public ?Form $filterForm = null;
+    /** @var array<string, mixed> */
     public array $activeFilters = [];
     public bool $canEdit = false;
     public bool $canOpen = false;

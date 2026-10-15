@@ -21,12 +21,18 @@ class QuickmodeModel extends BaseDatabaseModel
 {
     private DatabaseInterface $db;
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(array $config = [])
     {
         parent::__construct($config);
         $this->db = $this->getDatabase();
     }
 
+    /**
+     * @param array<string, mixed> $dataObject
+     */
     public function save(int $form, array $dataObject): int
     {
         if (isset($dataObject['properties']) && is_array($dataObject['properties'])) {
@@ -109,6 +115,9 @@ class QuickmodeModel extends BaseDatabaseModel
             : '';
     }
 
+    /**
+     * @return array<string, list<object>>
+     */
     public function getElementScripts(): array
     {
         $result = [];
@@ -127,11 +136,17 @@ class QuickmodeModel extends BaseDatabaseModel
         return $result;
     }
 
+    /**
+     * @return list<string>
+     */
     public function getThemes(): array
     {
         return $this->scanThemeDir(JPATH_SITE . '/media/breezingforms/themes/');
     }
 
+    /**
+     * @return list<string>
+     */
     public function getThemesBootstrap(): array
     {
         return $this->scanThemeDir(JPATH_SITE . '/media/breezingforms/themes-bootstrap5/');
@@ -139,6 +154,9 @@ class QuickmodeModel extends BaseDatabaseModel
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
+    /**
+     * @return list<string>
+     */
     private function scanThemeDir(string $folder): array
     {
         $themes = [];
@@ -159,6 +177,9 @@ class QuickmodeModel extends BaseDatabaseModel
         return $themes;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getDefaultElement(): array
     {
         return [
@@ -206,6 +227,9 @@ class QuickmodeModel extends BaseDatabaseModel
         ];
     }
 
+    /**
+     * @param array<string, mixed> $dataObject
+     */
     private function createAreasFromTree(array $dataObject, \stdClass $areas, int $page = 1): void
     {
         $element = $this->getDefaultElement();
@@ -439,6 +463,9 @@ class QuickmodeModel extends BaseDatabaseModel
         }
     }
 
+    /**
+     * @param array<string, mixed> $dataObject
+     */
     private function updateDbId(array &$dataObject, mixed $id, int $dbId): void
     {
         if (isset($dataObject['attributes'], $dataObject['properties'])) {
@@ -455,6 +482,9 @@ class QuickmodeModel extends BaseDatabaseModel
         }
     }
 
+    /**
+     * @param array<int, array<string, mixed>> $areas
+     */
     private function save2(int $form, string $formName, string $formTitle, string $formDesc, string $templateCode, array $areas, int $pages = 1): int
     {
         $dataObject = json_decode(base64_decode($templateCode), true);
@@ -713,6 +743,10 @@ class QuickmodeModel extends BaseDatabaseModel
     /**
      * Column => value map shared by the element INSERT and UPDATE branches
      * of save2().
+     *
+     * @param array<string, mixed> $element
+     *
+     * @return array<string, mixed>
      */
     private function elementFields(array $element, int $form, int $elementCount): array
     {
@@ -765,6 +799,8 @@ class QuickmodeModel extends BaseDatabaseModel
     /**
      * Binds a column => value map built by elementFields() onto a query
      * using ":<column>" as the placeholder name for each column.
+     *
+     * @param array<string, mixed> $fields
      */
     private function bindFields(\Joomla\Database\QueryInterface $query, array $fields): void
     {
@@ -782,6 +818,9 @@ class QuickmodeModel extends BaseDatabaseModel
         }
     }
 
+    /**
+     * @return list<string>
+     */
     private function chunkString(string $str, int $size): array
     {
         $chunks = [];

@@ -120,6 +120,9 @@ class FormOptionsModel extends BaseDatabaseModel
         return $obj;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function saveForm(array $data): int
     {
         $db  = $this->db();

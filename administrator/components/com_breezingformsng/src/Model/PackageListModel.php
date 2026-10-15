@@ -27,6 +27,9 @@ abstract class PackageListModel extends ListModel
 
     private const SORTS = ['id', 'package', 'title', 'name', 'type', 'description', 'modified', 'published'];
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
         $config['filter_fields'] ??= self::SORTS;

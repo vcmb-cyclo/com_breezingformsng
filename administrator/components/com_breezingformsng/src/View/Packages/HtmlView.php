@@ -19,8 +19,11 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 
 final class HtmlView extends BaseHtmlView
 {
+    /** @var list<string> */
     public array $packages = [];
+    /** @var array<string, list<array<string, mixed>>> */
     public array $choices = [];
+    /** @var array<array<string, mixed>> */
     public array $profiles = [];
 
     public function display($tpl = null)

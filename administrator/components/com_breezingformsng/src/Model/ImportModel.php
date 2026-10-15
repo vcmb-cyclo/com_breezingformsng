@@ -108,6 +108,11 @@ class ImportModel extends BaseDatabaseModel
         }
     }
 
+    /**
+     * @param int[] $touched
+     * @param array<mixed> $created
+     * @param array<mixed> $updated
+     */
     private function importLibraryItem(\SimpleXMLElement $node, string $table, array &$touched, array &$created, array &$updated): void
     {
         $unknown = Text::_('COM_BREEZINGFORMSNG_INSTALLER_UNKNOWN');
@@ -178,6 +183,10 @@ class ImportModel extends BaseDatabaseModel
         }
     }
 
+    /**
+     * @param array<string, int|string> $item
+     * @param array<string, mixed> $existing
+     */
     private function isUnchanged(array $item, array $existing): bool
     {
         foreach ($item as $key => $value) {

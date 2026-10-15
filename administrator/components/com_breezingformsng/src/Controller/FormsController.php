@@ -28,11 +28,17 @@ class FormsController extends AdminController
 
     protected $text_prefix = 'COM_BREEZINGFORMSNG';
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function getModel($name = 'Form', $prefix = 'Administrator', $config = ['ignore_request' => true])
     {
         return parent::getModel($name, $prefix, $config);
     }
 
+    /**
+     * @param array<string, string> $urlparams
+     */
     public function display($cachable = false, $urlparams = []): static
     {
         $this->app->getInput()->set('view', 'forms');

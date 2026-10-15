@@ -32,6 +32,9 @@ final class Breezingforms extends CMSPlugin implements SubscriberInterface
 
     protected $autoloadLanguage = true;
 
+    /**
+     * @return array<string, string>
+     */
     public static function getSubscribedEvents(): array
     {
         return ['onContentPrepare' => 'prepareContent'];
@@ -61,6 +64,9 @@ final class Breezingforms extends CMSPlugin implements SubscriberInterface
         );
     }
 
+    /**
+     * @param array<int, string> $matches
+     */
     private function renderForm(array $matches, int $contentId, CMSApplication $app): string
     {
         $name = $matches[1];

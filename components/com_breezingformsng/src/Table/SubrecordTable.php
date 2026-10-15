@@ -22,11 +22,17 @@ use Joomla\Database\DatabaseInterface;
 
 final class SubrecordTable extends Table
 {
+	/** @var int|string|null */
 	public $id = null;     	// identifier
+	/** @var int|string|null */
 	public $record = null;  // record id
+	/** @var int|string|null */
 	public $element = null; // element id
+	/** @var string|null */
 	public $name = null;    // element name
+	/** @var string|null */
 	public $type = null;    // data type
+	/** @var string|null */
 	public $value = null;   // data value
 
 	public function __construct(DatabaseInterface $db)

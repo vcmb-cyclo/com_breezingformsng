@@ -75,6 +75,9 @@ abstract class PackageItemController extends FormController
         $this->navigate('next');
     }
 
+    /**
+     * @param  array<string, mixed>  $validData
+     */
     protected function postSaveHook(BaseDatabaseModel $model, $validData = [])
     {
         (new ActionLogger($this->app))->log(

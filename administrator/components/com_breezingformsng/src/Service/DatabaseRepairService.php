@@ -21,6 +21,9 @@ final class DatabaseRepairService
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $group
+     */
     public static function getDuplicateIndexSelectionToken(array $group): string
     {
         $drop = array_values(array_map(
@@ -35,6 +38,9 @@ final class DatabaseRepairService
         ]));
     }
 
+    /**
+     * @param array<string, mixed> $issue
+     */
     public static function getColumnCollationSelectionToken(array $issue): string
     {
         return hash('sha256', implode("\0", [
@@ -47,6 +53,9 @@ final class DatabaseRepairService
         ]));
     }
 
+    /**
+     * @param array<string, mixed> $issue
+     */
     public static function getTableCollationSelectionToken(array $issue): string
     {
         return hash('sha256', implode("\0", [
@@ -57,6 +66,7 @@ final class DatabaseRepairService
     }
 
     /**
+     * @param array<mixed> $selectedTokens
      * @return array{selected_tables:int, repaired_tables:int, failed_tables:int, errors:array<int,string>}
      */
     public function repairTableCollations(array $selectedTokens): array
@@ -107,6 +117,7 @@ final class DatabaseRepairService
     /**
      * Repair only column-collation issues selected from a fresh audit report.
      *
+     * @param array<mixed> $selectedTokens
      * @return array{selected_columns:int, repaired_columns:int, failed_columns:int, errors:array<int,string>}
      */
     public function repairColumnCollations(array $selectedTokens): array
@@ -189,6 +200,7 @@ final class DatabaseRepairService
     /**
      * Repair only duplicate-index groups selected from a fresh audit report.
      *
+     * @param array<mixed> $selectedTokens
      * @return array{
      *     selected_groups:int,
      *     repaired_groups:int,
@@ -268,6 +280,7 @@ final class DatabaseRepairService
     /**
      * Delete only stale installer directories selected from a fresh audit.
      *
+     * @param array<mixed> $selectedPaths
      * @return array{selected_dirs:int, deleted_dirs:int, failed_dirs:int, errors:array<int,string>}
      */
     public function deleteStaleInstallerTemp(array $selectedPaths): array

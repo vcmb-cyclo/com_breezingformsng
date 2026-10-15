@@ -45,6 +45,9 @@ class IntegratorModel extends BaseDatabaseModel
         return count($rows) === 1 ? $rows[0] : null;
     }
 
+    /**
+     * @return list<object>
+     */
     public function getItems(int $ruleId): array
     {
         $db = $this->db();
@@ -60,11 +63,17 @@ class IntegratorModel extends BaseDatabaseModel
         return $db->loadObjectList() ?: [];
     }
 
+    /**
+     * @return list<string>
+     */
     public function getTableNames(): array
     {
         return $this->db()->getTableList();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getTableColumns(string $table): array
     {
         try {
@@ -74,6 +83,9 @@ class IntegratorModel extends BaseDatabaseModel
         }
     }
 
+    /**
+     * @return list<object>
+     */
     public function getForms(string $filter = 'all'): array
     {
         $db    = $this->db();
@@ -91,6 +103,9 @@ class IntegratorModel extends BaseDatabaseModel
         return $db->loadObjectList() ?: [];
     }
 
+    /**
+     * @return list<object>
+     */
     public function getFormElements(int $formId): array
     {
         $db = $this->db();
@@ -124,6 +139,9 @@ class IntegratorModel extends BaseDatabaseModel
         return (int) $db->insertid();
     }
 
+    /**
+     * @param array<mixed> $ids
+     */
     public function deleteRules(array $ids): void
     {
         $ids = array_values(array_filter(array_map('intval', $ids)));
@@ -157,6 +175,9 @@ class IntegratorModel extends BaseDatabaseModel
         $db->setQuery($query)->execute();
     }
 
+    /**
+     * @return list<object>
+     */
     public function getCriteria(int $ruleId): array
     {
         $db = $this->db();
@@ -201,6 +222,9 @@ class IntegratorModel extends BaseDatabaseModel
         $db->setQuery($query)->execute();
     }
 
+    /**
+     * @return list<object>
+     */
     public function getCriteriaJoomla(int $ruleId): array
     {
         $db = $this->db();
@@ -246,6 +270,9 @@ class IntegratorModel extends BaseDatabaseModel
         $db->setQuery($query)->execute();
     }
 
+    /**
+     * @return list<object>
+     */
     public function getCriteriaFixed(int $ruleId): array
     {
         $db = $this->db();

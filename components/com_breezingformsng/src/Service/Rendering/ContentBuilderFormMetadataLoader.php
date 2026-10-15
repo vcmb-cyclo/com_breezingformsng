@@ -50,6 +50,9 @@ final class ContentBuilderFormMetadataLoader
         return is_array($data) ? $data : null;
     }
 
+    /**
+     * @param string|array<string> $select
+     */
     private function formsQuery(string|array $select): object
     {
         return $this->database->createQuery()

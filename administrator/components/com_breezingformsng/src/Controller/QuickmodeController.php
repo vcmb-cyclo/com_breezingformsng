@@ -24,6 +24,9 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstal
 
 class QuickmodeController extends BaseController
 {
+    /**
+     * @param array<string, mixed> $urlparams
+     */
     public function display($cachable = false, $urlparams = []): static
     {
         $this->app->getInput()->set('view', 'quickmode');

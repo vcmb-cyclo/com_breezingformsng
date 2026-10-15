@@ -59,6 +59,8 @@ final class RecordExporter
 
     /**
      * Exposed for the PDF export templates, which call $this->getSubrecords().
+     *
+     * @return list<object>
      */
     public function getSubrecords(int $recordId): array
     {

@@ -36,23 +36,41 @@ class ClassicRenderer
      * @var HTML_facileFormsProcessor
      */
     private $p = null;
+    /** @var array<string, mixed> */
     private $dataObject = array();
+    /** @var array<string, mixed> */
     private $rootMdata = array();
+    /** @var mixed */
     private $fading = true;
+    /** @var string */
     private $fadingClass = '';
+    /** @var mixed */
     private $useErrorAlerts = false;
+    /** @var mixed */
     private $useDefaultErrors = false;
+    /** @var mixed */
     private $useBalloonErrors = false;
+    /** @var mixed */
     private $rollover = false;
+    /** @var mixed */
     private $rolloverColor = '';
+    /** @var string */
     private $toggleFields = '';
+    /** @var bool */
     private $hasFlashUpload = false;
+    /** @var string */
     private $flashUploadTicket = '';
+    /** @var string */
     private $cancelImagePath = '';
+    /** @var string */
     private $uploadImagePath = '';
+    /** @var list<string> */
     private $htmltextareas = array();
+    /** @var list<string> */
     private $htmltextareasDbIds = array();
+    /** @var string */
     private $language_tag = '';
+    /** @var bool */
     private $hasResponsiveDatePicker = false;
     private ?QuickModeTextFieldStrategy $quickModeTextFieldStrategyService = null;
     private ?QuickModeTextareaStrategy $quickModeTextareaStrategyService = null;
@@ -115,6 +133,9 @@ class ClassicRenderer
         return QuickModeEditorValueBuilder::build($editor);
     }
 
+    /**
+     * @return void
+     */
     public function headers()
     {
 
@@ -315,6 +336,14 @@ float:left;
         }
     }
 
+    /**
+     * @param array<string, mixed> $dataObject
+     * @param array<string, mixed>|null $parent
+     * @param array<string, mixed>|null $parentPage
+     * @param int $index
+     * @param int $childrenLength
+     * @return void
+     */
     public function process(&$dataObject, $parent = null, $parentPage = null, $index = 0, $childrenLength = 0)
     {
         $mdata = null;
@@ -764,6 +793,9 @@ float:left;
      * a snapshot diff. Purely mechanical moves - no logic changed.
      */
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderTextfieldField(array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
         $size = '';
@@ -782,6 +814,9 @@ float:left;
         }
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderNumberInputField(array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
         echo $this->quickModeTextFieldStrategy()->numberInput(
@@ -805,6 +840,9 @@ float:left;
         }
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderTextareaField(array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
         /* translatables */
@@ -835,6 +873,9 @@ float:left;
         }
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderChoiceGroupField(string $type, array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
         /* translatables */
@@ -856,6 +897,9 @@ float:left;
     }
 
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderCheckboxField(array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
         echo $this->quickModeCheckboxStrategy()->build(
@@ -869,6 +913,9 @@ float:left;
         }
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderSelectField(array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
         /* translatables */
@@ -902,6 +949,9 @@ float:left;
         }
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderSubmitButtonField(array $mdata, string $tabIndex, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
         /* translatables */
@@ -954,6 +1004,9 @@ float:left;
         }
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderSummarizeField(array $mdata): void
     {
         /* translatables */
@@ -984,6 +1037,9 @@ float:left;
         }
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderReCaptchaField(array $mdata): void
     {
         echo $this->quickModeReCaptchaFieldBuilder()->build(
@@ -995,6 +1051,9 @@ float:left;
         );
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderCaptchaField(array $mdata): void
     {
         $captcha_url = $this->quickModeCaptchaUrlBuilder()->build(
@@ -1022,6 +1081,9 @@ float:left;
         echo '</span>' . "\n";
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderCalendarField(array $mdata): void
     {
         /* translatables */
@@ -1061,6 +1123,9 @@ float:left;
         echo HTMLHelper::_('calendar', $left, "ff_nm_" . $mdata['bfName'] . "[]", "ff_elem" . $mdata['dbId'], $mdata['format'], $calAttr);
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderCalendarResponsiveField(array $mdata): void
     {
         /* translatables */
@@ -1131,6 +1196,9 @@ float:left;
         $this->hasResponsiveDatePicker = true;
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderSignatureField(array $mdata): void
     {
         RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/js/signature.js');
@@ -1154,6 +1222,9 @@ float:left;
         ]);
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderStripeField(array $mdata, string $tabIndex, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
         /* translatables */
@@ -1180,6 +1251,9 @@ float:left;
         );
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderPayPalField(array $mdata, string $tabIndex, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
         /* translatables */
@@ -1206,6 +1280,9 @@ float:left;
         );
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderSofortueberweisungField(array $mdata, string $tabIndex, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
         /* translatables */
@@ -1232,6 +1309,9 @@ float:left;
         );
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function renderFileField(array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): string
     {
                     $flashUploader = '';
@@ -1320,6 +1400,9 @@ float:left;
                     return $flashUploader;
     }
 
+    /**
+     * @return void
+     */
     public function render()
     {
 
@@ -1373,6 +1456,10 @@ float:left;
         $this->p->app->getDocument()->getWebAssetManager()->addInlineScript('//-->');
     }
 
+    /**
+     * @param mixed $code
+     * @return string
+     */
     public function parseToggleFields($code)
     {
         /*

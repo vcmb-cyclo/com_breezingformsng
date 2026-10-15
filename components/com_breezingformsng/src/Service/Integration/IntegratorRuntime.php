@@ -35,8 +35,10 @@ class IntegratorRuntime
 
     private DatabaseInterface $db;
 
+    /** @var array<int, array{rule: object, items: array<int, array<string, mixed>>}> */
     private $rules = array();
 
+    /** @var array<string, array<mixed>> */
     private $data = array();
 
     public function __construct(int $formId, DatabaseInterface $database)
@@ -45,6 +47,10 @@ class IntegratorRuntime
         $this->rules = $this->getRules($formId);
     }
 
+    /**
+     * @param int $formId
+     * @return array<int, array{rule: object, items: array<int, array<string, mixed>>}>
+     */
     public function getRules($formId)
     {
         $db = $this->db;
@@ -80,6 +86,10 @@ class IntegratorRuntime
         return $out;
     }
 
+    /**
+     * @param int|string $ruleId
+     * @return list<object>
+     */
     public function getItems($ruleId)
     {
         $ruleId = (int) $ruleId;
@@ -113,6 +123,10 @@ class IntegratorRuntime
         return $this->itemsByRule[$ruleId] = $out;
     }
 
+    /**
+     * @param int|string $ruleId
+     * @return list<object>
+     */
     public function getCriteria($ruleId)
     {
         $db = $this->db;
@@ -139,6 +153,10 @@ class IntegratorRuntime
         return $ret;
     }
 
+    /**
+     * @param int|string $ruleId
+     * @return list<object>
+     */
     public function getCriteriaJoomla($ruleId)
     {
         $db = $this->db;
@@ -153,6 +171,10 @@ class IntegratorRuntime
         return $db->setQuery($query)->loadObjectList();
     }
 
+    /**
+     * @param int|string $ruleId
+     * @return list<object>
+     */
     public function getCriteriaFixed($ruleId)
     {
         $db = $this->db;
@@ -167,6 +189,10 @@ class IntegratorRuntime
         return $db->setQuery($query)->loadObjectList();
     }
 
+    /**
+     * @param array<mixed> $data
+     * @return void
+     */
     public function field(array $data)
     {
         $this->data['data' . $data[_FF_DATA_ID]] = $data;
@@ -185,6 +211,11 @@ class IntegratorRuntime
         }
     }
 
+    /**
+     * @param mixed       $value
+     * @param string|null $code
+     * @return mixed
+     */
     public function handleCode($value, $code)
     {
         if (trim($code) != '') {
@@ -193,6 +224,10 @@ class IntegratorRuntime
         return $value;
     }
 
+    /**
+     * @param string|null $code
+     * @return void
+     */
     public function handleFinalizeCode($code)
     {
         if (trim($code) != '') {
@@ -205,6 +240,9 @@ class IntegratorRuntime
         return $this->codeExecutorService ??= new StoredPhpExecutor();
     }
 
+    /**
+     * @return void
+     */
     public function commit()
     {
         foreach ($this->rules as $rule) {
@@ -220,6 +258,7 @@ class IntegratorRuntime
      * Builds an INSERT/UPDATE value list for a rule's items, running each
      * value through its item's configured handleCode() transform first.
      *
+     * @param array<int, array<string, mixed>> $items
      * @return array{ok: bool, columns: string[], values: mixed[]}
      */
     private function collectItemValues(array $items): array
@@ -243,6 +282,9 @@ class IntegratorRuntime
         return ['ok' => $ok, 'columns' => $columns, 'values' => $values];
     }
 
+    /**
+     * @param array{rule: object, items: array<int, array<string, mixed>>} $rule
+     */
     private function commitInsert(array $rule): void
     {
         $collected = $this->collectItemValues($rule['items']);
@@ -261,6 +303,10 @@ class IntegratorRuntime
         }
     }
 
+    /**
+     * @param array<int, string> $columns
+     * @param array<int, mixed>  $values
+     */
     private function executeInsert(string $table, array $columns, array $values): void
     {
         $db = $this->db;
@@ -279,6 +325,9 @@ class IntegratorRuntime
         $db->setQuery($query)->execute();
     }
 
+    /**
+     * @param array{rule: object, items: array<int, array<string, mixed>>} $rule
+     */
     private function commitUpdate(array $rule): void
     {
         $collected = $this->collectItemValues($rule['items']);
@@ -329,6 +378,9 @@ class IntegratorRuntime
      * exactly as the legacy string-concatenation version did, so the whole
      * fragment is built as one raw string rather than via repeated
      * QueryBuilder::where() calls (which only support one uniform glue).
+     *
+     * @param array{form: list<object>, joomla: list<object>, fixed: list<object>} $criteria
+     * @param \Joomla\Database\QueryInterface $query
      */
     private function buildCriteriaClauses(array $criteria, $query, int &$bindIndex): string
     {
@@ -402,6 +454,10 @@ class IntegratorRuntime
         return $clauses;
     }
 
+    /**
+     * @param int|string $ruleId
+     * @return array{form: list<object>, joomla: list<object>, fixed: list<object>}
+     */
     public function collectCriteria($ruleId)
     {
         $crit['form'] = $this->getCriteria($ruleId);

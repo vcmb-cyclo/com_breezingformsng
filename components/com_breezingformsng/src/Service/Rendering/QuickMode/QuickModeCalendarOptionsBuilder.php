@@ -19,6 +19,9 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering\QuickMode;
  */
 final class QuickModeCalendarOptionsBuilder
 {
+    /**
+     * @param array<mixed> $metadata
+     */
     public function isTruthy(array $metadata, string $key): bool
     {
         return isset($metadata[$key])
@@ -28,6 +31,9 @@ final class QuickModeCalendarOptionsBuilder
             && $metadata[$key] !== false;
     }
 
+    /**
+     * @param array<mixed> $metadata
+     */
     public function showTimeEnabled(array $metadata): bool
     {
         return $this->isTruthy($metadata, 'showTime');
@@ -61,6 +67,9 @@ final class QuickModeCalendarOptionsBuilder
         return $firstDay === 7 ? 0 : $firstDay;
     }
 
+    /**
+     * @param array<mixed> $metadata
+     */
     public function selectYears(array $metadata): int
     {
         $minYear = isset($metadata['minYear']) && is_numeric($metadata['minYear'])

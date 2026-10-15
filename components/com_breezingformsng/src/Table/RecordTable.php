@@ -23,21 +23,37 @@ use Joomla\Database\ParameterType;
 
 final class RecordTable extends Table
 {
+	/** @var int|string|null */
 	public $id = null;     		// identifier
+	/** @var string|null */
 	public $submitted = null;   // date and time
+	/** @var int|string|null */
 	public $form = null;     	// form id
+	/** @var string|null */
 	public $title = null;     	// form title
+	/** @var string|null */
 	public $name = null;     	// form name
+	/** @var string|null */
 	public $ip = null;     		// submitters ip
+	/** @var string|null */
 	public $browser = null;     // browser
+	/** @var string|null */
 	public $opsys = null;     	// operating system
+	/** @var string|null */
 	public $provider = null;    // provider
+	/** @var int|string|null */
 	public $viewed = null;     	// view status
+	/** @var int|string|null */
 	public $exported = null;    // export status
+	/** @var int|string|null */
 	public $state = null;       // publication state: 1 published, 2 archived, -2 trashed
+	/** @var string|null */
 	public $paypal_tx_id = null;
+	/** @var string|null */
 	public $paypal_payment_date = null;
+	/** @var int|string|null */
 	public $paypal_testaccount = null;
+	/** @var int|string|null */
 	public $paypal_download_tries = null;
 
 	public function __construct(DatabaseInterface $db)

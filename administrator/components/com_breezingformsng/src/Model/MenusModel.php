@@ -20,6 +20,9 @@ use Joomla\Database\ParameterType;
 
 class MenusModel extends ListModel
 {
+    /**
+     * @param  array<string, mixed>  $config
+     */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
         $config['filter_fields'] ??= ['package', 'published'];

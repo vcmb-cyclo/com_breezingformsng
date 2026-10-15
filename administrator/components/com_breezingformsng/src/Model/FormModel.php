@@ -44,6 +44,11 @@ class FormModel extends AdminModel
         'prevwidth',
     ];
 
+    /**
+     * @param  string                $name
+     * @param  string                $prefix
+     * @param  array<string, mixed>  $options
+     */
     public function getTable($name = 'Form', $prefix = 'Site', $options = [])
     {
         return parent::getTable($name, $prefix, $options);
@@ -51,6 +56,9 @@ class FormModel extends AdminModel
 
     /**
      * The list actions need no edit form: an empty one fulfils the contract.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  bool                  $loadData
      */
     public function getForm($data = [], $loadData = true)
     {
@@ -69,6 +77,8 @@ class FormModel extends AdminModel
 
     /**
      * Deletes the forms with their elements, all of them or none.
+     *
+     * @param  array<int|string, mixed>  $pks
      */
     public function delete(&$pks)
     {

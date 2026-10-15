@@ -31,6 +31,9 @@ class RecordsModel extends ListModel
         'records.modified',
     ];
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
         $config['filter_fields'] ??= [...self::SORTS, 'form', 'state'];

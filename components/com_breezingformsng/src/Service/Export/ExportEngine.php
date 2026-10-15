@@ -43,6 +43,7 @@ use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Mail\MailerFactoryInterface;
 use CB\Component\Contentbuilderng\Administrator\Helper\ContentbuilderngHelper;
 use CB\Component\Contentbuilderng\Administrator\Helper\FormSourceFactory;
+use CB\Component\Contentbuilderng\Administrator\Extension\ContentbuilderngComponent;
 use CB\Component\Contentbuilderng\Administrator\Service\ArticleService;
 use CB\Component\Contentbuilderng\Administrator\Service\ListSupportService;
 use CB\Component\Contentbuilderng\Administrator\Service\PermissionService;
@@ -68,6 +69,10 @@ final class ExportEngine
     ) {
     }
 
+    /**
+     * @param array<string, mixed>|null $cbResult
+     * @return mixed
+     */
     public function logToDatabase($cbResult = null)
     { // CONTENTBUILDER
         global $ff_config;
@@ -542,7 +547,11 @@ final class ExportEngine
                         }
                     }
                     $full = false;
-                    $article_id = $this->processor->app->bootComponent('com_contentbuilderng')->getContainer()->get(ArticleService::class)->createArticle($this->processor->app->getInput()->getInt('cb_form_id', 0), $record_return, $cbData->items, $ids, $cbData->title_field, $cbResult['form']->getRecordMetadata($record_return), $config, $full, true, $this->processor->app->getInput()->get('cb_category_id', null, 'string'));
+                    $contentBuilder = $this->processor->app->bootComponent('com_contentbuilderng');
+                    if (!$contentBuilder instanceof ContentbuilderngComponent) {
+                        throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+                    }
+                    $article_id = $contentBuilder->getContainer()->get(ArticleService::class)->createArticle($this->processor->app->getInput()->getInt('cb_form_id', 0), $record_return, $cbData->items, $ids, $cbData->title_field, $cbResult['form']->getRecordMetadata($record_return), $config, $full, true, $this->processor->app->getInput()->get('cb_category_id', null, 'string'));
 
                     $cacheFactory = $this->cacheControllerFactory;
                     $cache = $cacheFactory->createCacheController('callback', ['defaultgroup' => 'com_content']);
@@ -595,6 +604,19 @@ final class ExportEngine
 
     // logToDatabase
 
+    /**
+     * @param mixed $from
+     * @param mixed $fromname
+     * @param mixed $recipient
+     * @param mixed $subject
+     * @param mixed $body
+     * @param mixed $attachment
+     * @param mixed $html
+     * @param mixed $cc
+     * @param mixed $bcc
+     * @param mixed $alt_sender
+     * @return mixed
+     */
     public function sendMail($from, $fromname, $recipient, $subject, $body, $attachment = null, $html = null, $cc = null, $bcc = null, $alt_sender = '')
     {
         if ($this->processor->dying)
@@ -647,6 +669,12 @@ final class ExportEngine
         return str_ends_with($haystack, $needle);
     }
 
+    /**
+     * @param array<mixed> $filter
+     * @param bool $mailback
+     * @param bool $translate
+     * @return string
+     */
     public function exppdf($filter = [], $mailback = false, $translate = true)
     {
         global $ff_compath;
@@ -836,6 +864,11 @@ final class ExportEngine
         return $pdfname;
     }
 
+    /**
+     * @param array<mixed> $filter
+     * @param bool $mailback
+     * @return string
+     */
     public function expcsv($filter = [], $mailback = false)
     {
         global $ff_config;
@@ -938,6 +971,12 @@ final class ExportEngine
         return $csvname;
     }
 
+    /**
+     * @param array<mixed> $filter
+     * @param bool $mailback
+     * @param bool $translate
+     * @return string
+     */
     public function expxml($filter = [], $mailback = false, $translate = false)
     {
         global $ff_compath, $ff_version, $mosConfig_fileperms;

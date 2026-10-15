@@ -24,8 +24,11 @@ use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView a
 
 class HtmlView extends BaseHtmlView
 {
+    /** @var list<array<string, mixed>> */
     public array $plugins = [];
+    /** @var array<mixed> */
     public array $logReport = [];
+    /** @var array<mixed> */
     public array $auditReport = [];
     public bool $canRepair = false;
 
@@ -117,6 +120,9 @@ class HtmlView extends BaseHtmlView
         parent::display($tpl);
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     private function getInstalledPlugins(): array
     {
         try {

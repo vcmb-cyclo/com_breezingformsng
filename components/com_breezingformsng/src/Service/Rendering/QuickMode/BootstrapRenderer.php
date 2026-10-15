@@ -37,23 +37,41 @@ class BootstrapRenderer
      * @var HTML_facileFormsProcessor
      */
     private $p = null;
+    /** @var array<string, mixed> */
     private $dataObject = array();
+    /** @var array<string, mixed> */
     private $rootMdata = array();
+    /** @var mixed */
     private $fading = true;
+    /** @var string */
     private $fadingClass = '';
+    /** @var mixed */
     private $useErrorAlerts = false;
+    /** @var mixed */
     private $useDefaultErrors = false;
+    /** @var mixed */
     private $useBalloonErrors = false;
+    /** @var mixed */
     private $rollover = false;
+    /** @var mixed */
     private $rolloverColor = '';
+    /** @var string */
     private $toggleFields = '';
+    /** @var bool */
     private $hasFlashUpload = false;
+    /** @var string */
     private $flashUploadTicket = '';
+    /** @var string */
     private $cancelImagePath = '';
+    /** @var list<string> */
     private $htmltextareas = array();
+    /** @var list<string> */
     private $htmltextareasDbIds = array();
+    /** @var string */
     private $language_tag = '';
+    /** @var bool */
     private $hasResponsiveDatePicker = false;
+    /** @var array<int, array<string, string>> */
     private $bsClasses = array();
     private ?QuickModeTextFieldStrategy $quickModeTextFieldStrategyService = null;
     private ?QuickModeTextareaStrategy $quickModeTextareaStrategyService = null;
@@ -96,6 +114,10 @@ class BootstrapRenderer
         return $this->quickModeHintContentResolverService ??= new QuickModeHintContentResolver();
     }
 
+    /**
+     * @param string $key
+     * @return string
+     */
     public function bsClass($key)
     {
 
@@ -182,6 +204,10 @@ class BootstrapRenderer
         return $this->quickModeSubmitActionBuilderService ??= new QuickModeSubmitActionBuilder();
     }
 
+    /**
+     * @param mixed $editor
+     * @return string
+     */
     public static function getEditorContent($editor)
     {
         return QuickModeEditorValueBuilder::build($editor);
@@ -229,6 +255,10 @@ class BootstrapRenderer
         }
     }
 
+    /**
+     * @param mixed $code
+     * @return string
+     */
     public function parseToggleFields($code)
     {
         /*
@@ -248,6 +278,9 @@ class BootstrapRenderer
         return (new QuickModeToggleFieldsParser())->parse((string) $code);
     }
 
+    /**
+     * @return void
+     */
     public function render()
     {
 
@@ -312,6 +345,15 @@ class BootstrapRenderer
         $this->p->app->getDocument()->getWebAssetManager()->addInlineScript('//-->');
     }
 
+    /**
+     * @param array<string, mixed> $dataObject
+     * @param array<string, mixed>|null $parent
+     * @param array<string, mixed>|null $parentPage
+     * @param int $index
+     * @param int $childrenLength
+     * @param array<string, mixed>|null $parentFull
+     * @return void
+     */
     public function process(&$dataObject, $parent = null, $parentPage = null, $index = 0, $childrenLength = 0, $parentFull = null)
     {
         $mdata = null;
@@ -982,6 +1024,9 @@ class BootstrapRenderer
         }
     }
 
+    /**
+     * @return void
+     */
     public function headers()
     {
 

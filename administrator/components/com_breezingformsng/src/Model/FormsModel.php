@@ -18,6 +18,9 @@ class FormsModel extends ListModel
 {
     private const SORTS = ['id', 'title', 'name', 'pages', 'published', 'ordering', 'modified'];
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
         $config['filter_fields'] ??= [...self::SORTS, 'package'];
@@ -87,6 +90,9 @@ class FormsModel extends ListModel
         return $query->order($db->quoteName($ordering) . ' ' . $direction . ', ' . $db->quoteName('id') . ' DESC');
     }
 
+    /**
+     * @return list<object>
+     */
     public function getScripts(string $type): array
     {
         $db = $this->db();
@@ -100,6 +106,9 @@ class FormsModel extends ListModel
         return $db->setQuery($q)->loadObjectList() ?: [];
     }
 
+    /**
+     * @return list<object>
+     */
     public function getPieces(string $type): array
     {
         $db = $this->db();

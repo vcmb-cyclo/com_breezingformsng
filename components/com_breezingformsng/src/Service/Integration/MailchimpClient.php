@@ -22,6 +22,10 @@ final class MailchimpClient
         $this->http = $http ?? (new HttpFactory())->getHttp();
     }
 
+    /**
+     * @param array<mixed>|null $payload
+     * @return array<mixed>
+     */
     public function request(string $apiKey, string $method, string $resource, ?array $payload = null): array
     {
         $separator = strrpos($apiKey, '-');

@@ -59,6 +59,9 @@ final class NotificationEngine
     {
     }
 
+    /**
+     * @return null|void
+     */
     function sendEmailNotification()
     {
         global $ff_config;
@@ -615,6 +618,9 @@ final class NotificationEngine
 
     // sendEmailNotification
 
+    /**
+     * @return string|void
+     */
     function getFormTitleTranslated()
     {
         if (trim($this->processor->formrow->template_code_processed) == 'QuickMode') {
@@ -631,6 +637,15 @@ final class NotificationEngine
         }
     }
 
+    /**
+     * @param string $field
+     * @param mixed $name
+     * @param mixed $res
+     * @param mixed $dataObject
+     * @param int $childrenLength
+     *
+     * @return null|void
+     */
     function getFieldTranslated($field, $name, &$res, $dataObject = null, $childrenLength = 0)
     {
 
@@ -682,6 +697,9 @@ final class NotificationEngine
         return $this->notificationTimestampFormatterService ??= new SubmissionTimestampFormatter();
     }
 
+    /**
+     * @return null|void
+     */
     function sendMailbackNotification()
     {
         global $ff_config;
@@ -1242,6 +1260,9 @@ final class NotificationEngine
         $this->processor->mailbackRecipients = $recipients;
     }
 
+    /**
+     * @return null|void
+     */
     function sendSalesforceNotification()
     {
 
@@ -1283,6 +1304,9 @@ final class NotificationEngine
         }
     }
 
+    /**
+     * @return null|void
+     */
     function sendMailChimpNotification()
     {
 

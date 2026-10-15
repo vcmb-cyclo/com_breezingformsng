@@ -49,6 +49,7 @@ final class EngineDispatcher
     ) {
     }
 
+    /** @param array<string, mixed> $engineContext */
     public function dispatch(array $engineContext, string $application): void
     {
         if (!$this->isCallbackRequest()) {

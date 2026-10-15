@@ -21,6 +21,9 @@ use Joomla\CMS\Uri\Uri;
 
 final class RuntimeAssetLoader
 {
+    /**
+     * @param array<string, mixed> $attributes
+     */
     public static function script(CMSApplication $application, string $uri, array $attributes = []): void
     {
         $uri = self::normalizeUri($uri);
@@ -34,6 +37,9 @@ final class RuntimeAssetLoader
         $manager->useScript($name);
     }
 
+    /**
+     * @param array<string, mixed> $attributes
+     */
     public static function style(CMSApplication $application, string $uri, array $attributes = []): void
     {
         $uri = self::normalizeUri($uri);
@@ -47,6 +53,9 @@ final class RuntimeAssetLoader
         $manager->useStyle($name);
     }
 
+    /**
+     * @param array<string, mixed> $attributes
+     */
     private static function name(string $type, string $uri, array $attributes): string
     {
         return 'com_breezingformsng.runtime.' . $type . '.' . hash('sha256', $uri . serialize($attributes));

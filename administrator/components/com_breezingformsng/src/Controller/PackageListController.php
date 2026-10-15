@@ -60,6 +60,11 @@ abstract class PackageListController extends AdminController
         return parent::execute($task);
     }
 
+    /**
+     * @param string               $name
+     * @param string               $prefix
+     * @param array<string, mixed> $config
+     */
     public function getModel($name = '', $prefix = 'Administrator', $config = ['ignore_request' => true])
     {
         return parent::getModel($name ?: ucfirst(Inflector::singularize($this->view_list)), $prefix, $config);
