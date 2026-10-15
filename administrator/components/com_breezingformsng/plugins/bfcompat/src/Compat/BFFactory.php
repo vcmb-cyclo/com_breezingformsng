@@ -288,10 +288,19 @@ class BFDbo
 
     public function getQuery($new = false)
     {
-        if (!$this->last_query)
-            return $last_failed_query;
+        if ($new) {
+            return $this->createQuery();
+        }
 
-        return $this->dbo->getQuery($new);
+        if (!$this->last_query)
+            return $this->last_failed_query;
+
+        return $this->dbo->getQuery();
+    }
+
+    public function createQuery()
+    {
+        return $this->dbo->createQuery();
     }
 
     public function getPrefix()
