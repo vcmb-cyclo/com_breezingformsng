@@ -50,20 +50,20 @@ class QuickmodeController extends BaseController
         $chunk        = $input->getString('chunk', '');
 
         if ($chunksLength < 1 || $chunkIdx < 0 || $chunkIdx >= $chunksLength || $rndAdd === '') {
-            $app->setHeader('status', 400, true);
+            $app->setHeader('status', '400', true);
             $app->close();
         }
 
         $cacheDir = Path::clean((string) $app->get('tmp_path') . '/com_breezingformsng-quickmode');
 
         if (!is_dir($cacheDir) && !Folder::create($cacheDir)) {
-            $app->setHeader('status', 500, true);
+            $app->setHeader('status', '500', true);
             $app->close();
         }
 
         $dest = $cacheDir . '/ajaxsave_' . $chunkIdx . '_' . $rndAdd . '.txt';
         if (!File::write($dest, $chunk)) {
-            $app->setHeader('status', 500, true);
+            $app->setHeader('status', '500', true);
             $app->close();
         }
 
@@ -76,7 +76,7 @@ class QuickmodeController extends BaseController
             for ($i = 0; $i < $chunksLength; $i++) {
                 $file = $cacheDir . '/ajaxsave_' . $i . '_' . $rndAdd . '.txt';
                 if (!is_file($file)) {
-                    $app->setHeader('status', 400, true);
+                    $app->setHeader('status', '400', true);
                     $app->close();
                 }
 
@@ -88,7 +88,7 @@ class QuickmodeController extends BaseController
             $dataObject = $decoded === false ? null : json_decode($decoded, true);
 
             if (!is_array($dataObject)) {
-                $app->setHeader('status', 400, true);
+                $app->setHeader('status', '400', true);
                 $app->close();
             }
 

@@ -480,7 +480,7 @@ final class QuickmodeHtml
         $editor = Editor::getInstance('codemirror');
 
         // Element id is mandatory for CodeMirror v6.
-        return $editor->display($name, '', '100%', 300, 40, 20, false, $name, null, null, $params);
+        return $editor->display($name, '', '100%', '300', 40, 20, false, $name, null, null, $params);
     }
 
 }

@@ -821,7 +821,7 @@ float:left;
             $editor = Editor::getInstance($this->p->app->get('editor'));
             $this->htmltextareas[] = 'ff_nm_' . $mdata['bfName'] . '[]';
             $this->htmltextareasDbIds[] = 'ff_elem' . $mdata['dbId'];
-            echo $editor->display('ff_nm_' . $mdata['bfName'] . '[]', htmlentities(trim($mdata['value']), ENT_QUOTES, 'UTF-8'), strip_tags($mdata['width']), strip_tags($mdata['height']), '75', '20', true, 'ff_elem' . $mdata['dbId']);
+            echo $editor->display('ff_nm_' . $mdata['bfName'] . '[]', htmlentities(trim($mdata['value']), ENT_QUOTES, 'UTF-8'), strip_tags($mdata['width']), strip_tags($mdata['height']), 75, 20, true, 'ff_elem' . $mdata['dbId']);
             echo '<style type="text/css">.toggle-editor{display: none;}</style>';
             echo '</div>';
         } else {

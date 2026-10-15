@@ -766,7 +766,7 @@ class QuickmodeModel extends BaseDatabaseModel
      * Binds a column => value map built by elementFields() onto a query
      * using ":<column>" as the placeholder name for each column.
      */
-    private function bindFields(\Joomla\Database\DatabaseQuery $query, array $fields): void
+    private function bindFields(\Joomla\Database\QueryInterface $query, array $fields): void
     {
         // Bind directly against each array slot (not a shared loop-local
         // scalar) since Joomla's bind() takes the variable by reference -

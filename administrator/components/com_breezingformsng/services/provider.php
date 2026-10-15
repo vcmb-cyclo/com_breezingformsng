@@ -147,7 +147,6 @@ return new class implements ServiceProviderInterface
             static function (Container $container) use ($application): PayPalCallback {
                 return new PayPalCallback(
                     $application,
-                    $container->get(DatabaseInterface::class),
                     $container->get(PaymentFormLoader::class),
                     $container->get(PaymentRecordService::class),
                     $container->get(RedirectHelper::class),

@@ -55,7 +55,7 @@ final class CaptchaCallback
         $securimage->image_signature = '';
         $securimage->use_wordlist = true;
 
-        $this->application->setHeader('status', 200, true);
+        $this->application->setHeader('status', '200', true);
         $securimage->show(JPATH_SITE . '/media/com_breezingformsng/images/site/captcha/backgrounds/bg6.jpg');
 
         $this->application->close();

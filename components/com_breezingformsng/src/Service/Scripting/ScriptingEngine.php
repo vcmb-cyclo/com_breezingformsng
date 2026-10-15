@@ -159,7 +159,8 @@ final class ScriptingEngine
     function compileQueryCol(&$elem, &$coldef)
     {
         $coldef->comp = array();
-        if ($this->processor->trim(str_replace($this->processor->findtags, $this->processor->replacetags, $coldef->value))) {
+        $columnValue = str_replace($this->processor->findtags, $this->processor->replacetags, $coldef->value);
+        if ($this->processor->trim($columnValue)) {
             $c = $p1 = 0;
             $l = strlen($coldef->value);
             while ($p1 < $l) {

@@ -318,8 +318,8 @@ final class SubmissionEngine
                                                                     $fm = str_replace('{filemask:_name}', trim($this->processor->app->getIdentity()->get('name')), $fm);
                                                                     $fm = str_replace('{filemask:_datetime}', trim($date_stamp), $fm);
                                                                     $fm = str_replace('{filemask:_date}', trim($date_stamp2), $fm);
-                                                                    $fm = str_replace('{filemask:_timestamp}', trim(time()), $fm);
-                                                                    $fm = str_replace('{filemask:_random}', trim(mt_rand(0, mt_getrandmax())), $fm);
+                                                                    $fm = str_replace('{filemask:_timestamp}', (string) time(), $fm);
+                                                                    $fm = str_replace('{filemask:_random}', (string) mt_rand(0, mt_getrandmax()), $fm);
                                                                     $fm = str_replace('{filemask:_filename}', trim(basename($userfile_name, '.' . File::getExt($userfile_name))), $fm);
                                                                     if ($fm == '') {
                                                                         $fm = '__empty__';
@@ -332,7 +332,7 @@ final class SubmissionEngine
                                                                 $path = $baseDir . '/' . $userfile_name;
                                                                 //if ($row->flag1) $path .= '.'.date('YmdHis');
                                                                 if (file_exists($path) && $this->processor->app->getSession()->get('bfFileUploadOverride', true)) {
-                                                                    $rnd = md5(mt_rand(0, mt_getrandmax()));
+                                                                    $rnd = md5((string) mt_rand(0, mt_getrandmax()));
                                                                     $path = $baseDir . '/' . $rnd . '_' . $userfile_name;
                                                                     //if ($row->flag1) $path .= '.'.date('YmdHis');
                                                                     if (file_exists($path)) {
@@ -1095,7 +1095,7 @@ final class SubmissionEngine
                                     }
                                 }
 
-                                $options['amount'] = round(floatval($options['amount']), 2) * 100;
+                                $options['amount'] = (int) round(floatval($options['amount']) * 100);
 
                                 $this->processor->app->getSession()->set('bf_stripe_last_payment_amount' . $this->processor->record_id, $options['amount']);
 
@@ -1323,13 +1323,13 @@ transition: box-shadow .15s linear;
                                             $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
                                             $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
                                             $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                            $options['shipping'] = htmlentities($ppselected[4] == 1 ? 1 : 0, ENT_QUOTES, 'UTF-8');
+                                            $options['shipping'] = ($ppselected[4] == 1 ? '1' : '0');
                                         } else if (count($ppselected) == 6) {
                                             $options['itemname'] = htmlentities($ppselected[0], ENT_QUOTES, 'UTF-8');
                                             $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
                                             $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
                                             $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                            $options['shipping'] = htmlentities($ppselected[4] == 1 ? 1 : 0, ENT_QUOTES, 'UTF-8');
+                                            $options['shipping'] = ($ppselected[4] == 1 ? '1' : '0');
                                             $options['currencyCode'] = htmlentities($ppselected[5] == '' ? 'USD' : $ppselected[5], ENT_QUOTES, 'UTF-8');
                                         }
                                     }
@@ -1348,13 +1348,13 @@ transition: box-shadow .15s linear;
                                             $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
                                             $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
                                             $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                            $options['shipping'] = htmlentities($ppselected[4] == 1 ? 1 : 0, ENT_QUOTES, 'UTF-8');
+                                            $options['shipping'] = ($ppselected[4] == 1 ? '1' : '0');
                                         } else if (count($ppselected) == 6) {
                                             $options['itemname'] = htmlentities($ppselected[0], ENT_QUOTES, 'UTF-8');
                                             $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
                                             $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
                                             $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                            $options['shipping'] = htmlentities($ppselected[4] == 1 ? 1 : 0, ENT_QUOTES, 'UTF-8');
+                                            $options['shipping'] = ($ppselected[4] == 1 ? '1' : '0');
                                             $options['currencyCode'] = htmlentities($ppselected[5] == '' ? 'USD' : $ppselected[5], ENT_QUOTES, 'UTF-8');
                                         }
                                     }

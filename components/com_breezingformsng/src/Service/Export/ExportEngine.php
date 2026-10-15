@@ -426,12 +426,12 @@ final class ExportEngine
                         $created_up = (new \Joomla\CMS\Date\Date())->toSql();
                         if (intval($cbData->default_publish_up_days) != 0) {
                             $is_future = 1;
-                            $date = new \Joomla\CMS\Date\Date(strtotime('now +' . intval($cbData->default_publish_up_days) . ' days'));
+                            $date = new \Joomla\CMS\Date\Date((string) strtotime('now +' . intval($cbData->default_publish_up_days) . ' days'));
                             $created_up = $date->toSql();
                         }
                         $created_down = '0000-00-00 00:00:00';
                         if (intval($cbData->default_publish_down_days) != 0) {
-                            $date = new \Joomla\CMS\Date\Date(strtotime($created_up . ' +' . intval($cbData->default_publish_down_days) . ' days'));
+                            $date = new \Joomla\CMS\Date\Date((string) strtotime($created_up . ' +' . intval($cbData->default_publish_down_days) . ' days'));
                             $created_down = $date->toSql();
                         }
 
@@ -807,8 +807,8 @@ final class ExportEngine
             $fm = str_replace('{filemask:_name}', trim($this->processor->app->getIdentity()->get('name')), $fm);
             $fm = str_replace('{filemask:_datetime}', trim($date_stamp), $fm);
             $fm = str_replace('{filemask:_date}', trim($date_stamp2), $fm);
-            $fm = str_replace('{filemask:_timestamp}', trim(time()), $fm);
-            $fm = str_replace('{filemask:_random}', trim(mt_rand(0, mt_getrandmax())), $fm);
+            $fm = str_replace('{filemask:_timestamp}', (string) time(), $fm);
+            $fm = str_replace('{filemask:_random}', (string) mt_rand(0, mt_getrandmax()), $fm);
             if ($fm == '') {
                 $fm = '__empty__';
             }
