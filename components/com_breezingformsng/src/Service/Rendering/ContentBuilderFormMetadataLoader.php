@@ -52,7 +52,7 @@ final class ContentBuilderFormMetadataLoader
 
     private function formsQuery(string|array $select): object
     {
-        return $this->database->getQuery(true)
+        return $this->database->createQuery()
             ->select($select)
             ->from($this->database->quoteName('#__contentbuilderng_forms'));
     }

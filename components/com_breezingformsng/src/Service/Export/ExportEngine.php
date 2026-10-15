@@ -77,7 +77,7 @@ final class ExportEngine
         if (!is_object($cbResult['form']) && $this->processor->editable && $this->processor->editable_override) {
             $editableFormValue = $this->processor->form;
             $editableUserId = $this->processor->app->getIdentity()->get('id', 0);
-            $recordsQuery = $this->processor->database->getQuery(true)
+            $recordsQuery = $this->processor->database->createQuery()
                 ->select('id')
                 ->from($this->processor->database->quoteName('#__facileforms_records'))
                 ->where($this->processor->database->quoteName('form') . ' = :editableFormValue')
@@ -94,13 +94,13 @@ final class ExportEngine
             ))->remove((int) $editableFormValue, array_column($records, 'id'));
             foreach ($records as $record) {
                 $recordIdToDelete = (int) $record->id;
-                $delSubrecordsQuery = $this->processor->database->getQuery(true)
+                $delSubrecordsQuery = $this->processor->database->createQuery()
                     ->delete($this->processor->database->quoteName('#__facileforms_subrecords'))
                     ->where($this->processor->database->quoteName('record') . ' = :recordIdToDelete')
                     ->bind(':recordIdToDelete', $recordIdToDelete, ParameterType::INTEGER);
                 $this->processor->database->setQuery($delSubrecordsQuery);
                 $this->processor->database->execute();
-                $delRecordQuery = $this->processor->database->getQuery(true)
+                $delRecordQuery = $this->processor->database->createQuery()
                     ->delete($this->processor->database->quoteName('#__facileforms_records'))
                     ->where($this->processor->database->quoteName('id') . ' = :recordIdToDelete')
                     ->bind(':recordIdToDelete', $recordIdToDelete, ParameterType::INTEGER);
@@ -147,7 +147,7 @@ final class ExportEngine
                 $db = $this->processor->database;
                 $cbFormValue = $this->processor->form;
                 $cbRecordReturn = $record_return;
-                $existsQuery = $db->getQuery(true)
+                $existsQuery = $db->createQuery()
                     ->select('id')
                     ->from($db->quoteName('#__contentbuilderng_records'))
                     ->where($db->quoteName('type') . ' = ' . $db->quote('com_breezingformsng'))
@@ -160,7 +160,7 @@ final class ExportEngine
                 if (!$res) {
                     $sessionId = $this->processor->app->getSession()->getId();
                     $cbType = 'com_breezingformsng';
-                    $insertQuery = $db->getQuery(true)
+                    $insertQuery = $db->createQuery()
                         ->insert($db->quoteName('#__contentbuilderng_records'))
                         ->columns($db->quoteName(['session_id', 'type', 'last_update', 'published', 'record_id', 'reference_id']))
                         ->values(':sessionId, :cbType, :lastUpdate, 0, :cbRecordReturn, :cbFormValue')
@@ -172,7 +172,7 @@ final class ExportEngine
                     $db->setQuery($insertQuery);
                     $db->execute();
                 } else {
-                    $updateQuery = $db->getQuery(true)
+                    $updateQuery = $db->createQuery()
                         ->update($db->quoteName('#__contentbuilderng_records'))
                         ->set($db->quoteName('last_update') . ' = :lastUpdate')
                         ->set($db->quoteName('edited') . ' = ' . $db->quoteName('edited') . ' + 1')
@@ -202,7 +202,7 @@ final class ExportEngine
 
                 $db = $this->processor->database;
                 $cbFormIdInput = $this->processor->app->getInput()->getInt('cb_form_id', 0);
-                $cbFormQuery = $db->getQuery(true)
+                $cbFormQuery = $db->createQuery()
                     ->select('SQL_CALC_FOUND_ROWS *')
                     ->from($db->quoteName('#__contentbuilderng_forms'))
                     ->where($db->quoteName('id') . ' = :cbFormIdInput')
@@ -367,7 +367,7 @@ final class ExportEngine
 
                 $db = $this->processor->database;
                 $cbFormIdInput = $this->processor->app->getInput()->getInt('cb_form_id', 0);
-                $cbFormQuery = $db->getQuery(true)
+                $cbFormQuery = $db->createQuery()
                     ->select('SQL_CALC_FOUND_ROWS *')
                     ->from($db->quoteName('#__contentbuilderng_forms'))
                     ->where($db->quoteName('id') . ' = :cbFormIdInput')
@@ -385,7 +385,7 @@ final class ExportEngine
                     if ($cbResult['data']['default_lang_code_ignore']) {
 
                         $langSef = trim($this->processor->app->getInput()->getCmd('lang', ''));
-                        $langQuery = $db->getQuery(true)
+                        $langQuery = $db->createQuery()
                             ->select($db->quoteName('lang_code'))
                             ->from($db->quoteName('#__languages'))
                             ->where($db->quoteName('published') . ' = 1')
@@ -406,7 +406,7 @@ final class ExportEngine
                         }
                     } else {
                         $defaultLangCode = (string) $cbResult['data']['default_lang_code'];
-                        $sefQuery = $db->getQuery(true)
+                        $sefQuery = $db->createQuery()
                             ->select($db->quoteName('sef'))
                             ->from($db->quoteName('#__languages'))
                             ->where($db->quoteName('published') . ' = 1')
@@ -440,7 +440,7 @@ final class ExportEngine
                         $langPublished = $cbData->auto_publish && !$is_future ? 1 : 0;
                         $langReferenceId = $cbResult['form']->getReferenceId();
                         $langSefTrimmed = trim($sef);
-                        $insertRecordQuery = $db->getQuery(true)
+                        $insertRecordQuery = $db->createQuery()
                             ->insert($db->quoteName('#__contentbuilderng_records'))
                             ->columns($db->quoteName([
                                 'session_id', 'type', 'last_update', 'is_future', 'lang_code', 'sef',
@@ -469,7 +469,7 @@ final class ExportEngine
                         $langType = 'com_breezingformsng';
                         $langReferenceId = $cbResult['form']->getReferenceId();
                         $langSefTrimmed = trim($sef);
-                        $updateRecordQuery = $db->getQuery(true)
+                        $updateRecordQuery = $db->createQuery()
                             ->update($db->quoteName('#__contentbuilderng_records'))
                             ->set($db->quoteName('last_update') . ' = :lastUpdate2')
                             ->set($db->quoteName('lang_code') . ' = :language')
@@ -515,7 +515,7 @@ final class ExportEngine
                     $cbData->labels = array();
                     if (count($ids)) {
                         $cbFormIdForLabels = $this->processor->app->getInput()->getInt('cb_form_id', 0);
-                        $labelsQuery = $db->getQuery(true)
+                        $labelsQuery = $db->createQuery()
                             ->select('DISTINCT ' . $db->quoteName('label') . ', ' . $db->quoteName('reference_id'))
                             ->from($db->quoteName('#__contentbuilderng_elements'))
                             ->where($db->quoteName('form_id') . ' = :cbFormIdForLabels')

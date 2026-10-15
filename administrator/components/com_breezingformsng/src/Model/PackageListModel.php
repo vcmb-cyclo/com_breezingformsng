@@ -51,7 +51,7 @@ abstract class PackageListModel extends ListModel
     protected function getListQuery()
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName([
                 'id', 'package', 'title', 'name', 'type', 'description', 'created', 'modified', 'published',
             ]))
@@ -104,7 +104,7 @@ abstract class PackageListModel extends ListModel
         $previous = $direction === 'prev';
 
         foreach ([true, false] as $bounded) {
-            $query = $db->getQuery(true)
+            $query = $db->createQuery()
                 ->select($db->quoteName('id'))
                 ->from($db->quoteName($this->getTableName()))
                 ->order($db->quoteName('id') . ($previous ? ' DESC' : ' ASC'))

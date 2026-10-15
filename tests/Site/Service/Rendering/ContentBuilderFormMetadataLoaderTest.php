@@ -83,7 +83,7 @@ final class ContentBuilderMetadataDatabaseDouble implements DatabaseInterface
     {
     }
 
-    public function getQuery(bool $new = false): object
+    public function createQuery(): object
     {
         return $this->query = new ContentBuilderMetadataQueryDouble();
     }

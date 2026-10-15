@@ -42,7 +42,7 @@ class MenusModel extends ListModel
     protected function getListQuery()
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName([
                 'menus.id', 'menus.package', 'menus.parent', 'menus.ordering',
                 'menus.published', 'menus.title', 'menus.name', 'menus.page',

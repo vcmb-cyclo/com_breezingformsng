@@ -797,7 +797,7 @@ final class SubmissionEngine
             switch ($this->processor->formrow->piece3cond) {
                 case 1: // library
                     $piece3id = (int) $this->processor->formrow->piece3id;
-                    $query = $this->processor->database->getQuery(true)
+                    $query = $this->processor->database->createQuery()
                         ->select(['name', 'code'])
                         ->from($this->processor->database->quoteName('#__facileforms_pieces'))
                         ->where($this->processor->database->quoteName('id') . ' = :piece3id')
@@ -927,7 +927,7 @@ final class SubmissionEngine
                 if (bf_is_email($recipient)) {
 
                     $formValue = $this->processor->form;
-                    $existsQuery = $this->processor->database->getQuery(true)
+                    $existsQuery = $this->processor->database->createQuery()
                         ->select('s.record')
                         ->from($this->processor->database->quoteName('#__facileforms_subrecords', 's'))
                         ->from($this->processor->database->quoteName('#__facileforms_records', 'r'))
@@ -953,7 +953,7 @@ final class SubmissionEngine
                         $lastID = $this->processor->record_id;
                         $token = $this->exportEngine->random_str(20);
                         $optToken = bf_b64enc($token);
-                        $updateQuery = $this->processor->database->getQuery(true)
+                        $updateQuery = $this->processor->database->createQuery()
                             ->update($this->processor->database->quoteName('#__facileforms_records'))
                             ->set($this->processor->database->quoteName('opt_token') . ' = :optToken')
                             ->where($this->processor->database->quoteName('id') . ' = :lastID')
@@ -983,7 +983,7 @@ final class SubmissionEngine
 
             // DOUBLE OPT-INT END
 
-            $maxIdQuery = $this->processor->database->getQuery(true)
+            $maxIdQuery = $this->processor->database->createQuery()
                 ->select('MAX(id)')
                 ->from($this->processor->database->quoteName('#__facileforms_records'));
             $this->processor->database->setQuery($maxIdQuery);
@@ -995,7 +995,7 @@ final class SubmissionEngine
             switch ($this->processor->formrow->piece4cond) {
                 case 1: // library
                     $piece4id = (int) $this->processor->formrow->piece4id;
-                    $query = $this->processor->database->getQuery(true)
+                    $query = $this->processor->database->createQuery()
                         ->select(['name', 'code'])
                         ->from($this->processor->database->quoteName('#__facileforms_pieces'))
                         ->where($this->processor->database->quoteName('id') . ' = :piece4id')

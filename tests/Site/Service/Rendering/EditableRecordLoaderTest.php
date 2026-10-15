@@ -110,7 +110,7 @@ final class EditableRecordDatabaseDouble implements DatabaseInterface
     {
     }
 
-    public function getQuery(bool $new = false): object
+    public function createQuery(): object
     {
         return $this->queryObjects[] = new EditableRecordQueryDouble();
     }

@@ -105,7 +105,7 @@ class QuickmodeController extends BaseController
                 $cbForm = \CB\Component\Contentbuilderng\Administrator\Helper\FormSourceFactory::getForm('com_breezingformsng', $formId);
                 $db = Factory::getContainer()->get(DatabaseInterface::class);
                 $sourceType = 'com_breezingformsng';
-                $query = $db->getQuery(true)
+                $query = $db->createQuery()
                     ->select($db->quoteName('id'))
                     ->from($db->quoteName('#__contentbuilderng_forms'))
                     ->where($db->quoteName('type') . ' = :sourceType')

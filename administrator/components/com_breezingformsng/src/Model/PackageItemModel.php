@@ -86,7 +86,7 @@ abstract class PackageItemModel extends AdminModel
         if ($ids !== []) {
             $db = $this->getDatabase();
             $table = $this->getTable();
-            $query = $db->getQuery(true)
+            $query = $db->createQuery()
                 ->select($db->quoteName('id'))
                 ->from($db->quoteName($table->getTableName()))
                 ->whereIn($db->quoteName('id'), $ids);

@@ -80,7 +80,7 @@ final class FormPieceExecutionService
     ): void {
         /** @var DatabaseInterface $database */
         $database = $this->database;
-        $query = $database->getQuery(true)
+        $query = $database->createQuery()
             ->select(['name', 'code'])
             ->from($database->quoteName('#__facileforms_pieces'))
             ->where($database->quoteName('id') . ' = :' . $parameter)

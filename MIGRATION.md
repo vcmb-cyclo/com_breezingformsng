@@ -43,10 +43,12 @@ La clôture du chantier dépend des vérifications et corrections suivantes :
 - [ ] Remplacer les derniers appels administrateur à `getError()` et
   `setError()` dans `RecordModel`, `MenuModel` et `PackageItemModel` par la
   gestion d’erreurs native retenue pour le reste du composant.
-- [ ] Remplacer les créations de requêtes `$db->getQuery(true)` encore présentes
-  dans le code actif par `$db->createQuery()`, méthode recommandée par
+- [x] Les 219 créations de requêtes `$db->getQuery(true)` du code actif ont été
+  remplacées par `$db->createQuery()`, méthode recommandée par
   [Joomla](https://manual.joomla.org/docs/5.4/general-concepts/database/insert-data/).
-  Vérifier les requêtes et ajuster les tests dépendant de l’ancienne syntaxe.
+  Les exemples importables et le script de recette ont aussi été convertis.
+  Les doubles de base de données et l’assertion dépendant de l’ancienne syntaxe
+  ont été adaptés ; PHPUnit, PHPStan et PHPCS passent.
 - [ ] Corriger la fermeture de balise du CAPTCHA Bootstrap et trancher les deux
   différences de comportement ReCaptcha entre Bootstrap et OnePage décrites
   ci-dessous.

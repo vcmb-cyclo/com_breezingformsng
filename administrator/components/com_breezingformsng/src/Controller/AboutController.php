@@ -377,7 +377,7 @@ class AboutController extends BaseController
                     continue;
                 }
 
-                $query = $db->getQuery(true)->select('*')->from($db->quoteName('#__' . $table));
+                $query = $db->createQuery()->select('*')->from($db->quoteName('#__' . $table));
                 $db->setQuery($query);
                 $tables[$table] = $db->loadAssocList() ?: [];
             }

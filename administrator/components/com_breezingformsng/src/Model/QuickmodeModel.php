@@ -47,7 +47,7 @@ class QuickmodeModel extends BaseDatabaseModel
         // Inject submit-related fake elements from published scripts.
         $fakes = ['ff_validate_submit', 'ff_resetForm', 'ff_validate_prevpage', 'ff_validate_nextpage'];
         foreach ($fakes as $idx => $scriptName) {
-            $query = $this->db->getQuery(true)
+            $query = $this->db->createQuery()
                 ->select('id')
                 ->from($this->db->quoteName('#__facileforms_scripts'))
                 ->where($this->db->quoteName('published') . ' = 1')
@@ -83,7 +83,7 @@ class QuickmodeModel extends BaseDatabaseModel
 
     public function getFormOptions(int $form): ?\stdClass
     {
-        $query = $this->db->getQuery(true)
+        $query = $this->db->createQuery()
             ->select(['package', 'name', 'title', 'description', 'emailntf', 'emailadr', 'published', 'debug_mode'])
             ->from($this->db->quoteName('#__facileforms_forms'))
             ->where($this->db->quoteName('id') . ' = :form')
@@ -96,7 +96,7 @@ class QuickmodeModel extends BaseDatabaseModel
 
     public function getTemplateCode(int $form): string
     {
-        $query = $this->db->getQuery(true)
+        $query = $this->db->createQuery()
             ->select('template_code')
             ->from($this->db->quoteName('#__facileforms_forms'))
             ->where($this->db->quoteName('id') . ' = :form')
@@ -114,7 +114,7 @@ class QuickmodeModel extends BaseDatabaseModel
         $result = [];
 
         foreach (['Element Validation' => 'validation', 'Element Action' => 'action', 'Element Init' => 'init'] as $type => $key) {
-            $query = $this->db->getQuery(true)
+            $query = $this->db->createQuery()
                 ->select(['id', 'package', 'name', 'title', 'description', 'type'])
                 ->from($this->db->quoteName('#__facileforms_scripts'))
                 ->where($this->db->quoteName('published') . ' = 1')
@@ -462,7 +462,7 @@ class QuickmodeModel extends BaseDatabaseModel
         $now        = (new \Joomla\CMS\Date\Date())->toSql();
         $userId     = (string) $this->getCurrentUser()->username;
 
-        $existsQuery = $this->db->getQuery(true)
+        $existsQuery = $this->db->createQuery()
             ->select('id')
             ->from($this->db->quoteName('#__facileforms_forms'))
             ->where($this->db->quoteName('id') . ' = :form')
@@ -507,7 +507,7 @@ class QuickmodeModel extends BaseDatabaseModel
             $width      = 400;
             $height     = 500;
 
-            $query = $this->db->getQuery(true)
+            $query = $this->db->createQuery()
                 ->insert($this->db->quoteName('#__facileforms_forms'))
                 ->columns($this->db->quoteName($columns))
                 ->values(implode(', ', $placeholders))
@@ -552,7 +552,7 @@ class QuickmodeModel extends BaseDatabaseModel
             }
             $mailRecipient = (string) ($mdata['mailRecipient'] ?? '');
 
-            $query = $this->db->getQuery(true)
+            $query = $this->db->createQuery()
                 ->update($this->db->quoteName('#__facileforms_forms'))
                 ->set($this->db->quoteName('template_code') . " = ''")
                 ->set($this->db->quoteName('template_areas') . ' = :templateAreas')
@@ -588,7 +588,7 @@ class QuickmodeModel extends BaseDatabaseModel
             $this->db->setQuery($query)->execute();
 
             foreach ($chunks as $chunk) {
-                $appendQuery = $this->db->getQuery(true)
+                $appendQuery = $this->db->createQuery()
                     ->update($this->db->quoteName('#__facileforms_forms'))
                     ->set($this->db->quoteName('template_code') . " = CONCAT(" . $this->db->quoteName('template_code') . ', :chunk)')
                     ->where($this->db->quoteName('id') . ' = :form')
@@ -609,7 +609,7 @@ class QuickmodeModel extends BaseDatabaseModel
             if ($element['dbId'] == 0) {
                 $columns = array_keys($fields);
                 $placeholders = array_map(static fn (string $col): string => ':' . $col, $columns);
-                $query = $this->db->getQuery(true)
+                $query = $this->db->createQuery()
                     ->insert($this->db->quoteName('#__facileforms_elements'))
                     ->columns($this->db->quoteName($columns))
                     ->values(implode(', ', $placeholders));
@@ -630,7 +630,7 @@ class QuickmodeModel extends BaseDatabaseModel
             } else {
                 // Fix ids of copied elements
                 $elementName = (string) $element['name'];
-                $checkQuery = $this->db->getQuery(true)
+                $checkQuery = $this->db->createQuery()
                     ->select('id')
                     ->from($this->db->quoteName('#__facileforms_elements'))
                     ->where($this->db->quoteName('name') . ' = :name')
@@ -651,7 +651,7 @@ class QuickmodeModel extends BaseDatabaseModel
                 }
 
                 $dbId = (int) $element['dbId'];
-                $query = $this->db->getQuery(true)->update($this->db->quoteName('#__facileforms_elements'));
+                $query = $this->db->createQuery()->update($this->db->quoteName('#__facileforms_elements'));
                 foreach (array_keys($fields) as $col) {
                     $query->set($this->db->quoteName($col) . ' = :' . $col);
                 }
@@ -673,7 +673,7 @@ class QuickmodeModel extends BaseDatabaseModel
         }
 
         // Delete elements not in the current save set
-        $deleteQuery = $this->db->getQuery(true)
+        $deleteQuery = $this->db->createQuery()
             ->delete($this->db->quoteName('#__facileforms_elements'))
             ->where($this->db->quoteName('form') . ' = :form')
             ->bind(':form', $form, ParameterType::INTEGER);
@@ -687,7 +687,7 @@ class QuickmodeModel extends BaseDatabaseModel
         $finalChunks   = $this->chunkString($finalCode, 60000);
         $templateAreas = (string) json_encode($areas);
 
-        $finalQuery = $this->db->getQuery(true)
+        $finalQuery = $this->db->createQuery()
             ->update($this->db->quoteName('#__facileforms_forms'))
             ->set($this->db->quoteName('template_code') . " = ''")
             ->set($this->db->quoteName('template_code_processed') . " = 'QuickMode'")
@@ -698,7 +698,7 @@ class QuickmodeModel extends BaseDatabaseModel
         $this->db->setQuery($finalQuery)->execute();
 
         foreach ($finalChunks as $chunk) {
-            $appendQuery = $this->db->getQuery(true)
+            $appendQuery = $this->db->createQuery()
                 ->update($this->db->quoteName('#__facileforms_forms'))
                 ->set($this->db->quoteName('template_code') . " = CONCAT(" . $this->db->quoteName('template_code') . ', :chunk)')
                 ->where($this->db->quoteName('id') . ' = :form')
