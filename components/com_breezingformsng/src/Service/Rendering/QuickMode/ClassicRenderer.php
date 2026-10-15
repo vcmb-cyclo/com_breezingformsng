@@ -141,17 +141,17 @@ class ClassicRenderer
 
         $this->p->app->getDocument()->getWebAssetManager()->addInlineScript('
 	    
-	        JQuery(document).ready(function(){
-	            JQuery(".ff_elem").closest(".input-group").removeClass("input-group");
-	            JQuery(".ff_elem").next(".input-group-append").removeClass("input-group-append");
-	            JQuery(".ff_elem").removeClass("form-control");
-	            JQuery(".js-calendar").closest(".bfElemWrap").css("overflow","visible");
-	            JQuery(".js-calendar").each(function(){
-	                let elem_id = JQuery(this).closest(".bfElemWrap").find(".ff_elem").attr("id");
+	        jQuery(document).ready(function(){
+	            jQuery(".ff_elem").closest(".input-group").removeClass("input-group");
+	            jQuery(".ff_elem").next(".input-group-append").removeClass("input-group-append");
+	            jQuery(".ff_elem").removeClass("form-control");
+	            jQuery(".js-calendar").closest(".bfElemWrap").css("overflow","visible");
+	            jQuery(".js-calendar").each(function(){
+	                let elem_id = jQuery(this).closest(".bfElemWrap").find(".ff_elem").attr("id");
 	                let _this = this;
-	                JQuery("#"+elem_id+"_btn").on("click", function(){
-	                    JQuery(_this).closest(".bfElemWrap").removeClass("bfRolloverBg");
-	                    JQuery(_this).css("left", jQuery("#"+elem_id).position().left);
+	                jQuery("#"+elem_id+"_btn").on("click", function(){
+	                    jQuery(_this).closest(".bfElemWrap").removeClass("bfRolloverBg");
+	                    jQuery(_this).css("left", jQuery("#"+elem_id).position().left);
 	                });
 	            });
 	        });

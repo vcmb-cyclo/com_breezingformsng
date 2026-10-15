@@ -890,7 +890,7 @@ class BootstrapRenderer
                             '',
                             true
                         );
-                        echo '<span type="button" class="ff_elem ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . ' button" onclick="' . $this->quickModeCaptchaReloadScriptBuilder()->build($captcha_url) . '"><i class="' . $this->bsClass('icon-refresh') . '"></i></button>' . "\n";
+                        echo '<button type="button" class="ff_elem ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . ' button" onclick="' . $this->quickModeCaptchaReloadScriptBuilder()->build($captcha_url) . '"><i class="' . $this->bsClass('icon-refresh') . '"></i></button>' . "\n";
                         echo '</div>';
                         echo '</div>';
 
