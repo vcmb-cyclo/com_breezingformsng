@@ -39,3 +39,4 @@ administrator/components/com_breezingformsng/vendor/
 # Playwright output
 test-results/
 playwright-report/
+.playwright-cli/
