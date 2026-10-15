@@ -65,7 +65,7 @@ final class Breezingforms extends CMSPlugin implements SubscriberInterface
     {
         $name = $matches[1];
         $database = $this->getDatabase();
-        $query = $database->getQuery(true)
+        $query = $database->createQuery()
             ->select('*')
             ->from($database->quoteName('#__facileforms_forms'))
             ->where($database->quoteName('name') . ' = :name')

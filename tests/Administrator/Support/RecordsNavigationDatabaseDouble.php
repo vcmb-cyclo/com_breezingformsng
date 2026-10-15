@@ -25,7 +25,7 @@ final class RecordsNavigationDatabaseDouble implements DatabaseInterface
     {
     }
 
-    public function getQuery(bool $new = false): RecordsNavigationQueryDouble
+    public function createQuery(): RecordsNavigationQueryDouble
     {
         return $this->query = new RecordsNavigationQueryDouble();
     }

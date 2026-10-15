@@ -55,7 +55,7 @@ class RecordsModel extends ListModel
     protected function getListQuery()
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select([
                 'records.id', 'records.submitted', 'records.modified', 'records.ip',
                 'records.user_id', 'records.username', 'records.user_full_name',
@@ -77,7 +77,7 @@ class RecordsModel extends ListModel
     public function getAdjacentRecordId(int $recordId, string $direction): ?int
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName('records.id'))
             ->from($db->quoteName('#__facileforms_records', 'records'))
             ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form');

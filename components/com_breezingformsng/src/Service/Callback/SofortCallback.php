@@ -82,7 +82,7 @@ final class SofortCallback
 
                             $recordIdInt = (int) $recordId;
                             $sofortTx = 'Sofortüberweisung: ' . $input->getString('tx', '');
-                            $downloadsQuery = $db->getQuery(true)
+                            $downloadsQuery = $db->createQuery()
                                 ->select($db->quoteName('paypal_download_tries'))
                                 ->from($db->quoteName('#__facileforms_records'))
                                 ->where($db->quoteName('id') . ' = :recordIdInt')

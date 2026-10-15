@@ -469,7 +469,7 @@ final class RenderingEngineViewCharacterizationTest extends TestCase
             'height' => 0,
         ];
         $processor->database = new class {
-            public function getQuery(bool $new = false): object
+            public function createQuery(): object
             {
                 return new class {
                     public function select(string $columns): self
@@ -674,7 +674,7 @@ final class RenderingEngineViewCharacterizationTest extends TestCase
             'piece1id' => 24,
         ];
         $processor->database = new class {
-            public function getQuery(bool $new = false): object
+            public function createQuery(): object
             {
                 return new class {
                     public function select(mixed $columns): self
@@ -780,7 +780,7 @@ final class RenderingEngineViewCharacterizationTest extends TestCase
             'piece2id' => 25,
         ];
         $processor->database = new class {
-            public function getQuery(bool $new = false): object
+            public function createQuery(): object
             {
                 return new class {
                     public function select(mixed $columns): self

@@ -54,7 +54,7 @@ class RecordModel extends AdminModel
 
         $db = $this->getDatabase();
         $formId = (int) $item->form;
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName(['title', 'name']))
             ->from($db->quoteName('#__facileforms_forms'))
             ->where($db->quoteName('id') . ' = :formId')
@@ -75,7 +75,7 @@ class RecordModel extends AdminModel
     public function getEditableElements(int $formId): array
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select(['id', 'title', 'name', 'type'])
             ->from($db->quoteName('#__facileforms_elements'))
             ->where($db->quoteName('published') . ' = 1')
@@ -91,7 +91,7 @@ class RecordModel extends AdminModel
     {
         $elements = $this->getEditableElements($formId);
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select(['id', 'record', 'element', 'title', 'name', 'type', 'value'])
             ->from($db->quoteName('#__facileforms_subrecords'))
             ->where($db->quoteName('record') . ' = :recordId')
@@ -133,7 +133,7 @@ class RecordModel extends AdminModel
     private function saveRecord(int $recordId, array $values, \DateTimeZone $timezone): void
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName('form'))
             ->from($db->quoteName('#__facileforms_records'))
             ->where($db->quoteName('id') . ' = :recordId')
@@ -157,7 +157,7 @@ class RecordModel extends AdminModel
         $now  = (new \Joomla\CMS\Date\Date('now', $timezone))->format('Y-m-d H:i:s', true);
         $username = (string) $user->username;
         $userId = (int) $user->id;
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->update($db->quoteName('#__facileforms_records'))
             ->set($db->quoteName('modified') . ' = :now')
             ->set($db->quoteName('modified_by') . ' = :username')
@@ -183,7 +183,7 @@ class RecordModel extends AdminModel
         $title = (string) $element['title'];
         $type = (string) $element['type'];
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName('id'))
             ->from($db->quoteName('#__facileforms_subrecords'))
             ->where($db->quoteName('record') . ' = :recordId')
@@ -204,7 +204,7 @@ class RecordModel extends AdminModel
                 break;
             }
             $rowValue = $values[$index];
-            $updateQuery = $db->getQuery(true)
+            $updateQuery = $db->createQuery()
                 ->update($db->quoteName('#__facileforms_subrecords'))
                 ->set($db->quoteName('element') . ' = :elementId')
                 ->set($db->quoteName('title') . ' = :title')
@@ -228,7 +228,7 @@ class RecordModel extends AdminModel
                 continue;
             }
             $rowValue = $values[$i];
-            $insertQuery = $db->getQuery(true)
+            $insertQuery = $db->createQuery()
                 ->insert($db->quoteName('#__facileforms_subrecords'))
                 ->columns($db->quoteName(['record', 'element', 'title', 'name', 'type', 'value']))
                 ->values(':recordId, :elementId, :title, :name, :type, :value')
@@ -442,7 +442,7 @@ class RecordModel extends AdminModel
     {
         $db = $this->getDatabase();
         $trashed = RecordState::TRASHED;
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName('id'))
             ->from($db->quoteName('#__facileforms_records'))
             ->where($db->quoteName('state') . ' = :trashed')
@@ -470,7 +470,7 @@ class RecordModel extends AdminModel
         }
 
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->update($db->quoteName('#__facileforms_records'))
             ->set($db->quoteName('state') . ' = ' . $db->quoteName('state'))
             ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
@@ -489,7 +489,7 @@ class RecordModel extends AdminModel
         }
 
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName(['id', 'form', 'state']))
             ->from($db->quoteName('#__facileforms_records'))
             ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
@@ -521,7 +521,7 @@ class RecordModel extends AdminModel
         }
         $db = $this->getDatabase();
         $flag = $value ? 1 : 0;
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->update($db->quoteName('#__facileforms_records'))
             ->set($db->quoteName($column) . ' = :flag')
             ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER)
@@ -536,7 +536,7 @@ class RecordModel extends AdminModel
             return;
         }
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->update($db->quoteName('#__facileforms_records'))
             ->set($db->quoteName($col) . ' = :value')
             ->where($db->quoteName('id') . ' = :recordId')
@@ -581,7 +581,7 @@ class RecordModel extends AdminModel
         }
 
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName('subs') . '.*')
             ->from($db->quoteName('#__facileforms_subrecords', 'subs'))
             ->join(
@@ -614,7 +614,7 @@ class RecordModel extends AdminModel
         $db = $this->getDatabase();
 
         foreach (array_chunk($ids, self::BULK_ID_BATCH_SIZE) as $idBatch) {
-            $query = $db->getQuery(true)
+            $query = $db->createQuery()
                 ->update($db->quoteName('#__facileforms_records'))
                 ->set($db->quoteName('exported') . ' = 1')
                 ->whereIn($db->quoteName('id'), $idBatch, ParameterType::INTEGER);

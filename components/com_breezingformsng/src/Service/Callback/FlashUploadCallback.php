@@ -50,7 +50,7 @@ final class FlashUploadCallback
 
         $formId = $input->getInt('form', -1);
         $itemName = $input->getString('itemName', '');
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select(['form.id', 'form.template_code_processed', 'form.template_code'])
             ->from($db->quoteName('#__facileforms_forms', 'form'))
             ->from($db->quoteName('#__facileforms_elements', 'element'))

@@ -31,7 +31,7 @@ final class SubmittedCallbackNameResolver
                 /** @var DatabaseInterface $database */
                 $database = $this->database;
                 $scriptId = (int) $form->script2id;
-                $query = $database->getQuery(true)
+                $query = $database->createQuery()
                     ->select('name')
                     ->from($database->quoteName('#__facileforms_scripts'))
                     ->where($database->quoteName('id') . ' = :script2id')

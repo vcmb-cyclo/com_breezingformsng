@@ -85,7 +85,7 @@ class MenuModel extends AdminModel
         $db = $this->getDatabase();
         $parent = (int) $table->parent;
         $package = $table->package;
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select('COALESCE(MAX(' . $db->quoteName('ordering') . '), 0) + 1')
             ->from($db->quoteName('#__facileforms_compmenus'))
             ->where($db->quoteName('parent') . ' = :parent')
@@ -132,7 +132,7 @@ class MenuModel extends AdminModel
 
         if ($pks !== []) {
             $db = $this->getDatabase();
-            $query = $db->getQuery(true)
+            $query = $db->createQuery()
                 ->select($db->quoteName('id'))
                 ->from($db->quoteName('#__facileforms_compmenus'))
                 ->whereIn($db->quoteName('parent'), $pks);
@@ -164,7 +164,7 @@ class MenuModel extends AdminModel
             $data['title'] = $source->title . ' (copy)';
             $newId = $this->store($data);
 
-            $query = $db->getQuery(true)
+            $query = $db->createQuery()
                 ->select($db->quoteName('id'))
                 ->from($db->quoteName('#__facileforms_compmenus'))
                 ->where($db->quoteName('parent') . ' = :parent')
@@ -203,7 +203,7 @@ class MenuModel extends AdminModel
     {
         $db = $this->getDatabase();
         $linkPattern = 'index.php?option=com_breezingformsng&act=run%';
-        $existingQuery = $db->getQuery(true)
+        $existingQuery = $db->createQuery()
             ->select($db->quoteName('id'))
             ->from($db->quoteName('#__menu'))
             ->where($db->quoteName('link') . ' LIKE :linkPattern')
@@ -211,7 +211,7 @@ class MenuModel extends AdminModel
             ->bind(':linkPattern', $linkPattern);
         $existingIds = array_map('intval', $db->setQuery($existingQuery)->loadColumn() ?: []);
 
-        $menuQ = $db->getQuery(true)
+        $menuQ = $db->createQuery()
             ->select('*')
             ->from($db->quoteName('#__facileforms_compmenus'))
             ->where($db->quoteName('published') . ' = 1')
@@ -219,7 +219,7 @@ class MenuModel extends AdminModel
         $items = $db->setQuery($menuQ)->loadObjectList() ?: [];
 
         $componentLink = 'index.php?option=com_breezingformsng';
-        $parentRowQ = $db->getQuery(true)
+        $parentRowQ = $db->createQuery()
             ->select($db->quoteName('id'))
             ->from($db->quoteName('#__menu'))
             ->where($db->quoteName('link') . ' = :componentLink')
@@ -233,7 +233,7 @@ class MenuModel extends AdminModel
 
         $extensionType = 'component';
         $element = 'com_breezingformsng';
-        $extensionQuery = $db->getQuery(true)
+        $extensionQuery = $db->createQuery()
             ->select($db->quoteName('extension_id'))
             ->from($db->quoteName('#__extensions'))
             ->where($db->quoteName('type') . ' = :extensionType')

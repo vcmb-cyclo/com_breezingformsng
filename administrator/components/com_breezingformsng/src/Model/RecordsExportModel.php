@@ -35,7 +35,7 @@ class RecordsExportModel extends BaseDatabaseModel
     public function getRecords(array $ids, int $formSelection, string $stateFilter): array
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select('*')
             ->from($db->quoteName('#__facileforms_records'))
             ->order($db->quoteName('submitted') . ' DESC');
@@ -79,7 +79,7 @@ class RecordsExportModel extends BaseDatabaseModel
     public function countRecords(array $ids, int $formSelection, string $stateFilter): int
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select('COUNT(*)')
             ->from($db->quoteName('#__facileforms_records'));
 
@@ -104,7 +104,7 @@ class RecordsExportModel extends BaseDatabaseModel
     public function getElementFields(array $formIds): array
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select('DISTINCT *')
             ->from($db->quoteName('#__facileforms_elements'))
             ->where($db->quoteName('published') . ' = 1')

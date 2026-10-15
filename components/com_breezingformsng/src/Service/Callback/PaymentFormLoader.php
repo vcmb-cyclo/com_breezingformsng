@@ -24,7 +24,7 @@ final class PaymentFormLoader
 
     public function load(int $formId): ?object
     {
-        $query = $this->database->getQuery(true)
+        $query = $this->database->createQuery()
             ->select('*')
             ->from($this->database->quoteName('#__facileforms_forms'))
             ->where($this->database->quoteName('id') . ' = :formId')

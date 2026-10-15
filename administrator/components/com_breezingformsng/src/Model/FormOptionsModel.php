@@ -33,7 +33,7 @@ class FormOptionsModel extends BaseDatabaseModel
         }
 
         $db = $this->db();
-        $q  = $db->getQuery(true)
+        $q  = $db->createQuery()
             ->select('*')
             ->from($db->quoteName('#__facileforms_forms'))
             ->where($db->quoteName('id') . ' = ' . $db->quote($id));
@@ -175,7 +175,7 @@ class FormOptionsModel extends BaseDatabaseModel
             $sets['modified']    = $now;
             $sets['modified_by'] = $uid;
 
-            $q = $db->getQuery(true)->update($db->quoteName('#__facileforms_forms'));
+            $q = $db->createQuery()->update($db->quoteName('#__facileforms_forms'));
             foreach ($sets as $col => $val) {
                 $q->set($db->quoteName($col) . ' = ' . $db->quote($val));
             }
@@ -189,7 +189,7 @@ class FormOptionsModel extends BaseDatabaseModel
             $sets['modified']   = $now;
             $sets['modified_by']= $uid;
 
-            $q = $db->getQuery(true)
+            $q = $db->createQuery()
                 ->insert($db->quoteName('#__facileforms_forms'))
                 ->columns(array_map(fn($c) => $db->quoteName($c), array_keys($sets)))
                 ->values(implode(',', array_map(fn($v) => $db->quote($v), array_values($sets))));
@@ -210,7 +210,7 @@ class FormOptionsModel extends BaseDatabaseModel
     {
         $db = $this->db();
         $db->setQuery(
-            $db->getQuery(true)
+            $db->createQuery()
                 ->update($db->quoteName('#__facileforms_forms'))
                 ->set($db->quoteName('debug_mode') . ' = ' . $db->quote($state))
                 ->where($db->quoteName('id') . ' = ' . $db->quote($id))
@@ -220,7 +220,7 @@ class FormOptionsModel extends BaseDatabaseModel
     private function reorder(string $pkg): void
     {
         $db = $this->db();
-        $q  = $db->getQuery(true)
+        $q  = $db->createQuery()
             ->select($db->quoteName('id'))
             ->from($db->quoteName('#__facileforms_forms'))
             ->order($db->quoteName('ordering') . ' ASC, ' . $db->quoteName('id') . ' ASC');
@@ -232,7 +232,7 @@ class FormOptionsModel extends BaseDatabaseModel
         $ids = $db->setQuery($q)->loadColumn() ?: [];
         foreach (array_values($ids) as $pos => $rowId) {
             $db->setQuery(
-                $db->getQuery(true)
+                $db->createQuery()
                     ->update($db->quoteName('#__facileforms_forms'))
                     ->set($db->quoteName('ordering') . ' = ' . $db->quote($pos + 1))
                     ->where($db->quoteName('id') . ' = ' . $db->quote($rowId))

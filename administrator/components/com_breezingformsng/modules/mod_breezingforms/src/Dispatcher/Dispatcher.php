@@ -43,7 +43,7 @@ final class Dispatcher extends AbstractModuleDispatcher
 
         $name = trim((string) $params->get('ff_mod_name', ''));
         $database = Factory::getContainer()->get(DatabaseInterface::class);
-        $query = $database->getQuery(true)
+        $query = $database->createQuery()
             ->select($database->quoteName('id'))
             ->from($database->quoteName('#__facileforms_forms'))
             ->where($database->quoteName('name') . ' = :name')

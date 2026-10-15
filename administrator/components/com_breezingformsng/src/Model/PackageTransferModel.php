@@ -24,14 +24,14 @@ final class PackageTransferModel extends BaseDatabaseModel
         $packages = [];
 
         foreach (['#__facileforms_forms', '#__facileforms_scripts', '#__facileforms_pieces', '#__facileforms_compmenus'] as $table) {
-            $query = $db->getQuery(true)
+            $query = $db->createQuery()
                 ->select('DISTINCT ' . $db->quoteName('package'))
                 ->from($db->quoteName($table))
                 ->where($db->quoteName('package') . ' != ' . $db->quote(''));
             $packages = array_merge($packages, array_column($db->setQuery($query)->loadAssocList() ?: [], 'package'));
         }
 
-        $query = $db->getQuery(true)->select($db->quoteName('id'))->from($db->quoteName('#__facileforms_packages'));
+        $query = $db->createQuery()->select($db->quoteName('id'))->from($db->quoteName('#__facileforms_packages'));
         $packages = array_merge($packages, $db->setQuery($query)->loadColumn() ?: []);
         $packages = array_values(array_unique(array_filter($packages, 'is_string')));
         sort($packages, SORT_NATURAL | SORT_FLAG_CASE);
@@ -42,7 +42,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     public function getPackageProfiles(): array
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)->select('*')->from($db->quoteName('#__facileforms_packages'));
+        $query = $db->createQuery()->select('*')->from($db->quoteName('#__facileforms_packages'));
         $profiles = $db->setQuery($query)->loadAssocList('id') ?: [];
 
         foreach ($this->getPackages() as $id) {
@@ -201,7 +201,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     private function metadataForExport(string $package, array $submitted): array
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select('*')
             ->from($db->quoteName('#__facileforms_packages'))
             ->where($db->quoteName('id') . ' = :id')
@@ -236,7 +236,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             }
         }
 
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName('id'))
             ->from($db->quoteName('#__facileforms_packages'))
             ->where($db->quoteName('id') . ' = :id')
@@ -326,7 +326,7 @@ final class PackageTransferModel extends BaseDatabaseModel
                     $object = (object) $data;
                     $db->updateObject('#__facileforms_compmenus', $object, 'id');
                 } else {
-                    $query = $db->getQuery(true)
+                    $query = $db->createQuery()
                         ->select('COALESCE(MAX(' . $db->quoteName('id') . '), 0) + 1')
                         ->from($db->quoteName('#__facileforms_compmenus'));
                     $data['id'] = (int) $db->setQuery($query)->loadResult();
@@ -349,7 +349,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     private function findMenuId(string $package, string $name, string $title, int $parent): int
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName('id'))
             ->from($db->quoteName('#__facileforms_compmenus'))
             ->where($db->quoteName('package') . ' = :package')
@@ -367,7 +367,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     private function loadChoices(string $table): array
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select($db->quoteName(["id", "package", "name", "title"]))
             ->from($db->quoteName($table))
             ->order([$db->quoteName("package"), $db->quoteName("name"), $db->quoteName("id")]);
@@ -384,7 +384,7 @@ final class PackageTransferModel extends BaseDatabaseModel
         }
 
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select("*")
             ->from($db->quoteName($table))
             ->whereIn($db->quoteName("id"), $ids)
@@ -446,7 +446,7 @@ final class PackageTransferModel extends BaseDatabaseModel
                 $data['id'] = $id;
                 $object = (object) $data;
                 $db->updateObject('#__facileforms_forms', $object, 'id');
-                $query = $db->getQuery(true)->delete($db->quoteName('#__facileforms_elements'))->where($db->quoteName('form') . ' = ' . $id);
+                $query = $db->createQuery()->delete($db->quoteName('#__facileforms_elements'))->where($db->quoteName('form') . ' = ' . $id);
                 $db->setQuery($query)->execute();
             } else {
                 $object = (object) $data;
@@ -482,7 +482,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     private function loadPackageRows(string $table, string $package): array
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)->select('*')->from($db->quoteName($table))->where($db->quoteName('package') . ' = :package')->order($db->quoteName('id'));
+        $query = $db->createQuery()->select('*')->from($db->quoteName($table))->where($db->quoteName('package') . ' = :package')->order($db->quoteName('id'));
         $query->bind(':package', $package);
         return $db->setQuery($query)->loadAssocList() ?: [];
     }
@@ -490,14 +490,14 @@ final class PackageTransferModel extends BaseDatabaseModel
     private function loadElements(array $formIds): array
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)->select('*')->from($db->quoteName('#__facileforms_elements'))->whereIn($db->quoteName('form'), $formIds)->order([$db->quoteName('form'), $db->quoteName('ordering'), $db->quoteName('id')]);
+        $query = $db->createQuery()->select('*')->from($db->quoteName('#__facileforms_elements'))->whereIn($db->quoteName('form'), $formIds)->order([$db->quoteName('form'), $db->quoteName('ordering'), $db->quoteName('id')]);
         return $db->setQuery($query)->loadAssocList() ?: [];
     }
 
     private function findId(string $table, string $package, string $name): int
     {
         $db = $this->getDatabase();
-        $query = $db->getQuery(true)->select($db->quoteName('id'))->from($db->quoteName($table))->where($db->quoteName('package') . ' = :package')->where($db->quoteName('name') . ' = :name')->order($db->quoteName('id'));
+        $query = $db->createQuery()->select($db->quoteName('id'))->from($db->quoteName($table))->where($db->quoteName('package') . ' = :package')->where($db->quoteName('name') . ' = :name')->order($db->quoteName('id'));
         $query->bind(':package', $package)->bind(':name', $name);
         return (int) $db->setQuery($query, 0, 1)->loadResult();
     }

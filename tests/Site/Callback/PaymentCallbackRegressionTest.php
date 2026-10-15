@@ -36,7 +36,7 @@ final class PaymentCallbackRegressionTest extends TestCase
         foreach (['PaymentFormLoader', 'PaymentRecordService'] as $service) {
             $source = $this->read("components/com_breezingformsng/src/Service/Callback/{$service}.php");
 
-            self::assertStringContainsString('->getQuery(true)', $source, $service);
+            self::assertStringContainsString('->createQuery()', $source, $service);
             self::assertStringContainsString('->quoteName(', $source, $service);
             self::assertStringContainsString('->bind(', $source, $service);
         }

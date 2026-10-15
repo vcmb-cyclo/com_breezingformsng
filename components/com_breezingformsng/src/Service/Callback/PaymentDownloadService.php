@@ -87,7 +87,7 @@ final class PaymentDownloadService
                     $transactionBindings[':paymentTransaction1'] = $transaction . ' (VALID)';
                 }
 
-                $selectQuery = $this->database->getQuery(true)
+                $selectQuery = $this->database->createQuery()
                     ->select($this->database->quoteName('paypal_download_tries'))
                     ->from($this->database->quoteName('#__facileforms_records'))
                     ->where($this->database->quoteName('id') . ' = :downloadRecordId');
@@ -130,7 +130,7 @@ final class PaymentDownloadService
                     break;
                 }
 
-                $updateQuery = $this->database->getQuery(true)
+                $updateQuery = $this->database->createQuery()
                     ->update($this->database->quoteName('#__facileforms_records'))
                     ->set(
                         $this->database->quoteName('paypal_download_tries')

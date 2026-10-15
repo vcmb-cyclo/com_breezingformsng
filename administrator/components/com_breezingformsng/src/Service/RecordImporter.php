@@ -44,7 +44,7 @@ final class RecordImporter
 
         $db = $this->db;
         $db->setQuery(
-            $db->getQuery(true)
+            $db->createQuery()
                 ->select($db->quoteName(['title', 'name']))
                 ->from($db->quoteName('#__facileforms_forms'))
                 ->where($db->quoteName('id') . ' = ' . $formId)
