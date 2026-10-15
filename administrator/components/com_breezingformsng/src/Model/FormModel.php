@@ -15,6 +15,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Date\Date;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
@@ -85,6 +86,22 @@ class FormModel extends AdminModel
             }
 
             if ($ids !== []) {
+                // Joomla can return true without visiting later IDs when one no longer exists.
+                $remaining = (int) $db->setQuery(
+                    $db->createQuery()
+                        ->select('COUNT(*)')
+                        ->from($db->quoteName('#__facileforms_forms'))
+                        ->whereIn($db->quoteName('id'), $ids)
+                )->loadResult();
+
+                if ($remaining > 0) {
+                    $db->transactionRollback();
+                    $this->setError(Text::_('JLIB_APPLICATION_ERROR_RECORD'));
+                    $pks = [];
+
+                    return false;
+                }
+
                 $db->setQuery(
                     $db->createQuery()
                         ->delete($db->quoteName('#__facileforms_elements'))

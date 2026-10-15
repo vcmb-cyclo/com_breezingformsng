@@ -48,6 +48,18 @@ final class FormsListActionsArchitectureTest extends TestCase
         self::assertStringContainsString('$db->transactionRollback();', $model);
     }
 
+    public function testADeletionStoppedByAMissingFormIsRolledBack(): void
+    {
+        $model = $this->read('/src/Model/FormModel.php');
+
+        // AdminModel::delete() returns true without visiting the IDs after a missing one.
+        self::assertMatchesRegularExpression(
+            '/parent::delete\(\$ids\).*COUNT\(\*\).*whereIn\(\$db->quoteName\(\'id\'\), \$ids\).*'
+            . 'if \(\$remaining > 0\) \{\s+\$db->transactionRollback\(\);/s',
+            $model
+        );
+    }
+
     public function testTheListUsesTheNativeDeleteTask(): void
     {
         $view = $this->read('/src/View/Forms/HtmlView.php');
