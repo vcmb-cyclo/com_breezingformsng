@@ -27,6 +27,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
 class HtmlView extends BaseHtmlView
 {
     public string $formTitle  = '';
+    public int $version = 0;
     public string $formName   = '';
     public string $formDesc   = '';
     public int    $formId     = 0;
@@ -100,6 +101,7 @@ class HtmlView extends BaseHtmlView
             $this->formDesc  = (string) $options->description;
             $this->published = (int) $options->published;
             $this->debugMode = (int) $options->debug_mode;
+            $this->version   = (int) $options->version;
         }
 
         $this->formId          = $formId;
@@ -128,7 +130,8 @@ class HtmlView extends BaseHtmlView
         $pageTitle = BreadcrumbHelper::render([
             ['label' => Text::_('COM_BREEZINGFORMSNG'), 'url' => 'index.php?option=com_breezingformsng'],
             ['label' => Text::_('COM_BREEZINGFORMSNG_MANAGEFORMS'), 'url' => 'index.php?option=com_breezingformsng&view=forms'],
-            ['label' => $this->formTitle !== '' ? $this->formTitle : Text::_('COM_BREEZINGFORMSNG_INSTALLER_UNKNOWN')],
+            ['label' => ($this->formTitle !== '' ? $this->formTitle : Text::_('COM_BREEZINGFORMSNG_INSTALLER_UNKNOWN'))
+                . ($this->version > 0 ? ' ' . Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_LABEL', $this->version) : '')],
         ]);
 
         $doc = $app->getDocument();

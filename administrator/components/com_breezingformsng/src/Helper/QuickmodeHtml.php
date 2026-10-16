@@ -22,6 +22,7 @@ use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Language\LanguageHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Session\Session;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 
 require_once JPATH_SITE . '/administrator/components/com_breezingformsng/libraries/crosstec/functions/helpers.php';
 
@@ -235,6 +236,9 @@ final class QuickmodeHtml
             <?php ToolbarHelper::apply('save', 'JTOOLBAR_APPLY'); ?>
             <?php
             if ($formId != 0) {
+                if (FormVersioning::isEnabled()) {
+                    ToolbarHelper::versions(FormVersioning::TYPE_ALIAS, $formId);
+                }
                 ToolbarHelper::custom('preview', 'publish.png', 'save_f2.png', Text::_('COM_BREEZINGFORMSNG_TOOLBAR_QUICKMODE_PREVIEW'), false);
                 ToolbarHelper::custom('preview_site', 'publish.png', 'save_f2.png', Text::_('COM_BREEZINGFORMSNG_SITE_PREVIEW'), false);
             }

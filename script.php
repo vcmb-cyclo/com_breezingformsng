@@ -1500,6 +1500,130 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $db->setQuery($query)->execute();
     }
 
+    /**
+     * Declares the form to the Joomla content history, which keeps its
+     * versions (Versions button of QuickMode).
+     */
+    private function registerFormContentType(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $alias = 'com_breezingformsng.form';
+        $values = [
+            'type_title' => 'BreezingForms NG Form',
+            'rules' => '',
+            'router' => '',
+            'table' => json_encode([
+                'special' => [
+                    'dbtable' => '#__facileforms_forms',
+                    'key' => 'id',
+                    'type' => 'FormTable',
+                    'prefix' => 'Vcmb\\Component\\BreezingformsNG\\Site\\Table\\',
+                    'config' => 'array()',
+                ],
+                'common' => [
+                    'dbtable' => '#__ucm_content',
+                    'key' => 'ucm_id',
+                    'type' => 'Corecontent',
+                    'prefix' => 'Joomla\\CMS\\Table\\',
+                    'config' => 'array()',
+                ],
+            ]),
+            'field_mappings' => json_encode([
+                'common' => [
+                    'core_content_item_id' => 'id',
+                    'core_title' => 'title',
+                    'core_state' => 'published',
+                    'core_alias' => 'name',
+                    'core_body' => 'description',
+                    'core_created_time' => 'created',
+                    'core_modified_time' => 'modified',
+                ],
+                'special' => [],
+            ]),
+            'content_history_options' => json_encode([
+                'formFile' => '',
+                'hideFields' => ['checked_out', 'checked_out_time', 'version', 'template_code', 'template_areas'],
+                // As for articles, the history compares the content, version left out.
+                // template_areas is rebuilt by QuickMode at each save.
+                'ignoreChanges' => ['modified', 'modified_by', 'checked_out', 'checked_out_time', 'version', 'ordering', 'template_areas'],
+                'convertToInt' => [],
+                'displayLookup' => [],
+            ]),
+        ];
+
+        $query = $db->createQuery()
+            ->select($db->quoteName('type_id'))
+            ->from($db->quoteName('#__content_types'))
+            ->where($db->quoteName('type_alias') . ' = ' . $db->quote($alias));
+        $typeId = (int) $db->setQuery($query)->loadResult();
+
+        if ($typeId > 0) {
+            $query = $db->createQuery()
+                ->update($db->quoteName('#__content_types'))
+                ->where($db->quoteName('type_id') . ' = ' . $typeId);
+
+            foreach ($values as $column => $value) {
+                $query->set($db->quoteName($column) . ' = ' . $db->quote((string) $value));
+            }
+        } else {
+            $query = $db->createQuery()
+                ->insert($db->quoteName('#__content_types'))
+                ->columns($db->quoteName(['type_alias', ...array_keys($values)]))
+                ->values(implode(',', array_map([$db, 'quote'], [$alias, ...array_values($values)])));
+        }
+
+        $db->setQuery($query)->execute();
+        $this->log('Form content type registered for the version history.');
+    }
+
+    /**
+     * The Versionable behaviour plugin reads Enable Versions from the stored
+     * options, where a missing value means off: store the defaults of
+     * config.xml until an administrator saves the options.
+     */
+    private function setVersionHistoryDefaults(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $query = $db->createQuery()
+            ->select($db->quoteName('params'))
+            ->from($db->quoteName('#__extensions'))
+            ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
+            ->where($db->quoteName('element') . ' = ' . $db->quote('com_breezingformsng'));
+        $params = json_decode((string) $db->setQuery($query)->loadResult(), true);
+        $params = is_array($params) ? $params : [];
+
+        if (array_key_exists('save_history', $params)) {
+            return;
+        }
+
+        $params['save_history'] = 1;
+        $params['history_limit'] = $params['history_limit'] ?? 10;
+
+        $query = $db->createQuery()
+            ->update($db->quoteName('#__extensions'))
+            ->set($db->quoteName('params') . ' = ' . $db->quote((string) json_encode($params)))
+            ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
+            ->where($db->quoteName('element') . ' = ' . $db->quote('com_breezingformsng'));
+        $db->setQuery($query)->execute();
+        $this->log('Version history enabled with its default options.');
+    }
+
+    private function unregisterFormContentType(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+
+        $db->setQuery(
+            $db->createQuery()
+                ->delete($db->quoteName('#__history'))
+                ->where($db->quoteName('item_id') . ' LIKE ' . $db->quote('com_breezingformsng.form.%'))
+        )->execute();
+        $db->setQuery(
+            $db->createQuery()
+                ->delete($db->quoteName('#__content_types'))
+                ->where($db->quoteName('type_alias') . ' = ' . $db->quote('com_breezingformsng.form'))
+        )->execute();
+    }
+
     private function removeBreezingFormsMenuEntries(): void
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
@@ -2736,6 +2860,13 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $this->log('Added column debug_mode to facileforms_forms.');
             }
 
+            if (!isset($columns['version'])) {
+                $db->setQuery(
+                    "ALTER TABLE `{$formsTable}` ADD `version` INT UNSIGNED NOT NULL DEFAULT '0' AFTER `debug_mode`"
+                )->execute();
+                $this->log('Added column version to facileforms_forms.');
+            }
+
             $newFormColumns = [
                 'double_opt' => "TINYINT(1) NOT NULL DEFAULT '0' AFTER `filter_state`",
                 'opt_mail'   => "VARCHAR(128) NOT NULL DEFAULT '' AFTER `double_opt`",
@@ -3104,6 +3235,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $this->installPlugins();
             $this->installModules();
             $this->registerActionLogExtension();
+            $this->registerFormContentType();
+            $this->setVersionHistoryDefaults();
             $this->cleanupLegacyBreezingFormsAfterInstall();
             $this->removeOldUpdateSite();
             $this->cleanupOldConfig();
@@ -3112,6 +3245,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         } elseif ($type === 'uninstall') {
             $this->removeBreezingFormsMenuEntries();
             $this->unregisterActionLogExtension();
+            $this->unregisterFormContentType();
             $this->cleanupOldConfig();
             $this->cleanupComponentLogFile();
             $this->purgeCaches('postflight:' . $type);

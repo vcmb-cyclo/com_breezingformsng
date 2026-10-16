@@ -12,6 +12,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
@@ -22,6 +23,7 @@ use Joomla\Filesystem\Path;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ContentBuilderFormSync;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 
 class QuickmodeController extends BaseController
 {
@@ -133,7 +135,17 @@ class QuickmodeController extends BaseController
 
             $formId = $this->getQuickmodeModel()->save($form, $dataObject);
 
-            (new ContentBuilderFormSync($app, Factory::getContainer()->get(DatabaseInterface::class)))->sync($formId);
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
+            (new ContentBuilderFormSync($app, $db))->sync($formId);
+
+            if ($input->getInt('recordVersion', 1) === 1) {
+                try {
+                    (new FormVersioning($db, $this->getFormModel()))->record($formId);
+                } catch (\Throwable $e) {
+                    // The save stays; this request only answers with the form id.
+                    Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
+                }
+            }
 
             $app->setHeader('Content-Type', 'text/plain; charset=UTF-8', true);
             $app->sendHeaders();
