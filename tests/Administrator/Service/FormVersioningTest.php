@@ -73,7 +73,7 @@ final class FormVersioningTest extends TestCase
         // The QuickMode structure save records only when no Options post follows it.
         self::assertStringContainsString("recordVersion: JQuery('#bfOptionsFieldsWrap').length === 0 ? 1 : 0", $app);
         self::assertMatchesRegularExpression(
-            "/if \\(\\\$input->getInt\\('recordVersion', 1\\) === 1\\) \\{\\s+\\(new FormVersioning\\(\\\$db\\)\\)->record\\(\\\$formId\\);/",
+            "/if \\(\\\$input->getInt\\('recordVersion', 1\\) === 1\\) \\{\\s+try \\{\\s+\\(new FormVersioning\\(\\\$db\\)\\)->record\\(\\\$formId\\);/",
             $quickmode
         );
         self::assertStringContainsString('->record($id);', $forms);
@@ -86,6 +86,52 @@ final class FormVersioningTest extends TestCase
         foreach (['id', 'package', 'ordering', 'published', 'version', 'checked_out', 'template_code'] as $column) {
             self::assertMatchesRegularExpression("/KEPT_COLUMNS = \\[[^\\]]*'" . $column . "'/s", $service, $column);
         }
+    }
+
+    public function testTheHistoryIsWrittenByTheNativeVersionablePlugin(): void
+    {
+        $service = $this->read('administrator/components/com_breezingformsng/src/Service/FormVersioning.php');
+        $table = $this->read('components/com_breezingformsng/src/Table/FormTable.php');
+
+        // Versioning is deprecated since Joomla 6: the Versionable behaviour
+        // plugin writes and deletes the history of a VersionableTableInterface.
+        self::assertStringNotContainsString('Versioning::', $service);
+        self::assertStringContainsString('final class FormTable extends Table implements VersionableTableInterface', $table);
+        self::assertStringContainsString("return 'com_breezingformsng.form';", $table);
+        self::assertStringContainsString("PluginHelper::isEnabled('behaviour', 'versionable')", $service);
+    }
+
+    public function testRecordingIsAllOrNothingAndChecksTheHistory(): void
+    {
+        $service = $this->read('administrator/components/com_breezingformsng/src/Service/FormVersioning.php');
+
+        self::assertMatchesRegularExpression(
+            '/function record\(.*?transactionStart\(\);.*?->store\(\).*?labelVersion\(.*?transactionCommit\(\);'
+            . '.*?catch \(\\\\Throwable \$e\) \{\s+\$db->transactionRollback\(\);\s+throw \$e;/s',
+            $service
+        );
+        self::assertMatchesRegularExpression(
+            '/getHashMatch\(\);\s+if \(!\\\\is_object\(\$row\)\) \{\s+throw new/',
+            $service
+        );
+    }
+
+    public function testARestoreIsAllOrNothing(): void
+    {
+        $controller = $this->read('administrator/components/com_breezingformsng/src/Controller/FormController.php');
+
+        // Options, structure and the new version in one transaction; the
+        // ContentBuilder NG sync only after the commit.
+        self::assertMatchesRegularExpression(
+            '/transactionStart\(\);\s+try \{\s+\$versioning->restoreOptions.*?\$quickmode->save\(.*?'
+            . '\$versioning->record\(.*?transactionCommit\(\);\s+\} catch \(\\\\Throwable \$e\) \{\s+'
+            . '\$db->transactionRollback\(\);\s+throw \$e;/s',
+            $controller
+        );
+        self::assertGreaterThan(
+            strpos($controller, 'transactionCommit();'),
+            strpos($controller, 'ContentBuilderFormSync(')
+        );
     }
 
     private function read(string $path): string

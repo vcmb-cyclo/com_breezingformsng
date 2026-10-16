@@ -15,16 +15,23 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Helper\CMSHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Table\ContentHistory;
-use Joomla\CMS\Versioning\Versioning;
+use Joomla\CMS\Table\ContentType;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
+use Vcmb\Component\BreezingformsNG\Site\Table\FormTable;
 
 /**
  * Versions of a form, kept in the Joomla content history: each save gives the
  * form its next version number and stores a copy of its row, structure
  * included, which can be restored later.
+ *
+ * The history is written by Joomla's Versionable behaviour plugin when
+ * FormTable, a VersionableTableInterface, is stored or deleted; this
+ * component does not call the deprecated Versioning class itself.
  */
 final class FormVersioning
 {
@@ -45,14 +52,20 @@ final class FormVersioning
     {
     }
 
+    /**
+     * Versions are kept when the component option is on and the Versionable
+     * behaviour plugin, which writes them, is enabled.
+     */
     public static function isEnabled(): bool
     {
-        return (bool) ComponentHelper::getParams('com_breezingformsng')->get('save_history', 1);
+        return (bool) ComponentHelper::getParams('com_breezingformsng')->get('save_history', 0)
+            && PluginHelper::isEnabled('behaviour', 'versionable');
     }
 
     /**
      * Gives the form its next version number and, when versions are enabled,
-     * stores the form in the history.
+     * checks that the history holds it. All or nothing: a failure leaves
+     * neither a new number nor a history row.
      *
      * @param int|null $restoredFrom The version the form was restored from
      *
@@ -61,45 +74,70 @@ final class FormVersioning
     public function record(int $formId, ?int $restoredFrom = null): int
     {
         $db = $this->db;
-        $db->setQuery(
-            $db->createQuery()
-                ->update($db->quoteName('#__facileforms_forms'))
-                ->set($db->quoteName('version') . ' = ' . $db->quoteName('version') . ' + 1')
-                ->where($db->quoteName('id') . ' = :id')
-                ->bind(':id', $formId, ParameterType::INTEGER)
-        )->execute();
+        $db->transactionStart();
 
-        $row = $db->setQuery(
-            $db->createQuery()
-                ->select('*')
-                ->from($db->quoteName('#__facileforms_forms'))
-                ->where($db->quoteName('id') . ' = :id')
-                ->bind(':id', $formId, ParameterType::INTEGER)
-        )->loadAssoc();
+        try {
+            $table = new FormTable($db);
 
-        if (!\is_array($row)) {
-            return 0;
-        }
+            if (!$table->load($formId)) {
+                throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_RECORD'));
+            }
 
-        $version = (int) $row['version'];
+            $version = (int) $table->version + 1;
+            $table->version = $version;
 
-        if (self::isEnabled()) {
-            $note = $restoredFrom === null
-                ? Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOTE', $version)
-                : Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_RESTORED_NOTE', $version, $restoredFrom);
-            // The history hashes an object, as the Versionable behaviour plugin passes it.
-            Versioning::store(self::TYPE_ALIAS, $formId, (object) $row, $note);
+            if (!$table->store()) {
+                throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_SAVE_FAILED'));
+            }
+
+            if (self::isEnabled()) {
+                $this->labelVersion(
+                    $formId,
+                    $table,
+                    $restoredFrom === null
+                        ? Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOTE', $version)
+                        : Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_RESTORED_NOTE', $version, $restoredFrom)
+                );
+            }
+
+            $db->transactionCommit();
+        } catch (\Throwable $e) {
+            $db->transactionRollback();
+
+            throw $e;
         }
 
         return $version;
     }
 
     /**
-     * Removes the history of a deleted form.
+     * Finds the history row the plugin wrote for the stored form, by the same
+     * hash, and gives it its note. A missing row is a failure.
      */
-    public function forget(int $formId): void
+    private function labelVersion(int $formId, FormTable $table, string $note): void
     {
-        Versioning::delete(self::TYPE_ALIAS, $formId);
+        $type = new ContentType($this->db);
+        $type->load(['type_alias' => self::TYPE_ALIAS]);
+
+        $history = new ContentHistory($this->db);
+        $history->item_id = self::TYPE_ALIAS . '.' . $formId;
+        $history->sha1_hash = $history->getSha1((new CMSHelper())->getDataObject($table), $type);
+        $row = $history->getHashMatch();
+
+        if (!\is_object($row)) {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
+        }
+
+        $versionId = (int) $row->version_id;
+        $db = $this->db;
+        $db->setQuery(
+            $db->createQuery()
+                ->update($db->quoteName('#__history'))
+                ->set($db->quoteName('version_note') . ' = :note')
+                ->where($db->quoteName('version_id') . ' = :id')
+                ->bind(':note', $note)
+                ->bind(':id', $versionId, ParameterType::INTEGER)
+        )->execute();
     }
 
     /**

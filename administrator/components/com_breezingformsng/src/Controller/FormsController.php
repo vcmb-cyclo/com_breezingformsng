@@ -179,7 +179,12 @@ class FormsController extends AdminController
 
         try {
             $id  = $this->getOptionsModel()->saveForm($data);
-            (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class)))->record($id);
+
+            try {
+                (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class)))->record($id);
+            } catch (\Throwable $e) {
+                $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_KEPT', $e->getMessage()), 'warning');
+            }
             $pkg = (string) ($data['package'] ?? '');
             // Set by the QuickMode "Options" tab's own form (bfOptionsForm) so
             // the redirect lands back on that tab instead of the default one.

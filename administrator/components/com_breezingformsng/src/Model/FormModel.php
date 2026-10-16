@@ -16,6 +16,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
@@ -128,11 +129,6 @@ class FormModel extends AdminModel
         }
 
         $pks = $ids;
-        $versioning = new FormVersioning($db);
-
-        foreach ($ids as $id) {
-            $versioning->forget($id);
-        }
 
         return true;
     }
@@ -204,7 +200,13 @@ class FormModel extends AdminModel
 
             $table = $this->getTable();
             $table->reorder($this->getReorderConditions($source));
-            (new FormVersioning($db))->record($newId);
+            try {
+                (new FormVersioning($db))->record($newId);
+            } catch (\Throwable $e) {
+                // The copy stays: only its first version is missing.
+                Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
+            }
+
             $copied++;
         }
 

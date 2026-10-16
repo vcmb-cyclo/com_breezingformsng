@@ -1574,6 +1574,38 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->log('Form content type registered for the version history.');
     }
 
+    /**
+     * The Versionable behaviour plugin reads Enable Versions from the stored
+     * options, where a missing value means off: store the defaults of
+     * config.xml until an administrator saves the options.
+     */
+    private function setVersionHistoryDefaults(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $query = $db->createQuery()
+            ->select($db->quoteName('params'))
+            ->from($db->quoteName('#__extensions'))
+            ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
+            ->where($db->quoteName('element') . ' = ' . $db->quote('com_breezingformsng'));
+        $params = json_decode((string) $db->setQuery($query)->loadResult(), true);
+        $params = is_array($params) ? $params : [];
+
+        if (array_key_exists('save_history', $params)) {
+            return;
+        }
+
+        $params['save_history'] = 1;
+        $params['history_limit'] = $params['history_limit'] ?? 10;
+
+        $query = $db->createQuery()
+            ->update($db->quoteName('#__extensions'))
+            ->set($db->quoteName('params') . ' = ' . $db->quote((string) json_encode($params)))
+            ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
+            ->where($db->quoteName('element') . ' = ' . $db->quote('com_breezingformsng'));
+        $db->setQuery($query)->execute();
+        $this->log('Version history enabled with its default options.');
+    }
+
     private function unregisterFormContentType(): void
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
@@ -3202,6 +3234,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $this->installModules();
             $this->registerActionLogExtension();
             $this->registerFormContentType();
+            $this->setVersionHistoryDefaults();
             $this->cleanupLegacyBreezingFormsAfterInstall();
             $this->removeOldUpdateSite();
             $this->cleanupOldConfig();

@@ -12,6 +12,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
@@ -138,7 +139,12 @@ class QuickmodeController extends BaseController
             (new ContentBuilderFormSync($app, $db))->sync($formId);
 
             if ($input->getInt('recordVersion', 1) === 1) {
-                (new FormVersioning($db))->record($formId);
+                try {
+                    (new FormVersioning($db))->record($formId);
+                } catch (\Throwable $e) {
+                    // The save stays; this request only answers with the form id.
+                    Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
+                }
             }
 
             $app->setHeader('Content-Type', 'text/plain; charset=UTF-8', true);

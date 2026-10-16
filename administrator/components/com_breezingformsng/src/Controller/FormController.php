@@ -36,6 +36,11 @@ class FormController extends BaseController
     /**
      * Restores the chosen version as a new version of the form, then reopens
      * the form in QuickMode.
+     *
+     * The options, the structure and the new version are written in one
+     * transaction: a failure leaves the form as it was. The form stays checked
+     * out to the user, who restores from the QuickMode editor and goes back
+     * to it; the editor checks it in when it is closed.
      */
     public function loadhistory(): void
     {
@@ -69,18 +74,36 @@ class FormController extends BaseController
             }
 
             $redirect = 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . $formId;
+            $db->transactionStart();
 
-            $versioning->restoreOptions($formId, $version['columns']);
-            $quickmode->save(
-                $formId,
-                FormVersioning::resetMissingElementIds($version['structure'], $versioning->elementIds($formId))
-            );
-            (new ContentBuilderFormSync($this->app, $db))->sync($formId);
-            $current = $versioning->record($formId, $version['version']);
+            try {
+                $versioning->restoreOptions($formId, $version['columns']);
+                $quickmode->save(
+                    $formId,
+                    FormVersioning::resetMissingElementIds($version['structure'], $versioning->elementIds($formId))
+                );
+                $current = $versioning->record($formId, $version['version']);
+                $db->transactionCommit();
+            } catch (\Throwable $e) {
+                $db->transactionRollback();
+
+                throw $e;
+            }
 
             $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_RESTORED', $version['version'], $current));
         } catch (\Throwable $e) {
             $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_RESTORE_FAILED', $e->getMessage()), 'error');
+            $this->setRedirect(Route::_($redirect, false));
+
+            return;
+        }
+
+        // ContentBuilder NG keeps its own copy of the elements: it follows the
+        // restored form, and catches up at the next save if this fails.
+        try {
+            (new ContentBuilderFormSync($this->app, $db))->sync($formId);
+        } catch (\Throwable $e) {
+            $this->app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_SYNC_FAILED', $e->getMessage()), 'warning');
         }
 
         $this->setRedirect(Route::_($redirect, false));
