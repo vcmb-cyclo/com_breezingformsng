@@ -74,7 +74,9 @@ final class FormVersioning
     public function record(int $formId, ?int $restoredFrom = null): int
     {
         $db = $this->db;
-        $db->transactionStart();
+        // A savepoint inside the transaction of a restore, a transaction on
+        // its own: a plain start would commit the restore's open transaction.
+        $db->transactionStart(true);
 
         try {
             $table = new FormTable($db);
@@ -100,9 +102,9 @@ final class FormVersioning
                 );
             }
 
-            $db->transactionCommit();
+            $db->transactionCommit(true);
         } catch (\Throwable $e) {
-            $db->transactionRollback();
+            $db->transactionRollback(true);
 
             throw $e;
         }

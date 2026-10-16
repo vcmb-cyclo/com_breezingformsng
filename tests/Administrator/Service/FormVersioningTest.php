@@ -106,8 +106,8 @@ final class FormVersioningTest extends TestCase
         $service = $this->read('administrator/components/com_breezingformsng/src/Service/FormVersioning.php');
 
         self::assertMatchesRegularExpression(
-            '/function record\(.*?transactionStart\(\);.*?->store\(\).*?labelVersion\(.*?transactionCommit\(\);'
-            . '.*?catch \(\\\\Throwable \$e\) \{\s+\$db->transactionRollback\(\);\s+throw \$e;/s',
+            '/function record\(.*?transactionStart\(true\);.*?->store\(\).*?labelVersion\(.*?transactionCommit\(true\);'
+            . '.*?catch \(\\\\Throwable \$e\) \{\s+\$db->transactionRollback\(true\);\s+throw \$e;/s',
             $service
         );
         self::assertMatchesRegularExpression(

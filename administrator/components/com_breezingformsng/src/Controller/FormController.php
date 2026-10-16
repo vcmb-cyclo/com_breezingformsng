@@ -99,11 +99,9 @@ class FormController extends BaseController
         }
 
         // ContentBuilder NG keeps its own copy of the elements: it follows the
-        // restored form, and catches up at the next save if this fails.
-        try {
-            (new ContentBuilderFormSync($this->app, $db))->sync($formId);
-        } catch (\Throwable $e) {
-            $this->app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_SYNC_FAILED', $e->getMessage()), 'warning');
+        // restored form, and catches up at the next save if this fails (logged).
+        if (!(new ContentBuilderFormSync($this->app, $db))->sync($formId)) {
+            $this->app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_SYNC_FAILED'), 'warning');
         }
 
         $this->setRedirect(Route::_($redirect, false));
