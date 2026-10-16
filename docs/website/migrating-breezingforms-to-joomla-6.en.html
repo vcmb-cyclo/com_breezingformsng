@@ -31,7 +31,7 @@ It installs over your existing BreezingForms component and keeps your forms, sub
   <li><strong>Do not uninstall</strong> the old BreezingForms component: the NG installer needs its extension entry to migrate it, and uninstalling may remove its data.</li>
   <li>Upgrade Joomla to version 6 (PHP 8.3 or later). The old component may stop working at this point: keep the site offline until step 5.</li>
   <li>Download the latest <a href="https://github.com/vcmb-cyclo/com_breezingformsng/releases/latest">BreezingForms NG release</a> and install it with <em>System → Install → Extensions</em>, over the existing component.</li>
-  <li>Check that the <em>BreezingForms NG - Compatibility</em> system plugin plugin is enabled if your forms contain custom PHP code.</li>
+  <li>Check that the <em>BreezingForms NG - Compatibility</em> system plugin is enabled if your forms contain custom PHP code.</li>
   <li>Test each form: captcha, file uploads, emails, payments in sandbox mode, and record exports.</li>
   <li>Turn on Joomla debug and look for <code>Class … not found</code> errors in <code>administrator/logs/everything.php</code>: they point to custom code that still calls a removed API.</li>
 </ol>
