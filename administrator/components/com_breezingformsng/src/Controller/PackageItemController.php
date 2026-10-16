@@ -114,14 +114,23 @@ abstract class PackageItemController extends FormController
                 throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
 
-            if (!$model->checkout($targetId)) {
-                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', Text::_('JERROR_AN_ERROR_HAS_OCCURRED')), 'error');
+            try {
+                $model->checkout($targetId);
+            } catch (\Throwable $exception) {
+                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', $exception->getMessage()), 'error');
                 $this->setRedirect(Route::_($this->itemUrl($itemId, $test), false));
 
                 return;
             }
 
-            $model->checkin($itemId);
+            try {
+                $model->checkin($itemId);
+            } catch (\Throwable $exception) {
+                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $exception->getMessage()), 'error');
+                $this->setRedirect(Route::_($this->itemUrl($itemId, $test), false));
+
+                return;
+            }
         }
 
         $this->releaseEditId($context, $itemId);

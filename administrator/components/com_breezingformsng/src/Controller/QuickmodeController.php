@@ -37,8 +37,10 @@ class QuickmodeController extends BaseController
         if ($formId > 0) {
             $model = $this->getFormModel();
 
-            if (!$model->checkout($formId)) {
-                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', Text::_('JERROR_AN_ERROR_HAS_OCCURRED')), 'error');
+            try {
+                $model->checkout($formId);
+            } catch (\Throwable $exception) {
+                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', $exception->getMessage()), 'error');
                 $this->setRedirect(Route::_('index.php?option=com_breezingformsng&view=forms', false));
 
                 return $this;
@@ -62,8 +64,10 @@ class QuickmodeController extends BaseController
             $model = $this->getFormModel();
 
             // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
-            if (!$model->checkin($formId)) {
-                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', Text::_('JERROR_AN_ERROR_HAS_OCCURRED')), 'error');
+            try {
+                $model->checkin($formId);
+            } catch (\Throwable $exception) {
+                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $exception->getMessage()), 'error');
             }
         }
 
