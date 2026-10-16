@@ -911,7 +911,10 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                     chunksLength: chunks.length,
                     chunkIdx: chunki,
                     chunk: chunks[chunki],
-                    rndAdd: rndAdd
+                    rndAdd: rndAdd,
+                    // The Options tab is posted next and records the version
+                    // (forms.save); without it, this save records it.
+                    recordVersion: JQuery('#bfOptionsFieldsWrap').length === 0 ? 1 : 0
                 };
                 postData[BFQMConfig.csrfToken] = '1';
 
@@ -981,9 +984,14 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
 
                 JQuery('joomla-toolbar-button').click(function (e) {
 
-                    e.preventDefault();
-
                     let pressbutton = JQuery(this).attr('task');
+
+                    // Buttons without a task, such as Versions, keep their native behaviour.
+                    if (!pressbutton) {
+                        return;
+                    }
+
+                    e.preventDefault();
 
                     var form = document.adminForm;
 

@@ -19,6 +19,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 
 /**
  * List actions on forms: publish, delete, copy and reorder. The form itself
@@ -127,6 +128,11 @@ class FormModel extends AdminModel
         }
 
         $pks = $ids;
+        $versioning = new FormVersioning($db);
+
+        foreach ($ids as $id) {
+            $versioning->forget($id);
+        }
 
         return true;
     }
@@ -160,6 +166,7 @@ class FormModel extends AdminModel
             $data['title'] = 'Copy of ' . $source->title;
             $data['name'] = 'copy_' . $source->name;
             $data['ordering'] = 999999;
+            $data['version'] = 0;
             $data['created'] = $now;
             $data['created_by'] = $uid;
             $data['modified'] = $now;
@@ -197,6 +204,7 @@ class FormModel extends AdminModel
 
             $table = $this->getTable();
             $table->reorder($this->getReorderConditions($source));
+            (new FormVersioning($db))->record($newId);
             $copied++;
         }
 

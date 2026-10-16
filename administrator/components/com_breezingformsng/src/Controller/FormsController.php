@@ -10,16 +10,19 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\AdminController;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
+use Joomla\Database\DatabaseInterface;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 
 /** @property CMSApplication $app */
 class FormsController extends AdminController
@@ -176,6 +179,7 @@ class FormsController extends AdminController
 
         try {
             $id  = $this->getOptionsModel()->saveForm($data);
+            (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class)))->record($id);
             $pkg = (string) ($data['package'] ?? '');
             // Set by the QuickMode "Options" tab's own form (bfOptionsForm) so
             // the redirect lands back on that tab instead of the default one.

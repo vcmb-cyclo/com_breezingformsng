@@ -22,6 +22,7 @@ use Joomla\Filesystem\Path;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ContentBuilderFormSync;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 
 class QuickmodeController extends BaseController
 {
@@ -133,7 +134,12 @@ class QuickmodeController extends BaseController
 
             $formId = $this->getQuickmodeModel()->save($form, $dataObject);
 
-            (new ContentBuilderFormSync($app, Factory::getContainer()->get(DatabaseInterface::class)))->sync($formId);
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
+            (new ContentBuilderFormSync($app, $db))->sync($formId);
+
+            if ($input->getInt('recordVersion', 1) === 1) {
+                (new FormVersioning($db))->record($formId);
+            }
 
             $app->setHeader('Content-Type', 'text/plain; charset=UTF-8', true);
             $app->sendHeaders();

@@ -90,7 +90,7 @@ class QuickmodeModel extends BaseDatabaseModel
     public function getFormOptions(int $form): ?\stdClass
     {
         $query = $this->db->createQuery()
-            ->select(['package', 'name', 'title', 'description', 'emailntf', 'emailadr', 'published', 'debug_mode'])
+            ->select(['package', 'name', 'title', 'description', 'emailntf', 'emailadr', 'published', 'debug_mode', 'version'])
             ->from($this->db->quoteName('#__facileforms_forms'))
             ->where($this->db->quoteName('id') . ' = :form')
             ->bind(':form', $form, ParameterType::INTEGER);
