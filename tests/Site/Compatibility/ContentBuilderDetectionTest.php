@@ -85,8 +85,8 @@ final class ContentBuilderDetectionTest extends TestCase
         yield 'record cleanup' => [
             'components/com_breezingformsng/src/Service/Integration/ContentBuilderRecordCleanup.php',
         ];
-        yield 'quickmode controller' => [
-            'administrator/components/com_breezingformsng/src/Controller/QuickmodeController.php',
+        yield 'quickmode content builder sync' => [
+            'administrator/components/com_breezingformsng/src/Service/ContentBuilderFormSync.php',
         ];
     }
 

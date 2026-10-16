@@ -23,12 +23,10 @@ Symbols stubbed, and the file in this component that calls each one:
 
 | Symbol | Caller |
 |---|---|
-| `Helper\FormSourceFactory::getForm()` | `RenderingEngine`, `QuickmodeController` |
+| `Helper\FormSourceFactory::getForm()` | `RenderingEngine`, `ContentBuilderFormSync` |
 | `Helper\ContentbuilderngHelper::contentbuilderng_wordwrap()` | `RenderingEngine` |
-| `Service\FormSupportService::__construct()` / `::synchElements()` | `QuickmodeController` |
-| `Service\PathService::__construct()` | `QuickmodeController` |
-| `Service\TemplateSampleService::__construct()` | `QuickmodeController` |
+| `Service\FormSupportService::synchElements()` (from the ContentBuilder NG container) | `ContentBuilderFormSync` |
 | `Service\ListSupportService::createFromRuntimeContext()` | `RenderingEngine`, `ExportEngine` |
 | `Service\PermissionService::createFromRuntimeContext()` | `RenderingEngine` |
 | `Service\ArticleService` (class only, via `::class`) | `ExportEngine` |
-| `Extension\ContentbuilderngComponent::getContainer()` | `ExportEngine` |
+| `Extension\ContentbuilderngComponent::getContainer()` | `ExportEngine`, `ContentBuilderFormSync` |
