@@ -1,0 +1,42 @@
+<!--
+  Corps d’article pour https://breezingforms-ng.vcmb.fr/migrer-breezingforms-vers-joomla-6
+  Titre : Migrer BreezingForms vers Joomla 6
+  Meta description : BreezingForms de Crosstec n’est plus maintenu. Passez vos formulaires, soumissions et scripts sous Joomla 6 avec BreezingForms NG, sans perte de données.
+-->
+<p>BreezingForms de Crosstec n’est plus maintenu depuis 2022 et ne fonctionne pas sous Joomla&nbsp;6.
+<strong>BreezingForms NG</strong> en est la suite communautaire, reconstruite pour Joomla&nbsp;6 et PHP&nbsp;8.3+.
+Il s’installe par-dessus votre composant BreezingForms et conserve vos formulaires, soumissions, scripts et pièces.</p>
+
+<h2>Ce qui est conservé</h2>
+<ul>
+  <li>Les formulaires créés en <strong>QuickMode</strong>, avec leurs éléments, thèmes, e-mails et paramètres de paiement.</li>
+  <li>Toutes les soumissions (enregistrements), scripts, pièces et règles de l’intégrateur&#8239;: ils restent dans les mêmes tables <code>#__facileforms_*</code>.</li>
+  <li>Les éléments de menu, les permissions et la configuration du composant, migrés automatiquement.</li>
+  <li>Les URL et le code stockés qui pointent vers <code>option=com_breezingforms</code>, réécrits vers le nouveau composant.</li>
+  <li>Le code PHP personnalisé qui utilise les anciennes classes <code>BF*</code>, grâce au plugin système <em>BreezingForms NG - Compatibilité</em>.</li>
+</ul>
+
+<h2>Ce qui change</h2>
+<ul>
+  <li>Seul QuickMode subsiste&#8239;: les formulaires créés en <strong>Easy Mode ou Classic Mode doivent être reconstruits</strong> en QuickMode.</li>
+  <li>Le rendu mobile a disparu&#8239;: utilisez la mise en page Bootstrap&nbsp;5 ou «&nbsp;une page&nbsp;», toutes deux adaptatives.</li>
+  <li>Le code personnalisé qui appelle d’anciennes API Joomla (<code>JFactory</code>, <code>JRequest</code>, <code>getQuery(true)</code>…) doit être mis à jour pour Joomla&nbsp;6.</li>
+  <li>Le code d’envoi personnalisé doit transmettre le jeton de formulaire Joomla.</li>
+</ul>
+
+<h2>Étape par étape</h2>
+<ol>
+  <li><strong>Sauvegardez</strong> les fichiers et la base de données, et travaillez d’abord sur une copie du site.</li>
+  <li>Repérez vos formulaires Easy Mode et Classic Mode&#8239;: il faudra les reconstruire.</li>
+  <li><strong>Ne désinstallez pas</strong> l’ancien composant BreezingForms&#8239;: l’installateur NG a besoin de son entrée d’extension pour le migrer, et la désinstallation risque de supprimer ses données.</li>
+  <li>Mettez Joomla à jour en version&nbsp;6 (PHP&nbsp;8.3 ou plus). L’ancien composant peut cesser de fonctionner à ce stade&#8239;: laissez le site hors ligne jusqu’à l’étape&nbsp;5.</li>
+  <li>Téléchargez la dernière <a href="https://github.com/vcmb-cyclo/com_breezingformsng/releases/latest">version de BreezingForms NG</a> et installez-la via <em>Système → Installer → Extensions</em>, par-dessus le composant existant.</li>
+  <li>Vérifiez que le plugin système <em>BreezingForms NG - Compatibilité</em> est activé si vos formulaires contiennent du code PHP personnalisé.</li>
+  <li>Testez chaque formulaire&#8239;: captcha, envoi de fichiers, e-mails, paiements en mode test (sandbox) et exports des enregistrements.</li>
+  <li>Activez le débogage de Joomla et cherchez les erreurs <code>Class … not found</code> dans <code>administrator/logs/everything.php</code>&#8239;: elles signalent du code personnalisé qui appelle encore une API supprimée.</li>
+</ol>
+
+<h2>Besoin d’aide&#8239;?</h2>
+<p>Ouvrez un ticket sur <a href="https://github.com/vcmb-cyclo/com_breezingformsng/issues">GitHub</a>.
+Les développeurs peuvent consulter les <a href="https://github.com/vcmb-cyclo/com_breezingformsng/blob/main/skills/breezingformsng/references/migration.md">notes techniques de migration</a> (en anglais),
+avec les équivalents Joomla&nbsp;6 des anciennes API.</p>
