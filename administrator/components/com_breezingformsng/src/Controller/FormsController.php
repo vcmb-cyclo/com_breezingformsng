@@ -181,7 +181,7 @@ class FormsController extends AdminController
             $id  = $this->getOptionsModel()->saveForm($data);
 
             try {
-                (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class)))->record($id);
+                (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class), $this->getFormModel()))->record($id);
             } catch (\Throwable $e) {
                 $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_KEPT', $e->getMessage()), 'warning');
             }

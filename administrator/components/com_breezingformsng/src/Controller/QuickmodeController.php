@@ -140,7 +140,7 @@ class QuickmodeController extends BaseController
 
             if ($input->getInt('recordVersion', 1) === 1) {
                 try {
-                    (new FormVersioning($db))->record($formId);
+                    (new FormVersioning($db, $this->getFormModel()))->record($formId);
                 } catch (\Throwable $e) {
                     // The save stays; this request only answers with the form id.
                     Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');

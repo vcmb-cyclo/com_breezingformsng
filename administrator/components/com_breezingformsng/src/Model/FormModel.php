@@ -17,7 +17,11 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
+use Joomla\CMS\Form\FormFactoryInterface;
+use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\Versioning\VersionableModelInterface;
+use Joomla\CMS\Versioning\VersionableModelTrait;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
@@ -25,9 +29,18 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 /**
  * List actions on forms: publish, delete, copy and reorder. The form itself
  * is edited in QuickMode, its options through FormOptionsModel.
+ *
+ * Its versions use the Joomla 6 version history of models, as articles do:
+ * AdminModel::delete() deletes the history of a deleted form, and
+ * FormVersioning stores a version after each save.
  */
-class FormModel extends AdminModel
+class FormModel extends AdminModel implements VersionableModelInterface
 {
+    use VersionableModelTrait;
+
+    /** @var string */
+    public $typeAlias = FormVersioning::TYPE_ALIAS;
+
     private const INTEGER_COLUMNS = [
         'autoheight', 'ordering', 'published', 'debug_mode', 'runmode',
         'width', 'widthmode', 'height', 'heightmode', 'pages',
@@ -45,6 +58,27 @@ class FormModel extends AdminModel
         'script1id', 'script2id', 'piece1id', 'piece2id', 'piece3id', 'piece4id',
         'prevwidth',
     ];
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    public function __construct($config = [], ?MVCFactoryInterface $factory = null, ?FormFactoryInterface $formFactory = null)
+    {
+        parent::__construct($config, $factory, $formFactory);
+
+        // As articles, plus template_areas, which QuickMode rebuilds at each save.
+        $this->setIgnoreChanges([
+            'modified_by', 'modified', 'checked_out', 'checked_out_time', 'version', 'ordering', 'template_areas',
+        ]);
+    }
+
+    /**
+     * Marks a restored version as the current one, as loadHistory() does.
+     */
+    public function markRestoredVersion(int $formId, int $versionId): void
+    {
+        $this->markVersionAsCurrent($versionId, FormVersioning::TYPE_ALIAS . '.' . $formId);
+    }
 
     /**
      * @param  string                $name
@@ -118,18 +152,6 @@ class FormModel extends AdminModel
                     $db->createQuery()
                         ->delete($db->quoteName('#__facileforms_elements'))
                         ->whereIn($db->quoteName('form'), $ids)
-                )->execute();
-
-                // The Versionable plugin only deletes the history while versions
-                // are enabled: versions kept before they were disabled go too.
-                $db->setQuery(
-                    $db->createQuery()
-                        ->delete($db->quoteName('#__history'))
-                        ->whereIn(
-                            $db->quoteName('item_id'),
-                            array_map(static fn (int $id): string => FormVersioning::TYPE_ALIAS . '.' . $id, $ids),
-                            ParameterType::STRING
-                        )
                 )->execute();
             }
 
@@ -213,7 +235,7 @@ class FormModel extends AdminModel
             $table = $this->getTable();
             $table->reorder($this->getReorderConditions($source));
             try {
-                (new FormVersioning($db))->record($newId);
+                (new FormVersioning($db, $this))->record($newId);
             } catch (\Throwable $e) {
                 // The copy stays: only its first version is missing.
                 Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');

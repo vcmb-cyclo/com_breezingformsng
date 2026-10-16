@@ -15,23 +15,20 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
-use Joomla\CMS\Helper\CMSHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Table\ContentHistory;
-use Joomla\CMS\Table\ContentType;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
-use Vcmb\Component\BreezingformsNG\Site\Table\FormTable;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
 
 /**
  * Versions of a form, kept in the Joomla content history: each save gives the
  * form its next version number and stores a copy of its row, structure
  * included, which can be restored later.
  *
- * The history is written by Joomla's Versionable behaviour plugin when
- * FormTable, a VersionableTableInterface, is stored or deleted; this
- * component does not call the deprecated Versioning class itself.
+ * The history is the Joomla 6 version history of models: FormModel uses
+ * VersionableModelTrait, as the article model does. QuickMode and the option
+ * page save the form without FormModel::save(), so the version is stored here.
  */
 final class FormVersioning
 {
@@ -48,25 +45,21 @@ final class FormVersioning
         'template_code', 'template_areas', 'template_code_processed',
     ];
 
-    public function __construct(private readonly DatabaseInterface $db)
-    {
+    public function __construct(
+        private readonly DatabaseInterface $db,
+        private readonly FormModel $forms
+    ) {
     }
 
-    /**
-     * Versions are kept when the component option is on and the Versionable
-     * behaviour plugin, which writes them, is enabled.
-     */
     public static function isEnabled(): bool
     {
-        return (bool) ComponentHelper::getParams('com_breezingformsng')->get('save_history', 0)
-            && PluginHelper::isEnabled('behaviour', 'versionable');
+        return (bool) ComponentHelper::getParams('com_breezingformsng')->get('save_history', 0);
     }
 
     /**
-     * Gives the saved form its next version number, as Joomla does for an
-     * article at each save. The Versionable behaviour plugin then keeps it in
-     * the history, without a new row when the same content is already there
-     * (Joomla compares the content, version number left out).
+     * Gives the saved form its next version number, as ArticleModel does at
+     * each save, and keeps it in the history through saveHistory(), which
+     * adds no row when the same content is already there (version left out).
      *
      * All or nothing: a failure leaves neither a new number nor a history row.
      *
@@ -80,21 +73,28 @@ final class FormVersioning
         $db->transactionStart(true);
 
         try {
-            $table = new FormTable($db);
+            $db->setQuery(
+                $db->createQuery()
+                    ->update($db->quoteName('#__facileforms_forms'))
+                    ->set($db->quoteName('version') . ' = ' . $db->quoteName('version') . ' + 1')
+                    ->where($db->quoteName('id') . ' = :id')
+                    ->bind(':id', $formId, ParameterType::INTEGER)
+            )->execute();
 
-            if (!$table->load($formId)) {
-                throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_RECORD'));
-            }
-
-            $version = (int) $table->version + 1;
-            $table->version = $version;
-
-            if (!$table->store()) {
-                throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_SAVE_FAILED'));
-            }
+            $version = (int) $db->setQuery(
+                $db->createQuery()
+                    ->select($db->quoteName('version'))
+                    ->from($db->quoteName('#__facileforms_forms'))
+                    ->where($db->quoteName('id') . ' = :id')
+                    ->bind(':id', $formId, ParameterType::INTEGER)
+            )->loadResult();
 
             if (self::isEnabled()) {
-                $this->assertKeptInHistory($formId, $table);
+                $this->forms->setState($this->forms->getName() . '.id', $formId);
+
+                if (!$this->forms->saveHistory([], self::TYPE_ALIAS)) {
+                    throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
+                }
             }
 
             $db->transactionCommit(true);
@@ -108,28 +108,9 @@ final class FormVersioning
     }
 
     /**
-     * The history must hold the stored content: the plugin's row for this
-     * save, or the existing row with the same content. Joomla does not report
-     * a failure to write it, so it is checked here.
-     */
-    private function assertKeptInHistory(int $formId, FormTable $table): void
-    {
-        $type = new ContentType($this->db);
-        $type->load(['type_alias' => self::TYPE_ALIAS]);
-
-        $history = new ContentHistory($this->db);
-        $history->item_id = self::TYPE_ALIAS . '.' . $formId;
-        $history->sha1_hash = $history->getSha1((new CMSHelper())->getDataObject($table), $type);
-
-        if (!\is_object($history->getHashMatch())) {
-            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
-        }
-    }
-
-    /**
      * Reads a version of a form from the history.
      *
-     * @return array{formId: int, version: int, columns: array<string, mixed>, structure: array<string, mixed>}
+     * @return array{versionId: int, formId: int, saveDate: string, note: string, columns: array<string, mixed>, structure: array<string, mixed>}
      */
     public function load(int $versionId): array
     {
@@ -150,8 +131,10 @@ final class FormVersioning
         }
 
         return [
+            'versionId' => $versionId,
             'formId' => $formId,
-            'version' => (int) ($columns['version'] ?? 0),
+            'saveDate' => (string) $history->save_date,
+            'note' => (string) $history->version_note,
             'columns' => $columns,
             'structure' => $structure,
         ];

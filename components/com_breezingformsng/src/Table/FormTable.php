@@ -18,10 +18,9 @@ namespace Vcmb\Component\BreezingformsNG\Site\Table;
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Table\Table;
-use Joomla\CMS\Versioning\VersionableTableInterface;
 use Joomla\Database\DatabaseInterface;
 
-final class FormTable extends Table implements VersionableTableInterface
+final class FormTable extends Table
 {
 	/** @var int|string|null */
 	public $id = null;     // identifier
@@ -224,17 +223,6 @@ final class FormTable extends Table implements VersionableTableInterface
 	{
 		parent::__construct('#__facileforms_forms', 'id', $db);
 	} // constructor
-
-	/**
-	 * The Versionable behaviour plugin keeps the versions of a form under
-	 * this alias when the table is stored, and drops them when it is deleted.
-	 *
-	 * @return string
-	 */
-	public function getTypeAlias()
-	{
-		return 'com_breezingformsng.form';
-	}
 
 	public function load($id = null, $reset = true)
 	{

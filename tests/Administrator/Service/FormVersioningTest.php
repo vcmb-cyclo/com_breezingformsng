@@ -72,10 +72,8 @@ final class FormVersioningTest extends TestCase
 
         // The QuickMode structure save records only when no Options post follows it.
         self::assertStringContainsString("recordVersion: JQuery('#bfOptionsFieldsWrap').length === 0 ? 1 : 0", $app);
-        self::assertMatchesRegularExpression(
-            "/if \\(\\\$input->getInt\\('recordVersion', 1\\) === 1\\) \\{\\s+try \\{\\s+\\(new FormVersioning\\(\\\$db\\)\\)->record\\(\\\$formId\\);/",
-            $quickmode
-        );
+        self::assertStringContainsString("if (\$input->getInt('recordVersion', 1) === 1) {", $quickmode);
+        self::assertStringContainsString('(new FormVersioning($db, $this->getFormModel()))->record($formId);', $quickmode);
         self::assertStringContainsString('->record($id);', $forms);
     }
 
@@ -88,29 +86,32 @@ final class FormVersioningTest extends TestCase
         }
     }
 
-    public function testTheHistoryIsWrittenByTheNativeVersionablePlugin(): void
+    public function testTheHistoryIsTheJoomla6ModelHistory(): void
     {
         $service = $this->read('administrator/components/com_breezingformsng/src/Service/FormVersioning.php');
+        $model = $this->read('administrator/components/com_breezingformsng/src/Model/FormModel.php');
         $table = $this->read('components/com_breezingformsng/src/Table/FormTable.php');
 
-        // Versioning is deprecated since Joomla 6: the Versionable behaviour
-        // plugin writes and deletes the history of a VersionableTableInterface.
+        // As ArticleModel: VersionableModelTrait, not the legacy table plugin
+        // nor the deprecated Versioning class.
+        self::assertStringContainsString('class FormModel extends AdminModel implements VersionableModelInterface', $model);
+        self::assertStringContainsString('use VersionableModelTrait;', $model);
+        self::assertStringNotContainsString('VersionableTableInterface', $table);
         self::assertStringNotContainsString('Versioning::', $service);
-        self::assertStringContainsString('final class FormTable extends Table implements VersionableTableInterface', $table);
-        self::assertStringContainsString("return 'com_breezingformsng.form';", $table);
-        self::assertStringContainsString("PluginHelper::isEnabled('behaviour', 'versionable')", $service);
+        self::assertStringContainsString('->saveHistory([], self::TYPE_ALIAS)', $service);
     }
 
     public function testRecordingIsAllOrNothingAndChecksTheHistory(): void
     {
         $service = $this->read('administrator/components/com_breezingformsng/src/Service/FormVersioning.php');
+        $record = substr($service, (int) strpos($service, 'public function record('));
+        $record = substr($record, 0, (int) strpos($record, 'public function load('));
 
-        self::assertMatchesRegularExpression(
-            '/function record\(.*?transactionStart\(true\);.*?->store\(\).*?assertKeptInHistory\(.*?transactionCommit\(true\);'
-            . '.*?catch \(\\\\Throwable \$e\) \{\s+\$db->transactionRollback\(true\);\s+throw \$e;/s',
-            $service
-        );
-        self::assertStringContainsString('if (!\\is_object($history->getHashMatch())) {', $service);
+        self::assertStringContainsString('$db->transactionStart(true);', $record);
+        self::assertStringContainsString("if (!\$this->forms->saveHistory([], self::TYPE_ALIAS)) {", $record);
+        self::assertStringContainsString('$db->transactionCommit(true);', $record);
+        self::assertStringContainsString('$db->transactionRollback(true);', $record);
+        self::assertLessThan(strpos($record, 'transactionCommit(true)'), strpos($record, 'saveHistory('));
     }
 
     public function testARestoreIsAllOrNothing(): void
@@ -134,17 +135,16 @@ final class FormVersioningTest extends TestCase
     public function testVersionsFollowJoomlaArticles(): void
     {
         $service = $this->read('administrator/components/com_breezingformsng/src/Service/FormVersioning.php');
-        $script = $this->read('script.php');
+        $model = $this->read('administrator/components/com_breezingformsng/src/Model/FormModel.php');
 
         // As ArticleModel::prepareTable(): the number goes up at each save.
-        self::assertStringContainsString('$version = (int) $table->version + 1;', $service);
-        // As com_content.article: the history compares the content, version left out,
-        // so the same content saved again adds no row.
+        self::assertStringContainsString("->set(\$db->quoteName('version') . ' = ' . \$db->quoteName('version') . ' + 1')", $service);
+        // As articles, the hash leaves version out, so the same content adds no row;
+        // template_areas, rebuilt by QuickMode at each save, too.
         self::assertStringContainsString(
-            "'ignoreChanges' => ['modified', 'modified_by', 'checked_out', 'checked_out_time', 'version', 'ordering', 'template_areas'],",
-            $script
+            "'modified_by', 'modified', 'checked_out', 'checked_out_time', 'version', 'ordering', 'template_areas',",
+            $model
         );
-        self::assertStringNotContainsString('version_note', $service);
     }
 
     public function testDeletingAFormDeletesItsHistoryEvenWithVersionsDisabled(): void
@@ -153,8 +153,10 @@ final class FormVersioningTest extends TestCase
         $delete = substr($model, (int) strpos($model, 'public function delete(&$pks)'));
         $delete = substr($delete, 0, (int) strpos($delete, 'transactionCommit();'));
 
-        self::assertStringContainsString("->delete(\$db->quoteName('#__history'))", $delete);
-        self::assertStringContainsString("FormVersioning::TYPE_ALIAS . '.' . \$id", $delete);
+        // AdminModel::delete() calls deleteHistory() for a VersionableModelInterface,
+        // whatever the Enable Versions option; FormModel::delete() runs it in its transaction.
+        self::assertStringContainsString('implements VersionableModelInterface', $model);
+        self::assertStringContainsString('parent::delete($ids)', $delete);
     }
 
     private function read(string $path): string

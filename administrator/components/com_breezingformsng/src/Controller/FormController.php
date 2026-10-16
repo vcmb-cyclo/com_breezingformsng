@@ -56,17 +56,18 @@ class FormController extends BaseController
         }
 
         $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $versioning = new FormVersioning($db);
 
         try {
-            $version = $versioning->load($this->input->getInt('version_id', 0));
-            $formId = $version['formId'];
             $forms = $this->getModel('Form', 'Administrator', ['ignore_request' => true]);
             $quickmode = $this->getModel('Quickmode', 'Administrator', ['ignore_request' => true]);
 
             if (!$forms instanceof FormModel || !$quickmode instanceof QuickmodeModel) {
                 throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
+
+            $versioning = new FormVersioning($db, $forms);
+            $version = $versioning->load($this->input->getInt('version_id', 0));
+            $formId = $version['formId'];
 
             // A form someone else has open in QuickMode is not overwritten.
             if (!$forms->checkout($formId)) {
@@ -82,7 +83,9 @@ class FormController extends BaseController
                     $formId,
                     FormVersioning::resetMissingElementIds($version['structure'], $versioning->elementIds($formId))
                 );
-                $current = $versioning->record($formId);
+                $versioning->record($formId);
+                // As loadHistory(): the restored version is the current one.
+                $forms->markRestoredVersion($formId, $version['versionId']);
                 $db->transactionCommit();
             } catch (\Throwable $e) {
                 $db->transactionRollback();
@@ -90,7 +93,8 @@ class FormController extends BaseController
                 throw $e;
             }
 
-            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_RESTORED', $version['version'], $current));
+            // The message of the Joomla Restore button (VersionableControllerTrait).
+            $this->setMessage(Text::sprintf('JLIB_APPLICATION_SUCCESS_LOAD_HISTORY', $version['saveDate'], $version['note']));
         } catch (\Throwable $e) {
             $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_RESTORE_FAILED', $e->getMessage()), 'error');
             $this->setRedirect(Route::_($redirect, false));
