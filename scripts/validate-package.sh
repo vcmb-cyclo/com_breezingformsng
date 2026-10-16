@@ -55,6 +55,16 @@ for path in "${required[@]}"; do
 done
 
 forbidden_patterns=(
+    '^administrator/components/com_breezingformsng/vendor/bin/'
+    '^administrator/components/com_breezingformsng/vendor/phpunit/'
+    '^administrator/components/com_breezingformsng/vendor/phpstan/'
+    '^administrator/components/com_breezingformsng/vendor/squizlabs/'
+    '^administrator/components/com_breezingformsng/vendor/sebastian/'
+    '^administrator/components/com_breezingformsng/vendor/nikic/'
+    '^administrator/components/com_breezingformsng/vendor/myclabs/'
+    '^administrator/components/com_breezingformsng/vendor/phar-io/'
+    '^administrator/components/com_breezingformsng/vendor/theseer/'
+    '^administrator/components/com_breezingformsng/vendor/staabm/'
     '^\.git/'
     '^\.github/'
     '^scripts/'
