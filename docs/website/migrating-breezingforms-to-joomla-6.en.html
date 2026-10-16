@@ -1,0 +1,42 @@
+<!--
+  Article body for https://breezingforms-ng.vcmb.fr/migrating-breezingforms-to-joomla-6
+  Title: Migrating BreezingForms to Joomla 6
+  Meta description: Crosstec BreezingForms is no longer maintained. Upgrade your forms, submissions and scripts to Joomla 6 with BreezingForms NG, without losing data.
+-->
+<p>BreezingForms by Crosstec has not been maintained since 2022 and does not run on Joomla 6.
+<strong>BreezingForms NG</strong> is its community continuation, rebuilt for Joomla 6 and PHP 8.3+.
+It installs over your existing BreezingForms component and keeps your forms, submissions, scripts and pieces.</p>
+
+<h2>What is kept</h2>
+<ul>
+  <li>Forms built with <strong>QuickMode</strong>, with their elements, themes, emails and payment settings.</li>
+  <li>All submissions (records), scripts, pieces and integrator rules: they stay in the same <code>#__facileforms_*</code> database tables.</li>
+  <li>Menu items, permissions and the component configuration, migrated automatically.</li>
+  <li>Stored URLs and code that point to <code>option=com_breezingforms</code>, rewritten to the new component.</li>
+  <li>Custom PHP code that uses the legacy <code>BF*</code> classes, thanks to the <em>bfcompat</em> system plugin.</li>
+</ul>
+
+<h2>What changes</h2>
+<ul>
+  <li>Only QuickMode remains: forms built in <strong>Easy Mode or Classic Mode must be rebuilt</strong> in QuickMode.</li>
+  <li>The mobile renderer is gone: use the Bootstrap 5 or one-page layout, which are responsive.</li>
+  <li>Custom code calling old Joomla APIs (<code>JFactory</code>, <code>JRequest</code>, <code>getQuery(true)</code>…) must be updated for Joomla 6.</li>
+  <li>Custom submit code must send the Joomla form token.</li>
+</ul>
+
+<h2>Step by step</h2>
+<ol>
+  <li><strong>Back up</strong> the site files and the database, and work on a copy of the site first.</li>
+  <li>List your Easy Mode and Classic Mode forms: they will have to be rebuilt.</li>
+  <li><strong>Do not uninstall</strong> the old BreezingForms component: the NG installer needs its extension entry to migrate it, and uninstalling may remove its data.</li>
+  <li>Upgrade Joomla to version 6 (PHP 8.3 or later). The old component may stop working at this point: keep the site offline until step 5.</li>
+  <li>Download the latest <a href="https://github.com/vcmb-cyclo/com_breezingformsng/releases/latest">BreezingForms NG release</a> and install it with <em>System → Install → Extensions</em>, over the existing component.</li>
+  <li>Check that the <em>BreezingForms NG - Compatibility</em> system plugin plugin is enabled if your forms contain custom PHP code.</li>
+  <li>Test each form: captcha, file uploads, emails, payments in sandbox mode, and record exports.</li>
+  <li>Turn on Joomla debug and look for <code>Class … not found</code> errors in <code>administrator/logs/everything.php</code>: they point to custom code that still calls a removed API.</li>
+</ol>
+
+<h2>Need help?</h2>
+<p>Open an issue on <a href="https://github.com/vcmb-cyclo/com_breezingformsng/issues">GitHub</a>.
+Developers can read the <a href="https://github.com/vcmb-cyclo/com_breezingformsng/blob/main/skills/breezingformsng/references/migration.md">technical migration notes</a>,
+with the Joomla 6 replacements for legacy APIs.</p>
