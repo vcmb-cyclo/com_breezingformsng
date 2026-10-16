@@ -33,6 +33,18 @@ final class ContentBuilderFormSyncTest extends TestCase
         self::assertStringNotContainsString('require_once', $sync);
     }
 
+    public function testASyncFailureDoesNotMakeTheSaveFail(): void
+    {
+        $sync = $this->read('administrator/components/com_breezingformsng/src/Service/ContentBuilderFormSync.php');
+        $public = substr($sync, (int) strpos($sync, 'public function sync(int $formId): bool'));
+        $public = substr($public, 0, (int) strpos($public, 'private function synchronise('));
+
+        self::assertStringContainsString('$this->synchronise($formId);', $public);
+        self::assertStringContainsString('} catch (\\Throwable $e) {', $public);
+        self::assertStringContainsString('Log::WARNING', $public);
+        self::assertStringContainsString('return false;', $public);
+    }
+
     public function testNoContentBuilderServiceIsConstructedInThisComponent(): void
     {
         foreach (['administrator/components/com_breezingformsng/src', 'components/com_breezingformsng/src'] as $dir) {

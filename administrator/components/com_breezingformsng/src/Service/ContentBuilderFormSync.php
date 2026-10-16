@@ -18,6 +18,7 @@ use CB\Component\Contentbuilderng\Administrator\Extension\ContentbuilderngCompon
 use CB\Component\Contentbuilderng\Administrator\Helper\FormSourceFactory;
 use CB\Component\Contentbuilderng\Administrator\Service\FormSupportService;
 use Joomla\CMS\Application\CMSApplicationInterface;
+use Joomla\CMS\Log\Log;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
@@ -37,7 +38,29 @@ final class ContentBuilderFormSync
     ) {
     }
 
-    public function sync(int $formId): void
+    /**
+     * Never throws: the form is already saved when this runs, so a failure of
+     * this optional integration must not make the save look failed. It is
+     * logged and returned as false; the next save tries again.
+     */
+    public function sync(int $formId): bool
+    {
+        try {
+            $this->synchronise($formId);
+        } catch (\Throwable $e) {
+            Log::add(
+                'ContentBuilder NG views of form ' . $formId . ' not synchronised: ' . $e->getMessage(),
+                Log::WARNING,
+                'com_breezingformsng'
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function synchronise(int $formId): void
     {
         if (!ContentBuilderInstallation::isInstalled(JPATH_ADMINISTRATOR . '/components/com_contentbuilderng')) {
             return;
