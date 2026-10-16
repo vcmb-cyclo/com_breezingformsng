@@ -21,7 +21,9 @@ use Joomla\CMS\Language\Text;
 class BFAdminPieceTestContext
 {
 	private DatabaseInterface $db;
+	/** @var object */
 	public $formrow;
+	/** @var int */
 	public $form_id;
 	public bool $dying = false;
 
@@ -32,6 +34,10 @@ class BFAdminPieceTestContext
 		$this->form_id = 0;
 	}
 
+	/**
+	 * @param string $name
+	 * @param mixed ...$args
+	 */
 	public function execPieceByName($name, ...$args): mixed
 	{
 		if ($name === '') {
@@ -88,7 +94,11 @@ class PieceTestRunner
 		return $code;
 	}
 
-	public static function executePieceCode($row, $functionName, array $args, $database): array
+	/**
+	 * @param array<int|string, mixed> $args
+	 * @return array{result: mixed, output: string|false, error: string, errorDetails: array<string, mixed>}
+	 */
+	public static function executePieceCode(object $row, string $functionName, array $args, DatabaseInterface $database): array
 	{
 		$context = new BFAdminPieceTestContext($database);
 		$result = null;
@@ -260,7 +270,8 @@ class PieceTestRunner
 		return json_encode($actual) === json_encode($expected);
 	}
 
-	public static function runUnitTests($row, $functionName, $database): array
+	/** @return array<string, mixed> */
+	public static function runUnitTests(object $row, string $functionName, DatabaseInterface $database): array
 	{
 		$lines = preg_split('/\\r?\\n/', (string) $row->unit_tests);
 		$tests = array();

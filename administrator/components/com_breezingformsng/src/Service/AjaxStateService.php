@@ -26,11 +26,13 @@ final class AjaxStateService
         return in_array($column, self::RECORD_COLUMNS, true) ? $column : null;
     }
 
+    /** @return array{Result: string, State: int} */
     public static function success(int $state): array
     {
         return ['Result' => 'OK', 'State' => self::normalizeState($state)];
     }
 
+    /** @return array{Result: string, Message: string} */
     public static function error(string $message): array
     {
         return ['Result' => 'ERROR', 'Message' => $message];

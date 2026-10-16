@@ -20,7 +20,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Editor\Editor;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\BreadcrumbHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\FormsAdvancedOptionsHtml;
-use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
 
@@ -35,8 +35,11 @@ class HtmlView extends BaseHtmlView
     public int    $debugMode  = 0;
     public string $emailadr   = '';
     public string $templateCode = '';
+    /** @var array<string, list<object>> */
     public array  $elementScripts = [];
+    /** @var list<string> */
     public array  $themes         = [];
+    /** @var list<string> */
     public array  $themesBootstrap  = [];
 
     /**
@@ -47,13 +50,20 @@ class HtmlView extends BaseHtmlView
      * save creates one.
      */
     public ?\stdClass $advancedOptionsForm = null;
-    public $advancedOptionsEditor = null;
+    public ?Editor $advancedOptionsEditor = null;
+    /** @var array<string, int> */
     public array $advancedOptionsTabEntryCounts = [];
+    /** @var list<object> */
     public array $advancedOptionsInitScripts = [];
+    /** @var list<object> */
     public array $advancedOptionsSubmittedScripts = [];
+    /** @var list<object> */
     public array $advancedOptionsPieceBefore = [];
+    /** @var list<object> */
     public array $advancedOptionsPieceAfter = [];
+    /** @var list<object> */
     public array $advancedOptionsPieceBeginSubmit = [];
+    /** @var list<object> */
     public array $advancedOptionsPieceEndSubmit = [];
 
     public function display($tpl = null): void
@@ -183,11 +193,11 @@ class HtmlView extends BaseHtmlView
      * Loads the "Options" tab's backing row - same model the classic
      * forms.edit&advanced=1 screen uses (View\Forms\HtmlView::display()).
      */
-    private function getFormModel(): FormModel
+    private function getFormModel(): FormOptionsModel
     {
-        $model = $this->getMVCFactory()->createModel('Form', 'Administrator', ['ignore_request' => true]);
+        $model = $this->getMVCFactory()->createModel('FormOptions', 'Administrator', ['ignore_request' => true]);
 
-        if (!$model instanceof FormModel) {
+        if (!$model instanceof FormOptionsModel) {
             throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 

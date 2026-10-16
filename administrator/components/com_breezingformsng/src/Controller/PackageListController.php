@@ -4,7 +4,7 @@
  * BreezingForms NG - A Joomla Forms Application
  *
  * @package BreezingFormsNG
- * @copyright Copyright (C) 2024-2026 by XDA+GIL
+ * @copyright Copyright (C) 2026 by XDA+GIL
  * @license GNU General Public License version 2 or later; see LICENSE.txt
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
@@ -60,6 +60,11 @@ abstract class PackageListController extends AdminController
         return parent::execute($task);
     }
 
+    /**
+     * @param string               $name
+     * @param string               $prefix
+     * @param array<string, mixed> $config
+     */
     public function getModel($name = '', $prefix = 'Administrator', $config = ['ignore_request' => true])
     {
         return parent::getModel($name ?: ucfirst(Inflector::singularize($this->view_list)), $prefix, $config);

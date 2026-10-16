@@ -24,6 +24,10 @@ use Joomla\CMS\MVC\Model\FormModel;
  */
 class RecordsimportModel extends FormModel
 {
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  bool                  $loadData
+     */
     public function getForm($data = [], $loadData = true)
     {
         return $this->loadForm(
@@ -35,6 +39,8 @@ class RecordsimportModel extends FormModel
 
     /**
      * What was last submitted or, on opening, the form the list is filtered on.
+     *
+     * @return  array<string, mixed>
      */
     protected function loadFormData()
     {

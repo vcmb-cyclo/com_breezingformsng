@@ -4,7 +4,7 @@
  * BreezingForms NG - A Joomla Forms Application
  *
  * @package BreezingFormsNG
- * @copyright Copyright (C) 2024-2026 by XDA+GIL
+ * @copyright Copyright (C) 2026 by XDA+GIL
  * @license GNU General Public License version 2 or later; see LICENSE.txt
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
@@ -25,6 +25,9 @@ class IntegratorRulesModel extends ListModel
 {
     private const SORTS = ['rules.name', 'rules.type', 'forms.name', 'rules.reference_table', 'rules.published'];
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
         $config['filter_fields'] ??= [...self::SORTS, 'published'];

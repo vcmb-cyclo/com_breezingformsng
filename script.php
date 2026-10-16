@@ -54,16 +54,27 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         'com_breezingformsng',
     ];
 
+    /** @var float */
     private $installStartedAt = 0.0;
+    /** @var string */
     private $incomingPackageVersion = '';
+    /** @var string */
     private $currentInstalledVersion = '0.0.0';
+    /** @var bool */
     private $utf8mb4SupportChecked = false;
+    /** @var bool */
     private $utf8mb4Supported = false;
+    /** @var string */
     private $utf8mb4Collation = 'utf8mb4_general_ci';
+    /** @var bool */
     private $utf8mb4CheckPerformed = false;
+    /** @var bool */
     private $utf8mb4CapabilityAnnounced = false;
+    /** @var bool */
     private $criticalFailureDetected = false;
+    /** @var list<string> */
     private $criticalFailureMessages = [];
+    /** @var bool */
     private $logRotationChecked = false;
 
     public function __construct()
@@ -95,6 +106,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      * Translated installer message with an untranslated-fallback sprintf,
      * matching this project's rule of routing user-facing strings through
      * translation keys even in the installer script.
+     *
+     * @param string|int|float ...$args
      */
     private function installerText(string $key, string $fallback, ...$args): string
     {
@@ -184,6 +197,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         return false;
     }
 
+    /**
+     * @return list<string>
+     */
     private function getInstalledWritableCheckPaths(): array
     {
         return [
@@ -193,6 +209,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         ];
     }
 
+    /**
+     * @return list<string>
+     */
     private function collectNonWritablePaths(string $path, int $limit): array
     {
         if ($limit <= 0) {
@@ -297,6 +316,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->utf8mb4CapabilityAnnounced = true;
     }
 
+    /**
+     * @return list<string>
+     */
     private function getBreezingFormsTables(DatabaseInterface $db): array
     {
         $prefix = $db->getPrefix();
@@ -313,6 +335,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         return $tables;
     }
 
+    /**
+     * @param list<string> $tables
+     * @return array<string, list<string>>
+     */
     private function getUtf8mb4NonCompliantTables(DatabaseInterface $db, array $tables): array
     {
         if (empty($tables)) {
@@ -635,6 +661,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     /**
      * Rewrites legacy option=com_breezingforms references found in a set of
      * plain-text columns (i.e. not base64-encoded) of the given table.
+     *
+     * @param list<string> $columns
      */
     private function migrateLegacyOptionInPlainColumns(DatabaseInterface $db, string $table, array $columns): void
     {
@@ -850,6 +878,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         );
     }
 
+    /**
+     * @param mixed $items
+     * @return list<string>
+     */
     private function normalizeImportedItemNames($items): array
     {
         if (!is_array($items)) {
@@ -867,6 +899,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         return $items;
     }
 
+    /**
+     * @param mixed $parent
+     */
     private function getIncomingVersion($parent): string
     {
         if (is_object($parent) && method_exists($parent, 'getManifest')) {
@@ -1147,6 +1182,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
     }
 
+    /**
+     * @param mixed $parent
+     */
     private function verifyInstalledExtensionConsistency($parent): void
     {
         $requiredFiles = [
@@ -1191,6 +1229,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->log('Installed files consistency verified.');
     }
 
+    /**
+     * @return string
+     */
     private function getCurrentInstalledVersion()
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
@@ -1387,6 +1428,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
     }
 
+    /**
+     * @return list<string>
+     */
     private function buildMenuLinkOptionWhereClauses(DatabaseInterface $db, string $option): array
     {
         $quotedOption = $db->quote('%option=' . $option . '%');
@@ -1483,6 +1527,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
     }
 
+    /**
+     * @param array<int|string> $extensionIds
+     */
     private function cleanupExtensionReferences(array $extensionIds): void
     {
         $extensionIds = array_values(array_filter(array_map('intval', $extensionIds), static fn(int $id): bool => $id > 0));
@@ -2756,6 +2803,19 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             }
         }
 
+        // Joomla check-out of the items while they are edited.
+        foreach ([$formsTable, $prefix . 'facileforms_compmenus', $scriptsTable, $piecesTable, $recordsTable] as $tableName) {
+            if (!isset($tables[$tableName]) || isset($tables[$tableName]['checked_out'])) {
+                continue;
+            }
+
+            $db->setQuery(
+                "ALTER TABLE `{$tableName}` ADD `checked_out` INT UNSIGNED NULL DEFAULT NULL,"
+                . " ADD `checked_out_time` DATETIME NULL DEFAULT NULL, ADD INDEX `idx_checkout` (`checked_out`)"
+            )->execute();
+            $this->log("Added the check-out columns to {$tableName}.");
+        }
+
         foreach ([$scriptsTable, $piecesTable] as $tableName) {
             if (!isset($tables[$tableName])) {
                 continue;
@@ -3093,6 +3153,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         return true;
     }
 
+    /**
+     * @return array<string, list<string>>
+     */
     function getPlugins()
     {
         $plugins = array();
@@ -3103,6 +3166,11 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         return $plugins;
     }
 
+    /**
+     * @param string|array<string> $tables
+     * @param bool $typeOnly
+     * @return array<string, array<string, mixed>>
+     */
     public static function getTableFields($tables, $typeOnly = true)
     {
         $results = array();

@@ -18,6 +18,9 @@ defined('_JEXEC') or die;
 
 final class RequestParameterParser
 {
+    /**
+     * @return array<array-key, string>
+     */
     public function parse(string $parameters): array
     {
         $result = [];

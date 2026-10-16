@@ -22,7 +22,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Helper\BreadcrumbHelper;
 
 class HtmlView extends BaseHtmlView
 {
-    protected $modules = null;
+    protected mixed $modules = null;
 
     public function display($tpl = null)
     {

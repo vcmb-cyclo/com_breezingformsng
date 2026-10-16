@@ -17,6 +17,9 @@ class DisplayController extends BaseController
 {
     protected $default_view = 'form';
 
+    /**
+     * @param array<string, string> $urlparams
+     */
     public function display($cachable = false, $urlparams = [])
     {
         $input = $this->input;

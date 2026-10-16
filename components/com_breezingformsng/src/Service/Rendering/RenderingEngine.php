@@ -136,6 +136,9 @@ final class RenderingEngine
 
     // header
 
+    /**
+     * @param array<int, object> $rows
+     */
     public function cbCreatePathByTokens(mixed $path, array $rows, mixed $fieldName): string
     {
         $identity = $this->processor->app->getIdentity();
@@ -406,6 +409,9 @@ final class RenderingEngine
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function cbCheckPermissions(): array
     {
         // CONTENTBUILDER BEGIN

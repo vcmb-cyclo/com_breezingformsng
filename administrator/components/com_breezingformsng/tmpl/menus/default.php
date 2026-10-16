@@ -14,10 +14,14 @@
 
 /** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Menus\HtmlView $this */
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
+$user = Factory::getApplication()->getIdentity();
+$userId = (int) $user->id;
+$canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 ?>
 <form action="<?= Route::_('index.php?option=com_breezingformsng&view=menus'); ?>" method="post" name="adminForm" id="adminForm">
   <div id="j-main-container" class="j-main-container">
@@ -49,6 +53,9 @@ use Joomla\CMS\Router\Route;
               <td class="text-center"><?= HTMLHelper::_('jgrid.published', (int) $row->published, $i, 'menus.', $this->canEditState); ?></td>
               <th scope="row">
                 <?= (int) $row->parent > 0 ? '&mdash; ' : ''; ?>
+                <?php if ((int) $row->checked_out > 0): ?>
+                  <?= HTMLHelper::_('jgrid.checkedout', $i, (string) $row->editor, $row->checked_out_time, 'menus.', $canManageCheckin || (int) $row->checked_out === $userId); ?>
+                <?php endif; ?>
                 <?php if ($this->canOpen): ?>
                   <a href="<?= Route::_('index.php?option=com_breezingformsng&task=menu.edit&id=' . (int) $row->id); ?>" title="<?= Text::_('JACTION_EDIT'); ?>">
                     <?= $this->escape((string) $row->title); ?>

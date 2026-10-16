@@ -11,19 +11,34 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\Controller\BaseController;
-use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\CMS\MVC\Controller\AdminController;
+use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
+use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 
 /** @property CMSApplication $app */
-class FormsController extends BaseController
+class FormsController extends AdminController
 {
     private const LIST_URL = 'index.php?option=com_breezingformsng&view=forms';
 
+    protected $text_prefix = 'COM_BREEZINGFORMSNG';
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    public function getModel($name = 'Form', $prefix = 'Administrator', $config = ['ignore_request' => true])
+    {
+        return parent::getModel($name, $prefix, $config);
+    }
+
+    /**
+     * @param array<string, string> $urlparams
+     */
     public function display($cachable = false, $urlparams = []): static
     {
         $this->app->getInput()->set('view', 'forms');
@@ -145,7 +160,7 @@ class FormsController extends BaseController
 
         $id = (int) ($data['id'] ?? 0);
         if ($id > 0 && $data['salesforce_password'] === '') {
-            $data['salesforce_password'] = (string) ($this->getFormModel()->getForm($id)->salesforce_password ?? '');
+            $data['salesforce_password'] = (string) ($this->getOptionsModel()->getForm($id)->salesforce_password ?? '');
         }
         if (!empty($data['dropbox_reset_auth'])) {
             $data['dropbox_email'] = '';
@@ -160,7 +175,7 @@ class FormsController extends BaseController
         }
 
         try {
-            $id  = $this->getFormModel()->saveForm($data);
+            $id  = $this->getOptionsModel()->saveForm($data);
             $pkg = (string) ($data['package'] ?? '');
             // Set by the QuickMode "Options" tab's own form (bfOptionsForm) so
             // the redirect lands back on that tab instead of the default one.
@@ -191,67 +206,35 @@ class FormsController extends BaseController
 
     public function cancel(): void
     {
-        $this->app->redirect(Route::_(self::LIST_URL, false));
-    }
+        $this->checkToken();
 
-    public function remove(): void
-    {
-        $app   = $this->app;
-        $input = $app->getInput();
+        $id = $this->input->getInt('id', 0);
 
-        if (!$this->checkToken()) {
-            $app->enqueueMessage(Text::_('JINVALID_TOKEN'), 'error');
-        } else {
-            $ids = $this->selectedIds($input);
-            if (!empty($ids)) {
-                $this->getFormModel()->deleteItems($ids);
-                (new ActionLogger($app))->log(ActionLogger::DELETED, ActionLogger::FORM, $ids);
-                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_DELETE_SUCCESS'), 'message');
+        if ($id > 0) {
+            $model = $this->getFormModel();
+
+            // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
+            if (!$model->checkin($id)) {
+                $this->app->enqueueMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()), 'error');
             }
         }
 
-        $app->redirect(Route::_(self::LIST_URL, false));
+        $this->app->redirect(Route::_(self::LIST_URL, false));
     }
 
     public function copy(): void
     {
-        $app   = $this->app;
-        $input = $app->getInput();
+        $this->checkToken();
 
-        if (!$this->checkToken()) {
-            $app->enqueueMessage(Text::_('JINVALID_TOKEN'), 'error');
+        $ids = ArrayHelper::toInteger((array) $this->input->get('cid', [], 'array'));
+
+        if ($ids === []) {
+            $this->setMessage(Text::_($this->text_prefix . '_NO_ITEM_SELECTED'), 'warning');
         } else {
-            $ids = $this->selectedIds($input);
-            if (!empty($ids)) {
-                $this->getFormModel()->copyItems($ids);
-                $app->enqueueMessage(
-                    Text::plural('COM_BREEZINGFORMSNG_FORMS_N_COPIED', count($ids)),
-                    'message'
-                );
-            }
+            $this->setMessage(Text::plural('COM_BREEZINGFORMSNG_FORMS_N_COPIED', $this->getFormModel()->copy($ids)));
         }
 
-        $app->redirect(Route::_(self::LIST_URL, false));
-    }
-
-    public function publish(): void
-    {
-        $this->togglePublish(1);
-    }
-
-    public function unpublish(): void
-    {
-        $this->togglePublish(0);
-    }
-
-    public function orderup(): void
-    {
-        $this->moveOrder(-1);
-    }
-
-    public function orderdown(): void
-    {
-        $this->moveOrder(1);
+        $this->setRedirect(Route::_(self::LIST_URL, false));
     }
 
     public function run(): void
@@ -280,23 +263,6 @@ class FormsController extends BaseController
         $this->setAjaxState('debug');
     }
 
-    private function togglePublish(int $state): void
-    {
-        $app   = $this->app;
-        $input = $app->getInput();
-
-        if (!$this->checkToken()) {
-            $app->enqueueMessage(Text::_('JINVALID_TOKEN'), 'error');
-        } else {
-            $ids = $this->selectedIds($input);
-            if (!empty($ids)) {
-                $this->getFormModel()->publish($ids, $state);
-            }
-        }
-
-        $app->redirect(Route::_(self::LIST_URL, false));
-    }
-
     private function setAjaxState(string $property): void
     {
         $app = $this->app;
@@ -322,9 +288,16 @@ class FormsController extends BaseController
         }
 
         if ($property === 'debug') {
-            $this->getFormModel()->setDebugMode($id, $state);
+            $this->getOptionsModel()->setDebugMode($id, $state);
         } else {
-            $this->getFormModel()->publish([$id], $state);
+            $model = $this->getFormModel();
+            $pks = [$id];
+
+            if (!$model->publish($pks, $state)) {
+                $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
+                echo new JsonResponse(AjaxStateService::error((string) $model->getError()));
+                $app->close();
+            }
         }
 
         $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
@@ -332,49 +305,31 @@ class FormsController extends BaseController
         $app->close();
     }
 
-    private function moveOrder(int $inc): void
+    protected function postDeleteHook(BaseDatabaseModel $model, $id = null)
     {
-        $app   = $this->app;
-        $input = $app->getInput();
+        $deleted = ArrayHelper::toInteger((array) $id);
 
-        if (!$this->checkToken()) {
-            $app->enqueueMessage(Text::_('JINVALID_TOKEN'), 'error');
-        } else {
-            $ids = $this->selectedIds($input);
-            if (!empty($ids)) {
-                $this->getFormModel()->moveOrder((int) $ids[0], $inc);
-            }
+        if ($deleted !== []) {
+            (new ActionLogger($this->app))->log(ActionLogger::DELETED, ActionLogger::FORM, $deleted);
         }
-
-        $app->redirect(Route::_(self::LIST_URL, false));
-    }
-
-    private function selectedIds(\Joomla\Input\Input $input): array
-    {
-        $ids = array_values(array_filter(array_map('intval', (array) $input->get('cid', [], 'array'))));
-
-        if ($ids === []) {
-            $actionId = $input->getInt('action_id', 0);
-            if ($actionId > 0) {
-                $ids[] = $actionId;
-            }
-        }
-
-        return $ids;
     }
 
     private function getFormModel(): FormModel
     {
-        $component = $this->app->bootComponent('com_breezingformsng');
+        $model = $this->getModel();
 
-        if (!$component instanceof MVCFactoryServiceInterface) {
+        if (!$model instanceof FormModel) {
             throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 
-        $model = $component->getMVCFactory()
-            ->createModel('Form', 'Administrator', ['ignore_request' => true]);
+        return $model;
+    }
 
-        if (!$model instanceof FormModel) {
+    private function getOptionsModel(): FormOptionsModel
+    {
+        $model = $this->getModel('FormOptions');
+
+        if (!$model instanceof FormOptionsModel) {
             throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 

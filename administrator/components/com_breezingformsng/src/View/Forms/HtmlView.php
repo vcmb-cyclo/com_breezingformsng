@@ -18,7 +18,7 @@ use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
-use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormsModel;
 
 class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView
@@ -28,14 +28,21 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
     public ?Pagination $pagination = null;
     public ?Registry $state = null;
     public ?Form $filterForm = null;
+    /** @var array<string, mixed> */
     public array $activeFilters = [];
     public string $pkg = '';
     public ?\stdClass $form     = null;
+    /** @var list<object> */
     public array      $initScripts = [];
+    /** @var list<object> */
     public array      $submittedScripts = [];
+    /** @var list<object> */
     public array      $pieceBefore = [];
+    /** @var list<object> */
     public array      $pieceAfter  = [];
+    /** @var list<object> */
     public array      $pieceBeginSubmit = [];
+    /** @var list<object> */
     public array      $pieceEndSubmit   = [];
 
     public function display($tpl = null): void
@@ -54,8 +61,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
 
         /** @var FormsModel $listModel */
         $listModel = $factory->createModel('Forms', 'Administrator', ['ignore_request' => true]);
-        /** @var FormModel $formModel */
-        $formModel = $factory->createModel('Form', 'Administrator', ['ignore_request' => true]);
+        /** @var FormOptionsModel $formModel */
+        $formModel = $factory->createModel('FormOptions', 'Administrator', ['ignore_request' => true]);
 
         if ($layout === 'edit') {
 
@@ -115,8 +122,6 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
                 ['defer' => true],
                 ['core']
             );
-            $document->addScriptOptions('com_breezingformsng.admin-form', ['confirmDeleteTask' => 'forms.remove']);
-            Text::script('JGLOBAL_CONFIRM_DELETE');
 
             $wa->registerAndUseScript(
                 'com_breezingformsng.admin-toggle-published',
@@ -150,7 +155,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             ToolbarHelper::custom('forms.copy', 'copy', '', 'JLIB_HTML_BATCH_COPY', true);
             ToolbarHelper::publish('forms.publish', 'JTOOLBAR_PUBLISH', true);
             ToolbarHelper::unpublish('forms.unpublish', 'JTOOLBAR_UNPUBLISH', true);
-            ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'forms.remove');
+            ToolbarHelper::checkin('forms.checkin');
+            ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'forms.delete');
             $user = Factory::getApplication()->getIdentity();
 
             if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {

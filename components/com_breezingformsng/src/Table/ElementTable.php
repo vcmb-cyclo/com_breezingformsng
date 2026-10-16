@@ -22,13 +22,21 @@ use Joomla\Database\DatabaseInterface;
 
 final class ElementTable extends Table
 {
+	/** @var int|string|null */
 	public $id = null;     // general parameters
+	/** @var int|string|null */
 	public $form = null;     // form id
+	/** @var int|string|null */
 	public $page = null;     // page number
+	/** @var int|string|null */
 	public $ordering = null;     // ordering index
+	/** @var int|string|null */
 	public $published = null;     // publish status
+	/** @var string|null */
 	public $name = null;     // identifier
+	/** @var string|null */
 	public $title = null;     // fancy name
+	/** @var string|null */
 	public $type = null;     // element type
 /*
 -----------------------------------------Element Parameter Cross Reference-------------------------------------------
@@ -53,47 +61,82 @@ Hidden Input        yes     -    -     -     -     -        -        value   -  
 
 Query List Settings: border / cellspacing / cellpadding / <tr(h)>class / <tr(1)>class / <tr(2)>class
 */
+	/** @var string|null */
 	public $class1 = null;     // css class for <div>
+	/** @var string|null */
 	public $class2 = null;     // css class for <element>
 
+	/** @var int|string|null */
 	public $logging = null;     // element is logged in email/database no/yes
 
+	/** @var int|string|null */
 	public $posx = null;     // horizontal position in px or %
+	/** @var int|string|null */
 	public $posxmode = null;     // 0-px 1-%
+	/** @var int|string|null */
 	public $posy = null;     // vertical position in px or %
+	/** @var int|string|null */
 	public $posymode = null;     // 0-px 1-%
+	/** @var int|string|null */
 	public $width = null;     // width in % or px
+	/** @var int|string|null */
 	public $widthmode = null;     // 0-px 1-%
+	/** @var int|string|null */
 	public $height = null;     // height in px
+	/** @var int|string|null */
 	public $heightmode = null;     // 0-fixed px 1-auto 2-automax
 
+	/** @var int|string|null */
 	public $flag1 = null;     // element specific data, see xref
+	/** @var int|string|null */
 	public $flag2 = null;
+	/** @var string|null */
 	public $data1 = null;
+	/** @var string|null */
 	public $data2 = null;
+	/** @var string|null */
 	public $data3 = null;
 
+	/** @var int|string|null */
 	public $script1cond = null;     // init script
+	/** @var int|string|null */
 	public $script1flag1 = null;     // condition 1 = on form entry no/yes
+	/** @var int|string|null */
 	public $script1flag2 = null;     // condition 2 = on page entry
+	/** @var int|string|null */
 	public $script1id = null;     // script id
+	/** @var string|null */
 	public $script1code = null;     // custom code
 
+	/** @var int|string|null */
 	public $script2cond = null;     // action script
+	/** @var int|string|null */
 	public $script2flag1 = null;     // action 1 = Click
+	/** @var int|string|null */
 	public $script2flag2 = null;     // action 2 = Blur
+	/** @var int|string|null */
 	public $script2flag3 = null;     // action 3 = Change
+	/** @var int|string|null */
 	public $script2flag4 = null;     // action 4 = Focus
+	/** @var int|string|null */
 	public $script2flag5 = null;     // action 5 = Select
+	/** @var int|string|null */
 	public $script2id = null;     // script id
+	/** @var string|null */
 	public $script2code = null;     // custom code
 
+	/** @var int|string|null */
 	public $script3cond = null;     // validation script
+	/** @var int|string|null */
 	public $script3id = null;     // script id
+	/** @var string|null */
 	public $script3msg = null;     // message
+	/** @var string|null */
 	public $script3code = null;     // custom code
 
+	/** @var int|string|null */
 	public $mailback = null;
+	/** @var string|null */
 	public $mailbackfile = null;
 
 	public function __construct(DatabaseInterface $db)

@@ -42,6 +42,9 @@ final class FormRenderer
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $context
+     */
     public function render(array $context = []): void
     {
         global $ff_version, $ff_request, $ff_processor, $ff_target;

@@ -97,7 +97,8 @@ final class PayPalCallbackTest extends TestCase
 
     public function testHttpClientIsRequiredAsAnInjectedDependency(): void
     {
-        $parameter = (new ReflectionMethod(PayPalCallback::class, '__construct'))->getParameters()[6];
+        $parameters = (new ReflectionMethod(PayPalCallback::class, '__construct'))->getParameters();
+        $parameter = $parameters[array_search('http', array_map(static fn ($p) => $p->getName(), $parameters), true)];
 
         self::assertFalse($parameter->allowsNull());
         self::assertSame(Http::class, (string) $parameter->getType());
@@ -110,7 +111,6 @@ final class PayPalCallbackTest extends TestCase
         };
         $callback = new PayPalCallback(
             $application,
-            $database,
             new PaymentFormLoader($database),
             new PaymentRecordService($database),
             new RedirectHelper($application),

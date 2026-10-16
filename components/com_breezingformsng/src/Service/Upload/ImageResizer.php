@@ -60,6 +60,9 @@ final class ImageResizer
         $this->resizeByType($path, $this->imageType($path), $width, $height, $resizeType, $background);
     }
 
+    /**
+     * @param array<int, mixed> $backgroundColor
+     */
     public function resizeImage(
         mixed $sourceImage,
         int $destinationWidth,
@@ -171,6 +174,9 @@ final class ImageResizer
         };
     }
 
+    /**
+     * @param array<int|string, mixed> $image
+     */
     private function hasEnoughMemory(array $image): bool
     {
         $channels = (int) ($image['channels'] ?? 0);
@@ -183,6 +189,9 @@ final class ImageResizer
         return !\function_exists('memory_get_usage') || memory_get_usage() + $memoryNeeded <= $memoryLimit;
     }
 
+    /**
+     * @param array{int, int, int}|null $background
+     */
     private function resizeByType(
         string $path,
         int|false $imageType,

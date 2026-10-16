@@ -993,7 +993,9 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                             JQuery('#adminForm').get(0).onsubmit = function () {
                                 return false;
                             };
-                            location.href = "index.php?option=com_breezingformsng&view=forms";
+                            // quickmode.close checks the form in before going back to the list.
+                            location.href = "index.php?option=com_breezingformsng&task=quickmode.close&form="
+                                + encodeURIComponent(form.form.value) + "&" + Joomla.getOptions('csrf.token') + "=1";
                             break;
                         case 'save':
 

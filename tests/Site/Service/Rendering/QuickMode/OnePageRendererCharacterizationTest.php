@@ -285,7 +285,7 @@ final class OnePageRendererCharacterizationTest extends TestCase
 
         self::assertStringContainsString('bfInvisibleReCaptchaContainer', $html);
         self::assertStringContainsString(
-            'bfInitInvisibleReCaptcha({"sitekey":"6Lc-test-pubkey","badge":"inline","hasFlashUpload":false,"resetFlagOnCallback":false});',
+            'bfInitInvisibleReCaptcha({"sitekey":"6Lc-test-pubkey","badge":"inline","hasFlashUpload":false,"resetFlagOnCallback":true,"submitFunction":"bf_validate_submit"});',
             $html
         );
     }

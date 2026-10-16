@@ -25,16 +25,25 @@ use Joomla\Utilities\ArrayHelper;
 
 class MenuModel extends AdminModel
 {
+    /**
+     * @param array<string, mixed> $options
+     */
     public function getTable($name = 'Menu', $prefix = 'Site', $options = [])
     {
         return parent::getTable($name, $prefix, $options);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function getForm($data = [], $loadData = true)
     {
         return $this->loadForm('com_breezingformsng.menu', 'menu', ['control' => 'jform', 'load_data' => $loadData]);
     }
 
+    /**
+     * @return array<string, mixed>|object|false
+     */
     protected function loadFormData()
     {
         $application = Factory::getApplication();
@@ -106,6 +115,9 @@ class MenuModel extends AdminModel
         ];
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function save($data)
     {
         if (!parent::save($data)) {
@@ -123,6 +135,8 @@ class MenuModel extends AdminModel
 
     /**
      * Deletes the items together with their children.
+     *
+     * @param array<int|string, mixed> $pks
      */
     public function delete(&$pks)
     {

@@ -84,6 +84,10 @@ if (ContentBuilderInstallation::isInstalled($cbngBasePath)) {
     require_once $cbngBasePath . '/src/Service/PermissionService.php';
 }
 
+/**
+ * @param mixed $msg
+ * @return void
+ */
 function ff_trace($msg = null)
 {
     global $ff_processor;
@@ -96,6 +100,11 @@ function ff_trace($msg = null)
 
 // ff_trace
 
+/**
+ * @param int $line
+ * @param mixed $msg
+ * @return void
+ */
 function _ff_trace($line, $msg = null)
 {
     global $ff_processor;
@@ -108,6 +117,11 @@ function _ff_trace($line, $msg = null)
 
 // _ff_trace
 
+/**
+ * @param int|null $newmode
+ * @param string $name
+ * @return int|null
+ */
 function _ff_getMode(&$newmode, &$name)
 {
     global $ff_processor;
@@ -120,6 +134,15 @@ function _ff_getMode(&$newmode, &$name)
 
 // _ff_getmode
 
+/**
+ * @param int|null $newmode
+ * @param string $name
+ * @param int $line
+ * @param string|null $type
+ * @param int|string|null $id
+ * @param int|null $pane
+ * @return void
+ */
 function _ff_tracePiece($newmode, $name, $line, $type, $id, $pane)
 {
     global $ff_processor;
@@ -132,6 +155,16 @@ function _ff_tracePiece($newmode, $name, $line, $type, $id, $pane)
 
 // _ff_tracePiece
 
+/**
+ * @param int|null $newmode
+ * @param string $name
+ * @param int $line
+ * @param string|null $type
+ * @param int|string|null $id
+ * @param int|null $pane
+ * @param array<int, mixed>|null $args
+ * @return void
+ */
 function _ff_traceFunction($newmode, $name, $line, $type, $id, $pane, &$args)
 {
     global $ff_processor;
@@ -144,6 +177,11 @@ function _ff_traceFunction($newmode, $name, $line, $type, $id, $pane, &$args)
 
 // _ff_traceFunction
 
+/**
+ * @param int $line
+ * @param mixed $retval
+ * @return mixed
+ */
 function _ff_traceExit($line, $retval = null)
 {
     global $ff_processor;
@@ -156,11 +194,19 @@ function _ff_traceExit($line, $retval = null)
 
 // _ff_traceExit
 
+/**
+ * @param int $errno
+ * @param string $errstr
+ * @param string $errfile
+ * @param int $errline
+ * @return bool Always true: the error is handled here, as it was when the
+ *              handler returned nothing.
+ */
 function _ff_errorHandler($errno, $errstr, $errfile, $errline)
 {
     global $ff_processor, $ff_mossite;
     if (!$ff_processor instanceof HTML_facileFormsProcessor) {
-        return;
+        return true;
     }
 
     (new ErrorHandlerRuntime($ff_processor, (string) $ff_mossite))->handle(
@@ -169,69 +215,129 @@ function _ff_errorHandler($errno, $errstr, $errfile, $errline)
         (string) $errfile,
         (int) $errline
     );
+
+    return true;
 }
 
 // _ff_errorHandler
 
 class HTML_facileFormsProcessor
 {
+    /** @var bool|null */
     public $okrun = null;     // running is allowed
+    /** @var string|null */
     public $ip = null;     // visitor ip
+    /** @var string|null */
     public $agent = null;     // visitor agent
+    /** @var string|null */
     public $browser = null;     // visitors browser
+    /** @var string|null */
     public $opsys = null;     // visitors operating system
+    /** @var string|null */
     public $provider = null;     // visitors provider
+    /** @var string|null */
     public $submitted = null;     // submit date/time
+    /** @var FormTable|null */
     public $formrow = null;     // form row
+    /** @var int|string|null */
     public $form = null;     // form #
+    /** @var string|null */
     public $form_id = null;     // html form id
+    /** @var int|null */
     public $page = null;     // page id
+    /** @var int|string|null */
     public $target = null;     // target form name
+    /** @var list<object>|null */
     public $rows = null;     // element rows
+    /** @var int|null */
     public $rowcount = null;     // # of element rows
+    /** @var int|string|null */
     public $runmode = null;     // current run mode _FF_RUNMODE_...
+    /** @var int|null */
     public $inline = null;     // inline preview
+    /** @var int|null */
     public $inframe = null;     // running in a frame
+    /** @var int|null */
     public $template = null;     // 0-frontend 1-backend
+    /** @var string|null */
     public $homepage = null;     // home page
+    /** @var string|null */
     public $mospath = null;     // mos absolute path
+    /** @var string|null */
     public $mossite = null;     // mos site
+    /** @var string|null */
     public $images = null;     // ff_images path
+    /** @var string|null */
     public $uploads = null;     // ff_uploads path
+    /** @var int|null */
     public $border = null;     // show border
+    /** @var int|null */
     public $align = null;     // form alignment
+    /** @var int|null */
     public $top = null;     // top margin
+    /** @var string|null */
     public $suffix = null;     // class name suffix
+    /** @var int|string|null */
     public $status = null;     // submit return status
+    /** @var string|null */
     public $message = null;     // submit return message
+    /** @var int|string|null */
     public $record_id = null;     // id of saved record
+    /** @var array<int, array<int, mixed>>|null */
     public $submitdata = null;     // submitted data
+    /** @var array<int, array<int, mixed>>|null */
     public $savedata = null;     // data for db save
+    /** @var array<int, array<int, mixed>>|null */
     public $maildata = null;     // data for mail notification
+    /** @var array<int, array<int, mixed>>|null */
     public $sfdata = null;
+    /** @var array<int, array<int, mixed>>|null */
     public $xmldata = null;     // data for xml attachment
+    /** @var array<int, array<int, mixed>>|null */
     public $mb_xmldata = null;     // data for mailback attachments
+    /** @var array<mixed>|null */
     public $queryCols = null;     // query column definitions
+    /** @var array<mixed>|null */
     public $queryRows = null;     // query rows
+    /** @var bool|null */
     public $showgrid = null;     // show grid in preview
+    /** @var list<string>|null */
     public $findtags = null;     // tags to be replaced
+    /** @var list<int|string>|null */
     public $replacetags = null;     // tag replacements
+    /** @var bool|null */
     public $dying = null;     // form is dying
+    /** @var int|null */
     public $errrep = null;     // remember old error reporting
+    /** @var int|null */
     public $traceMode = null;     // trace mode
+    /** @var array<int, array<int, mixed>>|null */
     public $traceStack = null;     // trace stack
+    /** @var string|null */
     public $traceBuffer = null;     // trace buffer
+    /** @var mixed */
     public $user_id = null;
+    /** @var mixed */
     public $username = null;
+    /** @var mixed */
     public $user_full_name = null;
+    /** @var array<mixed> */
     public $mailbackRecipients = array();
+    /** @var int|null */
     public $editable = null;
+    /** @var int|null */
     public $editable_override = null;
+    /** @var bool */
     public $sendNotificationAfterPayment = false;
+    /** @var string */
     public $opt_token = "9562384751";
+    /** @var array<int, string> */
     public $draggableDivIds = array();
+    /** @var object|null */
     public $quickmode = null;
+    /** @var CMSApplication */
     public $app;
+    /** @var DatabaseInterface */
     public $database;
     private ?UploadRuntime $uploadRuntimeService = null;
     private ?CodeToolsRuntime $codeToolsRuntimeService = null;
@@ -244,22 +350,38 @@ class HTML_facileFormsProcessor
     private MailerFactoryInterface $mailerFactory;
     private CacheControllerFactoryInterface $cacheControllerFactory;
 
+    /**
+     * @return string
+     */
     public function header()
     {
         return $this->renderingEngine()->header();
     }
 
+    /**
+     * @param string $path
+     * @param list<object> $rows
+     * @param string $fieldName
+     * @return string
+     */
     public function cbCreatePathByTokens($path, array $rows, $fieldName)
     {
         return $this->renderingEngine()->cbCreatePathByTokens($path, $rows, $fieldName);
     }
 
+    /**
+     * @param string $path
+     * @return string
+     */
     public function makeSafeFolder($path)
     {
         return $this->renderingEngine()->makeSafeFolder($path);
     }
 
-    /** @phpstan-impure */
+    /**
+     * @phpstan-impure
+     * @return array<string, mixed>
+     */
     public function cbCheckPermissions()
     {
         return $this->renderingEngine()->cbCheckPermissions();
@@ -275,17 +397,28 @@ class HTML_facileFormsProcessor
         return $this->renderingEngineService ??= new RenderingEngine($this);
     }
 
-    /** @phpstan-impure */
+    /**
+     * @phpstan-impure
+     * @param array<string, mixed>|null $cbResult
+     * @return string|null
+     */
     public function collectSubmitdata($cbResult = null)
     {
         return $this->submissionEngine()->collectSubmitdata($cbResult);
     }
 
+    /**
+     * @return null
+     */
     public function submit()
     {
         return $this->submissionEngine()->submit();
     }
 
+    /**
+     * @param mixed $value
+     * @return string
+     */
     public function removeDangerousHtml($value)
     {
         return $this->submissionEngine()->removeDangerousHtml($value);
@@ -303,16 +436,30 @@ class HTML_facileFormsProcessor
         );
     }
 
+    /**
+     * @return null
+     */
     public function sendEmailNotification()
     {
         return $this->notificationEngine()->sendEmailNotification();
     }
 
+    /**
+     * @return string|null
+     */
     public function getFormTitleTranslated()
     {
         return $this->notificationEngine()->getFormTitleTranslated();
     }
 
+    /**
+     * @param string $field
+     * @param mixed $name
+     * @param mixed $res
+     * @param mixed $dataObject
+     * @param int $childrenLength
+     * @return null
+     */
     public function getFieldTranslated($field, $name, &$res, $dataObject = null, $childrenLength = 0)
     {
         return $this->notificationEngine()->getFieldTranslated(
@@ -324,16 +471,25 @@ class HTML_facileFormsProcessor
         );
     }
 
+    /**
+     * @return null
+     */
     public function sendMailbackNotification()
     {
         return $this->notificationEngine()->sendMailbackNotification();
     }
 
+    /**
+     * @return null
+     */
     public function sendSalesforceNotification()
     {
         return $this->notificationEngine()->sendSalesforceNotification();
     }
 
+    /**
+     * @return null
+     */
     public function sendMailChimpNotification()
     {
         return $this->notificationEngine()->sendMailChimpNotification();
@@ -344,7 +500,11 @@ class HTML_facileFormsProcessor
         return $this->notificationEngineService ??= new NotificationEngine($this, $this->exportEngine());
     }
 
-    /** @phpstan-impure */
+    /**
+     * @phpstan-impure
+     * @param array<string, mixed>|null $cbResult
+     * @return mixed
+     */
     public function logToDatabase($cbResult = null)
     {
         return $this->exportEngine()->logToDatabase($cbResult);
@@ -358,6 +518,19 @@ class HTML_facileFormsProcessor
         return $this->exportEngine()->random_str($length, $keyspace);
     }
 
+    /**
+     * @param mixed $from
+     * @param mixed $fromname
+     * @param mixed $recipient
+     * @param mixed $subject
+     * @param mixed $body
+     * @param mixed $attachment
+     * @param mixed $html
+     * @param mixed $cc
+     * @param mixed $bcc
+     * @param mixed $alt_sender
+     * @return null
+     */
     public function sendMail($from, $fromname, $recipient, $subject, $body, $attachment = null, $html = null, $cc = null, $bcc = null, $alt_sender = '')
     {
         return $this->exportEngine()->sendMail(
@@ -379,16 +552,33 @@ class HTML_facileFormsProcessor
         return $this->exportEngine()->endsWith($haystack, $needle);
     }
 
+    /**
+     * @param array<mixed> $filter
+     * @param bool $mailback
+     * @param bool $translate
+     * @return string
+     */
     public function exppdf($filter = [], $mailback = false, $translate = true)
     {
         return $this->exportEngine()->exppdf($filter, $mailback, $translate);
     }
 
+    /**
+     * @param array<mixed> $filter
+     * @param bool $mailback
+     * @return string
+     */
     public function expcsv($filter = [], $mailback = false)
     {
         return $this->exportEngine()->expcsv($filter, $mailback);
     }
 
+    /**
+     * @param array<mixed> $filter
+     * @param bool $mailback
+     * @param bool $translate
+     * @return string
+     */
     public function expxml($filter = [], $mailback = false, $translate = false)
     {
         return $this->exportEngine()->expxml($filter, $mailback, $translate);
@@ -403,78 +593,169 @@ class HTML_facileFormsProcessor
         );
     }
 
+    /**
+     * @param int|string $id
+     * @param mixed $name
+     * @return string
+     */
     public function getPieceById($id, $name = null)
     {
         return $this->scriptingEngine()->getPieceById($id, $name);
     }
 
+    /**
+     * @param string $name
+     * @param mixed $id
+     * @return string
+     */
     public function getPieceByName($name, $id = null)
     {
         return $this->scriptingEngine()->getPieceByName($name, $id);
     }
 
-    /** @phpstan-impure */
+    /**
+     * @phpstan-impure
+     * @param string $code
+     * @param string $name
+     * @param string|null $type
+     * @param int|string|null $id
+     * @param int|null $pane
+     * @return mixed
+     */
     public function execPiece($code, $name, $type, $id, $pane)
     {
         return $this->scriptingEngine()->execPiece($code, $name, $type, $id, $pane);
     }
 
+    /**
+     * @param int|string $id
+     * @return mixed
+     */
     public function execPieceById($id)
     {
         return $this->scriptingEngine()->execPieceById($id);
     }
 
+    /**
+     * @param string $name
+     * @return mixed
+     */
     public function execPieceByName($name)
     {
         return $this->scriptingEngine()->execPieceByName($name);
     }
 
+    /**
+     * @param string $code
+     * @param string $name
+     * @param string|null $type
+     * @param int|string|null $id
+     * @param int|null $pane
+     * @return string
+     */
     public function replaceCode($code, $name, $type, $id, $pane)
     {
         return $this->scriptingEngine()->replaceCode($code, $name, $type, $id, $pane);
     }
 
+    /**
+     * @param object $elem
+     * @param object $coldef
+     * @return null
+     */
     public function compileQueryCol(&$elem, &$coldef)
     {
         return $this->scriptingEngine()->compileQueryCol($elem, $coldef);
     }
 
+    /**
+     * @param string $code
+     * @param object $elem
+     * @param object $row
+     * @param object $coldef
+     * @param mixed $value
+     * @return mixed
+     */
     public function execQueryValue($code, &$elem, &$row, &$coldef, $value)
     {
         return $this->scriptingEngine()->execQueryValue($code, $elem, $row, $coldef, $value);
     }
 
+    /**
+     * @param object $elem
+     * @param array<int, mixed> $valrows
+     * @param array<int, object> $coldefs
+     * @return null
+     */
     public function execQuery(&$elem, &$valrows, &$coldefs)
     {
         return $this->scriptingEngine()->execQuery($elem, $valrows, $coldefs);
     }
 
+    /**
+     * @param object $row
+     * @return string
+     */
     public function script2clause(&$row)
     {
         return $this->scriptingEngine()->script2clause($row);
     }
 
+    /**
+     * @param array<int, array<int, mixed>> $library
+     * @return null
+     */
     public function loadBuiltins(&$library)
     {
         return $this->scriptingEngine()->loadBuiltins($library);
     }
 
+    /**
+     * @param array<int, array<int, mixed>> $library
+     * @return null
+     */
     public function loadScripts(&$library)
     {
         return $this->scriptingEngine()->loadScripts($library);
     }
 
+    /**
+     * @param mixed $str
+     * @return string
+     */
     public function compressJavascript($str)
     {
         return $this->scriptingEngine()->compressJavascript($str);
     }
 
-    /** @phpstan-impure */
+    /**
+     * @phpstan-impure
+     * @param string $func
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
+     * @param string $code
+     * @param string|null $type
+     * @param int|string|null $id
+     * @param int|null $pane
+     * @return string|null
+     */
     public function linkcode($func, &$library, &$linked, $code, $type = null, $id = null, $pane = null)
     {
         return $this->scriptingEngine()->linkcode($func, $library, $linked, $code, $type, $id, $pane);
     }
 
+    /**
+     * @param int|string $cond
+     * @param int|string|null $id
+     * @param string $name
+     * @param string $code
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
+     * @param string|null $type
+     * @param int|string|null $rowid
+     * @param int|null $pane
+     * @return null
+     */
     public function addFunction($cond, $id, $name, $code, &$library, &$linked, $type, $rowid, $pane)
     {
         return $this->scriptingEngine()->addFunction(
@@ -495,74 +776,143 @@ class HTML_facileFormsProcessor
         return $this->scriptingEngineService ??= new ScriptingEngine($this);
     }
 
+    /**
+     * @param mixed $mode
+     * @return string
+     */
     public function dispTraceMode($mode)
     {
         return $this->codeToolsRuntime()->dispTraceMode($mode);
     }
 
-    /** @phpstan-impure */
+    /**
+     * @phpstan-impure
+     * @param mixed $code
+     * @return bool
+     */
     public function trim(&$code)
     {
         return $this->codeToolsRuntime()->trim($code);
     }
 
-    /** @phpstan-impure */
+    /**
+     * @phpstan-impure
+     * @param mixed $code
+     * @return int
+     */
     public function nonblank(&$code)
     {
         return $this->codeToolsRuntime()->nonblank($code);
     }
 
+    /**
+     * @param mixed $classdef
+     * @return string
+     */
     public function getClassName($classdef)
     {
         return $this->codeToolsRuntime()->getClassName($classdef);
     }
 
+    /**
+     * @param mixed $mixed
+     * @param string $indent
+     * @return string
+     */
     public function expJsValue($mixed, $indent = '')
     {
         return $this->codeToolsRuntime()->expJsValue($mixed, $indent);
     }
 
+    /**
+     * @param mixed $name
+     * @param mixed $mixed
+     * @return string
+     */
     public function expJsVar($name, $mixed)
     {
         return $this->codeToolsRuntime()->expJsVar($name, $mixed);
     }
 
+    /**
+     * @return void
+     */
     public function dumpTrace()
     {
         $this->traceRuntime()->dumpTrace();
     }
 
+    /**
+     * @param mixed $name
+     * @return void
+     */
     public function traceEval($name)
     {
         $this->traceRuntime()->traceEval($name);
     }
 
+    /**
+     * @return bool
+     */
     public function suicide()
     {
         return $this->traceRuntime()->suicide();
     }
 
-    /** @phpstan-impure */
+    /**
+     * @phpstan-impure
+     * @return bool
+     */
     public function bury()
     {
         return $this->traceRuntime()->bury();
     }
 
+    /**
+     * @param mixed $code
+     * @param mixed $spos
+     * @param mixed $offs
+     * @return string
+     */
     public function findToken(&$code, &$spos, &$offs)
     {
         return $this->codeToolsRuntime()->findToken($code, $spos, $offs);
     }
 
+    /**
+     * @param mixed $code
+     * @param mixed $spos
+     * @param mixed $offs
+     * @param mixed $line
+     * @return string
+     */
     public function findRealToken(&$code, &$spos, &$offs, &$line)
     {
         return $this->codeToolsRuntime()->findRealToken($code, $spos, $offs, $line);
     }
 
+    /**
+     * @param mixed $mode
+     * @param mixed $code
+     * @param mixed $name
+     * @param mixed $type
+     * @param mixed $id
+     * @param mixed $pane
+     * @return string
+     */
     public function patchCode($mode, $code, $name, $type, $id, $pane)
     {
         return $this->codeToolsRuntime()->patchCode($mode, $code, $name, $type, $id, $pane);
     }
 
+    /**
+     * @param mixed $code
+     * @param mixed $name
+     * @param mixed $type
+     * @param mixed $id
+     * @param mixed $pane
+     * @return bool
+     */
     public function prepareEvalCode(&$code, $name, $type, $id, $pane)
     {
         return $this->codeToolsRuntime()->prepareEvalCode($code, $name, $type, $id, $pane);
@@ -580,6 +930,19 @@ class HTML_facileFormsProcessor
 
     /**
      * Historical upload facade retained for custom PHP stored with forms.
+     *
+     * @param string $filename
+     * @param string $userfile_name
+     * @param string $destpath
+     * @param mixed $timestamp
+     * @param mixed $useUrl
+     * @param mixed $useUrlDownloadDirectory
+     * @param mixed $resize_target_width
+     * @param mixed $resize_target_height
+     * @param mixed $resize_type
+     * @param mixed $resize_bgcolor
+     * @param mixed $field_name
+     * @return array{default: string, server: string}|''
      */
     public function saveUpload($filename, $userfile_name, $destpath, $timestamp, $useUrl = false, $useUrlDownloadDirectory = '', $resize_target_width = 0, $resize_target_height = 0, $resize_type = '', $resize_bgcolor = '#ffffff', $field_name = '')
     {
@@ -598,11 +961,23 @@ class HTML_facileFormsProcessor
         );
     }
 
+    /**
+     * @param mixed $filename
+     * @return int|false
+     */
     public function exifImageType($filename)
     {
         return $this->uploadRuntime()->imageType((string) $filename);
     }
 
+    /**
+     * @param mixed $path
+     * @param mixed $width
+     * @param mixed $height
+     * @param mixed $bgcolor
+     * @param mixed $type
+     * @return void
+     */
     public function resizeFile($path, $width, $height, $bgcolor = '#ffffff', $type = '')
     {
         $this->uploadRuntime()->resizeFile(
@@ -614,6 +989,14 @@ class HTML_facileFormsProcessor
         );
     }
 
+    /**
+     * @param mixed $source_image
+     * @param mixed $destination_width
+     * @param mixed $destination_height
+     * @param mixed $type
+     * @param mixed $bgcolor
+     * @return mixed
+     */
     public function resize_image($source_image, $destination_width, $destination_height, $type = 0, $bgcolor = [0, 0, 0])
     {
         return $this->uploadRuntime()->resizeImage(
@@ -625,16 +1008,28 @@ class HTML_facileFormsProcessor
         );
     }
 
+    /**
+     * @param mixed $val
+     * @return int|float
+     */
     public function returnBytes($val)
     {
         return $this->uploadRuntime()->parseByteSize((string) $val);
     }
 
+    /**
+     * @param array<mixed> $dataObject
+     * @param mixed $needle
+     * @return array<mixed>|null
+     */
     public function findQuickModeElement(array $dataObject, $needle)
     {
         return $this->uploadRuntime()->findQuickModeElement($dataObject, (string) $needle);
     }
 
+    /**
+     * @return float
+     */
     public function measureTime()
     {
         return $this->submissionEngine()->measureTime();
@@ -645,6 +1040,19 @@ class HTML_facileFormsProcessor
         return $this->uploadRuntimeService ??= new UploadRuntime($this->app->getInput());
     }
 
+    /**
+     * @param int|string $runmode
+     * @param int $inframe
+     * @param int|string $form
+     * @param int $page
+     * @param int $border
+     * @param int $align
+     * @param int $top
+     * @param int|string $target
+     * @param string $suffix
+     * @param int $editable
+     * @param int $editable_override
+     */
     function __construct(
         CMSApplication $application,
         DatabaseInterface $database,

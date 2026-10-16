@@ -4,7 +4,7 @@
  * BreezingForms NG - A Joomla Forms Application
  *
  * @package BreezingFormsNG
- * @copyright Copyright (C) 2024-2026 by XDA+GIL
+ * @copyright Copyright (C) 2026 by XDA+GIL
  * @license GNU General Public License version 2 or later; see LICENSE.txt
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
@@ -20,6 +20,9 @@ use Joomla\Database\ParameterType;
 
 class MenusModel extends ListModel
 {
+    /**
+     * @param  array<string, mixed>  $config
+     */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
         $config['filter_fields'] ??= ['package', 'published'];
@@ -46,13 +49,20 @@ class MenusModel extends ListModel
             ->select($db->quoteName([
                 'menus.id', 'menus.package', 'menus.parent', 'menus.ordering',
                 'menus.published', 'menus.title', 'menus.name', 'menus.page',
+                'menus.checked_out', 'menus.checked_out_time',
             ]))
             ->select($db->quoteName('parents.title', 'parent_title'))
+            ->select($db->quoteName('editor.name', 'editor'))
             ->from($db->quoteName('#__facileforms_compmenus', 'menus'))
             ->join(
                 'LEFT',
                 $db->quoteName('#__facileforms_compmenus', 'parents'),
                 $db->quoteName('parents.id') . ' = ' . $db->quoteName('menus.parent')
+            )
+            ->join(
+                'LEFT',
+                $db->quoteName('#__users', 'editor'),
+                $db->quoteName('editor.id') . ' = ' . $db->quoteName('menus.checked_out')
             )
             ->order([$db->quoteName('menus.parent') . ' ASC', $db->quoteName('menus.ordering') . ' ASC']);
 

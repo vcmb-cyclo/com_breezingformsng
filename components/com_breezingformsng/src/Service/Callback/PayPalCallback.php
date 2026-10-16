@@ -13,7 +13,6 @@ use Joomla\CMS\Application\CMSApplication;
 use Vcmb\Component\BreezingformsNG\Site\Service\Support\RedirectHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
-use Joomla\Database\DatabaseInterface;
 use Joomla\Http\Http;
 
 /**
@@ -24,7 +23,6 @@ final class PayPalCallback
 {
     public function __construct(
         private readonly CMSApplication $application,
-        private readonly DatabaseInterface $database,
         private readonly PaymentFormLoader $paymentFormLoader,
         private readonly PaymentRecordService $paymentRecordService,
         private readonly RedirectHelper $redirectHelper,
@@ -38,7 +36,7 @@ final class PayPalCallback
     $input = $this->application->getInput();
     $form = $this->paymentFormLoader->load($input->getInt('form_id', -1));
     if ($form === null) {
-        $this->application->setHeader('status', 200, true);
+        $this->application->setHeader('status', '200', true);
         $this->application->close();
 
         return;
@@ -46,7 +44,7 @@ final class PayPalCallback
 
     $areas = $this->paymentFormLoader->decodeAreas($form);
     if ($areas === null) {
-        $this->application->setHeader('status', 200, true);
+        $this->application->setHeader('status', '200', true);
         $this->application->close();
 
         return;
@@ -127,7 +125,7 @@ final class PayPalCallback
 
                 }
 
-                $this->application->setHeader('status', 200, true);
+                $this->application->setHeader('status', '200', true);
 
                 break;
             }

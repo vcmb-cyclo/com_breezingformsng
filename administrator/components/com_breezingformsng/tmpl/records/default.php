@@ -8,12 +8,16 @@
 \defined('_JEXEC') or die;
 
 /** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Records\HtmlView $this */
+use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 
 $listOrder = $this->escape($this->state->get('list.ordering'));
 $listDirn  = $this->escape($this->state->get('list.direction'));
+$user = Factory::getApplication()->getIdentity();
+$userId = (int) $user->id;
+$canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 
 $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8');
 ?>
@@ -54,6 +58,9 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
               <td class="text-center"><?= HTMLHelper::_('grid.id', $i, $recId, false, 'cid', 'cb', (string) $recId); ?></td>
               <td><?= $recId; ?></td>
               <th scope="row">
+                <?php if ((int) $rec->checked_out > 0): ?>
+                  <?= HTMLHelper::_('jgrid.checkedout', $i, (string) $rec->editor, $rec->checked_out_time, 'records.', $canManageCheckin || (int) $rec->checked_out === $userId); ?>
+                <?php endif; ?>
                 <?php if ($this->canOpen): ?>
                   <a href="index.php?option=com_breezingformsng&amp;task=record.edit&amp;id=<?= $recId; ?>" title="<?= $headerTitle('JACTION_EDIT'); ?>">
                     <?= $this->escape((string) $rec->form_title); ?>

@@ -17,11 +17,17 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering\QuickMode;
 /** Shared calendar option adapters used by all QuickMode renderers. */
 trait CalendarOptionsTrait
 {
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function bfCalendarIsTruthy(array $mdata, string $key): bool
     {
         return (new QuickModeCalendarOptionsBuilder())->isTruthy($mdata, $key);
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function bfCalendarShowTimeEnabled(array $mdata): bool
     {
         return (new QuickModeCalendarOptionsBuilder())->showTimeEnabled($mdata);
@@ -37,6 +43,9 @@ trait CalendarOptionsTrait
         return (new QuickModeCalendarOptionsBuilder())->toPickadateFirstDay($firstDay);
     }
 
+    /**
+     * @param array<string, mixed> $mdata
+     */
     private function bfCalendarSelectYears(array $mdata): int
     {
         return (new QuickModeCalendarOptionsBuilder())->selectYears($mdata);

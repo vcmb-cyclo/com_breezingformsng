@@ -76,6 +76,20 @@ final class SubmissionEngine
     ) {
     }
 
+    /**
+     * @param string $filename
+     * @param string $userfile_name
+     * @param string $destpath
+     * @param mixed $timestamp
+     * @param mixed $useUrl
+     * @param mixed $useUrlDownloadDirectory
+     * @param mixed $resize_target_width
+     * @param mixed $resize_target_height
+     * @param mixed $resize_type
+     * @param mixed $resize_bgcolor
+     * @param mixed $field_name
+     * @return array{default: string, server: string}|''
+     */
     public function saveUpload($filename, $userfile_name, $destpath, $timestamp, $useUrl = false, $useUrlDownloadDirectory = '', $resize_target_width = 0, $resize_target_height = 0, $resize_type = '', $resize_bgcolor = '#ffffff', $field_name = '')
     {
         global $mosConfig_fileperms;
@@ -133,6 +147,10 @@ final class SubmissionEngine
         return ((float) $time[0] + (float) $time[1]) / 1000;
     }
 
+    /**
+     * @param array<string, mixed>|null $cbResult
+     * @return string|void
+     */
     function collectSubmitdata($cbResult = null)
     {
         if ($this->processor->dying || $this->processor->submitdata)
@@ -318,8 +336,8 @@ final class SubmissionEngine
                                                                     $fm = str_replace('{filemask:_name}', trim($this->processor->app->getIdentity()->get('name')), $fm);
                                                                     $fm = str_replace('{filemask:_datetime}', trim($date_stamp), $fm);
                                                                     $fm = str_replace('{filemask:_date}', trim($date_stamp2), $fm);
-                                                                    $fm = str_replace('{filemask:_timestamp}', trim(time()), $fm);
-                                                                    $fm = str_replace('{filemask:_random}', trim(mt_rand(0, mt_getrandmax())), $fm);
+                                                                    $fm = str_replace('{filemask:_timestamp}', (string) time(), $fm);
+                                                                    $fm = str_replace('{filemask:_random}', (string) mt_rand(0, mt_getrandmax()), $fm);
                                                                     $fm = str_replace('{filemask:_filename}', trim(basename($userfile_name, '.' . File::getExt($userfile_name))), $fm);
                                                                     if ($fm == '') {
                                                                         $fm = '__empty__';
@@ -332,7 +350,7 @@ final class SubmissionEngine
                                                                 $path = $baseDir . '/' . $userfile_name;
                                                                 //if ($row->flag1) $path .= '.'.date('YmdHis');
                                                                 if (file_exists($path) && $this->processor->app->getSession()->get('bfFileUploadOverride', true)) {
-                                                                    $rnd = md5(mt_rand(0, mt_getrandmax()));
+                                                                    $rnd = md5((string) mt_rand(0, mt_getrandmax()));
                                                                     $path = $baseDir . '/' . $rnd . '_' . $userfile_name;
                                                                     //if ($row->flag1) $path .= '.'.date('YmdHis');
                                                                     if (file_exists($path)) {
@@ -679,6 +697,9 @@ final class SubmissionEngine
 
     // collectSubmitdata
 
+    /**
+     * @return null|void
+     */
     function submit()
     {
         global $ff_config, $ff_comsite, $ff_mossite, $ff_otherparams;
@@ -1095,7 +1116,7 @@ final class SubmissionEngine
                                     }
                                 }
 
-                                $options['amount'] = round(floatval($options['amount']), 2) * 100;
+                                $options['amount'] = (int) round(floatval($options['amount']) * 100);
 
                                 $this->processor->app->getSession()->set('bf_stripe_last_payment_amount' . $this->processor->record_id, $options['amount']);
 
@@ -1323,13 +1344,13 @@ transition: box-shadow .15s linear;
                                             $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
                                             $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
                                             $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                            $options['shipping'] = htmlentities($ppselected[4] == 1 ? 1 : 0, ENT_QUOTES, 'UTF-8');
+                                            $options['shipping'] = ($ppselected[4] == 1 ? '1' : '0');
                                         } else if (count($ppselected) == 6) {
                                             $options['itemname'] = htmlentities($ppselected[0], ENT_QUOTES, 'UTF-8');
                                             $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
                                             $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
                                             $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                            $options['shipping'] = htmlentities($ppselected[4] == 1 ? 1 : 0, ENT_QUOTES, 'UTF-8');
+                                            $options['shipping'] = ($ppselected[4] == 1 ? '1' : '0');
                                             $options['currencyCode'] = htmlentities($ppselected[5] == '' ? 'USD' : $ppselected[5], ENT_QUOTES, 'UTF-8');
                                         }
                                     }
@@ -1348,13 +1369,13 @@ transition: box-shadow .15s linear;
                                             $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
                                             $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
                                             $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                            $options['shipping'] = htmlentities($ppselected[4] == 1 ? 1 : 0, ENT_QUOTES, 'UTF-8');
+                                            $options['shipping'] = ($ppselected[4] == 1 ? '1' : '0');
                                         } else if (count($ppselected) == 6) {
                                             $options['itemname'] = htmlentities($ppselected[0], ENT_QUOTES, 'UTF-8');
                                             $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
                                             $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
                                             $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                            $options['shipping'] = htmlentities($ppselected[4] == 1 ? 1 : 0, ENT_QUOTES, 'UTF-8');
+                                            $options['shipping'] = ($ppselected[4] == 1 ? '1' : '0');
                                             $options['currencyCode'] = htmlentities($ppselected[5] == '' ? 'USD' : $ppselected[5], ENT_QUOTES, 'UTF-8');
                                         }
                                     }
@@ -1665,8 +1686,8 @@ transition: box-shadow .15s linear;
             }
         }
 
-        $this->processor->app->getSession()->clear('ff_editable_overridePlg' . $this->processor->app->getInput()->getInt('ff_contentid', 0) . $this->processor->form_id);
-        $this->processor->app->getSession()->clear('ff_editablePlg' . $this->processor->app->getInput()->getInt('ff_contentid', 0) . $this->processor->form_id);
+        $this->processor->app->getSession()->remove('ff_editable_overridePlg' . $this->processor->app->getInput()->getInt('ff_contentid', 0) . $this->processor->form_id);
+        $this->processor->app->getSession()->remove('ff_editablePlg' . $this->processor->app->getInput()->getInt('ff_contentid', 0) . $this->processor->form_id);
         $this->processor->app->getSession()->set('ff_editableMod' . $this->processor->app->getInput()->getInt('ff_module_id', 0) . $this->processor->form_id, 0);
         $this->processor->app->getSession()->set('ff_editable_overrideMod' . $this->processor->app->getInput()->getInt('ff_module_id', 0) . $this->processor->form_id, 0);
 
@@ -1692,6 +1713,10 @@ transition: box-shadow .15s linear;
         return $this->uploadTimestampFormatterService ??= new SubmissionTimestampFormatter();
     }
 
+    /**
+     * @param mixed $value
+     * @return string
+     */
     function removeDangerousHtml($value)
     {
         return $this->htmlSanitizer()->sanitize((string) $value);

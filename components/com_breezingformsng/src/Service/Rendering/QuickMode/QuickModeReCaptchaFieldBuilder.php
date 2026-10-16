@@ -41,7 +41,8 @@ final class QuickModeReCaptchaFieldBuilder
         bool $resetFlagOnCallback,
         ?string $controlGroupClass = null,
         ?string $controlsClass = null,
-        bool $includeVisibleWidget = false
+        bool $includeVisibleWidget = false,
+        string $submitFunction = 'ff_validate_submit'
     ): string {
         if (!isset($field['pubkey']) || $field['pubkey'] === '') {
             return '<span class="bfCaptcha">' . "\n"
@@ -66,7 +67,8 @@ final class QuickModeReCaptchaFieldBuilder
             $hasFlashUpload,
             $resetFlagOnCallback,
             $controlGroupClass,
-            $controlsClass
+            $controlsClass,
+            $submitFunction
         );
     }
 
@@ -131,7 +133,8 @@ final class QuickModeReCaptchaFieldBuilder
         bool $hasFlashUpload,
         bool $resetFlagOnCallback,
         ?string $controlGroupClass,
-        ?string $controlsClass
+        ?string $controlsClass,
+        string $submitFunction
     ): string {
         $badge = str_replace('invisible_', '', trim((string) $field['theme']));
 
@@ -175,7 +178,8 @@ final class QuickModeReCaptchaFieldBuilder
         $configuration = $this->initScriptBuilder->invisibleConfiguration(
             $field,
             $hasFlashUpload,
-            $resetFlagOnCallback
+            $resetFlagOnCallback,
+            $submitFunction
         );
 
         return $markup

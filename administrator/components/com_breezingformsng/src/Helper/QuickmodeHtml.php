@@ -27,6 +27,7 @@ require_once JPATH_SITE . '/administrator/components/com_breezingformsng/librari
 
 final class QuickmodeHtml
 {
+    /** @return array<mixed> */
     public static function decodeJsonArray(string $json): array
     {
         $decoded = json_decode($json, true);
@@ -34,6 +35,7 @@ final class QuickmodeHtml
         return is_array($decoded) ? $decoded : [];
     }
 
+    /** @param array<string, mixed> $vars */
     private static function renderSection(string $name, array $vars): void
     {
         extract($vars, EXTR_SKIP);
@@ -41,6 +43,7 @@ final class QuickmodeHtml
         require JPATH_ADMINISTRATOR . '/components/com_breezingformsng/layouts/quickmode/' . $name . '.php';
     }
 
+    /** @param array<string, object[]> $elementScripts */
     private static function buildConfigScript(
         string $iconBase,
         string $languageCode,
@@ -49,7 +52,7 @@ final class QuickmodeHtml
         string $formTitle,
         string $formDesc,
         string $formEmailadr,
-        $formEmailntf,
+        int $formEmailntf,
         array $elementScripts,
         string $dataObjectString
     ): string {
@@ -130,6 +133,10 @@ final class QuickmodeHtml
      *     pieceBeginSubmit, pieceEndSubmit. Empty when the form has not been
      *     saved yet (formId === 0) - the tab then shows a placeholder
      *     instead of the settings block.
+     * @param array<string, object[]> $elementScripts
+     * @param array<int, string> $themes
+     * @param array<int, string> $themesbootstrap
+     * @return mixed
      */
     public static function showApplication(
         int $formId,
@@ -461,26 +468,31 @@ final class QuickmodeHtml
         <?php
     }
 
-    public static function getContent($editor)
+    /** @param string $editor */
+    public static function getContent($editor): string
     {
 
         return 'Joomla.editors.instances[' . json_encode($editor) . '].getValue()';
     }
 
-    public static function setContent($editor, $content)
+    /**
+     * @param string $editor
+     * @param mixed $content
+     */
+    public static function setContent($editor, $content): string
     {
 
         return 'Joomla.editors.instances[' . json_encode($editor) . '].setValue(' . json_encode($content) . ')';
     }
 
-    public static function renderCodeMirror($name)
+    public static function renderCodeMirror(string $name): string
     {
 
         $params = array('syntax' => 'javascript');
         $editor = Editor::getInstance('codemirror');
 
         // Element id is mandatory for CodeMirror v6.
-        return $editor->display($name, '', '100%', 300, 40, 20, false, $name, null, null, $params);
+        return $editor->display($name, '', '100%', '300', 40, 20, false, $name, null, null, $params);
     }
 
 }

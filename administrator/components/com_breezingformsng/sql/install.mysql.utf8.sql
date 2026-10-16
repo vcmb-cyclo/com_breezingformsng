@@ -34,7 +34,10 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_compmenus` (
   `frame` tinyint(1) NOT NULL DEFAULT '0',
   `border` tinyint(1) NOT NULL DEFAULT '0',
   `params` text,
-  PRIMARY KEY (id)
+  `checked_out` int unsigned NULL DEFAULT NULL,
+  `checked_out_time` datetime NULL DEFAULT NULL,
+  PRIMARY KEY (id),
+  KEY `idx_checkout` (`checked_out`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `#__facileforms_forms` (
@@ -127,12 +130,15 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_forms` (
   `modified` datetime NULL DEFAULT NULL,
   `created_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `modified_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `checked_out` int unsigned NULL DEFAULT NULL,
+  `checked_out_time` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `double_opt` (`double_opt`),
   KEY `opt_mail` (`opt_mail`),
   KEY `name` (`name`),
   KEY `published` (`published`),
-  KEY `ordering` (`ordering`)
+  KEY `ordering` (`ordering`),
+  KEY `idx_checkout` (`checked_out`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `#__facileforms_elements` (
@@ -199,7 +205,10 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_scripts` (
   `created_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `modified` datetime NULL DEFAULT NULL,
   `modified_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`)
+  `checked_out` int unsigned NULL DEFAULT NULL,
+  `checked_out_time` datetime NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_checkout` (`checked_out`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `#__facileforms_pieces` (
@@ -216,9 +225,12 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_pieces` (
   `created_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `modified` datetime NULL DEFAULT NULL,
   `modified_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `checked_out` int unsigned NULL DEFAULT NULL,
+  `checked_out_time` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `name` (`name`),
-  KEY `published` (`published`)
+  KEY `published` (`published`),
+  KEY `idx_checkout` (`checked_out`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `#__facileforms_records` (
@@ -248,6 +260,8 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_records` (
   `opt_ip` varchar(255) NOT NULL DEFAULT '',
   `opt_date` datetime NULL DEFAULT NULL,
   `opt_token` varchar(255) NOT NULL DEFAULT '',
+  `checked_out` int unsigned NULL DEFAULT NULL,
+  `checked_out_time` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `opted` (`opted`),
   KEY `opt_ip` (`opt_ip`),
@@ -256,7 +270,8 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_records` (
   KEY `form` (`form`),
   KEY `name` (`name`),
   KEY `user_id` (`user_id`),
-  KEY `state` (`state`)
+  KEY `state` (`state`),
+  KEY `idx_checkout` (`checked_out`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `#__facileforms_subrecords` (

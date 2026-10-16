@@ -30,6 +30,7 @@ class HtmlView extends BaseHtmlView
     public ?Pagination $pagination = null;
     public ?Registry $state = null;
     public ?Form $filterForm = null;
+    /** @var array<string, mixed> */
     public array $activeFilters = [];
     public bool $canEditState = false;
     public bool $canOpen = false;
@@ -70,6 +71,7 @@ class HtmlView extends BaseHtmlView
         if ($this->canEditState) {
             $toolbar->publish('menus.publish')->listCheck(true);
             $toolbar->unpublish('menus.unpublish')->listCheck(true);
+            $toolbar->checkin('menus.checkin')->listCheck(true);
         }
 
         if ($user->authorise('core.delete', 'com_breezingformsng')) {

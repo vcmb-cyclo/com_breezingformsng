@@ -22,6 +22,9 @@ final class TraceRuntime
     {
     }
 
+    /**
+     * @param mixed $msg
+     */
     public function trace($msg = null): void
     {
         if (
@@ -40,6 +43,10 @@ final class TraceRuntime
         }
     }
 
+    /**
+     * @param int $line
+     * @param mixed $msg
+     */
     public function traceLine($line, $msg = null): void
     {
         if ($this->processor->dying || ($this->processor->traceMode & _FF_TRACEMODE_DISABLE)) {
@@ -64,6 +71,8 @@ final class TraceRuntime
     /**
      * @param int|null $newmode
      * @param string $name
+     *
+     * @return int|null
      */
     public function getMode(&$newmode, &$name)
     {
@@ -81,6 +90,14 @@ final class TraceRuntime
         return ($newmode & _FF_TRACEMODE_LOCAL) ? $oldmode : $newmode;
     }
 
+    /**
+     * @param int|null $newmode
+     * @param string $name
+     * @param int $line
+     * @param string|null $type
+     * @param int|string|null $id
+     * @param int|null $pane
+     */
     public function tracePiece($newmode, $name, $line, $type, $id, $pane): void
     {
         if ($this->processor->dying || ($this->processor->traceMode & _FF_TRACEMODE_DISABLE)) {
@@ -103,6 +120,15 @@ final class TraceRuntime
         $this->processor->traceStack[] = [$oldmode, 'p', $name, $line, $type, $id, $pane];
     }
 
+    /**
+     * @param int|null $newmode
+     * @param string $name
+     * @param int $line
+     * @param string|null $type
+     * @param int|string|null $id
+     * @param int|null $pane
+     * @param array<int, mixed>|null $args
+     */
     public function traceFunction($newmode, $name, $line, $type, $id, $pane, &$args): void
     {
         if ($this->processor->dying || ($this->processor->traceMode & _FF_TRACEMODE_DISABLE)) {
@@ -156,7 +182,11 @@ final class TraceRuntime
         $this->processor->traceStack[] = [$oldmode, 'f', $name, $line, $type, $id, $pane];
     }
 
-    public function traceExit($line, $retval = null)
+    /**
+     * @param int $line
+     * @param mixed $retval
+     */
+    public function traceExit($line, $retval = null): mixed
     {
         if ($this->processor->dying || ($this->processor->traceMode & _FF_TRACEMODE_DISABLE)) {
             return null;

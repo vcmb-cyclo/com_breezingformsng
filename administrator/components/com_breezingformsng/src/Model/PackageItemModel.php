@@ -4,7 +4,7 @@
  * BreezingForms NG - A Joomla Forms Application
  *
  * @package BreezingFormsNG
- * @copyright Copyright (C) 2024-2026 by XDA+GIL
+ * @copyright Copyright (C) 2026 by XDA+GIL
  * @license GNU General Public License version 2 or later; see LICENSE.txt
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
@@ -26,16 +26,28 @@ use Joomla\Utilities\ArrayHelper;
  */
 abstract class PackageItemModel extends AdminModel
 {
+    /**
+     * @param string               $name
+     * @param string               $prefix
+     * @param array<string, mixed> $options
+     */
     public function getTable($name = '', $prefix = 'Site', $options = [])
     {
         return parent::getTable($name ?: ucfirst($this->getName()), $prefix, $options);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @param bool                 $loadData
+     */
     public function getForm($data = [], $loadData = true)
     {
         return $this->loadForm('com_breezingformsng.' . $this->getName(), $this->getName(), ['control' => 'jform', 'load_data' => $loadData]);
     }
 
+    /**
+     * @return array<string, mixed>|object|false
+     */
     protected function loadFormData()
     {
         $application = Factory::getApplication();
@@ -76,6 +88,8 @@ abstract class PackageItemModel extends AdminModel
     /**
      * Joomla stops at the first item it cannot delete and still runs the
      * controller hook: $pks ends up holding the ids actually deleted.
+     *
+     * @param array<mixed> $pks
      */
     public function delete(&$pks)
     {

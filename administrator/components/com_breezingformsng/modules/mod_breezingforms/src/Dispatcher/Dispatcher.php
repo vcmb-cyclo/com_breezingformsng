@@ -27,6 +27,9 @@ use RuntimeException;
 
 final class Dispatcher extends AbstractModuleDispatcher
 {
+    /**
+     * @return array<string, mixed>
+     */
     protected function getLayoutData(): array
     {
         $data = parent::getLayoutData();

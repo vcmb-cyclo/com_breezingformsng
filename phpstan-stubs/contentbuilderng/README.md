@@ -31,3 +31,4 @@ Symbols stubbed, and the file in this component that calls each one:
 | `Service\ListSupportService::createFromRuntimeContext()` | `RenderingEngine`, `ExportEngine` |
 | `Service\PermissionService::createFromRuntimeContext()` | `RenderingEngine` |
 | `Service\ArticleService` (class only, via `::class`) | `ExportEngine` |
+| `Extension\ContentbuilderngComponent::getContainer()` | `ExportEngine` |

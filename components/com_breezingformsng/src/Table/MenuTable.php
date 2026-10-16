@@ -22,18 +22,42 @@ use Joomla\Database\DatabaseInterface;
 
 final class MenuTable extends Table
 {
+	/** @var int|string|null */
 	public $id = null;     // identifier
+	/** @var string|null */
 	public $package = null;     // package name
+	/** @var int|string|null */
 	public $parent = 0;        // parent id
+	/** @var int|string|null */
 	public $ordering = 0;        // ordering
+	/** @var int|string|null */
 	public $published = 1;        // is published
+	/** @var string|null */
 	public $img = '';       // menu icon image
+	/** @var string|null */
 	public $title = '';       // displayed menu name
+	/** @var string|null */
 	public $name = '';       // form name (identifier)
+	/** @var int|string|null */
 	public $page = 1;        // starting page
+	/** @var int|string|null */
 	public $frame = 0;        // run in iframe
+	/** @var int|string|null */
 	public $border = 0;        // show a border
+	/** @var string|null */
 	public $params = null;     // additional parameters
+
+	/**
+	 * The check-out columns are nullable: checking in writes NULL, not 0.
+	 *
+	 * @var bool
+	 */
+	protected $_supportNullValue = true;
+
+	/** @var int|string|null */
+	public $checked_out = null;
+	/** @var string|null */
+	public $checked_out_time = null;
 
 	public function __construct(DatabaseInterface $db)
 	{

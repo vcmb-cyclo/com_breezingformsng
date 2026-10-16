@@ -193,6 +193,7 @@ final class RecordStateTest extends TestCase
         // The controller only checks the token, asks for the export and sends it.
         self::assertStringNotContainsString('setQuery', $controller);
         self::assertStringNotContainsString('getQuery', $controller);
+        self::assertStringNotContainsString('createQuery', $controller);
         self::assertStringNotContainsString('FacileFormsExport', $controller);
         self::assertSame(4, substr_count($controller, "->markExported(\$export['ids']);"));
         // The queries are in the model, the file formats in the service.

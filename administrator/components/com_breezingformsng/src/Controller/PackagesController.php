@@ -21,6 +21,9 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 
 final class PackagesController extends BaseController
 {
+    /**
+     * @param array<string, string> $urlparams
+     */
     public function display($cachable = false, $urlparams = []): static
     {
         $this->assertAuthorised();

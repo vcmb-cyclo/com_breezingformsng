@@ -53,6 +53,9 @@ final class DatabaseAuditService
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function run(): array
     {
         $this->errors = [];
@@ -236,6 +239,8 @@ final class DatabaseAuditService
      * own default was fixed (ALTER TABLE ... CONVERT TO CHARACTER SET only
      * changes new/altered columns going forward on some MySQL versions when
      * a column had an explicit COLLATE override).
+     *
+     * @return list<array<string, string>>
      */
     private function findColumnCollationIssues(string $physicalTable, string $alias, string $targetCollation): array
     {
@@ -277,6 +282,10 @@ final class DatabaseAuditService
         return $issues;
     }
 
+    /**
+     * @param list<array<string, mixed>> $tables
+     * @return array<string, int>
+     */
     private function buildCollationHistogram(array $tables): array
     {
         $histogram = [];
@@ -292,6 +301,9 @@ final class DatabaseAuditService
         return $histogram;
     }
 
+    /**
+     * @return array<mixed>
+     */
     private function getTableStatus(string $physicalTable): array
     {
         $query = $this->db->createQuery()
@@ -305,6 +317,9 @@ final class DatabaseAuditService
         return (array) ($this->db->loadAssoc() ?: []);
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     private function findDuplicateIndexes(string $physicalTable, string $alias): array
     {
         try {
@@ -362,6 +377,10 @@ final class DatabaseAuditService
         return $duplicates;
     }
 
+    /**
+     * @param list<string> $tableList
+     * @return list<array<string, mixed>>
+     */
     private function findOrphans(array $tableList): array
     {
         // [child table, parent table, child foreign key, parent kind,
@@ -524,6 +543,9 @@ final class DatabaseAuditService
      * isn't in EXPECTED_TABLES - leftovers from an old install, a removed
      * feature, or a botched uninstall that a fresh EXPECTED_TABLES scan
      * alone would never surface (it only looks for tables it expects).
+     *
+     * @param list<string> $tableList
+     * @return list<string>
      */
     private function findUnexpectedTables(array $tableList): array
     {
@@ -557,6 +579,8 @@ final class DatabaseAuditService
      * Scans both the admin and site language folders for leftover files
      * from this component's older naming (com_breezingforms, no "ng"),
      * which a straightforward Joomla update never removes on its own.
+     *
+     * @return list<string>
      */
     private function findStaleLanguageFiles(): array
     {
@@ -586,6 +610,8 @@ final class DatabaseAuditService
      * Leftover administrator/components/com_breezingformsng-named temp
      * folders under Joomla's configured tmp_path or PHP's system temp path,
      * from an install/update that was interrupted before cleanup.
+     *
+     * @return list<string>
      */
     private function findStaleInstallerTempDirectories(): array
     {
@@ -636,6 +662,8 @@ final class DatabaseAuditService
      * by name via the ff_com_name menu parameter, not by id) is missing,
      * unpublished, or not configured at all - plus menus still linking to the
      * pre-NG option=com_breezingforms component.
+     *
+     * @return list<array<string, mixed>>
      */
     private function findMenuIssues(): array
     {
@@ -713,6 +741,8 @@ final class DatabaseAuditService
      * Duplicate #__extensions registrations (same type/element/folder/client)
      * left behind by repeated discover-installs, and leftover rows from the
      * pre-NG crosstec extensions that an update never removes.
+     *
+     * @return array{duplicates: list<array<string, mixed>>, legacy: list<array<string, mixed>>}
      */
     private function findExtensionIssues(): array
     {
@@ -788,6 +818,8 @@ final class DatabaseAuditService
      * because site menu items reference forms by name (ff_com_name), so
      * duplicated names make that resolution ambiguous. The row to keep is the
      * one holding submitted records (or the oldest when none has any).
+     *
+     * @return list<array<string, mixed>>
      */
     private function findDuplicateForms(): array
     {
@@ -904,6 +936,9 @@ final class DatabaseAuditService
     /**
      * Forms left with debug mode enabled, which shows diagnostic output to
      * site visitors.
+     *
+     * @param list<string> $tableList
+     * @return list<array<string, mixed>>
      */
     private function findDebugModeForms(array $tableList): array
     {
@@ -943,6 +978,9 @@ final class DatabaseAuditService
     /**
      * Trashed records per form. A trash that is not empty is a normal state:
      * it is reported for information and never counted as an issue.
+     *
+     * @param list<string> $tableList
+     * @return list<array{form: int, name: string, count: int}>
      */
     private function findTrashedRecords(array $tableList): array
     {

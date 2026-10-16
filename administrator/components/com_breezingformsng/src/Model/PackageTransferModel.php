@@ -18,6 +18,9 @@ final class PackageTransferModel extends BaseDatabaseModel
     private const VERSION = 2;
     private const LIBRARY_COLUMNS = ['published', 'package', 'name', 'title', 'description', 'type', 'code', 'unit_tests'];
 
+    /**
+     * @return list<string>
+     */
     public function getPackages(): array
     {
         $db = $this->getDatabase();
@@ -39,6 +42,9 @@ final class PackageTransferModel extends BaseDatabaseModel
         return $packages;
     }
 
+    /**
+     * @return array<array<string, mixed>>
+     */
     public function getPackageProfiles(): array
     {
         $db = $this->getDatabase();
@@ -54,6 +60,9 @@ final class PackageTransferModel extends BaseDatabaseModel
         return $profiles;
     }
 
+    /**
+     * @param array<string, mixed> $metadata
+     */
     public function export(string $package, array $metadata = []): string
     {
         if ($package === '') {
@@ -139,6 +148,9 @@ final class PackageTransferModel extends BaseDatabaseModel
         }
     }
 
+    /**
+     * @return array{forms: list<array<string, mixed>>, scripts: list<array<string, mixed>>, pieces: list<array<string, mixed>>, menus: list<array<string, mixed>>}
+     */
     public function getExportChoices(): array
     {
         return [
@@ -149,6 +161,13 @@ final class PackageTransferModel extends BaseDatabaseModel
         ];
     }
 
+    /**
+     * @param array<mixed>         $formIds
+     * @param array<mixed>         $scriptIds
+     * @param array<mixed>         $pieceIds
+     * @param array<mixed>         $menuIds
+     * @param array<string, mixed> $metadata
+     */
     public function exportSelection(string $package, array $formIds, array $scriptIds, array $pieceIds, array $menuIds = [], array $metadata = []): string
     {
         $package = trim($package);
@@ -198,6 +217,10 @@ final class PackageTransferModel extends BaseDatabaseModel
         return json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "\n";
     }
 
+    /**
+     * @param array<string, mixed> $submitted
+     * @return array<string, string>
+     */
     private function metadataForExport(string $package, array $submitted): array
     {
         $db = $this->getDatabase();
@@ -223,6 +246,9 @@ final class PackageTransferModel extends BaseDatabaseModel
         return $metadata;
     }
 
+    /**
+     * @param array<mixed> $metadata
+     */
     private function savePackageMetadata(string $package, array $metadata): void
     {
         $db = $this->getDatabase();
@@ -251,11 +277,19 @@ final class PackageTransferModel extends BaseDatabaseModel
         }
     }
 
+    /**
+     * @param array<string, mixed> $row
+     * @return array{source_id: int, data: array<string, mixed>}
+     */
     private function menuExportRow(array $row): array
     {
         return ['source_id' => (int) $row['id'], 'data' => $this->without($row, ['id'])];
     }
 
+    /**
+     * @param array<array<string, mixed>> $rows
+     * @return list<array<string, mixed>>
+     */
     private function includeMenuAncestors(array $rows): array
     {
         $byId = [];
@@ -287,6 +321,9 @@ final class PackageTransferModel extends BaseDatabaseModel
         return array_values($byId);
     }
 
+    /**
+     * @param array<mixed> $rows
+     */
     private function importMenus(array $rows, string $package): void
     {
         $db = $this->getDatabase();
@@ -364,6 +401,9 @@ final class PackageTransferModel extends BaseDatabaseModel
         return (int) $db->setQuery($query, 0, 1)->loadResult();
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     private function loadChoices(string $table): array
     {
         $db = $this->getDatabase();
@@ -375,6 +415,10 @@ final class PackageTransferModel extends BaseDatabaseModel
         return $db->setQuery($query)->loadAssocList() ?: [];
     }
 
+    /**
+     * @param array<mixed> $ids
+     * @return list<array<string, mixed>>
+     */
     private function loadRowsByIds(string $table, array $ids): array
     {
         $ids = array_values(array_unique(array_filter(array_map("intval", $ids), static fn(int $id): bool => $id > 0)));
@@ -393,6 +437,10 @@ final class PackageTransferModel extends BaseDatabaseModel
         return $db->setQuery($query)->loadAssocList() ?: [];
     }
 
+    /**
+     * @param array<mixed> $rows
+     * @return array<int, int>
+     */
     private function importLibraries(string $table, array $rows, string $package): array
     {
         $db = $this->getDatabase();
@@ -424,6 +472,11 @@ final class PackageTransferModel extends BaseDatabaseModel
         return $sourceIds;
     }
 
+    /**
+     * @param array<mixed>    $forms
+     * @param array<int, int> $scriptIds
+     * @param array<int, int> $pieceIds
+     */
     private function importForms(array $forms, string $package, array $scriptIds, array $pieceIds): void
     {
         $db = $this->getDatabase();
@@ -467,6 +520,11 @@ final class PackageTransferModel extends BaseDatabaseModel
         }
     }
 
+    /**
+     * @param array<mixed>    $data
+     * @param array<int, int> $scriptIds
+     * @param array<int, int> $pieceIds
+     */
     private function remapReferences(array &$data, array $scriptIds, array $pieceIds): void
     {
         foreach ($data as $column => $value) {
@@ -479,6 +537,9 @@ final class PackageTransferModel extends BaseDatabaseModel
         }
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     private function loadPackageRows(string $table, string $package): array
     {
         $db = $this->getDatabase();
@@ -487,6 +548,10 @@ final class PackageTransferModel extends BaseDatabaseModel
         return $db->setQuery($query)->loadAssocList() ?: [];
     }
 
+    /**
+     * @param list<int> $formIds
+     * @return list<array<string, mixed>>
+     */
     private function loadElements(array $formIds): array
     {
         $db = $this->getDatabase();
@@ -502,21 +567,39 @@ final class PackageTransferModel extends BaseDatabaseModel
         return (int) $db->setQuery($query, 0, 1)->loadResult();
     }
 
+    /**
+     * @param array<string, mixed> $row
+     * @return array{source_id: int, data: array<mixed>}
+     */
     private function libraryExportRow(array $row): array
     {
         return ['source_id' => (int) $row['id'], 'data' => $this->only($row, self::LIBRARY_COLUMNS)];
     }
 
+    /**
+     * @return list<string>
+     */
     private function tableColumns(string $table): array
     {
         return array_keys($this->getDatabase()->getTableColumns($table));
     }
 
+    /**
+     * @param array<mixed> $data
+     * @param list<string> $allowed
+     * @param list<string> $excluded
+     * @return array<mixed>
+     */
     private function only(array $data, array $allowed, array $excluded = []): array
     {
         return array_diff_key(array_intersect_key($data, array_flip($allowed)), array_flip($excluded));
     }
 
+    /**
+     * @param array<mixed> $data
+     * @param list<string> $excluded
+     * @return array<mixed>
+     */
     private function without(array $data, array $excluded): array
     {
         return array_diff_key($data, array_flip($excluded));

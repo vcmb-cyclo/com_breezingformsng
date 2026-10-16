@@ -20,6 +20,9 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 
 final class AboutModel extends BaseDatabaseModel
 {
+    /**
+     * @return list<array<string, mixed>>
+     */
     public function getInstalledPluginRows(): array
     {
         $db = $this->getDatabase();

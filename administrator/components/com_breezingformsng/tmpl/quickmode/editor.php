@@ -41,7 +41,7 @@ $editor = Editor::getInstance($app->get('editor'));
 <form action="index.php" method="post" name="adminForm" id="adminForm">
     <input type="submit" class="btn btn-primary" value="<?php echo Text::_('JSAVE'); ?>" onclick="saveText();" /><br /><br />
     <div id="bfModalContainer" style="width:900px;">
-        <?php echo $editor->display('bfEditor', '', 900, 300, 40, 20, false); ?>
+        <?php echo $editor->display('bfEditor', '', '900', '300', 40, 20, false); ?>
     </div>
     <br /><input type="submit" class="btn btn-primary" value="<?php echo Text::_('JSAVE'); ?>" onclick="saveText();" />
 

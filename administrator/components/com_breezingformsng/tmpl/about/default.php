@@ -20,6 +20,10 @@ use Joomla\CMS\Language\Text;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseRepairService;
 
 if (!function_exists('bf_about_read_json_file')) {
+    /**
+     * @param string $path
+     * @return array<mixed>
+     */
     function bf_about_read_json_file($path)
     {
         if (!is_file($path)) {
@@ -43,6 +47,9 @@ if (!function_exists('bf_about_read_json_file')) {
 }
 
 if (!function_exists('bf_about_get_version_information')) {
+    /**
+     * @return array{version: string, creationDate: string, author: string, copyright: string, license: string, buildType: string, buildTimestamp: string}
+     */
     function bf_about_get_version_information()
     {
         $versionInformation = array(
@@ -117,6 +124,13 @@ if (!function_exists('bf_about_get_version_information')) {
 }
 
 if (!function_exists('bf_about_add_php_library')) {
+    /**
+     * @param array<string, array{name: string, version: string, is_dev: bool}> $indexedLibraries
+     * @param string $name
+     * @param string $version
+     * @param bool $isDev
+     * @return void
+     */
     function bf_about_add_php_library(&$indexedLibraries, $name, $version, $isDev)
     {
         $name = trim((string) $name);
@@ -144,6 +158,11 @@ if (!function_exists('bf_about_add_php_library')) {
 }
 
 if (!function_exists('bf_about_collect_php_libraries_from_installed_json')) {
+    /**
+     * @param array<string, array{name: string, version: string, is_dev: bool}> $indexedLibraries
+     * @param string $installedJsonPath
+     * @return void
+     */
     function bf_about_collect_php_libraries_from_installed_json(&$indexedLibraries, $installedJsonPath)
     {
         $installedData = bf_about_read_json_file($installedJsonPath);
@@ -175,6 +194,11 @@ if (!function_exists('bf_about_collect_php_libraries_from_installed_json')) {
 }
 
 if (!function_exists('bf_about_collect_php_library_from_composer_json')) {
+    /**
+     * @param array<string, array{name: string, version: string, is_dev: bool}> $indexedLibraries
+     * @param string $composerJsonPath
+     * @return void
+     */
     function bf_about_collect_php_library_from_composer_json(&$indexedLibraries, $composerJsonPath)
     {
         $composerData = bf_about_read_json_file($composerJsonPath);
@@ -192,6 +216,9 @@ if (!function_exists('bf_about_collect_php_library_from_composer_json')) {
 }
 
 if (!function_exists('bf_about_get_php_libraries')) {
+    /**
+     * @return list<array{name: string, version: string, is_dev: bool}>
+     */
     function bf_about_get_php_libraries()
     {
         $indexedLibraries = array();
@@ -212,6 +239,10 @@ if (!function_exists('bf_about_get_php_libraries')) {
 }
 
 if (!function_exists('bf_about_extract_version_from_file')) {
+    /**
+     * @param string $filePath
+     * @return string
+     */
     function bf_about_extract_version_from_file($filePath)
     {
         if (!is_file($filePath)) {
@@ -241,6 +272,9 @@ if (!function_exists('bf_about_extract_version_from_file')) {
 }
 
 if (!function_exists('bf_about_get_javascript_libraries')) {
+    /**
+     * @return list<array{name: string, version: string, assets: string, source: string}>
+     */
     function bf_about_get_javascript_libraries()
     {
         $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');

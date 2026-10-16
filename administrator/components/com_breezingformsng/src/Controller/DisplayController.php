@@ -27,6 +27,10 @@ class DisplayController extends BaseController
         'piece' => 'pieces',
     ];
 
+    /**
+     * @param  bool                  $cachable
+     * @param  array<string, string>  $urlparams
+     */
     public function display($cachable = false, $urlparams = [])
     {
         if (!$this->app->getIdentity()->authorise('core.manage', 'com_breezingformsng')) {
@@ -116,7 +120,7 @@ class DisplayController extends BaseController
                 'save'      => 'forms.save',
                 'cancel'    => 'forms.cancel',
                 'copy'      => 'forms.copy',
-                'remove'    => 'forms.remove',
+                'remove'    => 'forms.delete',
                 'publish'   => 'forms.publish',
                 'unpublish' => 'forms.unpublish',
                 'orderup'   => 'forms.orderup',

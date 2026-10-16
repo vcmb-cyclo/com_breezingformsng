@@ -167,7 +167,7 @@ $fakeName = static fn(string $n): bool => \in_array($n, ['bfFakeName', 'bfFakeNa
                 <div id="codeBlock<?= (int) $item->id; ?>" class="mb-2" style="display:none">
                   <?php
                   $editor = Editor::getInstance('codemirror');
-                  echo $editor->display('code' . $item->id, $item->code ?? '', '100%', 300, 40, 20, false, 'code' . $item->id, null, null, ['syntax' => 'php']);
+                  echo $editor->display('code' . $item->id, $item->code ?? '', '100%', '300', 40, 20, false, 'code' . $item->id, null, null, ['syntax' => 'php']);
                   ?>
                   <a class="btn btn-sm btn-secondary mt-1" href="#"
                      onclick="document.saveCodeForm.itemId.value=<?= (int) $item->id; ?>;document.saveCodeForm.code.value=Joomla.editors.instances['code<?= (int) $item->id; ?>'].getValue();document.saveCodeForm.submit();return false;">
@@ -401,7 +401,7 @@ $fakeName = static fn(string $n): bool => \in_array($n, ['bfFakeName', 'bfFakeNa
     <form action="<?= $baseUrl; ?>" method="post" name="saveFinalizeCodeForm">
       <?php
       $editor = Editor::getInstance('codemirror');
-      echo $editor->display('finalizeCode', $rule->finalize_code ?? '', '100%', 350, 40, 20, false, 'finalizeCode', null, null, ['syntax' => 'php']);
+      echo $editor->display('finalizeCode', $rule->finalize_code ?? '', '100%', '350', 40, 20, false, 'finalizeCode', null, null, ['syntax' => 'php']);
       ?>
       <button type="submit" class="btn btn-primary mt-2"><?= Text::_('JSAVE'); ?></button>
       <input type="hidden" name="task" value="integrator.saveFinalizeCode">

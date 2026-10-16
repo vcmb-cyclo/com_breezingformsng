@@ -19,6 +19,30 @@ permissions:
   contents: read
 
 jobs:
+  php-compatibility:
+    name: PHP ${{ matrix.php-version }} compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.3', '8.4', '8.5']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+
+      - name: PHP syntax check
+        run: |
+          set -o pipefail
+          git ls-files -z '*.php' | xargs -0 -n1 -P4 php -l > /dev/null
+
   lint:
     name: PHP, XML and translation checks
     runs-on: ubuntu-latest
@@ -156,20 +180,24 @@ jobs:
         run: vendor/bin/phpstan analyse -c phpstan.neon.dist --no-progress --error-format=github
 
   unit-tests:
-    name: Unit tests and coverage
+    name: Unit tests (PHP ${{ matrix.php-version }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.3', '8.4', '8.5']
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Setup PHP 8.3 with coverage
+      - name: Setup PHP ${{ matrix.php-version }}
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: ${{ matrix.php-version }}
           tools: composer:v2
-          coverage: pcov
+          coverage: ${{ matrix.php-version == '8.3' && 'pcov' || 'none' }}
 
       - name: Get Composer cache directory
         id: composer-cache
@@ -179,13 +207,18 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-tests-8.3-${{ hashFiles('composer.json') }}
-          restore-keys: composer-tests-8.3-
+          key: composer-tests-${{ matrix.php-version }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-tests-${{ matrix.php-version }}-
 
       - name: Install test dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
+      - name: Run unit tests
+        if: matrix.php-version != '8.3'
+        run: vendor/bin/phpunit
+
       - name: Run unit tests and generate coverage reports
+        if: matrix.php-version == '8.3'
         run: |
           vendor/bin/phpunit \
             --coverage-clover=coverage/clover.xml \
@@ -193,9 +226,11 @@ jobs:
             --coverage-text
 
       - name: Enforce coverage threshold
+        if: matrix.php-version == '8.3'
         run: php scripts/check-coverage.php coverage/clover.xml 30
 
       - name: Upload coverage reports
+        if: matrix.php-version == '8.3'
         uses: actions/upload-artifact@v7
         with:
           name: phpunit-coverage
@@ -204,6 +239,7 @@ jobs:
 
   package:
     name: Build and smoke-test package
+    needs: [php-compatibility, lint, frontend-checks, phpstan, unit-tests]
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
