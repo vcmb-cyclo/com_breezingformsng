@@ -129,7 +129,7 @@ abstract class PackageItemModel extends AdminModel
             $this->setState($this->getName() . '.id', 0);
 
             if (!$this->save($data)) {
-                throw new \RuntimeException((string) $this->getError());
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
 
             $copied++;

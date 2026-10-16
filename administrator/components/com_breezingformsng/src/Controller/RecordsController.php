@@ -15,6 +15,7 @@ use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\MVC\Controller\AdminController;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\Utilities\ArrayHelper;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -61,6 +62,42 @@ class RecordsController extends AdminController
     {
         $this->app->getInput()->set('view', 'records');
         return parent::display($cachable, $urlparams);
+    }
+
+    public function delete()
+    {
+        $this->checkToken();
+        $ids = array_filter((array) $this->input->get('cid', [], 'int'));
+
+        if ($ids === []) {
+            $this->getLogger()->warning(Text::_($this->text_prefix . '_NO_ITEM_SELECTED'), ['category' => 'jerror']);
+        } else {
+            $model = $this->getModel();
+
+            if (!$model instanceof RecordModel) {
+                $this->setMessage(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'), 'error');
+                $this->setRedirect(Route::_(
+                    'index.php?option=' . $this->option . '&view=' . $this->view_list . $this->getRedirectToListAppend(),
+                    false
+                ));
+
+                return;
+            }
+
+            try {
+                $model->delete($ids);
+                $this->setMessage(Text::plural($this->text_prefix . '_N_ITEMS_DELETED', count($ids)));
+            } catch (\Throwable $exception) {
+                $this->setMessage($exception->getMessage(), 'error');
+            }
+
+            $this->postDeleteHook($model, $ids);
+        }
+
+        $this->setRedirect(Route::_(
+            'index.php?option=' . $this->option . '&view=' . $this->view_list . $this->getRedirectToListAppend(),
+            false
+        ));
     }
 
     /**
