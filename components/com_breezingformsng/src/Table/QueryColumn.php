@@ -19,22 +19,38 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 final class QueryColumn
 {
+	/** @var string|null */
 	public $title = null;    // column title
+	/** @var string|null */
 	public $name = null;     // column name
+	/** @var string|null */
 	public $class1 = null;   // class for th
+	/** @var string|null */
 	public $class2 = null;   // class for td(1)
+	/** @var string|null */
 	public $class3 = null;   // class for td(2)
+	/** @var int|string|null */
 	public $thspan = null;   // th span
+	/** @var int|string|null */
 	public $align = null;    // 0-left 1-center 2-right
+	/** @var int|string|null */
 	public $valign = null;   // 0-top 1-middle 2-bottom 3-baseline
+	/** @var int|string|null */
 	public $wrap = null;     // 0-nowrap 1-wrap
+	/** @var string|null */
 	public $value = null;    // value field (php allowed)
+	/** @var array<int, array{bool, string}>|null */
 	public $comp = null;     // complied value: array of array(type, value/code)
 
+	/** @var string|null */
 	public $width = null;
+	/** @var int|string|null */
 	public $widthmd = null;
+	/** @var int|string|null */
 	public $thalign = null;
+	/** @var int|string|null */
 	public $thvalign = null;
+	/** @var int|string|null */
 	public $thwrap = null;
 
 	function __construct()
@@ -56,6 +72,10 @@ final class QueryColumn
 		$this->value = '';
 	} // constructor
 
+	/**
+	 * @param string $line
+	 * @return void
+	 */
 	function unpack($line)
 	{
 		$vals = explode('&', $line);
@@ -92,6 +112,7 @@ final class QueryColumn
 			$this->value = impstring($vals[14]);
 	} // unpack
 
+	/** @return string */
 	function pack()
 	{
 		return

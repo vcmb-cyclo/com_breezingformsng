@@ -28,11 +28,17 @@ class FormsController extends AdminController
 
     protected $text_prefix = 'COM_BREEZINGFORMSNG';
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function getModel($name = 'Form', $prefix = 'Administrator', $config = ['ignore_request' => true])
     {
         return parent::getModel($name, $prefix, $config);
     }
 
+    /**
+     * @param array<string, string> $urlparams
+     */
     public function display($cachable = false, $urlparams = []): static
     {
         $this->app->getInput()->set('view', 'forms');
@@ -200,6 +206,19 @@ class FormsController extends AdminController
 
     public function cancel(): void
     {
+        $this->checkToken();
+
+        $id = $this->input->getInt('id', 0);
+
+        if ($id > 0) {
+            $model = $this->getFormModel();
+
+            // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
+            if (!$model->checkin($id)) {
+                $this->app->enqueueMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()), 'error');
+            }
+        }
+
         $this->app->redirect(Route::_(self::LIST_URL, false));
     }
 

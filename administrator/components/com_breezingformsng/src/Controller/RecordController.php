@@ -20,6 +20,8 @@ class RecordController extends FormController
 {
     /**
      * Records come from the submitted forms; none is created here.
+     *
+     * @param  array<string, mixed>  $data
      */
     protected function allowAdd($data = [])
     {

@@ -14,6 +14,7 @@
 
 /** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Scripts\HtmlView $this */
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
@@ -22,6 +23,9 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\ScriptModel;
 
 $listOrder = $this->escape((string) $this->state->get('list.ordering'));
 $listDirn  = $this->escape((string) $this->state->get('list.direction'));
+$user = Factory::getApplication()->getIdentity();
+$userId = (int) $user->id;
+$canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 ?>
 <form action="<?= Route::_('index.php?option=com_breezingformsng&view=scripts'); ?>" method="post" name="adminForm" id="adminForm">
   <div id="j-main-container" class="j-main-container">
@@ -54,11 +58,19 @@ $listDirn  = $this->escape((string) $this->state->get('list.direction'));
             <tr class="row<?= $i % 2; ?>">
               <td class="text-center"><?= HTMLHelper::_('grid.id', $i, (int) $row->id, false, 'cid', 'cb', (string) $row->title); ?></td>
               <td class="text-center"><?= HTMLHelper::_('jgrid.published', (int) $row->published, $i, 'scripts.', $this->canEdit); ?></td>
+              <th scope="row">
+                <?php if ((int) $row->checked_out > 0): ?>
+                  <?= HTMLHelper::_('jgrid.checkedout', $i, (string) $row->editor, $row->checked_out_time, 'scripts.', $canManageCheckin || (int) $row->checked_out === $userId); ?>
+                <?php endif; ?>
+                <?php if ($this->canOpen): ?>
+                  <a href="<?= $editUrl; ?>" title="<?= Text::_('JACTION_EDIT'); ?>"><?= $this->escape((string) $row->title); ?></a>
+                <?php else: ?>
+                  <?= $this->escape((string) $row->title); ?>
+                <?php endif; ?>
+              </th>
               <?php if ($this->canOpen): ?>
-                <th scope="row"><a href="<?= $editUrl; ?>" title="<?= Text::_('JACTION_EDIT'); ?>"><?= $this->escape((string) $row->title); ?></a></th>
                 <td><a href="<?= $editUrl; ?>"><?= $this->escape((string) $row->name); ?></a></td>
               <?php else: ?>
-                <th scope="row"><?= $this->escape((string) $row->title); ?></th>
                 <td><?= $this->escape((string) $row->name); ?></td>
               <?php endif; ?>
               <td><?= $this->escape((string) $row->package); ?></td>

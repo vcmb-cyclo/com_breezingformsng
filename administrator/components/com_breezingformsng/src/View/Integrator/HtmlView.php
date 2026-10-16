@@ -32,15 +32,24 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
     public ?Pagination $pagination = null;
     public ?Registry $state = null;
     public ?Form $filterForm = null;
+    /** @var array<string, mixed> */
     public array $activeFilters = [];
     public ?\stdClass $rule    = null;
+    /** @var object[] */
     public array $items        = [];
+    /** @var string[] */
     public array $tableNames   = [];
+    /** @var array<string, mixed> */
     public array $tableColumns = [];
+    /** @var object[] */
     public array $forms        = [];
+    /** @var object[] */
     public array $formElements = [];
+    /** @var object[] */
     public array $criteria         = [];
+    /** @var object[] */
     public array $criteriaJoomla   = [];
+    /** @var object[] */
     public array $criteriaFixed    = [];
     public string $formFilter  = 'all';
     public function display($tpl = null): void

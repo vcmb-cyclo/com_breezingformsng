@@ -29,6 +29,9 @@ class MenusController extends AdminController
 {
     protected $text_prefix = 'COM_BREEZINGFORMSNG';
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function getModel($name = 'Menu', $prefix = 'Administrator', $config = ['ignore_request' => true])
     {
         return parent::getModel($name, $prefix, $config);

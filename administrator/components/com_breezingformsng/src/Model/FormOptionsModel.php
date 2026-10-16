@@ -36,7 +36,7 @@ class FormOptionsModel extends BaseDatabaseModel
         $q  = $db->createQuery()
             ->select('*')
             ->from($db->quoteName('#__facileforms_forms'))
-            ->where($db->quoteName('id') . ' = ' . $db->quote($id));
+            ->where($db->quoteName('id') . ' = ' . (int) $id);
 
         return $db->setQuery($q)->loadObject() ?: null;
     }
@@ -120,6 +120,9 @@ class FormOptionsModel extends BaseDatabaseModel
         return $obj;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function saveForm(array $data): int
     {
         $db  = $this->db();
@@ -181,7 +184,7 @@ class FormOptionsModel extends BaseDatabaseModel
             }
             $q->set($db->quoteName('modified') . ' = ' . $db->quote($now));
             $q->set($db->quoteName('modified_by') . ' = ' . $db->quote($uid));
-            $q->where($db->quoteName('id') . ' = ' . $db->quote($id));
+            $q->where($db->quoteName('id') . ' = ' . (int) $id);
             $db->setQuery($q)->execute();
         } else {
             $sets['created']    = $now;
@@ -212,8 +215,8 @@ class FormOptionsModel extends BaseDatabaseModel
         $db->setQuery(
             $db->createQuery()
                 ->update($db->quoteName('#__facileforms_forms'))
-                ->set($db->quoteName('debug_mode') . ' = ' . $db->quote($state))
-                ->where($db->quoteName('id') . ' = ' . $db->quote($id))
+                ->set($db->quoteName('debug_mode') . ' = ' . (int) $state)
+                ->where($db->quoteName('id') . ' = ' . (int) $id)
         )->execute();
     }
 
@@ -234,7 +237,7 @@ class FormOptionsModel extends BaseDatabaseModel
             $db->setQuery(
                 $db->createQuery()
                     ->update($db->quoteName('#__facileforms_forms'))
-                    ->set($db->quoteName('ordering') . ' = ' . $db->quote($pos + 1))
+                    ->set($db->quoteName('ordering') . ' = ' . ($pos + 1))
                     ->where($db->quoteName('id') . ' = ' . $db->quote($rowId))
             )->execute();
         }

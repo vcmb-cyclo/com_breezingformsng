@@ -103,7 +103,8 @@ final class PublicFacadeApiTest extends TestCase
 
         foreach (['cbCheckPermissions', 'collectSubmitdata', 'logToDatabase', 'execPiece', 'linkcode', 'trim', 'nonblank', 'bury'] as $method) {
             self::assertMatchesRegularExpression(
-                '/@phpstan-impure\s*\*\/\s*public function ' . $method . '\s*\(/',
+                // @phpstan-impure anywhere in the docblock right above the method.
+                '/@phpstan-impure\b(?:(?!\*\/).)*\*\/\s*public function ' . $method . '\s*\(/s',
                 $source,
                 "Missing impure contract for {$method}()"
             );

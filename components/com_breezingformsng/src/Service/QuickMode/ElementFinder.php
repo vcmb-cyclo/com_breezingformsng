@@ -13,6 +13,11 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\QuickMode;
 
 final class ElementFinder
 {
+    /**
+     * @param array<string, mixed> $node
+     *
+     * @return array<string, mixed>|null
+     */
     public function find(array $node, string $name): ?array
     {
         $properties = $node['properties'] ?? [];

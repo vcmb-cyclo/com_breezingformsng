@@ -28,6 +28,10 @@ final class RuntimeContextInitializer
     ) {
     }
 
+    /**
+     * @param array<string, mixed>|null $otherParameters
+     * @return array{siteUrl: string, componentUrl: string, otherParameters: array<string, mixed>}
+     */
     public function initialize(?string $siteUrl, ?string $componentUrl, ?array $otherParameters): array
     {
         $siteUrl ??= $this->resolveSiteUrl();
@@ -64,6 +68,7 @@ final class RuntimeContextInitializer
         return str_replace('\\', '/', $protocol . '://' . $host . $portSuffix . $path);
     }
 
+    /** @return array<string, string> */
     private function collectOtherParameters(): array
     {
         $input = $this->application->getInput();
@@ -84,6 +89,7 @@ final class RuntimeContextInitializer
         return $result;
     }
 
+    /** @param array<string, mixed> $parameters */
     private function saveParameter(array &$parameters, string $name): ?string
     {
         $value = $this->application->getInput()->get($name, null, 'string');

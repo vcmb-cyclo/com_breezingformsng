@@ -27,6 +27,9 @@ abstract class PackageListModel extends ListModel
 
     private const SORTS = ['id', 'package', 'title', 'name', 'type', 'description', 'modified', 'published'];
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
         $config['filter_fields'] ??= self::SORTS;
@@ -51,10 +54,16 @@ abstract class PackageListModel extends ListModel
     protected function getListQuery()
     {
         $db = $this->getDatabase();
+        $editor = $db->createQuery()
+            ->select($db->quoteName('editor.name'))
+            ->from($db->quoteName('#__users', 'editor'))
+            ->where($db->quoteName('editor.id') . ' = ' . $db->quoteName($this->getTableName() . '.checked_out'));
         $query = $db->createQuery()
             ->select($db->quoteName([
                 'id', 'package', 'title', 'name', 'type', 'description', 'created', 'modified', 'published',
+                'checked_out', 'checked_out_time',
             ]))
+            ->select('(' . $editor . ') AS ' . $db->quoteName('editor'))
             ->from($db->quoteName($this->getTableName()));
 
         $package = (string) $this->getState('filter.package');

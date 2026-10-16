@@ -17,6 +17,11 @@ use Joomla\CMS\Component\Router\RouterBase;
  */
 class Router extends RouterBase
 {
+    /**
+     * @param  array<string, mixed>  $query
+     *
+     * @return  list<mixed>
+     */
     public function build(&$query)
     {
         $segments = [];
@@ -36,6 +41,11 @@ class Router extends RouterBase
         return $segments;
     }
 
+    /**
+     * @param  array<int, string>  $segments
+     *
+     * @return  array<string, string>
+     */
     public function parse(&$segments)
     {
         $vars = [];

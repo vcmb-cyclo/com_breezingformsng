@@ -27,7 +27,7 @@ final class ContentBuilderFileSupportBuilder
     {
         $files = explode("\n", str_replace("\r", '', $value));
 
-        return ['count' => count($files), 'files' => array_values($files)];
+        return ['count' => count($files), 'files' => $files];
     }
 
     public function resolveSignature(string $directory, string $fileName): ?string

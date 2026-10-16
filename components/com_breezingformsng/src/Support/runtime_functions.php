@@ -14,11 +14,17 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 // Public runtime helpers used by stored form scripts and the processor facade.
 
+/**
+ * @return string
+ */
 function nl()
 {
 	return "\r\n";
 } // nl
 
+/**
+ * @return string|void
+ */
 function nlc()
 {
 	global $ff_config;
@@ -26,12 +32,20 @@ function nlc()
 		return "\r\n";
 } // nlc
 
+/**
+ * @param string $text
+ * @return string
+ */
 function adjustNewlines($text)
 {
 	$text = str_replace("\r\n", "\n", $text); // unix mode
 	return str_replace("\n", nl(), $text); // ff mode
 } // adjustNewlines
 
+/**
+ * @param int $level
+ * @return string
+ */
 function indent($level)
 {
 	$ind = '';
@@ -40,6 +54,10 @@ function indent($level)
 	return $ind;
 } // indent
 
+/**
+ * @param int $level
+ * @return string
+ */
 function indentc($level)
 {
 	global $ff_config;
@@ -50,6 +68,10 @@ function indentc($level)
 	return $ind;
 } // indentc
 
+/**
+ * @param string $text
+ * @return string
+ */
 function expstring($text)
 {
 	$o = '';
@@ -95,11 +117,20 @@ function expstring($text)
 	return $o;
 } // expstring
 
+/**
+ * @param string $text
+ * @return string
+ */
 function impstring($text)
 {
 	return stripcslashes($text);
 } // impstring
 
+/**
+ * @param string $p
+ * @param bool $ff_param
+ * @return bool
+ */
 function ff_reserved($p, $ff_param = true)
 {
 	global $ff_resnames;

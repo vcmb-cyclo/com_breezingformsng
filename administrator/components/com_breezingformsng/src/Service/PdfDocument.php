@@ -42,6 +42,15 @@ class PdfDocument extends \TCPDF
     public bool $mailback = false;
     public string $which = 'attachment';
 
+    /**
+     * @param string $orientation
+     * @param string $unit
+     * @param string|array<mixed> $format
+     * @param bool $unicode
+     * @param string $encoding
+     * @param bool $diskcache
+     * @param bool|int $pdfa
+     */
     public function __construct($orientation = 'P', $unit = 'mm', $format = 'A4', $unicode = true, $encoding = 'UTF-8', $diskcache = false, $pdfa = false)
     {
 
@@ -89,6 +98,7 @@ class PdfDocument extends \TCPDF
         return $name;
     }
 
+    /** @return void */
     public function Header()
     {
 
@@ -151,6 +161,7 @@ class PdfDocument extends \TCPDF
         }
     }
 
+    /** @return void */
     public function Footer()
     {
 
@@ -217,6 +228,7 @@ class PdfDocument extends \TCPDF
         }
     }
 
+    /** @return string */
     public function getHeaderTemplate()
     {
 
@@ -265,6 +277,7 @@ class PdfDocument extends \TCPDF
         return $file;
     }
 
+    /** @return string */
     public function getFooterTemplate()
     {
 

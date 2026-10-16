@@ -13,8 +13,12 @@ use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
+use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
+use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseAuditService;
@@ -39,6 +43,10 @@ class AboutController extends BaseController
         'facileforms_integrator_criteria_joomla',
     ];
 
+    /**
+     * @param bool                 $cachable
+     * @param array<string, mixed> $urlparams
+     */
     public function display($cachable = false, $urlparams = [])
     {
         $application = $this->app;
@@ -302,10 +310,13 @@ class AboutController extends BaseController
                 ));
             }
 
-            $formModel = $application
-                ->bootComponent('com_breezingformsng')
-                ->getMVCFactory()
+            $formModel = $this->getMVCFactoryOf($application)
                 ->createModel('Form', 'Administrator', ['ignore_request' => true]);
+
+            if (!$formModel instanceof FormModel) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
             $pks = [$formId];
 
             if (!$formModel->delete($pks)) {
@@ -329,10 +340,13 @@ class AboutController extends BaseController
             $application = $this->getAuthorizedApplication();
             AreaAccess::assertRepair($application->getIdentity());
 
-            $model = $application
-                ->bootComponent('com_breezingformsng')
-                ->getMVCFactory()
+            $model = $this->getMVCFactoryOf($application)
                 ->createModel('Record', 'Administrator', ['ignore_request' => true]);
+
+            if (!$model instanceof RecordModel) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
             $deleted = $model->emptyTrash();
 
             if ($deleted !== []) {
@@ -426,7 +440,7 @@ class AboutController extends BaseController
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false));
     }
 
-    private function getAuthorizedApplication()
+    private function getAuthorizedApplication(): CMSApplication
     {
         $application = $this->app;
 
@@ -435,6 +449,17 @@ class AboutController extends BaseController
         }
 
         return $application;
+    }
+
+    private function getMVCFactoryOf(CMSApplication $application): MVCFactoryInterface
+    {
+        $component = $application->bootComponent('com_breezingformsng');
+
+        if (!$component instanceof MVCFactoryServiceInterface) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        return $component->getMVCFactory();
     }
 
     private function getDatabase(): DatabaseInterface
@@ -465,6 +490,9 @@ class AboutController extends BaseController
         return in_array($db->getPrefix() . $table, $db->getTableList(), true);
     }
 
+    /**
+     * @return array{file: string, size: int, loaded_at: string, content: string, truncated: int, tail_bytes: int}
+     */
     private function readAboutLogReport(): array
     {
         $latestPath = '';

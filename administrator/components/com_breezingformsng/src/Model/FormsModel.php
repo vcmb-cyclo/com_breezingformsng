@@ -18,6 +18,9 @@ class FormsModel extends ListModel
 {
     private const SORTS = ['id', 'title', 'name', 'pages', 'published', 'ordering', 'modified'];
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
         $config['filter_fields'] ??= [...self::SORTS, 'package'];
@@ -47,8 +50,15 @@ class FormsModel extends ListModel
     protected function getListQuery()
     {
         $db = $this->db();
+        $editor = $db->createQuery()
+            ->select($db->quoteName('editor.name'))
+            ->from($db->quoteName('#__users', 'editor'))
+            ->where($db->quoteName('editor.id') . ' = ' . $db->quoteName('#__facileforms_forms.checked_out'));
         $query = $db->createQuery()
-            ->select($db->quoteName(['id', 'title', 'name', 'pages', 'published', 'ordering', 'modified']))
+            ->select($db->quoteName([
+                'id', 'title', 'name', 'pages', 'published', 'ordering', 'modified', 'checked_out', 'checked_out_time',
+            ]))
+            ->select('(' . $editor . ') AS ' . $db->quoteName('editor'))
             ->from($db->quoteName('#__facileforms_forms'));
 
         $package = (string) $this->getState('filter.package');
@@ -87,6 +97,9 @@ class FormsModel extends ListModel
         return $query->order($db->quoteName($ordering) . ' ' . $direction . ', ' . $db->quoteName('id') . ' DESC');
     }
 
+    /**
+     * @return list<object>
+     */
     public function getScripts(string $type): array
     {
         $db = $this->db();
@@ -100,6 +113,9 @@ class FormsModel extends ListModel
         return $db->setQuery($q)->loadObjectList() ?: [];
     }
 
+    /**
+     * @return list<object>
+     */
     public function getPieces(string $type): array
     {
         $db = $this->db();

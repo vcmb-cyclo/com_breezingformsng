@@ -25,6 +25,9 @@ class IntegratorController extends BaseController
         return parent::execute($task);
     }
 
+    /**
+     * @param array<string, string> $urlparams
+     */
     public function display($cachable = false, $urlparams = [])
     {
         $input = $this->app->getInput();

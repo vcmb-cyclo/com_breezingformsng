@@ -31,6 +31,9 @@ class RecordsModel extends ListModel
         'records.modified',
     ];
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
         $config['filter_fields'] ??= [...self::SORTS, 'form', 'state'];
@@ -60,10 +63,17 @@ class RecordsModel extends ListModel
                 'records.id', 'records.submitted', 'records.modified', 'records.ip',
                 'records.user_id', 'records.username', 'records.user_full_name',
                 'records.viewed', 'records.exported', 'records.state', 'records.paypal_tx_id',
+                'records.checked_out', 'records.checked_out_time',
                 'forms.title AS form_title', 'forms.name AS form_name', 'forms.id AS form_id',
             ])
+            ->select($db->quoteName('editor.name', 'editor'))
             ->from($db->quoteName('#__facileforms_records', 'records'))
-            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form');
+            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form')
+            ->join(
+                'LEFT',
+                $db->quoteName('#__users', 'editor'),
+                $db->quoteName('editor.id') . ' = ' . $db->quoteName('records.checked_out')
+            );
 
         $this->applyFilters($query);
 

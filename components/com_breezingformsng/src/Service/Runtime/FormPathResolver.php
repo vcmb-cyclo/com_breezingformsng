@@ -34,7 +34,7 @@ final class FormPathResolver
             '{mospath}',
             '{mossite}',
         ];
-        $values = [$page, $lastPage, $formName, $formTitle, $homepage, $sitePath, $siteUrl];
+        $values = [(string) $page, (string) $lastPage, $formName, $formTitle, $homepage, $sitePath, $siteUrl];
         $images = str_replace($tokens, $values, $imagesPattern);
         $tokens[] = '{ff_images}';
         $values[] = $images;

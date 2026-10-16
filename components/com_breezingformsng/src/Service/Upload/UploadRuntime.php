@@ -94,6 +94,7 @@ final class UploadRuntime
         $this->imageResizer->resizeFile($path, $width, $height, $backgroundColor, $type);
     }
 
+    /** @param list<int> $backgroundColor */
     public function resizeImage(
         mixed $sourceImage,
         int $destinationWidth,
@@ -115,6 +116,10 @@ final class UploadRuntime
         return $this->imageResizer->parseByteSize($value);
     }
 
+    /**
+     * @param array<string, mixed> $dataObject
+     * @return array<string, mixed>|null
+     */
     public function findQuickModeElement(array $dataObject, string $name): ?array
     {
         return $this->elementFinder->find($dataObject, $name);

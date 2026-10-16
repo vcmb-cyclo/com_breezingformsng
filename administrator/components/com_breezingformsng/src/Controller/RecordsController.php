@@ -34,6 +34,9 @@ class RecordsController extends AdminController
 
     private const LIST_URL = 'index.php?option=com_breezingformsng&view=records';
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null, $app = null, $input = null)
     {
         parent::__construct($config, $factory, $app, $input);
@@ -43,11 +46,17 @@ class RecordsController extends AdminController
         $this->unregisterTask('report');
     }
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function getModel($name = 'Record', $prefix = 'Administrator', $config = ['ignore_request' => true])
     {
         return parent::getModel($name, $prefix, $config);
     }
 
+    /**
+     * @param array<string, string> $urlparams
+     */
     public function display($cachable = false, $urlparams = [])
     {
         $this->app->getInput()->set('view', 'records');

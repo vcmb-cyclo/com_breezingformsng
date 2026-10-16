@@ -24,6 +24,9 @@ final class SalesforceClient
         $this->http = $http ?? (new HttpFactory())->getHttp();
     }
 
+    /**
+     * @param array<string, mixed> $fields
+     */
     public function createRecord(string $username, string $passwordAndToken, string $objectType, array $fields): string
     {
         [$baseUrl, $headers] = $this->login($username, $passwordAndToken);
@@ -68,6 +71,9 @@ final class SalesforceClient
         return (string) ($result['id'] ?? '');
     }
 
+    /**
+     * @return array{0: string, 1: array<string, string>}
+     */
     private function login(string $username, string $passwordAndToken): array
     {
         $envelope = '<?xml version="1.0" encoding="UTF-8"?>'

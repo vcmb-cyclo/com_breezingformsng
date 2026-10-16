@@ -72,6 +72,9 @@ class RecordModel extends AdminModel
         return $this->items[$pk] = $item;
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     public function getEditableElements(int $formId): array
     {
         $db = $this->getDatabase();
@@ -87,6 +90,9 @@ class RecordModel extends AdminModel
         return $db->loadAssocList();
     }
 
+    /**
+     * @return list<array{element_id: int, title: string, name: string, type: string, value: string}>
+     */
     public function getEditableRows(int $recordId, int $formId, string $recordName): array
     {
         $elements = $this->getEditableElements($formId);
@@ -130,6 +136,9 @@ class RecordModel extends AdminModel
         return $rows;
     }
 
+    /**
+     * @param array<int, string> $values
+     */
     private function saveRecord(int $recordId, array $values, \DateTimeZone $timezone): void
     {
         $db = $this->getDatabase();
@@ -242,6 +251,9 @@ class RecordModel extends AdminModel
         }
     }
 
+    /**
+     * @return list<string>
+     */
     private function splitValue(string $value, string $type): array
     {
         $value = str_replace("\r", '', $value);
@@ -254,11 +266,20 @@ class RecordModel extends AdminModel
         ));
     }
 
+    /**
+     * @param string               $name
+     * @param string               $prefix
+     * @param array<string, mixed> $options
+     */
     public function getTable($name = 'Record', $prefix = 'Site', $options = [])
     {
         return parent::getTable($name, $prefix, $options);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @param bool                 $loadData
+     */
     public function getForm($data = [], $loadData = true)
     {
         // The fields depend on the record: keep the id of the submitted one.
@@ -269,6 +290,9 @@ class RecordModel extends AdminModel
         return $this->loadForm('com_breezingformsng.record', 'record', ['control' => 'jform', 'load_data' => $loadData]);
     }
 
+    /**
+     * @return array<string, mixed>|object|false
+     */
     protected function loadFormData()
     {
         $data = $this->getApplication()->getUserState('com_breezingformsng.edit.record.data', []);
@@ -317,6 +341,8 @@ class RecordModel extends AdminModel
 
     /**
      * Saves the submitted values of an existing record.
+     *
+     * @param array<string, mixed> $data
      */
     public function save($data)
     {
@@ -361,6 +387,10 @@ class RecordModel extends AdminModel
         return (int) $record->state === RecordState::TRASHED && parent::canDelete($record);
     }
 
+    /**
+     * @param array<mixed> $pks
+     * @param int          $value
+     */
     public function publish(&$pks, $value = 1)
     {
         if (!RecordState::isValid((int) $value)) {
@@ -376,6 +406,8 @@ class RecordModel extends AdminModel
      * is deleted, and everything is undone when a step fails or when a
      * selected record is still there afterwards: $pks ends up holding the ids
      * actually deleted.
+     *
+     * @param array<mixed> $pks
      */
     public function delete(&$pks)
     {
@@ -510,6 +542,9 @@ class RecordModel extends AdminModel
         return array_column($this->getFormsAndStates($ids), 'form', 'id');
     }
 
+    /**
+     * @param array<mixed> $ids
+     */
     public function setFlagsBatch(array $ids, string $column, int $value = 1): void
     {
         if (!in_array($column, ['viewed', 'exported'], true)) {
@@ -558,6 +593,9 @@ class RecordModel extends AdminModel
         return $config;
     }
 
+    /**
+     * @return list<object>
+     */
     public function getSubrecords(int $recordId): array
     {
         return $this->getSubrecordsByRecordIds([$recordId])[$recordId] ?? [];
@@ -605,6 +643,9 @@ class RecordModel extends AdminModel
         return $subrecordsByRecord;
     }
 
+    /**
+     * @param array<mixed> $ids
+     */
     public function markExported(array $ids): void
     {
         $ids = array_values(array_filter(array_map('intval', $ids)));

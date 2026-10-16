@@ -35,8 +35,11 @@ class HtmlView extends BaseHtmlView
     public int    $debugMode  = 0;
     public string $emailadr   = '';
     public string $templateCode = '';
+    /** @var array<string, list<object>> */
     public array  $elementScripts = [];
+    /** @var list<string> */
     public array  $themes         = [];
+    /** @var list<string> */
     public array  $themesBootstrap  = [];
 
     /**
@@ -47,13 +50,20 @@ class HtmlView extends BaseHtmlView
      * save creates one.
      */
     public ?\stdClass $advancedOptionsForm = null;
-    public $advancedOptionsEditor = null;
+    public ?Editor $advancedOptionsEditor = null;
+    /** @var array<string, int> */
     public array $advancedOptionsTabEntryCounts = [];
+    /** @var list<object> */
     public array $advancedOptionsInitScripts = [];
+    /** @var list<object> */
     public array $advancedOptionsSubmittedScripts = [];
+    /** @var list<object> */
     public array $advancedOptionsPieceBefore = [];
+    /** @var list<object> */
     public array $advancedOptionsPieceAfter = [];
+    /** @var list<object> */
     public array $advancedOptionsPieceBeginSubmit = [];
+    /** @var list<object> */
     public array $advancedOptionsPieceEndSubmit = [];
 
     public function display($tpl = null): void

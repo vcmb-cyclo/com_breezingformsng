@@ -51,6 +51,11 @@ final class ScriptingEngine
     {
     }
 
+    /**
+     * @param int|string $id
+     * @param mixed $name
+     * @return string
+     */
     function getPieceById($id, $name = null)
     {
         if ($this->processor->dying)
@@ -69,6 +74,11 @@ final class ScriptingEngine
 
     // getPieceById
 
+    /**
+     * @param string $name
+     * @param mixed $id
+     * @return string
+     */
     function getPieceByName($name, $id = null)
     {
         if ($this->processor->dying)
@@ -86,7 +96,15 @@ final class ScriptingEngine
 
     // getPieceByName
 
-    /** @phpstan-impure */
+    /**
+     * @phpstan-impure
+     * @param string $code
+     * @param string $name
+     * @param string|null $type
+     * @param int|string|null $id
+     * @param int|null $pane
+     * @return mixed
+     */
     function execPiece($code, $name, $type, $id, $pane)
     {
         $ret = '';
@@ -106,6 +124,10 @@ final class ScriptingEngine
 
     // execPiece
 
+    /**
+     * @param int|string $id
+     * @return mixed
+     */
     function execPieceById($id)
     {
         $name = null;
@@ -115,6 +137,10 @@ final class ScriptingEngine
 
     // execPieceById
 
+    /**
+     * @param string $name
+     * @return mixed
+     */
     function execPieceByName($name)
     {
         $id = null;
@@ -124,6 +150,14 @@ final class ScriptingEngine
 
     // execPieceByName
 
+    /**
+     * @param string $code
+     * @param string $name
+     * @param string|null $type
+     * @param int|string|null $id
+     * @param int|null $pane
+     * @return string
+     */
     function replaceCode($code, $name, $type, $id, $pane)
     {
 
@@ -156,10 +190,16 @@ final class ScriptingEngine
 
     // replaceCode
 
+    /**
+     * @param object $elem
+     * @param object $coldef
+     * @return mixed
+     */
     function compileQueryCol(&$elem, &$coldef)
     {
         $coldef->comp = array();
-        if ($this->processor->trim(str_replace($this->processor->findtags, $this->processor->replacetags, $coldef->value))) {
+        $columnValue = str_replace($this->processor->findtags, $this->processor->replacetags, $coldef->value);
+        if ($this->processor->trim($columnValue)) {
             $c = $p1 = 0;
             $l = strlen($coldef->value);
             while ($p1 < $l) {
@@ -203,6 +243,14 @@ final class ScriptingEngine
 
     // compileQueryCol
 
+    /**
+     * @param string $code
+     * @param object $elem
+     * @param object $row
+     * @param object $coldef
+     * @param mixed $value
+     * @return mixed
+     */
     function execQueryValue($code, &$elem, &$row, &$coldef, $value)
     {
         $this->processor->traceEval(Text::_('COM_BREEZINGFORMSNG_PROCESS_QVALUEOF') . " " . $elem->name . "::" . $coldef->name);
@@ -225,6 +273,12 @@ final class ScriptingEngine
 
     // execQueryValue
 
+    /**
+     * @param object $elem
+     * @param array<int, mixed> $valrows
+     * @param array<int, object> $coldefs
+     * @return mixed
+     */
     function execQuery(&$elem, &$valrows, &$coldefs)
     {
         $ret = null;
@@ -285,6 +339,10 @@ final class ScriptingEngine
 
     // execQuery
 
+    /**
+     * @param object $row
+     * @return string
+     */
     function script2clause(&$row)
     {
         if ($this->processor->dying)
@@ -320,6 +378,10 @@ final class ScriptingEngine
 
     // script2clause
 
+    /**
+     * @param array<int, array<int, mixed>> $library
+     * @return mixed
+     */
     function loadBuiltins(&$library)
     {
         global $ff_config, $ff_request;
@@ -763,6 +825,10 @@ final class ScriptingEngine
 
     // loadBuiltins
 
+    /**
+     * @param array<int, array<int, mixed>> $library
+     * @return mixed
+     */
     function loadScripts(&$library)
     {
         if ($this->processor->dying)
@@ -774,6 +840,10 @@ final class ScriptingEngine
 
     // loadScripts
 
+    /**
+     * @param mixed $str
+     * @return string
+     */
     function compressJavascript($str)
     {
         if ($this->processor->dying)
@@ -788,7 +858,17 @@ final class ScriptingEngine
 
     // compressJavascript
 
-    /** @phpstan-impure */
+    /**
+     * @phpstan-impure
+     * @param string $func
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
+     * @param string $code
+     * @param string|null $type
+     * @param int|string|null $id
+     * @param int|null $pane
+     * @return mixed
+     */
     function linkcode($func, &$library, &$linked, $code, $type = null, $id = null, $pane = null)
     {
         global $ff_config;
@@ -835,6 +915,18 @@ final class ScriptingEngine
 
     // linkcode
 
+    /**
+     * @param int|string $cond
+     * @param int|string|null $id
+     * @param string $name
+     * @param string $code
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
+     * @param string|null $type
+     * @param int|string|null $rowid
+     * @param int|null $pane
+     * @return mixed
+     */
     function addFunction($cond, $id, $name, $code, &$library, &$linked, $type, $rowid, $pane)
     {
         if ($this->processor->dying)

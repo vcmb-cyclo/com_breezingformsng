@@ -80,7 +80,7 @@ use Joomla\CMS\Language\Text;
                                                     <?php echo Text::_('COM_BREEZINGFORMSNG_MAIL_NOTIFICATION'); ?>
                                                 </label>
                                                 <input <?php echo $formEmailntf == 2 || $formEmailntf == 1 ? 'checked="checked"' : '' ?> type="checkbox"
-                                                    value="<?php echo htmlentities($formEmailntf, ENT_QUOTES, 'UTF-8') ?>"
+                                                    value="<?php echo htmlentities((string) $formEmailntf, ENT_QUOTES, 'UTF-8') ?>"
                                                     id="bfFormMailNotification" />
                                             </div>
                                             <div class="bfPropertyWrap bfng-field">

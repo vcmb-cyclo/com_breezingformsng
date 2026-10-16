@@ -19,6 +19,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Router\Route;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageListModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
@@ -75,6 +76,9 @@ abstract class PackageItemController extends FormController
         $this->navigate('next');
     }
 
+    /**
+     * @param  array<string, mixed>  $validData
+     */
     protected function postSaveHook(BaseDatabaseModel $model, $validData = [])
     {
         (new ActionLogger($this->app))->log(
@@ -100,10 +104,29 @@ abstract class PackageItemController extends FormController
         }
 
         $targetId = $list->getAdjacentId($itemId, $direction);
+        $test = $this->input->getInt('test_context', 0) === 1;
+
+        if ($targetId !== $itemId) {
+            // Moving to another item checks it out and checks the current one in, as edit and close do.
+            $model = $this->getModel();
+
+            if (!$model instanceof PackageItemModel) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            if (!$model->checkout($targetId)) {
+                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', $model->getError()), 'error');
+                $this->setRedirect(Route::_($this->itemUrl($itemId, $test), false));
+
+                return;
+            }
+
+            $model->checkin($itemId);
+        }
 
         $this->releaseEditId($context, $itemId);
         $this->holdEditId($context, $targetId);
-        $this->setRedirect(Route::_($this->itemUrl($targetId, $this->input->getInt('test_context', 0) === 1), false));
+        $this->setRedirect(Route::_($this->itemUrl($targetId, $test), false));
     }
 
     protected function itemUrl(int $itemId, bool $test): string
