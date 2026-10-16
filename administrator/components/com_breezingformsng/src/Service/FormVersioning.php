@@ -63,15 +63,16 @@ final class FormVersioning
     }
 
     /**
-     * Gives the form its next version number and, when versions are enabled,
-     * checks that the history holds it. All or nothing: a failure leaves
-     * neither a new number nor a history row.
+     * Gives the saved form its next version number, as Joomla does for an
+     * article at each save. The Versionable behaviour plugin then keeps it in
+     * the history, without a new row when the same content is already there
+     * (Joomla compares the content, version number left out).
      *
-     * @param int|null $restoredFrom The version the form was restored from
+     * All or nothing: a failure leaves neither a new number nor a history row.
      *
      * @return int The new version number
      */
-    public function record(int $formId, ?int $restoredFrom = null): int
+    public function record(int $formId): int
     {
         $db = $this->db;
         // A savepoint inside the transaction of a restore, a transaction on
@@ -93,13 +94,7 @@ final class FormVersioning
             }
 
             if (self::isEnabled()) {
-                $this->labelVersion(
-                    $formId,
-                    $table,
-                    $restoredFrom === null
-                        ? Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOTE', $version)
-                        : Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_RESTORED_NOTE', $version, $restoredFrom)
-                );
+                $this->assertKeptInHistory($formId, $table);
             }
 
             $db->transactionCommit(true);
@@ -113,10 +108,11 @@ final class FormVersioning
     }
 
     /**
-     * Finds the history row the plugin wrote for the stored form, by the same
-     * hash, and gives it its note. A missing row is a failure.
+     * The history must hold the stored content: the plugin's row for this
+     * save, or the existing row with the same content. Joomla does not report
+     * a failure to write it, so it is checked here.
      */
-    private function labelVersion(int $formId, FormTable $table, string $note): void
+    private function assertKeptInHistory(int $formId, FormTable $table): void
     {
         $type = new ContentType($this->db);
         $type->load(['type_alias' => self::TYPE_ALIAS]);
@@ -124,22 +120,10 @@ final class FormVersioning
         $history = new ContentHistory($this->db);
         $history->item_id = self::TYPE_ALIAS . '.' . $formId;
         $history->sha1_hash = $history->getSha1((new CMSHelper())->getDataObject($table), $type);
-        $row = $history->getHashMatch();
 
-        if (!\is_object($row)) {
+        if (!\is_object($history->getHashMatch())) {
             throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
         }
-
-        $versionId = (int) $row->version_id;
-        $db = $this->db;
-        $db->setQuery(
-            $db->createQuery()
-                ->update($db->quoteName('#__history'))
-                ->set($db->quoteName('version_note') . ' = :note')
-                ->where($db->quoteName('version_id') . ' = :id')
-                ->bind(':note', $note)
-                ->bind(':id', $versionId, ParameterType::INTEGER)
-        )->execute();
     }
 
     /**

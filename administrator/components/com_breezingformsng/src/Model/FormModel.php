@@ -119,6 +119,18 @@ class FormModel extends AdminModel
                         ->delete($db->quoteName('#__facileforms_elements'))
                         ->whereIn($db->quoteName('form'), $ids)
                 )->execute();
+
+                // The Versionable plugin only deletes the history while versions
+                // are enabled: versions kept before they were disabled go too.
+                $db->setQuery(
+                    $db->createQuery()
+                        ->delete($db->quoteName('#__history'))
+                        ->whereIn(
+                            $db->quoteName('item_id'),
+                            array_map(static fn (int $id): string => FormVersioning::TYPE_ALIAS . '.' . $id, $ids),
+                            ParameterType::STRING
+                        )
+                )->execute();
             }
 
             $db->transactionCommit();

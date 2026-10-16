@@ -82,7 +82,7 @@ class FormController extends BaseController
                     $formId,
                     FormVersioning::resetMissingElementIds($version['structure'], $versioning->elementIds($formId))
                 );
-                $current = $versioning->record($formId, $version['version']);
+                $current = $versioning->record($formId);
                 $db->transactionCommit();
             } catch (\Throwable $e) {
                 $db->transactionRollback();

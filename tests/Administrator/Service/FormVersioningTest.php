@@ -106,14 +106,11 @@ final class FormVersioningTest extends TestCase
         $service = $this->read('administrator/components/com_breezingformsng/src/Service/FormVersioning.php');
 
         self::assertMatchesRegularExpression(
-            '/function record\(.*?transactionStart\(true\);.*?->store\(\).*?labelVersion\(.*?transactionCommit\(true\);'
+            '/function record\(.*?transactionStart\(true\);.*?->store\(\).*?assertKeptInHistory\(.*?transactionCommit\(true\);'
             . '.*?catch \(\\\\Throwable \$e\) \{\s+\$db->transactionRollback\(true\);\s+throw \$e;/s',
             $service
         );
-        self::assertMatchesRegularExpression(
-            '/getHashMatch\(\);\s+if \(!\\\\is_object\(\$row\)\) \{\s+throw new/',
-            $service
-        );
+        self::assertStringContainsString('if (!\\is_object($history->getHashMatch())) {', $service);
     }
 
     public function testARestoreIsAllOrNothing(): void
@@ -132,6 +129,32 @@ final class FormVersioningTest extends TestCase
             strpos($controller, 'transactionCommit();'),
             strpos($controller, 'ContentBuilderFormSync(')
         );
+    }
+
+    public function testVersionsFollowJoomlaArticles(): void
+    {
+        $service = $this->read('administrator/components/com_breezingformsng/src/Service/FormVersioning.php');
+        $script = $this->read('script.php');
+
+        // As ArticleModel::prepareTable(): the number goes up at each save.
+        self::assertStringContainsString('$version = (int) $table->version + 1;', $service);
+        // As com_content.article: the history compares the content, version left out,
+        // so the same content saved again adds no row.
+        self::assertStringContainsString(
+            "'ignoreChanges' => ['modified', 'modified_by', 'checked_out', 'checked_out_time', 'version', 'ordering', 'template_areas'],",
+            $script
+        );
+        self::assertStringNotContainsString('version_note', $service);
+    }
+
+    public function testDeletingAFormDeletesItsHistoryEvenWithVersionsDisabled(): void
+    {
+        $model = $this->read('administrator/components/com_breezingformsng/src/Model/FormModel.php');
+        $delete = substr($model, (int) strpos($model, 'public function delete(&$pks)'));
+        $delete = substr($delete, 0, (int) strpos($delete, 'transactionCommit();'));
+
+        self::assertStringContainsString("->delete(\$db->quoteName('#__history'))", $delete);
+        self::assertStringContainsString("FormVersioning::TYPE_ALIAS . '.' . \$id", $delete);
     }
 
     private function read(string $path): string

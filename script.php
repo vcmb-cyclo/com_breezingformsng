@@ -1543,7 +1543,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             'content_history_options' => json_encode([
                 'formFile' => '',
                 'hideFields' => ['checked_out', 'checked_out_time', 'version', 'template_code', 'template_areas'],
-                'ignoreChanges' => ['modified', 'modified_by', 'checked_out', 'checked_out_time', 'version', 'ordering'],
+                // As for articles, the history compares the content, version left out.
+                // template_areas is rebuilt by QuickMode at each save.
+                'ignoreChanges' => ['modified', 'modified_by', 'checked_out', 'checked_out_time', 'version', 'ordering', 'template_areas'],
                 'convertToInt' => [],
                 'displayLookup' => [],
             ]),
