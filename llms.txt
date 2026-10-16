@@ -1,0 +1,26 @@
+# BreezingForms NG
+
+> BreezingForms NG (com_breezingformsng) is a free, GPL form builder for Joomla 6 and PHP 8.3+.
+> It is the community-maintained continuation of Crosstec BreezingForms: visual QuickMode editor,
+> multi-page forms, visibility rules, file uploads, signatures, captcha/reCAPTCHA, email
+> notifications, submission records with PDF/CSV/XLSX/XML export, Stripe/PayPal/Sofort payments,
+> per-form PHP and JavaScript hooks, GDPR privacy plugin, and 8 languages.
+
+Install from the GitHub releases through Joomla's extension installer. Embed a form with a menu
+item, the `mod_breezingforms` module or the content plugin `{BreezingForms:FormName}`.
+Existing BreezingForms (Crosstec) sites upgrade in place: data stays in the `#__facileforms_*` tables.
+
+## Docs
+
+- [README](https://github.com/vcmb-cyclo/com_breezingformsng/blob/main/README.md): features, requirements, installation, upgrade
+- [Agent skill](https://github.com/vcmb-cyclo/com_breezingformsng/blob/main/skills/breezingformsng/SKILL.md): building, embedding and scripting forms
+- [Element types](https://github.com/vcmb-cyclo/com_breezingformsng/blob/main/skills/breezingformsng/references/elements.md): QuickMode elements, themes, visibility rule syntax
+- [Scripting reference](https://github.com/vcmb-cyclo/com_breezingformsng/blob/main/skills/breezingformsng/references/scripting.md): JS/PHP hooks, `ff_*` functions, variables in scope
+- [Upgrading from BreezingForms](https://github.com/vcmb-cyclo/com_breezingformsng/blob/main/skills/breezingformsng/references/migration.md): what the installer migrates, what to check
+
+## Optional
+
+- [Changelog](https://github.com/vcmb-cyclo/com_breezingformsng/blob/main/CHANGELOG.md)
+- [Releases](https://github.com/vcmb-cyclo/com_breezingformsng/releases)
+- [Website](https://breezingforms-ng.vcmb.fr)
+- [ContentBuilder NG](https://github.com/vcmb-cyclo/com_contentbuilderng): turns form submissions into Joomla articles and lists

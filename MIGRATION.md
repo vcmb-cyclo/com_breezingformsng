@@ -148,7 +148,7 @@ techniques sont conservés dans le plan d'architecture associé.
 - [x] Gestion des menus (`admin/menu.class.php` + `menu.html.php` — migré Phase 4)
 - [x] Gestionnaire de formulaires (`admin/form.class.php` + `form.html.php` — migré Phase 5)
 - [x] QuickMode (`admin/quickmode.class.php` + `.html.php` + `.js` — migré Phase 7)
-- [x] Import paquets (`admin/import.class.php` → `src/Model/ImportModel.php`, SimpleXML + transactions ; bibliothèques scripts/pièces uniquement, les paquets contenant formulaires/menus sont refusés ; export de paquets abandonné avec l'UI legacy)
+- [x] Import paquets (`admin/import.class.php` → `src/Model/ImportModel.php`, SimpleXML + transactions ; bibliothèques scripts/pièces uniquement, les paquets contenant formulaires/menus sont refusés ; export de paquets abandonné avec l'UI legacy). *Mise à jour 2026-09-29 (commit `7f713b20`) : l'export/import de paquets est rétabli au format JSON (`breezingformsng-<paquet>.json`, formulaires + scripts + pièces + menus) via `PackagesController` et `PackageTransferModel`, depuis l'onglet « Import/export » des Options (permission `breezingformsng.configuration`). `ImportModel` reste réservé à l'import XML de `packages/stdlib.english.xml` par `script.php`.*
 - [x] Frontend moteur formulaires — dispatcher, config, routeur SEF et `HTML_facileFormsProcessor` (8 907 lignes) décomposés en services/traits Joomla 6 (Phase 8)
 - [x] `BFRequest` → `Input` Joomla natif (Phase 9a, 326 appels convertis) ; la façade
   de compatibilité reste disponible dans le plugin `bfcompat` pour le PHP stocké
@@ -330,7 +330,7 @@ techniques sont conservés dans le plan d'architecture associé.
 - [x] `administrator/components/com_breezingformsng/admin/import.class.php` (git mv → ImportModel)
 
 ### Périmètre différé
-- [x] Import de paquets — `ImportModel` réécrit (SimpleXML, requêtes paramétrées, transaction) ; consommé par `script.php::importStandardLibrary()`. Limité aux bibliothèques de scripts/pièces (seul cas réel : `packages/stdlib.english.xml`) ; les paquets avec formulaires/menus sont refusés avec un message clair. Vérifié de bout en bout le 2026-07-10 : installation du paquet 6.1.0 dans le conteneur `joomla6-joomla-1`, import stdlib OK (71 scripts inchangés ignorés, 3 pièces mises à jour, métadonnées paquet actualisées).
+- [x] Import de paquets — `ImportModel` réécrit (SimpleXML, requêtes paramétrées, transaction) ; consommé par `script.php::importStandardLibrary()`. Limité aux bibliothèques de scripts/pièces (seul cas réel : `packages/stdlib.english.xml`) ; les paquets avec formulaires/menus sont refusés avec un message clair (le transfert complet de formulaires/menus passe désormais par `PackageTransferModel`, format JSON — voir la ligne « Import paquets » de la section « Migration réalisée »). Vérifié de bout en bout le 2026-07-10 : installation du paquet 6.1.0 dans le conteneur `joomla6-joomla-1`, import stdlib OK (71 scripts inchangés ignorés, 3 pièces mises à jour, métadonnées paquet actualisées).
 
 ### Migré depuis cette phase
 - QuickMode — déplacé en Phase 7 vers `QuickmodeController`, `QuickmodeModel`, `QuickmodeHtml` et routes `task=quickmode.*`
@@ -445,7 +445,7 @@ techniques sont conservés dans le plan d'architecture associé.
   `legacy/processor/bfProcessor{CodeTools,Scripting,Rendering,Exports,Notifications,Uploads,Submission}.php`.
   Vérifié sur le conteneur : rendu normal + `tmpl=component`, soumission SEF du formulaire 4 → enregistrement créé puis nettoyé)*
 - [x] Éliminer les wrappers crosstec triviaux *(fait le 2026-07-12 : `BFText` → `Text` natif (68 fichiers, langue chargée
-  au bootstrap du moteur) ; `BFFile::read` → `file_get_contents` et suppression de `BFFactory`/`BFDbo` (sans appelant) ;
+  au bootstrap du moteur) ; `BFFile::read` → `file_get_contents` et suppression de `BFFactory`/`BFDbo` (sans appelant — **erroné, `BFFactory` rétabli, voir l'encadré ci-dessous**) ;
   `BFRedirect()` → `Site\Service\Support\RedirectHelper`. Fichiers purgés des sites installés via `removeObsoleteComponentFiles()`)*
 
   > ⚠️ **Régression découverte et corrigée le 2026-07-12** (en creusant un incident similaire sur `BFRequest`,
@@ -628,7 +628,7 @@ techniques sont conservés dans le plan d'architecture associé.
   demande par `FormRenderer`, tandis que l'ancien fichier racine est retiré du manifeste et du site installé.
   (`BFRequest`, `BFIntegrate` et les trois rendus `BFQuickMode*`) restent volontairement disponibles comme API externe.
   `BFJoomlaConfig` a été remplacé par `Factory::getConfig()` ; `BFPDF` a été migré vers le service namespacé
-  `Administrator\Service\PdfDocument`. Les deux classes globales ont été supprimées. Export administrateur vérifié
+  `Administrator\Service\PdfDocument`. Les deux classes globales ont été supprimées du composant ; elles restent fournies comme façades de compatibilité par le plugin système `bfcompat` (`plugins/bfcompat/src/Compat/BFJoomlaConfig.php`, `BFPDF.php`) pour le code stocké en base. Export administrateur vérifié
   dans Joomla 6 le 2026-07-12 : PDF 1.7 valide généré avec les en-têtes de téléchargement attendus.*
 - [x] Migrer `router.php` vers `RouterInterface` Joomla 6 *(fait le 2026-07-11 : `Site\Service\Router extends RouterBase`, `RouterFactory` au provider, `RouterServiceInterface` sur l'extension ; `router.php` supprimé du paquet et nettoyé des sites installés par `script.php::removeObsoleteComponentFiles()` ; pages de formulaires SEF vérifiées en front)*
 

@@ -1,73 +1,105 @@
-<!-- ABOUT THE PROJECT -->
-## About the Project
+# BreezingForms NG
 
-This repository provides **community-maintained updates and fixes for BreezingForms**, 
-a Joomla extension originally developed by **Crosstec**. The original Crosstec project 
-is no longer maintained or supported since 2022.
+**Form builder for Joomla 6.** BreezingForms NG ("new generation") is the community-maintained
+continuation of BreezingForms by Crosstec, rebuilt on the native Joomla 6 MVC for PHP 8.3+.
+It lets you build multi-page forms visually, store and export submissions, send notification
+emails, take payments, and extend each form with PHP and JavaScript.
 
-This BreezingForms-ng (new gen) has been highly refactored for Joomla 6 native support. 
-New Gen releases will be named: " breezingFormsng-6.1.xx.zip " and above.
-
-This initiative aims to keep the extension usable on modern Joomla installations by:
-- fixing compatibility issues
-- removing deprecated APIs
-- adapting the codebase to Joomla 6.x
-- librairies: improving scripts and pieces, Stripe, PSF, XLS
-- add a Test & Debug tools
-- About and help implementation
-- New elements : Slider, responsive calendar, 
-- Many others cool features
-
-⚠️ **This is NOT an official Crosstec project.**  
-All trademarks and original copyrights remain the property of their respective owners.
+- Website: <https://breezingforms-ng.vcmb.fr>
+- Releases: <https://github.com/vcmb-cyclo/com_breezingformsng/releases>
+- Upgrading from Crosstec BreezingForms: see [Upgrading from BreezingForms](#upgrading-from-breezingforms-crosstec)
+- AI agents: [`llms.txt`](llms.txt) and the agent skill in [`skills/breezingformsng`](skills/breezingformsng/SKILL.md)
 
 ---
 
-## Compatibility
+## Features
 
-- ✅ Joomla 6.x. (tested **with** Joomla Backward Compatibility plugin enable)
-- ✅ PHP 8.3 
+### Form building
+- **QuickMode visual editor**: a tree of pages, sections and elements, with drag and drop and AJAX save.
+- **20 element types**: text field, textarea (optional HTML editor), number input, slider,
+  select, checkbox, checkbox group, radio group, calendar, responsive calendar, file upload,
+  hidden field, submit button, summarize (calculated field), image captcha, Google reCAPTCHA
+  (classic or invisible), signature pad, PayPal, Stripe and Sofort.
+- **Multi-page forms** with per-page validation and an optional progress bar, or a **one-page layout**.
+- **Visibility rules** to show and hide fields depending on other answers.
+- **File uploads** in HTML5 with chunking, multiple files, size and extension checks, and image resizing.
+- **Themes**: a Bootstrap 5 renderer, plus the classic BreezingForms skins.
 
-⚠️ **This is NOT an official BreezingformsNG repository.**  
-This project is maintained by volunteers and provided *as-is*.
+### Submissions
+- Records manager with Viewed, Exported and Archived flags, editing of a single record, and batch actions.
+- Export to **PDF, CSV, Excel (XLSX) and XML**; CSV import of records.
+- **Email notifications** to administrators and **mailback** confirmations to the person who
+  submitted the form, with attachments.
+- **Integrator** rules that copy submitted data into any database table.
+
+### Payments and integrations
+- **Stripe, PayPal and Sofort**, with notifications sent only once the payment succeeds, and paid file downloads.
+- Dropbox upload, Mailchimp, Salesforce.
+- [ContentBuilder NG](https://github.com/vcmb-cyclo/com_contentbuilderng) integration, to turn submissions into Joomla articles and lists.
+
+### Scripting
+- Per-form and per-element **JavaScript** hooks (init, action, validation, after submit) and
+  **PHP** hooks (before form, after form, begin submit, end submit).
+- A standard library of reusable scripts and pieces (`ff_getElementByName`, `ff_setValue`,
+  `ff_query`, `ff_redirect`, …), and a test page for each script and piece.
+- Writing PHP code requires a dedicated ACL permission (`breezingformsng.code`).
+
+### Embedding a form
+- Menu item type "Add Form".
+- Site module `mod_breezingforms`.
+- Content plugin: `{BreezingForms:FormName}` in any article.
+
+### Administration, privacy and maintenance
+- Native Joomla ACL, action logs and help screens.
+- **GDPR**: a Joomla privacy plugin handles export and removal requests; storing IP addresses can be turned off.
+- Packages: export and import forms, scripts, pieces and menus as JSON.
+- Test and debug tools: per-form debug trace, form preview, database audit and repair (indexes, collations), log viewer.
+- Available in 8 languages: English, French, German, Italian, Spanish, Hungarian, Dutch and Turkish.
 
 ---
 
-## Project Status
+## Requirements
 
-🚧 This project is developed on a **best-effort basis**.  
-Only **GitHub Releases** should be considered stable and suitable for production use.
+- Joomla 6.x
+- PHP 8.3 or later
+- MySQL 8.0.13+ or MariaDB 10.4+
+
+## Installation
+
+1. Download the component zip of the latest release from the [Releases](https://github.com/vcmb-cyclo/com_breezingformsng/releases) page.
+2. Install it through **System → Install → Extensions**.
+3. Open **Components → BreezingForms NG → Forms** and create a form in QuickMode.
+4. Publish it with a menu item, the module or the content plugin.
+
+Updates are then offered by the Joomla update manager.
+
+## Upgrading from BreezingForms (Crosstec)
+
+BreezingForms NG installs over a legacy `com_breezingforms` site and keeps your data:
+
+- forms, records, scripts and pieces stay in the same `#__facileforms_*` tables;
+- the installer renames the component, migrates menu links, assets and configuration, and
+  rewrites `option=com_breezingforms` in stored URLs and code;
+- the `bfcompat` system plugin keeps the legacy `BF*` classes available to PHP code stored in your forms.
+
+Before upgrading, back up the database. Only Joomla 6 is supported. Easy Mode and Classic Mode
+forms must be rebuilt in QuickMode. Afterwards, retest captchas, uploads, payments and exports.
+Developers can read [`MIGRATION.md`](MIGRATION.md) for the refactoring details.
 
 ---
 
-## Migration Notes
+## Project status
 
-To prepare for Joomla 6 compatibility:
-- Joomla alias classes have been removed
-- Deprecated APIs are progressively being cleaned up
+This project is maintained by volunteers on a best-effort basis. Only
+[GitHub Releases](https://github.com/vcmb-cyclo/com_breezingformsng/releases) are meant for production.
+Issues and pull requests are welcome.
 
-These changes may impact older custom integrations.
+⚠️ This is **not** an official Crosstec project. All trademarks and original copyrights remain
+the property of their respective owners.
 
----
+## License
 
-## Download
+GNU General Public License version 2 or later, see [LICENSE](LICENSE).
 
-For stable versions:
-1. Go to the **Tags** or **Releases** section
-2. Select the latest version
-3. Download **Source code (zip)**
-4. Install via the Joomla Extension Manager
-
----
-
-## Disclaimer
-
-This software is provided **"as is"**, without warranty of any kind, express or implied.
-
-The maintainers provide this code on a **best-effort basis** and make no guarantees
-regarding correctness, stability, security, or fitness for any particular purpose.
-
-In no event shall the maintainers be held liable for any damages, data loss, or other
-issues arising from the use of this software.
-
-Use this code **at your own risk**.
+This software is provided "as is", without warranty of any kind. The maintainers cannot be
+held liable for any damage or data loss resulting from its use.
