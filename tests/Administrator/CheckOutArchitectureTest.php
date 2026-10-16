@@ -93,12 +93,37 @@ final class CheckOutArchitectureTest extends TestCase
 
         self::assertMatchesRegularExpression('/if \(!\$model->checkout\(\$formId\)\) \{/', $controller);
         self::assertMatchesRegularExpression(
-            '/public function close\(\): void\s+\{\s+\$this->checkToken\(\'get\'\);.*?->checkin\(\$formId\);/s',
+            '/public function close\(\): void\s+\{\s+\$this->checkToken\(\'get\'\);.*?->checkin\(\$formId\)/s',
             $controller
         );
         self::assertStringContainsString('task=quickmode.close&form=', $app);
         self::assertStringContainsString("Joomla.getOptions('csrf.token')", $app);
-        self::assertMatchesRegularExpression('/public function cancel\(\): void\s+\{\s+\$this->checkToken\(\);.*?->checkin\(\$id\);/s', $forms);
+        self::assertMatchesRegularExpression('/public function cancel\(\): void\s+\{\s+\$this->checkToken\(\);.*?->checkin\(\$id\)/s', $forms);
+    }
+
+    /**
+     * AdminModel::checkin() goes through FormModel::checkin(), which refuses
+     * a lock held by someone else unless the user can manage check-in;
+     * Table::checkIn() would not. Every check-in must therefore go through
+     * the model, and a refusal is reported.
+     */
+    public function testCheckInGoesThroughTheModelAndReportsARefusal(): void
+    {
+        $controllers = [
+            'QuickmodeController' => "\$this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
+            'FormsController' => "\$this->app->enqueueMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
+        ];
+
+        foreach ($controllers as $controller => $message) {
+            $source = $this->read('administrator/components/com_breezingformsng/src/Controller/' . $controller . '.php');
+
+            self::assertMatchesRegularExpression('/if \(!\$model->checkin\(\$(formId|id)\)\) \{/', $source, $controller);
+            self::assertStringContainsString($message, $source, $controller);
+        }
+
+        foreach (glob(self::ROOT . '/administrator/components/com_breezingformsng/src/Controller/*.php') ?: [] as $file) {
+            self::assertStringNotContainsString('->checkIn(', (string) file_get_contents($file), basename($file));
+        }
     }
 
     private function read(string $path): string

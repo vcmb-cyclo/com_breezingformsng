@@ -211,7 +211,12 @@ class FormsController extends AdminController
         $id = $this->input->getInt('id', 0);
 
         if ($id > 0) {
-            $this->getFormModel()->checkin($id);
+            $model = $this->getFormModel();
+
+            // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
+            if (!$model->checkin($id)) {
+                $this->app->enqueueMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()), 'error');
+            }
         }
 
         $this->app->redirect(Route::_(self::LIST_URL, false));

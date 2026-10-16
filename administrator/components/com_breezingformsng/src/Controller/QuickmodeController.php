@@ -59,7 +59,12 @@ class QuickmodeController extends BaseController
         $formId = $this->app->getInput()->getInt('form', 0);
 
         if ($formId > 0) {
-            $this->getFormModel()->checkin($formId);
+            $model = $this->getFormModel();
+
+            // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
+            if (!$model->checkin($formId)) {
+                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()), 'error');
+            }
         }
 
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&view=forms', false));
