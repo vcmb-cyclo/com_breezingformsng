@@ -215,7 +215,7 @@ class FormsController extends AdminController
 
             // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
             if (!$model->checkin($id)) {
-                $this->app->enqueueMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()), 'error');
+                $this->app->enqueueMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', Text::_('JERROR_AN_ERROR_HAS_OCCURRED')), 'error');
             }
         }
 
@@ -295,7 +295,7 @@ class FormsController extends AdminController
 
             if (!$model->publish($pks, $state)) {
                 $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
-                echo new JsonResponse(AjaxStateService::error((string) $model->getError()));
+                echo new JsonResponse(AjaxStateService::error(Text::_('JERROR_AN_ERROR_HAS_OCCURRED')));
                 $app->close();
             }
         }

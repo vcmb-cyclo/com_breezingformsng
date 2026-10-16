@@ -110,8 +110,8 @@ final class CheckOutArchitectureTest extends TestCase
     public function testCheckInGoesThroughTheModelAndReportsARefusal(): void
     {
         $controllers = [
-            'QuickmodeController' => "\$this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
-            'FormsController' => "\$this->app->enqueueMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
+            'QuickmodeController' => "\$this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', Text::_('JERROR_AN_ERROR_HAS_OCCURRED')), 'error');",
+            'FormsController' => "\$this->app->enqueueMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', Text::_('JERROR_AN_ERROR_HAS_OCCURRED')), 'error');",
         ];
 
         foreach ($controllers as $controller => $message) {

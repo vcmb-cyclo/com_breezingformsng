@@ -115,7 +115,7 @@ abstract class PackageItemController extends FormController
             }
 
             if (!$model->checkout($targetId)) {
-                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', $model->getError()), 'error');
+                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', Text::_('JERROR_AN_ERROR_HAS_OCCURRED')), 'error');
                 $this->setRedirect(Route::_($this->itemUrl($itemId, $test), false));
 
                 return;
