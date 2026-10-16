@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- The `ff_makeFormUrl` standard library piece no longer builds the Joomla 1.x
+  `administrator/index2.php?act=run` URL when a form runs in backend or preview mode: it
+  always builds the site URL. `ff_makeSelfUrl`, `ff_redirectForm` and `ff_redirectSelf`
+  use it. The piece is updated on existing sites when the component is updated (#117).
 - The installer now removes, on install and on update, the files and folders earlier
   releases shipped and later ones dropped (78 files and 10 folders: classes replaced
   by the native MVC, removed JavaScript libraries, Ladda among them, mobile and
