@@ -14,17 +14,8 @@
 
 namespace CB\Component\Contentbuilderng\Administrator\Service;
 
-use Joomla\Database\DatabaseInterface;
-
 class FormSupportService
 {
-    public function __construct(
-        PathService $pathService,
-        DatabaseInterface $db,
-        TemplateSampleService $templateSampleService
-    ) {
-    }
-
     /**
      * @param mixed $formId
      * @param mixed $form

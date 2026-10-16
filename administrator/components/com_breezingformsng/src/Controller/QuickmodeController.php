@@ -16,13 +16,12 @@ use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
-use Joomla\Database\ParameterType;
 use Joomla\Filesystem\File;
 use Joomla\Filesystem\Folder;
 use Joomla\Filesystem\Path;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
-use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\ContentBuilderFormSync;
 
 class QuickmodeController extends BaseController
 {
@@ -134,38 +133,7 @@ class QuickmodeController extends BaseController
 
             $formId = $this->getQuickmodeModel()->save($form, $dataObject);
 
-            // Optional ContentBuilderNG integration
-            $cbngBasePath = JPATH_SITE . '/administrator/components/com_contentbuilderng';
-            if (ContentBuilderInstallation::isInstalled($cbngBasePath)) {
-                require_once $cbngBasePath . '/src/Helper/FormSourceFactory.php';
-                require_once $cbngBasePath . '/src/Service/PathService.php';
-                require_once $cbngBasePath . '/src/Service/TemplateSampleService.php';
-                require_once $cbngBasePath . '/src/Service/FormSupportService.php';
-
-                $cbForm = \CB\Component\Contentbuilderng\Administrator\Helper\FormSourceFactory::getForm('com_breezingformsng', $formId);
-                $db = Factory::getContainer()->get(DatabaseInterface::class);
-                $sourceType = 'com_breezingformsng';
-                $query = $db->createQuery()
-                    ->select($db->quoteName('id'))
-                    ->from($db->quoteName('#__contentbuilderng_forms'))
-                    ->where($db->quoteName('type') . ' = :sourceType')
-                    ->where($db->quoteName('reference_id') . ' = :referenceId')
-                    ->bind(':sourceType', $sourceType)
-                    ->bind(':referenceId', $formId, ParameterType::INTEGER);
-                $db->setQuery($query);
-                $cbForms = $db->loadColumn();
-
-                if (is_object($cbForm) && count($cbForms)) {
-                    $formSupportService = new \CB\Component\Contentbuilderng\Administrator\Service\FormSupportService(
-                        new \CB\Component\Contentbuilderng\Administrator\Service\PathService(),
-                        $db,
-                        new \CB\Component\Contentbuilderng\Administrator\Service\TemplateSampleService($app, $db)
-                    );
-                    foreach ($cbForms as $dataId) {
-                        $formSupportService->synchElements($dataId, $cbForm);
-                    }
-                }
-            }
+            (new ContentBuilderFormSync($app, Factory::getContainer()->get(DatabaseInterface::class)))->sync($formId);
 
             $app->setHeader('Content-Type', 'text/plain; charset=UTF-8', true);
             $app->sendHeaders();
