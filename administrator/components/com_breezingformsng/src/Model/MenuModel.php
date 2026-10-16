@@ -72,6 +72,8 @@ class MenuModel extends AdminModel
         $table = $this->getTable();
 
         if ($pk > 0 && !$table->load($pk)) {
+            $this->setError($table->getError() ?: Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
+
             return false;
         }
 

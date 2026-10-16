@@ -320,7 +320,7 @@ class AboutController extends BaseController
             $pks = [$formId];
 
             if (!$formModel->delete($pks)) {
-                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+                throw new \RuntimeException((string) $formModel->getError());
             }
 
             $application->setUserState('com_breezingformsng.about.audit', $auditService->run());

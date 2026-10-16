@@ -76,73 +76,6 @@ class FormModel extends AdminModel
     }
 
     /**
-     * Checks a form out and lets database exceptions propagate to the caller.
-     */
-    public function checkout($pk = null)
-    {
-        $pk = (int) $pk;
-
-        if ($pk === 0) {
-            return true;
-        }
-
-        $table = $this->getTable();
-
-        if (!$table->load($pk)) {
-            throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
-        }
-
-        if (!$table->hasField('checked_out') || !$table->hasField('checked_out_time')) {
-            return true;
-        }
-
-        $user = $this->getCurrentUser();
-        $field = $table->getColumnAlias('checked_out');
-
-        if (!$user->id || ($table->{$field} > 0 && $table->{$field} != $user->id)) {
-            throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_CHECKOUT_USER_MISMATCH'));
-        }
-
-        $table->checkOut($user->id, $pk);
-
-        return true;
-    }
-
-    /**
-     * Checks forms in and lets database exceptions propagate to the caller.
-     */
-    public function checkin($pks = [])
-    {
-        $count = 0;
-        $user  = $this->getCurrentUser();
-
-        foreach ((array) $pks as $pk) {
-            $table = $this->getTable();
-
-            if (!$table->load((int) $pk)) {
-                throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
-            }
-
-            if (!$table->hasField('checked_out') || !$table->hasField('checked_out_time')) {
-                continue;
-            }
-
-            $field = $table->getColumnAlias('checked_out');
-
-            if ($table->{$field} > 0) {
-                if ($table->{$field} != $user->id && !$user->authorise('core.manage', 'com_checkin')) {
-                    throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_CHECKIN_USER_MISMATCH'));
-                }
-
-                $table->checkIn((int) $pk);
-                $count++;
-            }
-        }
-
-        return $count;
-    }
-
-    /**
      * Deletes the forms with their elements, all of them or none.
      *
      * @param  array<int|string, mixed>  $pks
@@ -172,9 +105,11 @@ class FormModel extends AdminModel
                 )->loadResult();
 
                 if ($remaining > 0) {
+                    $db->transactionRollback();
+                    $this->setError(Text::_('JLIB_APPLICATION_ERROR_RECORD'));
                     $pks = [];
 
-                    throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_RECORD'));
+                    return false;
                 }
 
                 $db->setQuery(

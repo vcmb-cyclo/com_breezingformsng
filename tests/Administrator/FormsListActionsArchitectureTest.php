@@ -53,10 +53,9 @@ final class FormsListActionsArchitectureTest extends TestCase
         $model = $this->read('/src/Model/FormModel.php');
 
         // AdminModel::delete() returns true without visiting the IDs after a missing one.
-        self::assertStringContainsString('parent::delete($ids)', $model);
-        self::assertStringContainsString("->whereIn(\$db->quoteName('id'), \$ids)", $model);
-        self::assertStringContainsString(
-            "if (\$remaining > 0) {\n                    \$pks = [];\n\n                    throw new \\RuntimeException",
+        self::assertMatchesRegularExpression(
+            '/parent::delete\(\$ids\).*COUNT\(\*\).*whereIn\(\$db->quoteName\(\'id\'\), \$ids\).*'
+            . 'if \(\$remaining > 0\) \{\s+\$db->transactionRollback\(\);/s',
             $model
         );
     }
