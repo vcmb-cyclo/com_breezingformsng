@@ -178,6 +178,11 @@ class FormsController extends AdminController
         }
 
         try {
+            if ($id > 0) {
+                // A form without versions keeps the state it had before this save.
+                (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class), $this->getFormModel()))->keepOrigin($id);
+            }
+
             $id  = $this->getOptionsModel()->saveForm($data);
 
             try {

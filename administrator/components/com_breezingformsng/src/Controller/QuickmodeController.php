@@ -133,9 +133,20 @@ class QuickmodeController extends BaseController
                 $app->close();
             }
 
-            $formId = $this->getQuickmodeModel()->save($form, $dataObject);
-
             $db = Factory::getContainer()->get(DatabaseInterface::class);
+
+            if ($form > 0) {
+                try {
+                    // A form without versions keeps the state it had before this save.
+                    (new FormVersioning($db, $this->getFormModel()))->keepOrigin($form);
+                } catch (\Throwable $e) {
+                    Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
+                    $app->setHeader('status', '500', true);
+                    $app->close();
+                }
+            }
+
+            $formId = $this->getQuickmodeModel()->save($form, $dataObject);
             (new ContentBuilderFormSync($app, $db))->sync($formId);
 
             if ($input->getInt('recordVersion', 1) === 1) {

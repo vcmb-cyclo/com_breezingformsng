@@ -11,6 +11,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 
 final class PackageTransferModel extends BaseDatabaseModel
 {
@@ -127,8 +128,8 @@ final class PackageTransferModel extends BaseDatabaseModel
         $db->transactionStart();
 
         try {
-            $scriptIds = $this->importLibraries('#__facileforms_scripts', (array) ($payload['scripts'] ?? []), $package);
-            $pieceIds = $this->importLibraries('#__facileforms_pieces', (array) ($payload['pieces'] ?? []), $package);
+            $scriptIds = $this->importLibraries('#__facileforms_scripts', (array) ($payload['scripts'] ?? []), $package, $this->packageItemModel('Script'));
+            $pieceIds = $this->importLibraries('#__facileforms_pieces', (array) ($payload['pieces'] ?? []), $package, $this->packageItemModel('Piece'));
             $this->importForms((array) ($payload['forms'] ?? []), $package, $scriptIds, $pieceIds);
 
             if (($payload['version'] ?? null) === self::VERSION) {
@@ -441,7 +442,7 @@ final class PackageTransferModel extends BaseDatabaseModel
      * @param array<mixed> $rows
      * @return array<int, int>
      */
-    private function importLibraries(string $table, array $rows, string $package): array
+    private function importLibraries(string $table, array $rows, string $package, PackageItemModel $items): array
     {
         $db = $this->getDatabase();
         $sourceIds = [];
@@ -458,6 +459,8 @@ final class PackageTransferModel extends BaseDatabaseModel
             }
             $id = $this->findId($table, $package, $name);
             if ($id > 0) {
+                // The item replaced keeps its state as its version of origin.
+                $items->keepOrigin($id);
                 $data['id'] = $id;
                 $object = (object) $data;
                 $db->updateObject($table, $object, 'id');
@@ -466,6 +469,7 @@ final class PackageTransferModel extends BaseDatabaseModel
                 $db->insertObject($table, $object, 'id');
                 $id = (int) $db->insertid();
             }
+            $items->recordVersion($id);
             $sourceIds[$row['source_id']] = $id;
         }
 
@@ -482,12 +486,20 @@ final class PackageTransferModel extends BaseDatabaseModel
         $db = $this->getDatabase();
         $formColumns = $this->tableColumns('#__facileforms_forms');
         $elementColumns = $this->tableColumns('#__facileforms_elements');
+        $formModel = $this->getMVCFactory()->createModel('Form', 'Administrator', ['ignore_request' => true]);
+
+        if (!$formModel instanceof FormModel) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $versioning = new FormVersioning($db, $formModel);
 
         foreach ($forms as $form) {
             if (!is_array($form) || !is_array($form['data'] ?? null) || !is_array($form['elements'] ?? null)) {
                 throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_FILE'));
             }
-            $data = $this->only($form['data'], $formColumns, ['id', 'created', 'created_by', 'modified', 'modified_by']);
+            // The version number belongs to the form of this site, not to the package.
+            $data = $this->only($form['data'], $formColumns, ['id', 'created', 'created_by', 'modified', 'modified_by', 'version']);
             $data['package'] = $package;
             $this->remapReferences($data, $scriptIds, $pieceIds);
             $name = trim((string) ($data['name'] ?? ''));
@@ -496,6 +508,8 @@ final class PackageTransferModel extends BaseDatabaseModel
             }
             $id = $this->findId('#__facileforms_forms', $package, $name);
             if ($id > 0) {
+                // The form replaced keeps its state as its version of origin.
+                $versioning->keepOrigin($id);
                 $data['id'] = $id;
                 $object = (object) $data;
                 $db->updateObject('#__facileforms_forms', $object, 'id');
@@ -517,7 +531,20 @@ final class PackageTransferModel extends BaseDatabaseModel
                 $elementObject = (object) $elementData;
                 $db->insertObject('#__facileforms_elements', $elementObject, 'id');
             }
+
+            $versioning->record($id);
         }
+    }
+
+    private function packageItemModel(string $name): PackageItemModel
+    {
+        $model = $this->getMVCFactory()->createModel($name, 'Administrator', ['ignore_request' => true]);
+
+        if (!$model instanceof PackageItemModel) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        return $model;
     }
 
     /**

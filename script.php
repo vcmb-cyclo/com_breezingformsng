@@ -16,6 +16,7 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\Filesystem\File;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Cache\CacheControllerFactoryInterface;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\CMS\Installer\Installer;
@@ -812,6 +813,13 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $this->log('Standard library import failed. ' . $e->getMessage(), Log::ERROR);
             $this->announce('BreezingForms standard pieces import failed: ' . $e->getMessage(), 'error', Log::ERROR);
             return;
+        }
+
+        try {
+            $this->recordImportedVersions('Script', $importer->scripts);
+            $this->recordImportedVersions('Piece', $importer->pieces);
+        } catch (\Throwable $e) {
+            $this->log('Standard library versions not kept in the history: ' . $e->getMessage(), Log::WARNING);
         }
 
         $this->log(
@@ -1613,20 +1621,112 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $params = json_decode((string) $db->setQuery($query)->loadResult(), true);
         $params = is_array($params) ? $params : [];
 
-        if (array_key_exists('save_history', $params)) {
+        if (!array_key_exists('save_history', $params)) {
+            $params['save_history'] = 1;
+            $params['history_limit'] = $params['history_limit'] ?? 10;
+
+            $query = $db->createQuery()
+                ->update($db->quoteName('#__extensions'))
+                ->set($db->quoteName('params') . ' = ' . $db->quote((string) json_encode($params)))
+                ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
+                ->where($db->quoteName('element') . ' = ' . $db->quote('com_breezingformsng'));
+            $db->setQuery($query)->execute();
+            $this->log('Version history enabled with its default options.');
+        }
+
+        // The components were loaded when this request started, before a
+        // first installation of this one: the versions stored by the
+        // installation read its options from a fresh load.
+        (new class () extends ComponentHelper {
+            public static function reset(): void
+            {
+                static::$components = [];
+            }
+        })::reset();
+    }
+
+    /**
+     * Gives each form, script and piece without versions its version of
+     * origin, kept forever: a form at version 0 goes to 1.
+     */
+    private function keepVersionOrigins(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+
+        try {
+            $tables = ['Form' => '#__facileforms_forms', 'Script' => '#__facileforms_scripts', 'Piece' => '#__facileforms_pieces'];
+
+            foreach ($tables as $name => $table) {
+                $model = $this->componentModel($name);
+                $ids = \Vcmb\Component\BreezingformsNG\Administrator\Service\VersionOrigin::missing(
+                    $db,
+                    'com_breezingformsng.' . strtolower($name),
+                    array_map('intval', $db->setQuery(
+                        $db->createQuery()->select($db->quoteName('id'))->from($db->quoteName($table))
+                    )->loadColumn())
+                );
+
+                foreach ($ids as $id) {
+                    if ($model instanceof \Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel) {
+                        (new \Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning($db, $model))->keepOrigin($id);
+                    } elseif ($model instanceof \Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel) {
+                        $model->keepOrigin($id);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->log('Versions of origin not kept in the history: ' . $e->getMessage(), Log::WARNING);
+
             return;
         }
 
-        $params['save_history'] = 1;
-        $params['history_limit'] = $params['history_limit'] ?? 10;
+        $this->log('Versions of origin kept in the history.');
+    }
 
-        $query = $db->createQuery()
-            ->update($db->quoteName('#__extensions'))
-            ->set($db->quoteName('params') . ' = ' . $db->quote((string) json_encode($params)))
-            ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
-            ->where($db->quoteName('element') . ' = ' . $db->quote('com_breezingformsng'));
-        $db->setQuery($query)->execute();
-        $this->log('Version history enabled with its default options.');
+    /**
+     * @param int[] $ids
+     */
+    private function recordImportedVersions(string $name, array $ids): void
+    {
+        $model = $this->componentModel($name);
+
+        if (!$model instanceof \Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel) {
+            throw new \RuntimeException('No ' . $name . ' model.');
+        }
+
+        foreach (array_unique($ids) as $id) {
+            $model->recordVersion((int) $id);
+        }
+    }
+
+    /**
+     * A model of the component being installed. A first installation runs
+     * before Joomla knows the namespace of the component: it is declared here.
+     */
+    private function componentModel(string $name): object
+    {
+        \JLoader::registerNamespace(
+            'Vcmb\\Component\\BreezingformsNG\\Administrator',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src'
+        );
+        \JLoader::registerNamespace(
+            'Vcmb\\Component\\BreezingformsNG\\Site',
+            JPATH_SITE . '/components/com_breezingformsng/src'
+        );
+
+        $component = Factory::getApplication()->bootComponent('com_breezingformsng');
+
+        if (!$component instanceof \Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface) {
+            throw new \RuntimeException('The component has no MVC factory.');
+        }
+
+        $model = $component->getMVCFactory()->createModel($name, 'Administrator', ['ignore_request' => true]);
+
+        if (!\is_object($model)) {
+            throw new \RuntimeException('No ' . $name . ' model.');
+        }
+
+        return $model;
     }
 
     private function unregisterContentTypes(): void
@@ -3255,13 +3355,16 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $this->migrateDatabase();
             }
             $this->migrateLegacyConfig();
+            // The forms, scripts and pieces taken over keep their state as
+            // their version of origin before the standard library updates them.
+            $this->registerContentTypes();
+            $this->setVersionHistoryDefaults();
+            $this->keepVersionOrigins();
             $this->importStandardLibrary();
             $this->copyComponentImageAssets();
             $this->installPlugins();
             $this->installModules();
             $this->registerActionLogExtension();
-            $this->registerContentTypes();
-            $this->setVersionHistoryDefaults();
             $this->cleanupLegacyBreezingFormsAfterInstall();
             $this->removeOldUpdateSite();
             $this->cleanupOldConfig();

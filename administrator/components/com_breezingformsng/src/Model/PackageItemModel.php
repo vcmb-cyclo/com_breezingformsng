@@ -24,12 +24,16 @@ use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Versioning\VersionableModelInterface;
 use Joomla\CMS\Versioning\VersionableModelTrait;
 use Joomla\Utilities\ArrayHelper;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\VersionOrigin;
 
 /**
  * A code item kept in a package: a script or a piece.
  *
  * Its versions use the Joomla 6 version history of models, as articles do:
  * AdminModel::save() stores a version, AdminModel::delete() deletes them.
+ * The first save of an item without versions keeps its previous state as
+ * its version of origin.
  */
 abstract class PackageItemModel extends AdminModel implements VersionableModelInterface
 {
@@ -43,6 +47,48 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
         parent::__construct($config, $factory, $formFactory);
 
         $this->typeAlias = 'com_breezingformsng.' . $this->getName();
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function save($data)
+    {
+        $this->keepOrigin((int) ($data['id'] ?? $this->getState($this->getName() . '.id')));
+
+        return parent::save($data);
+    }
+
+    /**
+     * Stores the current state of the item as its version of origin, kept
+     * forever, when it has no version yet.
+     */
+    public function keepOrigin(int $id): void
+    {
+        $db = $this->getDatabase();
+
+        if (!FormVersioning::isEnabled() || VersionOrigin::missing($db, $this->typeAlias, [$id]) === []) {
+            return;
+        }
+
+        $this->recordVersion($id);
+        VersionOrigin::keepForever($db, $this->typeAlias . '.' . $id);
+    }
+
+    /**
+     * Stores the current state of an item written without save(), by an import.
+     */
+    public function recordVersion(int $id): void
+    {
+        if (!FormVersioning::isEnabled()) {
+            return;
+        }
+
+        $this->setState($this->getName() . '.id', $id);
+
+        if (!$this->saveHistory([], $this->typeAlias)) {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
+        }
     }
 
     /**

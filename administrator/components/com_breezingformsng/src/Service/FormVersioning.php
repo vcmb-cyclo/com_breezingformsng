@@ -108,6 +108,20 @@ final class FormVersioning
     }
 
     /**
+     * Stores the current state of the form as its version of origin, kept
+     * forever, when it has no version yet: a form at version 0 goes to 1.
+     */
+    public function keepOrigin(int $formId): void
+    {
+        if (!self::isEnabled() || VersionOrigin::missing($this->db, self::TYPE_ALIAS, [$formId]) === []) {
+            return;
+        }
+
+        $this->record($formId);
+        VersionOrigin::keepForever($this->db, self::TYPE_ALIAS . '.' . $formId);
+    }
+
+    /**
      * Reads a version of a form from the history.
      *
      * @return array{versionId: int, formId: int, saveDate: string, note: string, columns: array<string, mixed>, structure: array<string, mixed>}
