@@ -1635,8 +1635,12 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         // The components were loaded when this request started, before a
-        // first installation of this one: the versions stored by the
-        // installation read its options from a fresh load.
+        // first installation of this one, and Joomla keeps them in its
+        // _system cache: the versions stored by the installation read its
+        // options from a fresh load.
+        Factory::getContainer()->get(CacheControllerFactoryInterface::class)
+            ->createCacheController('callback', ['defaultgroup' => '_system'])
+            ->clean();
         (new class () extends ComponentHelper {
             public static function reset(): void
             {
