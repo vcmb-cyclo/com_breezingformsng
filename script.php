@@ -1501,79 +1501,100 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     }
 
     /**
-     * Declares the form to the Joomla content history, which keeps its
-     * versions (Versions button of QuickMode).
+     * Declares the forms, scripts and pieces to the Joomla content history,
+     * which keeps their versions (Versions button of their editors).
      */
-    private function registerFormContentType(): void
+    private function registerContentTypes(): void
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $alias = 'com_breezingformsng.form';
-        $values = [
-            'type_title' => 'BreezingForms NG Form',
-            'rules' => '',
-            'router' => '',
-            'table' => json_encode([
-                'special' => [
-                    'dbtable' => '#__facileforms_forms',
-                    'key' => 'id',
-                    'type' => 'FormTable',
-                    'prefix' => 'Vcmb\\Component\\BreezingformsNG\\Site\\Table\\',
-                    'config' => 'array()',
+        $common = [
+            'dbtable' => '#__ucm_content',
+            'key' => 'ucm_id',
+            'type' => 'Corecontent',
+            'prefix' => 'Joomla\\CMS\\Table\\',
+            'config' => 'array()',
+        ];
+        $mappings = [
+            'core_content_item_id' => 'id',
+            'core_title' => 'title',
+            'core_state' => 'published',
+            'core_alias' => 'name',
+            'core_body' => 'description',
+            'core_created_time' => 'created',
+            'core_modified_time' => 'modified',
+        ];
+        $codeItemHistory = [
+            'hideFields' => ['checked_out', 'checked_out_time'],
+            'ignoreChanges' => ['modified', 'modified_by', 'checked_out', 'checked_out_time'],
+            'convertToInt' => [],
+            'displayLookup' => [],
+        ];
+        $types = [
+            'com_breezingformsng.form' => [
+                'BreezingForms NG Form', '#__facileforms_forms', 'FormTable', [
+                    'formFile' => '',
+                    'hideFields' => ['checked_out', 'checked_out_time', 'version', 'template_code', 'template_areas'],
+                    // As for articles, the history compares the content, version left out.
+                    // template_areas is rebuilt by QuickMode at each save.
+                    'ignoreChanges' => ['modified', 'modified_by', 'checked_out', 'checked_out_time', 'version', 'ordering', 'template_areas'],
+                    'convertToInt' => [],
+                    'displayLookup' => [],
                 ],
-                'common' => [
-                    'dbtable' => '#__ucm_content',
-                    'key' => 'ucm_id',
-                    'type' => 'Corecontent',
-                    'prefix' => 'Joomla\\CMS\\Table\\',
-                    'config' => 'array()',
-                ],
-            ]),
-            'field_mappings' => json_encode([
-                'common' => [
-                    'core_content_item_id' => 'id',
-                    'core_title' => 'title',
-                    'core_state' => 'published',
-                    'core_alias' => 'name',
-                    'core_body' => 'description',
-                    'core_created_time' => 'created',
-                    'core_modified_time' => 'modified',
-                ],
-                'special' => [],
-            ]),
-            'content_history_options' => json_encode([
-                'formFile' => '',
-                'hideFields' => ['checked_out', 'checked_out_time', 'version', 'template_code', 'template_areas'],
-                // As for articles, the history compares the content, version left out.
-                // template_areas is rebuilt by QuickMode at each save.
-                'ignoreChanges' => ['modified', 'modified_by', 'checked_out', 'checked_out_time', 'version', 'ordering', 'template_areas'],
-                'convertToInt' => [],
-                'displayLookup' => [],
-            ]),
+            ],
+            'com_breezingformsng.script' => [
+                'BreezingForms NG Script', '#__facileforms_scripts', 'ScriptTable',
+                ['formFile' => 'administrator/components/com_breezingformsng/forms/script.xml'] + $codeItemHistory,
+            ],
+            'com_breezingformsng.piece' => [
+                'BreezingForms NG Piece', '#__facileforms_pieces', 'PieceTable',
+                ['formFile' => 'administrator/components/com_breezingformsng/forms/piece.xml'] + $codeItemHistory,
+            ],
         ];
 
-        $query = $db->createQuery()
-            ->select($db->quoteName('type_id'))
-            ->from($db->quoteName('#__content_types'))
-            ->where($db->quoteName('type_alias') . ' = ' . $db->quote($alias));
-        $typeId = (int) $db->setQuery($query)->loadResult();
+        foreach ($types as $alias => [$title, $dbTable, $tableClass, $historyOptions]) {
+            $values = [
+                'type_title' => $title,
+                'rules' => '',
+                'router' => '',
+                'table' => json_encode([
+                    'special' => [
+                        'dbtable' => $dbTable,
+                        'key' => 'id',
+                        'type' => $tableClass,
+                        'prefix' => 'Vcmb\\Component\\BreezingformsNG\\Site\\Table\\',
+                        'config' => 'array()',
+                    ],
+                    'common' => $common,
+                ]),
+                'field_mappings' => json_encode(['common' => $mappings, 'special' => []]),
+                'content_history_options' => json_encode($historyOptions),
+            ];
 
-        if ($typeId > 0) {
             $query = $db->createQuery()
-                ->update($db->quoteName('#__content_types'))
-                ->where($db->quoteName('type_id') . ' = ' . $typeId);
+                ->select($db->quoteName('type_id'))
+                ->from($db->quoteName('#__content_types'))
+                ->where($db->quoteName('type_alias') . ' = ' . $db->quote($alias));
+            $typeId = (int) $db->setQuery($query)->loadResult();
 
-            foreach ($values as $column => $value) {
-                $query->set($db->quoteName($column) . ' = ' . $db->quote((string) $value));
+            if ($typeId > 0) {
+                $query = $db->createQuery()
+                    ->update($db->quoteName('#__content_types'))
+                    ->where($db->quoteName('type_id') . ' = ' . $typeId);
+
+                foreach ($values as $column => $value) {
+                    $query->set($db->quoteName($column) . ' = ' . $db->quote((string) $value));
+                }
+            } else {
+                $query = $db->createQuery()
+                    ->insert($db->quoteName('#__content_types'))
+                    ->columns($db->quoteName(['type_alias', ...array_keys($values)]))
+                    ->values(implode(',', array_map([$db, 'quote'], [$alias, ...array_values($values)])));
             }
-        } else {
-            $query = $db->createQuery()
-                ->insert($db->quoteName('#__content_types'))
-                ->columns($db->quoteName(['type_alias', ...array_keys($values)]))
-                ->values(implode(',', array_map([$db, 'quote'], [$alias, ...array_values($values)])));
+
+            $db->setQuery($query)->execute();
         }
 
-        $db->setQuery($query)->execute();
-        $this->log('Form content type registered for the version history.');
+        $this->log('Form, script and piece content types registered for the version history.');
     }
 
     /**
@@ -1608,19 +1629,23 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->log('Version history enabled with its default options.');
     }
 
-    private function unregisterFormContentType(): void
+    private function unregisterContentTypes(): void
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $aliases = ['com_breezingformsng.form', 'com_breezingformsng.script', 'com_breezingformsng.piece'];
+
+        foreach ($aliases as $alias) {
+            $db->setQuery(
+                $db->createQuery()
+                    ->delete($db->quoteName('#__history'))
+                    ->where($db->quoteName('item_id') . ' LIKE ' . $db->quote($alias . '.%'))
+            )->execute();
+        }
 
         $db->setQuery(
             $db->createQuery()
-                ->delete($db->quoteName('#__history'))
-                ->where($db->quoteName('item_id') . ' LIKE ' . $db->quote('com_breezingformsng.form.%'))
-        )->execute();
-        $db->setQuery(
-            $db->createQuery()
                 ->delete($db->quoteName('#__content_types'))
-                ->where($db->quoteName('type_alias') . ' = ' . $db->quote('com_breezingformsng.form'))
+                ->whereIn($db->quoteName('type_alias'), $aliases, ParameterType::STRING)
         )->execute();
     }
 
@@ -3235,7 +3260,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $this->installPlugins();
             $this->installModules();
             $this->registerActionLogExtension();
-            $this->registerFormContentType();
+            $this->registerContentTypes();
             $this->setVersionHistoryDefaults();
             $this->cleanupLegacyBreezingFormsAfterInstall();
             $this->removeOldUpdateSite();
@@ -3245,7 +3270,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         } elseif ($type === 'uninstall') {
             $this->removeBreezingFormsMenuEntries();
             $this->unregisterActionLogExtension();
-            $this->unregisterFormContentType();
+            $this->unregisterContentTypes();
             $this->cleanupOldConfig();
             $this->cleanupComponentLogFile();
             $this->purgeCaches('postflight:' . $type);

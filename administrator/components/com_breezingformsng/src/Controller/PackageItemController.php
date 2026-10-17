@@ -19,6 +19,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Versioning\VersionableControllerTrait;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageListModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
@@ -31,6 +32,8 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
  */
 abstract class PackageItemController extends FormController
 {
+    use VersionableControllerTrait;
+
     /**
      * Tasks that only display the item; every other task changes or runs code.
      *

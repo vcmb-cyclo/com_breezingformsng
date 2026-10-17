@@ -18,14 +18,33 @@ use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Form\FormFactoryInterface;
+use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\Versioning\VersionableModelInterface;
+use Joomla\CMS\Versioning\VersionableModelTrait;
 use Joomla\Utilities\ArrayHelper;
 
 /**
  * A code item kept in a package: a script or a piece.
+ *
+ * Its versions use the Joomla 6 version history of models, as articles do:
+ * AdminModel::save() stores a version, AdminModel::delete() deletes them.
  */
-abstract class PackageItemModel extends AdminModel
+abstract class PackageItemModel extends AdminModel implements VersionableModelInterface
 {
+    use VersionableModelTrait;
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    public function __construct($config = [], ?MVCFactoryInterface $factory = null, ?FormFactoryInterface $formFactory = null)
+    {
+        parent::__construct($config, $factory, $formFactory);
+
+        $this->typeAlias = 'com_breezingformsng.' . $this->getName();
+    }
+
     /**
      * @param string               $name
      * @param string               $prefix

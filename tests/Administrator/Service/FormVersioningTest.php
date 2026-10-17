@@ -59,7 +59,7 @@ final class FormVersioningTest extends TestCase
             $this->read('administrator/components/com_breezingformsng/src/Controller/FormController.php')
         );
         self::assertStringContainsString(
-            "\$alias = 'com_breezingformsng.form';",
+            "'com_breezingformsng.form' => [",
             $this->read('script.php')
         );
     }
