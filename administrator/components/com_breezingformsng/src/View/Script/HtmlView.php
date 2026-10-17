@@ -22,6 +22,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\ScriptModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ScriptSignatureParser;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
 
@@ -125,6 +126,10 @@ class HtmlView extends BaseHtmlView
             $toolbar->standardButton('previous', 'COM_BREEZINGFORMSNG_PROCESS_PAGEPREV', 'script.previous')->icon('icon-arrow-left');
             $toolbar->standardButton('next', 'COM_BREEZINGFORMSNG_PROCESS_PAGENEXT', 'script.next')->icon('icon-arrow-right');
             $toolbar->standardButton('test', 'COM_BREEZINGFORMSNG_TEST', 'script.test')->icon('icon-eye');
+        }
+
+        if ($saved && $this->canEdit && FormVersioning::isEnabled()) {
+            $toolbar->versions('com_breezingformsng.script', (int) $item->id);
         }
 
         $toolbar->cancel('script.cancel', $saved ? 'JTOOLBAR_CLOSE' : 'JTOOLBAR_CANCEL');

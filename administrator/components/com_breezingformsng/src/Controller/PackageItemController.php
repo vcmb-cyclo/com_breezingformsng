@@ -19,6 +19,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Versioning\VersionableControllerTrait;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageListModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
@@ -31,6 +32,8 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
  */
 abstract class PackageItemController extends FormController
 {
+    use VersionableControllerTrait;
+
     /**
      * Tasks that only display the item; every other task changes or runs code.
      *
@@ -81,12 +84,16 @@ abstract class PackageItemController extends FormController
      */
     protected function postSaveHook(BaseDatabaseModel $model, $validData = [])
     {
-        (new ActionLogger($this->app))->log(
-            ActionLogger::SAVED,
-            $this->logType(),
-            [(int) $model->getState($model->getName() . '.id')],
-            (string) ($validData['name'] ?? '')
-        );
+        $id = (int) $model->getState($model->getName() . '.id');
+        $name = (string) ($validData['name'] ?? '');
+
+        // A restored version comes without form data (VersionableControllerTrait).
+        if ($name === '' && $model instanceof PackageItemModel) {
+            $item = $model->getItem($id);
+            $name = \is_object($item) ? (string) $item->name : '';
+        }
+
+        (new ActionLogger($this->app))->log(ActionLogger::SAVED, $this->logType(), [$id], $name);
     }
 
     /**

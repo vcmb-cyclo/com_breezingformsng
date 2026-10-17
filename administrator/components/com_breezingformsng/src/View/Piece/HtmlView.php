@@ -23,6 +23,7 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PieceModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PieceTestRunner;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
 
@@ -163,6 +164,10 @@ class HtmlView extends BaseHtmlView
             if ($this->canEdit) {
                 $toolbar->standardButton('test', 'COM_BREEZINGFORMSNG_TEST', 'piece.test')->icon('icon-eye');
             }
+        }
+
+        if ($saved && $this->canEdit && FormVersioning::isEnabled()) {
+            $toolbar->versions('com_breezingformsng.piece', (int) $item->id);
         }
 
         $toolbar->cancel('piece.cancel', $saved ? 'JTOOLBAR_CLOSE' : 'JTOOLBAR_CANCEL');
