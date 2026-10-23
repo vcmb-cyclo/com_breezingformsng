@@ -139,7 +139,7 @@ class RecordModel extends AdminModel
     /**
      * @param array<int, string> $values
      */
-    private function saveRecord(int $recordId, array $values, \DateTimeZone $timezone): void
+    private function saveRecord(int $recordId, array $values): void
     {
         $db = $this->getDatabase();
         $query = $db->createQuery()
@@ -163,7 +163,8 @@ class RecordModel extends AdminModel
         }
 
         $user = $this->getCurrentUser();
-        $now  = (new \Joomla\CMS\Date\Date('now', $timezone))->format('Y-m-d H:i:s', true);
+        // Stored in UTC like submitted, and displayed in the user's time zone.
+        $now  = Factory::getDate()->toSql();
         $username = (string) $user->username;
         $userId = (int) $user->id;
         $query = $db->createQuery()
@@ -358,8 +359,7 @@ class RecordModel extends AdminModel
             $values[(int) substr((string) $name, strlen(self::ELEMENT_PREFIX))] = (string) $value;
         }
 
-        $timezone = new \DateTimeZone((string) $this->getApplication()->get('offset', 'UTC'));
-        $this->saveRecord($recordId, $values, $timezone);
+        $this->saveRecord($recordId, $values);
         unset($this->items[$recordId]);
         $this->setState($this->getName() . '.id', $recordId);
 

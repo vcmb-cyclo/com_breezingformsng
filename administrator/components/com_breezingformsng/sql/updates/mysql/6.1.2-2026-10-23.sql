@@ -1,0 +1,3 @@
+-- The modification date of records moves from the site time zone to UTC.
+-- script.php::update() converts the stored values once, when the schema
+-- version of the site is older than this file.

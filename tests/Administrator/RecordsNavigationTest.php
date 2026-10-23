@@ -48,7 +48,7 @@ final class RecordsNavigationTest extends TestCase
             'filter.search' => ' alice ',
             'list.ordering' => 'records.submitted',
             'list.direction' => 'desc',
-        ])->getAdjacentRecordId(30, 'next');
+        ])->getNavigation(30)['next'];
 
         self::assertSame(20, $next);
         self::assertSame('records.submitted DESC, records.id DESC', $database->query->order);
@@ -89,7 +89,7 @@ final class RecordsNavigationTest extends TestCase
         self::assertSame(
             20,
             $this->model($database, ['list.ordering' => 'records.id', 'list.direction' => 'ASC'])
-                ->getAdjacentRecordId(30, 'prev')
+                ->getNavigation(30)['prev']
         );
         self::assertSame('records.id ASC', $database->query->order);
         self::assertSame(['records.state IN (1)'], $database->query->where);
@@ -98,11 +98,11 @@ final class RecordsNavigationTest extends TestCase
     public function testNavigationFollowsTheStateFilterOfTheList(): void
     {
         $trash = new RecordsNavigationDatabaseDouble([20, 30]);
-        $this->model($trash, ['filter.state' => '-2'])->getAdjacentRecordId(30, 'prev');
+        $this->model($trash, ['filter.state' => '-2'])->getNavigation(30)['prev'];
         self::assertSame(['records.state IN (-2)'], $trash->query->where);
 
         $all = new RecordsNavigationDatabaseDouble([20, 30]);
-        $this->model($all, ['filter.state' => '*'])->getAdjacentRecordId(30, 'prev');
+        $this->model($all, ['filter.state' => '*'])->getNavigation(30)['prev'];
         self::assertSame([], $all->query->where);
     }
 
@@ -110,7 +110,7 @@ final class RecordsNavigationTest extends TestCase
     {
         $database = new RecordsNavigationDatabaseDouble([20, 30]);
         $this->model($database, ['list.ordering' => 'records.id; DROP TABLE x', 'list.direction' => 'up'])
-            ->getAdjacentRecordId(30, 'prev');
+            ->getNavigation(30)['prev'];
 
         self::assertSame('records.submitted DESC, records.id DESC', $database->query->order);
     }
@@ -120,7 +120,21 @@ final class RecordsNavigationTest extends TestCase
         $database = new RecordsNavigationDatabaseDouble([50, 20]);
 
         self::assertNull(
-            $this->model($database, ['filter.form' => 7, 'filter.search' => 'alice'])->getAdjacentRecordId(30, 'next')
+            $this->model($database, ['filter.form' => 7, 'filter.search' => 'alice'])->getNavigation(30)['next']
+        );
+    }
+
+    public function testNavigationGivesThePositionOfTheRecordInTheFilteredList(): void
+    {
+        $database = new RecordsNavigationDatabaseDouble([50, 30, 20]);
+
+        self::assertSame(
+            ['prev' => 50, 'next' => 20, 'position' => 2, 'total' => 3],
+            $this->model($database)->getNavigation(30)
+        );
+        self::assertSame(
+            ['prev' => null, 'next' => null, 'position' => null, 'total' => 3],
+            $this->model(new RecordsNavigationDatabaseDouble([50, 30, 20]))->getNavigation(99)
         );
     }
 

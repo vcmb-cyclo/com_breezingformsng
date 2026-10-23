@@ -61,6 +61,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     private $incomingPackageVersion = '';
     /** @var string */
     private $currentInstalledVersion = '0.0.0';
+
+    /** Schema version of the installed component, read before the SQL updates run. */
+    private string $schemaVersionBeforeUpdate = '';
     /** @var bool */
     private $utf8mb4SupportChecked = false;
     /** @var bool */
@@ -2883,8 +2886,61 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->migrateLegacyComponentOptionReferences();
 
         $this->migrateDatabase();
+        $this->convertRecordModifiedDatesToUtc();
 
         return true;
+    }
+
+    private function getInstalledSchemaVersion(): string
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $component = self::TARGET_COMPONENT;
+        $query = $db->createQuery()
+            ->select($db->quoteName('schemas.version_id'))
+            ->from($db->quoteName('#__schemas', 'schemas'))
+            ->join('INNER', $db->quoteName('#__extensions', 'extensions'), 'extensions.extension_id = schemas.extension_id')
+            ->where($db->quoteName('extensions.type') . ' = ' . $db->quote('component'))
+            ->where($db->quoteName('extensions.element') . ' = :element')
+            ->bind(':element', $component, ParameterType::STRING);
+
+        return (string) $db->setQuery($query)->loadResult();
+    }
+
+    /**
+     * Releases up to 6.1.0-RC07 stored the modification date of a record in
+     * the site time zone, while its submission date has always been UTC. Both
+     * are UTC now; convert the stored values once, on the update that brings
+     * the 6.1.2-2026-10-23 schema version.
+     */
+    private function convertRecordModifiedDatesToUtc(): void
+    {
+        if ($this->schemaVersionBeforeUpdate === '' || version_compare($this->schemaVersionBeforeUpdate, '6.1.2-2026-10-23', '>=')) {
+            return;
+        }
+
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $siteTimezone = new \DateTimeZone((string) Factory::getApplication()->get('offset', 'UTC'));
+        $query = $db->createQuery()
+            ->select($db->quoteName(['id', 'modified']))
+            ->from($db->quoteName('#__facileforms_records'))
+            ->where($db->quoteName('modified') . ' IS NOT NULL');
+        $rows = (array) $db->setQuery($query)->loadObjectList();
+
+        foreach ($rows as $row) {
+            $id = (int) $row->id;
+            $modified = (new \Joomla\CMS\Date\Date((string) $row->modified, $siteTimezone))->toSql();
+            $update = $db->createQuery()
+                ->update($db->quoteName('#__facileforms_records'))
+                ->set($db->quoteName('modified') . ' = :modified')
+                ->where($db->quoteName('id') . ' = :id')
+                ->bind(':modified', $modified, ParameterType::STRING)
+                ->bind(':id', $id, ParameterType::INTEGER);
+            $db->setQuery($update)->execute();
+        }
+
+        if ($rows !== []) {
+            $this->log('Converted the modification date of ' . count($rows) . ' record(s) from ' . $siteTimezone->getName() . ' to UTC.');
+        }
     }
 
     private function migrateDatabase(): void
@@ -3309,6 +3365,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         $this->currentInstalledVersion = $this->getCurrentInstalledVersion();
+
+        if ($type === 'update') {
+            $this->schemaVersionBeforeUpdate = $this->getInstalledSchemaVersion();
+        }
 
         $this->announce(
             '[INFO] BreezingForms ' . strtoupper($type) .

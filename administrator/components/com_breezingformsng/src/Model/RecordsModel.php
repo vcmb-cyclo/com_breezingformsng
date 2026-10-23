@@ -81,10 +81,13 @@ class RecordsModel extends ListModel
     }
 
     /**
-     * Return the record immediately before or after the current one in the
-     * same ordered result set as the records list.
+     * The records immediately before and after the current one, and its
+     * 1-based position, in the same ordered result set as the records list.
+     * Position and neighbours are null when the record is outside that list.
+     *
+     * @return array{prev: ?int, next: ?int, position: ?int, total: int}
      */
-    public function getAdjacentRecordId(int $recordId, string $direction): ?int
+    public function getNavigation(int $recordId): array
     {
         $db = $this->getDatabase();
         $query = $db->createQuery()
@@ -98,13 +101,18 @@ class RecordsModel extends ListModel
         $recordIds = array_map('intval', $db->loadColumn());
         $position = array_search($recordId, $recordIds, true);
 
+        $total = count($recordIds);
+
         if ($position === false) {
-            return null;
+            return ['prev' => null, 'next' => null, 'position' => null, 'total' => $total];
         }
 
-        $adjacentPosition = $direction === 'prev' ? $position - 1 : $position + 1;
-
-        return $recordIds[$adjacentPosition] ?? null;
+        return [
+            'prev' => $recordIds[$position - 1] ?? null,
+            'next' => $recordIds[$position + 1] ?? null,
+            'position' => $position + 1,
+            'total' => $total,
+        ];
     }
 
     private function getOrderSql(): string

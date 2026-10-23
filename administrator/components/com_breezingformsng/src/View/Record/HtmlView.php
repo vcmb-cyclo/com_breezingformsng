@@ -34,6 +34,8 @@ class HtmlView extends BaseHtmlView
     public ?\stdClass $item = null;
     public ?int $prevRecordId = null;
     public ?int $nextRecordId = null;
+    public ?int $recordPosition = null;
+    public int $recordTotal = 0;
 
     public function display($tpl = null)
     {
@@ -61,8 +63,11 @@ class HtmlView extends BaseHtmlView
         $this->form = $form;
 
         $recordsModel = $this->getRecordsModel($app);
-        $this->prevRecordId = $recordsModel->getAdjacentRecordId((int) $item->id, 'prev');
-        $this->nextRecordId = $recordsModel->getAdjacentRecordId((int) $item->id, 'next');
+        $navigation = $recordsModel->getNavigation((int) $item->id);
+        $this->prevRecordId = $navigation['prev'];
+        $this->nextRecordId = $navigation['next'];
+        $this->recordPosition = $navigation['position'];
+        $this->recordTotal = $navigation['total'];
 
         $app->getInput()->set('hidemainmenu', true);
         $this->addToolbar($app);
@@ -203,6 +208,6 @@ class HtmlView extends BaseHtmlView
 
     protected function getDetailLabel(): ?string
     {
-        return $this->item !== null ? (string) (int) $this->item->id : null;
+        return $this->item !== null ? (string) $this->item->title : null;
     }
 }

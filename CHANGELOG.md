@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Record dates are shown in the time zone of the user, which the screens now name: the
+  records list states it above the table, and the record screen gives it with the UTC
+  offset next to the submission date. The submission date was shown in UTC without saying
+  so. The list and the record screen use the same date format (`DATE_FORMAT_LC6`).
+- The modification date of a record is stored in UTC, like its submission date, instead of
+  the site time zone. The update converts the stored values once.
+- The record screen shows its position in the filtered list between Previous and Next
+  (« 304 sur 412 »), ends the page title with the record title instead of its id, and no
+  longer repeats the id and the submission date.
 - The `ff_makeFormUrl` standard library piece no longer builds the Joomla 1.x
   `administrator/index2.php?act=run` URL when a form runs in backend or preview mode: it
   always builds the site URL. `ff_makeSelfUrl`, `ff_redirectForm` and `ff_redirectSelf`
