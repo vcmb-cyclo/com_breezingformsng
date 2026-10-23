@@ -8,6 +8,14 @@
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+if (
+    !isset($this, $recs)
+    || !$this instanceof \Vcmb\Component\BreezingformsNG\Administrator\Service\RecordExporter
+    || !is_array($recs)
+) {
+    throw new \LogicException('PDF export template context is incomplete.');
+}
+
 use Joomla\CMS\Language\Text;
 // IMPORTANT!
 // Supported Tags: h1, h2, h3, h4, h5, h6, b, u, i, a, img, p, br, strong, em, font, blockquote, li, ul, ol, hr, td, th, tr, table, sup, sub, small

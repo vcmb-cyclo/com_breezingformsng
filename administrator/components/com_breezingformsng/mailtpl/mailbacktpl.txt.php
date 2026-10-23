@@ -7,6 +7,17 @@
  **/
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
+
+if (!isset(
+    $RECORD_ID, $NL, $PROCESS_RECORDSAVEDID, $FORM, $PROCESS_FORMID,
+    $PROCESS_FORMTITLE, $TITLE, $NAME, $PROCESS_FORMNAME, $SUBMITTED,
+    $PROCESS_SUBMITTEDAT, $IP, $PROCESS_SUBMITTERIP, $SUBMITTERID,
+    $PROCESS_SUBMITTERID, $SUBMITTERUSERNAME, $PROCESS_SUBMITTERUSERNAME,
+    $SUBMITTERFULLNAME, $PROCESS_SUBMITTERFULLNAME, $PROVIDER, $PROCESS_PROVIDER,
+    $BROWSER, $PROCESS_BROWSER, $OPSYS, $PROCESS_OPSYS, $MAILDATA
+) || !is_array($MAILDATA)) {
+    throw new \LogicException('Mail template context is incomplete.');
+}
 ?>
 
 <?php if ($RECORD_ID != ''): ?>

@@ -50,7 +50,7 @@ final class QueryBuilderApiTest extends TestCase
     #[PreserveGlobalState(false)]
     public function testTheCompatibilityDatabaseBuildsNewQueriesWithCreateQuery(): void
     {
-        eval('namespace Joomla\Database; interface DatabaseInterface {}');
+        eval('namespace Joomla\Database; interface DatabaseInterface {} interface QueryInterface {}');
         eval('namespace Joomla\Filesystem; class File {}');
         eval('namespace Joomla\CMS; final class Factory {
             public static object $container;
@@ -66,11 +66,11 @@ final class QueryBuilderApiTest extends TestCase
                 throw new \RuntimeException('Query failed');
             }
 
-            public function createQuery(): string
+            public function createQuery(): \Joomla\Database\QueryInterface
             {
                 $this->calls[] = 'createQuery';
 
-                return 'new query';
+                return new class () implements \Joomla\Database\QueryInterface {};
             }
 
             public function getQuery(...$arguments): string
@@ -97,8 +97,8 @@ final class QueryBuilderApiTest extends TestCase
 
         $dbo = new \BFDbo();
 
-        self::assertSame('new query', $dbo->createQuery());
-        self::assertSame('new query', $dbo->getQuery(true));
+        self::assertInstanceOf(\Joomla\Database\QueryInterface::class, $dbo->createQuery());
+        self::assertInstanceOf(\Joomla\Database\QueryInterface::class, $dbo->getQuery(true));
         self::assertSame('current query', $dbo->getQuery());
 
         // After a failed query, getQuery() hands back that query, but a new
@@ -106,7 +106,7 @@ final class QueryBuilderApiTest extends TestCase
         $dbo->setQuery('SELECT broken');
 
         self::assertSame('SELECT broken', $dbo->getQuery());
-        self::assertSame('new query', $dbo->getQuery(true));
+        self::assertInstanceOf(\Joomla\Database\QueryInterface::class, $dbo->getQuery(true));
         self::assertSame(['createQuery', 'createQuery', 'getQuery()', 'createQuery'], $database->calls);
     }
 }

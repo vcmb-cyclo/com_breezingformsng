@@ -10,6 +10,9 @@ use Joomla\CMS\Language\Text;
  **/
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
+if (!isset($tx_token, $msg)) {
+    throw new \LogicException('Payment error template context is incomplete.');
+}
 ?>
 <?php echo Text::_('COM_BREEZINGFORMSNG_PAYMENT_ERROR_MSG'); ?>
 <br/>

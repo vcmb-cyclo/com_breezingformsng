@@ -72,6 +72,7 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
 
     private bool $logging = false;
 
+    /** @return array<string, string> */
     public static function getSubscribedEvents(): array
     {
         return [

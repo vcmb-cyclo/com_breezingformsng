@@ -29,6 +29,6 @@ class BFJoomlaConfig
 {
     public static function get(string $name, mixed $default = null): mixed
     {
-        return Factory::getApplication()->getConfig()->get(str_replace('config.', '', $name), $default);
+        return Factory::getApplication()->get(str_replace('config.', '', $name), $default);
     }
 }

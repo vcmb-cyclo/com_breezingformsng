@@ -16,8 +16,25 @@ use Joomla\CMS\Factory;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
 $record = $this->item;
-$tz = Factory::getApplication()->get('offset');
-$submitted = htmlspecialchars((string) ($record->submitted ?? ''));
+// Dates are stored in UTC and shown in the time zone of the user, named next
+// to each date with its offset on that date (it changes with daylight saving).
+$timezone = Factory::getApplication()->getIdentity()->getTimezone();
+$localDate = static fn (string $utc): string => sprintf(
+    '%s <span class="small text-muted">%s</span>',
+    HTMLHelper::_('date', $utc, Text::_('DATE_FORMAT_LC6')),
+    htmlspecialchars(
+        Text::sprintf(
+            'COM_BREEZINGFORMSNG_TIMEZONE_WITH_OFFSET',
+            $timezone->getName(),
+            HTMLHelper::_('date', $utc, 'P')
+        ),
+        ENT_QUOTES,
+        'UTF-8'
+    ),
+);
+$position = $this->recordPosition !== null
+    ? Text::sprintf('COM_BREEZINGFORMSNG_RECORD_POSITION', $this->recordPosition, $this->recordTotal)
+    : '';
 $value = static fn(mixed $field): string => htmlspecialchars((string) ($field ?? ''), ENT_QUOTES, 'UTF-8');
 $yesNo = static fn(mixed $field): string => Text::_((bool) $field ? 'JYES' : 'JNO');
 $systemLabel = static fn(string $label, string $description): string => sprintf(
@@ -61,6 +78,10 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
           <span class="btn btn-sm btn-outline-secondary disabled">&laquo; <?= Text::_('JPREVIOUS'); ?></span>
         <?php endif; ?>
 
+        <?php if ($position !== ''): ?>
+          <span class="align-self-center small text-muted"><?= $position; ?></span>
+        <?php endif; ?>
+
         <?php if ($this->nextRecordId !== null): ?>
           <a class="btn btn-sm btn-outline-secondary"
             href="<?= htmlspecialchars($recordUrl($this->nextRecordId), ENT_QUOTES, 'UTF-8'); ?>">
@@ -80,9 +101,6 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
               <?= $value($record->form_title); ?>
             </a>
             <span class="small text-muted"><?= $value($record->form_name); ?></span>
-          </div>
-          <div class="small text-muted mt-1">
-            <strong><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_SUBMITTED'); ?></strong> <?= $submitted; ?>
           </div>
         </div>
         <div class="d-flex gap-3 ms-auto">
@@ -104,9 +122,16 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
   </div>
 
   <div class="card mb-3">
-    <div class="card-header"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_VALUES'); ?></div>
-    <div class="card-body">
-      <?= $this->form->renderFieldset('values'); ?>
+    <div class="card-header">
+      <a href="#" class="bf-collapse-toggle d-block text-decoration-none text-reset"
+        data-bs-toggle="collapse" data-bs-target="#record-section-values" aria-expanded="true" aria-controls="record-section-values">
+        <span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> <?= Text::_('COM_BREEZINGFORMSNG_RECORD_VALUES'); ?>
+      </a>
+    </div>
+    <div id="record-section-values" class="collapse show">
+      <div class="card-body">
+        <?= $this->form->renderFieldset('values'); ?>
+      </div>
     </div>
   </div>
 
@@ -115,7 +140,7 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
       <div class="table-responsive">
         <table class="table table-striped mb-0">
             <?= $sectionHeader('record-section-subinfo', 'COM_BREEZINGFORMSNG_RECORDS_SUBMINFO'); ?>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_SUBMITTED', 'COM_BREEZINGFORMSNG_RECORDS_SUBMITTED_DESC'); ?></th><td><?= $submitted; ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_SUBMITTED', 'COM_BREEZINGFORMSNG_RECORDS_SUBMITTED_DESC'); ?></th><td><?= $localDate((string) $record->submitted); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_IP', 'COM_BREEZINGFORMSNG_IP_DESC'); ?></th><td><?= $value($record->ip); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_BROWSER', 'COM_BREEZINGFORMSNG_RECORDS_BROWSER_DESC'); ?></th><td><?= $value($record->browser); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPSYS', 'COM_BREEZINGFORMSNG_RECORDS_OPSYS_DESC'); ?></th><td><?= $value($record->opsys); ?></td></tr>
@@ -124,7 +149,6 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME', 'COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME_DESC'); ?></th><td><?= $value($record->username); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME', 'COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME_DESC'); ?></th><td><?= $value($record->user_full_name); ?></td></tr>
             <?= $sectionHeader('record-section-recordinfo', 'COM_BREEZINGFORMSNG_RECORDS_RECORDINFO'); ?>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_RECORDID', 'COM_BREEZINGFORMSNG_ID_DESC'); ?></th><td><?= (int) $record->id; ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_VIEWED', 'COM_BREEZINGFORMSNG_RECORDS_VIEWED_DESC'); ?></th><td id="record-flag-value-viewed"><?= $yesNo($record->viewed); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_EXPORTED', 'COM_BREEZINGFORMSNG_RECORDS_EXPORTED_DESC'); ?></th><td id="record-flag-value-exported"><?= $yesNo($record->exported); ?></td></tr>
             <tr><th><?= $systemLabel('JSTATUS', 'COM_BREEZINGFORMSNG_RECORDS_STATE_DESC'); ?></th><td><?= Text::_(RecordState::label((int) $record->state)); ?></td></tr>
@@ -165,6 +189,10 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
     </a>
   <?php else: ?>
     <span class="btn btn-secondary disabled">&laquo; <?= Text::_('JPREVIOUS'); ?></span>
+  <?php endif; ?>
+
+  <?php if ($position !== ''): ?>
+    <span class="align-self-center text-muted"><?= $position; ?></span>
   <?php endif; ?>
 
   <?php if ($this->nextRecordId !== null): ?>

@@ -15,6 +15,9 @@ use Joomla\CMS\Language\Text;
  **/
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
+if (!isset($tx_token, $confirmed, $formId, $recordId, $tries)) {
+    throw new \LogicException('Sofort download template context is incomplete.');
+}
 ?>
 <?php echo Text::_('COM_BREEZINGFORMSNG_THANK_YOU_FOR_BUYING'); ?>
 <br />

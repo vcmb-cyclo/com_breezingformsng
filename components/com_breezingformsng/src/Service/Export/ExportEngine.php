@@ -737,6 +737,12 @@ final class ExportEngine
         $pdf->setMailback($mailback);
         $pdf->setFormName($this->processor->formrow->name);
 
+        $pdfForm = $this->processor->form;
+        $pdfSubmitted = $timestamp->submittedAt;
+        $pdfIp = $this->processor->ip;
+        $pdfBrowser = $this->processor->browser;
+        $pdfOpsys = $this->processor->opsys;
+
         ob_start();
         require($file);
         $c = ob_get_contents();

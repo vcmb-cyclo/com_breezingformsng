@@ -8,6 +8,7 @@
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Language;
 use Joomla\CMS\Language\Text;
 
 /**
@@ -30,10 +31,7 @@ final class BFText
 
 	const COMPONENT_NAME = 'com_breezingformsng';
 
-	/**
-	 * @var JLanguage
-	 */
-	private $language = null;
+	private ?Language $language = null;
 
 	/**
 	 * @var BFText
@@ -68,7 +66,7 @@ final class BFText
 	 * is not loaded there. So if one text request comes from one of these view functions, 
 	 * it makes sure that the language is always been loaded (of course in a lazy way).
 	 *
-	 * @param string
+	 * @param string $name
 	 * @return string
 	 */
 	public static function _(string $name): string
