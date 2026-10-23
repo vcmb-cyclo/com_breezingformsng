@@ -283,7 +283,7 @@ jobs:
       - name: Validate package contents
         run: scripts/validate-package.sh "${{ steps.package.outputs.archive }}"
 
-      - name: Test installation and update on Joomla
+      - name: Test installation, update and migration on Joomla
         run: scripts/joomla-install-smoke.sh "${{ steps.package.outputs.archive }}"
 
       - name: Upload installation package

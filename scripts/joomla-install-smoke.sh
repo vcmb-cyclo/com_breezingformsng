@@ -381,14 +381,106 @@ fixture_record_id="$(
         -e "INSERT INTO \`${table_prefix}facileforms_records\` (submitted, form, title, name, browser) VALUES (UTC_TIMESTAMP(), ${fixture_form_id}, 'BFNG smoke update record', 'bfng-smoke-update-record', 'smoke'); SELECT LAST_INSERT_ID();"
 )"
 
-# Exercise the update path: installing the same package again over an
-# existing install must succeed without errors and leave the same tables
-# and registrations in place.
+# Packaged SQL update files, oldest first: Joomla sets the schema version to
+# the last one, whatever the manifest version says.
+read -r first_update_version last_update_version < <(
+    docker exec "${web_container}" php -r '
+        $versions = array_map(
+            static fn (string $file): string => basename($file, ".sql"),
+            glob("/var/www/html/administrator/components/com_breezingformsng/sql/updates/mysql/*.sql")
+        );
+        usort($versions, "version_compare");
+        echo reset($versions), " ", end($versions), PHP_EOL;
+    '
+)
+
+# Put the install back into a pre-NG shape so the update has to migrate it,
+# as on a site upgraded from an older package: legacy archived flag instead
+# of the publication state, columns added since, a hardcoded legacy option
+# and an older schema version.
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "
+    ALTER TABLE \`${table_prefix}facileforms_records\`
+        ADD \`archived\` TINYINT(1) NOT NULL DEFAULT '0',
+        DROP \`state\`, DROP \`checked_out\`, DROP \`checked_out_time\`;
+    UPDATE \`${table_prefix}facileforms_records\` SET \`archived\` = 1 WHERE id = ${fixture_record_id};
+    ALTER TABLE \`${table_prefix}facileforms_forms\` DROP \`debug_mode\`, DROP \`version\`;
+    ALTER TABLE \`${table_prefix}facileforms_scripts\` DROP \`unit_tests\`;
+    ALTER TABLE \`${table_prefix}facileforms_pieces\` DROP \`unit_tests\`;
+    UPDATE \`${table_prefix}facileforms_forms\` SET script1code = 'index.php?option=com_breezingforms&view=form' WHERE id = ${fixture_form_id};
+    UPDATE \`${table_prefix}schemas\` AS s
+        INNER JOIN \`${table_prefix}extensions\` AS e ON e.extension_id = s.extension_id
+        SET s.version_id = '${first_update_version}'
+        WHERE e.type = 'component' AND e.element = 'com_breezingformsng';"
+
+# Exercise the update path: installing the package over the existing install
+# must succeed without errors, migrate the legacy state and leave the same
+# tables and registrations in place.
 docker exec -e HTTP_HOST=localhost "${web_container}" php /var/www/html/cli/joomla.php extension:install \
     --path="${container_archive}" \
     --live-site=http://localhost \
     --quiet \
     --no-interaction
+
+migrated_column_count="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND (TABLE_NAME, COLUMN_NAME) IN (
+            ('${table_prefix}facileforms_records', 'state'),
+            ('${table_prefix}facileforms_records', 'checked_out'),
+            ('${table_prefix}facileforms_records', 'checked_out_time'),
+            ('${table_prefix}facileforms_forms', 'debug_mode'),
+            ('${table_prefix}facileforms_forms', 'version'),
+            ('${table_prefix}facileforms_scripts', 'unit_tests'),
+            ('${table_prefix}facileforms_pieces', 'unit_tests'));"
+)"
+legacy_column_count="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '${table_prefix}facileforms_records' AND COLUMN_NAME = 'archived';"
+)"
+
+if [[ "${migrated_column_count}" -ne 7 || "${legacy_column_count}" -ne 0 ]]; then
+    echo "Legacy schema migration failed during the update test: ${migrated_column_count}/7 columns restored, ${legacy_column_count} legacy column left." >&2
+    exit 1
+fi
+
+migrated_data_count="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "SELECT
+            (SELECT COUNT(*) FROM \`${table_prefix}facileforms_records\` WHERE id = ${fixture_record_id} AND state = 2)
+            + (SELECT COUNT(*) FROM \`${table_prefix}facileforms_forms\` WHERE id = ${fixture_form_id} AND script1code = 'index.php?option=com_breezingformsng&view=form');"
+)"
+
+if [[ "${migrated_data_count}" -ne 2 ]]; then
+    echo "Legacy data migration failed during the update test (archived record state or com_breezingforms option)." >&2
+    exit 1
+fi
+
+schema_version="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "SELECT s.version_id FROM \`${table_prefix}schemas\` AS s INNER JOIN \`${table_prefix}extensions\` AS e ON e.extension_id = s.extension_id WHERE e.type = 'component' AND e.element = 'com_breezingformsng';"
+)"
+
+if [[ -z "${last_update_version}" || "${schema_version}" != "${last_update_version}" ]]; then
+    echo "Database schema version does not match the last SQL update file: ${schema_version:-missing} != ${last_update_version:-missing}" >&2
+    exit 1
+fi
+
+database_audit="$(
+    docker exec -e HTTP_HOST=localhost "${web_container}" \
+        php /var/www/html/cli/joomla.php maintenance:database \
+        --live-site=http://localhost \
+        --no-interaction 2>&1
+)"
+printf '%s\n' "${database_audit}"
+
+if ! grep -Fq 'All database table structures are up to date.' <<< "${database_audit}"; then
+    echo "Joomla database maintenance reported an extension schema problem." >&2
+    exit 1
+fi
+
+if grep -Eq '(Warning|Deprecated|Notice|Fatal error):' <<< "${database_audit}"; then
+    echo "Joomla database maintenance emitted a PHP warning." >&2
+    exit 1
+fi
 
 table_count_after_update="$(
     docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
@@ -512,4 +604,4 @@ docker exec "${web_container}" php -r '
 '
 echo 'Module installation, update, inline and iframe rendering passed.'
 
-echo "Joomla installation, update and frontend smoke tests passed."
+echo "Joomla installation, update, migration, database maintenance and frontend smoke tests passed."

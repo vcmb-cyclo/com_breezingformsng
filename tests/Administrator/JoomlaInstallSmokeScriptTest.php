@@ -52,6 +52,26 @@ final class JoomlaInstallSmokeScriptTest extends TestCase
         self::assertStringContainsString('unlink($signaturePath);', $source);
     }
 
+    public function testUpdateMigratesALegacyInstallAndAuditsTheDatabase(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../scripts/joomla-install-smoke.sh');
+
+        self::assertIsString($source);
+
+        $legacySetupPosition = strpos($source, 'ADD \`archived\` TINYINT(1)');
+        $updatePosition = strpos($source, 'must succeed without errors, migrate the legacy state');
+        $auditPosition = strpos($source, 'maintenance:database');
+
+        self::assertIsInt($legacySetupPosition);
+        self::assertIsInt($updatePosition);
+        self::assertIsInt($auditPosition);
+        self::assertLessThan($updatePosition, $legacySetupPosition);
+        self::assertLessThan($auditPosition, $updatePosition);
+        self::assertStringContainsString('SET s.version_id = \'${first_update_version}\'', $source);
+        self::assertStringContainsString('"${schema_version}" != "${last_update_version}"', $source);
+        self::assertStringContainsString('All database table structures are up to date.', $source);
+    }
+
     public function testSmokeUsesTheInstalledComposerAutoloaderForCaptchaAndPdf(): void
     {
         $source = file_get_contents(__DIR__ . '/../../scripts/joomla-install-smoke.sh');
