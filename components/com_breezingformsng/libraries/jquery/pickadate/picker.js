@@ -814,21 +814,13 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
             name = name[0] + ELEMENT.name + name[1]
         }
 
-        P._hidden = $(
-            '<input ' +
-            'type=hidden ' +
+        P._hidden = $('<input type=hidden>').
 
             // Create the name using the original input’s with a prefix and suffix.
-            'name="' + name + '"' +
+            attr('name', name).
 
             // If the element has a value, set the hidden value as well.
-            (
-                $ELEMENT.data('value') || ELEMENT.value ?
-                    ' value="' + P.get('select', SETTINGS.formatSubmit) + '"' :
-                    ''
-            ) +
-            '>'
-        )[0]
+            attr('value', $ELEMENT.data('value') || ELEMENT.value ? P.get('select', SETTINGS.formatSubmit) : null)[0]
 
         $ELEMENT.
 

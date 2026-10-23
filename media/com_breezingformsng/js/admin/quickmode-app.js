@@ -1111,38 +1111,4 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                 return c;
             }
 
-            jQuery(document).ready(function () {
-
-                let validationCodeVisible = false;
-                let initCodeVisible = false;
-                let actionCodeVisible = false;
-
-                setInterval(function () {
-
-                    if (!actionCodeVisible && jQuery('#bfActionScriptCustom').is(':visible')) {
-                        actionCodeVisible = true;
-                        // XDA-GIL - 20240112 - refresh seems to not exit with CodeMirror v6.  
-                    } else if (initCodeVisible && jQuery('#bfActionScriptCustom').is(':hidden')) {
-                        actionCodeVisible = false;
-                    }
-
-                    if (!initCodeVisible && jQuery('#bfInitScriptCustom').is(':visible')) {
-                        initCodeVisible = true;
-                        // XDA-GIL - 20240112 - refresh seems to not exit with CodeMirror v6.  
-                    } else if (initCodeVisible && jQuery('#bfInitScriptCustom').is(':hidden')) {
-                        initCodeVisible = false;
-                    }
-
-                    if (!validationCodeVisible && jQuery('#bfValidationScriptCustom').is(':visible')) {
-                        validationCodeVisible = true;
-                        // XDA-GIL - 20240112 - refresh seems to not exit with CodeMirror v6.  
-                    } else if (validationCodeVisible && jQuery('#bfValidationScriptCustom').is(':hidden')) {
-                        validationCodeVisible = false;
-                    }
-
-                }, 500);
-
-            });
-
-
 }());

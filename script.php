@@ -2836,6 +2836,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             // jsTree 0.9.8 + its bundled jQuery 1.3.2 clone, replaced by the
             // native jsTree 3.x vendored under libraries/jquery/jstree3.
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/jtree',
+            // Unused CodeMirror 5 modes; the forms use Joomla's CodeMirror editor.
+            JPATH_SITE . '/components/com_breezingformsng/libraries/codemirror',
             // Chunked uploads are staged in Joomla's temporary folder and the
             // QuickMode save cache lives under media/breezingforms.
             JPATH_SITE . '/components/com_breezingformsng/uploads',

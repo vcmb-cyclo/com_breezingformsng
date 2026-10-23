@@ -23,7 +23,6 @@
 }
 
 .bf-forms-edit textarea.form-control,
-.bf-forms-edit .CodeMirror,
 .bf-forms-edit .joomla-editor-codemirror {
     max-width: 100%;
 }
