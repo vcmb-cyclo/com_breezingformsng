@@ -7,5 +7,9 @@
  * */
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+if (!isset($this) || !$this instanceof \Vcmb\Component\BreezingformsNG\Administrator\Service\PdfDocument) {
+    throw new \LogicException('PDF footer requires a document context.');
+}
+
 $this->SetY(-25);
 echo '<div style="font-size: 8pt;"><table width="100%" border="0"><tr><td style="width: 80%;height:150mm;">&nbsp;</td><td style="width: 20%; height:150mm; text-align: right;padding-left: 25%;">' . str_repeat('&nbsp;<br/>', 4) . $this->getAliasNumPage() . ' / ' . $this->getAliasNbPages() . '</td></tr></table></div>';

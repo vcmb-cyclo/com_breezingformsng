@@ -14,4 +14,8 @@ declare(strict_types=1);
 
 defined('_JEXEC') or die;
 
+if (!isset($form) || !is_string($form)) {
+    throw new \RuntimeException(\Joomla\CMS\Language\Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+}
+
 echo $form;

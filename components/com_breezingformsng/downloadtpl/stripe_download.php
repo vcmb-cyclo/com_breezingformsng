@@ -15,6 +15,10 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Language\Text;
 
+if (!isset($tx_token, $form_id, $record_id, $tries)) {
+    throw new \LogicException('Stripe download template context is incomplete.');
+}
+
 ?>
 <?php echo Text::_('COM_BREEZINGFORMSNG_THANK_YOU_FOR_BUYING'); ?>
 <br />

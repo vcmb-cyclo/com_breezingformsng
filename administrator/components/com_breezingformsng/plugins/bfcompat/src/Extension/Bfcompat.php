@@ -21,6 +21,7 @@ use Joomla\Event\SubscriberInterface;
 
 final class Bfcompat extends CMSPlugin implements SubscriberInterface
 {
+    /** @return array<string, string> */
     public static function getSubscribedEvents(): array
     {
         return ['onAfterInitialise' => 'registerCompatibility'];

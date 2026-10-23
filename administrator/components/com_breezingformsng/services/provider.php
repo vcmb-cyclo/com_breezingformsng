@@ -24,6 +24,7 @@ if (!class_exists('Vcmb\\Component\\BreezingformsNG\\Administrator\\Extension\\B
     );
 }
 
+use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Component\Router\RouterFactoryInterface;
 use Joomla\CMS\Dispatcher\ComponentDispatcherFactoryInterface;
@@ -32,6 +33,7 @@ use Joomla\CMS\Extension\Service\Provider\ComponentDispatcherFactory;
 use Joomla\CMS\Extension\Service\Provider\MVCFactory;
 use Joomla\CMS\Extension\Service\Provider\RouterFactory;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Mail\MailerFactoryInterface;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\Database\DatabaseInterface;
@@ -62,6 +64,10 @@ return new class implements ServiceProviderInterface
     {
         $namespace = 'Vcmb\\Component\\BreezingformsNG';
         $application = Factory::getApplication();
+
+        if (!$application instanceof CMSApplication) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
 
         $container->registerServiceProvider(new MVCFactory($namespace));
         $container->registerServiceProvider(new ComponentDispatcherFactory($namespace));

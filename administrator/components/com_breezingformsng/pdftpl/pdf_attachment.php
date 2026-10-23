@@ -11,6 +11,13 @@
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
+if (
+    !isset($pdfForm, $pdfSubmitted, $pdfIp, $pdfBrowser, $pdfOpsys, $xmldata)
+    || !is_array($xmldata)
+) {
+    throw new \LogicException('PDF attachment template context is incomplete.');
+}
+
 use Joomla\CMS\Language\Text;
 // IMPORTANT!
 // Supported Tags: h1, h2, h3, h4, h5, h6, b, u, i, a, img, p, br, strong, em, font, blockquote, li, ul, ol, hr, td, th, tr, table, sup, sub, small
@@ -18,7 +25,7 @@ use Joomla\CMS\Language\Text;
 <table border="1" width="100%">
 	<tr>
 		<td colspan="2" bgcolor="#cccccc" align="left" valign="middle">
-			<h2><?php echo $this->submitted; ?></h2>
+			<h2><?php echo $pdfSubmitted; ?></h2>
 		</td>
 	</tr>
 	<tr>
@@ -26,7 +33,7 @@ use Joomla\CMS\Language\Text;
 			<strong><?php echo Text::_('COM_BREEZINGFORMSNG_ID') ?>:</strong>
 		</td>
 		<td>
-			<?php echo $this->form; ?>
+			<?php echo $pdfForm; ?>
 		</td>
 	</tr>
 	<tr>
@@ -34,7 +41,7 @@ use Joomla\CMS\Language\Text;
 			<strong><?php echo Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTEDAT') ?>:</strong>
 		</td>
 		<td>
-			<?php echo $this->submitted; ?>
+			<?php echo $pdfSubmitted; ?>
 		</td>
 	</tr>
 	<tr>
@@ -42,7 +49,7 @@ use Joomla\CMS\Language\Text;
 			<strong><?php echo Text::_('COM_BREEZINGFORMSNG_IP') ?>:</strong>
 		</td>
 		<td>
-			<?php echo $this->ip; ?>
+			<?php echo $pdfIp; ?>
 		</td>
 	</tr>
 	<tr>
@@ -50,7 +57,7 @@ use Joomla\CMS\Language\Text;
 			<strong><?php echo Text::_('COM_BREEZINGFORMSNG_BROWSER') ?>:</strong>
 		</td>
 		<td>
-			<?php echo htmlentities($this->browser, ENT_QUOTES, 'UTF-8');  ?>
+			<?php echo htmlentities($pdfBrowser, ENT_QUOTES, 'UTF-8');  ?>
 		</td>
 	</tr>
 	<tr>
@@ -58,7 +65,7 @@ use Joomla\CMS\Language\Text;
             <strong><?php echo Text::_('COM_BREEZINGFORMSNG_PROCESS_OPSYS') ?>:</strong>
         </td>
         <td>
-            <?php echo htmlentities($this->opsys, ENT_QUOTES, 'UTF-8');  ?>
+            <?php echo htmlentities($pdfOpsys, ENT_QUOTES, 'UTF-8');  ?>
         </td>
     </tr>
 	<tr>

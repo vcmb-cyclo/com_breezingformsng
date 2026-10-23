@@ -139,7 +139,7 @@ class BFRequest
 
         if (isset($GLOBALS['_BFREQUEST'][$name]['SET.' . $hash]) && ($GLOBALS['_BFREQUEST'][$name]['SET.' . $hash] === true)) {
             // Get the variable from the input hash
-            $var = (isset($input[$name]) && $input[$name] !== null) ? $input[$name] : $default;
+            $var = isset($input[$name]) ? $input[$name] : $default;
             $var = self::_cleanVar($var, $mask, $type);
         } elseif (!isset($GLOBALS['_BFREQUEST'][$name][$sig])) {
             if (isset($input[$name])) {
@@ -445,7 +445,7 @@ class BFRequest
     /**
      * Sets a request variable.
      *
-     * @param   array    $array      An associative array of key-value pairs.
+     * @param   array<array-key, mixed> $array  An associative array of key-value pairs.
      * @param   string   $hash       The request variable to set (POST, GET, FILES, METHOD).
      * @param   boolean  $overwrite  If true and an existing key is found, the value is overwritten, otherwise it is ignored.
      *
@@ -527,7 +527,7 @@ class BFRequest
     }
 }
 
-$bf_request = Factory::getApplication()->getInput()->getArray(array(), null, 'RAW');
+$bf_request = Factory::getApplication()->getInput()->getArray();
 foreach ($bf_request as $bf_request_item_key => $bf_request_item_value) {
     BFRequest::setVar($bf_request_item_key, $bf_request_item_value);
 }

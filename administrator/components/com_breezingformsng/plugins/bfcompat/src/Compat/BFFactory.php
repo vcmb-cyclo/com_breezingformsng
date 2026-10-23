@@ -31,20 +31,20 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\Filesystem\File;
 use Joomla\CMS\Factory;
 use Joomla\Database\DatabaseInterface;
+use Joomla\Database\QueryInterface;
 
 class BFFactory
 {
 
-    private static $dbo = null;
+    private static ?BFDbo $dbo = null;
 
-    public static function getDbo()
+    public static function getDbo(): BFDbo
     {
-
-        if (static::$dbo == null) {
-            static::$dbo = new BFDbo();
+        if (self::$dbo === null) {
+            self::$dbo = new BFDbo();
         }
 
-        return static::$dbo;
+        return self::$dbo;
     }
 
 }
@@ -52,7 +52,8 @@ class BFFactory
 class BFFile extends File
 {
 
-    public static function read($file)
+    /** @return string|false */
+    public static function read(string $file)
     {
         return file_get_contents($file);
     }
@@ -61,18 +62,23 @@ class BFFile extends File
 class BFDbo
 {
 
-    private $errNo = 0;
-    private $errMsg = '';
-    private $dbo = null;
-    private $last_query = true;
-    private $last_failed_query = '';
+    private int $errNo = 0;
+    private string $errMsg = '';
+    private DatabaseInterface $dbo;
+    private bool $last_query = true;
+    private string|QueryInterface $last_failed_query = '';
 
     function __construct()
     {
         $this->dbo = Factory::getContainer()->get(DatabaseInterface::class);
     }
 
-    public function setQuery($query, $offset = 0, $limit = 0)
+    /**
+     * @param string|QueryInterface $query
+     * @param int $offset
+     * @param int $limit
+     */
+    public function setQuery($query, $offset = 0, $limit = 0): void
     {
 
         try {
@@ -86,6 +92,7 @@ class BFDbo
 
     }
 
+    /** @return array<array-key, object>|null */
     public function loadObjectList()
     {
         if (!$this->last_query)
@@ -96,11 +103,7 @@ class BFDbo
 
         try {
             return $this->dbo->loadObjectList();
-        } catch (Exception $e) {
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
+        } catch (Throwable $e) {
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
         }
@@ -108,6 +111,10 @@ class BFDbo
         return array();
     }
 
+    /**
+     * @param class-string $class
+     * @return object|null
+     */
     public function loadObject($class = 'stdClass')
     {
         if (!$this->last_query)
@@ -119,10 +126,7 @@ class BFDbo
         try {
             return $this->dbo->loadObject($class);
 
-        } catch (Exception $e) {
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        } catch (Error $e) {
+        } catch (Throwable $e) {
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
         }
@@ -130,6 +134,10 @@ class BFDbo
         return null;
     }
 
+    /**
+     * @param int $offset
+     * @return list<mixed>|null
+     */
     public function loadColumn($offset = 0)
     {
         if (!$this->last_query)
@@ -142,10 +150,7 @@ class BFDbo
 
             return $this->dbo->loadColumn($offset);
 
-        } catch (Exception $e) {
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-        } catch (Error $e) {
+        } catch (Throwable $e) {
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
         }
@@ -153,6 +158,11 @@ class BFDbo
         return null;
     }
 
+    /**
+     * @param string|null $key
+     * @param string|null $column
+     * @return array<array-key, mixed>|null
+     */
     public function loadAssocList($key = null, $column = null)
     {
         if (!$this->last_query)
@@ -165,21 +175,15 @@ class BFDbo
 
             return $this->dbo->loadAssocList($key, $column);
 
-        } catch (Exception $e) {
-
+        } catch (Throwable $e) {
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
         }
 
         return array();
     }
 
+    /** @return array<string, mixed>|null */
     public function loadAssoc()
     {
         if (!$this->last_query)
@@ -192,13 +196,7 @@ class BFDbo
 
             return $this->dbo->loadAssoc();
 
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
+        } catch (Throwable $e) {
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
         }
@@ -206,13 +204,13 @@ class BFDbo
         return null;
     }
 
-    public function query()
+    public function query(): bool
     {
 
         return $this->execute();
     }
 
-    public function execute()
+    public function execute(): bool
     {
         $this->errNo = 0;
         $this->errMsg = '';
@@ -221,13 +219,7 @@ class BFDbo
 
             return $this->dbo->execute();
 
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
+        } catch (Throwable $e) {
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
         }
@@ -235,7 +227,13 @@ class BFDbo
         return false;
     }
 
-    public function updateObject($table, &$object, $key, $nulls = false)
+    /**
+     * @param string $table
+     * @param object $object
+     * @param string $key
+     * @param bool $nulls
+     */
+    public function updateObject($table, &$object, $key, $nulls = false): bool
     {
         $this->errNo = 0;
         $this->errMsg = '';
@@ -244,13 +242,7 @@ class BFDbo
 
             return $this->dbo->updateObject($table, $object, $key, $nulls);
 
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
+        } catch (Throwable $e) {
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
         }
@@ -258,7 +250,12 @@ class BFDbo
         return false;
     }
 
-    public function insertObject($table, &$object, $key = null)
+    /**
+     * @param string $table
+     * @param object $object
+     * @param string|null $key
+     */
+    public function insertObject($table, &$object, $key = null): bool
     {
         $this->errNo = 0;
         $this->errMsg = '';
@@ -267,13 +264,7 @@ class BFDbo
 
             return $this->dbo->insertObject($table, $object, $key);
 
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
+        } catch (Throwable $e) {
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
         }
@@ -281,11 +272,20 @@ class BFDbo
         return false;
     }
 
+    /**
+     * @param string|array<string> $query
+     * @param bool $esc
+     * @return string|array<array-key, string>
+     */
     public function quote($query, $esc = true)
     {
         return $this->dbo->quote($query, $esc);
     }
 
+    /**
+     * @param bool $new
+     * @return QueryInterface|string
+     */
     public function getQuery($new = false)
     {
         if ($new) {
@@ -298,40 +298,42 @@ class BFDbo
         return $this->dbo->getQuery();
     }
 
-    public function createQuery()
+    public function createQuery(): QueryInterface
     {
         return $this->dbo->createQuery();
     }
 
-    public function getPrefix()
+    public function getPrefix(): string
     {
         return $this->dbo->getPrefix();
     }
 
-    public function getNullDate()
+    public function getNullDate(): string
     {
         return $this->dbo->getNullDate();
     }
 
-    public function getNumRows()
+    public function getNumRows(): int
     {
         if (!$this->last_query)
             return 0;
         return $this->dbo->getNumRows();
     }
 
-    public function getCount()
+    public function getCount(): int
     {
         if (!$this->last_query)
             return 0;
         return $this->dbo->getCount();
     }
 
+    /** @return mixed */
     public function getConnection()
     {
         return $this->dbo->getConnection();
     }
 
+    /** @return int|array{} */
     public function getAffectedRows()
     {
         if (!$this->last_query)
@@ -339,6 +341,11 @@ class BFDbo
         return $this->dbo->getAffectedRows();
     }
 
+    /**
+     * @param string $table
+     * @param bool $typeOnly
+     * @return array<string, mixed>
+     */
     public function getTableColumns($table, $typeOnly = true)
     {
         $this->errNo = 0;
@@ -346,13 +353,7 @@ class BFDbo
 
         try {
             return $this->dbo->getTableColumns($table, $typeOnly);
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
+        } catch (Throwable $e) {
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
         }
@@ -360,6 +361,7 @@ class BFDbo
         return array();
     }
 
+    /** @return list<string> */
     public function getTableList()
     {
         $this->errNo = 0;
@@ -367,13 +369,7 @@ class BFDbo
 
         try {
             return $this->dbo->getTableList();
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
+        } catch (Throwable $e) {
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
         }
@@ -381,6 +377,7 @@ class BFDbo
         return array();
     }
 
+    /** @return mixed */
     public function loadResult()
     {
         if (!$this->last_query)
@@ -391,13 +388,7 @@ class BFDbo
 
         try {
             return $this->dbo->loadResult();
-        } catch (Exception $e) {
-
-            $this->errNo = $e->getCode();
-            $this->errMsg = $e->getMessage();
-
-        } catch (Error $e) {
-
+        } catch (Throwable $e) {
             $this->errNo = $e->getCode();
             $this->errMsg = $e->getMessage();
         }
@@ -405,22 +396,23 @@ class BFDbo
         return null;
     }
 
-    public function getErrorNum()
+    public function getErrorNum(): int
     {
         return $this->errNo;
     }
 
-    public function getErrorMsg()
+    public function getErrorMsg(): string
     {
         return $this->errMsg;
     }
 
-    public function stderr()
+    public function stderr(): string
     {
 
         return $this->errMsg;
     }
 
+    /** @return mixed */
     public function insertid()
     {
 
