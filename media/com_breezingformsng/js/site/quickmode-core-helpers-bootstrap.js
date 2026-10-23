@@ -108,7 +108,7 @@
 
 								if(breakableText != ""){
 									var calc = null;
-									eval( "calc = typeof bfFieldCalc"+bfSummarizers[i].id+" != \"undefined\" ? bfFieldCalc"+bfSummarizers[i].id+" : null" );
+									calc = typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
 									if(calc){
 										breakableText = calc(breakableText);
 									}
@@ -121,10 +121,10 @@
 						case "bfRadioGroup":
 						case "bfCheckbox":
 							if(JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val() != "" && typeof JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val() != "undefined"){
-								var theText = JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val();
+								var theText = JQuery("#"+bfSummarizers[i].id).text( JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val() ).html();
 								if(theText != ""){
 									var calc = null;
-									eval( "calc = typeof bfFieldCalc"+bfSummarizers[i].id+" != \"undefined\" ? bfFieldCalc"+bfSummarizers[i].id+" : null" );
+									calc = typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
 									if(calc){
 										theText = calc(theText);
 									}
@@ -144,10 +144,10 @@
 								}
 							}
 							if(val != ""){
-								var theText = val.substr(0, val.length - 2);
+								var theText = JQuery("#"+bfSummarizers[i].id).text( val.substr(0, val.length - 2) ).html();
 								if(theText != ""){
 									var calc = null;
-									eval( "calc = typeof bfFieldCalc"+bfSummarizers[i].id+" != \"undefined\" ? bfFieldCalc"+bfSummarizers[i].id+" : null" );
+									calc = typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
 									if(calc){
 										theText = calc(theText);
 									}
