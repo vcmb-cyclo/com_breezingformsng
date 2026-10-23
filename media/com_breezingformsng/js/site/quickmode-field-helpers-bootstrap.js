@@ -82,7 +82,7 @@
 
 								if(breakableText != ""){
 									var calc = null;
-									eval( "calc = typeof bfFieldCalc"+bfSummarizers[i].id+" != \"undefined\" ? bfFieldCalc"+bfSummarizers[i].id+" : null" );
+									calc = typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
 									if(calc){
 										breakableText = calc(breakableText);
 									}
@@ -96,15 +96,15 @@
 						case "bfCheckbox":
 							if(JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val() != "" && typeof JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val() != "undefined"){
 								var theText = JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val();
-								if(theText != ""){
-									var calc = null;
-									eval( "calc = typeof bfFieldCalc"+bfSummarizers[i].id+" != \"undefined\" ? bfFieldCalc"+bfSummarizers[i].id+" : null" );
-									if(calc){
-										theText = calc(theText);
-									}
+								var calc = theText != "" && typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
+								// fieldCalc is admin-authored and may return HTML; raw option values are text.
+								if(calc){
+									summVal = calc(theText);
+									JQuery("#"+bfSummarizers[i].id).html( summVal );
+								} else {
+									summVal = theText;
+									JQuery("#"+bfSummarizers[i].id).text( theText );
 								}
-								JQuery("#"+bfSummarizers[i].id).html( theText );
-								summVal = theText;
 							}
 						break;
 						case "bfCheckboxGroup":
@@ -119,15 +119,15 @@
 							}
 							if(val != ""){
 								var theText = val.substr(0, val.length - 2);
-								if(theText != ""){
-									var calc = null;
-									eval( "calc = typeof bfFieldCalc"+bfSummarizers[i].id+" != \"undefined\" ? bfFieldCalc"+bfSummarizers[i].id+" : null" );
-									if(calc){
-										theText = calc(theText);
-									}
+								var calc = theText != "" && typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
+								// fieldCalc is admin-authored and may return HTML; raw option values are text.
+								if(calc){
+									summVal = calc(theText);
+									JQuery("#"+bfSummarizers[i].id).html( summVal );
+								} else {
+									summVal = theText;
+									JQuery("#"+bfSummarizers[i].id).text( theText );
 								}
-								JQuery("#"+bfSummarizers[i].id).html( theText );
-								summVal = theText;
 							}
 						break;
 					}
