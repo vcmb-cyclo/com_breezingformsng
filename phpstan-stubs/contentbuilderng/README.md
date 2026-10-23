@@ -28,5 +28,5 @@ Symbols stubbed, and the file in this component that calls each one:
 | `Service\FormSupportService::synchElements()` (from the ContentBuilder NG container) | `ContentBuilderFormSync` |
 | `Service\ListSupportService::createFromRuntimeContext()` | `RenderingEngine`, `ExportEngine` |
 | `Service\PermissionService::createFromRuntimeContext()` | `RenderingEngine` |
-| `Service\ArticleService` (class only, via `::class`) | `ExportEngine` |
+| `Service\ArticleService::createArticle()` | `ExportEngine` |
 | `Extension\ContentbuilderngComponent::getContainer()` | `ExportEngine`, `ContentBuilderFormSync` |
