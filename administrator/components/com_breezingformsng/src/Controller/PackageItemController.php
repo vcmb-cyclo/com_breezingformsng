@@ -15,11 +15,14 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Table\ContentHistory;
 use Joomla\CMS\Versioning\VersionableControllerTrait;
+use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageListModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
@@ -32,7 +35,42 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
  */
 abstract class PackageItemController extends FormController
 {
-    use VersionableControllerTrait;
+    use VersionableControllerTrait {
+        loadhistory as private loadVersionHistory;
+    }
+
+    public function loadhistory(): bool
+    {
+        $this->checkToken('get');
+
+        $model = $this->getModel();
+
+        if (!$model instanceof PackageItemModel) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $historyId = $this->input->getInt('version_id', 0);
+        $history = new ContentHistory(Factory::getContainer()->get(DatabaseInterface::class));
+        $itemId = $historyId > 0 && $history->load($historyId)
+            ? $model->getItemIdFromHistory($historyId)
+            : false;
+
+        if (
+            $itemId === false
+            || (int) $itemId <= 0
+            || (string) $history->item_id !== $model->typeAlias . '.' . (int) $itemId
+        ) {
+            $this->setMessage(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'), 'error');
+            $this->setRedirect(Route::_(
+                'index.php?option=' . $this->option . '&view=' . $this->view_list . $this->getRedirectToListAppend(),
+                false
+            ));
+
+            return false;
+        }
+
+        return $this->loadVersionHistory();
+    }
 
     /**
      * Tasks that only display the item; every other task changes or runs code.
