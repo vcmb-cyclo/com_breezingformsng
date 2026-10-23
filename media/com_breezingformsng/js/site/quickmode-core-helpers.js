@@ -119,15 +119,20 @@
 						case "bfRadioGroup":
 						case "bfCheckbox":
 							if(JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val() != "" && typeof JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val() != "undefined"){
-								var theText = JQuery("#"+bfSummarizers[i].id).text( JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val() ).html();
+								var theText = JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val();
+								var calc = null;
 								if(theText != ""){
-									var calc = null;
 									calc = typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
 									if(calc){
 										theText = calc(theText);
 									}
 								}
-								JQuery("#"+bfSummarizers[i].id).html( theText );
+								// fieldCalc is admin-authored and may return HTML; raw option values are text.
+								if(calc){
+									JQuery("#"+bfSummarizers[i].id).html( theText );
+								} else {
+									JQuery("#"+bfSummarizers[i].id).text( theText );
+								}
 								summVal = theText;
 							}
 						break;
@@ -142,15 +147,20 @@
 								}
 							}
 							if(val != ""){
-								var theText = JQuery("#"+bfSummarizers[i].id).text( val.substr(0, val.length - 2) ).html();
+								var theText = val.substr(0, val.length - 2);
+								var calc = null;
 								if(theText != ""){
-									var calc = null;
 									calc = typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
 									if(calc){
 										theText = calc(theText);
 									}
 								}
-								JQuery("#"+bfSummarizers[i].id).html( theText );
+								// fieldCalc is admin-authored and may return HTML; raw option values are text.
+								if(calc){
+									JQuery("#"+bfSummarizers[i].id).html( theText );
+								} else {
+									JQuery("#"+bfSummarizers[i].id).text( theText );
+								}
 								summVal = theText;
 							}
 						break;
