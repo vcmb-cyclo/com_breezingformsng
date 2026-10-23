@@ -348,12 +348,37 @@ jobs:
             echo "::notice::v${version} is older than the published update stream (${stream_version}); the release is refreshed without becoming latest."
             echo "current=false" >> "$GITHUB_OUTPUT"
           fi
+          # A release candidate is a GitHub pre-release and never the latest
+          # release, even when it feeds the update stream (tagged rc there).
+          if [[ "${version}" =~ -RC[0-9]+$ ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Calculate package checksum
         id: checksum
         run: |
           sha256="$(sha256sum "${{ steps.release.outputs.archive }}" | awk '{print $1}')"
           echo "sha256=${sha256}" >> "$GITHUB_OUTPUT"
+
+      # Release notes come from the CHANGELOG.md section of this version,
+      # headed "## <version>" (optionally followed by a date): rename the
+      # "Unreleased" section before tagging.
+      - name: Prepare release notes
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          awk -v version="${RELEASE_VERSION}" '
+            $0 == "## " version || index($0, "## " version " ") == 1 { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > build/release-notes.md
+          if ! grep -q '[^[:space:]]' build/release-notes.md; then
+            echo "::error::CHANGELOG.md has no non-empty \"## ${RELEASE_VERSION}\" section."
+            exit 1
+          fi
+          printf '\nSHA-256: %s\n' "${{ steps.checksum.outputs.sha256 }}" >> build/release-notes.md
 
       - name: Publish GitHub release
         env:
@@ -365,22 +390,22 @@ jobs:
           else
             gh release create "${GITHUB_REF_NAME}" \
               "${archive}" \
-              --latest="${{ steps.release.outputs.current }}" \
+              --latest="${{ steps.release.outputs.current == 'true' && steps.release.outputs.prerelease == 'false' }}" \
+              --prerelease="${{ steps.release.outputs.prerelease }}" \
               --target "${GITHUB_SHA}" \
               --title "BreezingForms NG ${GITHUB_REF_NAME}" \
-              --generate-notes \
-              --notes "SHA-256: ${{ steps.checksum.outputs.sha256 }}"
+              --notes-file build/release-notes.md
           fi
 
       - name: Ensure release is published
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          if [ "${{ steps.release.outputs.current }}" = "true" ]; then
-            gh release edit "${GITHUB_REF_NAME}" --draft=false --latest
-          else
-            gh release edit "${GITHUB_REF_NAME}" --draft=false --latest=false
-          fi
+          gh release edit "${GITHUB_REF_NAME}" \
+            --draft=false \
+            --notes-file build/release-notes.md \
+            --prerelease="${{ steps.release.outputs.prerelease }}" \
+            --latest="${{ steps.release.outputs.current == 'true' && steps.release.outputs.prerelease == 'false' }}"
 
       # Same mechanism as ContentBuilder NG: the update stream served from main
       # is rewritten only once the archive is published, with its checksum.
