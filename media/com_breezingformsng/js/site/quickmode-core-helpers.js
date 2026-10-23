@@ -120,20 +120,15 @@
 						case "bfCheckbox":
 							if(JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val() != "" && typeof JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val() != "undefined"){
 								var theText = JQuery("[name=\"ff_nm_"+bfSummarizers[i].connectWith+"[]\"]:checked").val();
-								var calc = null;
-								if(theText != ""){
-									calc = typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
-									if(calc){
-										theText = calc(theText);
-									}
-								}
+								var calc = theText != "" && typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
 								// fieldCalc is admin-authored and may return HTML; raw option values are text.
 								if(calc){
-									JQuery("#"+bfSummarizers[i].id).html( theText );
+									summVal = calc(theText);
+									JQuery("#"+bfSummarizers[i].id).html( summVal );
 								} else {
+									summVal = theText;
 									JQuery("#"+bfSummarizers[i].id).text( theText );
 								}
-								summVal = theText;
 							}
 						break;
 						case "bfCheckboxGroup":
@@ -148,20 +143,15 @@
 							}
 							if(val != ""){
 								var theText = val.substr(0, val.length - 2);
-								var calc = null;
-								if(theText != ""){
-									calc = typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
-									if(calc){
-										theText = calc(theText);
-									}
-								}
+								var calc = theText != "" && typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
 								// fieldCalc is admin-authored and may return HTML; raw option values are text.
 								if(calc){
-									JQuery("#"+bfSummarizers[i].id).html( theText );
+									summVal = calc(theText);
+									JQuery("#"+bfSummarizers[i].id).html( summVal );
 								} else {
+									summVal = theText;
 									JQuery("#"+bfSummarizers[i].id).text( theText );
 								}
-								summVal = theText;
 							}
 						break;
 					}
