@@ -33,4 +33,4 @@ parameters:
     treatPhpDocTypesAsCertain: false
     ignoreErrors:
         - '#^Path in (require|include)(_once)?\(\) ".*" is not a file or it does not exist\.$#'
-    reportUnmatchedIgnoredErrors: false
+    reportUnmatchedIgnoredErrors: true
