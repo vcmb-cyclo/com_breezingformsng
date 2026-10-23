@@ -20,6 +20,7 @@ class ArticleService
      * @param array<mixed> $record
      * @param array<mixed> $elementsAllowed
      * @param array<mixed> $config
+     * @return int|string Existing article IDs can retain the database driver's string type.
      */
     public function createArticle(
         int $contentbuilderngFormId,
@@ -32,7 +33,7 @@ class ArticleService
         bool $full = false,
         bool $limitedOptions = true,
         $menuCatId = null
-    ): int {
+    ): int|string {
         return 0;
     }
 }

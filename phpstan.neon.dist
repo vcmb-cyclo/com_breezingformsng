@@ -30,7 +30,9 @@ parameters:
         - joomla-stubs/libraries
         - phpstan-stubs/contentbuilderng
         - phpstan-stubs/joomla
+    stubFiles:
+        - phpstan-stubs/joomla/Database/QuoteName.stub
     treatPhpDocTypesAsCertain: false
     ignoreErrors:
         - '#^Path in (require|include)(_once)?\(\) ".*" is not a file or it does not exist\.$#'
-    reportUnmatchedIgnoredErrors: false
+    reportUnmatchedIgnoredErrors: true
