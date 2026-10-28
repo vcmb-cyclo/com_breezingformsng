@@ -1691,9 +1691,11 @@ transition: box-shadow .15s linear;
             } // if
 
             if (!defined('VMBFCF_RUNNING')) {
-                $c = ob_get_contents();
-                ob_end_clean();
-                echo $c;
+                // The trace output above already flushed and closed the buffer
+                // opened for this page: send a buffer only if one is open again.
+                if (ob_get_level() > 0) {
+                    echo ob_get_clean();
+                }
 
                 echo '</body>
                       </html>';
