@@ -23,13 +23,15 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 $dateFormat = Text::_('DATE_FORMAT_LC6');
 $dateTitle = $this->escape(Text::sprintf('COM_BREEZINGFORMSNG_RECORDS_DATES_TIMEZONE', $user->getTimezone()->getName()));
 
-// Read-only state icons with the record wording (Active rather than Published).
-$stateIcons = [];
-
-foreach (RecordState::STATES as $state) {
-    $icon = [RecordState::PUBLISHED => 'publish', RecordState::ARCHIVED => 'archive', RecordState::TRASHED => 'trash'][$state];
-    $stateIcons[$state] = ['', '', '', RecordState::label($state), true, $icon, $icon];
-}
+// State icons with the record wording (Active rather than Published). Like a
+// Joomla published icon, a click archives an active record and makes an
+// archived one active again; trashed records are only shown.
+$canEditState = $user->authorise('core.edit.state', 'com_breezingformsng');
+$stateIcons = [
+    RecordState::PUBLISHED => ['archive', '', RecordState::label(RecordState::PUBLISHED), RecordState::label(RecordState::PUBLISHED), true, 'publish', 'publish'],
+    RecordState::ARCHIVED  => ['publish', '', RecordState::label(RecordState::ARCHIVED), RecordState::label(RecordState::ARCHIVED), true, 'archive', 'archive'],
+    RecordState::TRASHED   => ['', '', '', RecordState::label(RecordState::TRASHED), true, 'trash', 'trash text-danger'],
+];
 
 // jgrid.state reads its fallback state 0 even when the value is found.
 $stateIcons[0] = $stateIcons[RecordState::PUBLISHED];
@@ -96,7 +98,7 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
                   <span class="<?= $rec->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
                 </a>
               </td>
-              <td class="text-center"><?= HTMLHelper::_('jgrid.state', $stateIcons, (int) $rec->state, $i, 'records.', false); ?></td>
+              <td class="text-center"><?= HTMLHelper::_('jgrid.state', $stateIcons, (int) $rec->state, $i, 'records.', $canEditState && (int) $rec->state !== RecordState::TRASHED); ?></td>
               <td title="<?= $dateTitle; ?>"><?= HTMLHelper::_('date', (string) $rec->submitted, $dateFormat); ?></td>
               <td<?= $rec->modified ? ' title="' . $dateTitle . '"' : ''; ?>><?= $rec->modified ? HTMLHelper::_('date', (string) $rec->modified, $dateFormat) : '—'; ?></td>
             </tr>
