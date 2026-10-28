@@ -48,6 +48,8 @@ class HtmlView extends BaseHtmlView
     public ?Form $form = null;
     public ?\stdClass $item = null;
     public bool $canEdit = false;
+    // A saved item is published from its icon, by Ajax, as a form in QuickMode.
+    public bool $canEditState = false;
 
     // test layout
     public string $functionName = '';
@@ -151,6 +153,12 @@ class HtmlView extends BaseHtmlView
         $toolbar = $document->getToolbar();
         $item = $this->item;
         $saved = (int) $item->id > 0;
+        $this->canEditState = $saved && $this->canEdit
+            && Factory::getApplication()->getIdentity()->authorise('core.edit.state', 'com_breezingformsng');
+
+        if ($this->canEditState) {
+            $this->form->removeField('published');
+        }
 
         if ($this->canEdit) {
             $toolbar->apply('piece.apply');
@@ -173,6 +181,20 @@ class HtmlView extends BaseHtmlView
 
         $wa = $document->getWebAssetManager();
         $wa->useScript('keepalive');
+        if ($this->canEditState) {
+            $wa->registerAndUseScript(
+                'com_breezingformsng.admin-toggle-published',
+                'media/com_breezingformsng/js/admin/admin-toggle-published.js',
+                ['version' => 'auto'],
+                ['defer' => true],
+                ['core']
+            );
+            $document->addScriptOptions('com_breezingformsng.admin-toggle-published', ['csrfToken' => Session::getFormToken()]);
+            Text::script('JPUBLISHED');
+            Text::script('JUNPUBLISHED');
+            Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
+        }
+
         $wa->registerAndUseScript(
             'com_breezingformsng.pieces-edit',
             'media/com_breezingformsng/js/admin/pieces-edit.js',
@@ -181,12 +203,11 @@ class HtmlView extends BaseHtmlView
             ['core']
         );
         $document->addScriptOptions('com_breezingformsng.pieces-edit', [
-            'initialState' => [
+            'initialState' => ($this->canEditState ? [] : ['published' => (string) (int) ($item->published ?? 1)]) + [
                 'title' => (string) $item->title,
                 'type' => (string) ($item->type ?: 'Untyped'),
                 'package' => (string) $item->package,
                 'name' => (string) $item->name,
-                'published' => (string) (int) ($item->published ?? 1),
                 'description' => (string) $item->description,
                 'code' => (string) $item->code,
                 'unit_tests' => (string) $item->unit_tests,

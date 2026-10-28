@@ -57,7 +57,22 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
             <?php $editUrl = Route::_('index.php?option=com_breezingformsng&task=piece.edit&id=' . (int) $row->id); ?>
             <tr class="row<?= $i % 2; ?>">
               <td class="text-center"><?= HTMLHelper::_('grid.id', $i, (int) $row->id, false, 'cid', 'cb', (string) $row->title); ?></td>
-              <td class="text-center"><?= HTMLHelper::_('jgrid.published', (int) $row->published, $i, 'pieces.', $this->canEdit); ?></td>
+              <td class="text-center">
+                <?php if ($this->canEdit): ?>
+                  <a href="#"
+                     class="tbody-icon js-bf-form-state<?= $row->published ? ' active' : ''; ?>"
+                     data-item-task="pieces.setPublished"
+                     data-item-form-id="<?= (int) $row->id; ?>"
+                     data-state-type="published"
+                     title="<?= Text::_($row->published ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
+                    <span class="<?= $row->published ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+                  </a>
+                <?php else: ?>
+                  <span class="tbody-icon<?= $row->published ? ' active' : ''; ?>" title="<?= Text::_($row->published ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
+                    <span class="<?= $row->published ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+                  </span>
+                <?php endif; ?>
+              </td>
               <th scope="row">
                 <?php if ((int) $row->checked_out > 0): ?>
                   <?= HTMLHelper::_('jgrid.checkedout', $i, (string) $row->editor, $row->checked_out_time, 'pieces.', $canManageCheckin || (int) $row->checked_out === $userId); ?>

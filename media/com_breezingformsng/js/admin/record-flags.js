@@ -61,6 +61,11 @@
 			link.dataset.bfState = String(data.state);
 			setIcon(link.querySelector('span'), STATE_ICONS[data.state]);
 			link.querySelector('.bf-state-text').textContent = data.label;
+			// The current record may leave the filtered list or move within it.
+			// Its pagination links still contain offsets from before this change.
+			document.querySelectorAll('nav.pagination__wrapper').forEach(function (pagination) {
+				pagination.remove();
+			});
 		});
 	}
 

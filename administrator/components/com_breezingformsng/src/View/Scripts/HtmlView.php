@@ -19,6 +19,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Pagination\Pagination;
+use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
@@ -96,5 +97,19 @@ class HtmlView extends BaseHtmlView
         );
 
         $document->getWebAssetManager()->useScript('table.columns')->useScript('multiselect');
+
+        if ($this->canEdit) {
+            $document->getWebAssetManager()->registerAndUseScript(
+                'com_breezingformsng.admin-toggle-published',
+                'media/com_breezingformsng/js/admin/admin-toggle-published.js',
+                ['version' => 'auto'],
+                ['defer' => true],
+                ['core']
+            );
+            $document->addScriptOptions('com_breezingformsng.admin-toggle-published', ['csrfToken' => Session::getFormToken()]);
+            Text::script('JPUBLISHED');
+            Text::script('JUNPUBLISHED');
+            Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
+        }
     }
 }

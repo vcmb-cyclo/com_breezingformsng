@@ -29,6 +29,23 @@ $action = Route::_('index.php?option=com_breezingformsng&view=script&layout=edit
 
   <fieldset class="border-0 p-0 m-0"<?= $this->canEdit ? '' : ' disabled'; ?>>
     <div class="card mb-3">
+      <?php if ($this->canEditState): ?>
+        <div class="card-header d-flex align-items-center">
+          <div class="d-inline-flex align-items-center gap-2 ms-auto">
+            <span class="fw-semibold" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPPUBLISHED'), ENT_QUOTES, 'UTF-8'); ?>">
+              <?= Text::_('COM_BREEZINGFORMSNG_SCRIPTS_PUBLISHED'); ?>
+            </span>
+            <a href="#"
+              class="tbody-icon js-bf-form-state<?= $this->item->published ? ' active' : ''; ?>"
+              data-item-task="scripts.setPublished"
+              data-item-form-id="<?= (int) $this->item->id; ?>"
+              data-state-type="published"
+              title="<?= Text::_($this->item->published ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
+              <span class="<?= $this->item->published ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+            </a>
+          </div>
+        </div>
+      <?php endif; ?>
       <div class="card-body">
         <?= $this->form->renderFieldset('details'); ?>
       </div>

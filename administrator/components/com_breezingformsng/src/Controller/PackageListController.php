@@ -18,11 +18,13 @@ use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\AdminController;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
 use Joomla\String\Inflector;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 
 /**
@@ -84,6 +86,36 @@ abstract class PackageListController extends AdminController
                 $ids
             );
         }
+    }
+
+    /**
+     * Publishes or unpublishes one item from the published icon of the list,
+     * by Ajax, as the forms list does.
+     */
+    public function setPublished(): void
+    {
+        $id = $this->input->post->getInt('id', 0);
+        $state = AjaxStateService::normalizeState($this->input->post->getInt('state', 0));
+        $model = $this->getModel();
+        $pks = [$id];
+
+        $error = match (true) {
+            !$this->checkToken('post', false) => Text::_('JINVALID_TOKEN'),
+            !$this->app->getIdentity()->authorise('core.edit.state', 'com_breezingformsng') => Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'),
+            $id <= 0 || !$model instanceof PackageItemModel => Text::_('JERROR_AN_ERROR_HAS_OCCURRED'),
+            !$model->publish($pks, $state) => (string) $model->getError(),
+            default => null,
+        };
+
+        if ($error === null) {
+            (new ActionLogger($this->app))->log($state === 1 ? ActionLogger::PUBLISHED : ActionLogger::UNPUBLISHED, $this->logType(), [$id]);
+        }
+
+        $this->app->mimeType = 'application/json';
+        $this->app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
+        $this->app->sendHeaders();
+        echo new JsonResponse($error === null ? AjaxStateService::success($state) : AjaxStateService::error($error));
+        $this->app->close();
     }
 
     public function copy(): void
