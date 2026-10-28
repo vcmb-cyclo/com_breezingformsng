@@ -826,7 +826,7 @@ final class SubmissionEngine
                         ->bind(':piece3id', $piece3id, ParameterType::INTEGER);
                     $this->processor->database->setQuery($query);
                     $rows = $this->processor->database->loadObjectList();
-                    if (count($rows))
+                    if (count($rows)) {
                         echo $this->scriptingEngine->execPiece(
                             $rows[0]->code,
                             Text::_('COM_BREEZINGFORMSNG_PROCESS_BSPIECE') . " " . $rows[0]->name,
@@ -834,6 +834,12 @@ final class SubmissionEngine
                             $this->processor->formrow->piece3id,
                             null
                         );
+                    } elseif ($this->processor->app->getConfig()->get('debug', false)) {
+                        $this->processor->app->enqueueMessage(
+                            Text::sprintf('COM_BREEZINGFORMSNG_PROCESS_PIECE_NOT_FOUND', Text::_('COM_BREEZINGFORMSNG_PROCESS_BSPIECE'), $piece3id),
+                            'error'
+                        );
+                    }
                     break;
                 case 2: // custom code
                     echo $this->scriptingEngine->execPiece(
@@ -1024,7 +1030,7 @@ final class SubmissionEngine
                         ->bind(':piece4id', $piece4id, ParameterType::INTEGER);
                     $this->processor->database->setQuery($query);
                     $rows = $this->processor->database->loadObjectList();
-                    if (count($rows))
+                    if (count($rows)) {
                         echo $this->scriptingEngine->execPiece(
                             $rows[0]->code,
                             Text::_('COM_BREEZINGFORMSNG_PROCESS_ESPIECE') . " " . $rows[0]->name,
@@ -1032,6 +1038,12 @@ final class SubmissionEngine
                             $this->processor->formrow->piece4id,
                             null
                         );
+                    } elseif ($this->processor->app->getConfig()->get('debug', false)) {
+                        $this->processor->app->enqueueMessage(
+                            Text::sprintf('COM_BREEZINGFORMSNG_PROCESS_PIECE_NOT_FOUND', Text::_('COM_BREEZINGFORMSNG_PROCESS_ESPIECE'), $piece4id),
+                            'error'
+                        );
+                    }
                     break;
                 case 2: // custom code
                     echo $this->scriptingEngine->execPiece(

@@ -18,6 +18,7 @@ use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
+use Vcmb\Component\BreezingformsNG\Administrator\Helper\FormsAdvancedOptionsHtml;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormsModel;
 
@@ -108,6 +109,12 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             $this->pieceAfter        = $listModel->getPieces('After Form');
             $this->pieceBeginSubmit  = $listModel->getPieces('Begin Submit');
             $this->pieceEndSubmit    = $listModel->getPieces('End Submit');
+
+            if (FormsAdvancedOptionsHtml::missingPieces($this->form, [
+                1 => $this->pieceBefore, 2 => $this->pieceAfter, 3 => $this->pieceBeginSubmit, 4 => $this->pieceEndSubmit,
+            ]) !== []) {
+                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING_MESSAGE'), 'error');
+            }
 
             ToolbarHelper::apply('forms.save');
             ToolbarHelper::cancel('forms.cancel', $id > 0 ? 'JTOOLBAR_CLOSE' : 'JTOOLBAR_CANCEL');

@@ -77,6 +77,30 @@ final class FormsAdvancedOptionsHtml
     }
 
     /**
+     * Library pieces the form keeps by id and that are no longer in their
+     * list (deleted, reimported, unpublished or of another type): they are
+     * not run.
+     *
+     * @param array<int, array<int, \stdClass>> $piecesByIndex pieces offered for piece1 to piece4
+     * @return array<int, int> missing piece id (0 when none is chosen), by piece index
+     */
+    public static function missingPieces(\stdClass $f, array $piecesByIndex): array
+    {
+        $missing = [];
+
+        foreach ($piecesByIndex as $index => $pieces) {
+            $pieceId = (int) ($f->{'piece' . $index . 'id'} ?? 0);
+            $listedIds = array_map(static fn (object $piece): int => (int) $piece->id, $pieces);
+
+            if ((int) ($f->{'piece' . $index . 'cond'} ?? 0) === 1 && !in_array($pieceId, $listedIds, true)) {
+                $missing[$index] = $pieceId;
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
      * @param array<string, mixed> $vars
      */
     public static function render(array $vars): void

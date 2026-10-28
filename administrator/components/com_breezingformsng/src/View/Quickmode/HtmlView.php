@@ -123,6 +123,15 @@ class HtmlView extends BaseHtmlView
                 $this->advancedOptionsPieceAfter        = $listModel->getPieces('After Form');
                 $this->advancedOptionsPieceBeginSubmit  = $listModel->getPieces('Begin Submit');
                 $this->advancedOptionsPieceEndSubmit    = $listModel->getPieces('End Submit');
+
+                if (FormsAdvancedOptionsHtml::missingPieces($this->advancedOptionsForm, [
+                    1 => $this->advancedOptionsPieceBefore,
+                    2 => $this->advancedOptionsPieceAfter,
+                    3 => $this->advancedOptionsPieceBeginSubmit,
+                    4 => $this->advancedOptionsPieceEndSubmit,
+                ]) !== []) {
+                    Factory::getApplication()->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING_MESSAGE'), 'error');
+                }
             }
         }
 

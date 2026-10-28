@@ -44,6 +44,15 @@ use Joomla\CMS\Language\Text;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\FormsAdvancedOptionsHtml;
 
 HTMLHelper::_('bootstrap.tab');
+
+$missingPieces = FormsAdvancedOptionsHtml::missingPieces(
+    $f,
+    [1 => $pieceBefore, 2 => $pieceAfter, 3 => $pieceBeginSubmit, 4 => $pieceEndSubmit]
+);
+$paneErrors = [
+    'form-pieces' => isset($missingPieces[1]) || isset($missingPieces[2]),
+    'submit-pieces' => isset($missingPieces[3]) || isset($missingPieces[4]),
+];
 ?>
   <ul class="nav nav-tabs bfng-tabs" id="<?= $tabId; ?>" role="tablist">
     <li class="nav-item" role="presentation">
@@ -67,7 +76,7 @@ HTMLHelper::_('bootstrap.tab');
     ] as $pane => $label): ?>
     <li class="nav-item" role="presentation">
       <button class="nav-link" id="tab-<?= $pane; ?>" data-bs-toggle="tab" data-bs-target="#pane-<?= $pane; ?>"
-              type="button" role="tab"><?= $label; ?><?php if (($tabEntryCounts[$pane] ?? 0) > 0): ?> <span class="badge bg-primary text-white"><?= $tabEntryCounts[$pane]; ?></span><?php endif; ?></button>
+              type="button" role="tab"><?= $label; ?><?php if (($tabEntryCounts[$pane] ?? 0) > 0): ?> <span class="badge bg-primary text-white"><?= $tabEntryCounts[$pane]; ?></span><?php endif; ?><?php if (!empty($paneErrors[$pane])): ?> <span class="icon-warning text-danger" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'), ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></span><span class="visually-hidden"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'); ?></span><?php endif; ?></button>
     </li>
     <?php endforeach; ?>
   </ul>
@@ -388,7 +397,15 @@ HTMLHelper::_('bootstrap.tab');
             </div>
           </div>
           <div id="<?= $pfx; ?>lib" style="display:<?= (int) ($f->$condName ?? 0) === 1 ? '' : 'none'; ?>">
-            <?= FormsAdvancedOptionsHtml::bfSel($pieces, $idName, (int) ($f->$idName ?? 0)); ?>
+            <?php if (isset($missingPieces[$pieceIndex])): ?>
+              <div class="alert alert-danger" role="alert">
+                <span class="icon-warning" aria-hidden="true"></span>
+                <?= $missingPieces[$pieceIndex] > 0
+                    ? Text::sprintf('COM_BREEZINGFORMSNG_FORMS_PIECE_NOT_FOUND', $missingPieces[$pieceIndex])
+                    : Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_NOT_CHOSEN'); ?>
+              </div>
+            <?php endif; ?>
+            <?= FormsAdvancedOptionsHtml::bfSel($pieces, $idName, (int) ($f->$idName ?? 0), isset($missingPieces[$pieceIndex]) ? 'aria-invalid="true"' : ''); ?>
           </div>
           <div id="<?= $pfx; ?>code" style="display:<?= (int) ($f->$condName ?? 0) === 2 ? '' : 'none'; ?>">
             <?= $editor->display($codeName, htmlspecialchars($f->$codeName ?? ''), '100%', '200px', 60, 10, false, 'jf_' . $codeName, null, null, ['syntax' => 'php']); ?>
