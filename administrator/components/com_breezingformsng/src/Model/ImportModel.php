@@ -50,11 +50,13 @@ class ImportModel extends BaseDatabaseModel
     private DatabaseInterface $db;
 
     /**
-     * Import a package file.
+     * Import a package file. As the package import of the Packages screen, an
+     * item replaced keeps its state as its version of origin, and the state
+     * written is stored as a version.
      *
      * @throws \RuntimeException on any parse or storage error (the transaction is rolled back)
      */
-    public function import(string $filename): void
+    public function import(string $filename, PackageItemModel $scriptItems, PackageItemModel $pieceItems): void
     {
         $this->scripts = $this->pieces = [];
         $this->createdScripts = $this->updatedScripts = [];
@@ -91,11 +93,11 @@ class ImportModel extends BaseDatabaseModel
 
         try {
             foreach ($xml->script as $node) {
-                $this->importLibraryItem($node, '#__facileforms_scripts', $this->scripts, $this->createdScripts, $this->updatedScripts);
+                $this->importLibraryItem($node, '#__facileforms_scripts', $scriptItems, $this->scripts, $this->createdScripts, $this->updatedScripts);
             }
 
             foreach ($xml->piece as $node) {
-                $this->importLibraryItem($node, '#__facileforms_pieces', $this->pieces, $this->createdPieces, $this->updatedPieces);
+                $this->importLibraryItem($node, '#__facileforms_pieces', $pieceItems, $this->pieces, $this->createdPieces, $this->updatedPieces);
             }
 
             $this->savePackageMetadata($xml);
@@ -113,7 +115,14 @@ class ImportModel extends BaseDatabaseModel
      * @param array<mixed> $created
      * @param array<mixed> $updated
      */
-    private function importLibraryItem(\SimpleXMLElement $node, string $table, array &$touched, array &$created, array &$updated): void
+    private function importLibraryItem(
+        \SimpleXMLElement $node,
+        string $table,
+        PackageItemModel $items,
+        array &$touched,
+        array &$created,
+        array &$updated
+    ): void
     {
         $unknown = Text::_('COM_BREEZINGFORMSNG_INSTALLER_UNKNOWN');
 
@@ -152,8 +161,11 @@ class ImportModel extends BaseDatabaseModel
             $item['modified'] = $now;
             $item['modified_by'] = $userName;
 
+            $items->keepOrigin((int) $existing['id']);
+
             $row = (object) ($item + ['id' => (int) $existing['id']]);
             $this->db->updateObject($table, $row, 'id');
+            $items->recordVersion((int) $existing['id']);
 
             $touched[] = (int) $existing['id'];
 
@@ -175,6 +187,7 @@ class ImportModel extends BaseDatabaseModel
 
         $row = (object) $item;
         $this->db->insertObject($table, $row, 'id');
+        $items->recordVersion((int) $row->id);
 
         $touched[] = (int) $row->id;
 
