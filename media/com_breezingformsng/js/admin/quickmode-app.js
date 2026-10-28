@@ -451,7 +451,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                                 if (!error) {
                                     appScope.saveSelectedElementProperties();
                                 }
-                            // eslint-disable-next-line no-fallthrough -- Legacy: saving an element also runs savePageProperties(); to check before adding the break.
+                                break;
                             case 'bfQuickModePageClass':
                                 appScope.savePageProperties();
                                 break;
@@ -721,16 +721,15 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
             function createInitCode() {
                 var mdata = app.getProperties(app.selectedTreeElement);
                 if (mdata) {
-                    form = document.bfForm;
-                    // eslint-disable-next-line no-global-assign -- Legacy: this writes window.name; to turn into a local variable.
-                    name = mdata.bfName;
+                    var form = document.bfForm;
+                    var name = mdata.bfName;
                     if (name == '') {
                         alert('Please enter the element name first.');
                         return;
                     } // if
                     if (!confirm(BFQMConfig.labels['COM_BREEZINGFORMSNG_ELEMENTS_CREAINIT'] + "\n" + BFQMConfig.labels['COM_BREEZINGFORMSNG_ELEMENTS_EXISTAPP']))
                         return;
-                    code =
+                    var code =
                         "function ff_" + name + "_init(element, condition)\n" +
                         "{\n" +
                         "    switch (condition) {\n";
@@ -746,7 +745,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         "        default:;\n" +
                         "    } // switch\n" +
                         "} // ff_" + name + "_init\n";
-                    oldcode = JoomlaEditor.get('bfInitCode').getValue();
+                    var oldcode = JoomlaEditor.get('bfInitCode').getValue();
                     if (oldcode != '')
                         JoomlaEditor.get('bfInitCode').setValue(
                             code +
@@ -760,16 +759,15 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
             function createValidationCode() {
                 var mdata = app.getProperties(app.selectedTreeElement);
                 if (mdata) {
-                    form = document.bfForm;
-                    // eslint-disable-next-line no-global-assign -- Legacy: this writes window.name; to turn into a local variable.
-                    name = mdata.bfName;
+                    var form = document.bfForm;
+                    var name = mdata.bfName;
                     if (name == '') {
                         alert('Please enter the element name first.');
                         return;
                     } // if
                     if (!confirm(BFQMConfig.labels['COM_BREEZINGFORMSNG_ELEMENTS_CREAVALID'] + "\n" + BFQMConfig.labels['COM_BREEZINGFORMSNG_ELEMENTS_EXISTAPP']))
                         return;
-                    code =
+                    var code =
                         "function ff_" + name + "_validation(element, message)\n" +
                         "{\n" +
                         "    if (element_fails_my_test) {\n" +
@@ -779,7 +777,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         "    } // if\n" +
                         "    return '';\n" +
                         "} // ff_" + name + "_validation\n";
-                    oldcode = JoomlaEditor.get('bfValidationCode').getValue();
+                    var oldcode = JoomlaEditor.get('bfValidationCode').getValue();
                     if (oldcode != '')
                         JoomlaEditor.get('bfValidationCode').setValue(
                             code +
@@ -793,16 +791,15 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
             function createActionCode(element) {
                 var mdata = app.getProperties(app.selectedTreeElement);
                 if (mdata) {
-                    form = document.bfForm;
-                    // eslint-disable-next-line no-global-assign -- Legacy: this writes window.name; to turn into a local variable.
-                    name = mdata.bfName;
+                    var form = document.bfForm;
+                    var name = mdata.bfName;
                     if (name == '') {
                         alert('Please enter the element name first.');
                         return;
                     } // if
                     if (!confirm(BFQMConfig.labels['COM_BREEZINGFORMSNG_ELEMENTS_CREAACTION'] + "\n" + BFQMConfig.labels['COM_BREEZINGFORMSNG_ELEMENTS_EXISTAPP']))
                         return;
-                    code =
+                    var code =
                         "function ff_" + name + "_action(element, action)\n" +
                         "{\n" +
                         "    switch (action) {\n";
@@ -836,7 +833,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         "    } // switch\n" +
                         "} // ff_" + name + "_action\n";
 
-                    oldcode = JoomlaEditor.get('bfActionCode').getValue();
+                    var oldcode = JoomlaEditor.get('bfActionCode').getValue();
                     if (oldcode != '')
                         JoomlaEditor.get('bfActionCode').setValue(
                             code +
@@ -846,6 +843,12 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         JoomlaEditor.get('bfActionCode').setValue(code);
                 }
             } // createActionCode
+
+            // Called from the onclick of the "code framework" buttons of the
+            // element layouts: a module keeps its functions out of window.
+            window.createInitCode = createInitCode;
+            window.createValidationCode = createValidationCode;
+            window.createActionCode = createActionCode;
 
             // Submits the "Options" tab's fields (see the comment further below,
             // at the original click handler this replaces) into the hidden
