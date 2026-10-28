@@ -147,7 +147,8 @@ class RecordsController extends AdminController
 
     /**
      * Ajax switch of one record between active and archived, from the record
-     * screen: the record stays checked out by the user editing it.
+     * screen: a record the user had checked out stays checked out to them, and
+     * no lock is created for a user who only has the edit-state right.
      */
     public function setState(): void
     {
@@ -161,9 +162,12 @@ class RecordsController extends AdminController
 
                 $model = $this->getRecordModel();
                 $ids = [$recordId];
+                $table = $model->getTable();
+                $heldByUser = $table->load($recordId)
+                    && (int) $table->checked_out === (int) $this->app->getIdentity()->id;
 
                 // Table::publish() checks the record in.
-                return $model->publish($ids, $state) && $model->checkout($recordId);
+                return $model->publish($ids, $state) && (!$heldByUser || $model->checkout($recordId));
             },
             ['state' => $state, 'label' => Text::_(RecordState::label($state))]
         );
