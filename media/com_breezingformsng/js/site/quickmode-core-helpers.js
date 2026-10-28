@@ -14,8 +14,7 @@
 
                             error = ff_validation(ff_currentpage);
                             if (error != "") {
-                               // eslint-disable-next-line valid-typeof -- Legacy: always false (typeof is never ""), so published forms never use alert(); fixing it changes them.
-                               if(typeof bfUseErrorAlerts == ""){
+                               if(typeof bfUseErrorAlerts == "undefined"){
                                    alert(error);
                                 } else {
                                    bfShowErrors(error);
