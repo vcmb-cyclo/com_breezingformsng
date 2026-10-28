@@ -240,8 +240,12 @@ final class CoreServicesTest extends TestCase
     {
         return [
             'frontend form allowed' => [
-                0, false, 1, true, 0, false, 1,
+                0, false, 0, true, 0, false, 1,
                 [0, 0, 'ff_form12', 'https://example.test', false, true],
+            ],
+            'frontend form rejected when backend only' => [
+                0, false, 1, true, 0, false, 1,
+                [0, 0, 'ff_form12', 'https://example.test', false, false],
             ],
             'frontend form rejected when unpublished' => [
                 0, false, 0, false, 0, false, 1,
