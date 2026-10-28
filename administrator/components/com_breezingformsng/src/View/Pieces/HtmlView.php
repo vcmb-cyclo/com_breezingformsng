@@ -29,7 +29,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView a
 
 class HtmlView extends BaseHtmlView
 {
-    /** @var object[] */
+    /** @var list<\stdClass> */
     public array $items = [];
     public ?Pagination $pagination = null;
     public ?Registry $state = null;

@@ -33,7 +33,7 @@ final class UploadRuntime
     /**
      * @param array<int, string> $findTags
      * @param array<int, string> $replaceTags
-     * @param array<int, object> $rows
+     * @param array<int, \stdClass> $rows
      * @param array{username?: mixed, id?: mixed, name?: mixed} $identity
      */
     public function store(

@@ -25,6 +25,8 @@ final class ContentBuilderValueScriptBuilder
 {
     /**
      * Build the value-restoration script for one ContentBuilder entry.
+     *
+     * @param \stdClass $entry
      */
     public function build(object $entry, int $formId): string
     {
@@ -44,6 +46,7 @@ final class ContentBuilderValueScriptBuilder
         };
     }
 
+    /** @param \stdClass $entry */
     private function buildSimpleValue(object $entry, string $name, int $elementId, string $value): string
     {
         $encodedValue = $this->encode($value);

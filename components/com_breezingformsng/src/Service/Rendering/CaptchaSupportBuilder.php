@@ -36,7 +36,10 @@ final class CaptchaSupportBuilder
     public function validationDefaults(string $errorMessage): array
     {
         return [
-            json_encode($errorMessage, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE),
+            json_encode(
+                $errorMessage,
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR
+            ),
             'function bfCheckCaptcha(){if(checkFileExtensions())ff_submitForm2();}',
         ];
     }

@@ -93,7 +93,7 @@ final class ErrorHandlerRuntime
                         $url .= '&task=quickmode.display' .
                             '&form=' . $this->processor->form;
                         if ($this->processor->formrow->package != '') {
-                            $url .= '&pkg=' . urlencode($this->processor->formrow->package);
+                            $url .= '&pkg=' . urlencode((string) $this->processor->formrow->package);
                         }
                         if ($pane > 0) {
                             $url .= '&tabpane=' . $pane;
@@ -114,7 +114,7 @@ final class ErrorHandlerRuntime
                             '&form=' . $this->processor->form .
                             '&page=' . $page;
                         if ($this->processor->formrow->package != '') {
-                            $url .= '&pkg=' . urlencode($this->processor->formrow->package);
+                            $url .= '&pkg=' . urlencode((string) $this->processor->formrow->package);
                         }
                         if ($pane > 0) {
                             $url .= '&tabpane=' . $pane;

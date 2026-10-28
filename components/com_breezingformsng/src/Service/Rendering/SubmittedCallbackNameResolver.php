@@ -24,6 +24,7 @@ final class SubmittedCallbackNameResolver
     {
     }
 
+    /** @param \stdClass $form */
     public function resolve(object $form): string
     {
         switch ($form->script2cond) {

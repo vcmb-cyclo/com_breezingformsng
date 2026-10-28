@@ -435,7 +435,7 @@ final class CodeToolsRuntime
                         $this->processor->traceMode |= _FF_TRACEMODE_DIRECT;
                         $html = ob_get_contents();
                         ob_end_clean();
-                        echo '<pre>' . htmlspecialchars($html, ENT_QUOTES);
+                        echo '<pre>' . htmlspecialchars((string) $html, ENT_QUOTES);
                         ob_start();
                     } // if
                 } else

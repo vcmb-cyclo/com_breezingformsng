@@ -20,7 +20,8 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering;
 final class CaptchaValidationRowSelector
 {
     /**
-     * @param array<int, object> $rows
+     * @param array<int, \stdClass> $rows
+     * @return \stdClass|null
      */
     public function select(array $rows, int $rowCount): ?object
     {

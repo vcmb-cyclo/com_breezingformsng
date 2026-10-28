@@ -46,7 +46,7 @@ class IntegratorModel extends BaseDatabaseModel
     }
 
     /**
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getItems(int $ruleId): array
     {
@@ -84,7 +84,7 @@ class IntegratorModel extends BaseDatabaseModel
     }
 
     /**
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getForms(string $filter = 'all'): array
     {
@@ -104,7 +104,7 @@ class IntegratorModel extends BaseDatabaseModel
     }
 
     /**
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getFormElements(int $formId): array
     {
@@ -176,7 +176,7 @@ class IntegratorModel extends BaseDatabaseModel
     }
 
     /**
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getCriteria(int $ruleId): array
     {
@@ -223,7 +223,7 @@ class IntegratorModel extends BaseDatabaseModel
     }
 
     /**
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getCriteriaJoomla(int $ruleId): array
     {
@@ -271,7 +271,7 @@ class IntegratorModel extends BaseDatabaseModel
     }
 
     /**
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getCriteriaFixed(int $ruleId): array
     {

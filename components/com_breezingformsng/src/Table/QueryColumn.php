@@ -122,14 +122,14 @@ final class QueryColumn
 			expstring($this->class2) . '&' .
 			expstring($this->class3) . '&' .
 			expstring($this->width) . '&' .
-			expstring($this->widthmd) . '&' .
-			expstring($this->thspan) . '&' .
-			expstring($this->thalign) . '&' .
-			expstring($this->thvalign) . '&' .
-			expstring($this->thwrap) . '&' .
-			expstring($this->align) . '&' .
-			expstring($this->valign) . '&' .
-			expstring($this->wrap) . '&' .
+			expstring((string) $this->widthmd) . '&' .
+			expstring((string) $this->thspan) . '&' .
+			expstring((string) $this->thalign) . '&' .
+			expstring((string) $this->thvalign) . '&' .
+			expstring((string) $this->thwrap) . '&' .
+			expstring((string) $this->align) . '&' .
+			expstring((string) $this->valign) . '&' .
+			expstring((string) $this->wrap) . '&' .
 			expstring($this->value);
 	} // pack
 

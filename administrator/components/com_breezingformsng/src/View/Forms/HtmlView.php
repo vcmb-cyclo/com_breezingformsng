@@ -24,7 +24,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\FormsModel;
 
 class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView
 {
-    /** @var object[] */
+    /** @var list<\stdClass> */
     public array $items = [];
     public ?Pagination $pagination = null;
     public ?Registry $state = null;
@@ -33,17 +33,17 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
     public array $activeFilters = [];
     public string $pkg = '';
     public ?\stdClass $form     = null;
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array      $initScripts = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array      $submittedScripts = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array      $pieceBefore = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array      $pieceAfter  = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array      $pieceBeginSubmit = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array      $pieceEndSubmit   = [];
 
     public function display($tpl = null): void

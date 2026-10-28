@@ -23,7 +23,7 @@ final class FormElementLoader
     }
 
     /**
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function loadPublished(int $formId): array
     {

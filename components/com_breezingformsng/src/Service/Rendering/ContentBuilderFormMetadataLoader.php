@@ -16,6 +16,7 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering;
 
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
+use Joomla\Database\QueryInterface;
 
 /** Loads the associated and selected ContentBuilder form metadata. */
 final class ContentBuilderFormMetadataLoader
@@ -52,6 +53,7 @@ final class ContentBuilderFormMetadataLoader
 
     /**
      * @param string|array<string> $select
+     * @return QueryInterface
      */
     private function formsQuery(string|array $select): object
     {

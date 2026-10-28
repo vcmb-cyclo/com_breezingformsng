@@ -247,7 +247,7 @@ class HTML_facileFormsProcessor
     public $page = null;     // page id
     /** @var int|string|null */
     public $target = null;     // target form name
-    /** @var list<object>|null */
+    /** @var list<\stdClass>|null */
     public $rows = null;     // element rows
     /** @var int|null */
     public $rowcount = null;     // # of element rows
@@ -283,7 +283,7 @@ class HTML_facileFormsProcessor
     public $message = null;     // submit return message
     /** @var int|string|null */
     public $record_id = null;     // id of saved record
-    /** @var array<int, array<int, mixed>>|null */
+    /** @var list<array<int, mixed>>|null */
     public $submitdata = null;     // submitted data
     /** @var array<int, array<int, mixed>>|null */
     public $savedata = null;     // data for db save
@@ -303,7 +303,7 @@ class HTML_facileFormsProcessor
     public $showgrid = null;     // show grid in preview
     /** @var list<string>|null */
     public $findtags = null;     // tags to be replaced
-    /** @var list<int|string>|null */
+    /** @var list<string>|null */
     public $replacetags = null;     // tag replacements
     /** @var bool|null */
     public $dying = null;     // form is dying
@@ -360,7 +360,7 @@ class HTML_facileFormsProcessor
 
     /**
      * @param string $path
-     * @param list<object> $rows
+     * @param list<\stdClass> $rows
      * @param string $fieldName
      * @return string
      */
@@ -659,8 +659,8 @@ class HTML_facileFormsProcessor
     }
 
     /**
-     * @param object $elem
-     * @param object $coldef
+     * @param \stdClass $elem
+     * @param \Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn $coldef
      * @return null
      */
     public function compileQueryCol(&$elem, &$coldef)
@@ -670,9 +670,9 @@ class HTML_facileFormsProcessor
 
     /**
      * @param string $code
-     * @param object $elem
+     * @param \stdClass $elem
      * @param object $row
-     * @param object $coldef
+     * @param \Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn $coldef
      * @param mixed $value
      * @return mixed
      */
@@ -682,9 +682,9 @@ class HTML_facileFormsProcessor
     }
 
     /**
-     * @param object $elem
+     * @param \stdClass $elem
      * @param array<int, mixed> $valrows
-     * @param array<int, object> $coldefs
+     * @param list<\Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn> $coldefs
      * @return null
      */
     public function execQuery(&$elem, &$valrows, &$coldefs)
@@ -693,7 +693,7 @@ class HTML_facileFormsProcessor
     }
 
     /**
-     * @param object $row
+     * @param \stdClass $row
      * @return string
      */
     public function script2clause(&$row)
@@ -994,7 +994,7 @@ class HTML_facileFormsProcessor
      * @param mixed $destination_width
      * @param mixed $destination_height
      * @param mixed $type
-     * @param mixed $bgcolor
+     * @param list<int> $bgcolor
      * @return mixed
      */
     public function resize_image($source_image, $destination_width, $destination_height, $type = 0, $bgcolor = [0, 0, 0])

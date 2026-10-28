@@ -71,6 +71,9 @@ final class RecordImporter
             }
 
             $handle = fopen('php://temp', 'w+b');
+            if ($handle === false) {
+                throw new \RuntimeException('Unable to open a temporary stream for the CSV input.');
+            }
             fwrite($handle, $converted);
             rewind($handle);
         }
@@ -157,7 +160,7 @@ final class RecordImporter
                     ),
                 ];
                 $db->insertObject('#__facileforms_records', $record, 'id');
-                $recordId = (int) $record->id;
+                $recordId = $record instanceof \stdClass ? (int) $record->id : 0;
 
                 foreach ($header as $index => $fieldName) {
                     if (in_array($normalizedHeader[$index], $fixedHeaders, true)) {

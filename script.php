@@ -923,7 +923,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $installer = is_object($parent) && method_exists($parent, 'getParent')
             ? $parent->getParent()
             : null;
-        $manifest = $installer && method_exists($installer, 'getManifest')
+        $manifest = $installer instanceof Installer
             ? $installer->getManifest()
             : null;
 
@@ -1078,9 +1078,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     {
         try {
             $db = Factory::getContainer()->get(DatabaseInterface::class);
-            $serverType = method_exists($db, 'getServerType') ? (string) $db->getServerType() : 'database';
-            $version = method_exists($db, 'getVersion') ? trim((string) $db->getVersion()) : '';
-            $prefix = method_exists($db, 'getPrefix') ? (string) $db->getPrefix() : '';
+            $serverType = $db instanceof DatabaseInterface ? (string) $db->getServerType() : 'database';
+            $version = $db instanceof DatabaseInterface ? trim((string) $db->getVersion()) : '';
+            $prefix = $db instanceof DatabaseInterface ? (string) $db->getPrefix() : '';
 
             $this->checkDatabaseSessionCharset($db);
 
@@ -1158,7 +1158,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         try {
             $cacheFactory = Factory::getContainer()->get(CacheControllerFactoryInterface::class);
 
-            if (is_object($cacheFactory)) {
+            if ($cacheFactory instanceof CacheControllerFactoryInterface) {
                 foreach ($cacheGroups as $group) {
                     try {
                         $cacheFactory->createCacheController('callback', [
@@ -1592,7 +1592,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $query = $db->createQuery()
                     ->insert($db->quoteName('#__content_types'))
                     ->columns($db->quoteName(['type_alias', ...array_keys($values)]))
-                    ->values(implode(',', array_map([$db, 'quote'], [$alias, ...array_values($values)])));
+                    ->values(implode(',', array_map(
+                        static fn ($value): string => $db->quote((string) $value),
+                        [$alias, ...array_values($values)]
+                    )));
             }
 
             $db->setQuery($query)->execute();
@@ -1661,9 +1664,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $ids = \Vcmb\Component\BreezingformsNG\Administrator\Service\VersionOrigin::missing(
                     $db,
                     'com_breezingformsng.' . strtolower($name),
-                    array_map('intval', $db->setQuery(
+                    array_values(array_map('intval', $db->setQuery(
                         $db->createQuery()->select($db->quoteName('id'))->from($db->quoteName($table))
-                    )->loadColumn())
+                    )->loadColumn()))
                 );
 
                 foreach ($ids as $id) {
@@ -2039,6 +2042,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
     }
 
+    /**
+     * @param \stdClass $row
+     * @return ?\stdClass
+     */
     private function menuAliasCollision(DatabaseInterface $db, object $row, string $alias): ?object
     {
         $id = (int) $row->id;
@@ -3312,6 +3319,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->log('BreezingForms database update completed.');
     }
 
+    /**
+     * @param \stdClass $column
+     */
     private static function columnDefinitionMatches(
         object $column,
         string $type,

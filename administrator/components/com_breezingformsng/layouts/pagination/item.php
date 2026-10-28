@@ -42,7 +42,7 @@ $pageLink = static function (array $page, string $icon = '', string $aria = ''):
         return sprintf('<li class="page-item"><a aria-label="%s" href="%s" class="page-link">%s</a></li>', $aria, $item->link, $display);
     }
 
-    if (!empty($item->active)) {
+    if ($item->active) {
         return sprintf(
             '<li class="active page-item"><a aria-current="true" aria-label="%s" href="#" class="page-link">%s</a></li>',
             Text::sprintf('JLIB_HTML_PAGE_CURRENT', strtolower($item->text)),

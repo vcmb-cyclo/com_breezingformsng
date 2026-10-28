@@ -180,7 +180,7 @@ class FormOptionsModel extends BaseDatabaseModel
 
             $q = $db->createQuery()->update($db->quoteName('#__facileforms_forms'));
             foreach ($sets as $col => $val) {
-                $q->set($db->quoteName($col) . ' = ' . $db->quote($val));
+                $q->set($db->quoteName($col) . ' = ' . $db->quote((string) $val));
             }
             $q->set($db->quoteName('modified') . ' = ' . $db->quote($now));
             $q->set($db->quoteName('modified_by') . ' = ' . $db->quote($uid));
@@ -195,12 +195,12 @@ class FormOptionsModel extends BaseDatabaseModel
             $q = $db->createQuery()
                 ->insert($db->quoteName('#__facileforms_forms'))
                 ->columns(array_map(fn($c) => $db->quoteName($c), array_keys($sets)))
-                ->values(implode(',', array_map(fn($v) => $db->quote($v), array_values($sets))));
+                ->values(implode(',', array_map(fn($v) => $db->quote((string) $v), array_values($sets))));
             $db->setQuery($q)->execute();
             $id = (int) $db->insertid();
         }
 
-        $this->reorder($sets['package'] ?? '');
+        $this->reorder((string) ($sets['package'] ?? ''));
 
         PluginHelper::importPlugin('breezingforms_addons');
         $this->getDispatcher()

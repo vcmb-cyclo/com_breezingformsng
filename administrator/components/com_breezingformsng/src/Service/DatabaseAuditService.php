@@ -703,7 +703,7 @@ final class DatabaseAuditService
             $link = trim((string) ($menu['link'] ?? ''));
             $linkQuery = [];
             parse_str((string) parse_url($link, PHP_URL_QUERY), $linkQuery);
-            $option = (string) ($linkQuery['option'] ?? '');
+            $option = is_string($linkQuery['option'] ?? null) ? $linkQuery['option'] : '';
             $menuIssues = [];
             $formName = '';
 
@@ -966,13 +966,13 @@ final class DatabaseAuditService
             return [];
         }
 
-        return array_map(static fn (array $row): array => [
+        return array_values(array_map(static fn (array $row): array => [
             'id' => (int) ($row['id'] ?? 0),
             'name' => trim((string) ($row['name'] ?? '')),
             'title' => trim((string) ($row['title'] ?? '')),
             'package' => trim((string) ($row['package'] ?? '')),
             'published' => (int) ($row['published'] ?? 0),
-        ], $rows);
+        ], $rows));
     }
 
     /**
@@ -1014,11 +1014,11 @@ final class DatabaseAuditService
             return [];
         }
 
-        return array_map(static fn (array $row): array => [
+        return array_values(array_map(static fn (array $row): array => [
             'form' => (int) ($row['form'] ?? 0),
             'name' => trim((string) ($row['name'] ?? '')),
             'count' => (int) ($row['record_count'] ?? 0),
-        ], $rows);
+        ], $rows));
     }
 
     private function addError(string $message): void

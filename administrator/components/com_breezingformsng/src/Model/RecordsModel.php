@@ -92,7 +92,7 @@ class RecordsModel extends ListModel
         $db = $this->getDatabase();
         $db->setQuery($this->getOrderedIdsQuery());
 
-        $recordIds = array_map('intval', $db->loadColumn());
+        $recordIds = array_values(array_map('intval', $db->loadColumn()));
         $position = array_search($recordId, $recordIds, true);
 
         $total = count($recordIds);

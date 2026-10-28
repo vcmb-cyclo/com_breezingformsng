@@ -54,17 +54,17 @@ class HtmlView extends BaseHtmlView
     public ?Editor $advancedOptionsEditor = null;
     /** @var array<string, int> */
     public array $advancedOptionsTabEntryCounts = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array $advancedOptionsInitScripts = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array $advancedOptionsSubmittedScripts = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array $advancedOptionsPieceBefore = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array $advancedOptionsPieceAfter = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array $advancedOptionsPieceBeginSubmit = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array $advancedOptionsPieceEndSubmit = [];
 
     public function display($tpl = null): void

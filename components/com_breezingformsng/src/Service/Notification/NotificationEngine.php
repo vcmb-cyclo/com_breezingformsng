@@ -177,7 +177,7 @@ final class NotificationEngine
 
         $subject = Text::_('COM_BREEZINGFORMSNG_PROCESS_FORMRECRECEIVED');
         if ($this->processor->formrow->custom_mail_subject != '') {
-            $subject = $this->processor->formrow->custom_mail_subject;
+            $subject = (string) $this->processor->formrow->custom_mail_subject;
         }
         $body = '';
         $isHtml = false;
@@ -186,7 +186,7 @@ final class NotificationEngine
 
             $template = $this->mailTemplateResolver()->resolve(
                 JPATH_SITE . '/media/breezingforms/mailtpl',
-                $this->processor->formrow->name,
+                (string) $this->processor->formrow->name,
                 '',
                 'mailtpl'
             );
@@ -291,7 +291,7 @@ final class NotificationEngine
             }
         } else {
 
-            $body = $this->processor->formrow->email_custom_template;
+            $body = (string) $this->processor->formrow->email_custom_template;
 
             $RECORD_ID = '';
             if ($this->processor->record_id != '') {
@@ -299,8 +299,8 @@ final class NotificationEngine
             }
 
             $FORM = (string) $this->processor->form;
-            $TITLE = $this->processor->formrow->title;
-            $FORMNAME = $this->processor->formrow->name;
+            $TITLE = (string) $this->processor->formrow->title;
+            $FORMNAME = (string) $this->processor->formrow->name;
             $SUBMITTED = $this->formattedNotificationTimestamp();
 
             $IP = $this->processor->ip;
@@ -623,7 +623,7 @@ final class NotificationEngine
      */
     function getFormTitleTranslated()
     {
-        if (trim($this->processor->formrow->template_code_processed) == 'QuickMode') {
+        if (trim((string) $this->processor->formrow->template_code_processed) == 'QuickMode') {
             $dataObject = json_decode(bf_b64dec($this->processor->formrow->template_code), true);
             $default = ComponentHelper::getParams('com_languages')->get('site');
 
@@ -653,7 +653,7 @@ final class NotificationEngine
             return;
         }
 
-        if (trim($this->processor->formrow->template_code_processed) != 'QuickMode') {
+        if (trim((string) $this->processor->formrow->template_code_processed) != 'QuickMode') {
             return;
         }
 
@@ -805,15 +805,15 @@ final class NotificationEngine
 
         $subject = Text::_('COM_BREEZINGFORMSNG_PROCESS_FORMRECRECEIVED');
         if ($this->processor->formrow->mb_custom_mail_subject != '') {
-            $subject = $this->processor->formrow->mb_custom_mail_subject;
+            $subject = (string) $this->processor->formrow->mb_custom_mail_subject;
         }
 
         $body = '';
         $isHtml = false;
         $filter = array();
 
-        $areas = json_decode($this->processor->formrow->template_areas, true);
-        if (trim($this->processor->formrow->template_code_processed) == 'QuickMode' && is_array($areas)) {
+        $areas = json_decode((string) $this->processor->formrow->template_areas, true);
+        if (trim((string) $this->processor->formrow->template_code_processed) == 'QuickMode' && is_array($areas)) {
             foreach ($areas as $area) { // don't worry, size is only 1 in QM
                 if (isset($area['elements'])) {
                     foreach ($area['elements'] as $element) {
@@ -916,7 +916,7 @@ final class NotificationEngine
 
             $template = $this->mailTemplateResolver()->resolve(
                 JPATH_SITE . '/media/breezingforms/mailtpl',
-                $this->processor->formrow->name,
+                (string) $this->processor->formrow->name,
                 '_mailback',
                 'mailbacktpl'
             );
@@ -1044,7 +1044,7 @@ final class NotificationEngine
             }
         } else {
 
-            $body = $this->processor->formrow->mb_email_custom_template;
+            $body = (string) $this->processor->formrow->mb_email_custom_template;
 
             $RECORD_ID = '';
             if ($this->processor->record_id != '') {
@@ -1055,8 +1055,8 @@ final class NotificationEngine
 
             $form_title_translated = $this->getFormTitleTranslated();
 
-            $TITLE = $form_title_translated != '' ? $form_title_translated : $this->processor->formrow->title;
-            $FORMNAME = $this->processor->formrow->name;
+            $TITLE = $form_title_translated != '' ? $form_title_translated : (string) $this->processor->formrow->title;
+            $FORMNAME = (string) $this->processor->formrow->name;
             $SUBMITTED = $this->formattedNotificationTimestamp();
 
             $IP = $this->processor->ip;
@@ -1272,7 +1272,8 @@ final class NotificationEngine
 
         try {
             $fields = array();
-            $this->processor->formrow->salesforce_fields = explode(',', $this->processor->formrow->salesforce_fields);
+            $salesforceFields = $this->processor->formrow->salesforce_fields;
+            $this->processor->formrow->salesforce_fields = is_array($salesforceFields) ? $salesforceFields : explode(',', (string) $salesforceFields);
 
             foreach ($this->processor->formrow->salesforce_fields as $sfields) {
                 foreach ($this->processor->sfdata as $savedata) {
@@ -1310,21 +1311,21 @@ final class NotificationEngine
     function sendMailChimpNotification()
     {
 
-        if (trim($this->processor->formrow->mailchimp_email_field) != '' && trim($this->processor->formrow->mailchimp_api_key) != '' && trim($this->processor->formrow->mailchimp_list_id) != '' && count($this->processor->maildata)) {
+        if (trim((string) $this->processor->formrow->mailchimp_email_field) != '' && trim((string) $this->processor->formrow->mailchimp_api_key) != '' && trim((string) $this->processor->formrow->mailchimp_list_id) != '' && count($this->processor->maildata)) {
 
             $email = '';
             $htmlTextMobile = 'text';
             $checked = true;
             $unsubscribe = false;
             $mergeVars = array();
-            $htmlTextMobileField = trim($this->processor->formrow->mailchimp_text_html_mobile_field);
-            $checkboxField = trim($this->processor->formrow->mailchimp_checkbox_field);
-            $unsubscribeField = trim($this->processor->formrow->mailchimp_unsubscribe_field);
-            $emailField = trim($this->processor->formrow->mailchimp_email_field);
-            $mergeVarFields = explode(',', str_replace(' ', '', $this->processor->formrow->mailchimp_mergevars));
+            $htmlTextMobileField = trim((string) $this->processor->formrow->mailchimp_text_html_mobile_field);
+            $checkboxField = trim((string) $this->processor->formrow->mailchimp_checkbox_field);
+            $unsubscribeField = trim((string) $this->processor->formrow->mailchimp_unsubscribe_field);
+            $emailField = trim((string) $this->processor->formrow->mailchimp_email_field);
+            $mergeVarFields = explode(',', str_replace(' ', '', (string) $this->processor->formrow->mailchimp_mergevars));
             $api = new MailchimpClient();
             $apiKey = trim((string) $this->processor->formrow->mailchimp_api_key);
-            $list_ids = explode(',', trim($this->processor->formrow->mailchimp_list_id));
+            $list_ids = explode(',', trim((string) $this->processor->formrow->mailchimp_list_id));
 
             if ($checkboxField != '') {
                 $box = $this->processor->app->getInput()->get('ff_nm_' . $checkboxField, array(''), 'string');

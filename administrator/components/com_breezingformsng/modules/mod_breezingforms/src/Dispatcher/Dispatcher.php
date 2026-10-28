@@ -28,11 +28,14 @@ use RuntimeException;
 final class Dispatcher extends AbstractModuleDispatcher
 {
     /**
-     * @return array<string, mixed>
+     * @return array<string, mixed>|false
      */
-    protected function getLayoutData(): array
+    protected function getLayoutData(): array|false
     {
         $data = parent::getLayoutData();
+        if ($data === false) {
+            return false;
+        }
         $data['form'] = $this->renderForm($data['params']);
 
         return $data;
@@ -90,13 +93,14 @@ final class Dispatcher extends AbstractModuleDispatcher
 
         $original = [];
         foreach (array_keys($input->getArray()) as $key) {
+            $key = (string) $key;
             $original[$key] = $input->get($key, null, 'raw');
             if (!$isTarget && str_starts_with($key, 'ff_param_')) {
                 $values[$key] = null;
             }
         }
         foreach ($values as $key => $value) {
-            $input->set($key, $value);
+            $input->set((string) $key, $value);
         }
         $ff_applic = 'mod_facileforms';
         $xModuleId = (int) $this->module->id;
@@ -111,7 +115,7 @@ final class Dispatcher extends AbstractModuleDispatcher
                 ob_end_clean();
             }
             foreach ($values as $key => $value) {
-                $input->set($key, $original[$key] ?? null);
+                $input->set((string) $key, $original[$key] ?? null);
             }
         }
     }

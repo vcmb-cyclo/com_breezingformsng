@@ -98,7 +98,7 @@ class FormsModel extends ListModel
     }
 
     /**
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getScripts(string $type): array
     {
@@ -114,7 +114,7 @@ class FormsModel extends ListModel
     }
 
     /**
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getPieces(string $type): array
     {

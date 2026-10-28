@@ -167,7 +167,8 @@ use Joomla\CMS\Language\Text;
                                                     $folder = 'themes-bootstrap5';
                                                     $themesbootstrap_path = JPATH_SITE . '/media/breezingforms/' . $folder . '/' . $themeboostrapfolder . '/';
                                                     if (is_dir($themesbootstrap_path) && file_exists($themesbootstrap_path . 'vars.txt')) {
-                                                        $varscontent = htmlentities(file_get_contents($themesbootstrap_path . 'vars.txt'), ENT_QUOTES, 'UTF-8');
+                                                        $varsfile = file_get_contents($themesbootstrap_path . 'vars.txt');
+                                                        $varscontent = $varsfile !== false ? htmlentities($varsfile, ENT_QUOTES, 'UTF-8') : '';
                                                         if ($varscontent) {
                                                             echo '<br/>
                                                                 <div class="bfPropertyWrap bfng-field">

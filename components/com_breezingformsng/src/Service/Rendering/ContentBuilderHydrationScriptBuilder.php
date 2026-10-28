@@ -26,8 +26,8 @@ final class ContentBuilderHydrationScriptBuilder
     }
 
     /**
-     * @param iterable<object> $records
-     * @param list<int|string> $nonEditableFields
+     * @param iterable<\stdClass> $records
+     * @param array<int|string> $nonEditableFields
      * @return array{contentBuilderScript: string, javascript: string}
      */
     public function buildEditable(
@@ -152,7 +152,7 @@ final class ContentBuilderHydrationScriptBuilder
     /**
      * Build the function body used to deactivate the supplied field IDs.
      *
-     * @param list<int|string> $fieldIds
+     * @param array<int|string> $fieldIds
      */
     public function buildReadonly(array $fieldIds): string
     {

@@ -85,7 +85,7 @@ class RecordsimportController extends BaseController
             $valid = false;
         }
 
-        if ($valid === false) {
+        if (!is_array($valid)) {
             unset($data['csv_file']);
             $this->app->setUserState(self::DATA_STATE, $data);
             $this->setRedirect(Route::_(self::FORM_URL, false));

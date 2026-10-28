@@ -191,8 +191,8 @@ final class ScriptingEngine
     // replaceCode
 
     /**
-     * @param object $elem
-     * @param object $coldef
+     * @param \stdClass $elem
+     * @param \Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn $coldef
      * @return mixed
      */
     function compileQueryCol(&$elem, &$coldef)
@@ -245,9 +245,9 @@ final class ScriptingEngine
 
     /**
      * @param string $code
-     * @param object $elem
+     * @param \stdClass $elem
      * @param object $row
-     * @param object $coldef
+     * @param \Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn $coldef
      * @param mixed $value
      * @return mixed
      */
@@ -274,9 +274,9 @@ final class ScriptingEngine
     // execQueryValue
 
     /**
-     * @param object $elem
+     * @param \stdClass $elem
      * @param array<int, mixed> $valrows
-     * @param array<int, object> $coldefs
+     * @param list<\Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn> $coldefs
      * @return mixed
      */
     function execQuery(&$elem, &$valrows, &$coldefs)
@@ -340,7 +340,7 @@ final class ScriptingEngine
     // execQuery
 
     /**
-     * @param object $row
+     * @param \stdClass $row
      * @return string
      */
     function script2clause(&$row)

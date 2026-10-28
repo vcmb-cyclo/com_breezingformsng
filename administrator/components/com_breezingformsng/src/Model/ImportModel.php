@@ -187,9 +187,10 @@ class ImportModel extends BaseDatabaseModel
 
         $row = (object) $item;
         $this->db->insertObject($table, $row, 'id');
-        $items->recordVersion((int) $row->id);
+        $rowId = $row instanceof \stdClass ? (int) $row->id : 0;
+        $items->recordVersion($rowId);
 
-        $touched[] = (int) $row->id;
+        $touched[] = $rowId;
 
         if (!\in_array($item['name'], $created, true)) {
             $created[] = $item['name'];

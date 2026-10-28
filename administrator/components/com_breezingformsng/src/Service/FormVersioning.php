@@ -191,13 +191,13 @@ final class FormVersioning
     {
         $db = $this->db;
 
-        return array_map('intval', $db->setQuery(
+        return array_values(array_map('intval', $db->setQuery(
             $db->createQuery()
                 ->select($db->quoteName('id'))
                 ->from($db->quoteName('#__facileforms_elements'))
                 ->where($db->quoteName('form') . ' = :form')
                 ->bind(':form', $formId, ParameterType::INTEGER)
-        )->loadColumn());
+        )->loadColumn()));
     }
 
     /**

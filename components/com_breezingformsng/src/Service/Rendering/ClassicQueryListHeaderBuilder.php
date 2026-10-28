@@ -14,15 +14,17 @@ declare(strict_types=1);
 
 namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering;
 
+use Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn;
+
 /**
  * Builds the header row of a classic Query List table.
  */
 final class ClassicQueryListHeaderBuilder
 {
     /**
-     * @param iterable<object> $columns
+     * @param iterable<QueryColumn> $columns
      * @param callable(string): string $classResolver
-     * @param callable(object): string $titleResolver
+     * @param callable(QueryColumn): string $titleResolver
      */
     public function build(
         iterable $columns,
@@ -69,7 +71,7 @@ final class ClassicQueryListHeaderBuilder
             }
             if ($column->thspan > 1) {
                 $attributes .= ' colspan="' . $column->thspan . '"';
-                $skip = $column->thspan - 1;
+                $skip = (int) $column->thspan - 1;
             }
             if ($column->class1 !== '') {
                 $attributes .= ' class="' . $classResolver((string) $column->class1) . '"';

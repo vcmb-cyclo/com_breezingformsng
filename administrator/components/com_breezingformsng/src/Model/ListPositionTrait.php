@@ -36,7 +36,8 @@ trait ListPositionTrait
      */
     public function getPosition(int $itemId): ?array
     {
-        $ids = array_map('intval', $this->getDatabase()->setQuery($this->getOrderedIdsQuery())->loadColumn());
+        $ids = $this->getDatabase()->setQuery($this->getOrderedIdsQuery())->loadColumn();
+        $ids = array_values(array_map('intval', $ids));
         $position = array_search($itemId, $ids, true);
 
         return $position !== false ? ['position' => $position + 1, 'total' => count($ids)] : null;

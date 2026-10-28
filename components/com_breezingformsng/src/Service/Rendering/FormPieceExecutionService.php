@@ -28,6 +28,7 @@ final class FormPieceExecutionService
     ) {
     }
 
+    /** @param \stdClass $form */
     public function executeBefore(object $form, string $libraryLabel, string $customLabel, int $formId): bool
     {
         switch ($form->piece1cond) {
@@ -50,6 +51,7 @@ final class FormPieceExecutionService
         return $this->processor->bury();
     }
 
+    /** @param \stdClass $form */
     public function executeAfter(object $form, string $libraryLabel, string $customLabel, int $formId): bool
     {
         switch ($form->piece2cond) {

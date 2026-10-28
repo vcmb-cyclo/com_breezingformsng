@@ -1106,9 +1106,9 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
 
             if ($this->rootMdata['themebootstrap'] != '' && $this->rootMdata['themebootstrap'] != 'none' && file_exists($themecss_path)) {
                 if (file_exists($vars_path)) {
-                    $vars = file_get_contents($vars_path);
+                    $vars = (string) file_get_contents($vars_path);
                 }
-                $themecss = file_get_contents($themecss_path);
+                $themecss = (string) file_get_contents($themecss_path);
                 if (file_exists($scriptphp_path)) {
                     require_once($scriptphp_path);
                 }

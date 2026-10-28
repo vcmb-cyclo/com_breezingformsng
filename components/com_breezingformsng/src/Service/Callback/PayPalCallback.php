@@ -206,7 +206,7 @@ final class PayPalCallback
                         } elseif ($record->paypal_tx_id === '') {
 
                                 $paypalTxId = 'PayPal: ' . $tx_token;
-                                $paymentDate = date('Y-m-d H:i:s', strtotime($keyarray["payment_date"]));
+                                $paymentDate = date('Y-m-d H:i:s', (int) strtotime($keyarray["payment_date"]));
                                 $testaccount = $options['testaccount'] ? 1 : 0;
                                 $this->paymentRecordService->storeTransaction(
                                     $recordId,

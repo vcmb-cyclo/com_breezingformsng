@@ -267,6 +267,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                             if (itemType !== 'root') {
                                 menuItems.remove = {
                                     label: 'Delete',
+                                    icon: 'icon-trash',
                                     action: function () {
                                         appScope.selectedTreeElement = null;
                                         appScope.deleteDataObjectItem(node.id, appScope.dataObject);

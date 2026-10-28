@@ -78,7 +78,7 @@ class RecordModel extends AdminModel
     }
 
     /**
-     * @return list<array<string, mixed>>
+     * @return list<array{id: int|string, name: string, title: string, type: string}>
      */
     public function getEditableElements(int $formId): array
     {
@@ -407,7 +407,9 @@ class RecordModel extends AdminModel
      */
     protected function canDelete($record)
     {
-        return (int) $record->state === RecordState::TRASHED && parent::canDelete($record);
+        return $record instanceof \stdClass
+            && (int) $record->state === RecordState::TRASHED
+            && parent::canDelete($record);
     }
 
     /**
@@ -547,10 +549,10 @@ class RecordModel extends AdminModel
             ->from($db->quoteName('#__facileforms_records'))
             ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
 
-        return array_map(
+        return array_values(array_map(
             static fn (array $row): array => ['id' => (int) $row['id'], 'form' => (int) $row['form'], 'state' => (int) $row['state']],
             $db->setQuery($query)->loadAssocList()
-        );
+        ));
     }
 
     /**
@@ -628,7 +630,7 @@ class RecordModel extends AdminModel
     }
 
     /**
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getSubrecords(int $recordId): array
     {
@@ -639,7 +641,7 @@ class RecordModel extends AdminModel
      * Load subrecords for a bounded set of records in one query.
      *
      * @param list<int> $recordIds
-     * @return array<int, list<object>>
+     * @return array<int, list<\stdClass>>
      */
     public function getSubrecordsByRecordIds(array $recordIds): array
     {

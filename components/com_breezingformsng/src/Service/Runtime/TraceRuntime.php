@@ -238,7 +238,7 @@ final class TraceRuntime
         if ($this->processor->traceMode & _FF_TRACEMODE_DIRECT) {
             $html = ob_get_contents();
             ob_end_clean();
-            echo htmlspecialchars($html, ENT_QUOTES) . $this->processor->traceBuffer;
+            echo htmlspecialchars((string) $html, ENT_QUOTES) . $this->processor->traceBuffer;
             ob_start();
             $this->processor->traceBuffer = null;
             return;

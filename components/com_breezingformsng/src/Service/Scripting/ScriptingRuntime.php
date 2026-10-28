@@ -67,6 +67,10 @@ final class ScriptingRuntime
         return $this->phpExecutor->executePiece($processor, $code, $name, $type, $id, $pane);
     }
 
+    /**
+     * @param \stdClass $elem
+     * @param \Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn $coldef
+     */
     public function executeQueryValue(
         object $processor,
         string $code,
@@ -79,8 +83,9 @@ final class ScriptingRuntime
     }
 
     /**
+     * @param \stdClass $elem
      * @param array<int, mixed> $valrows
-     * @param array<int, object> $coldefs
+     * @param list<\Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn> $coldefs
      *
      * @return array<int, object>
      */

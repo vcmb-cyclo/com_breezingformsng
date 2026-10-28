@@ -30,7 +30,7 @@ class RecordsExportModel extends BaseDatabaseModel
      *
      * @param int[] $ids
      *
-     * @return object[]
+     * @return list<\stdClass>
      */
     public function getRecords(array $ids, int $formSelection, string $stateFilter): array
     {
@@ -99,7 +99,7 @@ class RecordsExportModel extends BaseDatabaseModel
      *
      * @param int[] $formIds
      *
-     * @return object[]
+     * @return list<\stdClass>
      */
     public function getElementFields(array $formIds): array
     {

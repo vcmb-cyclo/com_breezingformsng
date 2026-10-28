@@ -79,7 +79,10 @@ final class ExportEngine
         if ($this->processor->dying)
             return;
 
-        if (!is_object($cbResult['form']) && $this->processor->editable && $this->processor->editable_override) {
+        /** @var \CB\Component\Contentbuilderng\Administrator\types\contentbuilderng_com_breezingformsng|\CB\Component\Contentbuilderng\Administrator\types\contentbuilderng_com_contentbuilderng|null $cbForm */
+        $cbForm = $cbResult['form'] ?? null;
+
+        if (!is_object($cbForm) && $this->processor->editable && $this->processor->editable_override) {
             $editableFormValue = $this->processor->form;
             $editableUserId = $this->processor->app->getIdentity()->get('id', 0);
             $recordsQuery = $this->processor->database->createQuery()
@@ -137,7 +140,7 @@ final class ExportEngine
         }
         // CONTENTBUILDER WILL TAKE OVER SAVING/UPDATE IF EXISTS
         $cbFileFields = array();
-        if (!is_object($cbResult['form'])) {
+        if (!is_object($cbForm)) {
             if (!$record->store()) {
                 $this->processor->status = _FF_STATUS_SAVERECORD_FAILED;
                 $this->processor->message = Text::_('COM_BREEZINGFORMSNG_PROCESS_SAVERECFAILED');
@@ -203,7 +206,7 @@ final class ExportEngine
             $cbData = array();
 
             // CONTENTBUILDER file deletion/upgrade
-            if (is_object($cbResult['form'])) {
+            if (is_object($cbForm)) {
 
                 $db = $this->processor->database;
                 $cbFormIdInput = $this->processor->app->getInput()->getInt('cb_form_id', 0);
@@ -216,7 +219,7 @@ final class ExportEngine
                 $db->setQuery($cbFormQuery);
                 $_settings = $db->loadObject();
 
-                $_record = $cbResult['form']->getRecord($this->processor->app->getInput()->getInt('record_id', 0), $_settings->published_only, $cbResult['frontend'] ? ($_settings->own_only_fe ? $this->processor->app->getIdentity()->get('id', 0) : -1) : ($_settings->own_only ? $this->processor->app->getIdentity()->get('id', 0) : -1), true);
+                $_record = $cbForm->getRecord($this->processor->app->getInput()->getInt('record_id', 0), $_settings->published_only, $cbResult['frontend'] ? ($_settings->own_only_fe ? $this->processor->app->getIdentity()->get('id', 0) : -1) : ($_settings->own_only ? $this->processor->app->getIdentity()->get('id', 0) : -1), true);
                 foreach ($_record as $_rec) {
                     $_files_deleted = array();
                     if ($_rec->recType == 'File Upload') {
@@ -274,7 +277,7 @@ final class ExportEngine
                 }
             }
             $_savedata = array();
-            if (!is_object($cbResult['form'])) {
+            if (!is_object($cbForm)) {
                 foreach ($this->processor->savedata as $data) {
                     if ($data[_FF_DATA_TYPE] == 'File Upload') {
                         if (!isset($_savedata[$data[_FF_DATA_ID]])) {
@@ -287,7 +290,7 @@ final class ExportEngine
             $isset = array();
             foreach ($this->processor->savedata as $data) {
                 // CONTENTBUILDER WILL TAKE OVER SAVING/UPDATE IF EXISTS
-                if (!is_object($cbResult['form'])) {
+                if (!is_object($cbForm)) {
         $subrecord->id = null;
                     $subrecord->element = $data[_FF_DATA_ID];
                     $subrecord->name = $data[_FF_DATA_NAME];
@@ -339,14 +342,14 @@ final class ExportEngine
                 }
             } // foreach
             // CONTENTBUILDER BEGIN
-            if (is_object($cbResult['form'])) {
+            if (is_object($cbForm)) {
 
                 PluginHelper::importPlugin('contentbuilderng_submit');
 
                 $is15 = false;
 
                 $values = array();
-                $names = $cbResult['form']->getAllElements();
+                $names = $cbForm->getAllElements();
 
                 foreach ($names as $id => $name) {
                     if (isset($cbData[$id])) {
@@ -363,12 +366,12 @@ final class ExportEngine
                 $dispatcher = $this->processor->app->getDispatcher();
                 $dispatcher->dispatch('onBeforeSubmit', new Event('onBeforeSubmit', array(
                     $this->processor->app->getInput()->getInt('cb_record_id', 0),
-                    $cbResult['form'],
+                    $cbForm,
                     $values
                 )
             ));
 
-                $record_return = $cbResult['form']->saveRecord($this->processor->app->getInput()->getInt('cb_record_id', 0), $values);
+                $record_return = $cbForm->saveRecord($this->processor->app->getInput()->getInt('cb_record_id', 0), $values);
 
                 $db = $this->processor->database;
                 $cbFormIdInput = $this->processor->app->getInput()->getInt('cb_form_id', 0);
@@ -379,6 +382,7 @@ final class ExportEngine
                     ->where($db->quoteName('published') . ' = 1')
                     ->bind(':cbFormIdInput', $cbFormIdInput, ParameterType::INTEGER);
                 $db->setQuery($cbFormQuery);
+                /** @var \stdClass|null $cbData */
                 $cbData = $db->loadObject();
 
                 if ($record_return) {
@@ -443,7 +447,7 @@ final class ExportEngine
                         $langSessionId = $this->processor->app->getSession()->getId();
                         $langType = 'com_breezingformsng';
                         $langPublished = $cbData->auto_publish && !$is_future ? 1 : 0;
-                        $langReferenceId = $cbResult['form']->getReferenceId();
+                        $langReferenceId = $cbForm->getReferenceId();
                         $langSefTrimmed = trim($sef);
                         $insertRecordQuery = $db->createQuery()
                             ->insert($db->quoteName('#__contentbuilderng_records'))
@@ -472,7 +476,7 @@ final class ExportEngine
                     } else {
 
                         $langType = 'com_breezingformsng';
-                        $langReferenceId = $cbResult['form']->getReferenceId();
+                        $langReferenceId = $cbForm->getReferenceId();
                         $langSefTrimmed = trim($sef);
                         $updateRecordQuery = $db->createQuery()
                             ->update($db->quoteName('#__contentbuilderng_records'))
@@ -511,8 +515,8 @@ final class ExportEngine
                         }
                     }
 
-                    $cbData->page_title = $cbData->use_view_name_as_title ? $cbData->name : $cbResult['form']->getPageTitle();
-                    $cbData->labels = $cbResult['form']->getElementLabels();
+                    $cbData->page_title = $cbData->use_view_name_as_title ? $cbData->name : $cbForm->getPageTitle();
+                    $cbData->labels = $cbForm->getElementLabels();
                     $ids = array();
                     foreach ($cbData->labels as $reference_id => $label) {
                         $ids[] = $reference_id;
@@ -535,7 +539,7 @@ final class ExportEngine
                             $ids[] = $row['reference_id'];
                         }
                     }
-                    $cbData->items = $cbResult['form']->getRecord($record_return, $cbData->published_only, $cbResult['frontend'] ? ($cbData->own_only_fe ? $this->processor->app->getIdentity()->get('id', 0) : -1) : ($cbData->own_only ? $this->processor->app->getIdentity()->get('id', 0) : -1), true);
+                    $cbData->items = $cbForm->getRecord($record_return, $cbData->published_only, $cbResult['frontend'] ? ($cbData->own_only_fe ? $this->processor->app->getIdentity()->get('id', 0) : -1) : ($cbData->own_only ? $this->processor->app->getIdentity()->get('id', 0) : -1), true);
                     if (!count($cbData->items)) {
                         throw new Exception(Text::_('COM_CONTENTBUILDERNG_RECORD_NOT_FOUND'), 404);
                     }
@@ -551,7 +555,7 @@ final class ExportEngine
                     if (!$contentBuilder instanceof ContentbuilderngComponent) {
                         throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
                     }
-                    $article_id = $contentBuilder->getContainer()->get(ArticleService::class)->createArticle($this->processor->app->getInput()->getInt('cb_form_id', 0), $record_return, $cbData->items, $ids, $cbData->title_field, $cbResult['form']->getRecordMetadata($record_return), $config, $full, true, $this->processor->app->getInput()->get('cb_category_id', null, 'string'));
+                    $article_id = $contentBuilder->getContainer()->get(ArticleService::class)->createArticle($this->processor->app->getInput()->getInt('cb_form_id', 0), $record_return, $cbData->items, $ids, $cbData->title_field, $cbForm->getRecordMetadata($record_return), $config, $full, true, $this->processor->app->getInput()->get('cb_category_id', null, 'string'));
 
                     $cacheFactory = $this->cacheControllerFactory;
                     $cache = $cacheFactory->createCacheController('callback', ['defaultgroup' => 'com_content']);
@@ -565,7 +569,7 @@ final class ExportEngine
                     array(
                         $record_return,
                         $article_id,
-                        $cbResult['form'],
+                        $cbForm,
                         $values
                     )
                 ));
@@ -745,7 +749,7 @@ final class ExportEngine
 
         ob_start();
         require($file);
-        $c = ob_get_contents();
+        $c = (string) ob_get_contents();
         ob_end_clean();
 
         $active_found = false;

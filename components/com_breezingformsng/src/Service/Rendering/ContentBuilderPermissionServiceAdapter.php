@@ -17,6 +17,9 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering;
 /** Adapts the ContentBuilder permission service to the BFNG rendering contract. */
 final class ContentBuilderPermissionServiceAdapter implements ContentBuilderPermissionGateway
 {
+    /**
+     * @param \CB\Component\Contentbuilderng\Administrator\Service\PermissionService $permissionService
+     */
     public function __construct(private readonly object $permissionService)
     {
     }
