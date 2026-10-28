@@ -238,7 +238,9 @@ function checkIdentifier(value, name)
 					if (startsLikeJson) {
 						try {
 							return JSON.parse(value);
-						} catch (e) {}
+						} catch (e) {
+							// Not JSON: read as a plain value below.
+						}
 					}
 					var quoted = (value.charAt(0) === '"' && value.charAt(value.length - 1) === '"') ||
 						(value.charAt(0) === "'" && value.charAt(value.length - 1) === "'");

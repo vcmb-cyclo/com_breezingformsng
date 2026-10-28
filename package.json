@@ -5,8 +5,10 @@
   "type": "module",
   "description": "CI tooling for BreezingForms NG",
   "scripts": {
-    "lint": "npm run lint:css",
+    "lint": "npm run lint:css && npm run lint:js && npm run lint:inline-scripts",
     "lint:css": "stylelint \"media/com_breezingformsng/css/**/*.css\"",
+    "lint:js": "eslint media/com_breezingformsng/js scripts tests/JavaScript tests/Browser eslint.config.mjs playwright.config.mjs stylelint.config.mjs",
+    "lint:inline-scripts": "node scripts/check-inline-scripts.mjs",
     "lint:css:fix": "stylelint \"media/com_breezingformsng/css/**/*.css\" --fix",
     "test:tree-model": "node --test tests/JavaScript/quickmode-tree-model.test.mjs",
     "test:browser": "playwright test"
@@ -15,7 +17,10 @@
     "node": ">=20.19.0"
   },
   "devDependencies": {
+    "@eslint/js": "9.39.5",
     "@playwright/test": "1.64.1",
+    "eslint": "9.39.5",
+    "globals": "17.13.0",
     "stylelint": "17.16.0",
     "stylelint-config-standard": "40.0.0"
   }

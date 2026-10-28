@@ -20,6 +20,15 @@ cleanup() {
         docker ps -a --filter "name=${web_container}" --filter "name=${db_container}" >&2 || true
         docker logs "${web_container}" >&2 || true
         docker logs "${db_container}" >&2 || true
+        # The Joomla logs hold the installer and component errors, among them
+        # breezingforms_install.log written by script.php.
+        docker exec "${web_container}" sh -c '
+            for log in /var/www/html/administrator/logs/*; do
+                [ -f "${log}" ] || continue
+                echo "===== ${log} (last 200 lines)"
+                tail -n 200 "${log}"
+            done
+        ' >&2 || true
     fi
 
     if [[ "${KEEP_SMOKE_CONTAINERS:-0}" == "1" ]]; then
@@ -112,14 +121,12 @@ if [[ -n "${contentbuilder_archive}" ]]; then
     docker exec -e HTTP_HOST=localhost "${web_container}" php /var/www/html/cli/joomla.php extension:install \
         --path="${contentbuilder_container_archive}" \
         --live-site=http://localhost \
-        --quiet \
         --no-interaction
 fi
 
 docker exec -e HTTP_HOST=localhost "${web_container}" php /var/www/html/cli/joomla.php extension:install \
     --path="${container_archive}" \
     --live-site=http://localhost \
-    --quiet \
     --no-interaction
 
 for theme_file in themes/default/theme.css themes/aqua/theme.css; do
@@ -418,7 +425,6 @@ docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "
 docker exec -e HTTP_HOST=localhost "${web_container}" php /var/www/html/cli/joomla.php extension:install \
     --path="${container_archive}" \
     --live-site=http://localhost \
-    --quiet \
     --no-interaction
 
 migrated_column_count="$(
