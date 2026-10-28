@@ -41,7 +41,7 @@ final class PackageLibraryUiRegressionTest extends TestCase
         self::assertStringContainsString('extends PackageItemModel', $this->read("{$admin}/src/Model/{$name}Model.php"));
         self::assertStringContainsString('extends PackageListController', $this->read("{$admin}/src/Controller/{$name}sController.php"));
         self::assertStringContainsString('extends PackageItemController', $this->read("{$admin}/src/Controller/{$name}Controller.php"));
-        self::assertStringContainsString("LayoutHelper::render('joomla.searchtools.default', ['view' => \$this])", $list);
+        self::assertStringContainsString("LayoutHelper::render('joomla.searchtools.default', ['view' => \$this, 'options' => ['selectorFieldName' => 'package']])", $list);
         self::assertStringContainsString('$this->pagination->getListFooter()', $list);
         self::assertStringContainsString("task={$view}.edit&id=", $list);
         self::assertStringContainsString("\$this->form->renderFieldset('details')", $edit);

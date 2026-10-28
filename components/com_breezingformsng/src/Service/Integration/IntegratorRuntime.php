@@ -30,12 +30,12 @@ class IntegratorRuntime
 {
     private ?StoredPhpExecutor $codeExecutorService = null;
 
-    /** @var array<int, list<object>> */
+    /** @var array<int, list<\stdClass>> */
     private array $itemsByRule = [];
 
     private DatabaseInterface $db;
 
-    /** @var array<int, array{rule: object, items: array<int, array<string, mixed>>}> */
+    /** @var list<array{rule: \stdClass, items: array<int, array<string, mixed>>}> */
     private $rules = array();
 
     /** @var array<string, array<mixed>> */
@@ -49,7 +49,7 @@ class IntegratorRuntime
 
     /**
      * @param int $formId
-     * @return array<int, array{rule: object, items: array<int, array<string, mixed>>}>
+     * @return list<array{rule: \stdClass, items: array<int, array<string, mixed>>}>
      */
     public function getRules($formId)
     {
@@ -74,13 +74,9 @@ class IntegratorRuntime
 
         $out = array();
         $rules = $db->setQuery($query)->loadObjectList();
-        $i = 0;
         if ($rules) {
             foreach ($rules as $rule) {
-                $out[$i]['rule'] = $rule;
-                $out[$i]['items'] = array();
-
-                $i++;
+                $out[] = ['rule' => $rule, 'items' => array()];
             }
         }
         return $out;
@@ -88,7 +84,7 @@ class IntegratorRuntime
 
     /**
      * @param int|string $ruleId
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getItems($ruleId)
     {
@@ -115,17 +111,15 @@ class IntegratorRuntime
 
         $out = array();
         $items = $db->setQuery($query)->loadObjectList();
-        $i = 0;
         foreach ($items as $item) {
-            $out[$i] = $item;
-            $i++;
+            $out[] = $item;
         }
         return $this->itemsByRule[$ruleId] = $out;
     }
 
     /**
      * @param int|string $ruleId
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getCriteria($ruleId)
     {
@@ -155,7 +149,7 @@ class IntegratorRuntime
 
     /**
      * @param int|string $ruleId
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getCriteriaJoomla($ruleId)
     {
@@ -173,7 +167,7 @@ class IntegratorRuntime
 
     /**
      * @param int|string $ruleId
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getCriteriaFixed($ruleId)
     {
@@ -196,8 +190,7 @@ class IntegratorRuntime
     public function field(array $data)
     {
         $this->data['data' . $data[_FF_DATA_ID]] = $data;
-        $i = 0;
-        foreach ($this->rules as $rule) {
+        foreach ($this->rules as $i => $rule) {
             $items = $this->getItems($rule['rule']->id);
             $j = 0;
             foreach ($items as $item) {
@@ -207,7 +200,6 @@ class IntegratorRuntime
                 }
                 $j++;
             }
-            $i++;
         }
     }
 
@@ -218,8 +210,9 @@ class IntegratorRuntime
      */
     public function handleCode($value, $code)
     {
-        if (trim($code) != '') {
-            $this->codeExecutor()->execute($this, $code, ['value' => $value]);
+        // The code of an item changes the value it writes, as in BreezingForms: $value = trim($value);
+        if (trim((string) $code) != '') {
+            $this->codeExecutor()->execute($this, $code, ['value' => &$value]);
         }
         return $value;
     }
@@ -283,7 +276,7 @@ class IntegratorRuntime
     }
 
     /**
-     * @param array{rule: object, items: array<int, array<string, mixed>>} $rule
+     * @param array{rule: \stdClass, items: array<int, array<string, mixed>>} $rule
      */
     private function commitInsert(array $rule): void
     {
@@ -326,7 +319,7 @@ class IntegratorRuntime
     }
 
     /**
-     * @param array{rule: object, items: array<int, array<string, mixed>>} $rule
+     * @param array{rule: \stdClass, items: array<int, array<string, mixed>>} $rule
      */
     private function commitUpdate(array $rule): void
     {
@@ -339,7 +332,7 @@ class IntegratorRuntime
         $criteria = $this->collectCriteria($rule['rule']->id);
 
         $db = $this->db;
-        $query = $db->createQuery()->update($db->quoteName($rule['rule']->reference_table));
+        $query = $db->createQuery()->update($db->quoteName((string) $rule['rule']->reference_table));
 
         foreach ($collected['columns'] as $index => $column) {
             $placeholder = ':updateValue' . $index;
@@ -379,7 +372,7 @@ class IntegratorRuntime
      * fragment is built as one raw string rather than via repeated
      * QueryBuilder::where() calls (which only support one uniform glue).
      *
-     * @param array{form: list<object>, joomla: list<object>, fixed: list<object>} $criteria
+     * @param array{form: list<\stdClass>, joomla: list<\stdClass>, fixed: list<\stdClass>} $criteria
      * @param \Joomla\Database\QueryInterface $query
      */
     private function buildCriteriaClauses(array $criteria, $query, int &$bindIndex): string
@@ -456,7 +449,7 @@ class IntegratorRuntime
 
     /**
      * @param int|string $ruleId
-     * @return array{form: list<object>, joomla: list<object>, fixed: list<object>}
+     * @return array{form: list<\stdClass>, joomla: list<\stdClass>, fixed: list<\stdClass>}
      */
     public function collectCriteria($ruleId)
     {

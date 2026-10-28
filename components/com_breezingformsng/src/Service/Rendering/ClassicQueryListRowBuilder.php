@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering;
 
+use Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn;
+
 /**
  * Builds one data row of a classic Query List table.
  */
@@ -25,7 +27,7 @@ final class ClassicQueryListRowBuilder
     }
 
     /**
-     * @param list<object> $columns
+     * @param list<QueryColumn> $columns
      * @param list<string|int|float|null> $values
      * @param callable(string): string $classResolver
      * @param callable(): bool $shouldStop

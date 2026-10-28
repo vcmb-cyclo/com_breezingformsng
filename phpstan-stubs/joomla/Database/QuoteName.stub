@@ -10,7 +10,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  **/
 
-// PHPStan stub: Joomla returns a string for one name and a list for many.
+// PHPStan stub: Joomla returns a string for one name and a list for many,
+// and the table names as a list.
 
 namespace Joomla\Database;
 
@@ -22,6 +23,11 @@ interface DatabaseInterface
      * @return ($name is string ? string : list<string>)
      */
     public function quoteName($name, $as = null);
+
+    /**
+     * @return list<string>
+     */
+    public function getTableList();
 }
 
 interface QueryInterface
@@ -42,6 +48,13 @@ abstract class DatabaseDriver
      * @return ($name is string ? string : list<string>)
      */
     public function quoteName($name, $as = null)
+    {
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getTableList()
     {
     }
 }

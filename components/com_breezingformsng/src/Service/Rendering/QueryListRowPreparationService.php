@@ -27,6 +27,7 @@ final class QueryListRowPreparationService
     }
 
     /**
+     * @param \stdClass $row
      * @return array{key: string, checkbox: bool|int, columns: list<QueryColumn>, rows: mixed, script: string}
      */
     public function prepare(object $row, string $newline): array

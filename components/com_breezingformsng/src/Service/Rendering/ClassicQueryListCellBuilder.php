@@ -14,12 +14,15 @@ declare(strict_types=1);
 
 namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering;
 
+use Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn;
+
 /**
  * Builds one cell of a classic Query List data row.
  */
 final class ClassicQueryListCellBuilder
 {
     /**
+     * @param QueryColumn $column
      * @param callable(string): string $classResolver
      */
     public function build(

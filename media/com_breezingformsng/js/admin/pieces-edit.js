@@ -16,7 +16,7 @@ function checkIdentifier(value)
 				var form = document.adminForm;
 				var error = '';
 				var action = pressbutton.indexOf('.') === -1 ? pressbutton : pressbutton.split('.').pop();
-				if ((action == 'test' || action == 'previous' || action == 'next') && isEditTestBlocked()) {
+				if (action == 'test' && isEditTestBlocked()) {
 					alert(Joomla.Text._('COM_BREEZINGFORMSNG_TEST_SAVE_PIECE_BEFORE_CONTINUE'));
 					return;
 				}
@@ -53,12 +53,8 @@ function checkIdentifier(value)
 				return findToolbarButtons(['apply', 'save']);
 			}
 
-			function getEditPrevToolbarButton() {
-				return findToolbarButtons(['previous'])[0] || null;
-			}
-
-			function getEditNextToolbarButton() {
-				return findToolbarButtons(['next'])[0] || null;
+			function getEditPaginationLinks() {
+				return Array.prototype.slice.call(document.querySelectorAll('.bf-item-pagination a.page-link:not([aria-current])'));
 			}
 
 			function normalizeValue(value) {
@@ -180,8 +176,9 @@ function checkIdentifier(value)
 			}
 
 			function syncEditPrevNextToolbarButtons() {
-				syncEditNavigationToolbarButton(getEditPrevToolbarButton(), Joomla.Text._('COM_BREEZINGFORMSNG_TEST_SAVE_PIECE_BEFORE_NAVIGATION'));
-				syncEditNavigationToolbarButton(getEditNextToolbarButton(), Joomla.Text._('COM_BREEZINGFORMSNG_TEST_SAVE_PIECE_BEFORE_NAVIGATION'));
+				getEditPaginationLinks().forEach(function (link) {
+					syncEditNavigationToolbarButton(link, Joomla.Text._('COM_BREEZINGFORMSNG_TEST_SAVE_PIECE_BEFORE_NAVIGATION'));
+				});
 			}
 
 			function syncEditUnitTestsButton() {

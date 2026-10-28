@@ -811,18 +811,11 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $importer->reinstallOnlyIfChanged = true;
 
         try {
-            $importer->import($xmlFile);
+            $importer->import($xmlFile, $this->packageItemModel('Script'), $this->packageItemModel('Piece'));
         } catch (\Throwable $e) {
             $this->log('Standard library import failed. ' . $e->getMessage(), Log::ERROR);
             $this->announce('BreezingForms standard pieces import failed: ' . $e->getMessage(), 'error', Log::ERROR);
             return;
-        }
-
-        try {
-            $this->recordImportedVersions('Script', $importer->scripts);
-            $this->recordImportedVersions('Piece', $importer->pieces);
-        } catch (\Throwable $e) {
-            $this->log('Standard library versions not kept in the history: ' . $e->getMessage(), Log::WARNING);
         }
 
         $this->log(
@@ -930,7 +923,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $installer = is_object($parent) && method_exists($parent, 'getParent')
             ? $parent->getParent()
             : null;
-        $manifest = $installer && method_exists($installer, 'getManifest')
+        $manifest = $installer instanceof Installer
             ? $installer->getManifest()
             : null;
 
@@ -1085,9 +1078,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     {
         try {
             $db = Factory::getContainer()->get(DatabaseInterface::class);
-            $serverType = method_exists($db, 'getServerType') ? (string) $db->getServerType() : 'database';
-            $version = method_exists($db, 'getVersion') ? trim((string) $db->getVersion()) : '';
-            $prefix = method_exists($db, 'getPrefix') ? (string) $db->getPrefix() : '';
+            $serverType = $db instanceof DatabaseInterface ? (string) $db->getServerType() : 'database';
+            $version = $db instanceof DatabaseInterface ? trim((string) $db->getVersion()) : '';
+            $prefix = $db instanceof DatabaseInterface ? (string) $db->getPrefix() : '';
 
             $this->checkDatabaseSessionCharset($db);
 
@@ -1165,7 +1158,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         try {
             $cacheFactory = Factory::getContainer()->get(CacheControllerFactoryInterface::class);
 
-            if (is_object($cacheFactory)) {
+            if ($cacheFactory instanceof CacheControllerFactoryInterface) {
                 foreach ($cacheGroups as $group) {
                     try {
                         $cacheFactory->createCacheController('callback', [
@@ -1599,7 +1592,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $query = $db->createQuery()
                     ->insert($db->quoteName('#__content_types'))
                     ->columns($db->quoteName(['type_alias', ...array_keys($values)]))
-                    ->values(implode(',', array_map([$db, 'quote'], [$alias, ...array_values($values)])));
+                    ->values(implode(',', array_map(
+                        static fn ($value): string => $db->quote((string) $value),
+                        [$alias, ...array_values($values)]
+                    )));
             }
 
             $db->setQuery($query)->execute();
@@ -1668,9 +1664,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $ids = \Vcmb\Component\BreezingformsNG\Administrator\Service\VersionOrigin::missing(
                     $db,
                     'com_breezingformsng.' . strtolower($name),
-                    array_map('intval', $db->setQuery(
+                    array_values(array_map('intval', $db->setQuery(
                         $db->createQuery()->select($db->quoteName('id'))->from($db->quoteName($table))
-                    )->loadColumn())
+                    )->loadColumn()))
                 );
 
                 foreach ($ids as $id) {
@@ -1691,9 +1687,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     }
 
     /**
-     * @param int[] $ids
+     * The model of the scripts or of the pieces, which keeps their versions.
      */
-    private function recordImportedVersions(string $name, array $ids): void
+    private function packageItemModel(string $name): \Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel
     {
         $model = $this->componentModel($name);
 
@@ -1701,9 +1697,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             throw new \RuntimeException('No ' . $name . ' model.');
         }
 
-        foreach (array_unique($ids) as $id) {
-            $model->recordVersion((int) $id);
-        }
+        return $model;
     }
 
     /**
@@ -1832,10 +1826,44 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
     }
 
+    /**
+     * An earlier migration renamed com_breezingforms to com_breezingformsng
+     * in menu links on every update, leaving com_breezingformsngngng... and
+     * menu items that lead to "Component not found".
+     */
+    private function repairRepeatedMenuComponentSuffix(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $pattern = 'option=' . self::TARGET_COMPONENT . '(ng)+';
+        $replacement = 'option=' . self::TARGET_COMPONENT;
+
+        try {
+            $db->setQuery(
+                $db->createQuery()
+                    ->update($db->quoteName('#__menu'))
+                    ->set($db->quoteName('link') . ' = REGEXP_REPLACE(' . $db->quoteName('link') . ', :pattern, :replacement)')
+                    ->where($db->quoteName('link') . ' REGEXP :match')
+                    ->bind(':pattern', $pattern)
+                    ->bind(':replacement', $replacement)
+                    ->bind(':match', $pattern)
+            );
+            $db->execute();
+
+            $repaired = (int) $db->getAffectedRows();
+
+            if ($repaired > 0) {
+                $this->log("Repaired the component name in {$repaired} Joomla menu link(s).");
+            }
+        } catch (\Throwable $e) {
+            $this->log('Unable to repair the component name in Joomla menu links: ' . $e->getMessage(), Log::WARNING);
+        }
+    }
+
     private function normalizeJoomlaComponentReferences(): void
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $targetElement = self::TARGET_COMPONENT;
+        $this->repairRepeatedMenuComponentSuffix();
         $targetId = $this->getComponentExtensionId($targetElement);
 
         if ($targetId <= 0) {
@@ -1906,7 +1934,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         try {
             $db->setQuery(
                 $db->createQuery()
-                    ->select($db->quoteName(['id', 'title', 'alias', 'path', 'link', 'params']))
+                    ->select($db->quoteName([
+                        'id', 'parent_id', 'language', 'title', 'alias', 'path', 'link', 'params',
+                    ]))
                     ->from($db->quoteName('#__menu'))
                     ->where($db->quoteName('client_id') . ' = 1')
                     ->where(
@@ -1923,8 +1953,13 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
             $rows = $db->loadObjectList() ?: [];
             $updated = 0;
+            $removedIds = [];
 
             foreach ($rows as $row) {
+                if (in_array((int) $row->id, $removedIds, true)) {
+                    continue;
+                }
+
                 $title = (string) ($row->title ?? '');
                 $alias = (string) ($row->alias ?? '');
                 $path = (string) ($row->path ?? '');
@@ -1943,6 +1978,46 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $link = str_replace('option=breezingforms', 'option=' . self::TARGET_COMPONENT, $link);
                 $params = preg_replace('/"option":"com_breezingforms(?:ng)*"/', '"option":"' . self::TARGET_COMPONENT . '"', $params) ?? $params;
                 $params = str_replace('"option":"breezingforms"', '"option":"' . self::TARGET_COMPONENT . '"', $params);
+
+                // Remove a legacy entry only when the conflicting sibling is
+                // the corresponding BFNG entry and the legacy branch contains
+                // no custom menu items.
+                $collision = $alias !== (string) $row->alias
+                    ? $this->menuAliasCollision($db, $row, $alias)
+                    : null;
+
+                if ($collision !== null) {
+                    $branchIds = $this->menuBranchIds($db, (int) $row->id);
+
+                    if ((int) $collision->component_id !== $targetId
+                        || (string) $collision->title !== $title
+                        || (string) $collision->link !== $link
+                        || !$this->isLegacyBreezingFormsMenuBranch($db, $branchIds)
+                    ) {
+                        $this->log(
+                            'Preserved administration menu entry ' . (int) $row->id
+                            . " ({$row->alias}): {$alias} is already used by another entry"
+                            . ' or the branch contains custom items.',
+                            Log::WARNING
+                        );
+
+                        continue;
+                    }
+
+                    $menu = new Menu($db);
+
+                    if (!$menu->delete((int) $row->id, true)) {
+                        throw new \RuntimeException('Legacy menu entry ' . (int) $row->id . ' could not be removed.');
+                    }
+
+                    $removedIds = array_merge($removedIds, $branchIds);
+                    $this->log(
+                        'Removed legacy administration menu entry ' . (int) $row->id
+                        . " ({$row->alias}) duplicating {$alias}."
+                    );
+
+                    continue;
+                }
 
                 $db->setQuery(
                     $db->createQuery()
@@ -1965,6 +2040,80 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         } catch (\Throwable $e) {
             $this->log('Unable to normalize Joomla administration menu identity: ' . $e->getMessage(), Log::WARNING);
         }
+    }
+
+    /**
+     * @param \stdClass $row
+     * @return ?\stdClass
+     */
+    private function menuAliasCollision(DatabaseInterface $db, object $row, string $alias): ?object
+    {
+        $id = (int) $row->id;
+        $parentId = (int) $row->parent_id;
+        $language = (string) $row->language;
+
+        return $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName(['component_id', 'title', 'link']))
+                ->from($db->quoteName('#__menu'))
+                ->where($db->quoteName('client_id') . ' = 1')
+                ->where($db->quoteName('parent_id') . ' = :parentId')
+                ->where($db->quoteName('alias') . ' = :alias')
+                ->where($db->quoteName('language') . ' = :language')
+                ->where($db->quoteName('id') . ' <> :id')
+                ->bind(':parentId', $parentId, ParameterType::INTEGER)
+                ->bind(':alias', $alias)
+                ->bind(':language', $language)
+                ->bind(':id', $id, ParameterType::INTEGER)
+        )->loadObject() ?: null;
+    }
+
+    /**
+     * A custom child must not be removed with a legacy component menu branch.
+     *
+     * @param int[] $branchIds
+     */
+    private function isLegacyBreezingFormsMenuBranch(DatabaseInterface $db, array $branchIds): bool
+    {
+        $rows = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName(['title', 'link']))
+                ->from($db->quoteName('#__menu'))
+                ->whereIn($db->quoteName('id'), $branchIds)
+        )->loadObjectList() ?: [];
+
+        foreach ($rows as $row) {
+            if (!str_starts_with((string) $row->title, 'COM_BREEZINGFORMS')
+                || !preg_match(
+                    '/(?:[?&]|^)option=(?:breezingforms|com_breezingforms(?:ng)?)(?:&|$)/',
+                    (string) $row->link
+                )
+            ) {
+                return false;
+            }
+        }
+
+        return count($rows) === count($branchIds);
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function menuBranchIds(DatabaseInterface $db, int $rootId): array
+    {
+        $ids = [$rootId];
+
+        for ($parents = [$rootId]; $parents !== [];) {
+            $parents = array_map('intval', $db->setQuery(
+                $db->createQuery()
+                    ->select($db->quoteName('id'))
+                    ->from($db->quoteName('#__menu'))
+                    ->whereIn($db->quoteName('parent_id'), $parents)
+            )->loadColumn());
+            $ids = array_merge($ids, $parents);
+        }
+
+        return $ids;
     }
 
     private function normalizeComponentAssetName(string $legacyElement, string $targetElement): void
@@ -3164,11 +3313,15 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         $this->migrateElementData1FunctionNames();
+        $this->migrateQuickmodeFunctionNames();
         $this->migrateQuickmodeIconPaths();
 
         $this->log('BreezingForms database update completed.');
     }
 
+    /**
+     * @param \stdClass $column
+     */
     private static function columnDefinitionMatches(
         object $column,
         string $type,
@@ -3239,6 +3392,60 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $this->announce("[OK] Migrated quickmode icon paths in {$updated} form(s).", 'message', Log::INFO);
         } else {
             $this->log('Quickmode icon paths: no migration needed.');
+        }
+    }
+
+    /**
+     * QuickMode rebuilds the elements of a form from its template code on
+     * every save: the gn_vcmb_ to gn_get_vcmb_ renaming of the element
+     * fields has to be made there too, or the next save brings the old
+     * function names back.
+     */
+    private function migrateQuickmodeFunctionNames(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $formsTable = $db->getPrefix() . 'facileforms_forms';
+
+        if (!in_array($formsTable, $db->getTableList(), true)) {
+            return;
+        }
+
+        $db->setQuery(
+            "SELECT `id`, `template_code` FROM `{$formsTable}`" .
+            " WHERE `template_code` IS NOT NULL AND `template_code` != ''"
+        );
+        $updated = 0;
+
+        foreach ($db->loadObjectList() as $row) {
+            $json = base64_decode((string) $row->template_code, true);
+
+            if ($json === false || !str_contains($json, 'gn_vcmb_')) {
+                continue;
+            }
+
+            try {
+                $db->setQuery(
+                    "UPDATE `{$formsTable}` SET `template_code` = " .
+                    $db->quote(base64_encode(str_replace('gn_vcmb_', 'gn_get_vcmb_', $json))) .
+                    " WHERE `id` = " . (int) $row->id
+                )->execute();
+                $updated++;
+            } catch (\Throwable $e) {
+                $this->log("Unable to migrate gn_vcmb_ function names in the quickmode code of form {$row->id}: " . $e->getMessage(), Log::WARNING);
+            }
+        }
+
+        try {
+            $db->setQuery(
+                "UPDATE `{$formsTable}` SET `template_areas` = REPLACE(`template_areas`, 'gn_vcmb_', 'gn_get_vcmb_')" .
+                " WHERE `template_areas` LIKE '%gn\\_vcmb\\_%'"
+            )->execute();
+        } catch (\Throwable $e) {
+            $this->log('Unable to migrate gn_vcmb_ function names in the quickmode areas: ' . $e->getMessage(), Log::WARNING);
+        }
+
+        if ($updated > 0) {
+            $this->announce("[OK] Migrated gn_vcmb_* → gn_get_vcmb_* in the quickmode code of {$updated} form(s).", 'message', Log::INFO);
         }
     }
 

@@ -31,7 +31,7 @@ final class EditableRecordHydrationScriptBuilder
     }
 
     /**
-     * @param iterable<object> $entries
+     * @param iterable<\stdClass> $entries
      */
     public function build(iterable $entries, int $formId): string
     {

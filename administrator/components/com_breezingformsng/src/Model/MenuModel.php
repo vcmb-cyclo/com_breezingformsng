@@ -77,7 +77,9 @@ class MenuModel extends AdminModel
             return false;
         }
 
-        return ArrayHelper::toObject(get_object_vars($table));
+        $item = ArrayHelper::toObject(get_object_vars($table));
+
+        return $item instanceof \stdClass ? $item : false;
     }
 
     /**

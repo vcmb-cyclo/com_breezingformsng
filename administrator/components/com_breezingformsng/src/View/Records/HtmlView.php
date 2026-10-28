@@ -17,7 +17,6 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Toolbar\Button\DropdownButton;
-use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordsModel;
@@ -26,7 +25,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView a
 
 class HtmlView extends BaseHtmlView
 {
-    /** @var object[] */
+    /** @var list<\stdClass> */
     public array $items = [];
     public ?Pagination $pagination = null;
     public ?Registry $state = null;
@@ -44,7 +43,7 @@ class HtmlView extends BaseHtmlView
         /** @var CMSApplication $app */
         $app = Factory::getApplication();
 
-        $app->getDocument()->getWebAssetManager()->useScript('keepalive');
+        $this->getDocument()->getWebAssetManager()->useScript('keepalive');
 
         $user = $app->getIdentity();
         $this->canEditState = $user->authorise('core.edit.state', 'com_breezingformsng');
@@ -54,7 +53,7 @@ class HtmlView extends BaseHtmlView
         $this->prepareListData();
         $this->prepareListToolbar();
 
-        $document = $app->getDocument();
+        $document = $this->getDocument();
         $document->getWebAssetManager()->useScript('table.columns')->useScript('multiselect');
         $document->getWebAssetManager()->registerAndUseScript(
             'com_breezingformsng.record-flags',
@@ -130,43 +129,45 @@ class HtmlView extends BaseHtmlView
                 ->icon('icon-upload');
         }
 
-        $markDropdown = $toolbar->dropdownButton('mark-options');
+        if ($this->canEditState) {
+            $markDropdown = $toolbar->dropdownButton('mark-options');
 
-        if (!$markDropdown instanceof DropdownButton) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            if (!$markDropdown instanceof DropdownButton) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            $markDropdown->toggleSplit(false);
+            $markDropdown
+                ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK'))
+                ->icon('icon-check')
+                ->buttonClass('btn btn-action')
+                ->listCheck(true);
+            $markChild = $markDropdown->getChildToolbar();
+            $markChild->standardButton('markViewed')
+                ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_VIEWED'))
+                ->task('records.viewed')
+                ->icon('icon-eye-open')
+                ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_VIEWED_DESC')])
+                ->listCheck(true);
+            $markChild->standardButton('unmarkViewed')
+                ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_VIEWED'))
+                ->task('records.unviewed')
+                ->icon('icon-eye-close')
+                ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_VIEWED_DESC')])
+                ->listCheck(true);
+            $markChild->standardButton('markExported')
+                ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_EXPORTED'))
+                ->task('records.exported')
+                ->icon('icon-share')
+                ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_EXPORTED_DESC')])
+                ->listCheck(true);
+            $markChild->standardButton('unmarkExported')
+                ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_EXPORTED'))
+                ->task('records.unexported')
+                ->icon('icon-cancel-circle')
+                ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_EXPORTED_DESC')])
+                ->listCheck(true);
         }
-
-        $markDropdown->toggleSplit(false);
-        $markDropdown
-            ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK'))
-            ->icon('icon-check')
-            ->buttonClass('btn btn-action')
-            ->listCheck(true);
-        $markChild = $markDropdown->getChildToolbar();
-        $markChild->standardButton('markViewed')
-            ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_VIEWED'))
-            ->task('records.viewed')
-            ->icon('icon-eye-open')
-            ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_VIEWED_DESC')])
-            ->listCheck(true);
-        $markChild->standardButton('unmarkViewed')
-            ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_VIEWED'))
-            ->task('records.unviewed')
-            ->icon('icon-eye-close')
-            ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_VIEWED_DESC')])
-            ->listCheck(true);
-        $markChild->standardButton('markExported')
-            ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_EXPORTED'))
-            ->task('records.exported')
-            ->icon('icon-share')
-            ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_EXPORTED_DESC')])
-            ->listCheck(true);
-        $markChild->standardButton('unmarkExported')
-            ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_EXPORTED'))
-            ->task('records.unexported')
-            ->icon('icon-cancel-circle')
-            ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_EXPORTED_DESC')])
-            ->listCheck(true);
 
         $stateFilter = (string) $this->state->get('filter.state');
         $trashed = (string) RecordState::TRASHED;
@@ -189,8 +190,8 @@ class HtmlView extends BaseHtmlView
 
             if ($stateFilter === $archived) {
                 $statusChild->unarchive('records.publish')->listCheck(true);
-            } elseif ($stateFilter !== '') {
-                $statusChild->publish('records.publish')->listCheck(true);
+            } elseif ($stateFilter === $trashed || $stateFilter === RecordState::FILTER_ALL) {
+                $statusChild->publish('records.publish', 'COM_BREEZINGFORMSNG_RECORDS_TOOLBAR_RESTORE')->listCheck(true);
             }
 
             if ($stateFilter !== $archived) {
@@ -204,7 +205,13 @@ class HtmlView extends BaseHtmlView
             $statusChild->checkin('records.checkin')->listCheck(true);
         }
 
-        if ($stateFilter === $trashed && $this->canDelete) {
+        // As in Joomla, emptying the trash deletes the checked records, which
+        // the model accepts only in the trash: with every state listed, the
+        // button shows as soon as the page holds a trashed record.
+        $listsTrashed = $stateFilter === $trashed || ($stateFilter === RecordState::FILTER_ALL
+            && in_array(RecordState::TRASHED, array_map(static fn (\stdClass $item): int => (int) $item->state, $this->items), true));
+
+        if ($listsTrashed && $this->canDelete) {
             $toolbar->delete('records.delete', 'JTOOLBAR_EMPTY_TRASH')
                 ->message('COM_BREEZINGFORMSNG_CONFIRM_DELETE_RECORDS')
                 ->listCheck(true);
@@ -213,7 +220,7 @@ class HtmlView extends BaseHtmlView
         $user = Factory::getApplication()->getIdentity();
 
         if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
-            ToolbarHelper::preferences('com_breezingformsng');
+            $toolbar->preferences('com_breezingformsng');
         }
         $toolbar
             ->popupButton('help', 'JHELP')

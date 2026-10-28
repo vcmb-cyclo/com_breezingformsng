@@ -34,6 +34,26 @@ final class StoredPhpExecutorTest extends TestCase
         self::assertSame('value:processed', $result);
     }
 
+    public function testAVariablePassedByReferenceCanBeChanged(): void
+    {
+        $value = ' Mixed Case ';
+
+        (new StoredPhpExecutor())->execute(new class {
+        }, '$value = strtolower(trim($value));', ['value' => &$value]);
+
+        self::assertSame('mixed case', $value);
+    }
+
+    public function testAVariablePassedByValueIsLeftAsItIs(): void
+    {
+        $value = 'kept';
+
+        (new StoredPhpExecutor())->execute(new class {
+        }, '$value = "changed";', ['value' => $value]);
+
+        self::assertSame('kept', $value);
+    }
+
     public function testEmptyCodeReturnsNull(): void
     {
         $scope = new class {

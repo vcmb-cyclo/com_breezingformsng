@@ -15,10 +15,16 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Layout\LayoutHelper;
+use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\CMS\Pagination\Pagination;
+use Joomla\CMS\Session\Session;
+use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\BreadcrumbHelper;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\ListPositionInterface;
 
 class HtmlView extends BaseHtmlView
 {
@@ -47,6 +53,47 @@ class HtmlView extends BaseHtmlView
         ToolbarHelper::title($this->getToolbarTitle(), 'logo_left');
 
         parent::display($tpl);
+    }
+
+    /**
+     * Adds at the end of the toolbar a Joomla pagination over the list of the
+     * edited item, one item per page, with the filters and ordering of the
+     * list. Its links run the given task with the position (from 0) in
+     * itemlimitstart, so the list keeps its own page.
+     *
+     * @param array<string, int|string> $params
+     */
+    protected function addItemPagination(Toolbar $toolbar, string $listModel, int $itemId, string $task, array $params = []): void
+    {
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
+        $component = $app->bootComponent('com_breezingformsng');
+        $list = $component instanceof MVCFactoryServiceInterface
+            ? $component->getMVCFactory()->createModel($listModel, 'Administrator')
+            : null;
+
+        if (!$list instanceof ListPositionInterface) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $position = $list->getPosition($itemId);
+
+        // Joomla has no pages to build for a list of one item.
+        if ($position === null || $position['total'] < 2) {
+            return;
+        }
+
+        $pagination = new Pagination($position['total'], $position['position'] - 1, 1, 'item', $app);
+        $params = ['view' => null, 'layout' => null, 'option' => 'com_breezingformsng', 'task' => $task, 'id' => $itemId, ...$params, Session::getFormToken() => 1];
+
+        foreach ($params as $key => $value) {
+            $pagination->setAdditionalUrlParam($key, $value);
+        }
+
+        $toolbar->customButton('item-pagination')->html(LayoutHelper::render('pagination.item', [
+            'pagination' => $pagination,
+            'position' => Text::sprintf('COM_BREEZINGFORMSNG_RECORD_POSITION', $position['position'], $position['total']),
+        ]));
     }
 
     private function getPageTitle(): string

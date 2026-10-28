@@ -21,8 +21,10 @@ use Joomla\Database\ParameterType;
 /**
  * List of the integrator rules.
  */
-class IntegratorRulesModel extends ListModel
+class IntegratorRulesModel extends ListModel implements ListPositionInterface
 {
+    use ListPositionTrait;
+
     private const SORTS = ['rules.name', 'rules.type', 'forms.name', 'rules.reference_table', 'rules.published'];
 
     /**
@@ -38,6 +40,11 @@ class IntegratorRulesModel extends ListModel
     protected function populateState($ordering = 'rules.name', $direction = 'ASC')
     {
         parent::populateState($ordering, $direction);
+    }
+
+    protected function getPositionIdColumn(): string
+    {
+        return 'rules.id';
     }
 
     protected function getStoreId($id = '')

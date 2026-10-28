@@ -22,7 +22,7 @@ $document = $app->getDocument();
 
 if ($app->getInput()->getCmd('task') === 'quickmode.editor') {
     $document->getWebAssetManager()->addInlineScript('
-    parent.jQuery(".modal-header .close").trigger("click");
+    parent.document.querySelector(".modal.show .btn-close")?.click();
     ');
 }
 

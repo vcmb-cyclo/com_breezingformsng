@@ -137,7 +137,7 @@ final class RenderingEngine
     // header
 
     /**
-     * @param array<int, object> $rows
+     * @param array<int, \stdClass> $rows
      */
     public function cbCreatePathByTokens(mixed $path, array $rows, mixed $fieldName): string
     {
@@ -525,7 +525,7 @@ final class RenderingEngine
             $this->processor->rowcount,
             json_encode(
                 Text::_('COM_BREEZINGFORMSNG_FILE_EXTENSION_NOT_ALLOWED'),
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR
             ),
             trim((string) $this->processor->formrow->template_code) != ''
         );
@@ -714,7 +714,7 @@ final class RenderingEngine
 
         // CONTENTBUILDER END
 
-        if (trim($this->processor->formrow->template_code_processed) == '') {
+        if (trim((string) $this->processor->formrow->template_code_processed) == '') {
             $classicMarkup = $this->classicFormRenderer()->render($ff_mossite);
             if ($classicMarkup === null) {
                 $this->abortViewRendering();
@@ -722,7 +722,7 @@ final class RenderingEngine
             }
 
             echo $classicMarkup;
-        } else if (trim($this->processor->formrow->template_code_processed) == 'QuickMode') {
+        } else if (trim((string) $this->processor->formrow->template_code_processed) == 'QuickMode') {
 
             $quickMode = $this->quickModeRendererFactory()->create($this->processor, $rootMdata);
             $this->processor->quickmode = $quickMode;
@@ -775,7 +775,7 @@ final class RenderingEngine
                     $this->hiddenFormFieldsBuilder()->context($context, indentc(1)),
                     $this->hiddenFormFieldsBuilder()->submission((int) $this->processor->form, indentc(1), nl()),
                     $this->hiddenFormFieldsBuilder()->token(\Joomla\CMS\HTML\HTMLHelper::_('form.token'), indentc(1), nl()),
-                    $this->hiddenFormFieldsBuilder()->optionalContext($this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align, $this->processor->top, indentc(1), true, true, true, true, nl()),
+                    $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align, $this->processor->top, indentc(1), true, true, true, true, nl()),
                     $this->hiddenFormFieldsBuilder()->additional($ff_otherparams, indentc(1), nl()),
                     $technical,
                     $routing,
@@ -792,7 +792,7 @@ final class RenderingEngine
                     $this->hiddenFormFieldsBuilder()->submission((int) $this->processor->form, indentc(1), nl(), true),
                     $this->hiddenFormFieldsBuilder()->token(\Joomla\CMS\HTML\HTMLHelper::_('form.token'), indentc(1), nl()),
                     $this->hiddenFormFieldsBuilder()->context($context, indentc(1)),
-                    $this->hiddenFormFieldsBuilder()->optionalContext($this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align, $this->processor->top, indentc(1), true, true, true, true, nl()),
+                    $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align, $this->processor->top, indentc(1), true, true, true, true, nl()),
                     $technical,
                     $routing,
                     nl()
@@ -812,7 +812,7 @@ final class RenderingEngine
                     $this->hiddenFormFieldsBuilder()->submission((int) $this->processor->form, indentc(1), nl(), false, true),
                     $this->hiddenFormFieldsBuilder()->token(\Joomla\CMS\HTML\HTMLHelper::_('form.token'), indentc(1), nl()),
                     $this->hiddenFormFieldsBuilder()->context($context, indentc(1)),
-                    $this->hiddenFormFieldsBuilder()->optionalContext($this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align, $this->processor->top, indentc(1), false, true, false, false, nl()),
+                    $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align, $this->processor->top, indentc(1), false, true, false, false, nl()),
                     $technical,
                     $routing,
                     nl()
@@ -843,7 +843,7 @@ final class RenderingEngine
     /**
      * Build the script library and the registry used while linking callbacks.
      *
-     * @return array{0: array<int|string, mixed>, 1: array<int|string, mixed>}
+     * @return array{0: array<int, array<int, mixed>>, 1: array<int, string>}
      */
     private function createScriptLibraryState(): array
     {
@@ -857,8 +857,8 @@ final class RenderingEngine
     /**
      * Link the onload callback used when a form is displayed for the first time.
      *
-     * @param array<int|string, mixed> $library
-     * @param array<int|string, mixed> $linked
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
      */
     private function linkInitialOnload(array &$library, array &$linked): void
     {
@@ -935,8 +935,8 @@ final class RenderingEngine
     /**
      * Link the onload callback used after a form submission.
      *
-     * @param array<int|string, mixed> $library
-     * @param array<int|string, mixed> $linked
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
      */
     private function linkSubmittedOnload(array &$library, array &$linked): void
     {
@@ -959,6 +959,8 @@ final class RenderingEngine
 
     /**
      * Prepare the client-side state for one classic Query List element.
+     *
+     * @param \stdClass $row
      */
     private function prepareQueryListRow(object $row, int &$queryCheckboxCount, string &$queryCode): void
     {
@@ -978,8 +980,8 @@ final class RenderingEngine
      * the original inline control flow exactly: the second linkcode() call
      * never runs if bury() is already true after the first.
      *
-     * @param array<int|string, mixed> $library
-     * @param array<int|string, mixed> $linked
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
      */
     private function registerIconBorderScripts(array &$library, array &$linked): bool
     {
@@ -993,9 +995,9 @@ final class RenderingEngine
      * rendering contract. The validation callback also closes the active
      * output buffer when it triggers bury().
      *
-     * @param object $row Classic element row.
-     * @param array<int|string, mixed> $library
-     * @param array<int|string, mixed> $linked
+     * @param \stdClass $row Classic element row.
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
      */
     private function registerElementCallbacks(object $row, array &$library, array &$linked): bool
     {
@@ -1004,6 +1006,8 @@ final class RenderingEngine
 
     /**
      * Count the element types that require post-render assets or behavior.
+     *
+     * @param \stdClass $row
      */
     private function collectElementMetadata(object $row, int &$icons, int &$tooltips): void
     {
@@ -1019,8 +1023,9 @@ final class RenderingEngine
     /**
      * Register the scan-only callback used by static HTML elements.
      *
-     * @param array<int|string, mixed> $library
-     * @param array<int|string, mixed> $linked
+     * @param \stdClass $row
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
      */
     private function registerStaticTextScanCallback(object $row, array &$library, array &$linked): void
     {
@@ -1030,8 +1035,8 @@ final class RenderingEngine
     /**
      * Link the form-level init and submission callbacks.
      *
-     * @param array<int|string, mixed> $library
-     * @param array<int|string, mixed> $linked
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
      */
     private function addFormScripts(array &$library, array &$linked): bool
     {

@@ -95,8 +95,9 @@ class PieceTestRunner
 	}
 
 	/**
+	 * @param \stdClass $row
 	 * @param array<int|string, mixed> $args
-	 * @return array{result: mixed, output: string|false, error: string, errorDetails: array<string, mixed>}
+	 * @return array{result: mixed, output: string, error: string, errorDetails: array<string, mixed>}
 	 */
 	public static function executePieceCode(object $row, string $functionName, array $args, DatabaseInterface $database): array
 	{
@@ -145,7 +146,7 @@ class PieceTestRunner
 				unset($GLOBALS['ff_processor']);
 			}
 		}
-		$output = ob_get_clean();
+		$output = (string) ob_get_clean();
 
 		return array(
 			'result' => $result,
@@ -270,10 +271,13 @@ class PieceTestRunner
 		return json_encode($actual) === json_encode($expected);
 	}
 
-	/** @return array<string, mixed> */
+	/**
+	 * @param \stdClass $row
+	 * @return array<string, mixed>
+	 */
 	public static function runUnitTests(object $row, string $functionName, DatabaseInterface $database): array
 	{
-		$lines = preg_split('/\\r?\\n/', (string) $row->unit_tests);
+		$lines = preg_split('/\\r?\\n/', (string) $row->unit_tests) ?: array();
 		$tests = array();
 		$failures = array();
 		$passedCount = 0;

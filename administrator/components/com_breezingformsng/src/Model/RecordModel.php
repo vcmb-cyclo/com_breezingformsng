@@ -63,6 +63,11 @@ class RecordModel extends AdminModel
 
         $item->form_title = (string) ($form->title ?? '');
         $item->form_name = (string) ($form->name ?? '');
+
+        // modified_by keeps the editor as stored at the time; show the current
+        // name of the Joomla account while it exists.
+        $item->modified_by_name = $this->getUserName((int) $item->modified_user_id) ?? (string) $item->modified_by;
+        $item->checked_out_name = $this->getUserName((int) $item->checked_out) ?? '';
         $item->{self::ELEMENT_GROUP} = [];
 
         foreach ($this->getEditableRows($pk, $formId, (string) $item->name) as $row) {
@@ -73,7 +78,7 @@ class RecordModel extends AdminModel
     }
 
     /**
-     * @return list<array<string, mixed>>
+     * @return list<array{id: int|string, name: string, title: string, type: string}>
      */
     public function getEditableElements(int $formId): array
     {
@@ -307,6 +312,24 @@ class RecordModel extends AdminModel
         return $data;
     }
 
+    private function getUserName(int $userId): ?string
+    {
+        if ($userId <= 0) {
+            return null;
+        }
+
+        $db = $this->getDatabase();
+        $name = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName('name'))
+                ->from($db->quoteName('#__users'))
+                ->where($db->quoteName('id') . ' = :userId')
+                ->bind(':userId', $userId, ParameterType::INTEGER)
+        )->loadResult();
+
+        return $name !== null ? (string) $name : null;
+    }
+
     /**
      * Adds one field per editable element of the form the record belongs to.
      */
@@ -327,8 +350,10 @@ class RecordModel extends AdminModel
             $field = $fieldset->addChild('field');
             $field->addAttribute('name', $name);
             $field->addAttribute('type', 'textarea');
-            $field->addAttribute('label', (string) $element['title']);
-            $field->addAttribute('description', (string) $element['name']);
+            // Joomla prints labels and descriptions as HTML, like its own
+            // language strings: escape the titles and names of the elements.
+            $field->addAttribute('label', htmlspecialchars((string) $element['title'], ENT_QUOTES, 'UTF-8'));
+            $field->addAttribute('description', htmlspecialchars((string) $element['name'], ENT_QUOTES, 'UTF-8'));
             $field->addAttribute('translateLabel', 'false');
             $field->addAttribute('translateDescription', 'false');
             $field->addAttribute('rows', (string) ($lines > 0 ? min(10, $lines + 2) : 1));
@@ -382,7 +407,9 @@ class RecordModel extends AdminModel
      */
     protected function canDelete($record)
     {
-        return (int) $record->state === RecordState::TRASHED && parent::canDelete($record);
+        return $record instanceof \stdClass
+            && (int) $record->state === RecordState::TRASHED
+            && parent::canDelete($record);
     }
 
     /**
@@ -522,10 +549,10 @@ class RecordModel extends AdminModel
             ->from($db->quoteName('#__facileforms_records'))
             ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
 
-        return array_map(
+        return array_values(array_map(
             static fn (array $row): array => ['id' => (int) $row['id'], 'form' => (int) $row['form'], 'state' => (int) $row['state']],
             $db->setQuery($query)->loadAssocList()
-        );
+        ));
     }
 
     /**
@@ -560,11 +587,15 @@ class RecordModel extends AdminModel
         $db->setQuery($query)->execute();
     }
 
-    public function setFlagSingle(int $recordId, string $column, int $value): void
+    /**
+     * Sets the viewed or exported flag of one record: false when the column
+     * is not a flag or the record does not exist.
+     */
+    public function setFlagSingle(int $recordId, string $column, int $value): bool
     {
         $col = preg_replace('/^bfrecord_/', '', $column);
         if (!in_array($col, ['viewed', 'exported'], true)) {
-            return;
+            return false;
         }
         $db = $this->getDatabase();
         $query = $db->createQuery()
@@ -574,6 +605,15 @@ class RecordModel extends AdminModel
             ->bind(':value', $value, ParameterType::INTEGER)
             ->bind(':recordId', $recordId, ParameterType::INTEGER);
         $db->setQuery($query)->execute();
+
+        // An unchanged flag counts no affected row: check that the record exists.
+        return $db->getAffectedRows() > 0 || (int) $db->setQuery(
+            $db->createQuery()
+                ->select('COUNT(*)')
+                ->from($db->quoteName('#__facileforms_records'))
+                ->where($db->quoteName('id') . ' = :recordId')
+                ->bind(':recordId', $recordId, ParameterType::INTEGER)
+        )->loadResult() > 0;
     }
 
     public function getExportConfig(): \stdClass
@@ -590,7 +630,7 @@ class RecordModel extends AdminModel
     }
 
     /**
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getSubrecords(int $recordId): array
     {
@@ -601,7 +641,7 @@ class RecordModel extends AdminModel
      * Load subrecords for a bounded set of records in one query.
      *
      * @param list<int> $recordIds
-     * @return array<int, list<object>>
+     * @return array<int, list<\stdClass>>
      */
     public function getSubrecordsByRecordIds(array $recordIds): array
     {

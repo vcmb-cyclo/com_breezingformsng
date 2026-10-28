@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering;
 
 use HTML_facileFormsProcessor;
+use Joomla\CMS\Language\Text;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 
@@ -27,6 +28,7 @@ final class FormPieceExecutionService
     ) {
     }
 
+    /** @param \stdClass $form */
     public function executeBefore(object $form, string $libraryLabel, string $customLabel, int $formId): bool
     {
         switch ($form->piece1cond) {
@@ -49,6 +51,7 @@ final class FormPieceExecutionService
         return $this->processor->bury();
     }
 
+    /** @param \stdClass $form */
     public function executeAfter(object $form, string $libraryLabel, string $customLabel, int $formId): bool
     {
         switch ($form->piece2cond) {
@@ -91,6 +94,17 @@ final class FormPieceExecutionService
 
         if (count($rows)) {
             echo $this->processor->execPiece($rows[0]->code, $label . ' ' . $rows[0]->name, 'p', $executionId, $pane);
+
+            return;
+        }
+
+        // The form keeps the piece by id: a deleted, reimported or unpublished
+        // piece is skipped, which the site tells only in debug mode.
+        if ($this->processor->app->getConfig()->get('debug', false)) {
+            $this->processor->app->enqueueMessage(
+                Text::sprintf('COM_BREEZINGFORMSNG_PROCESS_PIECE_NOT_FOUND', $label, $pieceId),
+                'error'
+            );
         }
     }
 }

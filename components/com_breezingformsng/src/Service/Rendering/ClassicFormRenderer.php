@@ -77,6 +77,9 @@ final class ClassicFormRenderer
         return $html;
     }
 
+    /**
+     * @param \stdClass $row
+     */
     private function renderRow(object $row, int $index, string $siteRoot): ?string
     {
         $data1 = '';
@@ -351,6 +354,7 @@ final class ClassicFormRenderer
     }
 
     /**
+     * @param \stdClass $row
      * @return array{0: string, 1: string}
      */
     private function classAttributes(object $row): array
@@ -372,6 +376,9 @@ final class ClassicFormRenderer
         return [$class1, $class2];
     }
 
+    /**
+     * @param \stdClass $row
+     */
     private function renderQueryList(object $row, string $wrapperStyle, string $class1, string $class2): ?string
     {
         $settings = $this->queryListSettingsBuilder()->build(

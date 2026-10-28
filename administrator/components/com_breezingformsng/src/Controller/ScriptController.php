@@ -23,7 +23,7 @@ class ScriptController extends PackageItemController
      */
     protected function readOnlyTasks(): array
     {
-        return ['edit', 'cancel', 'previous', 'next', 'test'];
+        return ['edit', 'cancel', 'navigate', 'test'];
     }
 
     protected function logType(): string

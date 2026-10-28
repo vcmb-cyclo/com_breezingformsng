@@ -5,7 +5,7 @@
 	<creationDate>2026-10-12</creationDate>
 	<copyright>Copyright 2024 - 2026 by XDA+GIL</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-	<version>6.1.0-RC07</version>
+	<version>6.1.0-RC08</version>
 	<description>PLG_PRIVACY_BREEZINGFORMSNG_XML_DESCRIPTION</description>
 	<namespace path="src">Vcmb\Plugin\Privacy\Breezingformsng</namespace>
 	<files>

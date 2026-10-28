@@ -60,7 +60,7 @@ final class RecordExporter
     /**
      * Exposed for the PDF export templates, which call $this->getSubrecords().
      *
-     * @return list<object>
+     * @return list<\stdClass>
      */
     public function getSubrecords(int $recordId): array
     {

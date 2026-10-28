@@ -27,7 +27,7 @@ final class TokenizedDirectoryResolver
     }
 
     /**
-     * @param array<int, object> $rows
+     * @param array<int, \stdClass> $rows
      * @param array<int, string> $findTags
      * @param array<int, string> $replaceTags
      * @param array{username?: mixed, id?: mixed, name?: mixed} $identity
@@ -48,11 +48,12 @@ final class TokenizedDirectoryResolver
 
         $path = str_replace($findTags, $replaceTags, $path);
 
-        if (!str_contains($path, '|')) {
+        $separator = strpos($path, '|');
+
+        if ($separator === false) {
             return $path;
         }
 
-        $separator = strpos($path, '|');
         $after = str_replace('|', '', substr($path, $separator));
         $path = str_replace('|', '/', substr($path, 0, $separator + 1));
         $filter = InputFilter::getInstance([], [], 1, 1);

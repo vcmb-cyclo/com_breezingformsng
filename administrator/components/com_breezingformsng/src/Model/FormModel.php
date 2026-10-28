@@ -227,7 +227,7 @@ class FormModel extends AdminModel implements VersionableModelInterface
                 $db->setQuery(
                     $db->createQuery()
                         ->insert($db->quoteName('#__facileforms_elements'))
-                        ->columns($db->quoteName(array_keys($element)))
+                        ->columns($db->quoteName(array_map('strval', array_keys($element))))
                         ->values(implode(',', array_map([$db, 'quote'], array_values($element))))
                 )->execute();
             }

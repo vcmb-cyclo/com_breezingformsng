@@ -20,7 +20,7 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering;
 final class FileExtensionsCheckBuilder
 {
     /**
-     * @param array<int, object> $rows
+     * @param array<int, \stdClass> $rows
      * @return array{0: string, 1: int}
      */
     public function build(array $rows, int $rowCount, string $fileExtensionError, bool $templateConfigured): array

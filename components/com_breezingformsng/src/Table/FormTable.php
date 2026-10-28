@@ -34,9 +34,9 @@ final class FormTable extends Table
 	public $version = null;     // version number, +1 at each save
 	/** @var int|string|null */
 	public $runmode = null;     // 0-any/1-foreground/2-background
-	/** @var int|string|null */
+	/** @var string|null */
 	public $name = null;     // form name (identifier)
-	/** @var int|string|null */
+	/** @var string|null */
 	public $title = null;     // fancy name
 	/** @var int|string|null */
 	public $description = null;     // form description

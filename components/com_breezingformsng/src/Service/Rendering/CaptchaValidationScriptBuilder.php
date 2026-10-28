@@ -26,7 +26,7 @@ final class CaptchaValidationScriptBuilder
     }
 
     /**
-     * @param array<int, object> $rows
+     * @param array<int, \stdClass> $rows
      */
     public function build(
         string $root,

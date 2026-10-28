@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 6.1.0-RC08
 
 - Record dates are shown in the time zone of the user, which the screens now name: the
   records list states it above the table, and the record screen gives it with the UTC

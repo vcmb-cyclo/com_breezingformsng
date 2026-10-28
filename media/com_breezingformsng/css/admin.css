@@ -83,6 +83,24 @@ overflow:hidden;width: 100%;
 	overflow: auto;
 }
 
+/* Black text on the tree, labels/legends and active field values, Options
+   tab included. Outranks custom.css's #777 !important and the --bfng-text-2
+   labels; disabled/readonly fields keep their grey. Dark theme keeps --bfng-text. */
+#bfQuickModeWrapper.bfng {
+	--bfng-qm-ink: #000;
+}
+
+[data-bs-theme="dark"] #bfQuickModeWrapper.bfng {
+	--bfng-qm-ink: var(--bfng-text);
+}
+
+#bfQuickModeWrapper.bfng .jstree-anchor,
+#bfQuickModeWrapper.bfng legend,
+#bfQuickModeWrapper.bfng label,
+#bfQuickModeWrapper.bfng :is(input, textarea, select):not(:disabled):not([readonly]) {
+	color: var(--bfng-qm-ink) !important;
+}
+
 /* ##### hr ##### */
 
 #bfQuickModeWrapper hr {
@@ -362,3 +380,4 @@ overflow:hidden;width: 100%;
 /* Record edit screen: collapsible detail sections */
 .bf-collapse-toggle .bf-collapse-icon { transition: transform .15s ease-in-out; display: inline-block; }
 .bf-collapse-toggle:not(.collapsed) .bf-collapse-icon { transform: rotate(180deg); }
+.bf-record-values .control-group .control-label { inline-size: 320px; }

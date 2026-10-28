@@ -18,8 +18,9 @@ class FormSourceFactory
 {
     /**
      * @param int|string $referenceId
+     * @return \CB\Component\Contentbuilderng\Administrator\types\contentbuilderng_com_breezingformsng|\CB\Component\Contentbuilderng\Administrator\types\contentbuilderng_com_contentbuilderng|null
      */
-    public static function getForm(string $type, $referenceId): ?object
+    public static function getForm(string $type, $referenceId)
     {
         return null;
     }

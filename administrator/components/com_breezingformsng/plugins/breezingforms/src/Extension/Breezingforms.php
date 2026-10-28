@@ -87,7 +87,7 @@ final class Breezingforms extends CMSPlugin implements SubscriberInterface
         $input = $app->getInput();
         $original = [];
         foreach (array_keys($input->getArray()) as $key) {
-            $original[$key] = $input->get($key, null, 'raw');
+            $original[$key] = $input->get((string) $key, null, 'raw');
         }
         require_once JPATH_SITE . '/components/com_breezingformsng/src/Support/runtime_bootstrap.php';
         $target = (int) $GLOBALS['ff_target'] + 1;
@@ -111,13 +111,13 @@ final class Breezingforms extends CMSPlugin implements SubscriberInterface
         ];
         parse_str(html_entity_decode($matches[4] ?? '', ENT_QUOTES, 'UTF-8'), $parameters);
         foreach ($parameters as $key => $value) {
-            if (str_starts_with($key, 'ff_param_') && is_scalar($value)) {
+            if (str_starts_with((string) $key, 'ff_param_') && is_scalar($value)) {
                 $values[$key] = (string) $value;
             }
         }
         if ($isTarget) {
             foreach ($original as $key => $value) {
-                if (str_starts_with($key, 'ff_param_') && is_scalar($value)) {
+                if (str_starts_with((string) $key, 'ff_param_') && is_scalar($value)) {
                     $values[$key] = (string) $value;
                 }
             }
@@ -159,12 +159,12 @@ final class Breezingforms extends CMSPlugin implements SubscriberInterface
         }
         // The runtime reads Joomla input; restore the article request even if rendering fails.
         foreach (array_keys($original) as $key) {
-            if (str_starts_with($key, 'ff_param_')) {
-                $input->set($key, null);
+            if (str_starts_with((string) $key, 'ff_param_')) {
+                $input->set((string) $key, null);
             }
         }
         foreach ($values as $key => $value) {
-            $input->set($key, $value);
+            $input->set((string) $key, $value);
         }
         $ff_applic = 'plg_facileforms';
         $level = ob_get_level();
@@ -180,11 +180,11 @@ final class Breezingforms extends CMSPlugin implements SubscriberInterface
                 ...array_keys($values),
                 ...array_filter(
                     array_keys($original),
-                    static fn (string $key): bool => str_starts_with($key, 'ff_param_')
+                    static fn (int|string $key): bool => str_starts_with((string) $key, 'ff_param_')
                 ),
             ]);
             foreach ($restoreKeys as $key) {
-                $input->set($key, $original[$key] ?? null);
+                $input->set((string) $key, $original[$key] ?? null);
             }
         }
     }

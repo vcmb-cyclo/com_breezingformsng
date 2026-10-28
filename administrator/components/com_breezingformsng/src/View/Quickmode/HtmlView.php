@@ -54,17 +54,17 @@ class HtmlView extends BaseHtmlView
     public ?Editor $advancedOptionsEditor = null;
     /** @var array<string, int> */
     public array $advancedOptionsTabEntryCounts = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array $advancedOptionsInitScripts = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array $advancedOptionsSubmittedScripts = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array $advancedOptionsPieceBefore = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array $advancedOptionsPieceAfter = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array $advancedOptionsPieceBeginSubmit = [];
-    /** @var list<object> */
+    /** @var list<\stdClass> */
     public array $advancedOptionsPieceEndSubmit = [];
 
     public function display($tpl = null): void
@@ -123,6 +123,15 @@ class HtmlView extends BaseHtmlView
                 $this->advancedOptionsPieceAfter        = $listModel->getPieces('After Form');
                 $this->advancedOptionsPieceBeginSubmit  = $listModel->getPieces('Begin Submit');
                 $this->advancedOptionsPieceEndSubmit    = $listModel->getPieces('End Submit');
+
+                if (FormsAdvancedOptionsHtml::missingPieces($this->advancedOptionsForm, [
+                    1 => $this->advancedOptionsPieceBefore,
+                    2 => $this->advancedOptionsPieceAfter,
+                    3 => $this->advancedOptionsPieceBeginSubmit,
+                    4 => $this->advancedOptionsPieceEndSubmit,
+                ]) !== []) {
+                    Factory::getApplication()->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING_MESSAGE'), 'error');
+                }
             }
         }
 

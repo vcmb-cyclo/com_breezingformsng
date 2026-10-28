@@ -12,6 +12,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
 $listOrder = $this->escape($this->state->get('list.ordering'));
 $listDirn  = $this->escape($this->state->get('list.direction'));
@@ -20,6 +21,20 @@ $userId = (int) $user->id;
 $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 // Dates are stored in UTC and shown in the time zone of the user.
 $dateFormat = Text::_('DATE_FORMAT_LC6');
+$dateTitle = $this->escape(Text::sprintf('COM_BREEZINGFORMSNG_RECORDS_DATES_TIMEZONE', $user->getTimezone()->getName()));
+
+// State icons with the record wording (Active rather than Published). Like a
+// Joomla published icon, a click archives an active record and makes an
+// archived one active again; trashed records are only shown.
+$canEditState = $user->authorise('core.edit.state', 'com_breezingformsng');
+$stateIcons = [
+    RecordState::PUBLISHED => ['archive', '', RecordState::label(RecordState::PUBLISHED), RecordState::label(RecordState::PUBLISHED), true, 'publish', 'publish'],
+    RecordState::ARCHIVED  => ['publish', '', RecordState::label(RecordState::ARCHIVED), RecordState::label(RecordState::ARCHIVED), true, 'archive', 'archive'],
+    RecordState::TRASHED   => ['', '', '', RecordState::label(RecordState::TRASHED), true, 'trash', 'trash text-danger'],
+];
+
+// jgrid.state reads its fallback state 0 even when the value is found.
+$stateIcons[0] = $stateIcons[RecordState::PUBLISHED];
 
 $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8');
 ?>
@@ -33,9 +48,6 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
         <?= Text::_('COM_BREEZINGFORMSNG_NO_RECORDS_FOUND'); ?>
       </div>
     <?php else: ?>
-      <p class="small text-muted">
-        <?= $this->escape(Text::sprintf('COM_BREEZINGFORMSNG_RECORDS_DATES_TIMEZONE', $user->getTimezone()->getName())); ?>
-      </p>
       <table class="table" id="recordList">
         <caption class="visually-hidden">
           <?= Text::_('COM_BREEZINGFORMSNG_RECORDS'); ?>,
@@ -77,18 +89,26 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
               <td><?= $this->escape((string) $rec->ip); ?></td>
               <td><?= $this->escape((string) ($rec->user_full_name ?: $rec->username)); ?></td>
               <td class="text-center">
-                <a href="#" onclick="bfToggleFlag(<?= $recId; ?>, 'bfrecord_viewed', this); return false;" title="<?= Text::_('COM_BREEZINGFORMSNG_TOGGLE_VIEWED'); ?>">
-                  <span class="<?= $rec->viewed ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
-                </a>
+                <?php if ($canEditState): ?>
+                  <a href="#" data-bf-record-id="<?= $recId; ?>" data-bf-flag="viewed" title="<?= $headerTitle('COM_BREEZINGFORMSNG_TOGGLE_VIEWED'); ?>">
+                    <span class="<?= $rec->viewed ? 'icon-check text-success' : 'icon-times text-danger'; ?>" aria-hidden="true"></span>
+                  </a>
+                <?php else: ?>
+                  <span class="<?= $rec->viewed ? 'icon-check text-success' : 'icon-times text-danger'; ?>" aria-hidden="true"></span>
+                <?php endif; ?>
               </td>
               <td class="text-center">
-                <a href="#" onclick="bfToggleFlag(<?= $recId; ?>, 'bfrecord_exported', this); return false;" title="<?= Text::_('COM_BREEZINGFORMSNG_TOGGLE_EXPORTED'); ?>">
-                  <span class="<?= $rec->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
-                </a>
+                <?php if ($canEditState): ?>
+                  <a href="#" data-bf-record-id="<?= $recId; ?>" data-bf-flag="exported" title="<?= $headerTitle('COM_BREEZINGFORMSNG_TOGGLE_EXPORTED'); ?>">
+                    <span class="<?= $rec->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>" aria-hidden="true"></span>
+                  </a>
+                <?php else: ?>
+                  <span class="<?= $rec->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>" aria-hidden="true"></span>
+                <?php endif; ?>
               </td>
-              <td class="text-center"><?= HTMLHelper::_('jgrid.published', (int) $rec->state, $i, 'records.', false); ?></td>
-              <td><?= HTMLHelper::_('date', (string) $rec->submitted, $dateFormat); ?></td>
-              <td><?= $rec->modified ? HTMLHelper::_('date', (string) $rec->modified, $dateFormat) : '—'; ?></td>
+              <td class="text-center"><?= HTMLHelper::_('jgrid.state', $stateIcons, (int) $rec->state, $i, 'records.', $canEditState && (int) $rec->state !== RecordState::TRASHED); ?></td>
+              <td title="<?= $dateTitle; ?>"><?= HTMLHelper::_('date', (string) $rec->submitted, $dateFormat); ?></td>
+              <td<?= $rec->modified ? ' title="' . $dateTitle . '"' : ''; ?>><?= $rec->modified ? HTMLHelper::_('date', (string) $rec->modified, $dateFormat) : '—'; ?></td>
             </tr>
           <?php endforeach; ?>
         </tbody>

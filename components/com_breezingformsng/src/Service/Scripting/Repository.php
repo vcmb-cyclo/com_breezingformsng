@@ -81,10 +81,10 @@ final class Repository
 
         $this->database->setQuery($query);
 
-        return array_map(
+        return array_values(array_map(
             fn (array $row): StoredCode => $this->toStoredCode($row),
             $this->database->loadAssocList()
-        );
+        ));
     }
 
     /**

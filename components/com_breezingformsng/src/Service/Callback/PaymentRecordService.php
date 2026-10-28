@@ -22,11 +22,13 @@ final class PaymentRecordService
     {
     }
 
+    /** @return \stdClass|null */
     public function find(int $recordId): ?object
     {
         return $this->findRecord($recordId, false);
     }
 
+    /** @return \stdClass|null */
     public function findUnpaid(int $recordId): ?object
     {
         return $this->findRecord($recordId, true);
@@ -56,6 +58,7 @@ final class PaymentRecordService
         $this->database->execute();
     }
 
+    /** @return \stdClass|null */
     private function findRecord(int $recordId, bool $unpaidOnly): ?object
     {
         $query = $this->database->createQuery()

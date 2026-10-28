@@ -22,13 +22,14 @@ final class StoredPhpExecutor
 {
     /**
      * Executes a trusted snippet in the scope of the supplied runtime object.
+     * A variable passed by reference stays one, so the snippet can change it.
      *
      * @param array<string, mixed> $variables
      */
     public function execute(object $scope, string $code, array $variables = []): mixed
     {
         $executor = function () use ($code, $variables) {
-            extract($variables, EXTR_SKIP);
+            extract($variables, EXTR_SKIP | EXTR_REFS);
 
             return eval($code);
         };
@@ -53,6 +54,10 @@ final class StoredPhpExecutor
         return $executor->call($processor);
     }
 
+    /**
+     * @param \stdClass $elem
+     * @param \Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn $coldef
+     */
     public function executeQueryValue(
         object $processor,
         string $code,
@@ -69,8 +74,9 @@ final class StoredPhpExecutor
     }
 
     /**
+     * @param \stdClass $elem
      * @param array<int, mixed> $valrows
-     * @param array<int, object> $coldefs
+     * @param list<\Vcmb\Component\BreezingformsNG\Site\Table\QueryColumn> $coldefs
      *
      * @return array<int, object>
      */

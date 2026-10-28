@@ -100,7 +100,7 @@ final class SubmissionEngine
 
         $identity = $this->processor->app->getIdentity();
         $filemode = isset($mosConfig_fileperms)
-            ? ($mosConfig_fileperms === '' ? null : octdec($mosConfig_fileperms))
+            ? ($mosConfig_fileperms === '' ? null : (int) octdec($mosConfig_fileperms))
             : 0644;
         $result = $this->uploadRuntime()->store(
             (string) $filename,
@@ -184,14 +184,14 @@ final class SubmissionEngine
                                 }
                             }
 
-                            $areas = json_decode($this->processor->formrow->template_areas, true);
+                            $areas = json_decode((string) $this->processor->formrow->template_areas, true);
                             $useUrl = false;
                             $useUrlDownloadDirectory = '';
                             $resize_target_width = 0;
                             $resize_target_height = 0;
                             $resize_type = '';
                             $resize_bgcolor = '#ffffff';
-                            if (trim($this->processor->formrow->template_code_processed) == 'QuickMode' && is_array($areas)) {
+                            if (trim((string) $this->processor->formrow->template_code_processed) == 'QuickMode' && is_array($areas)) {
                                 foreach ($areas as $area) { // don't worry, size is only 1 in QM
                                     if (isset($area['elements'])) {
                                         foreach ($area['elements'] as $element) {
@@ -245,6 +245,8 @@ final class SubmissionEngine
                                         //}
 
                                         $pathInfo = $this->saveUpload($tmp_name[$i], bf_sanitizeFilename($name[$i]), $rowpath1, $row->flag1, $useUrl, $useUrlDownloadDirectory, $resize_target_width, $resize_target_height, $resize_type, $resize_bgcolor, $row->name);
+                                        if ($pathInfo === '')
+                                            return;
                                         $path = $pathInfo['default'];
                                         $serverPath = $pathInfo['server'];
                                         if ($this->processor->status != _FF_STATUS_OK)
@@ -522,7 +524,7 @@ final class SubmissionEngine
                                 if ($row->type == 'Textarea') {
                                     require_once(JPATH_SITE . '/administrator/components/com_breezingformsng/libraries/crosstec/functions/helpers.php');
 
-                                    if (trim($this->processor->formrow->template_code_processed) == 'QuickMode') {
+                                    if (trim((string) $this->processor->formrow->template_code_processed) == 'QuickMode') {
                                         $dataObject = json_decode(bf_b64dec($this->processor->formrow->template_code), true);
                                         $qmelement = $this->uploadRuntime()->findQuickModeElement($dataObject, $row->name);
 
@@ -759,7 +761,7 @@ final class SubmissionEngine
                     if ($row->type == "ReCaptcha") {
 
 
-                        $areas = json_decode($this->processor->formrow->template_areas, true);
+                        $areas = json_decode((string) $this->processor->formrow->template_areas, true);
 
                         foreach ($areas as $area) {
                             foreach ($area['elements'] as $element) {
@@ -794,7 +796,7 @@ final class SubmissionEngine
             }
 
 
-            $areas = json_decode($this->processor->formrow->template_areas, true);
+            $areas = json_decode((string) $this->processor->formrow->template_areas, true);
 
             if (is_array($areas)) {
                 switch ($this->processor->app->getInput()->getString('ff_payment_method', '')) {
@@ -826,7 +828,7 @@ final class SubmissionEngine
                         ->bind(':piece3id', $piece3id, ParameterType::INTEGER);
                     $this->processor->database->setQuery($query);
                     $rows = $this->processor->database->loadObjectList();
-                    if (count($rows))
+                    if (count($rows)) {
                         echo $this->scriptingEngine->execPiece(
                             $rows[0]->code,
                             Text::_('COM_BREEZINGFORMSNG_PROCESS_BSPIECE') . " " . $rows[0]->name,
@@ -834,10 +836,16 @@ final class SubmissionEngine
                             $this->processor->formrow->piece3id,
                             null
                         );
+                    } elseif ($this->processor->app->getConfig()->get('debug', false)) {
+                        $this->processor->app->enqueueMessage(
+                            Text::sprintf('COM_BREEZINGFORMSNG_PROCESS_PIECE_NOT_FOUND', Text::_('COM_BREEZINGFORMSNG_PROCESS_BSPIECE'), $piece3id),
+                            'error'
+                        );
+                    }
                     break;
                 case 2: // custom code
                     echo $this->scriptingEngine->execPiece(
-                        $this->processor->formrow->piece3code,
+                        (string) $this->processor->formrow->piece3code,
                         Text::_('COM_BREEZINGFORMSNG_PROCESS_BSPIECEC'),
                         'f',
                         $this->processor->form,
@@ -870,7 +878,7 @@ final class SubmissionEngine
                             if ($this->processor->formrow->dropbox_submission_enabled) {
                                 if ($this->processor->formrow->dropbox_email) {
                                     try {
-                                        $dropbox_types = explode(',', $this->processor->formrow->dropbox_submission_types);
+                                        $dropbox_types = explode(',', (string) $this->processor->formrow->dropbox_submission_types);
                                         foreach ($dropbox_types as $dropbox_type) {
                                             $dropbox_file = '';
                                             switch ($dropbox_type) {
@@ -1024,7 +1032,7 @@ final class SubmissionEngine
                         ->bind(':piece4id', $piece4id, ParameterType::INTEGER);
                     $this->processor->database->setQuery($query);
                     $rows = $this->processor->database->loadObjectList();
-                    if (count($rows))
+                    if (count($rows)) {
                         echo $this->scriptingEngine->execPiece(
                             $rows[0]->code,
                             Text::_('COM_BREEZINGFORMSNG_PROCESS_ESPIECE') . " " . $rows[0]->name,
@@ -1032,10 +1040,16 @@ final class SubmissionEngine
                             $this->processor->formrow->piece4id,
                             null
                         );
+                    } elseif ($this->processor->app->getConfig()->get('debug', false)) {
+                        $this->processor->app->enqueueMessage(
+                            Text::sprintf('COM_BREEZINGFORMSNG_PROCESS_PIECE_NOT_FOUND', Text::_('COM_BREEZINGFORMSNG_PROCESS_ESPIECE'), $piece4id),
+                            'error'
+                        );
+                    }
                     break;
                 case 2: // custom code
                     echo $this->scriptingEngine->execPiece(
-                        $this->processor->formrow->piece4code,
+                        (string) $this->processor->formrow->piece4code,
                         Text::_('COM_BREEZINGFORMSNG_PROCESS_ESPIECEC'),
                         'f',
                         $this->processor->form,
@@ -1087,7 +1101,7 @@ final class SubmissionEngine
         if ($this->processor->formrow->template_code != '') {
 
 
-            $areas = json_decode($this->processor->formrow->template_areas, true);
+            $areas = json_decode((string) $this->processor->formrow->template_areas, true);
             $head = json_decode(bf_b64dec($this->processor->formrow->template_code), true);
 
             if (is_array($areas)) {

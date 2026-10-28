@@ -20,7 +20,7 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering;
 final class EditableRecord
 {
     /**
-     * @param list<object> $entries
+     * @param list<\stdClass> $entries
      */
     public function __construct(
         public readonly int $id,

@@ -16,7 +16,7 @@ final class FormPathContext
 {
     /**
      * @param list<string> $tokens
-     * @param list<int|string> $values
+     * @param list<string> $values
      */
     public function __construct(
         public readonly array $tokens,

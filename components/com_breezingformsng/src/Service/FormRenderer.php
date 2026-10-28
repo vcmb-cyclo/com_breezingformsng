@@ -304,7 +304,7 @@ $ff_request = array();
             );
         if ($my_ff_params) {
             foreach (array_keys($this->application->getInput()->getArray()) as $prop) {
-                if (str_starts_with($prop, 'ff_param_')) {
+                if (str_starts_with((string) $prop, 'ff_param_')) {
                     $ff_request[$prop] = $this->application->getInput()->getString($prop);
                 }
             }

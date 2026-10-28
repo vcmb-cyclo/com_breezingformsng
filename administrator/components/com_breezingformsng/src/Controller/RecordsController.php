@@ -25,6 +25,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordExporter;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
 /** @property CMSApplication $app */
 class RecordsController extends AdminController
@@ -64,9 +65,20 @@ class RecordsController extends AdminController
         return parent::display($cachable, $urlparams);
     }
 
+    /**
+     * Archive, trash and restore: the record screen sends them too, and leaves
+     * it, so its edit session ends here as with Close.
+     */
+    public function publish()
+    {
+        parent::publish();
+        $this->releaseRecordEdits();
+    }
+
     public function delete()
     {
         $this->checkToken();
+        $this->releaseRecordEdits();
         $ids = array_filter((array) $this->input->get('cid', [], 'int'));
 
         if ($ids === []) {
@@ -118,26 +130,47 @@ class RecordsController extends AdminController
     public function exported(): void   { $this->batchFlag('exported', 1); }
     public function unexported(): void { $this->batchFlag('exported', 0); }
 
+    /**
+     * Ajax toggle of the viewed or exported flag of one record.
+     */
     public function setFlag(): void
     {
-        $this->checkToken();
+        $column = AjaxStateService::normalizeRecordColumn($this->input->post->getString('column', ''));
+        $flag = AjaxStateService::normalizeState($this->input->post->getInt('flag', 0));
 
-        while (ob_get_level() > 0) {
-            ob_end_clean();
-        }
-        $input = $this->app->getInput();
-        $recordId = $input->getInt('record_id', 0);
-        $column = AjaxStateService::normalizeRecordColumn($input->getString('column', ''));
-        $flag = AjaxStateService::normalizeState($input->getInt('flag', 0));
-        if ($recordId > 0 && $column !== null) {
-            $this->getRecordModel()->setFlagSingle($recordId, $column, $flag);
-        }
-        $payload = $recordId > 0 && $column !== null
-            ? AjaxStateService::success($flag)
-            : AjaxStateService::error(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-        $this->app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
-        echo new JsonResponse($payload);
-        $this->app->close();
+        $this->sendStateChange(
+            fn (int $recordId): bool => $column !== null
+                && $this->getRecordModel()->setFlagSingle($recordId, $column, $flag),
+            ['flag' => $flag]
+        );
+    }
+
+    /**
+     * Ajax switch of one record between active and archived, from the record
+     * screen: a record the user had checked out stays checked out to them, and
+     * no lock is created for a user who only has the edit-state right.
+     */
+    public function setState(): void
+    {
+        $state = $this->input->post->getInt('state', RecordState::PUBLISHED);
+
+        $this->sendStateChange(
+            function (int $recordId) use ($state): bool {
+                if (!in_array($state, [RecordState::PUBLISHED, RecordState::ARCHIVED], true)) {
+                    return false;
+                }
+
+                $model = $this->getRecordModel();
+                $ids = [$recordId];
+                $table = $model->getTable();
+                $heldByUser = $table->load($recordId)
+                    && (int) $table->checked_out === (int) $this->app->getIdentity()->id;
+
+                // Table::publish() checks the record in.
+                return $model->publish($ids, $state) && (!$heldByUser || $model->checkout($recordId));
+            },
+            ['state' => $state, 'label' => Text::_(RecordState::label($state))]
+        );
     }
 
     public function exportPdf(): void
@@ -238,9 +271,72 @@ class RecordsController extends AdminController
         $app->close();
     }
 
+    /**
+     * Runs a state change requested by Ajax and answers with a native JSON
+     * response, in its error mode when the change is refused or fails.
+     *
+     * @param \Closure(int): bool $change
+     * @param array<string, mixed> $data
+     */
+    private function sendStateChange(\Closure $change, array $data): void
+    {
+        $recordId = $this->input->post->getInt('record_id', 0);
+        [$status, $message] = match (true) {
+            !$this->checkToken('post', false) => [403, Text::_('JINVALID_TOKEN')],
+            !$this->canEditState() => [403, Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED')],
+            $recordId <= 0 || !$change($recordId) => [400, Text::_('JERROR_AN_ERROR_HAS_OCCURRED')],
+            default => [200, ''],
+        };
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        $this->app->mimeType = 'application/json';
+        $this->app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
+
+        if ($status !== 200) {
+            $this->app->setHeader('status', (string) $status, true);
+        }
+
+        $this->app->sendHeaders();
+        echo $status === 200 ? new JsonResponse($data) : new JsonResponse(null, $message, true);
+        $this->app->close();
+    }
+
+    /**
+     * Releases the edit ids and the unsaved data the record screen keeps in the
+     * session for the selected records; the records list holds none.
+     */
+    private function releaseRecordEdits(): void
+    {
+        $context = $this->option . '.edit.record';
+
+        foreach (ArrayHelper::toInteger((array) $this->input->get('cid', [], 'array')) as $id) {
+            $this->releaseEditId($context, $id);
+        }
+
+        $this->app->setUserState($context . '.data', null);
+    }
+
+    private function canEditState(): bool
+    {
+        return $this->app->getIdentity()->authorise('core.edit.state', $this->option);
+    }
+
     private function batchFlag(string $column, int $value = 1): void
     {
         $this->checkToken();
+
+        if (!$this->canEditState()) {
+            $this->setRedirect(
+                Route::_(self::LIST_URL, false),
+                Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'),
+                'error'
+            );
+
+            return;
+        }
 
         $app = $this->app;
         $input = $app->getInput();
@@ -252,11 +348,10 @@ class RecordsController extends AdminController
             'viewed'   => $value ? 'COM_BREEZINGFORMSNG_RECORDS_N_MARKED_VIEWED' : 'COM_BREEZINGFORMSNG_RECORDS_N_UNMARKED_VIEWED',
             'exported' => $value ? 'COM_BREEZINGFORMSNG_RECORDS_N_MARKED_EXPORTED' : 'COM_BREEZINGFORMSNG_RECORDS_N_UNMARKED_EXPORTED',
         ];
-        if (isset($keyBases[$column])) {
-            $app->enqueueMessage(Text::plural($keyBases[$column], count($ids)), 'message');
-        }
-
-        $app->redirect(self::LIST_URL);
+        $this->setRedirect(
+            Route::_(self::LIST_URL, false),
+            isset($keyBases[$column]) ? Text::plural($keyBases[$column], count($ids)) : null
+        );
     }
 
     /**

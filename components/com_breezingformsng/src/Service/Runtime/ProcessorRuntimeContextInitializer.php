@@ -15,6 +15,7 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Runtime;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Language\Text;
 use Vcmb\Component\BreezingformsNG\Site\Configuration\FormConfiguration;
+use Vcmb\Component\BreezingformsNG\Site\Table\FormTable;
 
 /** Assembles the request-dependent state needed by the processor facade. */
 final class ProcessorRuntimeContextInitializer
@@ -27,6 +28,7 @@ final class ProcessorRuntimeContextInitializer
     ) {
     }
 
+    /** @param FormTable|\stdClass $formrow */
     public function initialize(
         CMSApplication $application,
         FormConfiguration $configuration,

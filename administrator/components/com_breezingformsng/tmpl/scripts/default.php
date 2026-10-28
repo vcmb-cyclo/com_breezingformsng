@@ -29,7 +29,7 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 ?>
 <form action="<?= Route::_('index.php?option=com_breezingformsng&view=scripts'); ?>" method="post" name="adminForm" id="adminForm">
   <div id="j-main-container" class="j-main-container">
-    <?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this]); ?>
+    <?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this, 'options' => ['selectorFieldName' => 'package']]); ?>
 
     <?php if ($this->items === []): ?>
       <div class="alert alert-info">
@@ -57,7 +57,22 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
             <?php $editUrl = Route::_('index.php?option=com_breezingformsng&task=script.edit&id=' . (int) $row->id); ?>
             <tr class="row<?= $i % 2; ?>">
               <td class="text-center"><?= HTMLHelper::_('grid.id', $i, (int) $row->id, false, 'cid', 'cb', (string) $row->title); ?></td>
-              <td class="text-center"><?= HTMLHelper::_('jgrid.published', (int) $row->published, $i, 'scripts.', $this->canEdit); ?></td>
+              <td class="text-center">
+                <?php if ($this->canEdit): ?>
+                  <a href="#"
+                     class="tbody-icon js-bf-form-state<?= $row->published ? ' active' : ''; ?>"
+                     data-item-task="scripts.setPublished"
+                     data-item-form-id="<?= (int) $row->id; ?>"
+                     data-state-type="published"
+                     title="<?= Text::_($row->published ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
+                    <span class="<?= $row->published ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+                  </a>
+                <?php else: ?>
+                  <span class="tbody-icon<?= $row->published ? ' active' : ''; ?>" title="<?= Text::_($row->published ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
+                    <span class="<?= $row->published ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+                  </span>
+                <?php endif; ?>
+              </td>
               <th scope="row">
                 <?php if ((int) $row->checked_out > 0): ?>
                   <?= HTMLHelper::_('jgrid.checkedout', $i, (string) $row->editor, $row->checked_out_time, 'scripts.', $canManageCheckin || (int) $row->checked_out === $userId); ?>

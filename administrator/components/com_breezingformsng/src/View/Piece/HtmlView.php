@@ -48,6 +48,8 @@ class HtmlView extends BaseHtmlView
     public ?Form $form = null;
     public ?\stdClass $item = null;
     public bool $canEdit = false;
+    // A saved item is published from its icon, by Ajax, as a form in QuickMode.
+    public bool $canEditState = false;
 
     // test layout
     public string $functionName = '';
@@ -151,19 +153,20 @@ class HtmlView extends BaseHtmlView
         $toolbar = $document->getToolbar();
         $item = $this->item;
         $saved = (int) $item->id > 0;
+        $this->canEditState = $saved && $this->canEdit
+            && Factory::getApplication()->getIdentity()->authorise('core.edit.state', 'com_breezingformsng');
+
+        if ($this->canEditState) {
+            $this->form->removeField('published');
+        }
 
         if ($this->canEdit) {
             $toolbar->apply('piece.apply');
             $toolbar->save('piece.save');
         }
 
-        if ($saved) {
-            $toolbar->standardButton('previous', 'COM_BREEZINGFORMSNG_PROCESS_PAGEPREV', 'piece.previous')->icon('icon-arrow-left');
-            $toolbar->standardButton('next', 'COM_BREEZINGFORMSNG_PROCESS_PAGENEXT', 'piece.next')->icon('icon-arrow-right');
-
-            if ($this->canEdit) {
-                $toolbar->standardButton('test', 'COM_BREEZINGFORMSNG_TEST', 'piece.test')->icon('icon-eye');
-            }
+        if ($saved && $this->canEdit) {
+            $toolbar->standardButton('test', 'COM_BREEZINGFORMSNG_TEST', 'piece.test')->icon('icon-eye');
         }
 
         if ($saved && $this->canEdit && FormVersioning::isEnabled()) {
@@ -172,8 +175,26 @@ class HtmlView extends BaseHtmlView
 
         $toolbar->cancel('piece.cancel', $saved ? 'JTOOLBAR_CLOSE' : 'JTOOLBAR_CANCEL');
 
+        if ($saved) {
+            $this->addItemPagination($toolbar, 'Pieces', (int) $item->id, 'piece.navigate');
+        }
+
         $wa = $document->getWebAssetManager();
         $wa->useScript('keepalive');
+        if ($this->canEditState) {
+            $wa->registerAndUseScript(
+                'com_breezingformsng.admin-toggle-published',
+                'media/com_breezingformsng/js/admin/admin-toggle-published.js',
+                ['version' => 'auto'],
+                ['defer' => true],
+                ['core']
+            );
+            $document->addScriptOptions('com_breezingformsng.admin-toggle-published', ['csrfToken' => Session::getFormToken()]);
+            Text::script('JPUBLISHED');
+            Text::script('JUNPUBLISHED');
+            Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
+        }
+
         $wa->registerAndUseScript(
             'com_breezingformsng.pieces-edit',
             'media/com_breezingformsng/js/admin/pieces-edit.js',
@@ -182,12 +203,11 @@ class HtmlView extends BaseHtmlView
             ['core']
         );
         $document->addScriptOptions('com_breezingformsng.pieces-edit', [
-            'initialState' => [
+            'initialState' => ($this->canEditState ? [] : ['published' => (string) (int) ($item->published ?? 1)]) + [
                 'title' => (string) $item->title,
                 'type' => (string) ($item->type ?: 'Untyped'),
                 'package' => (string) $item->package,
                 'name' => (string) $item->name,
-                'published' => (string) (int) ($item->published ?? 1),
                 'description' => (string) $item->description,
                 'code' => (string) $item->code,
                 'unit_tests' => (string) $item->unit_tests,
@@ -230,8 +250,13 @@ class HtmlView extends BaseHtmlView
         $toolbar->linkButton('edit', 'COM_BREEZINGFORMSNG_TEST_BACK')
             ->url(Route::_('index.php?option=com_breezingformsng&task=piece.edit&id=' . (int) $item->id))
             ->icon('icon-undo');
-        $toolbar->standardButton('previous', 'COM_BREEZINGFORMSNG_PROCESS_PAGEPREV', 'piece.previous')->icon('icon-arrow-left');
-        $toolbar->standardButton('next', 'COM_BREEZINGFORMSNG_PROCESS_PAGENEXT', 'piece.next')->icon('icon-arrow-right');
+        $this->addItemPagination(
+            $toolbar,
+            'Pieces',
+            (int) $item->id,
+            'piece.navigate',
+            ['test_context' => 1, ...($this->testMode !== '' ? ['test_mode' => $this->testMode] : [])]
+        );
 
         $document->getWebAssetManager()->registerAndUseScript(
             'com_breezingformsng.pieces-test',

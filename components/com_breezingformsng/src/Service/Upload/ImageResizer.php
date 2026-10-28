@@ -123,20 +123,23 @@ final class ImageResizer
             $newDestinationHeight = $temporaryHeight;
         }
 
+        if ($destinationWidth < 1 || $destinationHeight < 1) {
+            throw new \ValueError('Image dimensions must be greater than 0');
+        }
+
         $destinationImage = imagecreatetruecolor($destinationWidth, $destinationHeight);
 
         if ($type === 2) {
-            imagefill(
+            $color = imagecolorallocate(
                 $destinationImage,
-                0,
-                0,
-                imagecolorallocate(
-                    $destinationImage,
-                    (int) $backgroundColor[0],
-                    (int) $backgroundColor[1],
-                    (int) $backgroundColor[2]
-                )
+                $this->colorChannel($backgroundColor[0]),
+                $this->colorChannel($backgroundColor[1]),
+                $this->colorChannel($backgroundColor[2])
             );
+
+            if ($color !== false) {
+                imagefill($destinationImage, 0, 0, $color);
+            }
         }
 
         imagecopyresampled(
@@ -177,6 +180,19 @@ final class ImageResizer
     /**
      * @param array<int|string, mixed> $image
      */
+    /** @return int<0, 255> */
+    private function colorChannel(mixed $value): int
+    {
+        $channel = (int) $value;
+
+        if ($channel < 0 || $channel > 255) {
+            throw new \ValueError('Image color channels must be between 0 and 255');
+        }
+
+        return $channel;
+    }
+
+    /** @param array<int|string, mixed> $image */
     private function hasEnoughMemory(array $image): bool
     {
         $channels = (int) ($image['channels'] ?? 0);

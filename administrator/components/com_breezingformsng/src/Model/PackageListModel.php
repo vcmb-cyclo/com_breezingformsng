@@ -21,8 +21,10 @@ use Joomla\Database\ParameterType;
 /**
  * List of the code items kept in packages: scripts and pieces.
  */
-abstract class PackageListModel extends ListModel
+abstract class PackageListModel extends ListModel implements ListPositionInterface
 {
+    use ListPositionTrait;
+
     abstract protected function getTableName(): string;
 
     private const SORTS = ['id', 'package', 'title', 'name', 'type', 'description', 'modified', 'published'];
@@ -40,6 +42,15 @@ abstract class PackageListModel extends ListModel
     protected function populateState($ordering = 'name', $direction = 'ASC')
     {
         parent::populateState($ordering, $direction);
+
+        // The package is the selector of the search tools, out of the filter
+        // group, as the client of the Joomla modules list.
+        $this->setState('filter.package', $this->getUserStateFromRequest($this->context . '.package', 'package', '', 'string'));
+    }
+
+    protected function getPositionIdColumn(): string
+    {
+        return 'id';
     }
 
     protected function getStoreId($id = '')
@@ -100,42 +111,5 @@ abstract class PackageListModel extends ListModel
         $direction = strtoupper((string) $this->getState('list.direction', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
 
         return $query->order($db->quoteName($ordering) . ' ' . $direction . ', ' . $db->quoteName('id') . ' DESC');
-    }
-
-    /**
-     * The item before or after the given one, by id, within the package
-     * filter of the list; the ends wrap around.
-     */
-    public function getAdjacentId(int $itemId, string $direction): int
-    {
-        $db = $this->getDatabase();
-        $package = (string) $this->getState('filter.package');
-        $previous = $direction === 'prev';
-
-        foreach ([true, false] as $bounded) {
-            $query = $db->createQuery()
-                ->select($db->quoteName('id'))
-                ->from($db->quoteName($this->getTableName()))
-                ->order($db->quoteName('id') . ($previous ? ' DESC' : ' ASC'))
-                ->setLimit(1);
-
-            if ($bounded) {
-                $query->where($db->quoteName('id') . ($previous ? ' < :itemId' : ' > :itemId'))
-                    ->bind(':itemId', $itemId, ParameterType::INTEGER);
-            }
-
-            if ($package !== '') {
-                $query->where($db->quoteName('package') . ' = :package')
-                    ->bind(':package', $package);
-            }
-
-            $adjacentId = (int) $db->setQuery($query)->loadResult();
-
-            if ($adjacentId > 0) {
-                return $adjacentId;
-            }
-        }
-
-        return $itemId;
     }
 }

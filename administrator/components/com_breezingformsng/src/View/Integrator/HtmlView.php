@@ -12,6 +12,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Integrator;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
@@ -27,7 +28,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 
 class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView
 {
-    /** @var object[] */
+    /** @var list<\stdClass> */
     public array $rules = [];
     public ?Pagination $pagination = null;
     public ?Registry $state = null;
@@ -35,21 +36,21 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
     /** @var array<string, mixed> */
     public array $activeFilters = [];
     public ?\stdClass $rule    = null;
-    /** @var object[] */
+    /** @var list<\stdClass> */
     public array $items        = [];
     /** @var string[] */
     public array $tableNames   = [];
     /** @var array<string, mixed> */
     public array $tableColumns = [];
-    /** @var object[] */
+    /** @var list<\stdClass> */
     public array $forms        = [];
-    /** @var object[] */
+    /** @var list<\stdClass> */
     public array $formElements = [];
-    /** @var object[] */
+    /** @var list<\stdClass> */
     public array $criteria         = [];
-    /** @var object[] */
+    /** @var list<\stdClass> */
     public array $criteriaJoomla   = [];
-    /** @var object[] */
+    /** @var list<\stdClass> */
     public array $criteriaFixed    = [];
     public string $formFilter  = 'all';
     public function display($tpl = null): void
@@ -160,6 +161,12 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             ToolbarHelper::save('integrator.save');
         }
         ToolbarHelper::cancel('integrator.display', 'JTOOLBAR_CLOSE');
+
+        if ($this->rule !== null) {
+            /** @var HtmlDocument $document */
+            $document = $this->getDocument();
+            $this->addItemPagination($document->getToolbar(), 'IntegratorRules', $id, 'integrator.navigate');
+        }
     }
 
     protected function getDetailLabel(): ?string

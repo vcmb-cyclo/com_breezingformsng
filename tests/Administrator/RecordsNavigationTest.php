@@ -56,7 +56,6 @@ final class RecordsNavigationTest extends TestCase
             [
                 'records.form = :formId',
                 'records.state IN (1)',
-                'records.id = :searchExact',
                 'records.ip LIKE :searchLike1',
                 'records.username LIKE :searchLike2',
                 'records.user_full_name LIKE :searchLike3',
@@ -69,7 +68,6 @@ final class RecordsNavigationTest extends TestCase
         self::assertSame(
             [
                 [':formId', 7, 1],
-                [':searchExact', 'alice', 2],
                 [':searchLike1', '%alice%', 2],
                 [':searchLike2', '%alice%', 2],
                 [':searchLike3', '%alice%', 2],
@@ -80,6 +78,36 @@ final class RecordsNavigationTest extends TestCase
             $database->query->bindings
         );
         self::assertSame(['AND', 'AND', 'AND', 'OR'], $database->query->whereGlue);
+    }
+
+    public function testANumberSearchesTheIdBoundAsAnIntegerOrTheTexts(): void
+    {
+        $database = new RecordsNavigationDatabaseDouble([50, 30, 20]);
+
+        $this->model($database, ['filter.search' => '42'])->getNavigation(30);
+
+        self::assertContains('records.id = :searchId', $database->query->where);
+        self::assertContains([':searchId', 42, 1], $database->query->bindings);
+        self::assertContains('records.ip LIKE :searchLike1', $database->query->where);
+    }
+
+    public function testAnIdPrefixSearchesTheIdOnly(): void
+    {
+        $database = new RecordsNavigationDatabaseDouble([50, 30, 20]);
+
+        $this->model($database, ['filter.search' => 'ID: 42'])->getNavigation(30);
+
+        self::assertSame(['records.state IN (1)', 'records.id = :searchId'], $database->query->where);
+        self::assertSame([[':searchId', 42, 1]], $database->query->bindings);
+    }
+
+    public function testTextAfterANumberIsNotTakenForAnId(): void
+    {
+        $database = new RecordsNavigationDatabaseDouble([50, 30, 20]);
+
+        $this->model($database, ['filter.search' => '5abc'])->getNavigation(30);
+
+        self::assertNotContains('records.id = :searchId', $database->query->where);
     }
 
     public function testPreviousRecordFollowsAscendingListOrderAcrossForms(): void
@@ -147,12 +175,14 @@ final class RecordsNavigationTest extends TestCase
         self::assertIsString($listTemplate);
         self::assertIsString($editTemplate);
         self::assertStringContainsString('task=record.edit&amp;id=<?= $recId; ?>', $listTemplate);
-        self::assertStringContainsString('task=record.edit&id=', $editTemplate);
+        self::assertStringContainsString('$this->pagination?->getPaginationPages()', $editTemplate);
         self::assertStringContainsString('$this->form->renderFieldset(\'values\')', $editTemplate);
         self::assertStringNotContainsString('filter_order', $listTemplate . $editTemplate);
         self::assertStringNotContainsString('form_selection', $listTemplate . $editTemplate);
-        self::assertStringContainsString('$recordUrl($this->prevRecordId)', $editTemplate);
-        self::assertStringContainsString('$recordUrl($this->nextRecordId)', $editTemplate);
+        self::assertStringContainsString('$pageLink($pages[\'previous\']', $editTemplate);
+        self::assertStringContainsString('$pageLink($pages[\'next\']', $editTemplate);
+        self::assertStringContainsString('$paginationNav(\'ms-auto\')', $editTemplate);
+        self::assertStringContainsString('$paginationNav(\'mt-3\')', $editTemplate);
         self::assertStringContainsString('name="cid[]"', $editTemplate);
         self::assertStringContainsString('$record->browser', $editTemplate);
         self::assertStringContainsString('$record->paypal_testaccount', $editTemplate);
@@ -174,7 +204,10 @@ final class RecordsNavigationTest extends TestCase
             ['search', 'form', 'state'],
             array_map('strval', $filterForm->xpath('/form/fields[@name="filter"]/field/@name'))
         );
-        self::assertSame('*,1,2,-2', (string) $filterForm->xpath('//field[@name="state"]/@optionsFilter')[0]);
+        self::assertSame(
+            ['', '1', '2', '-2', '*'],
+            array_map('strval', $filterForm->xpath('//field[@name="state"]/option/@value'))
+        );
     }
 
     /** @param array<string, mixed> $state */

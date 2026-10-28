@@ -24,7 +24,7 @@ final class RecordState
     public const FILTER_ALL = '*';
 
     private const LABELS = [
-        self::PUBLISHED => 'JPUBLISHED',
+        self::PUBLISHED => 'COM_BREEZINGFORMSNG_RECORDS_STATE_ACTIVE',
         self::ARCHIVED  => 'JARCHIVED',
         self::TRASHED   => 'JTRASHED',
     ];

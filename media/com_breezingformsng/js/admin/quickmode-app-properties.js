@@ -14,7 +14,7 @@ import { JoomlaEditor } from 'editor-api';
             mdata.placeholder = JQuery('#bfElementTypeTextPlaceholder').val();
             mdata['placeholder_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeTextPlaceholderTrans').val();
             mdata.bfName = JQuery('#bfElementName').val();
-            mdata.logging = JQuery('#bfElementAdvancedLogging').attr('checked');
+            mdata.logging = JQuery('#bfElementAdvancedLogging').prop('checked');
             mdata.label = JQuery('#bfElementLabel').val();
             mdata['label_translation'+BFQMConfig.lang] = JQuery('#bfElementLabelTrans').val();
             mdata.maxLength = JQuery('#bfElementTypeTextMaxLength').val();
@@ -23,19 +23,19 @@ import { JoomlaEditor } from 'editor-api';
             mdata.hint = JQuery('#bfElementTypeTextHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeTextHintTrans').val();
 
-            mdata.password = JQuery('#bfElementAdvancedPassword').attr('checked');
-            mdata.readonly = JQuery('#bfElementAdvancedReadOnly').attr('checked');
-            mdata.mailback = JQuery('#bfElementAdvancedMailback').attr('checked');
-            mdata.mailbackAsSender = JQuery('#bfElementAdvancedMailbackAsSender').attr('checked');
+            mdata.password = JQuery('#bfElementAdvancedPassword').prop('checked');
+            mdata.readonly = JQuery('#bfElementAdvancedReadOnly').prop('checked');
+            mdata.mailback = JQuery('#bfElementAdvancedMailback').prop('checked');
+            mdata.mailbackAsSender = JQuery('#bfElementAdvancedMailbackAsSender').prop('checked');
             mdata.mailbackfile = JQuery('#bfElementAdvancedMailbackfile').val();
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.hideLabel = JQuery('#bfElementAdvancedHideLabel').attr('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.hideLabel = JQuery('#bfElementAdvancedHideLabel').prop('checked');
             mdata.size = JQuery('#bfElementTypeTextSize').val();
             mdata.orderNumber = JQuery('#bfElementOrderNumber').val();
-            mdata.required = JQuery('#bfElementValidationRequired').attr('checked');
+            mdata.required = JQuery('#bfElementValidationRequired').prop('checked');
             item.properties = mdata;
         };
 
@@ -53,25 +53,25 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementName').val(mdata.bfName);
             JQuery('#bfElementLabel').val(mdata.label);
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
-            JQuery('#bfElementAdvancedLogging').attr('checked', mdata.logging);
+            JQuery('#bfElementAdvancedLogging').prop('checked', mdata.logging);
             JQuery('#bfElementTypeTextMaxLength').val(mdata.maxLength);
 
             JQuery('#bfElementTypeTextHint').val(mdata.hint);
             JQuery('#bfElementTypeTextHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementAdvancedPassword').attr('checked', mdata.password);
-            JQuery('#bfElementAdvancedReadOnly').attr('checked', mdata.readonly);
-            JQuery('#bfElementAdvancedMailback').attr('checked', mdata.mailback);
-            JQuery('#bfElementAdvancedMailbackAsSender').attr('checked', mdata.mailbackAsSender);
+            JQuery('#bfElementAdvancedPassword').prop('checked', mdata.password);
+            JQuery('#bfElementAdvancedReadOnly').prop('checked', mdata.readonly);
+            JQuery('#bfElementAdvancedMailback').prop('checked', mdata.mailback);
+            JQuery('#bfElementAdvancedMailbackAsSender').prop('checked', mdata.mailbackAsSender);
             JQuery('#bfElementAdvancedMailbackfile').val(mdata.mailbackfile);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
-            JQuery('#bfElementAdvancedHideLabel').attr('checked', mdata.hideLabel);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideLabel').prop('checked', mdata.hideLabel);
             JQuery('#bfElementTypeTextSize').val(mdata.size);
             JQuery('#bfElementOrderNumber').val(mdata.orderNumber);
-            JQuery('#bfElementValidationRequired').attr('checked', mdata.required);
+            JQuery('#bfElementValidationRequired').prop('checked', mdata.required);
 
             JQuery('#bfElementTypeTextIcon').val(mdata.icon);
         };
@@ -84,9 +84,9 @@ import { JoomlaEditor } from 'editor-api';
             mdata.placeholder = JQuery('#bfElementTypeTextareaPlaceholder').val();
             mdata['placeholder_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeTextareaPlaceholderTrans').val();
 
-            mdata.is_html = JQuery('#bfElementTypeTextareaIsHtml').attr('checked');
+            mdata.is_html = JQuery('#bfElementTypeTextareaIsHtml').prop('checked');
             mdata.bfName = JQuery('#bfElementName').val();
-            mdata.logging = JQuery('#bfElementTextareaAdvancedLogging').attr('checked');
+            mdata.logging = JQuery('#bfElementTextareaAdvancedLogging').prop('checked');
 
             mdata.label = JQuery('#bfElementLabel').val();
             mdata['label_translation'+BFQMConfig.lang] = JQuery('#bfElementLabelTrans').val();
@@ -99,14 +99,14 @@ import { JoomlaEditor } from 'editor-api';
             mdata.width = JQuery('#bfElementTypeTextareaWidth').val();
             mdata.height = JQuery('#bfElementTypeTextareaHeight').val();
             mdata.maxlength = JQuery('#bfElementTypeTextareaMaxLength').val();
-            mdata.showMaxlengthCounter = JQuery('#bfElementTypeTextareaMaxLengthShow').attr('checked');
+            mdata.showMaxlengthCounter = JQuery('#bfElementTypeTextareaMaxLengthShow').prop('checked');
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.hideLabel = JQuery('#bfElementTextareaAdvancedHideLabel').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.hideLabel = JQuery('#bfElementTextareaAdvancedHideLabel').prop('checked');
             mdata.orderNumber = JQuery('#bfElementTextareaAdvancedOrderNumber').val();
-            mdata.required = JQuery('#bfElementValidationRequired').attr('checked');
+            mdata.required = JQuery('#bfElementValidationRequired').prop('checked');
             item.properties = mdata;
         };
 
@@ -120,22 +120,22 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeTextareaPlaceholder').val(mdata.placeholder);
             JQuery('#bfElementTypeTextareaPlaceholderTrans').val(typeof mdata['placeholder_translation'+BFQMConfig.lang] != "undefined" ? mdata['placeholder_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementTypeTextareaIsHtml').attr('checked', mdata.is_html);
+            JQuery('#bfElementTypeTextareaIsHtml').prop('checked', mdata.is_html);
             JQuery('#bfElementName').val(mdata.bfName);
 
             JQuery('#bfElementLabel').val(mdata.label);
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementTextareaAdvancedLogging').attr('checked', mdata.logging);
+            JQuery('#bfElementTextareaAdvancedLogging').prop('checked', mdata.logging);
 
             JQuery('#bfElementTypeTextareaHint').val(mdata.hint);
             JQuery('#bfElementTypeTextareaHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
-            JQuery('#bfElementTextareaAdvancedHideLabel').attr('checked', mdata.hideLabel);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
+            JQuery('#bfElementTextareaAdvancedHideLabel').prop('checked', mdata.hideLabel);
             JQuery('#bfElementTypeTextareaWidth').val(mdata.width);
             JQuery('#bfElementTypeTextareaHeight').val(mdata.height);
             JQuery('#bfElementTypeTextareaIsHtml').val(mdata.is_html);
@@ -148,9 +148,9 @@ import { JoomlaEditor } from 'editor-api';
             }
             // end compat 723
             JQuery('#bfElementTypeTextareaMaxLength').val(!isNaN(mdata.maxlength) ? mdata.maxlength : 0);
-            JQuery('#bfElementTypeTextareaMaxLengthShow').attr('checked', mdata.showMaxlengthCounter);
+            JQuery('#bfElementTypeTextareaMaxLengthShow').prop('checked', mdata.showMaxlengthCounter);
             JQuery('#bfElementTextareaAdvancedOrderNumber').val(mdata.orderNumber);
-            JQuery('#bfElementValidationRequired').attr('checked', mdata.required);
+            JQuery('#bfElementValidationRequired').prop('checked', mdata.required);
 
             JQuery('#bfElementTypeTextareaIcon').val(mdata.icon);
         };
@@ -162,8 +162,8 @@ import { JoomlaEditor } from 'editor-api';
             mdata.placeholder = JQuery('#bfElementTypeNumberInputPlaceholder').val();
             mdata['placeholder_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeNumberInputPlaceholderTrans').val();
             mdata.bfName = JQuery('#bfElementName').val();
-            mdata.logging = JQuery('#bfElementNumberInputAdvancedLogging').attr('checked');
-            mdata.range = JQuery('#bfElementNumberInputAdvancedRange').attr('checked');
+            mdata.logging = JQuery('#bfElementNumberInputAdvancedLogging').prop('checked');
+            mdata.range = JQuery('#bfElementNumberInputAdvancedRange').prop('checked');
             mdata.label = JQuery('#bfElementLabel').val();
             mdata['label_translation'+BFQMConfig.lang] = JQuery('#bfElementLabelTrans').val();
             mdata.maxLength = JQuery('#bfElementTypeNumberInputMaxLength').val();
@@ -174,12 +174,12 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.hideLabel = JQuery('#bfElementNumberInputAdvancedHideLabel').attr('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.hideLabel = JQuery('#bfElementNumberInputAdvancedHideLabel').prop('checked');
             mdata.size = JQuery('#bfElementTypeNumberInputSize').val();
             mdata.orderNumber = JQuery('#bfElementNumberInputOrderNumber').val();
-            mdata.required = JQuery('#bfElementValidationRequired').attr('checked');
+            mdata.required = JQuery('#bfElementValidationRequired').prop('checked');
 
             mdata.step = JQuery('#bfElementNumberInputAdvancedStep').val();
             mdata.min = JQuery('#bfElementNumberInputAdvancedMin').val();
@@ -202,8 +202,8 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementName').val(mdata.bfName);
             JQuery('#bfElementLabel').val(mdata.label);
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
-            JQuery('#bfElementNumberInputAdvancedLogging').attr('checked', mdata.logging);
-            JQuery('#bfElementNumberInputAdvancedRange').attr('checked', mdata.range);
+            JQuery('#bfElementNumberInputAdvancedLogging').prop('checked', mdata.logging);
+            JQuery('#bfElementNumberInputAdvancedRange').prop('checked', mdata.range);
             JQuery('#bfElementTypeNumberInputMaxLength').val(mdata.maxLength);
 
             JQuery('#bfElementTypeNumberInputHint').val(mdata.hint);
@@ -211,12 +211,12 @@ import { JoomlaEditor } from 'editor-api';
         
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
-            JQuery('#bfElementNumberInputAdvancedHideLabel').attr('checked', mdata.hideLabel);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
+            JQuery('#bfElementNumberInputAdvancedHideLabel').prop('checked', mdata.hideLabel);
             JQuery('#bfElementTypeNumberInputSize').val(mdata.size);
             JQuery('#bfElementNumberInputOrderNumber').val(mdata.orderNumber);
-            JQuery('#bfElementValidationRequired').attr('checked', mdata.required);
+            JQuery('#bfElementValidationRequired').prop('checked', mdata.required);
 
             JQuery('#bfElementTypeNumberInputIcon').val(mdata.icon);
 
@@ -231,14 +231,14 @@ import { JoomlaEditor } from 'editor-api';
             mdata.group = JQuery('#bfElementTypeRadioGroupGroups').val();
             mdata['group_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeRadioGroupGroupsTrans').val();
 
-            mdata.readonly = JQuery('#bfElementTypeRadioGroupReadonly').attr('checked');
-            mdata.wrap = JQuery('#bfElementTypeRadioGroupWrap').attr('checked');
+            mdata.readonly = JQuery('#bfElementTypeRadioGroupReadonly').prop('checked');
+            mdata.wrap = JQuery('#bfElementTypeRadioGroupWrap').prop('checked');
 
             mdata.hint = JQuery('#bfElementTypeRadioGroupHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeRadioGroupHintTrans').val();
 
-            mdata.hideLabel = JQuery('#bfElementRadioGroupAdvancedHideLabel').attr('checked');
-            mdata.logging = JQuery('#bfElementRadioGroupAdvancedLogging').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementRadioGroupAdvancedHideLabel').prop('checked');
+            mdata.logging = JQuery('#bfElementRadioGroupAdvancedLogging').prop('checked');
             mdata.orderNumber = JQuery('#bfElementRadioGroupAdvancedOrderNumber').val();
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
@@ -248,9 +248,9 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.required = JQuery('#bfElementValidationRequired').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.required = JQuery('#bfElementValidationRequired').prop('checked');
 
             item.properties = mdata;
         };
@@ -260,14 +260,14 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeRadioGroupGroups').val(mdata.group);
             JQuery('#bfElementTypeRadioGroupGroupsTrans').val(typeof mdata['group_translation'+BFQMConfig.lang] != "undefined" ? mdata['group_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementTypeRadioGroupReadonly').attr('checked', mdata.readonly);
-            JQuery('#bfElementTypeRadioGroupWrap').attr('checked', mdata.wrap);
+            JQuery('#bfElementTypeRadioGroupReadonly').prop('checked', mdata.readonly);
+            JQuery('#bfElementTypeRadioGroupWrap').prop('checked', mdata.wrap);
 
             JQuery('#bfElementTypeRadioGroupHint').val(mdata.hint);
             JQuery('#bfElementTypeRadioGroupHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementRadioGroupAdvancedHideLabel').attr('checked', mdata.hideLabel);
-            JQuery('#bfElementRadioGroupAdvancedLogging').attr('checked', mdata.logging);
+            JQuery('#bfElementRadioGroupAdvancedHideLabel').prop('checked', mdata.hideLabel);
+            JQuery('#bfElementRadioGroupAdvancedLogging').prop('checked', mdata.logging);
             JQuery('#bfElementRadioGroupAdvancedOrderNumber').val(mdata.orderNumber);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
@@ -276,10 +276,10 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
-            JQuery('#bfElementValidationRequired').attr('checked', mdata.required);
+            JQuery('#bfElementValidationRequired').prop('checked', mdata.required);
         };
 
         // Checkboxgroup
@@ -288,14 +288,14 @@ import { JoomlaEditor } from 'editor-api';
             mdata.group = JQuery('#bfElementTypeCheckboxGroupGroups').val();
             mdata['group_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeCheckboxGroupGroupsTrans').val();
 
-            mdata.readonly = JQuery('#bfElementTypeCheckboxGroupReadonly').attr('checked');
-            mdata.wrap = JQuery('#bfElementTypeCheckboxGroupWrap').attr('checked');
+            mdata.readonly = JQuery('#bfElementTypeCheckboxGroupReadonly').prop('checked');
+            mdata.wrap = JQuery('#bfElementTypeCheckboxGroupWrap').prop('checked');
 
             mdata.hint = JQuery('#bfElementTypeCheckboxGroupHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeCheckboxGroupHintTrans').val();
 
-            mdata.hideLabel = JQuery('#bfElementCheckboxGroupAdvancedHideLabel').attr('checked');
-            mdata.logging = JQuery('#bfElementCheckboxGroupAdvancedLogging').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementCheckboxGroupAdvancedHideLabel').prop('checked');
+            mdata.logging = JQuery('#bfElementCheckboxGroupAdvancedLogging').prop('checked');
             mdata.orderNumber = JQuery('#bfElementCheckboxGroupAdvancedOrderNumber').val();
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
@@ -305,9 +305,9 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.required = JQuery('#bfElementValidationRequired').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.required = JQuery('#bfElementValidationRequired').prop('checked');
 
             item.properties = mdata;
         };
@@ -317,14 +317,14 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeCheckboxGroupGroups').val(mdata.group);
             JQuery('#bfElementTypeCheckboxGroupGroupsTrans').val(typeof mdata['group_translation'+BFQMConfig.lang] != "undefined" ? mdata['group_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementTypeCheckboxGroupReadonly').attr('checked', mdata.readonly);
-            JQuery('#bfElementTypeCheckboxGroupWrap').attr('checked', mdata.wrap);
+            JQuery('#bfElementTypeCheckboxGroupReadonly').prop('checked', mdata.readonly);
+            JQuery('#bfElementTypeCheckboxGroupWrap').prop('checked', mdata.wrap);
 
             JQuery('#bfElementTypeCheckboxGroupHint').val(mdata.hint);
             JQuery('#bfElementTypeCheckboxGroupHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementCheckboxGroupAdvancedHideLabel').attr('checked', mdata.hideLabel);
-            JQuery('#bfElementCheckboxGroupAdvancedLogging').attr('checked', mdata.logging);
+            JQuery('#bfElementCheckboxGroupAdvancedHideLabel').prop('checked', mdata.hideLabel);
+            JQuery('#bfElementCheckboxGroupAdvancedLogging').prop('checked', mdata.logging);
             JQuery('#bfElementCheckboxGroupAdvancedOrderNumber').val(mdata.orderNumber);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
@@ -333,10 +333,10 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
-            JQuery('#bfElementValidationRequired').attr('checked', mdata.required);
+            JQuery('#bfElementValidationRequired').prop('checked', mdata.required);
         };
 
         // Signature
@@ -346,8 +346,8 @@ import { JoomlaEditor } from 'editor-api';
             mdata.hint = JQuery('#bfElementTypeSignatureHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeSignatureHintTrans').val();
 
-            mdata.hideLabel = JQuery('#bfElementSignatureAdvancedHideLabel').attr('checked');
-            mdata.logging = JQuery('#bfElementSignatureAdvancedLogging').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementSignatureAdvancedHideLabel').prop('checked');
+            mdata.logging = JQuery('#bfElementSignatureAdvancedLogging').prop('checked');
             mdata.orderNumber = JQuery('#bfElementSignatureAdvancedOrderNumber').val();
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
@@ -357,9 +357,9 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.required = JQuery('#bfElementValidationRequired').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.required = JQuery('#bfElementValidationRequired').prop('checked');
 
             item.properties = mdata;
         };
@@ -370,8 +370,8 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeSignatureHint').val(mdata.hint);
             JQuery('#bfElementTypeSignatureHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementSignatureAdvancedHideLabel').attr('checked', mdata.hideLabel);
-            JQuery('#bfElementSignatureAdvancedLogging').attr('checked', mdata.logging);
+            JQuery('#bfElementSignatureAdvancedHideLabel').prop('checked', mdata.hideLabel);
+            JQuery('#bfElementSignatureAdvancedLogging').prop('checked', mdata.logging);
             JQuery('#bfElementSignatureAdvancedOrderNumber').val(mdata.orderNumber);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
@@ -380,26 +380,26 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
-            JQuery('#bfElementValidationRequired').attr('checked', mdata.required);
+            JQuery('#bfElementValidationRequired').prop('checked', mdata.required);
         };
 
         // Checkbox
         appScope.saveCheckboxProperties = function (mdata, item) {
             // dynamic properties
             mdata.value = JQuery('#bfElementTypeCheckboxValue').val() == '' ? 'checked' : JQuery('#bfElementTypeCheckboxValue').val();
-            mdata.checked = JQuery('#bfElementTypeCheckboxChecked').attr('checked');
-            mdata.readonly = JQuery('#bfElementTypeCheckboxReadonly').attr('checked');
-            mdata.mailbackAccept = JQuery('#bfElementCheckboxAdvancedMailbackAccept').attr('checked');
+            mdata.checked = JQuery('#bfElementTypeCheckboxChecked').prop('checked');
+            mdata.readonly = JQuery('#bfElementTypeCheckboxReadonly').prop('checked');
+            mdata.mailbackAccept = JQuery('#bfElementCheckboxAdvancedMailbackAccept').prop('checked');
             mdata.mailbackConnectWith = JQuery('#bfElementCheckboxAdvancedMailbackConnectWith').val();
 
             mdata.hint = JQuery('#bfElementTypeCheckboxHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeCheckboxHintTrans').val();
 
-            mdata.hideLabel = JQuery('#bfElementCheckboxAdvancedHideLabel').attr('checked');
-            mdata.logging = JQuery('#bfElementCheckboxAdvancedLogging').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementCheckboxAdvancedHideLabel').prop('checked');
+            mdata.logging = JQuery('#bfElementCheckboxAdvancedLogging').prop('checked');
             mdata.orderNumber = JQuery('#bfElementCheckboxAdvancedOrderNumber').val();
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
@@ -409,9 +409,9 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.required = JQuery('#bfElementValidationRequired').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.required = JQuery('#bfElementValidationRequired').prop('checked');
 
             item.properties = mdata;
         };
@@ -419,16 +419,16 @@ import { JoomlaEditor } from 'editor-api';
         appScope.populateCheckboxProperties = function (mdata) {
             // dynamic properties
             JQuery('#bfElementTypeCheckboxValue').val(mdata.value);
-            JQuery('#bfElementTypeCheckboxChecked').attr('checked', mdata.checked);
-            JQuery('#bfElementCheckboxAdvancedMailbackAccept').attr('checked', mdata.mailbackAccept);
+            JQuery('#bfElementTypeCheckboxChecked').prop('checked', mdata.checked);
+            JQuery('#bfElementCheckboxAdvancedMailbackAccept').prop('checked', mdata.mailbackAccept);
             JQuery('#bfElementCheckboxAdvancedMailbackConnectWith').val(mdata.mailbackConnectWith);
-            JQuery('#bfElementTypeCheckboxReadonly').attr('checked', mdata.readonly);
+            JQuery('#bfElementTypeCheckboxReadonly').prop('checked', mdata.readonly);
 
             JQuery('#bfElementTypeCheckboxHint').val(mdata.hint);
             JQuery('#bfElementTypeCheckboxHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementCheckboxAdvancedHideLabel').attr('checked', mdata.hideLabel);
-            JQuery('#bfElementCheckboxAdvancedLogging').attr('checked', mdata.logging);
+            JQuery('#bfElementCheckboxAdvancedHideLabel').prop('checked', mdata.hideLabel);
+            JQuery('#bfElementCheckboxAdvancedLogging').prop('checked', mdata.logging);
             JQuery('#bfElementCheckboxAdvancedOrderNumber').val(mdata.orderNumber);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
@@ -437,10 +437,10 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
-            JQuery('#bfElementValidationRequired').attr('checked', mdata.required);
+            JQuery('#bfElementValidationRequired').prop('checked', mdata.required);
         };
 
         // Select
@@ -451,15 +451,15 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.width = JQuery('#bfElementTypeSelectListWidth').val();
             mdata.height = JQuery('#bfElementTypeSelectListHeight').val();
-            mdata.readonly = JQuery('#bfElementTypeSelectReadonly').attr('checked');
-            mdata.multiple = JQuery('#bfElementTypeSelectMultiple').attr('checked');
-            mdata.mailback = JQuery('#bfElementSelectAdvancedMailback').attr('checked');
+            mdata.readonly = JQuery('#bfElementTypeSelectReadonly').prop('checked');
+            mdata.multiple = JQuery('#bfElementTypeSelectMultiple').prop('checked');
+            mdata.mailback = JQuery('#bfElementSelectAdvancedMailback').prop('checked');
 
             mdata.hint = JQuery('#bfElementTypeSelectHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeSelectHintTrans').val();
 
-            mdata.hideLabel = JQuery('#bfElementSelectAdvancedHideLabel').attr('checked');
-            mdata.logging = JQuery('#bfElementSelectAdvancedLogging').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementSelectAdvancedHideLabel').prop('checked');
+            mdata.logging = JQuery('#bfElementSelectAdvancedLogging').prop('checked');
             mdata.orderNumber = JQuery('#bfElementSelectAdvancedOrderNumber').val();
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
@@ -469,9 +469,9 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.required = JQuery('#bfElementValidationRequired').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.required = JQuery('#bfElementValidationRequired').prop('checked');
 
             item.properties = mdata;
         };
@@ -491,15 +491,15 @@ import { JoomlaEditor } from 'editor-api';
             // compat 723 end
             JQuery('#bfElementTypeSelectListWidth').val(mdata.width);
             JQuery('#bfElementTypeSelectListHeight').val(mdata.height);
-            JQuery('#bfElementTypeSelectReadonly').attr('checked', mdata.readonly);
-            JQuery('#bfElementTypeSelectMultiple').attr('checked', mdata.multiple);
-            JQuery('#bfElementSelectAdvancedMailback').attr('checked', mdata.mailback);
+            JQuery('#bfElementTypeSelectReadonly').prop('checked', mdata.readonly);
+            JQuery('#bfElementTypeSelectMultiple').prop('checked', mdata.multiple);
+            JQuery('#bfElementSelectAdvancedMailback').prop('checked', mdata.mailback);
 
             JQuery('#bfElementTypeSelectHint').val(mdata.hint);
             JQuery('#bfElementTypeSelectHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementSelectAdvancedHideLabel').attr('checked', mdata.hideLabel);
-            JQuery('#bfElementSelectAdvancedLogging').attr('checked', mdata.logging);
+            JQuery('#bfElementSelectAdvancedHideLabel').prop('checked', mdata.hideLabel);
+            JQuery('#bfElementSelectAdvancedLogging').prop('checked', mdata.logging);
             JQuery('#bfElementSelectAdvancedOrderNumber').val(mdata.orderNumber);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
@@ -508,29 +508,29 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
-            JQuery('#bfElementValidationRequired').attr('checked', mdata.required);
+            JQuery('#bfElementValidationRequired').prop('checked', mdata.required);
         };
 
         // File
         appScope.saveFileProperties = function (mdata, item) {
             // dynamic properties
             mdata.uploadDirectory = JQuery('#bfElementFileAdvancedUploadDirectory').val();
-            mdata.timestamp = JQuery('#bfElementFileAdvancedTimestamp').attr('checked');
+            mdata.timestamp = JQuery('#bfElementFileAdvancedTimestamp').prop('checked');
             mdata.allowedFileExtensions = JQuery('#bfElementFileAdvancedAllowedFileExtensions').val();
-            mdata.attachToUserMail = JQuery('#bfElementFileAdvancedAttachToUserMail').attr('checked');
-            mdata.attachToAdminMail = JQuery('#bfElementFileAdvancedAttachToAdminMail').attr('checked');
+            mdata.attachToUserMail = JQuery('#bfElementFileAdvancedAttachToUserMail').prop('checked');
+            mdata.attachToAdminMail = JQuery('#bfElementFileAdvancedAttachToAdminMail').prop('checked');
 
-            mdata.html5 = JQuery('#bfElementFileAdvancedHtml5Uploader').attr('checked');
+            mdata.html5 = JQuery('#bfElementFileAdvancedHtml5Uploader').prop('checked');
 
-            mdata.readonly = JQuery('#bfElementTypeFileReadonly').attr('checked');
+            mdata.readonly = JQuery('#bfElementTypeFileReadonly').prop('checked');
 
             mdata.hint = JQuery('#bfElementTypeFileHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeFileHintTrans').val();
 
-            mdata.useUrl = JQuery('#bfElementFileAdvancedUseUrl').attr('checked');
+            mdata.useUrl = JQuery('#bfElementFileAdvancedUseUrl').prop('checked');
             mdata.useUrlDownloadDirectory = JQuery('#bfElementFileAdvancedUseUrlDownloadDirectory').val();
 
             mdata.resize_target_width = JQuery('#bfElementFileAdvancedResizeTargetWidth').val();
@@ -538,15 +538,15 @@ import { JoomlaEditor } from 'editor-api';
             mdata.resize_type = JQuery('#bfElementFileAdvancedResizeType').val();
             mdata.resize_bgcolor = JQuery('#bfElementFileAdvancedResizeBgcolor').val();
 
-            mdata.hideLabel = JQuery('#bfElementFileAdvancedHideLabel').attr('checked');
-            mdata.logging = JQuery('#bfElementFileAdvancedLogging').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementFileAdvancedHideLabel').prop('checked');
+            mdata.logging = JQuery('#bfElementFileAdvancedLogging').prop('checked');
             mdata.orderNumber = JQuery('#bfElementFileAdvancedOrderNumber').val();
-            mdata.flashUploader = JQuery('#bfElementFileAdvancedFlashUploader').attr('checked');
-            mdata.flashUploaderMulti = JQuery('#bfElementFileAdvancedFlashUploaderMulti').attr('checked');
+            mdata.flashUploader = JQuery('#bfElementFileAdvancedFlashUploader').prop('checked');
+            mdata.flashUploaderMulti = JQuery('#bfElementFileAdvancedFlashUploaderMulti').prop('checked');
             mdata.flashUploaderBytes = JQuery('#bfElementFileAdvancedFlashUploaderBytes').val();
             mdata.flashUploaderWidth = JQuery('#bfElementFileAdvancedFlashUploaderWidth').val();
             mdata.flashUploaderHeight = JQuery('#bfElementFileAdvancedFlashUploaderHeight').val();
-            mdata.flashUploaderTransparent = JQuery('#bfElementFileAdvancedFlashUploaderTransparent').attr('checked');
+            mdata.flashUploaderTransparent = JQuery('#bfElementFileAdvancedFlashUploaderTransparent').prop('checked');
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
 
@@ -555,9 +555,9 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.required = JQuery('#bfElementValidationRequired').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.required = JQuery('#bfElementValidationRequired').prop('checked');
 
             item.properties = mdata;
         };
@@ -565,19 +565,19 @@ import { JoomlaEditor } from 'editor-api';
         appScope.populateFileProperties = function (mdata) {
             // dynamic properties
             JQuery('#bfElementFileAdvancedUploadDirectory').val(mdata.uploadDirectory);
-            JQuery('#bfElementFileAdvancedTimestamp').attr('checked', mdata.timestamp);
+            JQuery('#bfElementFileAdvancedTimestamp').prop('checked', mdata.timestamp);
             JQuery('#bfElementFileAdvancedAllowedFileExtensions').val(mdata.allowedFileExtensions);
-            JQuery('#bfElementFileAdvancedAttachToUserMail').attr('checked', mdata.attachToUserMail);
-            JQuery('#bfElementFileAdvancedAttachToAdminMail').attr('checked', mdata.attachToAdminMail);
+            JQuery('#bfElementFileAdvancedAttachToUserMail').prop('checked', mdata.attachToUserMail);
+            JQuery('#bfElementFileAdvancedAttachToAdminMail').prop('checked', mdata.attachToAdminMail);
 
-            JQuery('#bfElementFileAdvancedHtml5Uploader').attr('checked', mdata.html5);
+            JQuery('#bfElementFileAdvancedHtml5Uploader').prop('checked', mdata.html5);
 
-            JQuery('#bfElementTypeFileReadonly').attr('checked', mdata.readonly);
+            JQuery('#bfElementTypeFileReadonly').prop('checked', mdata.readonly);
 
             JQuery('#bfElementTypeFileHint').val(mdata.hint);
             JQuery('#bfElementTypeFileHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementFileAdvancedHideLabel').attr('checked', mdata.hideLabel);
+            JQuery('#bfElementFileAdvancedHideLabel').prop('checked', mdata.hideLabel);
             if (mdata.useUrl && mdata.useUrlDownloadDirectory == '') {
                 mdata.useUrlDownloadDirectory = BFQMConfig.siteRoot + 'media/breezingforms/uploads';
             }
@@ -587,16 +587,16 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementFileAdvancedResizeType').val(mdata.resize_type);
             JQuery('#bfElementFileAdvancedResizeBgcolor').val(mdata.resize_bgcolor);
 
-            JQuery('#bfElementFileAdvancedUseUrl').attr('checked', mdata.useUrl);
+            JQuery('#bfElementFileAdvancedUseUrl').prop('checked', mdata.useUrl);
             JQuery('#bfElementFileAdvancedUseUrlDownloadDirectory').val(mdata.useUrlDownloadDirectory);
-            JQuery('#bfElementFileAdvancedLogging').attr('checked', mdata.logging);
+            JQuery('#bfElementFileAdvancedLogging').prop('checked', mdata.logging);
             JQuery('#bfElementFileAdvancedOrderNumber').val(mdata.orderNumber);
-            JQuery('#bfElementFileAdvancedFlashUploader').attr('checked', mdata.flashUploader);
-            JQuery('#bfElementFileAdvancedFlashUploaderMulti').attr('checked', mdata.flashUploaderMulti);
+            JQuery('#bfElementFileAdvancedFlashUploader').prop('checked', mdata.flashUploader);
+            JQuery('#bfElementFileAdvancedFlashUploaderMulti').prop('checked', mdata.flashUploaderMulti);
             JQuery('#bfElementFileAdvancedFlashUploaderBytes').val(mdata.flashUploaderBytes);
             JQuery('#bfElementFileAdvancedFlashUploaderWidth').val(mdata.flashUploaderWidth);
             JQuery('#bfElementFileAdvancedFlashUploaderHeight').val(mdata.flashUploaderHeight);
-            JQuery('#bfElementFileAdvancedFlashUploaderTransparent').attr('checked', mdata.flashUploaderTransparent);
+            JQuery('#bfElementFileAdvancedFlashUploaderTransparent').prop('checked', mdata.flashUploaderTransparent);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
 
@@ -604,10 +604,10 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
-            JQuery('#bfElementValidationRequired').attr('checked', mdata.required);
+            JQuery('#bfElementValidationRequired').prop('checked', mdata.required);
         };
 
         // SUBMIT BUTTON
@@ -622,7 +622,7 @@ import { JoomlaEditor } from 'editor-api';
             mdata.hint = JQuery('#bfElementTypeSubmitButtonHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeSubmitButtonHintTrans').val();
 
-            mdata.hideLabel = JQuery('#bfElementSubmitButtonAdvancedHideLabel').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementSubmitButtonAdvancedHideLabel').prop('checked');
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
 
@@ -631,8 +631,8 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
 
             item.properties = mdata;
         };
@@ -648,7 +648,7 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeSubmitButtonHint').val(mdata.hint);
             JQuery('#bfElementTypeSubmitButtonHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementSubmitButtonAdvancedHideLabel').attr('checked', mdata.hideLabel);
+            JQuery('#bfElementSubmitButtonAdvancedHideLabel').prop('checked', mdata.hideLabel);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
 
@@ -656,8 +656,8 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
         };
 
@@ -668,7 +668,7 @@ import { JoomlaEditor } from 'editor-api';
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeCaptchaHintTrans').val();
 
             mdata.width = JQuery('#bfElementTypeCaptchaWidth').val();
-            mdata.hideLabel = JQuery('#bfElementCaptchaAdvancedHideLabel').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementCaptchaAdvancedHideLabel').prop('checked');
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
 
@@ -677,8 +677,8 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
             item.properties = mdata;
         };
 
@@ -688,15 +688,15 @@ import { JoomlaEditor } from 'editor-api';
             mdata.hint = JQuery('#bfElementTypeReCaptchaHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeReCaptchaHintTrans').val();
 
-            mdata.hideLabel = JQuery('#bfElementReCaptchaAdvancedHideLabel').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementReCaptchaAdvancedHideLabel').prop('checked');
 
             mdata.pubkey = JQuery('#bfElementTypeReCaptchaPubkey').val();
             mdata.privkey = JQuery('#bfElementTypeReCaptchaPrivkey').val();
             mdata.theme = JQuery('#bfElementTypeReCaptchaTheme').val();
             mdata.size = JQuery('#bfElementTypeReCaptchaSize').val();
 
-            mdata.newCaptcha = JQuery('#bfElementTypeReCaptchaNew').attr('checked');
-            mdata.invisibleCaptcha = JQuery('#bfElementTypeReCaptchaInvisible').attr('checked');
+            mdata.newCaptcha = JQuery('#bfElementTypeReCaptchaNew').prop('checked');
+            mdata.invisibleCaptcha = JQuery('#bfElementTypeReCaptchaInvisible').prop('checked');
 
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
@@ -707,8 +707,8 @@ import { JoomlaEditor } from 'editor-api';
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
 
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
 
             item.properties = mdata;
         };
@@ -718,15 +718,15 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeReCaptchaHint').val(mdata.hint);
             JQuery('#bfElementTypeReCaptchaHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementReCaptchaAdvancedHideLabel').attr('checked', mdata.hideLabel);
+            JQuery('#bfElementReCaptchaAdvancedHideLabel').prop('checked', mdata.hideLabel);
 
             JQuery('#bfElementTypeReCaptchaPubkey').val(mdata.pubkey);
             JQuery('#bfElementTypeReCaptchaPrivkey').val(mdata.privkey);
             JQuery('#bfElementTypeReCaptchaTheme').val(mdata.theme);
             JQuery('#bfElementTypeReCaptchaSize').val(mdata.size);
 
-            JQuery('#bfElementTypeReCaptchaNew').attr('checked', mdata.newCaptcha);
-            JQuery('#bfElementTypeReCaptchaInvisible').attr('checked', mdata.invisibleCaptcha);
+            JQuery('#bfElementTypeReCaptchaNew').prop('checked', mdata.newCaptcha);
+            JQuery('#bfElementTypeReCaptchaInvisible').prop('checked', mdata.invisibleCaptcha);
 
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
@@ -735,9 +735,9 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
         };
 
         appScope.populateCaptchaProperties = function (mdata) {
@@ -746,7 +746,7 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeCaptchaHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementTypeCaptchaWidth').val(mdata.width);
-            JQuery('#bfElementCaptchaAdvancedHideLabel').attr('checked', mdata.hideLabel);
+            JQuery('#bfElementCaptchaAdvancedHideLabel').prop('checked', mdata.hideLabel);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
 
@@ -754,9 +754,9 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
         };
 
         // CALENDAR RESPONSIVE
@@ -774,7 +774,7 @@ import { JoomlaEditor } from 'editor-api';
             mdata.hint = JQuery('#bfElementTypeCalendarResponsiveHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeCalendarResponsiveHintTrans').val();
 
-            mdata.hideLabel = JQuery('#bfElementCalendarResponsiveAdvancedHideLabel').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementCalendarResponsiveAdvancedHideLabel').prop('checked');
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
 
@@ -783,9 +783,9 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.required = JQuery('#bfElementValidationRequired').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.required = JQuery('#bfElementValidationRequired').prop('checked');
 
             item.properties = mdata;
         };
@@ -803,7 +803,7 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeCalendarResponsiveHint').val(mdata.hint);
             JQuery('#bfElementTypeCalendarResponsiveHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementCalendarResponsiveAdvancedHideLabel').attr('checked', mdata.hideLabel);
+            JQuery('#bfElementCalendarResponsiveAdvancedHideLabel').prop('checked', mdata.hideLabel);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
 
@@ -811,10 +811,10 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
-            JQuery('#bfElementValidationRequired').attr('checked', mdata.required);
+            JQuery('#bfElementValidationRequired').prop('checked', mdata.required);
 
             JQuery('#bfElementTypeCalendarResponsiveIcon').val(mdata.icon);
         };
@@ -834,7 +834,7 @@ import { JoomlaEditor } from 'editor-api';
             mdata.hint = JQuery('#bfElementTypeCalendarHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeCalendarHintTrans').val();
 
-            mdata.hideLabel = JQuery('#bfElementCalendarAdvancedHideLabel').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementCalendarAdvancedHideLabel').prop('checked');
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
 
@@ -843,9 +843,9 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
-            mdata.required = JQuery('#bfElementValidationRequired').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
+            mdata.required = JQuery('#bfElementValidationRequired').prop('checked');
 
             /* versions > 3.7 */
             mdata.showTime = JQuery('#bfElementCalendarAdvancedShowTime').is(':checked');
@@ -873,7 +873,7 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeCalendarHint').val(mdata.hint);
             JQuery('#bfElementTypeCalendarHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementCalendarAdvancedHideLabel').attr('checked', mdata.hideLabel);
+            JQuery('#bfElementCalendarAdvancedHideLabel').prop('checked', mdata.hideLabel);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
 
@@ -881,10 +881,10 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
-            JQuery('#bfElementValidationRequired').attr('checked', mdata.required);
+            JQuery('#bfElementValidationRequired').prop('checked', mdata.required);
 
             JQuery('#bfElementTypeCalendarIcon').val(mdata.icon);
 
@@ -903,7 +903,7 @@ import { JoomlaEditor } from 'editor-api';
         appScope.saveHiddenProperties = function (mdata, item) {
             // dynamic properties
             mdata.value = JQuery('#bfElementTypeHiddenValue').val();
-            mdata.logging = JQuery('#bfElementHiddenAdvancedLogging').attr('checked');
+            mdata.logging = JQuery('#bfElementHiddenAdvancedLogging').prop('checked');
             mdata.orderNumber = JQuery('#bfElementHiddenAdvancedOrderNumber').val();
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
@@ -913,8 +913,8 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
 
             item.properties = mdata;
         };
@@ -922,7 +922,7 @@ import { JoomlaEditor } from 'editor-api';
         appScope.populateHiddenProperties = function (mdata) {
             // dynamic properties
             JQuery('#bfElementTypeHiddenValue').val(mdata.value);
-            JQuery('#bfElementHiddenAdvancedLogging').attr('checked', mdata.logging);
+            JQuery('#bfElementHiddenAdvancedLogging').prop('checked', mdata.logging);
             JQuery('#bfElementHiddenAdvancedOrderNumber').val(mdata.orderNumber);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
@@ -931,8 +931,8 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
         };
 
@@ -947,8 +947,8 @@ import { JoomlaEditor } from 'editor-api';
                 mdata.connectType = type;
             }
 
-            mdata.useElementLabel = JQuery('#bfElementTypeSummarizeUseElementLabel').attr('checked');
-            mdata.hideIfEmpty = JQuery('#bfElementTypeSummarizeHideIfEmpty').attr('checked');
+            mdata.useElementLabel = JQuery('#bfElementTypeSummarizeUseElementLabel').prop('checked');
+            mdata.hideIfEmpty = JQuery('#bfElementTypeSummarizeHideIfEmpty').prop('checked');
             mdata.fieldCalc = JQuery('#bfElementAdvancedSummarizeCalc').val();
 
             mdata.emptyMessage = JQuery('#bfElementTypeSummarizeEmptyMessage').val();
@@ -973,7 +973,7 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
             item.properties = mdata;
         };
 
@@ -1008,12 +1008,12 @@ import { JoomlaEditor } from 'editor-api';
             // dynamic properties
             JQuery('#bfElementTypeSummarizeConnectWith').val(mdata.connectWith + ":" + mdata.connectType);
             JQuery('#bfElementTypeSummarizeEmptyMesssage').val(mdata.emptyMessage);
-            JQuery('#bfElementTypeSummarizeUseElementLabel').attr('checked', mdata.useElementLabel);
+            JQuery('#bfElementTypeSummarizeUseElementLabel').prop('checked', mdata.useElementLabel);
 
             JQuery('#bfElementTypeSummarizeEmptyMessage').val(mdata.emptyMessage);
             JQuery('#bfElementTypeSummarizeEmptyMessageTrans').val(typeof mdata['emptyMessage_translation'+BFQMConfig.lang] != "undefined" ? mdata['emptyMessage_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementTypeSummarizeHideIfEmpty').attr('checked', mdata.hideIfEmpty);
+            JQuery('#bfElementTypeSummarizeHideIfEmpty').prop('checked', mdata.hideIfEmpty);
             JQuery('#bfElementAdvancedSummarizeCalc').val(mdata.fieldCalc);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
@@ -1023,7 +1023,7 @@ import { JoomlaEditor } from 'editor-api';
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
         };
 
 
@@ -1042,7 +1042,7 @@ import { JoomlaEditor } from 'editor-api';
             mdata.thankYouPage = JQuery('#bfElementTypeStripeThankYouPage').val();
 
             mdata.currencyCode = JQuery('#bfElementTypeStripeCurrencyCode').val();
-            mdata.sendNotificationAfterPayment = JQuery('#bfElementTypeStripeSendNotificationAfterPayment').attr('checked');
+            mdata.sendNotificationAfterPayment = JQuery('#bfElementTypeStripeSendNotificationAfterPayment').prop('checked');
 
             // ADVANCED
 
@@ -1051,7 +1051,7 @@ import { JoomlaEditor } from 'editor-api';
 
 
             // file
-            mdata.downloadableFile = JQuery('#bfElementStripeAdvancedDownloadableFile').attr('checked');
+            mdata.downloadableFile = JQuery('#bfElementStripeAdvancedDownloadableFile').prop('checked');
             mdata.filepath = JQuery('#bfElementStripeAdvancedFilepath').val();
             mdata.downloadTries = JQuery('#bfElementStripeAdvancedDownloadTries').val();
 
@@ -1059,7 +1059,7 @@ import { JoomlaEditor } from 'editor-api';
             mdata.hint = JQuery('#bfElementTypeStripeHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeStripeHintTrans').val();
 
-            mdata.hideLabel = JQuery('#bfElementStripeAdvancedHideLabel').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementStripeAdvancedHideLabel').prop('checked');
             mdata.emailfield = JQuery('#bfElementStripeAdvancedEmailField').val();
 
             // static properties
@@ -1070,8 +1070,8 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
             item.properties = mdata;
         };
 
@@ -1088,7 +1088,7 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeStripeAmount').val(mdata.amount);
             JQuery('#bfElementTypeStripeThankYouPage').val(mdata.thankYouPage);
             JQuery('#bfElementTypeStripeCurrencyCode').val(mdata.currencyCode);
-            JQuery('#bfElementTypeStripeSendNotificationAfterPayment').attr('checked', mdata.sendNotificationAfterPayment);
+            JQuery('#bfElementTypeStripeSendNotificationAfterPayment').prop('checked', mdata.sendNotificationAfterPayment);
             // ADVANCED
 
             JQuery('#bfElementStripeAdvancedImage').val(mdata.image);
@@ -1097,14 +1097,14 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementStripeAdvancedEmailField').val(mdata.emailfield);
 
             // file
-            JQuery('#bfElementStripeAdvancedDownloadableFile').attr('checked', mdata.downloadableFile);
+            JQuery('#bfElementStripeAdvancedDownloadableFile').prop('checked', mdata.downloadableFile);
             JQuery('#bfElementStripeAdvancedFilepath').val(mdata.filepath);
             JQuery('#bfElementStripeAdvancedDownloadTries').val(mdata.downloadTries);
 
             JQuery('#bfElementTypeStripeHint').val(mdata.hint);
             JQuery('#bfElementTypeStripeHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementStripeAdvancedHideLabel').attr('checked', mdata.hideLabel);
+            JQuery('#bfElementStripeAdvancedHideLabel').prop('checked', mdata.hideLabel);
 
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
@@ -1113,8 +1113,8 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
         };
 
@@ -1136,22 +1136,22 @@ import { JoomlaEditor } from 'editor-api';
             mdata.thankYouPage = JQuery('#bfElementTypePayPalThankYouPage').val();
             mdata.locale = JQuery('#bfElementTypePayPalLocale').val();
             mdata.currencyCode = JQuery('#bfElementTypePayPalCurrencyCode').val();
-            mdata.sendNotificationAfterPayment = JQuery('#bfElementTypePayPalSendNotificationAfterPayment').attr('checked');
+            mdata.sendNotificationAfterPayment = JQuery('#bfElementTypePayPalSendNotificationAfterPayment').prop('checked');
 
             // ADVANCED
 
-            mdata.useIpn = JQuery('#bfElementPayPalAdvancedUseIpn').attr('checked');
+            mdata.useIpn = JQuery('#bfElementPayPalAdvancedUseIpn').prop('checked');
 
             mdata.image = JQuery('#bfElementPayPalAdvancedImage').val();
             mdata['image_translation'+BFQMConfig.lang] = JQuery('#bfElementPayPalAdvancedImageTrans').val();
 
             // testaccount
-            mdata.testaccount = JQuery('#bfElementPayPalAdvancedTestaccount').attr('checked');
+            mdata.testaccount = JQuery('#bfElementPayPalAdvancedTestaccount').prop('checked');
             mdata.testBusiness = JQuery('#bfElementPayPalAdvancedTestBusiness').val();
             mdata.testToken = JQuery('#bfElementPayPalAdvancedTestToken').val();
 
             // file
-            mdata.downloadableFile = JQuery('#bfElementPayPalAdvancedDownloadableFile').attr('checked');
+            mdata.downloadableFile = JQuery('#bfElementPayPalAdvancedDownloadableFile').prop('checked');
             mdata.filepath = JQuery('#bfElementPayPalAdvancedFilepath').val();
             mdata.downloadTries = JQuery('#bfElementPayPalAdvancedDownloadTries').val();
 
@@ -1159,7 +1159,7 @@ import { JoomlaEditor } from 'editor-api';
             mdata.hint = JQuery('#bfElementTypePayPalHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypePayPalHintTrans').val();
 
-            mdata.hideLabel = JQuery('#bfElementPayPalAdvancedHideLabel').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementPayPalAdvancedHideLabel').prop('checked');
 
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
@@ -1169,8 +1169,8 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
             item.properties = mdata;
         };
 
@@ -1190,7 +1190,7 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypePayPalThankYouPage').val(mdata.thankYouPage);
             JQuery('#bfElementTypePayPalLocale').val(mdata.locale);
             JQuery('#bfElementTypePayPalCurrencyCode').val(mdata.currencyCode);
-            JQuery('#bfElementTypePayPalSendNotificationAfterPayment').attr('checked', mdata.sendNotificationAfterPayment);
+            JQuery('#bfElementTypePayPalSendNotificationAfterPayment').prop('checked', mdata.sendNotificationAfterPayment);
             // ADVANCED
 
             JQuery('#bfElementPayPalAdvancedImage').val(mdata.image);
@@ -1198,23 +1198,23 @@ import { JoomlaEditor } from 'editor-api';
 
 
             // testaccount
-            JQuery('#bfElementPayPalAdvancedTestaccount').attr('checked', mdata.testaccount);
+            JQuery('#bfElementPayPalAdvancedTestaccount').prop('checked', mdata.testaccount);
             JQuery('#bfElementPayPalAdvancedTestBusiness').val(mdata.testBusiness);
             JQuery('#bfElementPayPalAdvancedTestToken').val(mdata.testToken);
 
             // file
-            JQuery('#bfElementPayPalAdvancedDownloadableFile').attr('checked', mdata.downloadableFile);
+            JQuery('#bfElementPayPalAdvancedDownloadableFile').prop('checked', mdata.downloadableFile);
             JQuery('#bfElementPayPalAdvancedFilepath').val(mdata.filepath);
             JQuery('#bfElementPayPalAdvancedDownloadTries').val(mdata.downloadTries);
             if (typeof mdata.useIpn == "undefined") {
                 mdata['useIpn'] = false;
             }
-            JQuery('#bfElementPayPalAdvancedUseIpn').attr('checked', mdata.useIpn);
+            JQuery('#bfElementPayPalAdvancedUseIpn').prop('checked', mdata.useIpn);
 
             JQuery('#bfElementTypePayPalHint').val(mdata.hint);
             JQuery('#bfElementTypePayPalHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementPayPalAdvancedHideLabel').attr('checked', mdata.hideLabel);
+            JQuery('#bfElementPayPalAdvancedHideLabel').prop('checked', mdata.hideLabel);
 
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
@@ -1223,8 +1223,8 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
         };
 
@@ -1245,8 +1245,8 @@ import { JoomlaEditor } from 'editor-api';
             mdata.thankYouPage = JQuery('#bfElementTypeSofortueberweisungThankYouPage').val();
             mdata.language_id = JQuery('#bfElementTypeSofortueberweisungLanguageId').val();
             mdata.currency_id = JQuery('#bfElementTypeSofortueberweisungCurrencyId').val();
-            mdata.mailback = JQuery('#bfElementTypeSofortueberweisungMailback').attr('checked');
-            mdata.sendNotificationAfterPayment = JQuery('#bfElementTypeSofortueberweisungSendNotificationAfterPayment').attr('checked');
+            mdata.mailback = JQuery('#bfElementTypeSofortueberweisungMailback').prop('checked');
+            mdata.sendNotificationAfterPayment = JQuery('#bfElementTypeSofortueberweisungSendNotificationAfterPayment').prop('checked');
 
             // ADVANCED
 
@@ -1254,7 +1254,7 @@ import { JoomlaEditor } from 'editor-api';
             mdata['image_translation'+BFQMConfig.lang] = JQuery('#bfElementSofortueberweisungAdvancedImageTrans').val();
 
             // file
-            mdata.downloadableFile = JQuery('#bfElementSofortueberweisungAdvancedDownloadableFile').attr('checked');
+            mdata.downloadableFile = JQuery('#bfElementSofortueberweisungAdvancedDownloadableFile').prop('checked');
             mdata.filepath = JQuery('#bfElementSofortueberweisungAdvancedFilepath').val();
             mdata.downloadTries = JQuery('#bfElementSofortueberweisungAdvancedDownloadTries').val();
 
@@ -1262,7 +1262,7 @@ import { JoomlaEditor } from 'editor-api';
             mdata.hint = JQuery('#bfElementTypeSofortueberweisungHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeSofortueberweisungHintTrans').val();
 
-            mdata.hideLabel = JQuery('#bfElementSofortueberweisungAdvancedHideLabel').attr('checked');
+            mdata.hideLabel = JQuery('#bfElementSofortueberweisungAdvancedHideLabel').prop('checked');
 
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
@@ -1272,8 +1272,8 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
             mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').attr('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').attr('checked');
+            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
+            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
             item.properties = mdata;
         };
 
@@ -1293,8 +1293,8 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeSofortueberweisungThankYouPage').val(mdata.thankYouPage);
             JQuery('#bfElementTypeSofortueberweisungLanguageId').val(mdata.language_id);
             JQuery('#bfElementTypeSofortueberweisungCurrencyId').val(mdata.currency_id);
-            JQuery('#bfElementTypeSofortueberweisungMailback').attr('checked', mdata.mailback);
-            JQuery('#bfElementTypeSofortueberweisungSendNotificationAfterPayment').attr('checked', mdata.sendNotificationAfterPayment);
+            JQuery('#bfElementTypeSofortueberweisungMailback').prop('checked', mdata.mailback);
+            JQuery('#bfElementTypeSofortueberweisungSendNotificationAfterPayment').prop('checked', mdata.sendNotificationAfterPayment);
 
             // ADVANCED
 
@@ -1302,7 +1302,7 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementSofortueberweisungAdvancedImageTrans').val(typeof mdata['image_translation'+BFQMConfig.lang] != "undefined" ? mdata['image_translation'+BFQMConfig.lang] : "");
 
             // file
-            JQuery('#bfElementSofortueberweisungAdvancedDownloadableFile').attr('checked', mdata.downloadableFile);
+            JQuery('#bfElementSofortueberweisungAdvancedDownloadableFile').prop('checked', mdata.downloadableFile);
             JQuery('#bfElementSofortueberweisungAdvancedFilepath').val(mdata.filepath);
             JQuery('#bfElementSofortueberweisungAdvancedDownloadTries').val(mdata.downloadTries);
 
@@ -1310,7 +1310,7 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeSofortueberweisungHint').val(mdata.hint);
             JQuery('#bfElementTypeSofortueberweisungHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
-            JQuery('#bfElementSofortueberweisungAdvancedHideLabel').attr('checked', mdata.hideLabel);
+            JQuery('#bfElementSofortueberweisungAdvancedHideLabel').prop('checked', mdata.hideLabel);
 
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
@@ -1319,8 +1319,8 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').attr('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').attr('checked', mdata.off);
+            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
+            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
         };
 
@@ -1779,8 +1779,8 @@ import { JoomlaEditor } from 'editor-api';
 
                 switch (mdata.validationCondition) {
                     case 1:
-                        JQuery('.bfValidationType').attr('checked', '');
-                        JQuery('#bfValidationTypeLibrary').attr('checked', true);
+                        JQuery('.bfValidationType').prop('checked', '');
+                        JQuery('#bfValidationTypeLibrary').prop('checked', true);
                         JQuery('#bfValidationScriptLibrary').css('display', '');
                         JQuery('#bfValidationScriptCustom').css('display', 'none');
                         JQuery('#bfValidationScriptFlags').css('display', '');
@@ -1789,15 +1789,15 @@ import { JoomlaEditor } from 'editor-api';
                         appScope.setValidationScriptDescription();
                         break;
                     case 2:
-                        JQuery('.bfValidationType').attr('checked', '');
-                        JQuery('#bfValidationTypeCustom').attr('checked', true);
+                        JQuery('.bfValidationType').prop('checked', '');
+                        JQuery('#bfValidationTypeCustom').prop('checked', true);
                         JQuery('#bfValidationScriptFlags').css('display', '');
                         JQuery('#bfValidationScriptLibrary').css('display', 'none');
                         JQuery('#bfValidationScriptCustom').css('display', '');
                         break;
                     default:
-                        JQuery('.bfValidationType').attr('checked', '');
-                        JQuery('#bfValidationTypeNone').attr('checked', true);
+                        JQuery('.bfValidationType').prop('checked', '');
+                        JQuery('#bfValidationTypeNone').prop('checked', true);
                         JQuery('#bfValidationScriptFlags').css('display', 'none');
                         JQuery('#bfValidationScriptLibrary').css('display', 'none');
                         JQuery('#bfValidationScriptCustom').css('display', 'none');
@@ -1840,8 +1840,8 @@ import { JoomlaEditor } from 'editor-api';
 
                 switch (mdata.initCondition) {
                     case 1:
-                        JQuery('.bfInitType').attr('checked', '');
-                        JQuery('#bfInitTypeLibrary').attr('checked', true);
+                        JQuery('.bfInitType').prop('checked', '');
+                        JQuery('#bfInitTypeLibrary').prop('checked', true);
                         JQuery('#bfInitScriptLibrary').css('display', '');
                         JQuery('#bfInitScriptCustom').css('display', 'none');
                         JQuery('#bfInitScriptFlags').css('display', '');
@@ -1850,15 +1850,15 @@ import { JoomlaEditor } from 'editor-api';
                         appScope.setInitScriptDescription();
                         break;
                     case 2:
-                        JQuery('.bfInitType').attr('checked', '');
-                        JQuery('#bfInitTypeCustom').attr('checked', true);
+                        JQuery('.bfInitType').prop('checked', '');
+                        JQuery('#bfInitTypeCustom').prop('checked', true);
                         JQuery('#bfInitScriptFlags').css('display', '');
                         JQuery('#bfInitScriptLibrary').css('display', 'none');
                         JQuery('#bfInitScriptCustom').css('display', '');
                         break;
                     default:
-                        JQuery('.bfInitType').attr('checked', '');
-                        JQuery('#bfInitTypeNone').attr('checked', true);
+                        JQuery('.bfInitType').prop('checked', '');
+                        JQuery('#bfInitTypeNone').prop('checked', true);
                         JQuery('#bfInitScriptFlags').css('display', 'none');
                         JQuery('#bfInitScriptLibrary').css('display', 'none');
                         JQuery('#bfInitScriptCustom').css('display', 'none');
@@ -1934,8 +1934,8 @@ import { JoomlaEditor } from 'editor-api';
 
                 switch (mdata.actionCondition) {
                     case 1:
-                        JQuery('.bfActionType').attr('checked', '');
-                        JQuery('#bfActionTypeLibrary').attr('checked', true);
+                        JQuery('.bfActionType').prop('checked', '');
+                        JQuery('#bfActionTypeLibrary').prop('checked', true);
                         JQuery('#bfActionScriptLibrary').css('display', '');
                         JQuery('#bfActionScriptCustom').css('display', 'none');
                         JQuery('#bfActionScriptFlags').css('display', '');
@@ -1944,15 +1944,15 @@ import { JoomlaEditor } from 'editor-api';
                         appScope.setActionScriptDescription();
                         break;
                     case 2:
-                        JQuery('.bfActionType').attr('checked', '');
-                        JQuery('#bfActionTypeCustom').attr('checked', true);
+                        JQuery('.bfActionType').prop('checked', '');
+                        JQuery('#bfActionTypeCustom').prop('checked', true);
                         JQuery('#bfActionScriptFlags').css('display', '');
                         JQuery('#bfActionScriptLibrary').css('display', 'none');
                         JQuery('#bfActionScriptCustom').css('display', '');
                         break;
                     default:
-                        JQuery('.bfActionType').attr('checked', '');
-                        JQuery('#bfActionTypeNone').attr('checked', true);
+                        JQuery('.bfActionType').prop('checked', '');
+                        JQuery('#bfActionTypeNone').prop('checked', true);
                         JQuery('#bfActionScriptFlags').css('display', 'none');
                         JQuery('#bfActionScriptLibrary').css('display', 'none');
                         JQuery('#bfActionScriptCustom').css('display', 'none');
@@ -2007,7 +2007,7 @@ import { JoomlaEditor } from 'editor-api';
                     mdata['title_translation'+BFQMConfig.lang] = JQuery('#bfSectionTitleTrans').val();
 
                     mdata.name = JQuery('#bfSectionName').val();
-                    mdata.off = JQuery('#bfSectionAdvancedTurnOff').attr('checked');
+                    mdata.off = JQuery('#bfSectionAdvancedTurnOff').prop('checked');
 
                     item.properties = mdata;
                     item.data.title = JQuery('#bfSectionTitle').val();
@@ -2037,7 +2037,7 @@ import { JoomlaEditor } from 'editor-api';
                         // compat 723
                         JQuery('#bfSectionName').val(typeof mdata.name == "undefined" ? '' : mdata.name);
                         // compat 723 end
-                        JQuery('#bfSectionAdvancedTurnOff').attr('checked', mdata.off);
+                        JQuery('#bfSectionAdvancedTurnOff').prop('checked', mdata.off);
                     }
                 }
             }
@@ -2057,16 +2057,16 @@ import { JoomlaEditor } from 'editor-api';
                     mdata.name = JQuery('#bfFormName').val();
                     mdata.description = JQuery('#bfFormDescription').val();
                     mdata.mailRecipient = JQuery('#bfFormMailRecipient').val();
-                    mdata.mailNotification = JQuery('#bfFormMailNotification').attr('checked');
+                    mdata.mailNotification = JQuery('#bfFormMailNotification').prop('checked');
                     mdata.submitInclude = JQuery('#bfSubmitIncludeYes').prop('checked');
-                    mdata.themebootstrapLabelTop = JQuery('#bfThemeBootstrapLabelTopYes').attr('checked');
-                    mdata.themebootstrapUseHeroUnit = JQuery('#bfThemeBootstrapUseHeroUnitYes').attr('checked');
-                    mdata.themebootstrapUseWell = JQuery('#bfThemeBootstrapUseWellYes').attr('checked');
-                    mdata.themebootstrapUseProgress = JQuery('#bfThemeBootstrapUseProgressYes').attr('checked');
+                    mdata.themebootstrapLabelTop = JQuery('#bfThemeBootstrapLabelTopYes').prop('checked');
+                    mdata.themebootstrapUseHeroUnit = JQuery('#bfThemeBootstrapUseHeroUnitYes').prop('checked');
+                    mdata.themebootstrapUseWell = JQuery('#bfThemeBootstrapUseWellYes').prop('checked');
+                    mdata.themebootstrapUseProgress = JQuery('#bfThemeBootstrapUseProgressYes').prop('checked');
 
-                    mdata.themebootstrapThemeEngine = JQuery('#bfThemeBootstrapThemeBootstrap').attr('checked') ? 'bootstrap' : 'breezingforms';
+                    mdata.themebootstrapThemeEngine = JQuery('#bfThemeBootstrapThemeBootstrap').prop('checked') ? 'bootstrap' : 'breezingforms';
 
-                    mdata.themebootstrapMode = JQuery('#bfThemeBootstrapModeYes').attr('checked');
+                    mdata.themebootstrapMode = JQuery('#bfThemeBootstrapModeYes').prop('checked');
                     delete mdata.themebootstrapUse3;
                     delete mdata.themebootstrap3builtin;
                     delete mdata.themebootstrap3classpfx;
@@ -2095,15 +2095,15 @@ import { JoomlaEditor } from 'editor-api';
                         mdata['themebootstrapbefore'] = '';
                     }
                     mdata.themebootstrapbefore = typeof JQuery('#bfThemeBootstrapBefore').get(0) != "undefined" ? JQuery('#bfThemeBootstrapBefore').val() : '';
-                    mdata.fadeIn = JQuery('#bfElementAdvancedFadeIn').attr('checked');
-                    mdata.useErrorAlerts = JQuery('#bfElementAdvancedUseErrorAlerts').attr('checked');
+                    mdata.fadeIn = JQuery('#bfElementAdvancedFadeIn').prop('checked');
+                    mdata.useErrorAlerts = JQuery('#bfElementAdvancedUseErrorAlerts').prop('checked');
 
-                    mdata.joomlaHint = JQuery('#bfElementAdvancedJoomlaHint').attr('checked');
+                    mdata.joomlaHint = JQuery('#bfElementAdvancedJoomlaHint').prop('checked');
 
-                    mdata.useDefaultErrors = JQuery('#bfElementAdvancedUseDefaultErrors').attr('checked');
-                    mdata.useBalloonErrors = JQuery('#bfElementAdvancedUseBalloonErrors').attr('checked');
-                    mdata.lastPageThankYou = JQuery('#bfFormLastPageThankYou').attr('checked');
-                    mdata.rollover = JQuery('#bfElementAdvancedRollover').attr('checked');
+                    mdata.useDefaultErrors = JQuery('#bfElementAdvancedUseDefaultErrors').prop('checked');
+                    mdata.useBalloonErrors = JQuery('#bfElementAdvancedUseBalloonErrors').prop('checked');
+                    mdata.lastPageThankYou = JQuery('#bfFormLastPageThankYou').prop('checked');
+                    mdata.rollover = JQuery('#bfElementAdvancedRollover').prop('checked');
                     mdata.rolloverColor = JQuery('#bfElementAdvancedRolloverColor').val();
                     mdata.toggleFields = JQuery('#bfElementAdvancedToggleFields').val();
                     var pagesSize = JQuery('#bfQuickModeRoot').children("ul").children("li").length;
@@ -2134,14 +2134,14 @@ import { JoomlaEditor } from 'editor-api';
                         item.data.title = mdata.title;
                         JQuery('#bfFormTitleTrans').val(typeof mdata['title_translation'+BFQMConfig.lang] != "undefined" ? mdata['title_translation'+BFQMConfig.lang] : "");
 
-                        JQuery('#bfElementAdvancedFadeIn').attr('checked', mdata.fadeIn);
-                        JQuery('#bfFormLastPageThankYou').attr('checked', mdata.lastPageThankYou);
-                        JQuery('#bfElementAdvancedUseErrorAlerts').attr('checked', mdata.useErrorAlerts);
+                        JQuery('#bfElementAdvancedFadeIn').prop('checked', mdata.fadeIn);
+                        JQuery('#bfFormLastPageThankYou').prop('checked', mdata.lastPageThankYou);
+                        JQuery('#bfElementAdvancedUseErrorAlerts').prop('checked', mdata.useErrorAlerts);
 
-                        JQuery('#bfElementAdvancedJoomlaHint').attr('checked', mdata.joomlaHint);
+                        JQuery('#bfElementAdvancedJoomlaHint').prop('checked', mdata.joomlaHint);
 
-                        JQuery('#bfElementAdvancedUseDefaultErrors').attr('checked', mdata.useDefaultErrors);
-                        JQuery('#bfElementAdvancedUseBalloonErrors').attr('checked', mdata.useBalloonErrors);
+                        JQuery('#bfElementAdvancedUseDefaultErrors').prop('checked', mdata.useDefaultErrors);
+                        JQuery('#bfElementAdvancedUseBalloonErrors').prop('checked', mdata.useBalloonErrors);
                         if (mdata.submitInclude) {
                             JQuery('#bfSubmitIncludeYes').prop('checked', true).trigger('change');
                             JQuery('#bfSubmitIncludeNo').prop('checked', false);
@@ -2150,23 +2150,23 @@ import { JoomlaEditor } from 'editor-api';
                             JQuery('#bfSubmitIncludeNo').prop('checked', true);
                         }
                         if (mdata.themebootstrapLabelTop) {
-                            JQuery('#bfThemeBootstrapLabelTopYes').attr('checked', true);
-                            JQuery('#bfThemeBootstrapLabelTopNo').attr('checked', false);
+                            JQuery('#bfThemeBootstrapLabelTopYes').prop('checked', true);
+                            JQuery('#bfThemeBootstrapLabelTopNo').prop('checked', false);
                         } else {
-                            JQuery('#bfThemeBootstrapLabelTopYes').attr('checked', false);
-                            JQuery('#bfThemeBootstrapLabelTopNo').attr('checked', true);
+                            JQuery('#bfThemeBootstrapLabelTopYes').prop('checked', false);
+                            JQuery('#bfThemeBootstrapLabelTopNo').prop('checked', true);
                         }
                         if (mdata.themebootstrapMode) {
-                            JQuery('#bfThemeBootstrapModeYes').attr('checked', true);
-                            JQuery('#bfThemeBootstrapModeNo').attr('checked', false);
+                            JQuery('#bfThemeBootstrapModeYes').prop('checked', true);
+                            JQuery('#bfThemeBootstrapModeNo').prop('checked', false);
                         } else {
-                            JQuery('#bfThemeBootstrapModeYes').attr('checked', false);
-                            JQuery('#bfThemeBootstrapModeNo').attr('checked', true);
+                            JQuery('#bfThemeBootstrapModeYes').prop('checked', false);
+                            JQuery('#bfThemeBootstrapModeNo').prop('checked', true);
                         }
 
                         if (mdata.themebootstrapThemeEngine == 'bootstrap') {
-                            JQuery('#bfThemeBootstrapThemeBootstrap').attr('checked', true);
-                            JQuery('#bfThemeBootstrapThemeBreezingForms').attr('checked', false);
+                            JQuery('#bfThemeBootstrapThemeBootstrap').prop('checked', true);
+                            JQuery('#bfThemeBootstrapThemeBreezingForms').prop('checked', false);
                             JQuery('#bfThemeBootstrapDiv').css("display", "block");
                             JQuery('#bfThemeBreezingFormsDiv').css("display", "none");
 
@@ -2178,31 +2178,31 @@ import { JoomlaEditor } from 'editor-api';
                             JQuery("#bfFadingEffectToggle").css("display", "none");
 
                         } else {
-                            JQuery('#bfThemeBootstrapThemeBootstrap').attr('checked', false);
-                            JQuery('#bfThemeBootstrapThemeBreezingForms').attr('checked', true);
+                            JQuery('#bfThemeBootstrapThemeBootstrap').prop('checked', false);
+                            JQuery('#bfThemeBootstrapThemeBreezingForms').prop('checked', true);
                             JQuery('#bfThemeBootstrapDiv').css("display", "none");
                             JQuery('#bfThemeBreezingFormsDiv').css("display", "block");
                         }
                         if (mdata.themebootstrapUseHeroUnit) {
-                            JQuery('#bfThemeBootstrapUseHeroUnitYes').attr('checked', true);
-                            JQuery('#bfThemeBootstrapUseHeroUnitNo').attr('checked', false);
+                            JQuery('#bfThemeBootstrapUseHeroUnitYes').prop('checked', true);
+                            JQuery('#bfThemeBootstrapUseHeroUnitNo').prop('checked', false);
                         } else {
-                            JQuery('#bfThemeBootstrapUseHeroUnitYes').attr('checked', false);
-                            JQuery('#bfThemeBootstrapUseHeroUnitNo').attr('checked', true);
+                            JQuery('#bfThemeBootstrapUseHeroUnitYes').prop('checked', false);
+                            JQuery('#bfThemeBootstrapUseHeroUnitNo').prop('checked', true);
                         }
                         if (mdata.themebootstrapUseWell) {
-                            JQuery('#bfThemeBootstrapUseWellYes').attr('checked', true);
-                            JQuery('#bfThemeBootstrapUseWellNo').attr('checked', false);
+                            JQuery('#bfThemeBootstrapUseWellYes').prop('checked', true);
+                            JQuery('#bfThemeBootstrapUseWellNo').prop('checked', false);
                         } else {
-                            JQuery('#bfThemeBootstrapUseWellYes').attr('checked', false);
-                            JQuery('#bfThemeBootstrapUseWellNo').attr('checked', true);
+                            JQuery('#bfThemeBootstrapUseWellYes').prop('checked', false);
+                            JQuery('#bfThemeBootstrapUseWellNo').prop('checked', true);
                         }
                         if (mdata.themebootstrapUseProgress) {
-                            JQuery('#bfThemeBootstrapUseProgressYes').attr('checked', true);
-                            JQuery('#bfThemeBootstrapUseProgressNo').attr('checked', false);
+                            JQuery('#bfThemeBootstrapUseProgressYes').prop('checked', true);
+                            JQuery('#bfThemeBootstrapUseProgressNo').prop('checked', false);
                         } else {
-                            JQuery('#bfThemeBootstrapUseProgressYes').attr('checked', false);
-                            JQuery('#bfThemeBootstrapUseProgressNo').attr('checked', true);
+                            JQuery('#bfThemeBootstrapUseProgressYes').prop('checked', false);
+                            JQuery('#bfThemeBootstrapUseProgressNo').prop('checked', true);
                         }
 
 
@@ -2237,7 +2237,7 @@ import { JoomlaEditor } from 'editor-api';
                         JQuery('#bfTheme').val(mdata.theme);
                         JQuery('#bfThemeBootstrap').val(mdata.themebootstrap);
                         JQuery('#bfThemeBootstrapBefore').val(mdata.themebootstrap);
-                        JQuery('#bfElementAdvancedRollover').attr('checked', mdata.rollover);
+                        JQuery('#bfElementAdvancedRollover').prop('checked', mdata.rollover);
                         JQuery('#bfElementAdvancedRolloverColor').val(mdata.rolloverColor);
                         JQuery('#bfElementAdvancedToggleFields').val(mdata.toggleFields);
                     }

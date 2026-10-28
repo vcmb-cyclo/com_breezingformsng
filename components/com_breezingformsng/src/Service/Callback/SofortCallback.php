@@ -200,7 +200,7 @@ final class SofortCallback
 
                             $sofortRecordId = (int) $recordId;
                             $sofortTxId = 'Sofortüberweisung: ' . $input->getString('transaction', '');
-                            $sofortPaymentDate = date('Y-m-d H:i:s', strtotime($input->getString('created', '')));
+                            $sofortPaymentDate = date('Y-m-d H:i:s', (int) strtotime($input->getString('created', '')));
                             $this->paymentRecordService->storeTransaction(
                                 $sofortRecordId,
                                 $sofortTxId,

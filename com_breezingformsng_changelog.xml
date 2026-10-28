@@ -3,6 +3,27 @@
 	<changelog>
 		<element>com_breezingformsng</element>
 		<type>component</type>
+		<version>6.1.0-RC08</version>
+		<fix>
+			<item>Repair migration of legacy BreezingForms installations, including menu links, component registration, and stored record dates.</item>
+			<item>Keep QuickMode checkbox changes when saving properties and close its editor dialog after saving.</item>
+			<item>Correct QuickMode form submission and summary display issues.</item>
+		</fix>
+		<addition>
+			<item>Keep and restore version history for forms, scripts, and pieces.</item>
+			<item>Show record audit information and allow active, archived, viewed, and exported states to be changed directly.</item>
+			<item>Integrate with Joomla privacy requests to export or remove personal data from form records.</item>
+		</addition>
+		<change>
+			<item>Use Joomla administration lists, search tools, and pagination for forms, menus, records, scripts, pieces, and integrator rules.</item>
+			<item>Use ContentBuilder NG services for linked forms and records.</item>
+			<item>Provide a dedicated Joomla form for CSV record imports.</item>
+			<item>Upgrade the QuickMode editor tree to jsTree 3 while keeping existing form data.</item>
+		</change>
+	</changelog>
+	<changelog>
+		<element>com_breezingformsng</element>
+		<type>component</type>
 		<version>6.1.0-RC07</version>
 		<fix>
 			<item>Add the columns BreezingForms NG needs when it is installed over existing BreezingForms Pro tables. Records, Forms, Scripts and Pieces no longer fail with "Unknown column" errors.</item>

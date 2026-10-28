@@ -24,8 +24,9 @@ final class CallbackRegistrationService
     }
 
     /**
-     * @param array<int|string, mixed> $library
-     * @param array<int|string, mixed> $linked
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
+     * @param \stdClass $form
      */
     public function registerForm(object $form, array &$library, array &$linked, int $formId): bool
     {
@@ -60,8 +61,9 @@ final class CallbackRegistrationService
     }
 
     /**
-     * @param array<int|string, mixed> $library
-     * @param array<int|string, mixed> $linked
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
+     * @param \stdClass $element
      */
     public function registerElement(object $element, array &$library, array &$linked): bool
     {
@@ -96,8 +98,8 @@ final class CallbackRegistrationService
     }
 
     /**
-     * @param array<int|string, mixed> $library
-     * @param array<int|string, mixed> $linked
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
      */
     public function registerIconBorders(array &$library, array &$linked, string $newline): bool
     {
@@ -129,8 +131,9 @@ final class CallbackRegistrationService
     }
 
     /**
-     * @param array<int|string, mixed> $library
-     * @param array<int|string, mixed> $linked
+     * @param array<int, array<int, mixed>> $library
+     * @param array<int, string> $linked
+     * @param \stdClass $element
      */
     public function registerStaticTextScan(object $element, array &$library, array &$linked): void
     {

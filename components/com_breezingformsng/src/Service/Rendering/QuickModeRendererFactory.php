@@ -24,6 +24,8 @@ final class QuickModeRendererFactory
 {
     /**
      * @param array<string, mixed> $metadata
+     *
+     * @return ClassicRenderer|BootstrapRenderer|OnePageRenderer
      */
     public function create(HTML_facileFormsProcessor $processor, array $metadata): object
     {
