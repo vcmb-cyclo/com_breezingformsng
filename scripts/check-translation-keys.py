@@ -5,6 +5,8 @@ Chaque clef du composant, du module ou des plugins citée dans le PHP, le
 JavaScript ou le XML doit exister dans un fichier en-GB ; sinon Joomla affiche
 la clef brute.
 
+- Fichier XML (``label``, ``description``, options…) : Joomla y traduit la
+  clef telle quelle, qui doit donc exister.
 - Premier argument d'un appel ``_(``, ``sprintf(`` ou ``script(`` : la clef doit
   exister telle quelle.
 - Premier argument d'un appel ``plural(`` : une variante suffit (``_1``,
@@ -52,10 +54,12 @@ def main():
             source = handle.read()
         # Translation call each key is the direct first argument of, by offset.
         calls = {match.start(3): match.group(1) for match in CALL_ARGUMENT.finditer(source)}
+        # XML has no plural: Joomla translates the exact key.
+        exact_only = path.endswith('.xml')
 
         for match in KEY.finditer(source):
             key = match.group(1)
-            has_plural = f'{key}_1' in keys or f'{key}_MORE' in keys
+            has_plural = not exact_only and (f'{key}_1' in keys or f'{key}_MORE' in keys)
             accepted = key in keys or (has_plural and calls.get(match.start(1), 'plural') == 'plural')
             if not accepted:
                 line = source.count('\n', 0, match.start()) + 1
