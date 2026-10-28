@@ -13,6 +13,7 @@
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Session\Session;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
 $record = $this->item;
@@ -32,6 +33,7 @@ $localDate = static fn (string $utc): string => sprintf(
         'UTF-8'
     ),
 );
+$optionalDate = static fn (?string $utc): string => $utc !== null && $utc !== '' ? $localDate($utc) : '';
 $position = $this->recordPosition !== null
     ? Text::sprintf('COM_BREEZINGFORMSNG_RECORD_POSITION', $this->recordPosition, $this->recordTotal)
     : '';
@@ -58,7 +60,9 @@ $sectionHeader = static function (string $id, string $label) use (&$sectionOpene
     );
 };
 $formEditorUrl = 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . (int) $record->form;
-$recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezingformsng&task=record.edit&id=' . $recordId;
+// Previous/next go through record.navigate so the record being left is checked in.
+$recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezingformsng&task=record.navigate&id='
+    . (int) $record->id . '&target=' . $recordId . '&' . Session::getFormToken() . '=1';
 ?>
 <form action="index.php?option=com_breezingformsng&amp;view=record&amp;layout=edit&amp;id=<?= (int) $record->id; ?>" method="post" name="adminForm" id="adminForm">
 
@@ -177,6 +181,17 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
               </td>
             </tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_NAME', 'COM_BREEZINGFORMSNG_RECORDS_NAME_DESC'); ?></th><td><?= $value($record->form_name); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT', 'COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT_DESC'); ?></th><td><?= $value($record->checked_out); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT_TIME', 'COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT_TIME_DESC'); ?></th><td><?= $optionalDate($record->checked_out_time); ?></td></tr>
+            <?= $sectionHeader('record-section-auditinfo', 'COM_BREEZINGFORMSNG_RECORDS_AUDITINFO'); ?>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_FORMS_MODIFIED', 'COM_BREEZINGFORMSNG_MODIFIED_DESC'); ?></th><td><?= $optionalDate($record->modified); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_MODIFIED_BY', 'COM_BREEZINGFORMSNG_RECORDS_MODIFIED_BY_DESC'); ?></th><td><?= $value($record->modified_by); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_MODIFIED_USER_ID', 'COM_BREEZINGFORMSNG_RECORDS_MODIFIED_USER_ID_DESC'); ?></th><td><?= (int) $record->modified_user_id; ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPT_IP', 'COM_BREEZINGFORMSNG_RECORDS_OPT_IP_DESC'); ?></th><td><?= $value($record->opt_ip); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPT_DATE', 'COM_BREEZINGFORMSNG_RECORDS_OPT_DATE_DESC'); ?></th><td><?= $optionalDate($record->opt_date); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPT_TOKEN', 'COM_BREEZINGFORMSNG_RECORDS_OPT_TOKEN_DESC'); ?></th><td><?= $value($record->opt_token); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_RECORD_TITLE', 'COM_BREEZINGFORMSNG_RECORDS_RECORD_TITLE_DESC'); ?></th><td><?= $value($record->title); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_RECORD_NAME', 'COM_BREEZINGFORMSNG_RECORDS_RECORD_NAME_DESC'); ?></th><td><?= $value($record->name); ?></td></tr>
           </tbody>
         </table>
       </div>

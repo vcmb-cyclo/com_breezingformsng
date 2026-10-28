@@ -41,6 +41,31 @@ class RecordController extends FormController
     }
 
     /**
+     * Opens the previous or next record, checking in the one being left first:
+     * a plain record.edit link would keep it checked out.
+     */
+    public function navigate(): bool
+    {
+        $this->checkToken('get');
+
+        $currentId = $this->input->getInt('id');
+        $context = $this->option . '.edit.' . $this->context;
+
+        if ($currentId > 0) {
+            if (!$this->attemptCheckin($this->getModel(), $currentId, 'id')) {
+                return false;
+            }
+
+            $this->releaseEditId($context, $currentId);
+            $this->app->setUserState($context . '.data', null);
+        }
+
+        $this->input->set('id', $this->input->getInt('target'));
+
+        return $this->edit();
+    }
+
+    /**
      * Records come from the submitted forms; none is created here.
      *
      * @param  array<string, mixed>  $data

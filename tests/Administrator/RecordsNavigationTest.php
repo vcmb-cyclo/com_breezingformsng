@@ -147,7 +147,7 @@ final class RecordsNavigationTest extends TestCase
         self::assertIsString($listTemplate);
         self::assertIsString($editTemplate);
         self::assertStringContainsString('task=record.edit&amp;id=<?= $recId; ?>', $listTemplate);
-        self::assertStringContainsString('task=record.edit&id=', $editTemplate);
+        self::assertStringContainsString('task=record.navigate&id=', $editTemplate);
         self::assertStringContainsString('$this->form->renderFieldset(\'values\')', $editTemplate);
         self::assertStringNotContainsString('filter_order', $listTemplate . $editTemplate);
         self::assertStringNotContainsString('form_selection', $listTemplate . $editTemplate);
