@@ -11,7 +11,8 @@ import { Linter } from 'eslint';
 const files = execFileSync('git', ['ls-files', '*.php'], { encoding: 'utf8' })
     .split('\n')
     .filter((file) => /\/(tmpl|layouts)\//.test(file) && !/\/(vendor|libraries)\//.test(file));
-const scriptPattern = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+// The end tag may carry spaces or attributes (</script >), as browsers accept.
+const scriptPattern = /<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi;
 const linter = new Linter();
 let errors = 0;
 
