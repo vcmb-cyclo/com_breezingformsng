@@ -13,6 +13,7 @@ use Joomla\CMS\Date\Date;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\SqlDate;
 
 final class PackageTransferModel extends BaseDatabaseModel
 {
@@ -325,8 +326,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             $db->updateObject('#__facileforms_packages', $object, 'id');
         } else {
             // An imported package keeps the creation date of its file.
-            $created = $data['created'] ?? '';
-            $data['created'] = preg_match('/^[1-9]\d{3}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?$/', $created) === 1 ? $created : $now;
+            $data['created'] = SqlDate::normalise($data['created'] ?? '') ?? $now;
             $data['created_by'] = $username;
             $object = (object) $data;
             $db->insertObject('#__facileforms_packages', $object);

@@ -14,6 +14,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\SqlDate;
 
 /**
  * Imports a FacileForms XML package (script and piece libraries).
@@ -243,7 +244,7 @@ class ImportModel extends BaseDatabaseModel
             'name' => $this->textValue($xml->name),
             'title' => $this->textValue($xml->title),
             'version' => $this->textValue($xml->version),
-            'created' => $this->textValue($xml->creationDate),
+            'created' => SqlDate::normalise($this->textValue($xml->creationDate)),
             'author' => $this->textValue($xml->author),
             'email' => $this->textValue($xml->authorEmail),
             'url' => $this->textValue($xml->authorUrl),
@@ -258,11 +259,20 @@ class ImportModel extends BaseDatabaseModel
             ->bind(':id', $id);
         $exists = $this->db->setQuery($query)->loadResult() !== null;
 
-        $row = (object) ($package + ['id' => $id]);
+        $now = (new \Joomla\CMS\Date\Date())->toSql();
+        $userName = (string) $this->getCurrentUser()->username;
+        $package['modified'] = $now;
+        $package['modified_by'] = $userName;
 
         if ($exists) {
+            // An existing package keeps its creation date and author.
+            unset($package['created']);
+            $row = (object) ($package + ['id' => $id]);
             $this->db->updateObject('#__facileforms_packages', $row, 'id');
         } else {
+            $package['created'] ??= $now;
+            $package['created_by'] = $userName;
+            $row = (object) ($package + ['id' => $id]);
             $this->db->insertObject('#__facileforms_packages', $row);
         }
     }

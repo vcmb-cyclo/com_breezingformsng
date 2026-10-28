@@ -212,10 +212,32 @@ document.getElementById('toolbar-close')?.addEventListener('click', (event) => {
     });
 });
 
-// Save and Create Package both store the form. Create Package downloads the
-// file and leaves the page open, so the guard comes back after a while.
+// Save and Create Package both store the form. Save reloads the screen;
+// Create Package downloads the file and leaves the page open, so the stored
+// details are copied into the in-memory profile (a new package joins the
+// list), and the guard comes back after a while.
 bfExportForm.addEventListener('submit', () => {
     bfSubmitting = true;
+
+    if (bfExportForm.elements.task.value === 'packages.export') {
+        const id = bfPackage.value.trim();
+        const profile = bfPackageProfiles[id] || { id };
+
+        for (const field of ['name', 'version', 'title', 'author', 'email', 'url', 'description', 'copyright']) {
+            profile[field] = document.getElementById('bf-meta-' + field).value;
+        }
+        bfPackageProfiles[id] = profile;
+
+        // After the browser has built the submitted data.
+        window.setTimeout(() => {
+            if (![...bfPackageChoice.options].some((option) => !('new' in option.dataset) && option.value === id)) {
+                bfPackageChoice.add(new Option(id, id));
+            }
+            bfPackageChoice.value = id;
+            bfLoadProfile();
+        });
+    }
+
     bfSavedState = bfFormState();
     window.setTimeout(() => { bfSubmitting = false; }, 10000);
 });

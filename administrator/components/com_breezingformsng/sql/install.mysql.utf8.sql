@@ -361,7 +361,9 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_integrator_rules` (
   KEY `published` (`published`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT IGNORE INTO `#__facileforms_packages` VALUES (
+INSERT IGNORE INTO `#__facileforms_packages`
+  (`id`, `name`, `version`, `created`, `title`, `author`, `email`, `url`, `description`, `copyright`)
+VALUES (
   '',
   'mypck_001',
   '0.0.1',
