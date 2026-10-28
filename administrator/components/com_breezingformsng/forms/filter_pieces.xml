@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form>
+	<field
+		name="package"
+		type="sql"
+		filtermode="selector"
+		label="COM_BREEZINGFORMSNG_PIECES_PACKAGE"
+		sql_select="DISTINCT package"
+		sql_from="#__facileforms_pieces"
+		sql_where="package &lt;&gt; ''"
+		sql_order="package ASC"
+		key_field="package"
+		value_field="package"
+		class="js-select-submit-on-change"
+		>
+		<option value="">COM_BREEZINGFORMSNG_ALL_PACKAGES</option>
+	</field>
 	<fields name="filter">
 		<field
 			name="search"
@@ -8,20 +23,6 @@
 			label="JSEARCH_FILTER"
 			hint="JSEARCH_FILTER"
 		/>
-		<field
-			name="package"
-			type="sql"
-			label="COM_BREEZINGFORMSNG_PIECES_PACKAGE"
-			sql_select="DISTINCT package"
-			sql_from="#__facileforms_pieces"
-			sql_where="package &lt;&gt; ''"
-			sql_order="package ASC"
-			key_field="package"
-			value_field="package"
-			class="js-select-submit-on-change"
-			>
-			<option value="">COM_BREEZINGFORMSNG_ALL_PACKAGES</option>
-		</field>
 		<field
 			name="published"
 			type="status"

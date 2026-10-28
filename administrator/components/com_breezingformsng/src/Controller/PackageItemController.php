@@ -107,16 +107,6 @@ abstract class PackageItemController extends FormController
         $this->setRedirect(Route::_($this->itemUrl($this->input->getInt('id', 0), true), false));
     }
 
-    public function previous(): void
-    {
-        $this->navigate('prev');
-    }
-
-    public function next(): void
-    {
-        $this->navigate('next');
-    }
-
     /**
      * @param  array<string, mixed>  $validData
      */
@@ -135,11 +125,13 @@ abstract class PackageItemController extends FormController
     }
 
     /**
-     * Moves to the neighbouring item, staying on the test page when
-     * coming from it.
+     * Moves to the item at a position of the list (the item screen
+     * pagination), staying on the test page when coming from it.
      */
-    private function navigate(string $direction): void
+    public function navigate(): void
     {
+        $this->checkToken('get');
+
         $itemId = $this->input->getInt('id', 0);
         $context = $this->option . '.edit.' . $this->context;
         $list = $this->factory->createModel(ucfirst($this->view_list), 'Administrator');
@@ -148,7 +140,7 @@ abstract class PackageItemController extends FormController
             throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 
-        $targetId = $list->getAdjacentId($itemId, $direction);
+        $targetId = $list->getIdAt($this->input->getInt('itemlimitstart', -1)) ?? $itemId;
         $test = $this->input->getInt('test_context', 0) === 1;
 
         if ($targetId !== $itemId) {

@@ -29,7 +29,7 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 ?>
 <form action="<?= Route::_('index.php?option=com_breezingformsng&view=pieces'); ?>" method="post" name="adminForm" id="adminForm">
   <div id="j-main-container" class="j-main-container">
-    <?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this]); ?>
+    <?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this, 'options' => ['selectorFieldName' => 'package']]); ?>
 
     <?php if ($this->items === []): ?>
       <div class="alert alert-info">

@@ -10,9 +10,11 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\IntegratorModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\IntegratorRulesModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 
 /** @property CMSApplication $app */
@@ -42,6 +44,23 @@ class IntegratorController extends BaseController
         $input->set('view', 'integrator');
         $input->set('layout', 'edit');
         parent::display();
+    }
+
+    /**
+     * Opens the rule at a position of the list (the rule screen pagination).
+     */
+    public function navigate(): void
+    {
+        $this->checkToken('get');
+
+        $list = $this->factory->createModel('IntegratorRules', 'Administrator');
+
+        if (!$list instanceof IntegratorRulesModel) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $targetId = $list->getIdAt($this->input->getInt('itemlimitstart', -1));
+        $this->setRedirect($targetId !== null ? $this->editUrl($targetId) : $this->listUrl());
     }
 
     public function save(): void

@@ -70,9 +70,9 @@ final class AreaAccessArchitectureTest extends TestCase
         self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CODE);', $item);
         self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CODE);', $list);
         self::assertStringNotContainsString('readOnlyTasks', $list);
-        self::assertStringContainsString("return ['edit', 'cancel', 'previous', 'next', 'test'];", $script);
+        self::assertStringContainsString("return ['edit', 'cancel', 'navigate', 'test'];", $script);
         // A piece is PHP run on the server: testing it is not read-only.
-        self::assertStringContainsString("return ['edit', 'cancel', 'previous', 'next'];", $piece);
+        self::assertStringContainsString("return ['edit', 'cancel', 'navigate'];", $piece);
 
         foreach (['Script', 'Piece'] as $area) {
             $view = file_get_contents(self::ADMIN . '/src/View/' . $area . '/HtmlView.php');

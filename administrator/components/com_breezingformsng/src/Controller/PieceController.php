@@ -29,7 +29,7 @@ class PieceController extends PackageItemController
      */
     protected function readOnlyTasks(): array
     {
-        return ['edit', 'cancel', 'previous', 'next'];
+        return ['edit', 'cancel', 'navigate'];
     }
 
     protected function logType(): string

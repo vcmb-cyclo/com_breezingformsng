@@ -12,6 +12,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Integrator;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
@@ -160,6 +161,12 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             ToolbarHelper::save('integrator.save');
         }
         ToolbarHelper::cancel('integrator.display', 'JTOOLBAR_CLOSE');
+
+        if ($this->rule !== null) {
+            /** @var HtmlDocument $document */
+            $document = $this->getDocument();
+            $this->addItemPagination($document->getToolbar(), 'IntegratorRules', $id, 'integrator.navigate');
+        }
     }
 
     protected function getDetailLabel(): ?string
