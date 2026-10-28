@@ -9,6 +9,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Date\Date;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
@@ -25,6 +26,24 @@ final class PackageTransferModel extends BaseDatabaseModel
     public function getPackages(): array
     {
         $db = $this->getDatabase();
+        $packages = $this->getAssignedPackages();
+        $query = $db->createQuery()->select($db->quoteName('id'))->from($db->quoteName('#__facileforms_packages'));
+        $packages = array_merge($packages, $db->setQuery($query)->loadColumn() ?: []);
+        // A package row with an empty id cannot be chosen or exported.
+        $packages = array_values(array_unique(array_filter($packages, static fn(mixed $id): bool => is_string($id) && $id !== '')));
+        sort($packages, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $packages;
+    }
+
+    /**
+     * Packages named by at least one form, script, piece or menu.
+     *
+     * @return list<string>
+     */
+    private function getAssignedPackages(): array
+    {
+        $db = $this->getDatabase();
         $packages = [];
 
         foreach (['#__facileforms_forms', '#__facileforms_scripts', '#__facileforms_pieces', '#__facileforms_compmenus'] as $table) {
@@ -32,15 +51,10 @@ final class PackageTransferModel extends BaseDatabaseModel
                 ->select('DISTINCT ' . $db->quoteName('package'))
                 ->from($db->quoteName($table))
                 ->where($db->quoteName('package') . ' != ' . $db->quote(''));
-            $packages = array_merge($packages, array_column($db->setQuery($query)->loadAssocList() ?: [], 'package'));
+            $packages = array_merge($packages, $db->setQuery($query)->loadColumn() ?: []);
         }
 
-        $query = $db->createQuery()->select($db->quoteName('id'))->from($db->quoteName('#__facileforms_packages'));
-        $packages = array_merge($packages, $db->setQuery($query)->loadColumn() ?: []);
-        $packages = array_values(array_unique(array_filter($packages, 'is_string')));
-        sort($packages, SORT_NATURAL | SORT_FLAG_CASE);
-
-        return $packages;
+        return array_values(array_unique(array_filter($packages, 'is_string')));
     }
 
     /**
@@ -51,14 +65,36 @@ final class PackageTransferModel extends BaseDatabaseModel
         $db = $this->getDatabase();
         $query = $db->createQuery()->select('*')->from($db->quoteName('#__facileforms_packages'));
         $profiles = $db->setQuery($query)->loadAssocList('id') ?: [];
+        unset($profiles['']);
 
         foreach ($this->getPackages() as $id) {
             $profiles[$id] ??= ['id' => $id];
         }
 
+        // Packages with assigned items export those items, the others a selection.
+        foreach ($this->getAssignedPackages() as $id) {
+            $profiles[$id]['assigned'] = true;
+        }
+
         ksort($profiles, SORT_NATURAL | SORT_FLAG_CASE);
 
         return $profiles;
+    }
+
+    /**
+     * Stores the package details, so the package can be exported again later.
+     *
+     * @param array<string, mixed> $metadata
+     */
+    public function savePackage(string $package, array $metadata): void
+    {
+        $package = trim($package);
+
+        if ($package === '') {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED'));
+        }
+
+        $this->savePackageMetadata($package, $this->metadataForExport($package, $metadata));
     }
 
     /**
@@ -72,6 +108,14 @@ final class PackageTransferModel extends BaseDatabaseModel
 
         $db = $this->getDatabase();
         $forms = $this->loadPackageRows('#__facileforms_forms', $package);
+        $scripts = $this->loadPackageRows('#__facileforms_scripts', $package);
+        $pieces = $this->loadPackageRows('#__facileforms_pieces', $package);
+        $menus = $this->loadPackageRows('#__facileforms_compmenus', $package);
+
+        if ($forms === [] && $scripts === [] && $pieces === [] && $menus === []) {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_INSTALLER_SELECTAPKG'));
+        }
+
         $formIds = array_map(static fn(array $form): int => (int) $form['id'], $forms);
         $elements = $formIds === [] ? [] : $this->loadElements($formIds);
         $elementsByForm = [];
@@ -95,9 +139,9 @@ final class PackageTransferModel extends BaseDatabaseModel
             'version' => self::VERSION,
             'package' => $package,
             'exported_at' => (new \Joomla\CMS\Date\Date())->toSql(),
-            'scripts' => array_map(fn(array $row): array => $this->libraryExportRow($row), $this->loadPackageRows('#__facileforms_scripts', $package)),
-            'pieces' => array_map(fn(array $row): array => $this->libraryExportRow($row), $this->loadPackageRows('#__facileforms_pieces', $package)),
-            'menus' => array_map(fn(array $row): array => $this->menuExportRow($row), $this->includeMenuAncestors($this->loadPackageRows('#__facileforms_compmenus', $package))),
+            'scripts' => array_map(fn(array $row): array => $this->libraryExportRow($row), $scripts),
+            'pieces' => array_map(fn(array $row): array => $this->libraryExportRow($row), $pieces),
+            'menus' => array_map(fn(array $row): array => $this->menuExportRow($row), $this->includeMenuAncestors($menus)),
             'forms' => $payloadForms,
             'metadata' => $this->metadataForExport($package, $metadata),
         ];
@@ -254,7 +298,8 @@ final class PackageTransferModel extends BaseDatabaseModel
     {
         $db = $this->getDatabase();
         $columns = $this->tableColumns('#__facileforms_packages');
-        $data = $this->only($metadata, $columns, ['id']);
+        // The audit columns are stamped here, never taken from a form or a file.
+        $data = $this->only($metadata, $columns, ['id', 'created_by', 'modified', 'modified_by']);
         $data['id'] = $package;
 
         foreach ($data as $value) {
@@ -263,6 +308,11 @@ final class PackageTransferModel extends BaseDatabaseModel
             }
         }
 
+        $now = (new Date())->toSql();
+        $username = (string) $this->getCurrentUser()->username;
+        $data['modified'] = $now;
+        $data['modified_by'] = $username;
+
         $query = $db->createQuery()
             ->select($db->quoteName('id'))
             ->from($db->quoteName('#__facileforms_packages'))
@@ -270,9 +320,14 @@ final class PackageTransferModel extends BaseDatabaseModel
             ->bind(':id', $package);
 
         if ($db->setQuery($query)->loadResult() !== null) {
+            unset($data['created']);
             $object = (object) $data;
             $db->updateObject('#__facileforms_packages', $object, 'id');
         } else {
+            // An imported package keeps the creation date of its file.
+            $created = $data['created'] ?? '';
+            $data['created'] = preg_match('/^[1-9]\d{3}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?$/', $created) === 1 ? $created : $now;
+            $data['created_by'] = $username;
             $object = (object) $data;
             $db->insertObject('#__facileforms_packages', $object);
         }

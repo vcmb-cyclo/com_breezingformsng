@@ -3106,12 +3106,46 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $formsTable   = $prefix . 'facileforms_forms';
         $scriptsTable = $prefix . 'facileforms_scripts';
         $piecesTable  = $prefix . 'facileforms_pieces';
+        $packagesTable = $prefix . 'facileforms_packages';
 
-        foreach ([$recordsTable, $formsTable, $scriptsTable, $piecesTable] as $tableName) {
+        foreach ([$recordsTable, $formsTable, $scriptsTable, $piecesTable, $packagesTable] as $tableName) {
             if (isset($tables[$tableName])) {
                 $tables[$tableName] = $db->setQuery(
                     'SHOW FULL COLUMNS FROM ' . $db->quoteName($tableName)
                 )->loadObjectList('Field');
+            }
+        }
+
+        if (isset($tables[$packagesTable])) {
+            $columns = $tables[$packagesTable];
+
+            // The creation date was free text: empty or malformed values
+            // become NULL before the column turns into a DATETIME.
+            if (
+                isset($columns['created'])
+                && !self::columnDefinitionMatches($columns['created'], 'datetime', true, null)
+            ) {
+                $db->setQuery("ALTER TABLE `{$packagesTable}` MODIFY `created` VARCHAR(20) NULL DEFAULT NULL")->execute();
+                $db->setQuery(
+                    "UPDATE `{$packagesTable}` SET `created` = NULL"
+                    . " WHERE `created` NOT REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}( [0-9]{2}:[0-9]{2}:[0-9]{2})?$'"
+                    . " OR `created` LIKE '0000-%'"
+                )->execute();
+                $db->setQuery("ALTER TABLE `{$packagesTable}` MODIFY `created` DATETIME NULL DEFAULT NULL")->execute();
+                $this->log('Updated created column definition in facileforms_packages.');
+            }
+
+            $packageAuditColumns = [
+                'created_by'  => "VARCHAR(255){$textCollationClause} NOT NULL DEFAULT '' AFTER `created`",
+                'modified'    => "DATETIME NULL DEFAULT NULL AFTER `created_by`",
+                'modified_by' => "VARCHAR(255){$textCollationClause} NOT NULL DEFAULT '' AFTER `modified`",
+            ];
+
+            foreach ($packageAuditColumns as $col => $def) {
+                if (!isset($columns[$col])) {
+                    $db->setQuery("ALTER TABLE `{$packagesTable}` ADD `{$col}` {$def}")->execute();
+                    $this->log("Added column {$col} to facileforms_packages.");
+                }
             }
         }
 
