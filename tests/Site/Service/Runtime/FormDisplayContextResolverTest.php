@@ -41,6 +41,23 @@ final class FormDisplayContextResolverTest extends TestCase
         self::assertTrue($context->canRun);
     }
 
+    public function testFrontendRunsFormSavedForFrontendAndBackend(): void
+    {
+        $context = (new FormDisplayContextResolver())->resolve(
+            0,
+            false,
+            12,
+            2,
+            true,
+            0,
+            false,
+            0,
+            'https://example.test'
+        );
+
+        self::assertTrue($context->canRun);
+    }
+
     public function testResolvesBackendFrameAndRunModeRestriction(): void
     {
         $context = (new FormDisplayContextResolver())->resolve(

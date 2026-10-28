@@ -18,7 +18,6 @@ final class FormDisplayContextResolver
     private const RUNMODE_BACKEND = 1;
     private const RUNMODE_PREVIEW = 2;
     private const FORM_RUNMODE_ALL = 0;
-    private const FORM_RUNMODE_FRONTEND = 1;
     private const FORM_RUNMODE_BACKEND = 2;
 
     public function resolve(
@@ -51,9 +50,10 @@ final class FormDisplayContextResolver
             }
         }
 
+        // The site always runs in frontend mode and shows every published
+        // form: the form's run-mode option labels never matched these values,
+        // so a form saved as "Frontend & Backend" (2) was blocked here.
         $canRun = $published && match ($runMode) {
-            self::RUNMODE_FRONTEND => $formRunMode === self::FORM_RUNMODE_ALL
-                || $formRunMode === self::FORM_RUNMODE_FRONTEND,
             self::RUNMODE_BACKEND => $formRunMode === self::FORM_RUNMODE_ALL
                 || $formRunMode === self::FORM_RUNMODE_BACKEND,
             default => true,
