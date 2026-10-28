@@ -107,10 +107,10 @@ final class RecordStateTest extends TestCase
 
     public function testLabelsStatesWithNativeJoomlaKeys(): void
     {
-        self::assertSame('JPUBLISHED', RecordState::label(1));
+        self::assertSame('COM_BREEZINGFORMSNG_RECORDS_STATE_ACTIVE', RecordState::label(1));
         self::assertSame('JARCHIVED', RecordState::label(2));
         self::assertSame('JTRASHED', RecordState::label(-2));
-        self::assertSame('JPUBLISHED', RecordState::label(0));
+        self::assertSame('COM_BREEZINGFORMSNG_RECORDS_STATE_ACTIVE', RecordState::label(0));
     }
 
     public function testASelectionOfTrashedRecordsCanBeDeleted(): void

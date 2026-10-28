@@ -12,6 +12,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
 $listOrder = $this->escape($this->state->get('list.ordering'));
 $listDirn  = $this->escape($this->state->get('list.direction'));
@@ -21,6 +22,17 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 // Dates are stored in UTC and shown in the time zone of the user.
 $dateFormat = Text::_('DATE_FORMAT_LC6');
 $dateTitle = $this->escape(Text::sprintf('COM_BREEZINGFORMSNG_RECORDS_DATES_TIMEZONE', $user->getTimezone()->getName()));
+
+// Read-only state icons with the record wording (Active rather than Published).
+$stateIcons = [];
+
+foreach (RecordState::STATES as $state) {
+    $icon = [RecordState::PUBLISHED => 'publish', RecordState::ARCHIVED => 'archive', RecordState::TRASHED => 'trash'][$state];
+    $stateIcons[$state] = ['', '', '', RecordState::label($state), true, $icon, $icon];
+}
+
+// jgrid.state reads its fallback state 0 even when the value is found.
+$stateIcons[0] = $stateIcons[RecordState::PUBLISHED];
 
 $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8');
 ?>
@@ -84,7 +96,7 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
                   <span class="<?= $rec->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
                 </a>
               </td>
-              <td class="text-center"><?= HTMLHelper::_('jgrid.published', (int) $rec->state, $i, 'records.', false); ?></td>
+              <td class="text-center"><?= HTMLHelper::_('jgrid.state', $stateIcons, (int) $rec->state, $i, 'records.', false); ?></td>
               <td title="<?= $dateTitle; ?>"><?= HTMLHelper::_('date', (string) $rec->submitted, $dateFormat); ?></td>
               <td<?= $rec->modified ? ' title="' . $dateTitle . '"' : ''; ?>><?= $rec->modified ? HTMLHelper::_('date', (string) $rec->modified, $dateFormat) : '—'; ?></td>
             </tr>

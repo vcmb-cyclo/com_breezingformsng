@@ -129,7 +129,7 @@ class HtmlView extends BaseHtmlView
             if ($state === RecordState::ARCHIVED) {
                 $toolbar->unarchive('records.publish')->listCheck(false);
             } elseif ($state === RecordState::TRASHED) {
-                $toolbar->publish('records.publish')->listCheck(false);
+                $toolbar->publish('records.publish', 'COM_BREEZINGFORMSNG_RECORDS_TOOLBAR_RESTORE')->listCheck(false);
             } else {
                 $toolbar->archive('records.archive')->listCheck(false);
             }

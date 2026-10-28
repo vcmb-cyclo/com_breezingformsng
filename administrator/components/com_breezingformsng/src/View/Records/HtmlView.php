@@ -190,7 +190,7 @@ class HtmlView extends BaseHtmlView
             if ($stateFilter === $archived) {
                 $statusChild->unarchive('records.publish')->listCheck(true);
             } elseif ($stateFilter !== '') {
-                $statusChild->publish('records.publish')->listCheck(true);
+                $statusChild->publish('records.publish', 'COM_BREEZINGFORMSNG_RECORDS_TOOLBAR_RESTORE')->listCheck(true);
             }
 
             if ($stateFilter !== $archived) {

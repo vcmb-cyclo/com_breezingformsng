@@ -174,7 +174,10 @@ final class RecordsNavigationTest extends TestCase
             ['search', 'form', 'state'],
             array_map('strval', $filterForm->xpath('/form/fields[@name="filter"]/field/@name'))
         );
-        self::assertSame('*,1,2,-2', (string) $filterForm->xpath('//field[@name="state"]/@optionsFilter')[0]);
+        self::assertSame(
+            ['', '1', '2', '-2', '*'],
+            array_map('strval', $filterForm->xpath('//field[@name="state"]/option/@value'))
+        );
     }
 
     /** @param array<string, mixed> $state */
