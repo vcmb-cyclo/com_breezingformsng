@@ -101,7 +101,10 @@ final class FormPieceExecutionService
         // The form keeps the piece by id: a deleted, reimported or unpublished
         // piece is skipped, which the site tells only in debug mode.
         if ($this->processor->app->getConfig()->get('debug', false)) {
-            $this->processor->app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_PROCESS_PIECE_NOT_FOUND', $label, $pieceId), 'error');
+            $this->processor->app->enqueueMessage(
+                Text::sprintf('COM_BREEZINGFORMSNG_PROCESS_PIECE_NOT_FOUND', $label, $pieceId),
+                'error'
+            );
         }
     }
 }
