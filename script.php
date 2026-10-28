@@ -1832,10 +1832,44 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
     }
 
+    /**
+     * An earlier migration renamed com_breezingforms to com_breezingformsng
+     * in menu links on every update, leaving com_breezingformsngngng... and
+     * menu items that lead to "Component not found".
+     */
+    private function repairRepeatedMenuComponentSuffix(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $pattern = 'option=' . self::TARGET_COMPONENT . '(ng)+';
+        $replacement = 'option=' . self::TARGET_COMPONENT;
+
+        try {
+            $db->setQuery(
+                $db->createQuery()
+                    ->update($db->quoteName('#__menu'))
+                    ->set($db->quoteName('link') . ' = REGEXP_REPLACE(' . $db->quoteName('link') . ', :pattern, :replacement)')
+                    ->where($db->quoteName('link') . ' REGEXP :match')
+                    ->bind(':pattern', $pattern)
+                    ->bind(':replacement', $replacement)
+                    ->bind(':match', $pattern)
+            );
+            $db->execute();
+
+            $repaired = (int) $db->getAffectedRows();
+
+            if ($repaired > 0) {
+                $this->log("Repaired the component name in {$repaired} Joomla menu link(s).");
+            }
+        } catch (\Throwable $e) {
+            $this->log('Unable to repair the component name in Joomla menu links: ' . $e->getMessage(), Log::WARNING);
+        }
+    }
+
     private function normalizeJoomlaComponentReferences(): void
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $targetElement = self::TARGET_COMPONENT;
+        $this->repairRepeatedMenuComponentSuffix();
         $targetId = $this->getComponentExtensionId($targetElement);
 
         if ($targetId <= 0) {
