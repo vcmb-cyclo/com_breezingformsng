@@ -25,7 +25,7 @@ final class FormDisplayContextResolverTest extends TestCase
             0,
             false,
             12,
-            1,
+            0,
             true,
             0,
             false,
@@ -56,6 +56,23 @@ final class FormDisplayContextResolverTest extends TestCase
         );
 
         self::assertTrue($context->canRun);
+    }
+
+    public function testFrontendRejectsFormSavedForBackendOnly(): void
+    {
+        $context = (new FormDisplayContextResolver())->resolve(
+            0,
+            false,
+            12,
+            1,
+            true,
+            0,
+            false,
+            0,
+            'https://example.test'
+        );
+
+        self::assertFalse($context->canRun);
     }
 
     public function testResolvesBackendFrameAndRunModeRestriction(): void
