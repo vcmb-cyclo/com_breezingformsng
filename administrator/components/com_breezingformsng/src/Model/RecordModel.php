@@ -63,6 +63,11 @@ class RecordModel extends AdminModel
 
         $item->form_title = (string) ($form->title ?? '');
         $item->form_name = (string) ($form->name ?? '');
+
+        // modified_by keeps the editor as stored at the time; show the current
+        // name of the Joomla account while it exists.
+        $item->modified_by_name = $this->getUserName((int) $item->modified_user_id) ?? (string) $item->modified_by;
+        $item->checked_out_name = $this->getUserName((int) $item->checked_out) ?? '';
         $item->{self::ELEMENT_GROUP} = [];
 
         foreach ($this->getEditableRows($pk, $formId, (string) $item->name) as $row) {
@@ -305,6 +310,24 @@ class RecordModel extends AdminModel
         $this->preprocessData('com_breezingformsng.record', $data);
 
         return $data;
+    }
+
+    private function getUserName(int $userId): ?string
+    {
+        if ($userId <= 0) {
+            return null;
+        }
+
+        $db = $this->getDatabase();
+        $name = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName('name'))
+                ->from($db->quoteName('#__users'))
+                ->where($db->quoteName('id') . ' = :userId')
+                ->bind(':userId', $userId, ParameterType::INTEGER)
+        )->loadResult();
+
+        return $name !== null ? (string) $name : null;
     }
 
     /**

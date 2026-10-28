@@ -181,12 +181,11 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
               </td>
             </tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_NAME', 'COM_BREEZINGFORMSNG_RECORDS_NAME_DESC'); ?></th><td><?= $value($record->form_name); ?></td></tr>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT', 'COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT_DESC'); ?></th><td><?= $value($record->checked_out); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT', 'COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT_DESC'); ?></th><td><?= $value($record->checked_out_name); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT_TIME', 'COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT_TIME_DESC'); ?></th><td><?= $optionalDate($record->checked_out_time); ?></td></tr>
             <?= $sectionHeader('record-section-auditinfo', 'COM_BREEZINGFORMSNG_RECORDS_AUDITINFO'); ?>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_FORMS_MODIFIED', 'COM_BREEZINGFORMSNG_MODIFIED_DESC'); ?></th><td><?= $optionalDate($record->modified); ?></td></tr>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_MODIFIED_BY', 'COM_BREEZINGFORMSNG_RECORDS_MODIFIED_BY_DESC'); ?></th><td><?= $value($record->modified_by); ?></td></tr>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_MODIFIED_USER_ID', 'COM_BREEZINGFORMSNG_RECORDS_MODIFIED_USER_ID_DESC'); ?></th><td><?= (int) $record->modified_user_id; ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_MODIFIED_BY', 'COM_BREEZINGFORMSNG_RECORDS_MODIFIED_BY_DESC'); ?></th><td><?= $value($record->modified_by_name); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPT_IP', 'COM_BREEZINGFORMSNG_RECORDS_OPT_IP_DESC'); ?></th><td><?= $value($record->opt_ip); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPT_DATE', 'COM_BREEZINGFORMSNG_RECORDS_OPT_DATE_DESC'); ?></th><td><?= $optionalDate($record->opt_date); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPT_TOKEN', 'COM_BREEZINGFORMSNG_RECORDS_OPT_TOKEN_DESC'); ?></th><td><?= $value($record->opt_token); ?></td></tr>
