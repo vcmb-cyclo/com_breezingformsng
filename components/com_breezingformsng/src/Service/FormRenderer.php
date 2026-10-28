@@ -69,7 +69,7 @@ $left = 0;  // left margin in px (1)
 $top = 0;  // top margin in px (1)
 $suffix = '';  // CSS class suffix
 $parprv = '';  // private parameters
-$runmode = 0;  // run mode
+$runmode = _FF_RUNMODE_FRONTEND;  // run mode: the site always runs in frontend mode, never from the request
 $pagetitle = true;  // set page title
 $editable = 0;
 $editable_override = 0;
@@ -79,7 +79,6 @@ $menu_item_page_heading = '';
 $menu_item_meta_description = '';
 $menu_item_meta_keywords = '';
 $menu_item_robots = '';
-$runmode = htmlentities((string) $this->application->getInput()->getString('ff_runmode', $runmode), ENT_QUOTES, 'UTF-8');
 
 // check for plain form
 
@@ -97,92 +96,89 @@ $my_ff_params = $plainform || $parent_target == $ff_target;
 $ff_request = array();
 
     
-    if ($runmode == _FF_RUNMODE_FRONTEND) {
+    // is this called by a module?
+    if ($ff_applic == 'mod_facileforms') {
 
-        // is this called by a module?
-        if ($ff_applic == 'mod_facileforms') {
+        // get the module parameters
+        $formname = $params->get('ff_mod_name');
+        $page = intval($params->get('ff_mod_page', $page));
+        $inframe = intval($params->get('ff_mod_frame', $inframe));
+        $border = intval($params->get('ff_mod_border', $border));
+        $align = intval($params->get('ff_mod_align', $align));
+        $left = intval($params->get('ff_mod_left', $left));
+        $top = intval($params->get('ff_mod_top', $top));
+        $suffix = $params->get('ff_mod_suffix', '');
+        $parprv = $params->get('ff_mod_parprv', '');
+        $ff_request = array_replace(
+            $ff_request,
+            $this->requestParameterParser->parse((string) $params->get('ff_mod_parpub', ''))
+        );
+        $pagetitle = false;
 
-            // get the module parameters
-            $formname = $params->get('ff_mod_name');
-            $page = intval($params->get('ff_mod_page', $page));
-            $inframe = intval($params->get('ff_mod_frame', $inframe));
-            $border = intval($params->get('ff_mod_border', $border));
-            $align = intval($params->get('ff_mod_align', $align));
-            $left = intval($params->get('ff_mod_left', $left));
-            $top = intval($params->get('ff_mod_top', $top));
-            $suffix = $params->get('ff_mod_suffix', '');
-            $parprv = $params->get('ff_mod_parprv', '');
-            $ff_request = array_replace(
-                $ff_request,
-                $this->requestParameterParser->parse((string) $params->get('ff_mod_parpub', ''))
-            );
-            $pagetitle = false;
+        $this->application->getSession()->set('ff_editableMod' . $xModuleId . $formname, intval($params->get('ff_mod_editable', $editable)));
+        $this->application->getSession()->set('ff_editable_overrideMod' . $xModuleId . $formname, intval($params->get('ff_mod_editable_override', $editable_override)));
+    } else if ($ff_applic == 'plg_facileforms') {
 
-            $this->application->getSession()->set('ff_editableMod' . $xModuleId . $formname, intval($params->get('ff_mod_editable', $editable)));
-            $this->application->getSession()->set('ff_editable_overrideMod' . $xModuleId . $formname, intval($params->get('ff_mod_editable_override', $editable_override)));
-        } else if ($ff_applic == 'plg_facileforms') {
+        $formname = htmlentities($this->application->getInput()->getString('ff_name', ''), ENT_QUOTES, 'UTF-8');
+        $page = $this->application->getInput()->getInt('ff_page', 1);
+        $inframe = $this->application->getInput()->getInt('ff_frame', 0);
+        $border = $this->application->getInput()->getInt('ff_border', 0);
+        $align = $this->application->getInput()->getInt('ff_align', 1);
+        $editable = intval($plg_editable);
+        $editable_override = intval($plg_editable_override);
+        $left = 0;
+        $top = 0;
+        $suffix = htmlentities($this->application->getInput()->getString('ff_suffix', ''), ENT_QUOTES, 'UTF-8');
+        $parprv = '';
+        $ff_request = array_replace($ff_request, $this->requestParameterParser->parse(''));
+    } else {
 
-            $formname = htmlentities($this->application->getInput()->getString('ff_name', ''), ENT_QUOTES, 'UTF-8');
-            $page = $this->application->getInput()->getInt('ff_page', 1);
-            $inframe = $this->application->getInput()->getInt('ff_frame', 0);
-            $border = $this->application->getInput()->getInt('ff_border', 0);
-            $align = $this->application->getInput()->getInt('ff_align', 1);
-            $editable = intval($plg_editable);
-            $editable_override = intval($plg_editable_override);
-            $left = 0;
-            $top = 0;
-            $suffix = htmlentities($this->application->getInput()->getString('ff_suffix', ''), ENT_QUOTES, 'UTF-8');
-            $parprv = '';
-            $ff_request = array_replace($ff_request, $this->requestParameterParser->parse(''));
-        } else {
+        // is this called with an Itemid?
+        if ($this->application->getInput()->getInt('Itemid', 0) > 0 && $this->application->getInput()->getString('ff_applic', '') != 'mod_facileforms' && $this->application->getInput()->getString('ff_applic', '') != 'plg_facileforms') {
 
-            // is this called with an Itemid?
-            if ($this->application->getInput()->getInt('Itemid', 0) > 0 && $this->application->getInput()->getString('ff_applic', '') != 'mod_facileforms' && $this->application->getInput()->getString('ff_applic', '') != 'plg_facileforms') {
+            $menu = $this->application->getMenu()->getActive();
+            $params = $menu->getParams();
 
-                $menu = $this->application->getMenu()->getActive();
-                $params = $menu->getParams();
+            if ($params !== null) {
 
-                if ($params !== null) {
+                $menu_item_title = $params->get('page_title', '');
+                $menu_item_show_page_heading = $params->get('show_page_heading', 0);
+                $menu_item_page_heading = $params->get('page_heading', '');
 
-                    $menu_item_title = $params->get('page_title', '');
-                    $menu_item_show_page_heading = $params->get('show_page_heading', 0);
-                    $menu_item_page_heading = $params->get('page_heading', '');
+                $menu_item_meta_description = $params->get('menu-meta_description', '');
+                $menu_item_meta_keywords = $params->get('menu-meta_keywords', '');
+                $menu_item_robots = $params->get('robots', '');
 
-                    $menu_item_meta_description = $params->get('menu-meta_description', '');
-                    $menu_item_meta_keywords = $params->get('menu-meta_keywords', '');
-                    $menu_item_robots = $params->get('robots', '');
-
-                    if ($menu_item_meta_description) {
-                        $this->application->getDocument()->setMetaData('description', $menu_item_meta_description);
-                    }
-
-                    if ($menu_item_meta_keywords) {
-                        $this->application->getDocument()->setMetaData('keywords', $menu_item_meta_keywords);
-                    }
-
-                    if ($menu_item_robots) {
-                        $this->application->getDocument()->setMetaData('robots', $menu_item_robots);
-                    }
-
-                    $formname = $params->get('ff_com_name');
-                    $page = intval($params->get('ff_com_page', $page));
-                    $inframe = intval($params->get('ff_com_frame', $inframe));
-                    $border = intval($params->get('ff_com_border', $border));
-                    $align = intval($params->get('ff_com_align', $align));
-                    $left = intval($params->get('ff_com_left', $left));
-                    $top = intval($params->get('ff_com_top', $top));
-                    $editable = intval($params->get('ff_com_editable', $editable));
-                    $editable_override = intval($params->get('ff_com_editable_override', $editable_override));
-                    $suffix = $params->get('ff_com_suffix', '');
-                    $parprv = $params->get('ff_com_parprv', '');
-                    $ff_request = array_replace(
-                        $ff_request,
-                        $this->requestParameterParser->parse((string) $params->get('ff_com_parpub', ''))
-                    );
+                if ($menu_item_meta_description) {
+                    $this->application->getDocument()->setMetaData('description', $menu_item_meta_description);
                 }
-            } // if
-        }
-    } // if
+
+                if ($menu_item_meta_keywords) {
+                    $this->application->getDocument()->setMetaData('keywords', $menu_item_meta_keywords);
+                }
+
+                if ($menu_item_robots) {
+                    $this->application->getDocument()->setMetaData('robots', $menu_item_robots);
+                }
+
+                $formname = $params->get('ff_com_name');
+                $page = intval($params->get('ff_com_page', $page));
+                $inframe = intval($params->get('ff_com_frame', $inframe));
+                $border = intval($params->get('ff_com_border', $border));
+                $align = intval($params->get('ff_com_align', $align));
+                $left = intval($params->get('ff_com_left', $left));
+                $top = intval($params->get('ff_com_top', $top));
+                $editable = intval($params->get('ff_com_editable', $editable));
+                $editable_override = intval($params->get('ff_com_editable_override', $editable_override));
+                $suffix = $params->get('ff_com_suffix', '');
+                $parprv = $params->get('ff_com_parprv', '');
+                $ff_request = array_replace(
+                    $ff_request,
+                    $this->requestParameterParser->parse((string) $params->get('ff_com_parpub', ''))
+                );
+            }
+        } // if
+    }
 
     if ($my_ff_params) {
         // allow overriding by url params
@@ -506,116 +502,6 @@ $ff_request = array();
                 }
                 if (!$plainform)
                     echo "</div>\n";
-
-                if ($runmode == _FF_RUNMODE_PREVIEW) {
-
-                    $mouseOvers = '';
-                    $draggableIds = '';
-                    $draggableSize = count($ff_processor->draggableDivIds);
-                    for ($x = 0; $x < $draggableSize; $x++) {
-                        if ($x + 1 < $draggableSize) {
-                            $draggableIds .= '"' . $ff_processor->draggableDivIds[$x] . '",';
-                        } else {
-                            $draggableIds .= '"' . $ff_processor->draggableDivIds[$x] . '"';
-                        }
-
-                        $mouseOvers .= '
-						
-							var ' . $ff_processor->draggableDivIds[$x] . '_paddingRTmp;
-							var ' . $ff_processor->draggableDivIds[$x] . '_paddingLTmp;
-							var ' . $ff_processor->draggableDivIds[$x] . '_colorTmp;
-							
-							' . $ff_processor->draggableDivIds[$x] . '_colorTmp    = document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.backgroundColor;
-							' . $ff_processor->draggableDivIds[$x] . '_paddingRTmp = document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.paddingRight;
-							' . $ff_processor->draggableDivIds[$x] . '_paddingLTmp = document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.paddingLeft;
-							' . $ff_processor->draggableDivIds[$x] . '_paddingTTmp = document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.paddingTop;
-							' . $ff_processor->draggableDivIds[$x] . '_paddingBTmp = document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.paddingBottom;
-							
-							function bfItemOver_' . $ff_processor->draggableDivIds[$x] . '(e){
-								if(document.getElementById("' . $ff_processor->draggableDivIds[$x] . '")){
-									
-									document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.cursor="pointer";
-								
-									document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.paddingRight = "10px";
-									document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.paddingLeft = "10px";
-									document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.paddingTop = "0px";
-									document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.paddingBottom = "0px";
-									document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.backgroundColor = "red";
-									
-									parent.document.getElementById("hoverItem_' . $ff_processor->draggableDivIds[$x] . '").style.backgroundColor = "#cccccc";
-								}
-							}
-						
-							function bfItemOut_' . $ff_processor->draggableDivIds[$x] . '(e){
-								if(document.getElementById("' . $ff_processor->draggableDivIds[$x] . '")){
-								
-									document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.cursor="";
-								
-									document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.paddingRight= ' . $ff_processor->draggableDivIds[$x] . '_paddingRTmp;
-									document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.paddingLeft= ' . $ff_processor->draggableDivIds[$x] . '_paddingLTmp;
-									document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.paddingTop= ' . $ff_processor->draggableDivIds[$x] . '_paddingTTmp;
-									document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.paddingBottom= ' . $ff_processor->draggableDivIds[$x] . '_paddingBTmp;
-									document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").style.backgroundColor = ' . $ff_processor->draggableDivIds[$x] . '_colorTmp;
-									
-									parent.document.getElementById("hoverItem_' . $ff_processor->draggableDivIds[$x] . '").style.backgroundColor = "";
-								}
-							}
-							
-							if(document.getElementById("' . $ff_processor->draggableDivIds[$x] . '")){
-								document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").onmouseover = bfItemOver_' . $ff_processor->draggableDivIds[$x] . ';
-								document.getElementById("' . $ff_processor->draggableDivIds[$x] . '").onmouseout = bfItemOut_' . $ff_processor->draggableDivIds[$x] . ';
-							}
-						';
-                    }
-
-                    echo '
-					<script>
-					
-					SET_DHTML(' . $draggableIds . ');
-					
-					' . $mouseOvers . '
-					
-					function my_DragFunc(){
-						parent.document.adminForm.savepos.disabled = false;
-						// TODO: when undo is enabled, drag and drop is not possible. needs to be solved
-						//parent.document.adminForm.restpos.disabled = false;
-					}
-					
-					function my_DropFunc(){
-					
-						parent.document.getElementById("ff_itemPositions").value = "";
-					
-						for(var i = 0; i < parent.ff_coords.length;i++){
-						
-							eval("var cb = parent.document.adminForm.cb"+i+";");
-							
-							var itemComma = "";
-							if(i+1 < parent.ff_coords.length){
-								itemComma = ",";
-							} else {
-								itemComma = "";
-							}
-							
-							parent.document.getElementById("ff_itemPositions").value += 
-								cb.value+":"+document.getElementById("ff_div"+cb.value).style.zIndex+itemComma;
-						
-						}
-						
-						for(var i = 0; i < parent.ff_coords.length;i++){
-							
-							eval("var cb = parent.document.adminForm.cb"+i+";");
-							
-							if(document.getElementById("ff_div"+cb.value) == document.getElementById(dd.obj.id)){
-								
-								parent.ff_coords[i][2] = dd.obj.x;
-								parent.ff_coords[i][5] = dd.obj.y;
-								break;
-							}
-						}
-					}
-					
-					</script>';
-                }
 
                 ob_end_flush();
             } // if
