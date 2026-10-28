@@ -108,4 +108,12 @@ final class IntegratorRuntimeTest extends TestCase
         self::assertSame([], $result);
         self::assertSame('query failed', $output);
     }
+
+    public function testTheCodeOfAnItemChangesTheValueItWrites(): void
+    {
+        $runtime = (new ReflectionClass(IntegratorRuntime::class))->newInstanceWithoutConstructor();
+
+        self::assertSame('JEAN@EXAMPLE.INVALID', $runtime->handleCode('jean@example.invalid', '$value = strtoupper($value);'));
+        self::assertSame('kept', $runtime->handleCode('kept', ''));
+    }
 }

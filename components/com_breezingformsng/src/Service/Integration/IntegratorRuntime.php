@@ -218,8 +218,9 @@ class IntegratorRuntime
      */
     public function handleCode($value, $code)
     {
-        if (trim($code) != '') {
-            $this->codeExecutor()->execute($this, $code, ['value' => $value]);
+        // The code of an item changes the value it writes, as in BreezingForms: $value = trim($value);
+        if (trim((string) $code) != '') {
+            $this->codeExecutor()->execute($this, $code, ['value' => &$value]);
         }
         return $value;
     }

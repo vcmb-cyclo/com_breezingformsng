@@ -22,13 +22,14 @@ final class StoredPhpExecutor
 {
     /**
      * Executes a trusted snippet in the scope of the supplied runtime object.
+     * A variable passed by reference stays one, so the snippet can change it.
      *
      * @param array<string, mixed> $variables
      */
     public function execute(object $scope, string $code, array $variables = []): mixed
     {
         $executor = function () use ($code, $variables) {
-            extract($variables, EXTR_SKIP);
+            extract($variables, EXTR_SKIP | EXTR_REFS);
 
             return eval($code);
         };
