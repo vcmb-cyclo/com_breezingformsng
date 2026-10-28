@@ -123,23 +123,6 @@ class HtmlView extends BaseHtmlView
         $exportChild->standardButton('exportXlsx')->text(Text::_('COM_BREEZINGFORMSNG_XLSX'))->task('records.exportXlsx')->icon('icon-download')->listCheck(false);
         $exportChild->standardButton('exportXml')->text(Text::_('COM_BREEZINGFORMSNG_XML'))->task('records.exportXml')->icon('icon-download')->listCheck(false);
 
-        $markDropdown = $toolbar->dropdownButton('mark-options');
-
-        if (!$markDropdown instanceof DropdownButton) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-        }
-
-        $markDropdown->toggleSplit(false);
-        $markDropdown
-            ->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK'))
-            ->icon('icon-check')
-            ->buttonClass('btn btn-action');
-        $markChild = $markDropdown->getChildToolbar();
-        $markChild->standardButton('markViewed')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_VIEWED'))->task('records.viewed')->icon('icon-eye-open')->listCheck(false);
-        $markChild->standardButton('unmarkViewed')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_VIEWED'))->task('records.unviewed')->icon('icon-eye-close')->listCheck(false);
-        $markChild->standardButton('markExported')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_MARK_EXPORTED'))->task('records.exported')->icon('icon-share')->listCheck(false);
-        $markChild->standardButton('unmarkExported')->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_UNMARK_EXPORTED'))->task('records.unexported')->icon('icon-cancel-circle')->listCheck(false);
-
         $state = (int) ($this->item->state ?? RecordState::PUBLISHED);
 
         if ($user->authorise('core.edit.state', 'com_breezingformsng')) {
@@ -193,9 +176,7 @@ class HtmlView extends BaseHtmlView
             'saveTask'   => 'record.apply',
             'exportTasks' => ['records.exportPdf', 'records.exportCsv', 'records.exportXlsx', 'records.exportXml'],
             'discardTasks' => [
-                'records.viewed', 'records.unviewed', 'records.exported',
-                'records.unexported', 'records.publish', 'records.archive',
-                'records.trash', 'records.delete',
+                'records.publish', 'records.archive', 'records.trash', 'records.delete',
             ],
         ]);
         Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');

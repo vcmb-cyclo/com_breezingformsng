@@ -105,13 +105,15 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
         </div>
         <div class="d-flex gap-3 ms-auto">
           <a href="#" class="text-decoration-none"
-            onclick="bfToggleFlag(<?= (int) $record->id; ?>, 'bfrecord_viewed', this, 'record-flag-value-viewed'); return false;"
+            data-bf-flag="bfrecord_viewed"
+            onclick="bfToggleFlag(<?= (int) $record->id; ?>, 'bfrecord_viewed', this); return false;"
             title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_TOGGLE_VIEWED'), ENT_QUOTES, 'UTF-8'); ?>">
             <span class="<?= $record->viewed ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
             <?= Text::_('COM_BREEZINGFORMSNG_RECORDS_VIEWED'); ?>
           </a>
           <a href="#" class="text-decoration-none"
-            onclick="bfToggleFlag(<?= (int) $record->id; ?>, 'bfrecord_exported', this, 'record-flag-value-exported'); return false;"
+            data-bf-flag="bfrecord_exported"
+            onclick="bfToggleFlag(<?= (int) $record->id; ?>, 'bfrecord_exported', this); return false;"
             title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_TOGGLE_EXPORTED'), ENT_QUOTES, 'UTF-8'); ?>">
             <span class="<?= $record->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
             <?= Text::_('COM_BREEZINGFORMSNG_RECORDS_EXPORTED'); ?>
@@ -122,13 +124,19 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
   </div>
 
   <div class="card mb-3">
-    <div class="card-header">
-      <a href="#" class="bf-collapse-toggle d-block text-decoration-none text-reset"
-        data-bs-toggle="collapse" data-bs-target="#record-section-values" aria-expanded="true" aria-controls="record-section-values">
-        <span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> <?= Text::_('COM_BREEZINGFORMSNG_RECORD_VALUES'); ?>
-      </a>
-    </div>
-    <div id="record-section-values" class="collapse show">
+    <table class="table mb-0">
+      <tbody>
+        <tr class="table-primary">
+          <th>
+            <a href="#" class="bf-collapse-toggle d-block text-decoration-none text-reset"
+              data-bs-toggle="collapse" data-bs-target="#record-section-values" aria-expanded="true" aria-controls="record-section-values">
+              <span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> <?= Text::_('COM_BREEZINGFORMSNG_RECORD_VALUES'); ?>
+            </a>
+          </th>
+        </tr>
+      </tbody>
+    </table>
+    <div id="record-section-values" class="collapse show bf-record-values">
       <div class="card-body">
         <?= $this->form->renderFieldset('values'); ?>
       </div>
@@ -149,8 +157,8 @@ $recordUrl = static fn (int $recordId): string => 'index.php?option=com_breezing
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME', 'COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME_DESC'); ?></th><td><?= $value($record->username); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME', 'COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME_DESC'); ?></th><td><?= $value($record->user_full_name); ?></td></tr>
             <?= $sectionHeader('record-section-recordinfo', 'COM_BREEZINGFORMSNG_RECORDS_RECORDINFO'); ?>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_VIEWED', 'COM_BREEZINGFORMSNG_RECORDS_VIEWED_DESC'); ?></th><td id="record-flag-value-viewed"><?= $yesNo($record->viewed); ?></td></tr>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_EXPORTED', 'COM_BREEZINGFORMSNG_RECORDS_EXPORTED_DESC'); ?></th><td id="record-flag-value-exported"><?= $yesNo($record->exported); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_VIEWED', 'COM_BREEZINGFORMSNG_RECORDS_VIEWED_DESC'); ?></th><td><a href="#" class="text-decoration-none" data-bf-flag="bfrecord_viewed" onclick="bfToggleFlag(<?= (int) $record->id; ?>, 'bfrecord_viewed', this); return false;" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_TOGGLE_VIEWED'), ENT_QUOTES, 'UTF-8'); ?>"><span class="<?= $record->viewed ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span> <span class="bf-flag-text"><?= $yesNo($record->viewed); ?></span></a></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_EXPORTED', 'COM_BREEZINGFORMSNG_RECORDS_EXPORTED_DESC'); ?></th><td><a href="#" class="text-decoration-none" data-bf-flag="bfrecord_exported" onclick="bfToggleFlag(<?= (int) $record->id; ?>, 'bfrecord_exported', this); return false;" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_TOGGLE_EXPORTED'), ENT_QUOTES, 'UTF-8'); ?>"><span class="<?= $record->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span> <span class="bf-flag-text"><?= $yesNo($record->exported); ?></span></a></td></tr>
             <tr><th><?= $systemLabel('JSTATUS', 'COM_BREEZINGFORMSNG_RECORDS_STATE_DESC'); ?></th><td><?= Text::_(RecordState::label((int) $record->state)); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPTED', 'COM_BREEZINGFORMSNG_RECORDS_OPTED_DESC'); ?></th><td><?= $yesNo($record->opted); ?></td></tr>
             <?= $sectionHeader('record-section-payment', 'COM_BREEZINGFORMSNG_PAYMENT_INFORMATION'); ?>
