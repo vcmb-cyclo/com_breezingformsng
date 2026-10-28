@@ -63,11 +63,18 @@ return new class implements ServiceProviderInterface
     public function register(Container $container): void
     {
         $namespace = 'Vcmb\\Component\\BreezingformsNG';
-        $application = Factory::getApplication();
+        // Only the web services below need the CMS application: resolving it when
+        // one of them is created keeps the component bootable from the console,
+        // where the installer runs `cli/joomla.php extension:install`.
+        $cmsApplication = static function (): CMSApplication {
+            $application = Factory::getApplication();
 
-        if (!$application instanceof CMSApplication) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-        }
+            if (!$application instanceof CMSApplication) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            return $application;
+        };
 
         $container->registerServiceProvider(new MVCFactory($namespace));
         $container->registerServiceProvider(new ComponentDispatcherFactory($namespace));
@@ -99,9 +106,9 @@ return new class implements ServiceProviderInterface
 
         $container->share(
             PaymentDownloadService::class,
-            static function (Container $container) use ($application): PaymentDownloadService {
+            static function (Container $container) use ($cmsApplication): PaymentDownloadService {
                 return new PaymentDownloadService(
-                    $application,
+                    $cmsApplication(),
                     $container->get(DatabaseInterface::class),
                     $container->get(PaymentFormLoader::class),
                     $container->get(RedirectHelper::class),
@@ -112,8 +119,8 @@ return new class implements ServiceProviderInterface
 
         $container->share(
             RedirectHelper::class,
-            static function () use ($application): RedirectHelper {
-                return new RedirectHelper($application);
+            static function () use ($cmsApplication): RedirectHelper {
+                return new RedirectHelper($cmsApplication());
             },
         );
 
@@ -129,9 +136,9 @@ return new class implements ServiceProviderInterface
 
         $container->set(
             FormRenderer::class,
-            static function (Container $container) use ($application): FormRenderer {
+            static function (Container $container) use ($cmsApplication): FormRenderer {
                 return new FormRenderer(
-                    $application,
+                    $cmsApplication(),
                     $container->get(DatabaseInterface::class),
                     $container->get(MailerFactoryInterface::class),
                     $container->get(CacheControllerFactoryInterface::class),
@@ -143,16 +150,16 @@ return new class implements ServiceProviderInterface
 
         $container->set(
             CaptchaCallback::class,
-            static function () use ($application): CaptchaCallback {
-                return new CaptchaCallback($application);
+            static function () use ($cmsApplication): CaptchaCallback {
+                return new CaptchaCallback($cmsApplication());
             },
         );
 
         $container->set(
             PayPalCallback::class,
-            static function (Container $container) use ($application): PayPalCallback {
+            static function (Container $container) use ($cmsApplication): PayPalCallback {
                 return new PayPalCallback(
-                    $application,
+                    $cmsApplication(),
                     $container->get(PaymentFormLoader::class),
                     $container->get(PaymentRecordService::class),
                     $container->get(RedirectHelper::class),
@@ -164,9 +171,9 @@ return new class implements ServiceProviderInterface
 
         $container->set(
             StripeCallback::class,
-            static function (Container $container) use ($application): StripeCallback {
+            static function (Container $container) use ($cmsApplication): StripeCallback {
                 return new StripeCallback(
-                    $application,
+                    $cmsApplication(),
                     $container->get(DatabaseInterface::class),
                     $container->get(PaymentFormLoader::class),
                     $container->get(PaymentRecordService::class),
@@ -178,9 +185,9 @@ return new class implements ServiceProviderInterface
 
         $container->set(
             SofortCallback::class,
-            static function (Container $container) use ($application): SofortCallback {
+            static function (Container $container) use ($cmsApplication): SofortCallback {
                 return new SofortCallback(
-                    $application,
+                    $cmsApplication(),
                     $container->get(DatabaseInterface::class),
                     $container->get(PaymentFormLoader::class),
                     $container->get(PaymentRecordService::class),
@@ -193,9 +200,9 @@ return new class implements ServiceProviderInterface
 
         $container->set(
             FlashUploadCallback::class,
-            static function (Container $container) use ($application): FlashUploadCallback {
+            static function (Container $container) use ($cmsApplication): FlashUploadCallback {
                 return new FlashUploadCallback(
-                    $application,
+                    $cmsApplication(),
                     $container->get(DatabaseInterface::class),
                     $container->get(FlashUploadSizeValidator::class),
                 );
@@ -204,9 +211,9 @@ return new class implements ServiceProviderInterface
 
         $container->set(
             OptCallback::class,
-            static function (Container $container) use ($application): OptCallback {
+            static function (Container $container) use ($cmsApplication): OptCallback {
                 return new OptCallback(
-                    $application,
+                    $cmsApplication(),
                     $container->get(DatabaseInterface::class),
                 );
             }
@@ -214,9 +221,9 @@ return new class implements ServiceProviderInterface
 
         $container->set(
             EngineDispatcher::class,
-            static function (Container $container) use ($application): EngineDispatcher {
+            static function (Container $container): EngineDispatcher {
                 return new EngineDispatcher(
-                    $application->getInput(),
+                    Factory::getApplication()->getInput(),
                     static function () use ($container): FormRenderer {
                         return $container->get(FormRenderer::class);
                     },

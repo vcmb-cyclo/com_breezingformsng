@@ -1906,7 +1906,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         try {
             $db->setQuery(
                 $db->createQuery()
-                    ->select($db->quoteName(['id', 'title', 'alias', 'path', 'link', 'params']))
+                    ->select($db->quoteName([
+                        'id', 'parent_id', 'language', 'title', 'alias', 'path', 'link', 'params',
+                    ]))
                     ->from($db->quoteName('#__menu'))
                     ->where($db->quoteName('client_id') . ' = 1')
                     ->where(
@@ -1923,8 +1925,13 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
             $rows = $db->loadObjectList() ?: [];
             $updated = 0;
+            $removedIds = [];
 
             foreach ($rows as $row) {
+                if (in_array((int) $row->id, $removedIds, true)) {
+                    continue;
+                }
+
                 $title = (string) ($row->title ?? '');
                 $alias = (string) ($row->alias ?? '');
                 $path = (string) ($row->path ?? '');
@@ -1943,6 +1950,25 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $link = str_replace('option=breezingforms', 'option=' . self::TARGET_COMPONENT, $link);
                 $params = preg_replace('/"option":"com_breezingforms(?:ng)*"/', '"option":"' . self::TARGET_COMPONENT . '"', $params) ?? $params;
                 $params = str_replace('"option":"breezingforms"', '"option":"' . self::TARGET_COMPONENT . '"', $params);
+
+                // A legacy BreezingForms entry left beside the BFNG one would take
+                // its alias: remove the legacy entry with its submenu instead.
+                if ($alias !== (string) $row->alias && $this->menuAliasTaken($db, $row, $alias)) {
+                    $menu = new Menu($db);
+                    $branchIds = $this->menuBranchIds($db, (int) $row->id);
+
+                    if (!$menu->delete((int) $row->id, true)) {
+                        throw new \RuntimeException('Legacy menu entry ' . (int) $row->id . ' could not be removed.');
+                    }
+
+                    $removedIds = array_merge($removedIds, $branchIds);
+                    $this->log(
+                        'Removed legacy administration menu entry ' . (int) $row->id
+                        . " ({$row->alias}) duplicating {$alias}."
+                    );
+
+                    continue;
+                }
 
                 $db->setQuery(
                     $db->createQuery()
@@ -1965,6 +1991,48 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         } catch (\Throwable $e) {
             $this->log('Unable to normalize Joomla administration menu identity: ' . $e->getMessage(), Log::WARNING);
         }
+    }
+
+    private function menuAliasTaken(DatabaseInterface $db, object $row, string $alias): bool
+    {
+        $id = (int) $row->id;
+        $parentId = (int) $row->parent_id;
+        $language = (string) $row->language;
+
+        return (int) $db->setQuery(
+            $db->createQuery()
+                ->select('COUNT(*)')
+                ->from($db->quoteName('#__menu'))
+                ->where($db->quoteName('client_id') . ' = 1')
+                ->where($db->quoteName('parent_id') . ' = :parentId')
+                ->where($db->quoteName('alias') . ' = :alias')
+                ->where($db->quoteName('language') . ' = :language')
+                ->where($db->quoteName('id') . ' <> :id')
+                ->bind(':parentId', $parentId, ParameterType::INTEGER)
+                ->bind(':alias', $alias)
+                ->bind(':language', $language)
+                ->bind(':id', $id, ParameterType::INTEGER)
+        )->loadResult() > 0;
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function menuBranchIds(DatabaseInterface $db, int $rootId): array
+    {
+        $ids = [$rootId];
+
+        for ($parents = [$rootId]; $parents !== [];) {
+            $parents = array_map('intval', $db->setQuery(
+                $db->createQuery()
+                    ->select($db->quoteName('id'))
+                    ->from($db->quoteName('#__menu'))
+                    ->whereIn($db->quoteName('parent_id'), $parents)
+            )->loadColumn());
+            $ids = array_merge($ids, $parents);
+        }
+
+        return $ids;
     }
 
     private function normalizeComponentAssetName(string $legacyElement, string $targetElement): void
