@@ -179,8 +179,10 @@ final class RecordsNavigationTest extends TestCase
         self::assertStringContainsString('$this->form->renderFieldset(\'values\')', $editTemplate);
         self::assertStringNotContainsString('filter_order', $listTemplate . $editTemplate);
         self::assertStringNotContainsString('form_selection', $listTemplate . $editTemplate);
-        self::assertStringContainsString('$pages[\'previous\'][\'data\']->link', $editTemplate);
-        self::assertStringContainsString('$pages[\'next\'][\'data\']->link', $editTemplate);
+        self::assertStringContainsString('$pageLink($pages[\'previous\']', $editTemplate);
+        self::assertStringContainsString('$pageLink($pages[\'next\']', $editTemplate);
+        self::assertStringContainsString('$paginationNav(\'ms-auto\')', $editTemplate);
+        self::assertStringContainsString('$paginationNav(\'mt-3\')', $editTemplate);
         self::assertStringContainsString('name="cid[]"', $editTemplate);
         self::assertStringContainsString('$record->browser', $editTemplate);
         self::assertStringContainsString('$record->paypal_testaccount', $editTemplate);

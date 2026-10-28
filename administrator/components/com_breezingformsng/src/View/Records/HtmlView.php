@@ -205,7 +205,13 @@ class HtmlView extends BaseHtmlView
             $statusChild->checkin('records.checkin')->listCheck(true);
         }
 
-        if ($stateFilter === $trashed && $this->canDelete) {
+        // As in Joomla, emptying the trash deletes the checked records, which
+        // the model accepts only in the trash: with every state listed, the
+        // button shows as soon as the page holds a trashed record.
+        $listsTrashed = $stateFilter === $trashed || ($stateFilter === RecordState::FILTER_ALL
+            && in_array(RecordState::TRASHED, array_map(static fn (object $item): int => (int) $item->state, $this->items), true));
+
+        if ($listsTrashed && $this->canDelete) {
             $toolbar->delete('records.delete', 'JTOOLBAR_EMPTY_TRASH')
                 ->message('COM_BREEZINGFORMSNG_CONFIRM_DELETE_RECORDS')
                 ->listCheck(true);

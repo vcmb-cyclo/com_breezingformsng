@@ -113,8 +113,27 @@ $pageLink = static function (array $page, string $icon = '', string $aria = ''):
 
     return '<li class="disabled page-item"><span class="page-link" aria-hidden="true">' . $display . '</span></li>';
 };
-$previousUrl = !empty($pages['previous']['active']) ? $pages['previous']['data']->link : null;
-$nextUrl = !empty($pages['next']['active']) ? $pages['next']['data']->link : null;
+$paginationNav = static function (string $spacing) use ($pages, $pageLink, $position): void {
+    if ($pages === []) {
+        return;
+    }
+    ?>
+  <nav class="pagination__wrapper d-flex flex-wrap align-items-center justify-content-end gap-3 <?= $spacing; ?>" aria-label="<?= Text::_('JLIB_HTML_PAGINATION'); ?>">
+    <div><?= $position; ?></div>
+    <div class="pagination pagination-toolbar m-0">
+      <ul class="pagination m-0">
+        <?= $pageLink($pages['start'], 'icon-angle-double-left', 'JLIB_HTML_GOTO_POSITION_START'); ?>
+        <?= $pageLink($pages['previous'], 'icon-angle-left', 'JLIB_HTML_GOTO_POSITION_PREVIOUS'); ?>
+        <?php foreach ($pages['pages'] as $page): ?>
+          <?= $pageLink($page); ?>
+        <?php endforeach; ?>
+        <?= $pageLink($pages['next'], 'icon-angle-right', 'JLIB_HTML_GOTO_POSITION_NEXT'); ?>
+        <?= $pageLink($pages['end'], 'icon-angle-double-right', 'JLIB_HTML_GOTO_POSITION_END'); ?>
+      </ul>
+    </div>
+  </nav>
+    <?php
+};
 ?>
 <form action="index.php?option=com_breezingformsng&amp;view=record&amp;layout=edit&amp;id=<?= (int) $record->id; ?>" method="post" name="adminForm" id="adminForm">
 
@@ -124,29 +143,7 @@ $nextUrl = !empty($pages['next']['active']) ? $pages['next']['data']->link : nul
       <span class="badge bg-light text-dark border ms-2">
         <?= Text::_('COM_BREEZINGFORMSNG_ID'); ?> : <?= (int) $record->id; ?>
       </span>
-      <div class="d-flex gap-2 ms-auto">
-        <?php if ($previousUrl !== null): ?>
-          <a class="btn btn-sm btn-outline-secondary"
-            href="<?= $previousUrl; ?>">
-            &laquo; <?= Text::_('JPREVIOUS'); ?>
-          </a>
-        <?php else: ?>
-          <span class="btn btn-sm btn-outline-secondary disabled">&laquo; <?= Text::_('JPREVIOUS'); ?></span>
-        <?php endif; ?>
-
-        <?php if ($position !== ''): ?>
-          <span class="align-self-center small text-muted"><?= $position; ?></span>
-        <?php endif; ?>
-
-        <?php if ($nextUrl !== null): ?>
-          <a class="btn btn-sm btn-outline-secondary"
-            href="<?= $nextUrl; ?>">
-            <?= Text::_('JNEXT'); ?> &raquo;
-          </a>
-        <?php else: ?>
-          <span class="btn btn-sm btn-outline-secondary disabled"><?= Text::_('JNEXT'); ?> &raquo;</span>
-        <?php endif; ?>
-      </div>
+      <?php $paginationNav('ms-auto'); ?>
     </div>
     <div class="card-body py-2">
       <div class="d-flex align-items-start">
@@ -243,22 +240,7 @@ $nextUrl = !empty($pages['next']['active']) ? $pages['next']['data']->link : nul
   <?= HTMLHelper::_('form.token'); ?>
 </form>
 
-<?php if ($pages !== []): ?>
-  <nav class="pagination__wrapper mt-3" aria-label="<?= Text::_('JLIB_HTML_PAGINATION'); ?>">
-    <div class="text-end me-3"><?= $position; ?></div>
-    <div class="pagination pagination-toolbar text-center mt-0">
-      <ul class="pagination ms-auto me-0">
-        <?= $pageLink($pages['start'], 'icon-angle-double-left', 'JLIB_HTML_GOTO_POSITION_START'); ?>
-        <?= $pageLink($pages['previous'], 'icon-angle-left', 'JLIB_HTML_GOTO_POSITION_PREVIOUS'); ?>
-        <?php foreach ($pages['pages'] as $page): ?>
-          <?= $pageLink($page); ?>
-        <?php endforeach; ?>
-        <?= $pageLink($pages['next'], 'icon-angle-right', 'JLIB_HTML_GOTO_POSITION_NEXT'); ?>
-        <?= $pageLink($pages['end'], 'icon-angle-double-right', 'JLIB_HTML_GOTO_POSITION_END'); ?>
-      </ul>
-    </div>
-  </nav>
-<?php endif; ?>
+<?php $paginationNav('mt-3'); ?>
 
 <?php
 // Web assets for this view are registered in Record\HtmlView::addToolbar() —
