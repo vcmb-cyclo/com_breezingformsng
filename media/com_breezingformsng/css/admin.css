@@ -83,6 +83,24 @@ overflow:hidden;width: 100%;
 	overflow: auto;
 }
 
+/* Black text on the tree, labels/legends and active field values. The
+   :not(#bfOptionsFieldsWrap *) id weight outranks custom.css's #777 !important;
+   disabled/readonly fields keep their grey. Dark theme keeps --bfng-text. */
+#bfQuickModeWrapper.bfng {
+	--bfng-qm-ink: #000;
+}
+
+[data-bs-theme="dark"] #bfQuickModeWrapper.bfng {
+	--bfng-qm-ink: var(--bfng-text);
+}
+
+#bfQuickModeWrapper.bfng .jstree-anchor,
+#bfQuickModeWrapper.bfng legend,
+#bfQuickModeWrapper.bfng label:not(#bfOptionsFieldsWrap *),
+#bfQuickModeWrapper.bfng :is(input, textarea, select):not(:disabled):not([readonly]):not(#bfOptionsFieldsWrap *) {
+	color: var(--bfng-qm-ink) !important;
+}
+
 /* ##### hr ##### */
 
 #bfQuickModeWrapper hr {
