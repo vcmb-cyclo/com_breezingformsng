@@ -50,9 +50,6 @@ La clôture du chantier dépend des vérifications et corrections suivantes :
   Les exemples importables et le script de recette ont aussi été convertis.
   Les doubles de base de données et l’assertion dépendant de l’ancienne syntaxe
   ont été adaptés ; PHPUnit, PHPStan et PHPCS passent.
-- [ ] Corriger la fermeture de balise du CAPTCHA Bootstrap et trancher les deux
-  différences de comportement ReCaptcha entre Bootstrap et OnePage décrites
-  ci-dessous.
 - [ ] Après la fusion de la [PR #101](https://github.com/vcmb-cyclo/com_breezingformsng/pull/101),
   vérifier en navigateur un véritable upload HTML5, les formulaires OnePage
   multipages et la purge des anciens fichiers lors d’une mise à niveau. Ses
@@ -113,16 +110,9 @@ techniques sont conservés dans le plan d'architecture associé.
     flashUploader/html5 est entièrement commentée en prod (branche morte),
     et le markup du bouton diffère (`<label><div class="btn">` chez
     Bootstrap vs `<span><button type="button">` chez OnePage).
-  - `bfCaptcha` : bug de markup réel déjà identifié — Bootstrap ouvre
-    `<span type="button">` et ferme `</button>`, OnePage utilise
-    correctement `<button>`. Non corrigé.
-  - `bfReCaptcha` : **nouvelle découverte du 2026-08-29**, deux
-    divergences réelles, non corrigées, à trancher :
-    1. branche visible : OnePage ajoute un `<div class="g-recaptcha"
-       data-sitekey="...">` absent chez Bootstrap ;
-    2. branche invisible : `resetFlagOnCallback` vaut `true` chez
-       Bootstrap et `false` chez OnePage — incohérence de comportement,
-       pas une simple différence de forme.
+  - `bfCaptcha` et `bfReCaptcha` : les deux renderers utilisent désormais un
+    bouton CAPTCHA correctement fermé et les mêmes paramètres de construction
+    du widget reCAPTCHA visible et invisible.
 
 ---
 

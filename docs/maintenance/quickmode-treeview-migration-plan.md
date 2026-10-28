@@ -1,6 +1,7 @@
 # Migration de la treeview QuickMode
 
-Date : 2026-09-05. Statut : plan de réalisation, non implémenté.
+Date : 2026-09-05. Statut : modèle d'arbre implémenté et testé ; remplacement de
+la vue jTree et migration des interactions encore à réaliser.
 
 Écran concerné : `index.php?option=com_breezingformsng&task=quickmode.display`.
 
@@ -32,6 +33,7 @@ Les chemins ci-dessous sont relatifs à la racine du dépôt.
 | `administrator/components/com_breezingformsng/src/View/Quickmode/HtmlView.php` | Autre point de chargement des assets QuickMode. |
 | `administrator/components/com_breezingformsng/tmpl/quickmode/default.php` | Préparation du rendu, notamment de la racine. |
 | `media/com_breezingformsng/js/admin/quickmode-app.js` | Initialisation jTree, callbacks, copie, suppression, déplacement, sélection et sauvegarde. |
+| `media/com_breezingformsng/js/admin/quickmode-tree-model.js` | Modèle d'arbre déjà utilisé par QuickMode et couvert par des tests JavaScript. |
 | `media/com_breezingformsng/js/admin/quickmode-app-properties.js` | Lecture/écriture des propriétés, création des nœuds et accès directs aux éléments DOM sélectionnés. |
 | `media/com_breezingformsng/js/admin/quickmode-editor.js` | Accès aux propriétés depuis les éditeurs, notamment via `parent.app.selectedTreeElement`. |
 | `media/com_breezingformsng/js/admin/quickmode-form-dirty.js` | Détection des modifications par sérialisation et interrogation toutes les 500 ms. |
