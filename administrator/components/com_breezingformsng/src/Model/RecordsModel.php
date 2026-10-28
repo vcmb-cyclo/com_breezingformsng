@@ -90,13 +90,7 @@ class RecordsModel extends ListModel
     public function getNavigation(int $recordId): array
     {
         $db = $this->getDatabase();
-        $query = $db->createQuery()
-            ->select($db->quoteName('records.id'))
-            ->from($db->quoteName('#__facileforms_records', 'records'))
-            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form');
-
-        $this->applyFilters($query);
-        $db->setQuery($query->order($this->getOrderSql()));
+        $db->setQuery($this->getOrderedIdsQuery());
 
         $recordIds = array_map('intval', $db->loadColumn());
         $position = array_search($recordId, $recordIds, true);
@@ -113,6 +107,34 @@ class RecordsModel extends ListModel
             'position' => $position + 1,
             'total' => $total,
         ];
+    }
+
+    /**
+     * Id of the record at a position (from 0) of the list, with its filters
+     * and ordering: the target of the record screen pagination.
+     */
+    public function getIdAt(int $offset): ?int
+    {
+        if ($offset < 0) {
+            return null;
+        }
+
+        $id = $this->getDatabase()->setQuery($this->getOrderedIdsQuery(), $offset, 1)->loadResult();
+
+        return $id !== null ? (int) $id : null;
+    }
+
+    private function getOrderedIdsQuery(): QueryInterface
+    {
+        $db = $this->getDatabase();
+        $query = $db->createQuery()
+            ->select($db->quoteName('records.id'))
+            ->from($db->quoteName('#__facileforms_records', 'records'))
+            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form');
+
+        $this->applyFilters($query);
+
+        return $query->order($this->getOrderSql());
     }
 
     private function getOrderSql(): string
@@ -145,9 +167,18 @@ class RecordsModel extends ListModel
             return;
         }
 
+        // "id:12" searches the record id only, as in Joomla lists; a number
+        // alone matches the id or the texts.
+        if (preg_match('/^id:\s*(\d+)$/i', $searchTerm, $match) === 1) {
+            $searchId = (int) $match[1];
+            $query->where($db->quoteName('records.id') . ' = :searchId')
+                ->bind(':searchId', $searchId, ParameterType::INTEGER);
+
+            return;
+        }
+
         $like = '%' . $searchTerm . '%';
         $conditions = [
-            'records.id = :searchExact',
             $db->quoteName('records.ip') . ' LIKE :searchLike1',
             $db->quoteName('records.username') . ' LIKE :searchLike2',
             $db->quoteName('records.user_full_name') . ' LIKE :searchLike3',
@@ -156,14 +187,19 @@ class RecordsModel extends ListModel
             $db->quoteName('records.paypal_tx_id') . ' LIKE :searchLike6',
         ];
 
+        if (ctype_digit($searchTerm)) {
+            $searchId = (int) $searchTerm;
+            $conditions[] = $db->quoteName('records.id') . ' = :searchId';
+            $query->bind(':searchId', $searchId, ParameterType::INTEGER);
+        }
+
         if ($formId > 0 || $states !== null) {
             $query->extendWhere('AND', $conditions, 'OR');
         } else {
             $query->where($conditions, 'OR');
         }
 
-        $query->bind(':searchExact', $searchTerm, ParameterType::STRING)
-            ->bind(':searchLike1', $like, ParameterType::STRING)
+        $query->bind(':searchLike1', $like, ParameterType::STRING)
             ->bind(':searchLike2', $like, ParameterType::STRING)
             ->bind(':searchLike3', $like, ParameterType::STRING)
             ->bind(':searchLike4', $like, ParameterType::STRING)

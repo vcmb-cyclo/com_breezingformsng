@@ -17,6 +17,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\Router\Route;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordsModel;
 
 class RecordController extends FormController
 {
@@ -41,14 +42,27 @@ class RecordController extends FormController
     }
 
     /**
-     * Opens the previous or next record, checking in the one being left first:
-     * a plain record.edit link would keep it checked out.
+     * Opens the record at a position of the records list (the record screen
+     * pagination), checking in the one being left first: a plain record.edit
+     * link would keep it checked out. The position travels as recordlimitstart,
+     * so that the list keeps its own limitstart.
      */
     public function navigate(): bool
     {
         $this->checkToken('get');
 
         $currentId = $this->input->getInt('id');
+        $listModel = $this->factory->createModel('Records', 'Administrator');
+        $targetId = $listModel instanceof RecordsModel
+            ? (int) $listModel->getIdAt($this->input->getInt('recordlimitstart', -1))
+            : 0;
+
+        if ($targetId <= 0) {
+            $this->setRedirect($this->getRedirectUrlToList());
+
+            return false;
+        }
+
         $context = $this->option . '.edit.' . $this->context;
 
         if ($currentId > 0) {
@@ -60,7 +74,7 @@ class RecordController extends FormController
             $this->app->setUserState($context . '.data', null);
         }
 
-        $this->input->set('id', $this->input->getInt('target'));
+        $this->input->set('id', $targetId);
 
         return $this->edit();
     }

@@ -21,6 +21,7 @@ use Joomla\CMS\Form\Form;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\Button\DropdownButton;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
@@ -32,10 +33,11 @@ class HtmlView extends BaseHtmlView
 {
     public ?Form $form = null;
     public ?\stdClass $item = null;
-    public ?int $prevRecordId = null;
-    public ?int $nextRecordId = null;
     public ?int $recordPosition = null;
+    public ?Pagination $pagination = null;
     public int $recordTotal = 0;
+    public bool $canEditState = false;
+    public ?\DateTimeZone $timezone = null;
 
     public function display($tpl = null)
     {
@@ -61,17 +63,21 @@ class HtmlView extends BaseHtmlView
 
         $this->item = $item;
         $this->form = $form;
+        $user = $app->getIdentity();
+        $this->canEditState = $user->authorise('core.edit.state', 'com_breezingformsng');
+        // Dates are stored in UTC and shown in the time zone of the user.
+        $this->timezone = $user->getTimezone();
 
         $recordsModel = $this->getRecordsModel($app);
         $navigation = $recordsModel->getNavigation((int) $item->id);
-        $this->prevRecordId = $navigation['prev'];
-        $this->nextRecordId = $navigation['next'];
         $this->recordPosition = $navigation['position'];
         $this->recordTotal = $navigation['total'];
+        $this->pagination = $this->getPagination($app, (int) $item->id);
 
         $app->getInput()->set('hidemainmenu', true);
         $this->addToolbar($app);
         HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
+        HTMLHelper::_('bootstrap.collapse');
 
         parent::display($tpl);
     }
@@ -79,6 +85,24 @@ class HtmlView extends BaseHtmlView
     /**
      * The list model, whose filters and ordering drive previous and next.
      */
+    /**
+     * Joomla pagination over the records list, one record per page: each page
+     * opens the record at that position through record.navigate.
+     */
+    private function getPagination(CMSApplication $app, int $recordId): ?Pagination
+    {
+        if ($this->recordPosition === null) {
+            return null;
+        }
+
+        $pagination = new Pagination($this->recordTotal, $this->recordPosition - 1, 1, 'record', $app);
+        foreach (['view' => null, 'layout' => null, 'option' => 'com_breezingformsng', 'task' => 'record.navigate', 'id' => $recordId, Session::getFormToken() => 1] as $key => $value) {
+            $pagination->setAdditionalUrlParam($key, $value);
+        }
+
+        return $pagination;
+    }
+
     private function getRecordsModel(CMSApplication $app): RecordsModel
     {
         $component = $app->bootComponent('com_breezingformsng');
@@ -168,7 +192,7 @@ class HtmlView extends BaseHtmlView
             'media/com_breezingformsng/js/admin/admin-form-dirty.js',
             ['version' => 'auto'],
             ['defer' => true],
-            ['com_breezingformsng.admin-form']
+            ['com_breezingformsng.admin-form', 'joomla.dialog']
         );
         $document->addScriptOptions('com_breezingformsng.record-flags', ['csrfToken' => Session::getFormToken()]);
         $document->addScriptOptions('com_breezingformsng.admin-form', [
@@ -180,8 +204,11 @@ class HtmlView extends BaseHtmlView
             ],
         ]);
         Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
+        // Buttons and title of the joomla.dialog confirm and alert.
         Text::script('JYES');
         Text::script('JNO');
+        Text::script('JOK');
+        Text::script('INFO');
         Text::script('COM_BREEZINGFORMSNG_TEST_NO_CHANGES');
         Text::script('COM_BREEZINGFORMSNG_CONFIRM_DISCARD_CHANGES');
         Text::script('COM_BREEZINGFORMSNG_EXPORT_SAVE_FIRST');

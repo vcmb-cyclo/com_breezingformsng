@@ -89,14 +89,22 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
               <td><?= $this->escape((string) $rec->ip); ?></td>
               <td><?= $this->escape((string) ($rec->user_full_name ?: $rec->username)); ?></td>
               <td class="text-center">
-                <a href="#" onclick="bfToggleFlag(<?= $recId; ?>, 'bfrecord_viewed', this); return false;" title="<?= Text::_('COM_BREEZINGFORMSNG_TOGGLE_VIEWED'); ?>">
-                  <span class="<?= $rec->viewed ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
-                </a>
+                <?php if ($canEditState): ?>
+                  <a href="#" data-bf-record-id="<?= $recId; ?>" data-bf-flag="viewed" title="<?= $headerTitle('COM_BREEZINGFORMSNG_TOGGLE_VIEWED'); ?>">
+                    <span class="<?= $rec->viewed ? 'icon-check text-success' : 'icon-times text-danger'; ?>" aria-hidden="true"></span>
+                  </a>
+                <?php else: ?>
+                  <span class="<?= $rec->viewed ? 'icon-check text-success' : 'icon-times text-danger'; ?>" aria-hidden="true"></span>
+                <?php endif; ?>
               </td>
               <td class="text-center">
-                <a href="#" onclick="bfToggleFlag(<?= $recId; ?>, 'bfrecord_exported', this); return false;" title="<?= Text::_('COM_BREEZINGFORMSNG_TOGGLE_EXPORTED'); ?>">
-                  <span class="<?= $rec->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>"></span>
-                </a>
+                <?php if ($canEditState): ?>
+                  <a href="#" data-bf-record-id="<?= $recId; ?>" data-bf-flag="exported" title="<?= $headerTitle('COM_BREEZINGFORMSNG_TOGGLE_EXPORTED'); ?>">
+                    <span class="<?= $rec->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>" aria-hidden="true"></span>
+                  </a>
+                <?php else: ?>
+                  <span class="<?= $rec->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>" aria-hidden="true"></span>
+                <?php endif; ?>
               </td>
               <td class="text-center"><?= HTMLHelper::_('jgrid.state', $stateIcons, (int) $rec->state, $i, 'records.', $canEditState && (int) $rec->state !== RecordState::TRASHED); ?></td>
               <td title="<?= $dateTitle; ?>"><?= HTMLHelper::_('date', (string) $rec->submitted, $dateFormat); ?></td>

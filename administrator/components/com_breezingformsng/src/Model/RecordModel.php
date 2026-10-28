@@ -350,8 +350,10 @@ class RecordModel extends AdminModel
             $field = $fieldset->addChild('field');
             $field->addAttribute('name', $name);
             $field->addAttribute('type', 'textarea');
-            $field->addAttribute('label', (string) $element['title']);
-            $field->addAttribute('description', (string) $element['name']);
+            // Joomla prints labels and descriptions as HTML, like its own
+            // language strings: escape the titles and names of the elements.
+            $field->addAttribute('label', htmlspecialchars((string) $element['title'], ENT_QUOTES, 'UTF-8'));
+            $field->addAttribute('description', htmlspecialchars((string) $element['name'], ENT_QUOTES, 'UTF-8'));
             $field->addAttribute('translateLabel', 'false');
             $field->addAttribute('translateDescription', 'false');
             $field->addAttribute('rows', (string) ($lines > 0 ? min(10, $lines + 2) : 1));
@@ -583,11 +585,15 @@ class RecordModel extends AdminModel
         $db->setQuery($query)->execute();
     }
 
-    public function setFlagSingle(int $recordId, string $column, int $value): void
+    /**
+     * Sets the viewed or exported flag of one record: false when the column
+     * is not a flag or the record does not exist.
+     */
+    public function setFlagSingle(int $recordId, string $column, int $value): bool
     {
         $col = preg_replace('/^bfrecord_/', '', $column);
         if (!in_array($col, ['viewed', 'exported'], true)) {
-            return;
+            return false;
         }
         $db = $this->getDatabase();
         $query = $db->createQuery()
@@ -597,6 +603,15 @@ class RecordModel extends AdminModel
             ->bind(':value', $value, ParameterType::INTEGER)
             ->bind(':recordId', $recordId, ParameterType::INTEGER);
         $db->setQuery($query)->execute();
+
+        // An unchanged flag counts no affected row: check that the record exists.
+        return $db->getAffectedRows() > 0 || (int) $db->setQuery(
+            $db->createQuery()
+                ->select('COUNT(*)')
+                ->from($db->quoteName('#__facileforms_records'))
+                ->where($db->quoteName('id') . ' = :recordId')
+                ->bind(':recordId', $recordId, ParameterType::INTEGER)
+        )->loadResult() > 0;
     }
 
     public function getExportConfig(): \stdClass

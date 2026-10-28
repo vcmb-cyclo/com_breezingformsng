@@ -15,36 +15,30 @@ function bfDirtyIsChanged(form) {
 	return bfDirtyFormState(form) !== __bfDirtyInitialState;
 }
 
+// The native toolbar button disables itself (setDisabled), so a click or a
+// keyboard shortcut cannot save an unchanged record. The title sits on the
+// toolbar element, as a disabled button shows none.
 function bfDirtySyncSaveButton(form) {
 	if (!__bfOpts.saveTask) {
 		return;
 	}
 
-	var button = document.querySelector('joomla-toolbar-button[task="' + __bfOpts.saveTask + '"] button, [onclick*="' + __bfOpts.saveTask + '"]');
-	if (!button) {
+	var toolbarButton = document.querySelector('joomla-toolbar-button[task="' + __bfOpts.saveTask + '"]');
+	// Not upgraded yet: whenDefined() syncs it once the element is defined.
+	if (!toolbarButton || typeof toolbarButton.setDisabled !== 'function') {
 		return;
 	}
 
-	if (button.dataset.bfOriginalTitle === undefined) {
-		button.dataset.bfOriginalTitle = button.title;
-		button.dataset.bfOriginalTabindex = button.getAttribute('tabindex') || '';
-	}
-
 	var dirty = bfDirtyIsChanged(form);
-	button.classList.toggle('disabled', !dirty);
-	button.setAttribute('aria-disabled', dirty ? 'false' : 'true');
-	button.style.pointerEvents = dirty ? '' : 'none';
-	button.title = dirty ? button.dataset.bfOriginalTitle : Joomla.Text._('COM_BREEZINGFORMSNG_TEST_NO_CHANGES');
+	toolbarButton.setDisabled(!dirty);
+	toolbarButton.title = dirty ? '' : Joomla.Text._('COM_BREEZINGFORMSNG_TEST_NO_CHANGES');
+}
 
-	if (dirty) {
-		if (button.dataset.bfOriginalTabindex === '') {
-			button.removeAttribute('tabindex');
-		} else {
-			button.setAttribute('tabindex', button.dataset.bfOriginalTabindex);
-		}
-	} else {
-		button.tabIndex = -1;
-	}
+// Native Joomla dialogs (joomla.dialog, loaded through the import map).
+function bfDirtyDialog(type, key) {
+	return import('joomla.dialog').then(function (module) {
+		return module.default[type](Joomla.Text._(key));
+	});
 }
 
 Joomla.submitbutton = function (task) {
@@ -52,15 +46,21 @@ Joomla.submitbutton = function (task) {
 
 	var isDiscardTask = (__bfOpts.cancelTask && task === __bfOpts.cancelTask)
 		|| (Array.isArray(__bfOpts.discardTasks) && __bfOpts.discardTasks.indexOf(task) !== -1);
-	if (isDiscardTask && bfDirtyIsChanged(form)
-		&& !confirm(Joomla.Text._('COM_BREEZINGFORMSNG_CONFIRM_DISCARD_CHANGES'))) {
+	if (isDiscardTask && bfDirtyIsChanged(form)) {
+		bfDirtyDialog('confirm', 'COM_BREEZINGFORMSNG_CONFIRM_DISCARD_CHANGES').then(function (confirmed) {
+			if (confirmed) {
+				__bfDirtySubmitbutton(task);
+			}
+		});
+
 		return false;
 	}
 
 	// Exports run against the persisted record, so unsaved edits would be
 	// silently left out - block the export until the form has been saved.
 	if (Array.isArray(__bfOpts.exportTasks) && __bfOpts.exportTasks.indexOf(task) !== -1 && bfDirtyIsChanged(form)) {
-		alert(Joomla.Text._('COM_BREEZINGFORMSNG_EXPORT_SAVE_FIRST'));
+		bfDirtyDialog('alert', 'COM_BREEZINGFORMSNG_EXPORT_SAVE_FIRST');
+
 		return false;
 	}
 
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 	form.addEventListener('input', function () { bfDirtySyncSaveButton(form); });
 	form.addEventListener('change', function () { bfDirtySyncSaveButton(form); });
-	bfDirtySyncSaveButton(form);
+	customElements.whenDefined('joomla-toolbar-button').then(function () { bfDirtySyncSaveButton(form); });
 
 	window.addEventListener('beforeunload', function (event) {
 		if (!__bfDirtySubmitting && bfDirtyIsChanged(form)) {
