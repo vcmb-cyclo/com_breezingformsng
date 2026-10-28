@@ -110,15 +110,17 @@ final class HtmlView extends BaseHtmlView
                 break;
 
             default:
-                if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
-                    $toolbar->preferences('com_breezingformsng');
-                }
                 $toolbar->linkButton('installer', 'COM_BREEZINGFORMSNG_INSTALLER')
                     ->url(Route::_('index.php?option=com_breezingformsng&view=packages&layout=import'))
                     ->icon('icon-upload');
                 $toolbar->linkButton('createpkg', 'COM_BREEZINGFORMSNG_INSTALLER_CREATEPKG')
                     ->url(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export'))
                     ->icon('icon-plus');
+
+                // Last: Joomla right-aligns Options and every button after it.
+                if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
+                    $toolbar->preferences('com_breezingformsng');
+                }
         }
     }
 }
