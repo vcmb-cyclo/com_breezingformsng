@@ -20,6 +20,7 @@ $userId = (int) $user->id;
 $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 // Dates are stored in UTC and shown in the time zone of the user.
 $dateFormat = Text::_('DATE_FORMAT_LC6');
+$dateTitle = $this->escape(Text::sprintf('COM_BREEZINGFORMSNG_RECORDS_DATES_TIMEZONE', $user->getTimezone()->getName()));
 
 $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8');
 ?>
@@ -33,9 +34,6 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
         <?= Text::_('COM_BREEZINGFORMSNG_NO_RECORDS_FOUND'); ?>
       </div>
     <?php else: ?>
-      <p class="small text-muted">
-        <?= $this->escape(Text::sprintf('COM_BREEZINGFORMSNG_RECORDS_DATES_TIMEZONE', $user->getTimezone()->getName())); ?>
-      </p>
       <table class="table" id="recordList">
         <caption class="visually-hidden">
           <?= Text::_('COM_BREEZINGFORMSNG_RECORDS'); ?>,
@@ -87,8 +85,8 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
                 </a>
               </td>
               <td class="text-center"><?= HTMLHelper::_('jgrid.published', (int) $rec->state, $i, 'records.', false); ?></td>
-              <td><?= HTMLHelper::_('date', (string) $rec->submitted, $dateFormat); ?></td>
-              <td><?= $rec->modified ? HTMLHelper::_('date', (string) $rec->modified, $dateFormat) : '—'; ?></td>
+              <td title="<?= $dateTitle; ?>"><?= HTMLHelper::_('date', (string) $rec->submitted, $dateFormat); ?></td>
+              <td<?= $rec->modified ? ' title="' . $dateTitle . '"' : ''; ?>><?= $rec->modified ? HTMLHelper::_('date', (string) $rec->modified, $dateFormat) : '—'; ?></td>
             </tr>
           <?php endforeach; ?>
         </tbody>
