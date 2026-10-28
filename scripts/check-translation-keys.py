@@ -3,9 +3,18 @@
 
 Chaque clef du composant, du module ou des plugins citée dans le PHP, le
 JavaScript ou le XML doit exister dans un fichier en-GB ; sinon Joomla affiche
-la clef brute. Une base de ``Text::plural()`` est valide quand une variante
-existe (``_1``, ``_MORE``…). Une clef construite par concaténation (préfixe
-terminé par ``_``) n'est pas contrôlée.
+la clef brute.
+
+- Premier argument d'un appel ``_(``, ``sprintf(`` ou ``script(`` : la clef doit
+  exister telle quelle.
+- Premier argument d'un appel ``plural(`` : une variante suffit (``_1``,
+  ``_MORE``…).
+- Clef citée ailleurs (variable, tableau, valeur de retour) : la clef ou une
+  variante de pluriel, car sa valeur peut finir dans ``plural()`` sans que le
+  contrôle puisse le suivre.
+
+Une clef construite par concaténation (préfixe terminé par ``_``) n'est pas
+contrôlée.
 
 Usage: python3 scripts/check-translation-keys.py
 """
@@ -19,6 +28,8 @@ KEY = re.compile(
     r'_[A-Z0-9_]*[A-Z0-9])\b'
 )
 INI_KEY = re.compile(r'^([A-Z][A-Z0-9_]*)\s*=')
+# First argument of a Text:: / Joomla.Text. call, possibly on the next line.
+CALL_ARGUMENT = re.compile(r'\b(_|sprintf|script|plural)\(\s*([\'"])([A-Z][A-Z0-9_]*)\2')
 SKIPPED = re.compile(r'/(vendor|libraries|node_modules)/|^(tests|scripts|joomla-stubs)/|^\.')
 
 
@@ -35,16 +46,20 @@ def main():
         with open(path, encoding='utf-8') as handle:
             keys.update(m.group(1) for m in map(INI_KEY.match, handle) if m)
 
-    def defined(key):
-        return key in keys or f'{key}_1' in keys or f'{key}_MORE' in keys
-
     errors = []
     for path in tracked('*.php', '*.js', '*.xml'):
         with open(path, encoding='utf-8', errors='replace') as handle:
-            for number, line in enumerate(handle, 1):
-                for key in KEY.findall(line):
-                    if not defined(key):
-                        errors.append(f'{path}:{number}: clef absente de en-GB : {key}')
+            source = handle.read()
+        # Translation call each key is the direct first argument of, by offset.
+        calls = {match.start(3): match.group(1) for match in CALL_ARGUMENT.finditer(source)}
+
+        for match in KEY.finditer(source):
+            key = match.group(1)
+            has_plural = f'{key}_1' in keys or f'{key}_MORE' in keys
+            accepted = key in keys or (has_plural and calls.get(match.start(1), 'plural') == 'plural')
+            if not accepted:
+                line = source.count('\n', 0, match.start()) + 1
+                errors.append(f'{path}:{line}: clef absente de en-GB : {key}')
 
     for error in errors:
         print(error, file=sys.stderr)
