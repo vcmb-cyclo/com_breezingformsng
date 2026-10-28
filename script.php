@@ -3106,12 +3106,65 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $formsTable   = $prefix . 'facileforms_forms';
         $scriptsTable = $prefix . 'facileforms_scripts';
         $piecesTable  = $prefix . 'facileforms_pieces';
+        $packagesTable = $prefix . 'facileforms_packages';
 
-        foreach ([$recordsTable, $formsTable, $scriptsTable, $piecesTable] as $tableName) {
+        foreach ([$recordsTable, $formsTable, $scriptsTable, $piecesTable, $packagesTable] as $tableName) {
             if (isset($tables[$tableName])) {
                 $tables[$tableName] = $db->setQuery(
                     'SHOW FULL COLUMNS FROM ' . $db->quoteName($tableName)
                 )->loadObjectList('Field');
+            }
+        }
+
+        if (isset($tables[$packagesTable])) {
+            $columns = $tables[$packagesTable];
+
+            // The creation date was free text: every value that is no real
+            // date (empty, malformed, 2024-02-31...) becomes NULL before the
+            // column turns into a DATETIME, so the conversion cannot fail.
+            if (
+                isset($columns['created'])
+                && !self::columnDefinitionMatches($columns['created'], 'datetime', true, null)
+            ) {
+                $db->setQuery("ALTER TABLE `{$packagesTable}` MODIFY `created` VARCHAR(20) NULL DEFAULT NULL")->execute();
+                $rows = $db->setQuery(
+                    "SELECT `id`, `created` FROM `{$packagesTable}` WHERE `created` IS NOT NULL"
+                )->loadObjectList();
+
+                foreach ($rows as $row) {
+                    $created = self::normaliseSqlDate((string) $row->created);
+
+                    if ($created !== $row->created) {
+                        $packageId = (string) $row->id;
+                        $query = $db->createQuery()
+                            ->update($db->quoteName($packagesTable))
+                            ->set($db->quoteName('created') . ' = ' . ($created === null ? 'NULL' : ':created'))
+                            ->where($db->quoteName('id') . ' = :id')
+                            ->bind(':id', $packageId, ParameterType::STRING);
+
+                        if ($created !== null) {
+                            $query->bind(':created', $created, ParameterType::STRING);
+                        }
+
+                        $db->setQuery($query)->execute();
+                    }
+                }
+
+                $db->setQuery("ALTER TABLE `{$packagesTable}` MODIFY `created` DATETIME NULL DEFAULT NULL")->execute();
+                $this->log('Updated created column definition in facileforms_packages.');
+            }
+
+            $packageAuditColumns = [
+                'created_by'  => "VARCHAR(255){$textCollationClause} NOT NULL DEFAULT '' AFTER `created`",
+                'modified'    => "DATETIME NULL DEFAULT NULL AFTER `created_by`",
+                'modified_by' => "VARCHAR(255){$textCollationClause} NOT NULL DEFAULT '' AFTER `modified`",
+            ];
+
+            foreach ($packageAuditColumns as $col => $def) {
+                if (!isset($columns[$col])) {
+                    $db->setQuery("ALTER TABLE `{$packagesTable}` ADD `{$col}` {$def}")->execute();
+                    $this->log("Added column {$col} to facileforms_packages.");
+                }
             }
         }
 
@@ -3317,6 +3370,25 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->migrateQuickmodeIconPaths();
 
         $this->log('BreezingForms database update completed.');
+    }
+
+    /**
+     * Same check as the component's SqlDate service, which the installer
+     * cannot rely on loading: "Y-m-d H:i:s" for a real date, else null.
+     */
+    private static function normaliseSqlDate(string $value): ?string
+    {
+        $value = trim($value);
+
+        foreach (['Y-m-d H:i:s', 'Y-m-d'] as $format) {
+            $date = \DateTimeImmutable::createFromFormat('!' . $format, $value);
+
+            if ($date !== false && $date->format($format) === $value && (int) $date->format('Y') >= 1000) {
+                return $date->format('Y-m-d H:i:s');
+            }
+        }
+
+        return null;
     }
 
     /**

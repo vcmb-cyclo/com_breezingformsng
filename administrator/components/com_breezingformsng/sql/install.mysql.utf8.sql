@@ -11,7 +11,10 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_packages` (
   `id` varchar(30) NOT NULL DEFAULT '',
   `name` varchar(255) NOT NULL DEFAULT '',
   `version` varchar(30) NOT NULL DEFAULT '',
-  `created` varchar(20) NOT NULL DEFAULT '',
+  `created` datetime NULL DEFAULT NULL,
+  `created_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `modified` datetime NULL DEFAULT NULL,
+  `modified_by` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `title` varchar(50) NOT NULL DEFAULT '',
   `author` varchar(50) NOT NULL DEFAULT '',
   `email` varchar(50) NOT NULL DEFAULT '',
@@ -358,7 +361,9 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_integrator_rules` (
   KEY `published` (`published`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT IGNORE INTO `#__facileforms_packages` VALUES (
+INSERT IGNORE INTO `#__facileforms_packages`
+  (`id`, `name`, `version`, `created`, `title`, `author`, `email`, `url`, `description`, `copyright`)
+VALUES (
   '',
   'mypck_001',
   '0.0.1',

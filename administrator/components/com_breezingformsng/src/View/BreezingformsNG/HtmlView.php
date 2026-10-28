@@ -176,7 +176,10 @@ class HtmlView extends BaseHtmlView
                 'label' => Text::_('COM_BREEZINGFORMSNG_INTEGRATOR'),
                 'url' => 'index.php?option=com_breezingformsng&view=integrator',
             ],
-            $act === 'configuration' => ['label' => Text::_('COM_BREEZINGFORMSNG_CONFIG'), 'url' => null],
+            $view === 'packages', $act === 'configuration' => [
+                'label' => Text::_('COM_BREEZINGFORMSNG_CONFIG'),
+                'url' => 'index.php?option=com_breezingformsng&view=packages',
+            ],
             $view === 'about' => ['label' => Text::_('COM_BREEZINGFORMSNG_ABOUT'), 'url' => null],
             default => null,
         };

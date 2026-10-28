@@ -32,6 +32,30 @@ final class PackagesController extends BaseController
         return parent::display($cachable, $urlparams);
     }
 
+    /**
+     * Stores the package details and returns to the Create Package screen.
+     */
+    public function save(): void
+    {
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
+        $this->assertAuthorised();
+        $this->checkToken();
+        $package = $this->submittedPackage();
+
+        try {
+            $this->model()->savePackage($package, $app->getInput()->get('metadata', [], 'array'));
+            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SAVED'), 'message');
+        } catch (\Throwable $exception) {
+            $app->enqueueMessage($exception->getMessage(), 'error');
+        }
+        $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . rawurlencode($package), false));
+    }
+
+    /**
+     * Saves the package details, then downloads the package: the selected
+     * items when there are any, else the items assigned to the package.
+     */
     public function export(): void
     {
         /** @var CMSApplication $app */
@@ -39,8 +63,7 @@ final class PackagesController extends BaseController
         $this->assertAuthorised();
         $this->checkToken();
         $input = $app->getInput();
-        $existingId = $input->getString('existing_id', '');
-        $package = $existingId !== '' ? $existingId : $input->getString('package', '');
+        $package = $this->submittedPackage();
 
         try {
             $formIds = $input->get("forms", [], "array");
@@ -48,9 +71,10 @@ final class PackagesController extends BaseController
             $pieceIds = $input->get("pieces", [], "array");
             $menuIds = $input->get("menus", [], "array");
             $metadata = $input->get('metadata', [], 'array');
-            $json = $existingId !== ''
+            $json = $formIds === [] && $scriptIds === [] && $pieceIds === [] && $menuIds === []
                 ? $this->model()->export($package, $metadata)
                 : $this->model()->exportSelection($package, $formIds, $scriptIds, $pieceIds, $menuIds, $metadata);
+            $this->model()->savePackage($package, $metadata);
             $fileName = 'breezingformsng-' . preg_replace('/[^A-Za-z0-9._-]/', '-', $package) . '.json';
             while (ob_get_level() > 0) {
                 ob_end_clean();
@@ -62,7 +86,7 @@ final class PackagesController extends BaseController
             $app->close();
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages', false));
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . rawurlencode($package), false));
         }
     }
 
@@ -85,7 +109,12 @@ final class PackagesController extends BaseController
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
         }
-        $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages', false));
+        $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=import', false));
+    }
+
+    private function submittedPackage(): string
+    {
+        return trim(Factory::getApplication()->getInput()->getString('package', ''));
     }
 
     private function assertAuthorised(): void
