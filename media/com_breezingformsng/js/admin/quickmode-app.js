@@ -451,6 +451,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                                 if (!error) {
                                     appScope.saveSelectedElementProperties();
                                 }
+                            // eslint-disable-next-line no-fallthrough -- Legacy: saving an element also runs savePageProperties(); to check before adding the break.
                             case 'bfQuickModePageClass':
                                 appScope.savePageProperties();
                                 break;
@@ -721,6 +722,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                 var mdata = app.getProperties(app.selectedTreeElement);
                 if (mdata) {
                     form = document.bfForm;
+                    // eslint-disable-next-line no-global-assign -- Legacy: this writes window.name; to turn into a local variable.
                     name = mdata.bfName;
                     if (name == '') {
                         alert('Please enter the element name first.');
@@ -759,6 +761,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                 var mdata = app.getProperties(app.selectedTreeElement);
                 if (mdata) {
                     form = document.bfForm;
+                    // eslint-disable-next-line no-global-assign -- Legacy: this writes window.name; to turn into a local variable.
                     name = mdata.bfName;
                     if (name == '') {
                         alert('Please enter the element name first.');
@@ -791,6 +794,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                 var mdata = app.getProperties(app.selectedTreeElement);
                 if (mdata) {
                     form = document.bfForm;
+                    // eslint-disable-next-line no-global-assign -- Legacy: this writes window.name; to turn into a local variable.
                     name = mdata.bfName;
                     if (name == '') {
                         alert('Please enter the element name first.');

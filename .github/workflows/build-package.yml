@@ -51,6 +51,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          # The PHPCS check of a pull request compares with its base branch.
+          fetch-depth: 0
 
       - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
@@ -64,6 +67,10 @@ jobs:
 
       - name: Check PHP coding standards
         run: composer lint:php
+
+      - name: Check PHP coding standards of the changed files
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/check-phpcs-changed.py "origin/${{ github.base_ref }}"
 
       - name: PHP syntax check
         run: |
@@ -91,6 +98,12 @@ jobs:
       - name: Check translations
         run: python3 scripts/check-translations.py
 
+      - name: Check translation keys used in the code
+        run: python3 scripts/check-translation-keys.py
+
+      - name: Check SQL inserts
+        run: python3 scripts/check-install-sql.py
+
       - name: Audit Composer dependencies
         working-directory: administrator/components/com_breezingformsng
         run: composer audit --locked --no-interaction
@@ -115,6 +128,12 @@ jobs:
 
       - name: Lint CSS
         run: npm run lint:css
+
+      - name: Lint JavaScript
+        run: npm run lint:js
+
+      - name: Check inline scripts of the PHP templates
+        run: npm run lint:inline-scripts
 
       - name: Run JavaScript tests
         run: npm run test:tree-model
