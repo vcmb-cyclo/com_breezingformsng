@@ -2901,10 +2901,15 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
             $query = $db->createQuery()
                 ->select($db->quoteName(['id', 'name']))
-                ->from($db->quoteName('#__' . $table));
-            foreach ($columns as $column) {
-                $query->orWhere($db->quoteName($column) . ' LIKE ' . $db->quote('%BFPDF%'));
-            }
+                ->from($db->quoteName('#__' . $table))
+                ->where(
+                    array_map(
+                        static fn (string $column): string => $db->quoteName($column) . ' LIKE '
+                            . $db->quote('%BFPDF%'),
+                        $columns
+                    ),
+                    'OR'
+                );
 
             foreach ($db->setQuery($query)->loadObjectList() as $row) {
                 $found[] = $table . ' #' . (int) $row->id . ' (' . $row->name . ')';
