@@ -364,6 +364,12 @@ float:left;
 
             $mdata = $dataObject['properties'];
 
+            // Sofort was discontinued by Klarna and removed: an element still
+            // stored in a form renders nothing until the form is saved again.
+            if (($mdata['bfType'] ?? '') === 'bfSofortueberweisung') {
+                return;
+            }
+
             if ($mdata['type'] == 'page') {
                 $parentPage = $mdata;
                 if ($parentPage['pageNumber'] > 1) {
@@ -682,10 +688,6 @@ float:left;
 
                     case 'bfPayPal':
                         $this->renderPayPalField($mdata, $tabIndex, $onblur, $onchange, $onfocus, $onselect, $readonly);
-                        break;
-
-                    case 'bfSofortueberweisung':
-                        $this->renderSofortueberweisungField($mdata, $tabIndex, $onblur, $onchange, $onfocus, $onselect, $readonly);
                         break;
                 }
 
@@ -1268,35 +1270,6 @@ float:left;
             (int) $mdata['dbId'],
             (string) $mdata['image'],
             'PayPal',
-            '',
-            $tabIndex,
-            $onblur,
-            $onchange,
-            $onfocus,
-            $onselect,
-            $readonly,
-            isset($mdata['actionClick']) && $mdata['actionClick'] == 1,
-            (string) ($mdata['actionFunctionName'] ?? '')
-        );
-    }
-
-    /**
-     * @param array<string, mixed> $mdata
-     */
-    private function renderSofortueberweisungField(array $mdata, string $tabIndex, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
-    {
-        /* translatables */
-        if (isset($mdata['image_translation' . $this->language_tag]) && $mdata['image_translation' . $this->language_tag] != '') {
-            $mdata['image'] = $mdata['image_translation' . $this->language_tag];
-        }
-        /* translatables end */
-
-        echo QuickModePaymentButtonBuilder::build(
-            'Sofortueberweisung',
-            (string) $mdata['bfName'],
-            (int) $mdata['dbId'],
-            (string) $mdata['image'],
-            'Sofortueberweisung',
             '',
             $tabIndex,
             $onblur,

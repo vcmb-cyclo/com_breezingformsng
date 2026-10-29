@@ -802,10 +802,9 @@ final class SubmissionEngine
                 switch ($this->processor->app->getInput()->getString('ff_payment_method', '')) {
                     case 'Stripe':
                     case 'PayPal':
-                    case 'Sofortueberweisung':
                         foreach ($areas as $area) {
                             foreach ($area['elements'] as $element) {
-                                if ($element['internalType'] == 'bfStripe' || $element['internalType'] == 'bfPayPal' || $element['internalType'] == 'bfSofortueberweisung') {
+                                if ($element['internalType'] == 'bfStripe' || $element['internalType'] == 'bfPayPal') {
                                     $options = $element['options'];
                                     if (isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
                                         $this->processor->sendNotificationAfterPayment = true;
@@ -1439,102 +1438,6 @@ transition: box-shadow .15s linear;
                                         $html .= "</form></body></html>";
 
                                     $html .= '<script type="text/javascript"><!--' . nl() . 'document.ff_submitform.submit();' . nl() . '//--></script>';
-                                    echo $html;
-
-                                    break;
-                                }
-                            }
-                        }
-
-                        break;
-
-                    case 'Sofortueberweisung':
-
-                        foreach ($areas as $area) {
-                            foreach ($area['elements'] as $element) {
-                                if ($element['internalType'] == 'bfSofortueberweisung') {
-
-                                    $html = '';
-                                    if (!$this->processor->inline)
-                                        $html .= '<html><head></head><body>';
-
-                                    HTMLHelper::_('bootstrap.modal');
-
-                                    $options = $element['options'];
-
-                                    $ppselect = $this->processor->app->getInput()->get('ff_nm_bfPaymentSelect', [], 'string');
-                                    if (count($ppselect) != 0) {
-                                        $ppselected = explode('|', $ppselect[0]);
-                                        if (count($ppselected) == 4) {
-                                            $options['reason_1'] = htmlentities($ppselected[0], ENT_QUOTES, 'UTF-8');
-                                            $options['reason_2'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
-                                            $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
-                                            if ($ppselected[3] != '' && intval($ppselected[3]) > 0) {
-                                                $options['amount'] = '' . (doubleval($options['amount']) + doubleval($ppselected[3]));
-                                            }
-                                        }
-                                    }
-
-                                    $options['amount'] = str_replace('.', ',', $options['amount']);
-
-                                    $hash = '';
-                                    if (isset($options['project_password']) && trim($options['project_password']) != '') {
-
-                                        $data = array(
-                                            $options['user_id'], // user_id
-                                            $options['project_id'], // project_id
-                                            '', // sender_holder
-                                            '', // sender_account_number
-                                            '', // sender_bank_code
-                                            '', // sender_country_id
-                                            $options['amount'], // amount
-                                            // currency_id, Pflichtparameter bei Hash-Berechnung
-                                            $options['currency_id'],
-                                            $options['reason_1'], // reason_1
-                                            $options['reason_2'], // reason_2
-                                            $this->processor->form, // user_variable_0
-                                            $this->processor->record_id, // user_variable_1
-                                            (isset($options['mailback']) && $options['mailback'] ? implode('###', $this->processor->mailbackRecipients) : ''), // user_variable_2
-                                            '', // user_variable_3
-                                            '', // user_variable_4
-                                            '', // user_variable_5
-                                            $options['project_password']    // project_password
-                                        );
-                                        $data_implode = implode('|', $data);
-
-                                        $gen = sha1($data_implode);
-
-                                        $hash = '<input type="hidden" name="hash" value="' . $gen . '" />';
-                                    }
-
-                                    $mailback = '';
-                                    if (isset($options['mailback']) && $options['mailback']) {
-                                        $mailback = '<input type="hidden" name="user_variable_2" value="' . implode('###', $this->processor->mailbackRecipients) . '" />';
-                                    }
-
-                                    $html .= '
-									<!-- sofortüberweisung.de -->
-									<form method="post" name="ff_submitform" action="https://www.sofortueberweisung.de/payment/start">
-									<input type="hidden" name="user_id" value="' . $options['user_id'] . '" />
-									<input type="hidden" name="project_id" value="' . $options['project_id'] . '" />
-									<input type="hidden" name="reason_1" value="' . $options['reason_1'] . '" />
-									<input type="hidden" name="reason_2" value="' . $options['reason_2'] . '" />
-									<input type="hidden" name="amount" value="' . $options['amount'] . '" />
-									<input type="hidden" name="currency_id" value="' . $options['currency_id'] . '" />
-									<input type="hidden" name="language_id" value="' . $options['language_id'] . '" />
-									<input type="hidden" name="user_variable_0" value="' . $this->processor->form . '" />
-									<input type="hidden" name="user_variable_1" value="' . $this->processor->record_id . '" />
-									' . $mailback . '
-									' . $hash . '
-									</form>
-									<!-- sofortüberweisung.de -->
-									';
-
-                                    $html .= '<script type="text/javascript"><!--' . nl() . 'document.ff_submitform.submit();' . nl() . '//--></script>';
-
-                                    if (!$this->processor->inline)
-                                        $html .= "</form></body></html>";
-
                                     echo $html;
 
                                     break;

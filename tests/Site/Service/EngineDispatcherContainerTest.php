@@ -34,7 +34,7 @@ final class EngineDispatcherContainerTest extends TestCase
         self::assertStringContainsString('CaptchaCallback::class', $source);
         self::assertStringContainsString('PayPalCallback::class', $source);
         self::assertStringContainsString('StripeCallback::class', $source);
-        self::assertStringContainsString('SofortCallback::class', $source);
+        self::assertStringNotContainsString('SofortCallback', $source);
         self::assertStringContainsString('FlashUploadCallback::class', $source);
         self::assertStringContainsString('OptCallback::class', $source);
         self::assertStringContainsString('RequestParameterParser::class', $source);
@@ -85,7 +85,7 @@ final class EngineDispatcherContainerTest extends TestCase
         self::assertStringNotContainsString('(new CaptchaCallback(', $dispatcher);
         self::assertStringNotContainsString('(new PayPalCallback(', $dispatcher);
         self::assertStringNotContainsString('(new StripeCallback(', $dispatcher);
-        self::assertStringNotContainsString('(new SofortCallback(', $dispatcher);
+        self::assertStringNotContainsString('Sofort', $dispatcher);
         self::assertStringNotContainsString('(new FlashUploadCallback(', $dispatcher);
         self::assertStringNotContainsString('(new OptCallback(', $dispatcher);
     }

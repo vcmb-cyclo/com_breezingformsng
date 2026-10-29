@@ -40,7 +40,6 @@ use Joomla\CMS\Language\Text;
                                                         array('value' => 'bfElementTypeSelect', 'label' => Text::_('COM_BREEZINGFORMSNG_SELECT'), 'icon' => '📋'),
                                                         array('value' => 'bfElementTypeSignature', 'label' => Text::_('COM_BREEZINGFORMSNG_SIGNATURE'), 'icon' => '✍️'),
                                                         array('value' => 'bfElementTypeSlider', 'label' => 'Slider', 'icon' => '🎚️'),
-                                                        array('value' => 'bfElementTypeSofortueberweisung', 'label' => Text::_('COM_BREEZINGFORMSNG_SOFORTUEBERWEISUNG'), 'icon' => '🏦'),
                                                         array('value' => 'bfElementTypeStripe', 'label' => Text::_('COM_BREEZINGFORMSNG_STRIPE'), 'icon' => '💳'),
                                                         array('value' => 'bfElementTypeSubmitButton', 'label' => Text::_('COM_BREEZINGFORMSNG_SUBMIT_BUTTON'), 'icon' => '🚀'),
                                                         array('value' => 'bfElementTypeSummarize', 'label' => Text::_('COM_BREEZINGFORMSNG_SUMMARIZE'), 'icon' => '🧮'),
@@ -797,125 +796,6 @@ use Joomla\CMS\Language\Text;
                                                 </div>
                                             </div>
                                             <!-- PAYPAL END -->
-                                            <!-- SOFORTUEBERWEISUNG BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeSofortueberweisung"
-                                                style="display:none">
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_USERID')); ?>"
-                                                        for="bfElementTypeSofortueberweisungUserId">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_USERID'); ?>
-                                                    </label>
-                                                    <input type="text" value="" id="bfElementTypeSofortueberweisungUserId" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_PROJECTID')); ?>"
-                                                        for="bfElementTypeSofortueberweisungProjectId">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_PROJECTID'); ?>
-                                                    </label>
-                                                    <input type="text" value="" id="bfElementTypeSofortueberweisungProjectId" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_PROJECTPASSWORD')); ?>"
-                                                        for="bfElementTypeSofortueberweisungProjectPassword">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_PROJECT_PASSWORD'); ?>
-                                                    </label>
-                                                    <input type="password" value=""
-                                                        id="bfElementTypeSofortueberweisungProjectPassword" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_REASON1')); ?>"
-                                                        for="bfElementTypeSofortueberweisungReason1">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_REASON1'); ?>
-                                                    </label>
-                                                    <input type="text" value="" id="bfElementTypeSofortueberweisungReason1" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_REASON2')); ?>"
-                                                        for="bfElementTypeSofortueberweisungReason2">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_REASON2'); ?>
-                                                    </label>
-                                                    <input type="text" value="" id="bfElementTypeSofortueberweisungReason2" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_AMOUNT')); ?>"
-                                                        for="bfElementTypeSofortueberweisungAmount">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_AMOUNT'); ?>
-                                                    </label>
-                                                    <input type="text" value="" id="bfElementTypeSofortueberweisungAmount" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_THANKYOUPAGE')); ?>"
-                                                        for="bfElementTypeSofortueberweisungThankYouPage">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_THANKYOU_PAGE'); ?>
-                                                    </label>
-                                                    <input type="text" value=""
-                                                        id="bfElementTypeSofortueberweisungThankYouPage" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_LANGUAGEID')); ?>"
-                                                        for="bfElementTypeSofortueberweisungLanguageId">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_LANGUAGE_ID'); ?>
-                                                    </label>
-                                                    <input type="text" value=""
-                                                        id="bfElementTypeSofortueberweisungLanguageId" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_CURRENCY')); ?>"
-                                                        for="bfElementTypeSofortueberweisungCurrencyId">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_CURRENCY_ID'); ?>
-                                                    </label>
-                                                    <input type="text" value=""
-                                                        id="bfElementTypeSofortueberweisungCurrencyId" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAYPAL_SENDNOTAFPAY')); ?>"
-                                                        for="bfElementTypeSofortueberweisungSendNotificationAfterPayment">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_NOTIFICATION_AFTER_PAYMENT'); ?>
-                                                    </label>
-                                                    <input type="checkbox" value=""
-                                                        id="bfElementTypeSofortueberweisungSendNotificationAfterPayment" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_MAILBACK')); ?>"
-                                                        for="bfElementTypeSofortueberweisungMailback">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_MAILBACK'); ?>
-                                                    </label>
-                                                    <input type="checkbox" value=""
-                                                        id="bfElementTypeSofortueberweisungMailback" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
-                                                        for="bfElementTypeSofortueberweisungHint">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
-                                                    </label>
-                                                    <textarea id="bfElementTypeSofortueberweisungHint"></textarea>
-                                                </div>
-
-                                                <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
-                                                        for="bfElementTypeSofortueberweisungHintTrans">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
-                                                        <br /><em>(
-                                                            <?php echo $active_language_code ?>)
-                                                        </em>
-                                                    </label>
-                                                    <textarea id="bfElementTypeSofortueberweisungHintTrans"></textarea>
-                                                </div>
-                                            </div>
-                                            <!-- SOFORTUEBERWEISUNG END -->
                                             <!-- CAPTCHA BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCaptcha" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">

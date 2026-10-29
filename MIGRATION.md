@@ -47,9 +47,11 @@ La clôture du chantier dépend des vérifications et corrections suivantes :
 - [x] Sofort : Klarna a arrêté Sofort comme moyen de paiement autonome en 2024.
   L’élément Stripe propose désormais l’option « Proposer aussi Klarna »
   (`payment_method_types` de la session Stripe Checkout).
-- [ ] Retirer l’élément `bfSofortueberweisung` (rendu, callbacks, modèles de
-  téléchargement, propriétés QuickMode) et traiter les formulaires existants
-  qui le contiennent. Étape destructive, à autoriser séparément.
+- [x] L’élément `bfSofortueberweisung` est retiré : rendu, callback, modèles de
+  téléchargement, propriétés QuickMode et chaînes de langue. Un élément encore
+  enregistré dans un formulaire n’est plus rendu et ne déclenche plus de
+  paiement ; QuickMode le retire de l’arbre à l’ouverture, avec un
+  avertissement, et l’enregistrement du formulaire le supprime.
 - [ ] Migrer PayPal Payments Standard (`_xclick`, PDT, IPN), déprécié par
   PayPal, vers l’API Orders v2 et les webhooks.
 - [x] Les appels administrateur à `getError()` et `setError()` dans

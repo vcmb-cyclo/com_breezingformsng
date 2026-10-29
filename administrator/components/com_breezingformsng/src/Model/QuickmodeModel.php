@@ -394,25 +394,6 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['options']['ideal']                     = (bool) ($mdata['ideal'] ?? false);
                         $element['data1']                                = $mdata['image'];
                         break;
-                    case 'bfSofortueberweisung':
-                        $element['bfType']                              = 'Sofortueberweisung';
-                        $element['options']['mailback']                  = $mdata['mailback'];
-                        $element['options']['downloadableFile']          = $mdata['downloadableFile'];
-                        $element['options']['filepath']                  = $mdata['filepath'];
-                        $element['options']['downloadTries']             = $mdata['downloadTries'];
-                        $element['options']['user_id']                   = $mdata['user_id'];
-                        $element['options']['project_id']                = $mdata['project_id'];
-                        $element['options']['project_password']          = $mdata['project_password'];
-                        $element['options']['reason_1']                  = $mdata['reason_1'];
-                        $element['options']['reason_2']                  = $mdata['reason_2'];
-                        $element['options']['amount']                    = $mdata['amount'];
-                        $element['options']['thankYouPage']              = $mdata['thankYouPage'];
-                        $element['options']['language_id']               = $mdata['language_id'];
-                        $element['options']['currency_id']               = $mdata['currency_id'];
-                        $element['options']['image']                     = $mdata['image'];
-                        $element['options']['sendNotificationAfterPayment'] = $mdata['sendNotificationAfterPayment'] ?? false;
-                        $element['data1']                                = $mdata['image'];
-                        break;
                     default:
                         $element['bfType'] = 'Unknown';
                 }

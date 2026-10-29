@@ -466,69 +466,6 @@ use Joomla\CMS\Language\Text;
                                                 </div>
                                             </div>
                                             <!-- PAYPAL END -->
-                                            <!-- SOFORTUEBERWEISUNG BEGIN -->
-                                            <div class="bfElementTypeClass" id="bfElementTypeSofortueberweisungAdvanced"
-                                                style="display:none">
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HIDE_LABEL')); ?>"
-                                                        for="bfElementSofortueberweisungAdvancedHideLabel">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_HIDE_LABEL'); ?>
-                                                    </label>
-                                                    <input checked="checked" type="checkbox" value=""
-                                                        id="bfElementSofortueberweisungAdvancedHideLabel" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_IMAGE')); ?>"
-                                                        for="bfElementSofortueberweisungAdvancedImage">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_IMAGE'); ?>
-                                                    </label>
-                                                    <input type="text" value="" id="bfElementSofortueberweisungAdvancedImage" />
-                                                </div>
-
-                                                <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_IMAGE')); ?>"
-                                                        for="bfElementSofortueberweisungAdvancedImageTrans">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_IMAGE'); ?>
-                                                        <br /><em>(
-                                                            <?php echo $active_language_code ?>)
-                                                        </em>
-                                                    </label>
-                                                    <input type="text" value=""
-                                                        id="bfElementSofortueberweisungAdvancedImageTrans" />
-                                                </div>
-
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_FILE')); ?>"
-                                                        for="bfElementSofortueberweisungAdvancedDownloadableFile">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_DOWNLOADABLE_FILE'); ?>
-                                                    </label>
-                                                    <input checked="checked" type="checkbox" value=""
-                                                        id="bfElementSofortueberweisungAdvancedDownloadableFile" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_FILEPATH')); ?>"
-                                                        for="bfElementSofortueberweisungAdvancedFilepath">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_FILEPATH'); ?>
-                                                    </label>
-                                                    <input type="text" value=""
-                                                        id="bfElementSofortueberweisungAdvancedFilepath" />
-                                                </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_TRIES')); ?>"
-                                                        for="bfElementSofortueberweisungAdvancedDownloadTries">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_DOWNLOAD_TRIES'); ?>
-                                                    </label>
-                                                    <input type="text" value=""
-                                                        id="bfElementSofortueberweisungAdvancedDownloadTries" />
-                                                </div>
-                                            </div>
-                                            <!-- SOFORTUEBERWEISUNG END -->
                                             <!-- CAPTCHA BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCaptchaAdvanced"
                                                 style="display:none">

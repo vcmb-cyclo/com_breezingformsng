@@ -22,7 +22,6 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Callback\CaptchaCallback;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\FlashUploadCallback;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\OptCallback;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PayPalCallback;
-use Vcmb\Component\BreezingformsNG\Site\Service\Callback\SofortCallback;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\StripeCallback;
 
 /**
@@ -40,8 +39,6 @@ final class EngineDispatcher
         private readonly Closure $payPalCallbackFactory,
         /** @var Closure(): StripeCallback */
         private readonly Closure $stripeCallbackFactory,
-        /** @var Closure(): SofortCallback */
-        private readonly Closure $sofortCallbackFactory,
         /** @var Closure(): FlashUploadCallback */
         private readonly Closure $flashUploadCallbackFactory,
         /** @var Closure(): OptCallback */
@@ -74,12 +71,6 @@ final class EngineDispatcher
             ($this->payPalCallbackFactory)()->download();
         } elseif ($this->input->getBool('showPayPalConnectMsg', false)) {
             ($this->payPalCallbackFactory)()->connectMessage();
-        } elseif ($this->input->getBool('successSofortueberweisung', false)) {
-            ($this->sofortCallbackFactory)()->success();
-        } elseif ($this->input->getBool('confirmSofortueberweisung', false)) {
-            ($this->sofortCallbackFactory)()->confirm();
-        } elseif ($this->input->getBool('sofortueberweisungDownload', false) && $application === '') {
-            ($this->sofortCallbackFactory)()->download();
         } elseif ($this->input->getBool('flashUpload', false)) {
             ($this->flashUploadCallbackFactory)()->handle();
         } elseif ($this->input->getString('opt_in', '') === 'true') {
@@ -99,9 +90,6 @@ final class EngineDispatcher
             || $this->input->getBool('paypalDownload', false)
             || $this->input->getBool('stripeDownload', false)
             || $this->input->getBool('showPayPalConnectMsg', false)
-            || $this->input->getBool('successSofortueberweisung', false)
-            || $this->input->getBool('confirmSofortueberweisung', false)
-            || $this->input->getBool('sofortueberweisungDownload', false)
             || $this->input->getBool('flashUpload', false)
             || $this->input->getString('opt_in', '') === 'true'
             || $this->input->getString('opt_out', '') === 'true';

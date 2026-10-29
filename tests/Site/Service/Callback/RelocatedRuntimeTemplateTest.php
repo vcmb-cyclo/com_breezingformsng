@@ -23,7 +23,6 @@ final class RelocatedRuntimeTemplateTest extends TestCase
         foreach ([
             'PayPalCallback.php',
             'StripeCallback.php',
-            'SofortCallback.php',
         ] as $callback) {
             $source = file_get_contents(
                 __DIR__ . '/../../../../components/com_breezingformsng/src/Service/Callback/' . $callback

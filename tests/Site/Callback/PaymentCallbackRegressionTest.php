@@ -28,7 +28,6 @@ final class PaymentCallbackRegressionTest extends TestCase
     {
         yield 'Stripe' => ['StripeCallback'];
         yield 'PayPal' => ['PayPalCallback'];
-        yield 'Sofort' => ['SofortCallback'];
     }
 
     public function testPaymentServicesUseJoomlaQueryBuilderAndBoundParameters(): void
@@ -61,7 +60,6 @@ final class PaymentCallbackRegressionTest extends TestCase
             'COM_BREEZINGFORMSNG_PAYMENT_RECORD_NOT_FOUND',
             'COM_BREEZINGFORMSNG_PAYMENT_VERIFICATION_FAILED',
             'COM_BREEZINGFORMSNG_PAYMENT_VERIFICATION_EMPTY',
-            'COM_BREEZINGFORMSNG_PAYMENT_TRANSACTION_ID_EMPTY',
         ];
         $files = array_merge(
             glob(self::ROOT . '/components/com_breezingformsng/language/*/com_breezingformsng.ini') ?: [],
@@ -84,7 +82,7 @@ final class PaymentCallbackRegressionTest extends TestCase
 
     public function testDownloadCallbacksDelegateAttemptLimitToSharedPolicy(): void
     {
-        foreach (['StripeCallback', 'PayPalCallback', 'SofortCallback'] as $callback) {
+        foreach (['StripeCallback', 'PayPalCallback'] as $callback) {
             $source = $this->read("components/com_breezingformsng/src/Service/Callback/{$callback}.php");
 
             self::assertStringContainsString('PaymentDownloadService $paymentDownloadService', $source, $callback);
@@ -110,8 +108,8 @@ final class PaymentCallbackRegressionTest extends TestCase
         self::assertStringContainsString('PaymentDownloadService::class', $source);
         self::assertStringContainsString('PaymentRecordService::class', $source);
         self::assertSame(1, substr_count($source, '$container->get(PaymentDownloadPolicy::class)'));
-        self::assertSame(3, substr_count($source, '$container->get(PaymentDownloadService::class)'));
-        self::assertSame(3, substr_count($source, '$container->get(PaymentRecordService::class)'));
+        self::assertSame(2, substr_count($source, '$container->get(PaymentDownloadService::class)'));
+        self::assertSame(2, substr_count($source, '$container->get(PaymentRecordService::class)'));
 
         $dispatcher = $this->read('components/com_breezingformsng/src/Service/EngineDispatcher.php');
 
@@ -122,7 +120,7 @@ final class PaymentCallbackRegressionTest extends TestCase
     {
         $source = $this->read('administrator/components/com_breezingformsng/services/provider.php');
 
-        foreach (['PaymentDownloadService', 'StripeCallback', 'PayPalCallback', 'SofortCallback'] as $service) {
+        foreach (['PaymentDownloadService', 'StripeCallback', 'PayPalCallback'] as $service) {
             self::assertSame(1, preg_match('/return new ' . $service . '\\((.*?)\\n\\s*\\);/s', $source, $match));
             preg_match_all('/\\$container->get\\((\\w+)::class\\)/', $match[1], $dependencies);
             $constructor = new \ReflectionMethod(
@@ -143,7 +141,7 @@ final class PaymentCallbackRegressionTest extends TestCase
 
     public function testPaymentCallbacksDelegateFormLoadingToTheSharedLoader(): void
     {
-        foreach (['StripeCallback', 'PayPalCallback', 'SofortCallback'] as $callback) {
+        foreach (['StripeCallback', 'PayPalCallback'] as $callback) {
             $source = $this->read("components/com_breezingformsng/src/Service/Callback/{$callback}.php");
 
             self::assertStringContainsString('PaymentFormLoader $paymentFormLoader', $source, $callback);

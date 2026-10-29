@@ -474,7 +474,7 @@ final class BootstrapRendererCharacterizationTest extends TestCase
         $this->assertMatchesSnapshot('bootstrap_bfPayPal.html', $html);
     }
 
-    public function testSofortueberweisungElement(): void
+    public function testStoredSofortueberweisungElementRendersNothing(): void
     {
         $renderer = $this->makeRenderer();
 
@@ -486,7 +486,7 @@ final class BootstrapRendererCharacterizationTest extends TestCase
             'actionFunctionName' => '',
         ]));
 
-        $this->assertMatchesSnapshot('bootstrap_bfSofortueberweisung.html', $html);
+        self::assertSame('', trim($html));
     }
 
     /**

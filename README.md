@@ -19,7 +19,7 @@ emails, take payments, and extend each form with PHP and JavaScript.
 - **20 element types**: text field, textarea (optional HTML editor), number input, slider,
   select, checkbox, checkbox group, radio group, calendar, responsive calendar, file upload,
   hidden field, submit button, summarize (calculated field), image captcha, Google reCAPTCHA
-  (classic or invisible), signature pad, PayPal, Stripe and Sofort.
+  (classic or invisible), signature pad, PayPal and Stripe (card, Klarna, iDEAL | Wero).
 - **Multi-page forms** with per-page validation and an optional progress bar, or a **one-page layout**.
 - **Visibility rules** to show and hide fields depending on other answers.
 - **File uploads** in HTML5 with chunking, multiple files, size and extension checks, and image resizing.
@@ -33,7 +33,7 @@ emails, take payments, and extend each form with PHP and JavaScript.
 - **Integrator** rules that copy submitted data into any database table.
 
 ### Payments and integrations
-- **Stripe, PayPal and Sofort**, with notifications sent only once the payment succeeds, and paid file downloads.
+- **Stripe and PayPal**, Stripe with Klarna and iDEAL | Wero as options, with notifications sent only once the payment succeeds, and paid file downloads.
 - Dropbox upload, Mailchimp, Salesforce.
 - [ContentBuilder NG](https://github.com/vcmb-cyclo/com_contentbuilderng) integration, to turn submissions into Joomla articles and lists.
 

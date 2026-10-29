@@ -25,7 +25,7 @@ final class PaymentProviderDetector
     public function hasSupportedProvider(iterable $rows): bool
     {
         foreach ($rows as $row) {
-            if (in_array($row->type ?? null, ['PayPal', 'Sofortueberweisung', 'Stripe'], true)) {
+            if (in_array($row->type ?? null, ['PayPal', 'Stripe'], true)) {
                 return true;
             }
         }

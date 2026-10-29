@@ -250,7 +250,7 @@ final class CallbackExportUploadPermissionTest extends TestCase
 
     public function testCallbacksKeepBoundDatabaseQueriesAndInputAuthorizationChecks(): void
     {
-        foreach (['StripeCallback', 'PayPalCallback', 'SofortCallback'] as $callback) {
+        foreach (['StripeCallback', 'PayPalCallback'] as $callback) {
             $source = $this->read("components/com_breezingformsng/src/Service/Callback/{$callback}.php");
 
             self::assertStringContainsString('getInput()', $source, $callback);
