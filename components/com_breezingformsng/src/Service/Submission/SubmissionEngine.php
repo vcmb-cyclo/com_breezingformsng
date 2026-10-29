@@ -1255,6 +1255,12 @@ transition: box-shadow .15s linear;
                                                 'ideal'  => !empty($options['ideal']),
                                             ])),
                                             'mode' => 'payment',
+                                            // Ties the session to its record for the return and the webhook.
+                                            'client_reference_id' => (string) $this->processor->record_id,
+                                            'metadata' => [
+                                                'form_id' => (string) $this->processor->form,
+                                                'record_id' => (string) $this->processor->record_id,
+                                            ],
                                             'success_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
                                             'cancel_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
                                         ]);

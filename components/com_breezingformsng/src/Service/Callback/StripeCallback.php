@@ -13,6 +13,7 @@ use Joomla\CMS\Application\CMSApplication;
 use Vcmb\Component\BreezingformsNG\Site\Service\Support\RedirectHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Database\ParameterType;
 use Joomla\Database\DatabaseInterface;
@@ -30,6 +31,7 @@ final class StripeCallback
         private readonly PaymentRecordService $paymentRecordService,
         private readonly RedirectHelper $redirectHelper,
         private readonly PaymentDownloadService $paymentDownloadService,
+        private readonly StripeCheckoutWebhook $checkoutWebhook,
     ) {
     }
 
@@ -142,7 +144,12 @@ final class StripeCallback
                         []
                     );
 
-                    if ($session->payment_status != 'paid') {
+                    // A session belongs to the record it was opened for; sessions
+                    // opened before the reference was set carry none.
+                    $sessionReference = $session->client_reference_id;
+                    $foreignSession = $sessionReference !== null && $sessionReference !== (string) $record_id;
+
+                    if ($foreignSession || $session->payment_status != 'paid') {
 
                         $msg = Text::_("COM_BREEZINGFORMSNG_STRIPE_DECLINED");
 
@@ -163,7 +170,9 @@ final class StripeCallback
                         $stripeTxId = 'Stripe: ' . strip_tags($stripe_pi->id);
                         $stripePaymentDate = date('Y-m-d H:i:s', $stripe_pi_create);
                         $stripeTestaccount = !$stripe_pi->livemode ? 1 : 0;
-                        $this->paymentRecordService->storeTransaction(
+                        // The webhook may have recorded the payment first: run the
+                        // success script and the notifications only once.
+                        $recordedNow = $this->paymentRecordService->storeTransactionOnce(
                             $stripeRecordId,
                             $stripeTxId,
                             $stripePaymentDate,
@@ -171,12 +180,12 @@ final class StripeCallback
                         );
 
                         // trigger a script after succeeded payment?
-                        if (file_exists(JPATH_SITE . '/bf_stripe_success.php')) {
+                        if ($recordedNow && file_exists(JPATH_SITE . '/bf_stripe_success.php')) {
                             require_once (JPATH_SITE . '/bf_stripe_success.php');
                         }
 
                         // send mail after succeeded payment?
-                        if (isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
+                        if ($recordedNow && isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
                             bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'admin');
                             bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'mailback');
                         }
@@ -206,6 +215,125 @@ final class StripeCallback
             }
         }
     }
+    }
+
+    /**
+     * Records a Checkout payment from Stripe's signed webhook, so that a payment
+     * is kept even when the customer never comes back to the site.
+     */
+    public function webhook(): void
+    {
+        $input = $this->application->getInput();
+        $form_id = $input->getInt('form_id', 0);
+        $form = $this->paymentFormLoader->load($form_id);
+        $options = $this->stripeOptions($form === null ? null : $this->paymentFormLoader->decodeAreas($form));
+        $signingSecret = trim((string) ($options['webhookSecret'] ?? ''));
+
+        if ($options === null || $signingSecret === '') {
+            $this->respondToWebhook(400, 'form ' . $form_id . ' has no Stripe element with a webhook signing secret.');
+
+            return;
+        }
+
+        \Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper::load();
+
+        try {
+            $event = \Stripe\Webhook::constructEvent(
+                (string) file_get_contents('php://input'),
+                $input->server->getString('HTTP_STRIPE_SIGNATURE', ''),
+                $signingSecret
+            );
+        } catch (\UnexpectedValueException | \Stripe\Exception\SignatureVerificationException $e) {
+            $this->respondToWebhook(400, $e->getMessage());
+
+            return;
+        }
+
+        $session = $event->data->object ?? null;
+
+        if (!$session instanceof \Stripe\Checkout\Session) {
+            $this->respondToWebhook(200);
+
+            return;
+        }
+
+        $record_id = $this->checkoutWebhook->paidRecordId(
+            (string) $event->type,
+            $session->payment_status,
+            $session->client_reference_id,
+            isset($session->metadata['form_id']) ? (string) $session->metadata['form_id'] : null,
+            $form_id
+        );
+
+        if ($record_id === null) {
+            $this->respondToWebhook(200);
+
+            return;
+        }
+
+        $paymentIntentId = $session->payment_intent instanceof \Stripe\PaymentIntent
+            ? $session->payment_intent->id
+            : (string) $session->payment_intent;
+
+        try {
+            $stripe = new \Stripe\StripeClient($options['secretKey']);
+            $stripe_pi = $stripe->paymentIntents->retrieve($paymentIntentId, []);
+            $stripe->paymentIntents->update($stripe_pi->id, ['description' => $options['itemname']]);
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            // Stripe sends the event again later.
+            $this->respondToWebhook(500, $e->getMessage());
+
+            return;
+        }
+
+        $recordedNow = $this->paymentRecordService->storeTransactionOnce(
+            $record_id,
+            'Stripe: ' . strip_tags($stripe_pi->id),
+            date('Y-m-d H:i:s', $stripe_pi->created),
+            $stripe_pi->livemode ? 0 : 1
+        );
+
+        // Same post-payment steps as the browser return, whichever records first.
+        if ($recordedNow && file_exists(JPATH_SITE . '/bf_stripe_success.php')) {
+            require_once JPATH_SITE . '/bf_stripe_success.php';
+        }
+
+        if ($recordedNow && !empty($options['sendNotificationAfterPayment'])) {
+            bf_sendNotificationByPaymentCache($form_id, $record_id, 'admin');
+            bf_sendNotificationByPaymentCache($form_id, $record_id, 'mailback');
+        }
+
+        $this->respondToWebhook(200);
+    }
+
+    /**
+     * @param array<mixed>|null $areas
+     * @return array<mixed>|null
+     */
+    private function stripeOptions(?array $areas): ?array
+    {
+        foreach ($areas ?? [] as $area) {
+            $elements = is_array($area) && is_array($area['elements'] ?? null) ? $area['elements'] : [];
+
+            foreach ($elements as $element) {
+                if (is_array($element) && ($element['internalType'] ?? '') === 'bfStripe' && is_array($element['options'] ?? null)) {
+                    return $element['options'];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function respondToWebhook(int $status, string $problem = ''): void
+    {
+        if ($problem !== '') {
+            Log::add('Stripe webhook: ' . $problem, $status >= 500 ? Log::ERROR : Log::WARNING, 'com_breezingformsng');
+        }
+
+        $this->application->setHeader('status', (string) $status, true);
+        $this->application->sendHeaders();
+        $this->application->close();
     }
 
     public function download(): void

@@ -383,6 +383,7 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['options']['downloadTries']             = $mdata['downloadTries'];
                         $element['options']['secretKey']                 = $mdata['secretKey'];
                         $element['options']['publishableKey']            = $mdata['publishableKey'];
+                        $element['options']['webhookSecret']             = (string) ($mdata['webhookSecret'] ?? '');
                         $element['options']['itemname']                  = $mdata['itemname'];
                         $element['options']['amount']                    = $mdata['amount'];
                         $element['options']['thankYouPage']              = $mdata['thankYouPage'];

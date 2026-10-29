@@ -5,6 +5,15 @@
 - The Stripe element can also offer Klarna and iDEAL | Wero on the Stripe Checkout page
   (options *Also offer Klarna* and *Also offer iDEAL | Wero*). The payment method must be
   enabled in the Stripe Dashboard and accept the form currency (EUR for iDEAL | Wero).
+- Stripe payments can be confirmed by a signed webhook, so a successful payment is recorded,
+  and its notifications sent, even when the customer does not come back to the site. Add an
+  endpoint in the Stripe Dashboard with the URL the Stripe element shows, listening to
+  `checkout.session.completed` and `checkout.session.async_payment_succeeded`, and enter its
+  signing secret in the element. The return to the site and the webhook record a payment
+  once, whichever comes first. The return now also checks that the Stripe session belongs to
+  the record it confirms.
+- The component writes its warnings and errors to `administrator/logs/com_breezingformsng.php`;
+  they were dropped before.
 - A Stripe error while opening the payment page (payment method not enabled, currency not
   accepted, invalid key) is logged and shown as a payment error instead of a fatal error.
 - The Sofort element is removed: Klarna discontinued Sofort in 2024. A Sofort element still

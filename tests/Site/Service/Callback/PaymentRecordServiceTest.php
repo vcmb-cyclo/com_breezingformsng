@@ -126,4 +126,72 @@ final class PaymentRecordServiceTest extends TestCase
             $database->queries[1]->bindings
         );
     }
+
+    public function testStoresATransactionOnlyOnARecordWithoutOne(): void
+    {
+        foreach ([1 => true, 0 => false] as $affectedRows => $expected) {
+            $database = new class ($affectedRows) implements DatabaseInterface {
+                public ?object $query = null;
+
+                public function __construct(private readonly int $affectedRows)
+                {
+                }
+
+                public function createQuery(): object
+                {
+                    return $this->query = new class {
+                        /** @var list<string> */
+                        public array $conditions = [];
+
+                        public function update(string $table): self
+                        {
+                            return $this;
+                        }
+
+                        public function set(string $condition): self
+                        {
+                            return $this;
+                        }
+
+                        public function where(string $condition): self
+                        {
+                            $this->conditions[] = $condition;
+
+                            return $this;
+                        }
+
+                        public function bind(string $key, mixed $value, mixed $type): self
+                        {
+                            return $this;
+                        }
+                    };
+                }
+
+                public function quoteName(string|array $name): string|array
+                {
+                    return $name;
+                }
+
+                public function setQuery(object $query, int $offset = 0, int $limit = 0): void
+                {
+                }
+
+                public function execute(): bool
+                {
+                    return true;
+                }
+
+                public function getAffectedRows(): int
+                {
+                    return $this->affectedRows;
+                }
+            };
+
+            $stored = (new PaymentRecordService($database))
+                ->storeTransactionOnce(12, 'Stripe: pi_123', '2026-10-29 10:00:00', 1);
+
+            self::assertSame($expected, $stored);
+            self::assertContains("paypal_tx_id = ''", $database->query->conditions ?? []);
+        }
+    }
 }

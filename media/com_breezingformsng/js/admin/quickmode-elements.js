@@ -1083,6 +1083,7 @@ var BFQMElements = (function () {
 				downloadTries: 1,
 				secretKey: '',
 				publishableKey: '',
+				webhookSecret: '',
 				itemname: '',
 				amount: '',
 				thankYouPage: '',

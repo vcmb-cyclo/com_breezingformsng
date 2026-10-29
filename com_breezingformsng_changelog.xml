@@ -6,12 +6,15 @@
 		<version>6.1.0-RC09</version>
 		<addition>
 			<item>Offer Klarna and iDEAL | Wero on the Stripe Checkout page, as options of the Stripe element.</item>
+			<item>Record Stripe payments from a signed webhook, even when the customer does not come back to the site.</item>
+			<item>Write the component warnings and errors to administrator/logs/com_breezingformsng.php.</item>
 		</addition>
 		<remove>
 			<item>Remove the Sofort element, discontinued by Klarna: stored Sofort elements are no longer shown, and QuickMode drops them when the form is opened.</item>
 		</remove>
 		<fix>
 			<item>Show a payment error instead of a fatal error when Stripe cannot open the payment page.</item>
+			<item>Check that a Stripe session belongs to the record it confirms, and record a payment only once.</item>
 			<item>Refuse submissions of a form whose only payment was Sofort until another payment is set up, instead of accepting them unpaid.</item>
 			<item>Restore the code framework buttons of the QuickMode custom scripts and keep the alert setting on the next-page check.</item>
 			<item>Remove the output buffer notice after a form submission.</item>

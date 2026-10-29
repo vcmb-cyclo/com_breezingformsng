@@ -58,6 +58,36 @@ final class PaymentRecordService
         $this->database->execute();
     }
 
+    /**
+     * Stores the transaction only if the record has none yet, so that the
+     * browser return and the Stripe webhook record a payment once.
+     *
+     * @return bool true when this call stored the transaction
+     */
+    public function storeTransactionOnce(
+        int $recordId,
+        string $transaction,
+        string $paymentDate,
+        int $testAccount
+    ): bool {
+        $query = $this->database->createQuery()
+            ->update($this->database->quoteName('#__facileforms_records'))
+            ->set($this->database->quoteName('paypal_tx_id') . ' = :paymentTransaction')
+            ->set($this->database->quoteName('paypal_payment_date') . ' = :paymentDate')
+            ->set($this->database->quoteName('paypal_testaccount') . ' = :testAccount')
+            ->set($this->database->quoteName('paypal_download_tries') . ' = 0')
+            ->where($this->database->quoteName('id') . ' = :recordId')
+            ->where($this->database->quoteName('paypal_tx_id') . " = ''")
+            ->bind(':paymentTransaction', $transaction, ParameterType::STRING)
+            ->bind(':paymentDate', $paymentDate, ParameterType::STRING)
+            ->bind(':testAccount', $testAccount, ParameterType::INTEGER)
+            ->bind(':recordId', $recordId, ParameterType::INTEGER);
+        $this->database->setQuery($query);
+        $this->database->execute();
+
+        return $this->database->getAffectedRows() === 1;
+    }
+
     /** @return \stdClass|null */
     private function findRecord(int $recordId, bool $unpaidOnly): ?object
     {
