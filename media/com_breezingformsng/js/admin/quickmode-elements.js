@@ -1160,6 +1160,8 @@ var BFQMElements = (function () {
 				image: BFQMConfig.siteRoot + 'media/com_breezingformsng/images/site/stripe.png',
 				sendNotificationAfterPayment: false,
 				emailfield: '',
+				klarna: false,
+				ideal: false,
 
 				validationCondition: 0,
 				validationId: 0,

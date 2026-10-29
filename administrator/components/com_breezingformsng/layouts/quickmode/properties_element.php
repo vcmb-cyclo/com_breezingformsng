@@ -640,6 +640,26 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value=""
                                                         id="bfElementTypeStripeSendNotificationAfterPayment" />
                                                 </div>
+
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_KLARNA')); ?>"
+                                                        for="bfElementTypeStripeKlarna">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_KLARNA'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value=""
+                                                        id="bfElementTypeStripeKlarna" />
+                                                </div>
+
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_IDEAL')); ?>"
+                                                        for="bfElementTypeStripeIdeal">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_IDEAL'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value=""
+                                                        id="bfElementTypeStripeIdeal" />
+                                                </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel hasTooltip bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
