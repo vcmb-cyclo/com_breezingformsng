@@ -1355,7 +1355,7 @@ transition: box-shadow .15s linear;
 
                                 echo $html;
                                 // Return and webhook use this same first Stripe element.
-                                break 2;
+                                        break 2;
                             }
                         }
                         }
