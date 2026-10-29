@@ -14,6 +14,7 @@
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\Filesystem\File;
+use Joomla\Filesystem\Exception\FilesystemException;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Component\ComponentHelper;
@@ -2946,9 +2947,17 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 // the administrator to move to a supported template.
                 $source = rtrim(str_replace("\r\n", "\n", (string) file_get_contents($path)));
                 if (in_array(hash('sha256', $source), self::STOCK_GENERIC_PDF_TEMPLATES[$name], true)) {
-                    if (File::delete($path)) {
+                    // A read-only media folder must not abort the update:
+                    // the template is then reported like a customised one.
+                    try {
+                        File::delete($path);
                         $this->log('Unmodified generic PDF template removed: ' . $name);
                         continue;
+                    } catch (FilesystemException $e) {
+                        $this->log(
+                            'Unable to remove unmodified generic PDF template ' . $name . ': ' . $e->getMessage(),
+                            Log::WARNING
+                        );
                     }
                 }
 

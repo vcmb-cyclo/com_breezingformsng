@@ -177,10 +177,27 @@ final class InstallerScriptArchitectureTest extends TestCase
                 "'pdf_attachment_header.php' => [",
                 "'pdf_attachment_footer.php' => self::STOCK_GENERIC_PDF_FOOTERS,",
                 "\$this->log('Unmodified generic PDF template removed: ' . \$name);",
+                'use Joomla\\Filesystem\\Exception\\FilesystemException;',
             ] as $expected
         ) {
             self::assertStringContainsString($expected, $source);
         }
+    }
+
+    public function testAReadOnlyMediaFolderDoesNotAbortTheUpdate(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../script.php');
+
+        self::assertIsString($source);
+        $start = strpos($source, 'private function reportLegacyPdfCustomisations(): void');
+        self::assertNotFalse($start);
+        $body = substr($source, $start, strpos($source, "\n    }\n", $start) - $start);
+
+        // File::delete() throws instead of returning false.
+        self::assertMatchesRegularExpression(
+            '/try \{\s+File::delete\(\$path\);.+?\} catch \(FilesystemException \$e\) \{/s',
+            $body
+        );
     }
 
     public function testAboutPageUsesOnlyTheCurrentManifestPath(): void
