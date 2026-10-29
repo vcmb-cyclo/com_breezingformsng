@@ -116,12 +116,12 @@ final class QueryColumn
 	function pack()
 	{
 		return
-			expstring($this->title) . '&' .
-			expstring($this->name) . '&' .
-			expstring($this->class1) . '&' .
-			expstring($this->class2) . '&' .
-			expstring($this->class3) . '&' .
-			expstring($this->width) . '&' .
+			expstring($this->title ?? '') . '&' .
+			expstring($this->name ?? '') . '&' .
+			expstring($this->class1 ?? '') . '&' .
+			expstring($this->class2 ?? '') . '&' .
+			expstring($this->class3 ?? '') . '&' .
+			expstring($this->width ?? '') . '&' .
 			expstring((string) $this->widthmd) . '&' .
 			expstring((string) $this->thspan) . '&' .
 			expstring((string) $this->thalign) . '&' .
@@ -130,7 +130,7 @@ final class QueryColumn
 			expstring((string) $this->align) . '&' .
 			expstring((string) $this->valign) . '&' .
 			expstring((string) $this->wrap) . '&' .
-			expstring($this->value);
+			expstring($this->value ?? '');
 	} // pack
 
 } // class QueryColumn

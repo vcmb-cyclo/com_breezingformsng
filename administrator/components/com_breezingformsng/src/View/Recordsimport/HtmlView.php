@@ -23,13 +23,13 @@ use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView a
 
 class HtmlView extends BaseHtmlView
 {
-    public ?Form $form = null;
+    public Form $form;
 
     public function display($tpl = null)
     {
         $app = Factory::getApplication();
 
-        if (!$app->getIdentity()->authorise('core.create', 'com_breezingformsng')) {
+        if (!$this->getCurrentUser()->authorise('core.create', 'com_breezingformsng')) {
             throw new \Exception(Text::_('JERROR_ALERTNOAUTHOR'), 403);
         }
 
@@ -50,7 +50,7 @@ class HtmlView extends BaseHtmlView
 
         /** @var HtmlDocument $document */
         $document = $this->getDocument();
-        $toolbar = $document->getToolbar();
+        $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
         $toolbar->standardButton('import', 'COM_BREEZINGFORMSNG_IMPORT', 'recordsimport.import')
             ->icon('icon-upload')
             ->buttonClass('btn btn-success');

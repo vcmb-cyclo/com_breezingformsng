@@ -409,7 +409,7 @@ final class Breezingformsng extends PrivacyPlugin implements SubscriberInterface
      */
     private function deleteArticles(array $articleIds): void
     {
-        $app = $this->getApplication();
+        $app = $this->getApplication() ?? throw new \RuntimeException('The application is not available.');
         $component = $app->bootComponent('com_content');
 
         if (!$component instanceof MVCFactoryServiceInterface) {

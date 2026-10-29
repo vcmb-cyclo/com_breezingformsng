@@ -49,6 +49,8 @@ final class FormRenderer
     {
         global $ff_version, $ff_request, $ff_processor, $ff_target;
 
+        $document = $this->application->getDocument() ?? throw new \RuntimeException('The document is not available.');
+
         $ff_applic = (string) ($context['ff_applic'] ?? '');
         $xModuleId = (int) ($context['module_id'] ?? 0);
         $params = $context['params'] ?? null;
@@ -137,7 +139,7 @@ $ff_request = array();
         if ($this->application->getInput()->getInt('Itemid', 0) > 0 && $this->application->getInput()->getString('ff_applic', '') != 'mod_facileforms' && $this->application->getInput()->getString('ff_applic', '') != 'plg_facileforms') {
 
             $menu = $this->application->getMenu()->getActive();
-            $params = $menu->getParams();
+            $params = $menu?->getParams();
 
             if ($params !== null) {
 
@@ -150,15 +152,15 @@ $ff_request = array();
                 $menu_item_robots = $params->get('robots', '');
 
                 if ($menu_item_meta_description) {
-                    $this->application->getDocument()->setMetaData('description', $menu_item_meta_description);
+                    $document->setMetaData('description', $menu_item_meta_description);
                 }
 
                 if ($menu_item_meta_keywords) {
-                    $this->application->getDocument()->setMetaData('keywords', $menu_item_meta_keywords);
+                    $document->setMetaData('keywords', $menu_item_meta_keywords);
                 }
 
                 if ($menu_item_robots) {
-                    $this->application->getDocument()->setMetaData('robots', $menu_item_robots);
+                    $document->setMetaData('robots', $menu_item_robots);
                 }
 
                 $formname = $params->get('ff_com_name');
@@ -287,9 +289,9 @@ $ff_request = array();
 
         if ($ff_applic != 'plg_facileforms' && $pagetitle && $form->title != '' && !($this->application->getInput()->getInt('cb_form_id', 0) || $this->application->getInput()->getCmd('cb_record_id', ''))) {
             if ($menu_item_title != '') {
-                $this->application->getDocument()->setTitle($menu_item_title);
+                $document->setTitle($menu_item_title);
             } else { // being set by module, false implies no change at all
-                $this->application->getDocument()->setTitle($form->title);
+                $document->setTitle($form->title);
             }
         }
 
@@ -361,9 +363,9 @@ $ff_request = array();
                 'allowtransparency="true" ' .
                 'scrolling="no" ';
             if ($form->autoheight == 1) {
-                $this->application->getDocument()->getWebAssetManager()->useScript('jquery');
+                $document->getWebAssetManager()->useScript('jquery');
                 RuntimeAssetLoader::script($this->application, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/jq.iframeautoheight.js');
-                $this->application->getDocument()->getWebAssetManager()->addInlineScript("<!--
+                $document->getWebAssetManager()->addInlineScript("<!--
                             jQuery(document).ready(function() {
                                 //jQuery(\".breezingforms_iframe\").css(\"width\",\"100%\");
                                 jQuery(\".breezingforms_iframe\").iframeAutoHeight({heightOffset: 15, debug: false, diagnostics: false});
@@ -389,7 +391,8 @@ $ff_request = array();
             }
 
             // process inline
-            $myUser = $this->application->getIdentity();
+            $myUser = $this->application->getIdentity()
+                    ?? throw new \RuntimeException('The current user is not loaded.');
 
             $username = (string) $myUser->get('username', '');
             $query = $this->database->createQuery()

@@ -19,7 +19,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
-$user = Factory::getApplication()->getIdentity();
+$user = Factory::getApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
 $userId = (int) $user->id;
 $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 ?>

@@ -742,7 +742,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
             $rewritten = preg_replace('/com_breezingforms(?!ng)/', 'com_breezingformsng', $decoded);
 
-            if ($rewritten === $decoded) {
+            // On a PCRE error, keep the stored form instead of writing it empty.
+            if ($rewritten === null || $rewritten === $decoded) {
                 continue;
             }
 

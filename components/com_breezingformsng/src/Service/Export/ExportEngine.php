@@ -79,12 +79,15 @@ final class ExportEngine
         if ($this->processor->dying)
             return;
 
+        $cbResult ??= [];
         /** @var \CB\Component\Contentbuilderng\Administrator\types\contentbuilderng_com_breezingformsng|\CB\Component\Contentbuilderng\Administrator\types\contentbuilderng_com_contentbuilderng|null $cbForm */
         $cbForm = $cbResult['form'] ?? null;
+        $user = $this->processor->app->getIdentity()
+            ?? throw new \RuntimeException('The current user is not loaded.');
 
         if (!is_object($cbForm) && $this->processor->editable && $this->processor->editable_override) {
             $editableFormValue = $this->processor->form;
-            $editableUserId = $this->processor->app->getIdentity()->get('id', 0);
+            $editableUserId = $user->get('id', 0);
             $recordsQuery = $this->processor->database->createQuery()
                 ->select('id')
                 ->from($this->processor->database->quoteName('#__facileforms_records'))
@@ -129,12 +132,12 @@ final class ExportEngine
         $record->viewed = 0;
         $record->exported = 0;
         $record->state = 1;
-        if ($this->processor->app->getIdentity()->get('id', 0) > 0) {
-            $record->user_id = $this->processor->app->getIdentity()->get('id', 0);
-            $record->username = $this->processor->app->getIdentity()->get('username', '');
-            $record->user_full_name = $this->processor->app->getIdentity()->get('name', '');
+        if ($user->get('id', 0) > 0) {
+            $record->user_id = $user->get('id', 0);
+            $record->username = $user->get('username', '');
+            $record->user_full_name = $user->get('name', '');
         } else {
-            $record->user_id = $this->processor->app->getIdentity()->get('id', 0);
+            $record->user_id = $user->get('id', 0);
             $record->username = '-';
             $record->user_full_name = '-';
         }
@@ -201,7 +204,7 @@ final class ExportEngine
         $names = array();
         $subrecord = new SubrecordTable($this->processor->database);
         $subrecord->record = $record->id;
-        if (count($this->processor->savedata)) {
+        if (count($this->processor->savedata ?? [])) {
 
             $cbData = array();
 
@@ -219,7 +222,7 @@ final class ExportEngine
                 $db->setQuery($cbFormQuery);
                 $_settings = $db->loadObject();
 
-                $_record = $cbForm->getRecord($this->processor->app->getInput()->getInt('record_id', 0), $_settings->published_only, $cbResult['frontend'] ? ($_settings->own_only_fe ? $this->processor->app->getIdentity()->get('id', 0) : -1) : ($_settings->own_only ? $this->processor->app->getIdentity()->get('id', 0) : -1), true);
+                $_record = $cbForm->getRecord($this->processor->app->getInput()->getInt('record_id', 0), $_settings->published_only, $cbResult['frontend'] ? ($_settings->own_only_fe ? $user->get('id', 0) : -1) : ($_settings->own_only ? $user->get('id', 0) : -1), true);
                 foreach ($_record as $_rec) {
                     $_files_deleted = array();
                     if ($_rec->recType == 'File Upload') {
@@ -244,7 +247,7 @@ final class ExportEngine
 
                         if (isset($_files_deleted[$_rec->recElementId]) && is_array($_files_deleted[$_rec->recElementId]) && count($_files_deleted[$_rec->recElementId])) {
                             $_i = 0;
-                            foreach ($this->processor->savedata as $data) {
+                            foreach ($this->processor->savedata ?? [] as $data) {
                                 if ($data[_FF_DATA_ID] == $_rec->recElementId) {
                                     $_is_values = explode("\n", $_rec->recValue);
                                     $_j = 0;
@@ -260,7 +263,7 @@ final class ExportEngine
                                 $_i++;
                             }
                         } else {
-                            $next = count($this->processor->savedata);
+                            $next = count($this->processor->savedata ?? []);
                             $this->processor->savedata[$next] = array();
                             $this->processor->savedata[$next][_FF_DATA_ID] = $_rec->recElementId;
                             $this->processor->savedata[$next][_FF_DATA_NAME] = $_rec->recName;
@@ -278,7 +281,7 @@ final class ExportEngine
             }
             $_savedata = array();
             if (!is_object($cbForm)) {
-                foreach ($this->processor->savedata as $data) {
+                foreach ($this->processor->savedata ?? [] as $data) {
                     if ($data[_FF_DATA_TYPE] == 'File Upload') {
                         if (!isset($_savedata[$data[_FF_DATA_ID]])) {
                             $_savedata[$data[_FF_DATA_ID]] = '';
@@ -288,7 +291,7 @@ final class ExportEngine
                 }
             }
             $isset = array();
-            foreach ($this->processor->savedata as $data) {
+            foreach ($this->processor->savedata ?? [] as $data) {
                 // CONTENTBUILDER WILL TAKE OVER SAVING/UPDATE IF EXISTS
                 if (!is_object($cbForm)) {
         $subrecord->id = null;
@@ -433,20 +436,20 @@ final class ExportEngine
 
                         $is_future = 0;
                         $created_up = (new \Joomla\CMS\Date\Date())->toSql();
-                        if (intval($cbData->default_publish_up_days) != 0) {
+                        if (intval($cbData?->default_publish_up_days) != 0) {
                             $is_future = 1;
-                            $date = new \Joomla\CMS\Date\Date((string) strtotime('now +' . intval($cbData->default_publish_up_days) . ' days'));
+                            $date = new \Joomla\CMS\Date\Date((string) strtotime('now +' . intval($cbData?->default_publish_up_days) . ' days'));
                             $created_up = $date->toSql();
                         }
                         $created_down = '0000-00-00 00:00:00';
-                        if (intval($cbData->default_publish_down_days) != 0) {
-                            $date = new \Joomla\CMS\Date\Date((string) strtotime($created_up . ' +' . intval($cbData->default_publish_down_days) . ' days'));
+                        if (intval($cbData?->default_publish_down_days) != 0) {
+                            $date = new \Joomla\CMS\Date\Date((string) strtotime($created_up . ' +' . intval($cbData?->default_publish_down_days) . ' days'));
                             $created_down = $date->toSql();
                         }
 
                         $langSessionId = $this->processor->app->getSession()->getId();
                         $langType = 'com_breezingformsng';
-                        $langPublished = $cbData->auto_publish && !$is_future ? 1 : 0;
+                        $langPublished = $cbData?->auto_publish && !$is_future ? 1 : 0;
                         $langReferenceId = $cbForm->getReferenceId();
                         $langSefTrimmed = trim($sef);
                         $insertRecordQuery = $db->createQuery()
@@ -539,12 +542,12 @@ final class ExportEngine
                             $ids[] = $row['reference_id'];
                         }
                     }
-                    $cbData->items = $cbForm->getRecord($record_return, $cbData->published_only, $cbResult['frontend'] ? ($cbData->own_only_fe ? $this->processor->app->getIdentity()->get('id', 0) : -1) : ($cbData->own_only ? $this->processor->app->getIdentity()->get('id', 0) : -1), true);
+                    $cbData->items = $cbForm->getRecord($record_return, $cbData->published_only, $cbResult['frontend'] ? ($cbData->own_only_fe ? $user->get('id', 0) : -1) : ($cbData->own_only ? $user->get('id', 0) : -1), true);
                     if (!count($cbData->items)) {
                         throw new Exception(Text::_('COM_CONTENTBUILDERNG_RECORD_NOT_FOUND'), 404);
                     }
                     $config = array();
-                    foreach ($this->processor->savedata as $data) {
+                    foreach ($this->processor->savedata ?? [] as $data) {
                         if ($data[_FF_DATA_NAME] == 'cb_article_category_id') {
                             $config['bf_catid'] = intval($data[_FF_DATA_VALUE]);
                             break;
@@ -578,8 +581,8 @@ final class ExportEngine
         }
 
         $integrate = new IntegratorRuntime((int) $this->processor->form, $this->processor->database);
-        if (count($this->processor->savedata))
-            foreach ($this->processor->savedata as $data) {
+        if (count($this->processor->savedata ?? []))
+            foreach ($this->processor->savedata ?? [] as $data) {
                 $integrate->field($data);
             }
         $integrate->commit();
@@ -706,9 +709,9 @@ final class ExportEngine
         $processed = array();
         $xmldata = array();
 
-        $_xmldata = $this->processor->xmldata;
+        $_xmldata = $this->processor->xmldata ?? [];
         if ($mailback) {
-            $_xmldata = $this->processor->mb_xmldata;
+            $_xmldata = $this->processor->mb_xmldata ?? [];
         }
 
         foreach ($_xmldata as $data) {
@@ -739,7 +742,7 @@ final class ExportEngine
 
         $pdf = new PdfDocument();
         $pdf->setMailback($mailback);
-        $pdf->setFormName($this->processor->formrow->name);
+        $pdf->setFormName($this->processor->formrow->name ?? '');
 
         $pdfForm = $this->processor->form;
         $pdfSubmitted = $timestamp->submittedAt;
@@ -829,7 +832,7 @@ final class ExportEngine
             $fm = $matches_array[2][0];
 
             if (str_starts_with(trim($fm), '{mospath}')) {
-                $fm = str_replace('{mospath}', $this->processor->mospath, $fm);
+                $fm = str_replace('{mospath}', $this->processor->mospath ?? '', $fm);
             }
 
             foreach ($_xmldata as $data) {
@@ -839,10 +842,12 @@ final class ExportEngine
                 $fm = str_replace('{' . strtolower($data[_FF_DATA_NAME]) . ':value}', File::makeSafe(trim($value)), $fm);
             }
 
+            $user = $this->processor->app->getIdentity()
+                ?? throw new \RuntimeException('The current user is not loaded.');
             $fm = str_replace('{filemask:_separator}', '_', $fm);
-            $fm = str_replace('{filemask:_username}', trim($this->processor->app->getIdentity()->get('username')), $fm);
-            $fm = str_replace('{filemask:_userid}', trim($this->processor->app->getIdentity()->get('id')), $fm);
-            $fm = str_replace('{filemask:_name}', trim($this->processor->app->getIdentity()->get('name')), $fm);
+            $fm = str_replace('{filemask:_username}', trim($user->get('username')), $fm);
+            $fm = str_replace('{filemask:_userid}', trim($user->get('id')), $fm);
+            $fm = str_replace('{filemask:_name}', trim($user->get('name')), $fm);
             $fm = str_replace('{filemask:_datetime}', trim($date_stamp), $fm);
             $fm = str_replace('{filemask:_date}', trim($date_stamp2), $fm);
             $fm = str_replace('{filemask:_timestamp}', (string) time(), $fm);
@@ -914,9 +919,9 @@ final class ExportEngine
         $lines[$lineNum]['ZZZ_D_BROWSER'][] = $this->processor->browser;
         $lines[$lineNum]['ZZZ_E_OPSYS'][] = $this->processor->opsys;
 
-        $xmldata = $this->processor->xmldata;
+        $xmldata = $this->processor->xmldata ?? [];
         if ($mailback) {
-            $xmldata = $this->processor->mb_xmldata;
+            $xmldata = $this->processor->mb_xmldata ?? [];
         }
 
         $processed = array();
@@ -1016,20 +1021,21 @@ final class ExportEngine
 
         $xml .= indent(2) . '<submitted>' . $submitted . '</submitted>' . nl() .
             indent(2) . '<form>' . $this->processor->form . '</form>' . nl() .
-            indent(2) . '<title>' . htmlspecialchars($title_translated != '' ? $title_translated : $this->processor->formrow->title, ENT_QUOTES, 'UTF-8') . '</title>' . nl() .
+            indent(2) . '<title>' . htmlspecialchars($title_translated != '' ? $title_translated : ($this->processor->formrow->title ?? ''), ENT_QUOTES, 'UTF-8') . '</title>' . nl() .
             indent(2) . '<name>' . $this->processor->formrow->name . '</name>' . nl() .
             indent(2) . '<ip>' . $this->processor->ip . '</ip>' . nl() .
-            indent(2) . '<browser>' . htmlspecialchars($this->processor->browser, ENT_QUOTES, 'UTF-8') . '</browser>' . nl() .
-            indent(2) . '<opsys>' . htmlspecialchars($this->processor->opsys, ENT_QUOTES, 'UTF-8') . '</opsys>' . nl() .
+            indent(2) . '<browser>' . htmlspecialchars($this->processor->browser ?? '', ENT_QUOTES, 'UTF-8') .
+                '</browser>' . nl() .
+            indent(2) . '<opsys>' . htmlspecialchars($this->processor->opsys ?? '', ENT_QUOTES, 'UTF-8') . '</opsys>' . nl() .
             indent(2) . '<provider>' . $this->processor->provider . '</provider>' . nl() .
             indent(2) . '<viewed>0</viewed>' . nl() .
             indent(2) . '<exported>0</exported>' . nl() .
             indent(2) . '<state>1</state>' . nl();
         $processed = array();
 
-        $xmldata = $this->processor->xmldata;
+        $xmldata = $this->processor->xmldata ?? [];
         if ($mailback) {
-            $xmldata = $this->processor->mb_xmldata;
+            $xmldata = $this->processor->mb_xmldata ?? [];
         }
 
         if (count($xmldata))

@@ -131,7 +131,8 @@ final class Breezingforms extends CMSPlugin implements SubscriberInterface
         if ($this->params->get('load_in_iframe', 0)) {
             $GLOBALS['ff_target'] = $target;
             if ((int) $form->autoheight === 1) {
-                $app->getDocument()->getWebAssetManager()->registerAndUseScript(
+                $document = $app->getDocument() ?? throw new \RuntimeException('The document is not available.');
+                $document->getWebAssetManager()->registerAndUseScript(
                     'plg_content.breezingforms.resize',
                     Uri::root(true) . '/plugins/content/breezingforms/js/resize.js',
                     [],

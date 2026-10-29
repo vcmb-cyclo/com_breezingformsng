@@ -86,7 +86,7 @@ abstract class PackageItemController extends FormController
 
     public function execute($task)
     {
-        $user = $this->app->getIdentity();
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
 
         if (!$user->authorise('core.manage', 'com_breezingformsng')) {
             throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);

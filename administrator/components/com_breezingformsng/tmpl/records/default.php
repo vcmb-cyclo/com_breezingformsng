@@ -16,7 +16,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
 $listOrder = $this->escape($this->state->get('list.ordering'));
 $listDirn  = $this->escape($this->state->get('list.direction'));
-$user = Factory::getApplication()->getIdentity();
+$user = Factory::getApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
 $userId = (int) $user->id;
 $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 // Dates are stored in UTC and shown in the time zone of the user.

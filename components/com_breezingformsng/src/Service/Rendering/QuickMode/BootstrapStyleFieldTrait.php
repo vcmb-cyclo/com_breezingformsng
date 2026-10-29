@@ -245,7 +245,8 @@ trait BootstrapStyleFieldTrait
         echo '</div>' . "\n";
 
         if (!$this->hasResponsiveDatePicker) {
-            $this->p->app->getDocument()->getWebAssetManager()->addInlineScript(
+            $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
+            $document->getWebAssetManager()->addInlineScript(
                 'var bfPickerMinusYearIcon = ' . json_encode(
                     Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/pickadate/minusyear.png'
                 ) . ';'
@@ -660,7 +661,8 @@ trait BootstrapStyleFieldTrait
             $this->p->app,
             Uri::root(true) . '/media/com_breezingformsng/js/site/quickmode-signature.js'
         );
-        $this->p->app->getDocument()->getWebAssetManager()->addInlineScript(
+        $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $document->getWebAssetManager()->addInlineScript(
             'bfSignatureInit(' . json_encode((int) $mdata['dbId']) . ');'
         );
 

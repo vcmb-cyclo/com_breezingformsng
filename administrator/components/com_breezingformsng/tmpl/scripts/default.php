@@ -23,7 +23,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\ScriptModel;
 
 $listOrder = $this->escape((string) $this->state->get('list.ordering'));
 $listDirn  = $this->escape((string) $this->state->get('list.direction'));
-$user = Factory::getApplication()->getIdentity();
+$user = Factory::getApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
 $userId = (int) $user->id;
 $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 ?>

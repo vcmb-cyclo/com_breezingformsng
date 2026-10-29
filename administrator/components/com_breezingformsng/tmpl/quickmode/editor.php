@@ -18,7 +18,7 @@ use Joomla\CMS\Language\Text;
 
 /** @var \Joomla\CMS\Application\CMSApplication $app */
 $app = Factory::getApplication();
-$document = $app->getDocument();
+$document = $app->getDocument() ?? throw new \RuntimeException('The document is not available.');
 
 if ($app->getInput()->getCmd('task') === 'quickmode.editor') {
     $document->getWebAssetManager()->addInlineScript('

@@ -35,7 +35,7 @@ final class TraceRuntime
             return;
         }
 
-        $trc = str_repeat('  ', count($this->processor->traceStack));
+        $trc = str_repeat('  ', count($this->processor->traceStack ?? []));
         $trc .= Text::_('COM_BREEZINGFORMSNG_PROCESS_MSGUNKNOWN') . ": $msg\n";
         $this->processor->traceBuffer .= htmlspecialchars($trc, ENT_QUOTES);
         if ($this->processor->traceMode & _FF_TRACEMODE_DIRECT) {
@@ -53,7 +53,7 @@ final class TraceRuntime
             return;
         }
 
-        $level = count($this->processor->traceStack);
+        $level = count($this->processor->traceStack ?? []);
         if ($msg && ($this->processor->traceMode & _FF_TRACEMODE_MESSAGE)) {
             $trc = str_repeat('  ', $level);
             $trc .= Text::_('COM_BREEZINGFORMSNG_PROCESS_LINE') . " $line: $msg\n";
@@ -106,7 +106,7 @@ final class TraceRuntime
 
         $oldmode = $this->getMode($newmode, $name);
         if ($newmode & _FF_TRACEMODE_PIECE) {
-            $this->processor->traceBuffer .= str_repeat('  ', count($this->processor->traceStack));
+            $this->processor->traceBuffer .= str_repeat('  ', count($this->processor->traceStack ?? []));
             $this->processor->traceBuffer .= htmlspecialchars(
                 "+" . Text::_('COM_BREEZINGFORMSNG_PROCESS_ENTER')
                     . " $name " . Text::_('COM_BREEZINGFORMSNG_PROCESS_ATLINE') . " $line\n",
@@ -137,7 +137,7 @@ final class TraceRuntime
 
         $oldmode = $this->getMode($newmode, $name);
         if ($newmode & _FF_TRACEMODE_FUNCTION) {
-            $trc = str_repeat('  ', count($this->processor->traceStack));
+            $trc = str_repeat('  ', count($this->processor->traceStack ?? []));
             $trc .= "+" . Text::_('COM_BREEZINGFORMSNG_PROCESS_ENTER') . " $name(";
             if ($args) {
                 $next = false;
@@ -155,7 +155,7 @@ final class TraceRuntime
                     } elseif (is_numeric($arg)) {
                         $trc .= $arg;
                     } elseif (is_string($arg)) {
-                        $arg = preg_replace('/([\\s]+)/si', ' ', $arg);
+                        $arg = preg_replace('/([\\s]+)/si', ' ', $arg) ?? '';
                         if (strlen($arg) > _FF_TRACE_NAMELIMIT) {
                             $arg = substr($arg, 0, _FF_TRACE_NAMELIMIT - 3) . '...';
                         }
@@ -192,7 +192,7 @@ final class TraceRuntime
             return null;
         }
 
-        $info = array_pop($this->processor->traceStack);
+        $info = $this->processor->traceStack !== null ? array_pop($this->processor->traceStack) : null;
         if ($info) {
             $oldmode = $this->processor->traceMode;
             $newmode = $info[0];
@@ -205,7 +205,7 @@ final class TraceRuntime
             }
 
             if ($visible) {
-                $this->processor->traceBuffer .= str_repeat('  ', count($this->processor->traceStack));
+                $this->processor->traceBuffer .= str_repeat('  ', count($this->processor->traceStack ?? []));
                 $this->processor->traceBuffer .= htmlspecialchars(
                     "-" . Text::_('COM_BREEZINGFORMSNG_PROCESS_LEAVE')
                         . " $name " . Text::_('COM_BREEZINGFORMSNG_PROCESS_ATLINE') . " $line\n",
@@ -273,7 +273,7 @@ final class TraceRuntime
             return;
         }
 
-        $this->processor->traceBuffer .= str_repeat('  ', count($this->processor->traceStack));
+        $this->processor->traceBuffer .= str_repeat('  ', count($this->processor->traceStack ?? []));
         $this->processor->traceBuffer .= htmlspecialchars("eval($name)\n", ENT_QUOTES);
         if ($this->processor->traceMode & _FF_TRACEMODE_DIRECT) {
             $this->dumpTrace();

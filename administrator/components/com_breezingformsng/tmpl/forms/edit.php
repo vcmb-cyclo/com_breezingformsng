@@ -13,7 +13,7 @@ use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\HTML\HTMLHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\FormsAdvancedOptionsHtml;
 
-$f   = $this->form;
+$f   = $this->form ?? throw new \RuntimeException('The form is not loaded.');
 $pkg = $this->pkg ?: (string) ($f->package ?? '');
 
 $tabId = 'bfFormTabs';
@@ -48,7 +48,7 @@ FormsAdvancedOptionsHtml::render([
 <?php
 /** @var \Joomla\CMS\Application\CMSApplication $app */
 $app = Factory::getApplication();
-$bfDocument = $app->getDocument();
+$bfDocument = $app->getDocument() ?? throw new \RuntimeException('The document is not available.');
 $bfDocument->getWebAssetManager()->useScript('com_breezingformsng.admin-form');
 $bfDocument->addScriptOptions('com_breezingformsng.admin-form', ['cancelTask' => 'forms.cancel']);
 ?>

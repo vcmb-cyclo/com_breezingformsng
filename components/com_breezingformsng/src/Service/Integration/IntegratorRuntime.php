@@ -7,6 +7,7 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Integration;
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\User\User;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Vcmb\Component\BreezingformsNG\Site\Service\Scripting\StoredPhpExecutor;
@@ -211,7 +212,7 @@ class IntegratorRuntime
     public function handleCode($value, $code)
     {
         // The code of an item changes the value it writes, as in BreezingForms: $value = trim($value);
-        if (trim((string) $code) != '') {
+        if ($code !== null && trim($code) != '') {
             $this->codeExecutor()->execute($this, $code, ['value' => &$value]);
         }
         return $value;
@@ -223,7 +224,7 @@ class IntegratorRuntime
      */
     public function handleFinalizeCode($code)
     {
-        if (trim($code) != '') {
+        if ($code !== null && trim($code) != '') {
             $this->codeExecutor()->execute($this, $code);
         }
     }
@@ -420,10 +421,10 @@ class IntegratorRuntime
             foreach ($criteria['joomla'] as $crit) {
                 switch ($crit->joomla_object) {
                     case 'Userid':
-                        $jobject = Factory::getApplication()->getIdentity()->get('id', '');
+                        $jobject = $this->currentUser()->get('id', '');
                         break;
                     case 'Username':
-                        $jobject = Factory::getApplication()->getIdentity()->get('username', '');
+                        $jobject = $this->currentUser()->get('username', '');
                         break;
                     case 'Language':
                         $jobject = Factory::getApplication()->getLanguage()->getName();
@@ -457,5 +458,11 @@ class IntegratorRuntime
         $crit['joomla'] = $this->getCriteriaJoomla($ruleId);
         $crit['fixed'] = $this->getCriteriaFixed($ruleId);
         return $crit;
+    }
+
+    private function currentUser(): User
+    {
+        return Factory::getApplication()->getIdentity()
+            ?? throw new \RuntimeException('The current user is not loaded.');
     }
 }

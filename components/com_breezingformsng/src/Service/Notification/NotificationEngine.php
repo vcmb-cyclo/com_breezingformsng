@@ -125,8 +125,8 @@ final class NotificationEngine
                 $froms = explode(':', $from_);
                 $field = $froms[0];
 
-                if (count($this->processor->maildata)) {
-                    foreach ($this->processor->maildata as $DATA) {
+                if (count($this->processor->maildata ?? [])) {
+                    foreach ($this->processor->maildata ?? [] as $DATA) {
                         if (strtolower($DATA[_FF_DATA_NAME]) == strtolower($field)) {
                             if (isset($froms[1])) {
                                 $valuepairs = explode(',', $froms[1]);
@@ -181,6 +181,9 @@ final class NotificationEngine
         }
         $body = '';
         $isHtml = false;
+
+        $user = $this->processor->app->getIdentity()
+            ?? throw new \RuntimeException('The current user is not loaded.');
 
         if ($this->processor->formrow->email_type == 0) {
 
@@ -240,15 +243,15 @@ final class NotificationEngine
                 $PROCESS_SUBMITTERFULLNAME = Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME');
                 $SUBMITTERFULLNAME = '-';
 
-                if ($this->processor->app->getIdentity()->get('id', 0) > 0) {
-                    $SUBMITTERID = $this->processor->app->getIdentity()->get('id', 0);
-                    $SUBMITTERUSERNAME = $this->processor->app->getIdentity()->get('username', '');
-                    $SUBMITTERFULLNAME = $this->processor->app->getIdentity()->get('name', '');
+                if ($user->get('id', 0) > 0) {
+                    $SUBMITTERID = $user->get('id', 0);
+                    $SUBMITTERUSERNAME = $user->get('username', '');
+                    $SUBMITTERFULLNAME = $user->get('name', '');
                 }
 
                 $MAILDATA = array();
-                if (count($this->processor->maildata)) {
-                    foreach ($this->processor->maildata as $DATA) {
+                if (count($this->processor->maildata ?? [])) {
+                    foreach ($this->processor->maildata ?? [] as $DATA) {
                         $subject = str_replace('{' . $DATA[_FF_DATA_NAME] . ':label}', strip_tags($DATA[_FF_DATA_TITLE]), $subject);
                         $subject = str_replace('{' . $DATA[_FF_DATA_NAME] . ':title}', strip_tags($DATA[_FF_DATA_TITLE]), $subject);
                         $subject = str_replace('{' . $DATA[_FF_DATA_NAME] . ':value}', $DATA[_FF_DATA_VALUE], $subject);
@@ -273,14 +276,14 @@ final class NotificationEngine
                     Text::_('COM_BREEZINGFORMSNG_PROCESS_FORMNAME') . ": " . $this->processor->formrow->name . nl() . nl() .
                     Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTEDAT') . ": " . $submitted . nl() .
                     Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERIP') . ": " . $this->processor->ip . nl() .
-                    Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERID') . ": " . $this->processor->app->getIdentity()->get('id', 0) . nl() .
-                    Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME') . ": " . $this->processor->app->getIdentity()->get('username', '') . nl() .
-                    Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME') . ": " . $this->processor->app->getIdentity()->get('name', '') . nl() .
+                    Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERID') . ": " . $user->get('id', 0) . nl() .
+                    Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME') . ": " . $user->get('username', '') . nl() .
+                    Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME') . ": " . $user->get('name', '') . nl() .
                     Text::_('COM_BREEZINGFORMSNG_PROCESS_PROVIDER') . ": " . $this->processor->provider . nl() .
                     Text::_('COM_BREEZINGFORMSNG_PROCESS_BROWSER') . ": " . $this->processor->browser . nl() .
                     Text::_('COM_BREEZINGFORMSNG_PROCESS_OPSYS') . ": " . $this->processor->opsys . nl() . nl();
-                if (count($this->processor->maildata)) {
-                    foreach ($this->processor->maildata as $data) {
+                if (count($this->processor->maildata ?? [])) {
+                    foreach ($this->processor->maildata ?? [] as $data) {
                         $subject = str_replace('{' . $data[_FF_DATA_NAME] . ':label}', strip_tags($data[_FF_DATA_TITLE]), $subject);
                         $subject = str_replace('{' . $data[_FF_DATA_NAME] . ':title}', strip_tags($data[_FF_DATA_TITLE]), $subject);
                         $subject = str_replace('{' . $data[_FF_DATA_NAME] . ':value}', $data[_FF_DATA_VALUE], $subject);
@@ -303,17 +306,17 @@ final class NotificationEngine
             $FORMNAME = (string) $this->processor->formrow->name;
             $SUBMITTED = $this->formattedNotificationTimestamp();
 
-            $IP = $this->processor->ip;
-            $PROVIDER = $this->processor->provider;
-            $BROWSER = $this->processor->browser;
-            $OPSYS = $this->processor->opsys;
+            $IP = $this->processor->ip ?? '';
+            $PROVIDER = $this->processor->provider ?? '';
+            $BROWSER = $this->processor->browser ?? '';
+            $OPSYS = $this->processor->opsys ?? '';
             $SUBMITTERID = '0';
             $SUBMITTERUSERNAME = '-';
             $SUBMITTERFULLNAME = '-';
-            if ($this->processor->app->getIdentity()->get('id', 0) > 0) {
-                $SUBMITTERID = (string) $this->processor->app->getIdentity()->get('id', 0);
-                $SUBMITTERUSERNAME = $this->processor->app->getIdentity()->get('username', '');
-                $SUBMITTERFULLNAME = $this->processor->app->getIdentity()->get('name', '');
+            if ($user->get('id', 0) > 0) {
+                $SUBMITTERID = (string) $user->get('id', 0);
+                $SUBMITTERUSERNAME = $user->get('username', '');
+                $SUBMITTERFULLNAME = $user->get('name', '');
             }
 
             $body = str_replace('{BF_RECORD_ID:label}', Text::_('COM_BREEZINGFORMSNG_PROCESS_RECORDSAVEDID'), $body);
@@ -355,27 +358,27 @@ final class NotificationEngine
             $body = str_replace('{BF_SUBMITTERFULLNAME:label}', Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME'), $body);
             $body = str_replace('{BF_SUBMITTERFULLNAME:value}', $SUBMITTERFULLNAME, $body);
 
-            if (count($this->processor->savedata)) {
-                foreach ($this->processor->savedata as $data) {
+            if (count($this->processor->savedata ?? [])) {
+                foreach ($this->processor->savedata ?? [] as $data) {
 
                     $regex = "/([\{]hide " . $data[_FF_DATA_NAME] . "[\}])(.*)([\{][\/]hide[\}])/isU";
 
                     if ($data[_FF_DATA_VALUE] == '') {
-                        $body = preg_replace($regex, "", $body);
+                        $body = preg_replace($regex, "", $body) ?? '';
                     } else {
-                        $body = preg_replace($regex, '$2', $body);
+                        $body = preg_replace($regex, '$2', $body) ?? '';
                     }
 
                     if ($data[_FF_DATA_VALUE] == '') {
-                        $subject = preg_replace($regex, "", $subject);
+                        $subject = preg_replace($regex, "", $subject) ?? '';
                     } else {
-                        $subject = preg_replace($regex, '$2', $subject);
+                        $subject = preg_replace($regex, '$2', $subject) ?? '';
                     }
                 }
             }
 
-            if (count($this->processor->maildata)) {
-                foreach ($this->processor->maildata as $data) {
+            if (count($this->processor->maildata ?? [])) {
+                foreach ($this->processor->maildata ?? [] as $data) {
 
                     $subject = str_replace('{' . $data[_FF_DATA_NAME] . ':label}', strip_tags($data[_FF_DATA_TITLE]), $subject);
                     $subject = str_replace('{' . $data[_FF_DATA_NAME] . ':title}', strip_tags($data[_FF_DATA_TITLE]), $subject);
@@ -390,7 +393,7 @@ final class NotificationEngine
                 }
             }
 
-            $body = preg_replace("/{([a-zA-Z0-9_\-])*:(label|value)}/", '', $body);
+            $body = preg_replace("/{([a-zA-Z0-9_\-])*:(label|value)}/", '', $body) ?? '';
 
             if ($this->processor->formrow->email_custom_html) {
                 $isHtml = true;
@@ -414,7 +417,7 @@ final class NotificationEngine
 
         $sender = $this->processor->app->getInput()->get('mailbackSender', array(), 'string');
         for ($i = 0; $i < $this->processor->rowcount; $i++) {
-            $row = $this->processor->rows[$i];
+            $row = ($this->processor->rows ?? [])[$i];
             $mb = $this->processor->app->getInput()->get('ff_nm_' . $row->name, '', 'string');
             if ($row->mailback == 1 && is_array($mb)) {
                 $mbCnt = count($mb);
@@ -437,8 +440,8 @@ final class NotificationEngine
             $from_ = trim($from_, '{}');
             $froms = explode(':', $from_);
             $field = $froms[0];
-            if (count($this->processor->maildata)) {
-                foreach ($this->processor->maildata as $DATA) {
+            if (count($this->processor->maildata ?? [])) {
+                foreach ($this->processor->maildata ?? [] as $DATA) {
                     if (strtolower($DATA[_FF_DATA_NAME]) == strtolower($field)) {
                         if (isset($froms[1])) {
                             $valuepairs = explode(',', $froms[1]);
@@ -478,8 +481,8 @@ final class NotificationEngine
             $fromname_ = trim($fromname_, '{}');
             $froms = explode(':', $fromname_);
             $field = $froms[0];
-            if (count($this->processor->maildata)) {
-                foreach ($this->processor->maildata as $DATA) {
+            if (count($this->processor->maildata ?? [])) {
+                foreach ($this->processor->maildata ?? [] as $DATA) {
                     if (strtolower($DATA[_FF_DATA_NAME]) == strtolower($field)) {
 
                         if (isset($froms[1])) {
@@ -517,8 +520,8 @@ final class NotificationEngine
         $signatures = array();
 
         $attachToAdminMail = $this->processor->app->getInput()->get('attachToAdminMail', array(), 'string');
-        if (count($this->processor->maildata)) {
-            foreach ($this->processor->maildata as $data) {
+        if (count($this->processor->maildata ?? [])) {
+            foreach ($this->processor->maildata ?? [] as $data) {
                 if (isset($attachToAdminMail[$data[_FF_DATA_NAME]])) {
                     if (isset($data[_FF_DATA_FILE_SERVERPATH])) {
                         $testEx = explode("\n", trim($data[_FF_DATA_FILE_SERVERPATH]));
@@ -627,13 +630,18 @@ final class NotificationEngine
             $dataObject = json_decode(bf_b64dec($this->processor->formrow->template_code), true);
             $default = ComponentHelper::getParams('com_languages')->get('site');
 
-            return is_array($dataObject)
-                ? $this->quickModeTranslationResolver()->formTitle(
-                    $dataObject,
-                    $this->processor->app->getLanguage()->getTag(),
-                    (string) $default
-                )
-                : '';
+            if (!is_array($dataObject)) {
+                return '';
+            }
+
+            $language = $this->processor->app->getLanguage()
+                ?? throw new \RuntimeException('The application language is not loaded.');
+
+            return $this->quickModeTranslationResolver()->formTitle(
+                $dataObject,
+                $language->getTag(),
+                (string) $default
+            );
         }
     }
 
@@ -666,11 +674,13 @@ final class NotificationEngine
         }
 
         $default = ComponentHelper::getParams('com_languages')->get('site');
+        $language = $this->processor->app->getLanguage()
+            ?? throw new \RuntimeException('The application language is not loaded.');
         $translation = $this->quickModeTranslationResolver()->field(
             $dataObject,
             (string) $field,
             (string) $name,
-            $this->processor->app->getLanguage()->getTag(),
+            $language->getTag(),
             (string) $default
         );
 
@@ -735,7 +745,7 @@ final class NotificationEngine
         $mailbackfiles = array();
         $recipients = array();
         for ($i = 0; $i < $this->processor->rowcount; $i++) {
-            $row = $this->processor->rows[$i];
+            $row = ($this->processor->rows ?? [])[$i];
             $mb = $this->processor->app->getInput()->get('ff_nm_' . $row->name, '', 'string');
             if ($row->mailback == 1) {
                 $mbCnt = count($mb);
@@ -757,8 +767,8 @@ final class NotificationEngine
                             $recipients[] = trim($mb[$x]);
                             if (!isset($mailbackfiles[trim($mb[$x])]))
                                 $mailbackfiles[trim($mb[$x])] = array();
-                            if (count($this->processor->maildata)) {
-                                foreach ($this->processor->maildata as $data) {
+                            if (count($this->processor->maildata ?? [])) {
+                                foreach ($this->processor->maildata ?? [] as $data) {
                                     if (isset($data[_FF_DATA_FILE_SERVERPATH])) {
                                         if (isset($attachToUserMail[$data[_FF_DATA_NAME]])) {
                                             $testEx = explode("\n", trim($data[_FF_DATA_FILE_SERVERPATH]));
@@ -833,8 +843,8 @@ final class NotificationEngine
             $from_ = trim($from_, '{}');
             $froms = explode(':', $from_);
             $field = $froms[0];
-            if (count($this->processor->maildata)) {
-                foreach ($this->processor->maildata as $DATA) {
+            if (count($this->processor->maildata ?? [])) {
+                foreach ($this->processor->maildata ?? [] as $DATA) {
                     if (!in_array($DATA[_FF_DATA_NAME], $filter)) {
                         if (strtolower($DATA[_FF_DATA_NAME]) == strtolower($field)) {
                             if (isset($froms[1])) {
@@ -876,8 +886,8 @@ final class NotificationEngine
             $fromname_ = trim($fromname_, '{}');
             $froms = explode(':', $fromname_);
             $field = $froms[0];
-            if (count($this->processor->maildata)) {
-                foreach ($this->processor->maildata as $DATA) {
+            if (count($this->processor->maildata ?? [])) {
+                foreach ($this->processor->maildata ?? [] as $DATA) {
                     if (!in_array($DATA[_FF_DATA_NAME], $filter)) {
                         if (strtolower($DATA[_FF_DATA_NAME]) == strtolower($field)) {
                             if (isset($froms[1])) {
@@ -911,6 +921,9 @@ final class NotificationEngine
                 }
             }
         }
+
+        $user = $this->processor->app->getIdentity()
+            ?? throw new \RuntimeException('The current user is not loaded.');
 
         if ($this->processor->formrow->mb_email_type == 0) {
 
@@ -971,15 +984,15 @@ final class NotificationEngine
                 $PROCESS_SUBMITTERFULLNAME = Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME');
                 $SUBMITTERFULLNAME = '-';
 
-                if ($this->processor->app->getIdentity()->get('id', 0) > 0) {
-                    $SUBMITTERID = $this->processor->app->getIdentity()->get('id', 0);
-                    $SUBMITTERUSERNAME = $this->processor->app->getIdentity()->get('username', '');
-                    $SUBMITTERFULLNAME = $this->processor->app->getIdentity()->get('name', '');
+                if ($user->get('id', 0) > 0) {
+                    $SUBMITTERID = $user->get('id', 0);
+                    $SUBMITTERUSERNAME = $user->get('username', '');
+                    $SUBMITTERFULLNAME = $user->get('name', '');
                 }
 
                 $MAILDATA = array();
-                if (count($this->processor->maildata)) {
-                    foreach ($this->processor->maildata as $DATA) {
+                if (count($this->processor->maildata ?? [])) {
+                    foreach ($this->processor->maildata ?? [] as $DATA) {
                         if (!in_array($DATA[_FF_DATA_NAME], $filter)) {
                             $trans_title = '';
                             $this->getFieldTranslated('label', $DATA[_FF_DATA_NAME], $trans_title);
@@ -1017,14 +1030,14 @@ final class NotificationEngine
                     Text::_('COM_BREEZINGFORMSNG_PROCESS_FORMNAME') . ": " . $this->processor->formrow->name . nl() . nl() .
                     Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTEDAT') . ": " . $submitted . nl() .
                     Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERIP') . ": " . $this->processor->ip . nl() .
-                    Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERID') . ": " . $this->processor->app->getIdentity()->get('id', 0) . nl() .
-                    Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME') . ": " . $this->processor->app->getIdentity()->get('username', '') . nl() .
-                    Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME') . ": " . $this->processor->app->getIdentity()->get('name', '') . nl() .
+                    Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERID') . ": " . $user->get('id', 0) . nl() .
+                    Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME') . ": " . $user->get('username', '') . nl() .
+                    Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME') . ": " . $user->get('name', '') . nl() .
                     Text::_('COM_BREEZINGFORMSNG_PROCESS_PROVIDER') . ": " . $this->processor->provider . nl() .
                     Text::_('COM_BREEZINGFORMSNG_PROCESS_BROWSER') . ": " . $this->processor->browser . nl() .
                     Text::_('COM_BREEZINGFORMSNG_PROCESS_OPSYS') . ": " . $this->processor->opsys . nl() . nl();
-                if (count($this->processor->maildata)) {
-                    foreach ($this->processor->maildata as $data) {
+                if (count($this->processor->maildata ?? [])) {
+                    foreach ($this->processor->maildata ?? [] as $data) {
                         $trans_title = '';
                         $this->getFieldTranslated('label', $data[_FF_DATA_NAME], $trans_title);
                         $subject = str_replace('{' . $data[_FF_DATA_NAME] . ':label}', $trans_title != '' ? $trans_title : strip_tags($data[_FF_DATA_TITLE]), $subject);
@@ -1059,17 +1072,17 @@ final class NotificationEngine
             $FORMNAME = (string) $this->processor->formrow->name;
             $SUBMITTED = $this->formattedNotificationTimestamp();
 
-            $IP = $this->processor->ip;
-            $PROVIDER = $this->processor->provider;
-            $BROWSER = $this->processor->browser;
-            $OPSYS = $this->processor->opsys;
+            $IP = $this->processor->ip ?? '';
+            $PROVIDER = $this->processor->provider ?? '';
+            $BROWSER = $this->processor->browser ?? '';
+            $OPSYS = $this->processor->opsys ?? '';
             $SUBMITTERID = '0';
             $SUBMITTERUSERNAME = '-';
             $SUBMITTERFULLNAME = '-';
-            if ($this->processor->app->getIdentity()->get('id', 0) > 0) {
-                $SUBMITTERID = (string) $this->processor->app->getIdentity()->get('id', 0);
-                $SUBMITTERUSERNAME = $this->processor->app->getIdentity()->get('username', '');
-                $SUBMITTERFULLNAME = $this->processor->app->getIdentity()->get('name', '');
+            if ($user->get('id', 0) > 0) {
+                $SUBMITTERID = (string) $user->get('id', 0);
+                $SUBMITTERUSERNAME = $user->get('username', '');
+                $SUBMITTERFULLNAME = $user->get('name', '');
             }
 
             $body = str_replace('{BF_RECORD_ID:label}', Text::_('COM_BREEZINGFORMSNG_PROCESS_RECORDSAVEDID'), $body);
@@ -1111,27 +1124,27 @@ final class NotificationEngine
             $body = str_replace('{BF_SUBMITTERFULLNAME:label}', Text::_('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME'), $body);
             $body = str_replace('{BF_SUBMITTERFULLNAME:value}', $SUBMITTERFULLNAME, $body);
 
-            if (count($this->processor->savedata)) {
-                foreach ($this->processor->savedata as $data) {
+            if (count($this->processor->savedata ?? [])) {
+                foreach ($this->processor->savedata ?? [] as $data) {
 
                     $regex = "/([\{]hide " . $data[_FF_DATA_NAME] . "[\}])(.*)([\{][\/]hide[\}])/isU";
 
                     if ($data[_FF_DATA_VALUE] == '') {
-                        $body = preg_replace($regex, "", $body);
+                        $body = preg_replace($regex, "", $body) ?? '';
                     } else {
-                        $body = preg_replace($regex, '$2', $body);
+                        $body = preg_replace($regex, '$2', $body) ?? '';
                     }
 
                     if ($data[_FF_DATA_VALUE] == '') {
-                        $subject = preg_replace($regex, "", $subject);
+                        $subject = preg_replace($regex, "", $subject) ?? '';
                     } else {
-                        $subject = preg_replace($regex, '$2', $subject);
+                        $subject = preg_replace($regex, '$2', $subject) ?? '';
                     }
                 }
             }
 
-            if (count($this->processor->maildata)) {
-                foreach ($this->processor->maildata as $data) {
+            if (count($this->processor->maildata ?? [])) {
+                foreach ($this->processor->maildata ?? [] as $data) {
 
                     $trans_title = '';
                     $this->getFieldTranslated('label', $data[_FF_DATA_NAME], $trans_title);
@@ -1158,7 +1171,7 @@ final class NotificationEngine
                 }
             }
 
-            $body = preg_replace("/{([a-zA-Z0-9_\-])*:(label|value)}/", '', $body);
+            $body = preg_replace("/{([a-zA-Z0-9_\-])*:(label|value)}/", '', $body) ?? '';
 
             if ($this->processor->formrow->mb_email_custom_html) {
                 $isHtml = true;
@@ -1276,7 +1289,7 @@ final class NotificationEngine
             $this->processor->formrow->salesforce_fields = is_array($salesforceFields) ? $salesforceFields : explode(',', (string) $salesforceFields);
 
             foreach ($this->processor->formrow->salesforce_fields as $sfields) {
-                foreach ($this->processor->sfdata as $savedata) {
+                foreach ($this->processor->sfdata ?? [] as $savedata) {
                     $sfield = explode('::', $sfields);
                     if ($sfield[0] == $savedata[1]) {
                         $fields[$sfield[1]] = $savedata[4];
@@ -1311,7 +1324,7 @@ final class NotificationEngine
     function sendMailChimpNotification()
     {
 
-        if (trim((string) $this->processor->formrow->mailchimp_email_field) != '' && trim((string) $this->processor->formrow->mailchimp_api_key) != '' && trim((string) $this->processor->formrow->mailchimp_list_id) != '' && count($this->processor->maildata)) {
+        if (trim((string) $this->processor->formrow->mailchimp_email_field) != '' && trim((string) $this->processor->formrow->mailchimp_api_key) != '' && trim((string) $this->processor->formrow->mailchimp_list_id) != '' && count($this->processor->maildata ?? [])) {
 
             $email = '';
             $htmlTextMobile = 'text';
@@ -1352,7 +1365,7 @@ final class NotificationEngine
                 $htmlTextMobile = $this->processor->formrow->mailchimp_default_type;
             }
 
-            foreach ($this->processor->maildata as $data) {
+            foreach ($this->processor->maildata ?? [] as $data) {
                 switch ($data[_FF_DATA_NAME]) {
                     case $emailField:
                         $email = bf_is_email(trim($data[_FF_DATA_VALUE])) ? trim($data[_FF_DATA_VALUE]) : '';

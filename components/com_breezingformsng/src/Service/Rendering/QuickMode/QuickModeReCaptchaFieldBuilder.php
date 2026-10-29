@@ -83,7 +83,8 @@ final class QuickModeReCaptchaFieldBuilder
         ?string $controlsClass,
         bool $includeVisibleWidget
     ): string {
-        $languageTag = $application->getLanguage()->getTag();
+        $language = $application->getLanguage() ?? throw new \RuntimeException('The language is not loaded.');
+        $languageTag = $language->getTag();
         RuntimeAssetLoader::script(
             $application,
             $this->initScriptBuilder->visibleApiUrl($languageTag),

@@ -9,9 +9,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Records;
 
 \defined('_JEXEC') or die;
 
-use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Document\HtmlDocument;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Pagination\Pagination;
@@ -27,8 +25,8 @@ class HtmlView extends BaseHtmlView
 {
     /** @var list<\stdClass> */
     public array $items = [];
-    public ?Pagination $pagination = null;
-    public ?Registry $state = null;
+    public Pagination $pagination;
+    public Registry $state;
     public ?Form $filterForm = null;
     /** @var array<string, mixed> */
     public array $activeFilters = [];
@@ -40,12 +38,9 @@ class HtmlView extends BaseHtmlView
 
     public function display($tpl = null)
     {
-        /** @var CMSApplication $app */
-        $app = Factory::getApplication();
-
         $this->getDocument()->getWebAssetManager()->useScript('keepalive');
 
-        $user = $app->getIdentity();
+        $user = $this->getCurrentUser();
         $this->canEditState = $user->authorise('core.edit.state', 'com_breezingformsng');
         $this->canDelete = $user->authorise('core.delete', 'com_breezingformsng');
         $this->canOpen = $user->authorise('core.edit', 'com_breezingformsng');
@@ -104,7 +99,8 @@ class HtmlView extends BaseHtmlView
     {
         /** @var HtmlDocument $document */
         $document = $this->getDocument();
-        $toolbar = $document->getToolbar();
+        $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
+        $user = $this->getCurrentUser();
 
         $exportDropdown = $toolbar->dropdownButton('export-options');
 
@@ -123,7 +119,7 @@ class HtmlView extends BaseHtmlView
         $child->standardButton('exportXlsx')->text(Text::_('COM_BREEZINGFORMSNG_XLSX'))->task('records.exportXlsx')->icon('icon-download')->listCheck(false);
         $child->standardButton('exportXml')->text(Text::_('COM_BREEZINGFORMSNG_XML'))->task('records.exportXml')->icon('icon-download')->listCheck(false);
 
-        if (Factory::getApplication()->getIdentity()->authorise('core.create', 'com_breezingformsng')) {
+        if ($user->authorise('core.create', 'com_breezingformsng')) {
             $toolbar->linkButton('import', 'COM_BREEZINGFORMSNG_BTN_IMPORT_CSV')
                 ->url(Route::_('index.php?option=com_breezingformsng&view=recordsimport'))
                 ->icon('icon-upload');
@@ -216,8 +212,6 @@ class HtmlView extends BaseHtmlView
                 ->message('COM_BREEZINGFORMSNG_CONFIRM_DELETE_RECORDS')
                 ->listCheck(true);
         }
-
-        $user = Factory::getApplication()->getIdentity();
 
         if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
             $toolbar->preferences('com_breezingformsng');

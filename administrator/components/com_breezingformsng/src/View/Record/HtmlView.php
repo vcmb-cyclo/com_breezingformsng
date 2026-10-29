@@ -31,13 +31,13 @@ use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView a
 
 class HtmlView extends BaseHtmlView
 {
-    public ?Form $form = null;
-    public ?\stdClass $item = null;
+    public Form $form;
+    public \stdClass $item;
     public ?int $recordPosition = null;
     public ?Pagination $pagination = null;
     public int $recordTotal = 0;
     public bool $canEditState = false;
-    public ?\DateTimeZone $timezone = null;
+    public \DateTimeZone $timezone;
 
     public function display($tpl = null)
     {
@@ -63,7 +63,7 @@ class HtmlView extends BaseHtmlView
 
         $this->item = $item;
         $this->form = $form;
-        $user = $app->getIdentity();
+        $user = $this->getCurrentUser();
         $this->canEditState = $user->authorise('core.edit.state', 'com_breezingformsng');
         // Dates are stored in UTC and shown in the time zone of the user.
         $this->timezone = $user->getTimezone();
@@ -75,7 +75,7 @@ class HtmlView extends BaseHtmlView
         $this->pagination = $this->getPagination($app, (int) $item->id);
 
         $app->getInput()->set('hidemainmenu', true);
-        $this->addToolbar($app);
+        $this->addToolbar();
         HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
         HTMLHelper::_('bootstrap.collapse');
 
@@ -120,12 +120,12 @@ class HtmlView extends BaseHtmlView
         return $model;
     }
 
-    private function addToolbar(CMSApplication $app): void
+    private function addToolbar(): void
     {
         /** @var HtmlDocument $document */
         $document = $this->getDocument();
-        $toolbar = $document->getToolbar();
-        $user = $app->getIdentity();
+        $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
+        $user = $this->getCurrentUser();
 
         $toolbar->apply('record.apply');
         $toolbar->save('record.save');
@@ -216,6 +216,6 @@ class HtmlView extends BaseHtmlView
 
     protected function getDetailLabel(): ?string
     {
-        return $this->item !== null ? (string) $this->item->title : null;
+        return (string) $this->item->title;
     }
 }

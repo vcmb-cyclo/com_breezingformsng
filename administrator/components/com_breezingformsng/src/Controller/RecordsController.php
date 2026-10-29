@@ -153,9 +153,10 @@ class RecordsController extends AdminController
     public function setState(): void
     {
         $state = $this->input->post->getInt('state', RecordState::PUBLISHED);
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
 
         $this->sendStateChange(
-            function (int $recordId) use ($state): bool {
+            function (int $recordId) use ($state, $user): bool {
                 if (!in_array($state, [RecordState::PUBLISHED, RecordState::ARCHIVED], true)) {
                     return false;
                 }
@@ -164,7 +165,7 @@ class RecordsController extends AdminController
                 $ids = [$recordId];
                 $table = $model->getTable();
                 $heldByUser = $table->load($recordId)
-                    && (int) $table->checked_out === (int) $this->app->getIdentity()->id;
+                    && (int) $table->checked_out === (int) $user->id;
 
                 // Table::publish() checks the record in.
                 return $model->publish($ids, $state) && (!$heldByUser || $model->checkout($recordId));
@@ -321,7 +322,9 @@ class RecordsController extends AdminController
 
     private function canEditState(): bool
     {
-        return $this->app->getIdentity()->authorise('core.edit.state', $this->option);
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+
+        return $user->authorise('core.edit.state', $this->option);
     }
 
     private function batchFlag(string $column, int $value = 1): void

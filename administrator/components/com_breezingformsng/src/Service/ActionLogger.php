@@ -54,7 +54,7 @@ final class ActionLogger
             return;
         }
 
-        $user = $this->app->getIdentity();
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
         $message = self::buildMessage($action, $type, $ids, $title, (int) $user->id, (string) $user->username);
 
         $model = $component->getMVCFactory()->createModel('Actionlog', 'Administrator', ['ignore_request' => true]);

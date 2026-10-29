@@ -139,7 +139,8 @@ class ClassicRenderer
     public function headers()
     {
 
-        $this->p->app->getDocument()->getWebAssetManager()->addInlineScript('
+        $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $document->getWebAssetManager()->addInlineScript('
 	    
 	        jQuery(document).ready(function(){
 	            jQuery(".ff_elem").closest(".input-group").removeClass("input-group");
@@ -162,10 +163,10 @@ class ClassicRenderer
             RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/plupload/plupload.js');
             RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/media/com_breezingformsng/js/site/quickmode-plupload-compat.js');
         }
-        $this->p->app->getDocument()->getWebAssetManager()->useScript('jquery');
+        $document->getWebAssetManager()->useScript('jquery');
         RuntimeAssetLoader::style($this->p->app, Uri::root(true) . '/media/com_breezingformsng/css/site/quickmode-runtime.css');
         HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
-        $this->p->app->getDocument()->getWebAssetManager()->addInlineStyle('
+        $document->getWebAssetManager()->addInlineStyle('
 .bfInline{
 float:left;
 }
@@ -185,7 +186,7 @@ float:left;
         RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/media/com_breezingformsng/js/site/quickmode-core-helpers.js');
         RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/media/com_breezingformsng/js/site/quickmode-deactivation.js');
 
-        $this->p->app->getDocument()->getWebAssetManager()->addInlineScript(
+        $document->getWebAssetManager()->addInlineScript(
             $jQuery . '
 			var inlineErrorElements = new Array();
 			var bfSummarizers = new Array();
@@ -200,7 +201,7 @@ float:left;
         if ($this->fading || !$this->useErrorAlerts || $this->rollover) {
             if (!$this->useErrorAlerts) {
                 $showDefaultErrors = $this->useDefaultErrors || !$this->useBalloonErrors;
-                $this->p->app->getDocument()->getWebAssetManager()->addInlineScript(
+                $document->getWebAssetManager()->addInlineScript(
                     'var bfUseErrorAlerts = false;' . "\n"
                     . 'var bfShowDefaultErrors = ' . ($showDefaultErrors ? 'true' : 'false') . ';' . "\n"
                 );
@@ -212,7 +213,7 @@ float:left;
             }
 
             if ($this->rollover && trim($this->rolloverColor) != '') {
-                $this->p->app->getDocument()->getWebAssetManager()->addInlineScript(
+                $document->getWebAssetManager()->addInlineScript(
                     'var bfRolloverColor = ' . json_encode($this->rolloverColor) . ';'
                 );
                 RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/media/com_breezingformsng/js/site/quickmode-rollover.js');
@@ -300,9 +301,11 @@ float:left;
         $this->p = $p;
 
         $default = ComponentHelper::getParams('com_languages')->get('site');
-        $this->language_tag = $this->p->app->getLanguage()->getTag() != $default ? $this->p->app->getLanguage()->getTag() : 'zz-ZZ';
+        $language = $this->p->app->getLanguage() ?? throw new \RuntimeException('The language is not loaded.');
+        $this->language_tag = $language->getTag() != $default ? $language->getTag() : 'zz-ZZ';
 
-        $this->p->app->getDocument()->getWebAssetManager()->addInlineScript('<!--');
+        $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $document->getWebAssetManager()->addInlineScript('<!--');
 
         $this->dataObject = json_decode(bf_b64dec($this->p->formrow->template_code), true);
         $this->rootMdata = $this->dataObject['properties'];
@@ -311,7 +314,7 @@ float:left;
             /* translatables */
             if (isset($this->rootMdata['title_translation' . $this->language_tag]) && $this->rootMdata['title_translation' . $this->language_tag] != '') {
                 $this->rootMdata['title'] = $this->rootMdata['title_translation' . $this->language_tag];
-                $this->p->app->getDocument()->setTitle($this->rootMdata['title']);
+                $document->setTitle($this->rootMdata['title']);
             }
             /* translatables end */
         }
@@ -401,7 +404,7 @@ float:left;
 
                     preg_match_all($regex, $introtext, $matches, PREG_SET_ORDER);
 
-                        $document = $this->p->app->getDocument();
+                        $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
                         $renderer = $document->loadRenderer('modules');
                         $options = array('style' => 'xhtml');
 
@@ -456,7 +459,7 @@ float:left;
 
                     preg_match_all($regex, $introtext, $matches, PREG_SET_ORDER);
 
-                    $document = $this->p->app->getDocument();
+                    $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
                     $renderer = $document->loadRenderer('modules');
                     $options = array('style' => 'xhtml');
 
@@ -1179,7 +1182,8 @@ float:left;
         echo '</span>' . "\n";
 
         if (!$this->hasResponsiveDatePicker) {
-            $this->p->app->getDocument()->getWebAssetManager()->addInlineScript(
+            $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
+            $document->getWebAssetManager()->addInlineScript(
                 'var bfPickerMinusYearIcon = ' . json_encode(Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/pickadate/minusyear.png') . ';'
                 . "\n" . 'var bfPickerPlusYearIcon = ' . json_encode(Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/pickadate/plusyear.png') . ';'
             );
@@ -1205,7 +1209,8 @@ float:left;
     {
         RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/js/signature.js');
         RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/media/com_breezingformsng/js/site/quickmode-signature.js');
-        $this->p->app->getDocument()->getWebAssetManager()->addInlineScript(
+        $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $document->getWebAssetManager()->addInlineScript(
             'bfSignatureInit(' . json_encode((int) $mdata['dbId']) . ');'
         );
 
@@ -1388,7 +1393,8 @@ float:left;
             RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/pickadate/picker.js');
             RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/pickadate/picker.date.js');
 
-            $lang = $this->p->app->getLanguage()->getTag();
+            $language = $this->p->app->getLanguage() ?? throw new \RuntimeException('The language is not loaded.');
+            $lang = $language->getTag();
             $lang = explode('-', $lang);
             $lang = strtolower($lang[0]);
             if (file_exists(JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/pickadate/translations/' . $lang . '.js')) {
@@ -1426,7 +1432,8 @@ float:left;
             echo "<div style=\"visibility:hidden;display:none;\" id=\"bfSubmitMessage\">" . Text::_('COM_BREEZINGFORMSNG_SUBMIT_MESSAGE') . "</div>";
         }
         echo '<noscript>' . Text::_('COM_BREEZINGFORMSNG_JAVASCRIPT_REQUIRED') . '</noscript>' . "\n";
-        $this->p->app->getDocument()->getWebAssetManager()->addInlineScript('//-->');
+        $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $document->getWebAssetManager()->addInlineScript('//-->');
     }
 
     /**

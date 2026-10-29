@@ -171,7 +171,8 @@ final class QuickmodeHtml
             ENT_QUOTES,
             'UTF-8'
         );
-        $wa = $app->getDocument()->getWebAssetManager();
+        $document = $app->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $wa = $document->getWebAssetManager();
         HTMLHelper::_('bootstrap.modal');
         HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
         $wa->useScript('keepalive');

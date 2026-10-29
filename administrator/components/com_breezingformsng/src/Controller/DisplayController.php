@@ -33,7 +33,9 @@ class DisplayController extends BaseController
      */
     public function display($cachable = false, $urlparams = [])
     {
-        if (!$this->app->getIdentity()->authorise('core.manage', 'com_breezingformsng')) {
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+
+        if (!$user->authorise('core.manage', 'com_breezingformsng')) {
             throw new \Exception(Text::_('JERROR_ALERTNOAUTHOR'), 403);
         }
 

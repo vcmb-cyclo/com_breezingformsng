@@ -15,7 +15,6 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Menus;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Document\HtmlDocument;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Pagination\Pagination;
@@ -27,8 +26,8 @@ class HtmlView extends BaseHtmlView
 {
     /** @var list<\stdClass> */
     public array $items = [];
-    public ?Pagination $pagination = null;
-    public ?Registry $state = null;
+    public Pagination $pagination;
+    public Registry $state;
     public ?Form $filterForm = null;
     /** @var array<string, mixed> */
     public array $activeFilters = [];
@@ -58,8 +57,8 @@ class HtmlView extends BaseHtmlView
     {
         /** @var HtmlDocument $document */
         $document = $this->getDocument();
-        $toolbar = $document->getToolbar();
-        $user = Factory::getApplication()->getIdentity();
+        $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
+        $user = $this->getCurrentUser();
         $this->canEditState = $user->authorise('core.edit.state', 'com_breezingformsng');
         $this->canOpen = $user->authorise('core.edit', 'com_breezingformsng');
 

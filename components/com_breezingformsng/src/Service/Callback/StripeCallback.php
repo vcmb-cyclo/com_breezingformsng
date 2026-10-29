@@ -157,10 +157,10 @@ final class StripeCallback
                         $stripe_pi_create = $stripe_pi->created; // replacing charge->created with paymentIntents->created
                         // XDA BEGIN
                         // Stripe Payment Intent updates to complete its description from pi_xxx to BF item Name - pi_xxx
-                        $stripe->paymentIntents->update($stripe_pi_id, ['description' => $options['itemname']]);
+                        $stripe->paymentIntents->update($stripe_pi->id, ['description' => $options['itemname']]);
                         // XDA END
                         $stripeRecordId = $input->getInt('record_id', -1);
-                        $stripeTxId = 'Stripe: ' . strip_tags($stripe_pi_id);
+                        $stripeTxId = 'Stripe: ' . strip_tags($stripe_pi->id);
                         $stripePaymentDate = date('Y-m-d H:i:s', $stripe_pi_create);
                         $stripeTestaccount = !$stripe_pi->livemode ? 1 : 0;
                         $this->paymentRecordService->storeTransaction(
