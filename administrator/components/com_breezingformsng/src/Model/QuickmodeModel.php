@@ -390,6 +390,7 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['options']['sendNotificationAfterPayment'] = $mdata['sendNotificationAfterPayment'];
                         $element['options']['image']                     = $mdata['image'];
                         $element['options']['emailfield']                = $mdata['emailfield'] ?? '';
+                        $element['options']['klarna']                    = (bool) ($mdata['klarna'] ?? false);
                         $element['data1']                                = $mdata['image'];
                         break;
                     case 'bfSofortueberweisung':

@@ -1043,6 +1043,7 @@ import { JoomlaEditor } from 'editor-api';
 
             mdata.currencyCode = JQuery('#bfElementTypeStripeCurrencyCode').val();
             mdata.sendNotificationAfterPayment = JQuery('#bfElementTypeStripeSendNotificationAfterPayment').prop('checked');
+            mdata.klarna = JQuery('#bfElementTypeStripeKlarna').prop('checked');
 
             // ADVANCED
 
@@ -1089,6 +1090,7 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeStripeThankYouPage').val(mdata.thankYouPage);
             JQuery('#bfElementTypeStripeCurrencyCode').val(mdata.currencyCode);
             JQuery('#bfElementTypeStripeSendNotificationAfterPayment').prop('checked', mdata.sendNotificationAfterPayment);
+            JQuery('#bfElementTypeStripeKlarna').prop('checked', mdata.klarna === true);
             // ADVANCED
 
             JQuery('#bfElementStripeAdvancedImage').val(mdata.image);

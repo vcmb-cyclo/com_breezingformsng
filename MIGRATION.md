@@ -33,13 +33,25 @@ La clôture du chantier dépend des vérifications et corrections suivantes :
   plugin **Joomla Backward Compatibility désactivé**. Le README ne revendique
   actuellement qu’un essai avec ce plugin activé ; le plugin `bfcompat` fourni
   par BreezingForms NG est distinct.
+  Depuis le 2026-10-29, `scripts/joomla-install-smoke.sh` désactive
+  `plg_behaviour_compat6` avant l’installation : installation, mise à jour,
+  migration du schéma, maintenance de la base, plugin de contenu, modules et
+  rendu du site passent sans lui. Restent les écrans d’administration.
 - [ ] Tester une mise à niveau depuis une version antérieure avec des formulaires
   et enregistrements existants. `scripts/joomla-install-smoke.sh` réinstalle
   actuellement la même archive et vérifie la conservation d’un enregistrement.
 - [ ] Exécuter la recette ContentBuilder complète : matrice ACL et export d’un
   enregistrement. Le parcours ContentBuilder du smoke test est optionnel et
   n’est pas activé par le workflow CI courant.
-- [ ] Valider Stripe, PayPal et Sofort avec des comptes sandbox dédiés.
+- [ ] Valider Stripe (carte et Klarna) et PayPal avec des comptes sandbox dédiés.
+- [x] Sofort : Klarna a arrêté Sofort comme moyen de paiement autonome en 2024.
+  L’élément Stripe propose désormais l’option « Proposer aussi Klarna »
+  (`payment_method_types` de la session Stripe Checkout).
+- [ ] Retirer l’élément `bfSofortueberweisung` (rendu, callbacks, modèles de
+  téléchargement, propriétés QuickMode) et traiter les formulaires existants
+  qui le contiennent. Étape destructive, à autoriser séparément.
+- [ ] Migrer PayPal Payments Standard (`_xclick`, PDT, IPN), déprécié par
+  PayPal, vers l’API Orders v2 et les webhooks.
 - [x] Les appels administrateur à `getError()` et `setError()` dans
   `RecordModel`, `MenuModel` et `PackageItemModel` ont été retirés. Les
   contrôleurs de records gèrent désormais les exceptions afin de conserver les
@@ -639,7 +651,7 @@ du renderer mobile historique sont maintenus dans le plan d’architecture.
 ## Validations et points externes
 
 - [x] Les permissions ACL ont été vérifiées en conditions réelles.
-- [ ] Les paiements Stripe, PayPal et Sofort restent à valider avec des comptes sandbox dédiés. Cette recette externe ne bloque pas la migration du code.
+- [ ] Les paiements Stripe (carte et Klarna) et PayPal restent à valider avec des comptes sandbox dédiés. Cette recette externe ne bloque pas la migration du code.
 
 ### Rappels permanents
 
