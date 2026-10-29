@@ -714,6 +714,18 @@ final class SubmissionEngine
             return;
         }
 
+        // Sofort was removed: a form that took no other payment must not be
+        // accepted unpaid until its payment is set up again.
+        if ((new SofortOnlyFormDetector())->isSofortOnly((string) $this->processor->formrow->template_areas)) {
+            Log::add(
+                'Form ' . (int) $this->processor->form . ' was not submitted: Sofort is its only payment element.',
+                Log::WARNING,
+                'com_breezingformsng'
+            );
+            echo '<div class="alert alert-warning">' . Text::_('COM_BREEZINGFORMSNG_SOFORT_FORM_UNAVAILABLE') . '</div>';
+            return;
+        }
+
         // CONTENTBUILDER BEGIN
         $cbRecordId = 0;
         $cbEmailNotifications = false;

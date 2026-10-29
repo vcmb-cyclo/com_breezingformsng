@@ -12,6 +12,7 @@
 		</remove>
 		<fix>
 			<item>Show a payment error instead of a fatal error when Stripe cannot open the payment page.</item>
+			<item>Refuse submissions of a form whose only payment was Sofort until another payment is set up, instead of accepting them unpaid.</item>
 			<item>Restore the code framework buttons of the QuickMode custom scripts and keep the alert setting on the next-page check.</item>
 			<item>Remove the output buffer notice after a form submission.</item>
 			<item>Display a form page without an active menu item, and keep stored QuickMode forms intact when the update cannot rewrite their old links.</item>

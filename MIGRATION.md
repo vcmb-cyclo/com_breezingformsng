@@ -51,7 +51,9 @@ La clôture du chantier dépend des vérifications et corrections suivantes :
   téléchargement, propriétés QuickMode et chaînes de langue. Un élément encore
   enregistré dans un formulaire n’est plus rendu et ne déclenche plus de
   paiement ; QuickMode le retire de l’arbre à l’ouverture, avec un
-  avertissement, et l’enregistrement du formulaire le supprime.
+  avertissement, et l’enregistrement du formulaire le supprime. Un formulaire
+  dont Sofort était le seul paiement refuse les soumissions sur le site, avec un
+  message et une entrée de journal, tant qu’un autre paiement n’est pas configuré.
 - [ ] Migrer PayPal Payments Standard (`_xclick`, PDT, IPN), déprécié par
   PayPal, vers l’API Orders v2 et les webhooks.
 - [x] Les appels administrateur à `getError()` et `setError()` dans
