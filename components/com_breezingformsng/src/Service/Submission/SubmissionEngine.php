@@ -1212,43 +1212,45 @@ transition: box-shadow .15s linear;
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
 
-                                try {
-                                    $checkout_session = \Stripe\Checkout\Session::create([
-                                        'customer_email' => $stripeemail,
-                                        'billing_address_collection' => 'auto',
-                                        /*
-                                        'line_items' => [[
-                                          'price' => 'price_1JYA3UDkYxK6vMJ2QF2S6fNh',
-                                          'quantity' => 1,
-                                          //'description' => var_dump($stripeemail);
-                                        ]],*/
-                                        'line_items' => [
-                                            [
-                                                'price_data' => [
-                                                    'currency' => strtolower($options['currencyCode']),
-                                                    'product_data' => [
-                                                        'name' => "$productName",
+                                    try {
+                                        $checkout_session = \Stripe\Checkout\Session::create([
+                                            'customer_email' => $stripeemail,
+                                            'billing_address_collection' => 'auto',
+                                            /*
+                                            'line_items' => [[
+                                              'price' => 'price_1JYA3UDkYxK6vMJ2QF2S6fNh',
+                                              'quantity' => 1,
+                                              //'description' => var_dump($stripeemail);
+                                            ]],*/
+                                            'line_items' => [
+                                                [
+                                                    'price_data' => [
+                                                        'currency' => strtolower($options['currencyCode']),
+                                                        'product_data' => [
+                                                            'name' => "$productName",
+                                                        ],
+                                                        'unit_amount' => $options['amount'],
                                                     ],
-                                                    'unit_amount' => $options['amount'],
-                                                ],
-                                                'quantity' => 1,
-                                            ]
-                                        ],
-                                        'payment_method_types' => empty($options['klarna']) ? ['card'] : ['card', 'klarna'],
-                                        'mode' => 'payment',
-                                        'success_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
-                                        'cancel_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
-                                    ]);
-                                } catch (\Stripe\Exception\ApiErrorException $e) {
-                                    // Klarna not enabled in the Stripe account, currency not
-                                    // accepted, invalid key: show an error instead of a fatal.
-                                    Log::add('Stripe Checkout: ' . $e->getMessage(), Log::ERROR, 'com_breezingformsng');
-                                    $tx_token = '';
-                                    $msg = Text::_('COM_BREEZINGFORMSNG_STRIPE_CHECKOUT_FAILED');
-                                    require JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php';
+                                                    'quantity' => 1,
+                                                ]
+                                            ],
+                                            'payment_method_types' => empty($options['klarna'])
+                                                ? ['card']
+                                                : ['card', 'klarna'],
+                                            'mode' => 'payment',
+                                            'success_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
+                                            'cancel_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
+                                        ]);
+                                    } catch (\Stripe\Exception\ApiErrorException $e) {
+                                        // Klarna not enabled in the Stripe account, currency not
+                                        // accepted, invalid key: show an error instead of a fatal.
+                                        Log::add('Stripe Checkout: ' . $e->getMessage(), Log::ERROR, 'com_breezingformsng');
+                                        $tx_token = '';
+                                        $msg = Text::_('COM_BREEZINGFORMSNG_STRIPE_CHECKOUT_FAILED');
+                                        require JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php';
 
-                                    break 3;
-                                }
+                                        break 3;
+                                    }
 
                                 $this->processor->app->redirect((string) $checkout_session->url, 303);
 
