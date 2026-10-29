@@ -185,7 +185,7 @@ final class ScriptingEngine
                 $p1 = $p2 + 2;
             } // if
         } // while
-        return str_replace($this->processor->findtags, $this->processor->replacetags, $c);
+        return str_replace($this->processor->findtags ?? [], $this->processor->replacetags ?? [], $c);
     }
 
     // replaceCode
@@ -198,20 +198,25 @@ final class ScriptingEngine
     function compileQueryCol(&$elem, &$coldef)
     {
         $coldef->comp = array();
-        $columnValue = str_replace($this->processor->findtags, $this->processor->replacetags, $coldef->value);
+        $columnSource = $coldef->value ?? '';
+        $columnValue = str_replace(
+            $this->processor->findtags ?? [],
+            $this->processor->replacetags ?? [],
+            $columnSource
+        );
         if ($this->processor->trim($columnValue)) {
             $c = $p1 = 0;
-            $l = strlen($coldef->value);
+            $l = strlen($columnSource);
             while ($p1 < $l) {
-                $p2 = strpos($coldef->value, '<?php', $p1);
+                $p2 = strpos($columnSource, '<?php', $p1);
                 if ($p2 === false)
                     $p2 = $l;
                 $coldef->comp[$c] = array(
                     false,
                     str_replace(
-                        $this->processor->findtags,
-                        $this->processor->replacetags,
-                        trim(substr($coldef->value, $p1, $p2 - $p1))
+                        $this->processor->findtags ?? [],
+                        $this->processor->replacetags ?? [],
+                        trim(substr($columnSource, $p1, $p2 - $p1))
                     )
                 );
                 if ($this->processor->trim($coldef->comp[$c][1]))
@@ -219,10 +224,10 @@ final class ScriptingEngine
                 $p1 = $p2;
                 if ($p1 < $l) {
                     $p1 += 5;
-                    $p2 = strpos($coldef->value, '?>', $p1);
+                    $p2 = strpos($columnSource, '?>', $p1);
                     if ($p2 === false)
                         $p2 = $l;
-                    $coldef->comp[$c] = array(true, substr($coldef->value, $p1, $p2 - $p1));
+                    $coldef->comp[$c] = array(true, substr($columnSource, $p1, $p2 - $p1));
                     if (
                         $this->processor->prepareEvalCode(
                             $coldef->comp[$c][1],
@@ -311,18 +316,23 @@ final class ScriptingEngine
                 for ($c = 0; $c < $ccnt; $c++) {
                     $coldef = &$coldefs[$c];
                     $cname = $coldef->name;
-                    $value = isset($row->$cname) ? str_replace($this->processor->findtags, $this->processor->replacetags, $row->$cname) : '';
-                    $xcnt = count($coldef->comp);
+                    $value = isset($row->$cname) ? str_replace($this->processor->findtags ?? [], $this->processor->replacetags ?? [], $row->$cname) : '';
+                    $xcnt = count($coldef->comp ?? []);
                     if (!$xcnt)
                         $valrow[] = $value;
                     else {
                         $val = '';
                         for ($x = 0; $x < $xcnt; $x++) {
-                            $val .= $coldef->comp[$x][0] ? $this->execQueryValue($coldef->comp[$x][1], $elem, $row, $coldef, $value) : $coldef->comp[$x][1];
+                            $part = ($coldef->comp ?? [])[$x];
+                            $val .= $part[0] ? $this->execQueryValue($part[1], $elem, $row, $coldef, $value) : $part[1];
                             if ($this->processor->dying)
                                 break;
                         } // for
-                        $valrow[] = str_replace($this->processor->findtags, $this->processor->replacetags, $val);
+                        $valrow[] = str_replace(
+                            $this->processor->findtags ?? [],
+                            $this->processor->replacetags ?? [],
+                            $val
+                        );
                     } // if
                     unset($coldef);
                     if ($this->processor->dying)
@@ -402,9 +412,10 @@ final class ScriptingEngine
         $library[] = array('ff_validationFocusName', "var ff_validationFocusName = '';");
         $library[] = array('ff_currentheight', "var ff_currentheight = 0;");
 
+        $elementRows = $this->processor->rows ?? [];
         $code = "var ff_elements = [" . nl();
         for ($i = 0; $i < $this->processor->rowcount; $i++) {
-            $row = $this->processor->rows[$i];
+            $row = $elementRows[$i];
             $endline = "," . nl();
             if ($i == $this->processor->rowcount - 1)
                 $endline = nl();
@@ -539,7 +550,7 @@ final class ScriptingEngine
             "    ff_validationFocusName = '';" . nl();
         $curr = -1;
         for ($i = 0; $i < $this->processor->rowcount; $i++) {
-            $row = $this->processor->rows[$i];
+            $row = $elementRows[$i];
             $funcname = '';
             switch ($row->script3cond) {
                 case 1:
@@ -616,7 +627,7 @@ final class ScriptingEngine
             $formentry = true;
         } // if
         for ($i = 0; $i < $this->processor->rowcount; $i++) {
-            $row = $this->processor->rows[$i];
+            $row = $elementRows[$i];
             $funcname = '';
             switch ($row->script1cond) {
                 case 1:
@@ -642,7 +653,7 @@ final class ScriptingEngine
         $pageentry = false;
         $curr = -1;
         for ($i = 0; $i < $this->processor->rowcount; $i++) {
-            $row = $this->processor->rows[$i];
+            $row = $elementRows[$i];
             $funcname = '';
             switch ($row->script1cond) {
                 case 1:
@@ -784,7 +795,7 @@ final class ScriptingEngine
                 "        vis = 'visible';" . nl();
             $curr = -1;
             for ($i = 0; $i < $this->processor->rowcount; $i++) {
-                $row = $this->processor->rows[$i];
+                $row = $elementRows[$i];
                 if ($row->type != "Hidden Input") {
                     if ($row->page != $curr) {
                         if ($curr >= 1)

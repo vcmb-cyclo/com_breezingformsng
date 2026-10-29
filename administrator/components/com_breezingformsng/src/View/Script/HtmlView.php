@@ -58,8 +58,8 @@ class HtmlView extends BaseHtmlView
         'COM_BREEZINGFORMSNG_TEST_UNIT_TESTS_NONE',
     ];
 
-    public ?Form $form = null;
-    public ?\stdClass $item = null;
+    public Form $form;
+    public \stdClass $item;
     public bool $canEdit = false;
     // A saved item is published from its icon, by Ajax, as a form in QuickMode.
     public bool $canEditState = false;
@@ -89,7 +89,7 @@ class HtmlView extends BaseHtmlView
         }
 
         $this->item = $item;
-        $this->canEdit = AreaAccess::isAllowed($app->getIdentity(), AreaAccess::CODE);
+        $this->canEdit = AreaAccess::isAllowed($this->getCurrentUser(), AreaAccess::CODE);
         $app->getInput()->set('hidemainmenu', true);
 
         if ($this->getLayout() === 'test') {
@@ -116,11 +116,11 @@ class HtmlView extends BaseHtmlView
     {
         /** @var HtmlDocument $document */
         $document = $this->getDocument();
-        $toolbar = $document->getToolbar();
+        $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
         $item = $this->item;
         $saved = (int) $item->id > 0;
         $this->canEditState = $saved && $this->canEdit
-            && Factory::getApplication()->getIdentity()->authorise('core.edit.state', 'com_breezingformsng');
+            && $this->getCurrentUser()->authorise('core.edit.state', 'com_breezingformsng');
 
         if ($this->canEditState) {
             $this->form->removeField('published');
@@ -208,7 +208,7 @@ class HtmlView extends BaseHtmlView
 
         /** @var HtmlDocument $document */
         $document = $this->getDocument();
-        $toolbar = $document->getToolbar();
+        $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
         $toolbar->linkButton('edit', 'COM_BREEZINGFORMSNG_TEST_BACK')
             ->url(Route::_('index.php?option=com_breezingformsng&task=script.edit&id=' . (int) $item->id))
             ->icon('icon-undo');
@@ -243,10 +243,6 @@ class HtmlView extends BaseHtmlView
 
     protected function getDetailLabel(): ?string
     {
-        if ($this->item === null) {
-            return null;
-        }
-
         $name = trim((string) $this->item->name);
 
         return $name !== '' ? $name : Text::_('COM_BREEZINGFORMSNG_SCRIPTS_ADDSCRIPT');

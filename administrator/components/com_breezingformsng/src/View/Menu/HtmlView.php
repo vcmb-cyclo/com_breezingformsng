@@ -23,8 +23,8 @@ use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView a
 
 class HtmlView extends BaseHtmlView
 {
-    public ?Form $form = null;
-    public ?\stdClass $item = null;
+    public Form $form;
+    public \stdClass $item;
 
     public function display($tpl = null)
     {
@@ -53,7 +53,7 @@ class HtmlView extends BaseHtmlView
 
         /** @var HtmlDocument $document */
         $document = $this->getDocument();
-        $toolbar = $document->getToolbar();
+        $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
         $toolbar->apply('menu.apply');
         $toolbar->save('menu.save');
         $toolbar->cancel('menu.cancel', (int) $item->id > 0 ? 'JTOOLBAR_CLOSE' : 'JTOOLBAR_CANCEL');
@@ -64,10 +64,6 @@ class HtmlView extends BaseHtmlView
 
     protected function getDetailLabel(): ?string
     {
-        if ($this->item === null) {
-            return null;
-        }
-
         $title = trim((string) $this->item->title);
 
         return $title !== '' ? $title : null;

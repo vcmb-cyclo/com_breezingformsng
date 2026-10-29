@@ -237,8 +237,8 @@ class HTML_facileFormsProcessor
     public $provider = null;     // visitors provider
     /** @var string|null */
     public $submitted = null;     // submit date/time
-    /** @var FormTable|null */
-    public $formrow = null;     // form row
+    /** @var FormTable Loaded first thing in the constructor. */
+    public $formrow;     // form row
     /** @var int|string|null */
     public $form = null;     // form #
     /** @var string|null */

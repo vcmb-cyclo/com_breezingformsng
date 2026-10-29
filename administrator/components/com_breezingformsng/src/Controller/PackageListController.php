@@ -51,7 +51,7 @@ abstract class PackageListController extends AdminController
      */
     public function execute($task)
     {
-        $user = $this->app->getIdentity();
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
 
         if (!$user->authorise('core.manage', 'com_breezingformsng')) {
             throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
@@ -98,10 +98,11 @@ abstract class PackageListController extends AdminController
         $state = AjaxStateService::normalizeState($this->input->post->getInt('state', 0));
         $model = $this->getModel();
         $pks = [$id];
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
 
         $error = match (true) {
             !$this->checkToken('post', false) => Text::_('JINVALID_TOKEN'),
-            !$this->app->getIdentity()->authorise('core.edit.state', 'com_breezingformsng') => Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'),
+            !$user->authorise('core.edit.state', 'com_breezingformsng') => Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'),
             $id <= 0 || !$model instanceof PackageItemModel => Text::_('JERROR_AN_ERROR_HAS_OCCURRED'),
             !$model->publish($pks, $state) => (string) $model->getError(),
             default => null,

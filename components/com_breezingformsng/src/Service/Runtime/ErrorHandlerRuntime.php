@@ -77,7 +77,7 @@ final class ErrorHandlerRuntime
         $n = is_countable($this->processor->traceStack) ? count($this->processor->traceStack) : 1;
 
         if ($n) {
-            $info = $this->processor->traceStack[$n - 1];
+            $info = $this->processor->traceStack[$n - 1] ?? [];
             $name = htmlspecialchars(
                 $info[2] . ' ' . Text::_('COM_BREEZINGFORMSNG_PROCESS_ATLINE') . ' ' . $info[3],
                 ENT_QUOTES
@@ -102,7 +102,7 @@ final class ErrorHandlerRuntime
                         break;
                     case 'e':
                         $page = 1;
-                        foreach ($this->processor->rows as $row) {
+                        foreach ($this->processor->rows ?? [] as $row) {
                             if ($row->id == $id) {
                                 $page = $row->page;
                                 $what = $row->name;

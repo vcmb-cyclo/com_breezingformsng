@@ -57,8 +57,8 @@ class BFAdminPieceTestContext
 		}
 
 		$code = trim($code);
-		$code = preg_replace('/^<\\?php\\s*/', '', $code);
-		$code = preg_replace('/\\?>\\s*$/', '', $code);
+		$code = preg_replace('/^<\\?php\\s*/', '', $code) ?? '';
+		$code = preg_replace('/\\?>\\s*$/', '', $code) ?? '';
 
 		$runner = \Closure::bind(function (...$__bfPieceArgs) use ($code) {
 			if ($code !== '') {
@@ -89,8 +89,8 @@ class PieceTestRunner
 	private static function normalizePieceCode(mixed $code): string
 	{
 		$code = trim((string) $code);
-		$code = preg_replace('/^<\\?php\\s*/', '', $code);
-		$code = preg_replace('/\\?>\\s*$/', '', $code);
+		$code = preg_replace('/^<\\?php\\s*/', '', $code) ?? '';
+		$code = preg_replace('/\\?>\\s*$/', '', $code) ?? '';
 		return $code;
 	}
 

@@ -41,7 +41,8 @@ class HtmlView extends BaseHtmlView
 
         /** @var CMSApplication $app */
         $app = Factory::getApplication();
-        $this->canRepair = AreaAccess::canRepair($app->getIdentity());
+        $user = $this->getCurrentUser();
+        $this->canRepair = AreaAccess::canRepair($user);
         /** @var HtmlDocument $document */
         $document = $app->getDocument();
         $wa = $document->getWebAssetManager();
@@ -68,7 +69,7 @@ class HtmlView extends BaseHtmlView
                 ->icon('fa-solid fa-stethoscope')
                 ->listCheck(false);
 
-            if (AreaAccess::isAllowed(Factory::getApplication()->getIdentity(), AreaAccess::CONFIGURATION)) {
+            if (AreaAccess::isAllowed($user, AreaAccess::CONFIGURATION)) {
                 $actionsChildToolbar->standardButton('about_export_configuration')
                     ->task('about.exportConfiguration')
                     ->text('COM_BREEZINGFORMSNG_ABOUT_EXPORT_CONFIGURATION')
@@ -93,8 +94,6 @@ class HtmlView extends BaseHtmlView
                 ->text('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS')
                 ->icon('fa-solid fa-plug');
         }
-
-        $user = Factory::getApplication()->getIdentity();
 
         if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
             ToolbarHelper::preferences('com_breezingformsng');

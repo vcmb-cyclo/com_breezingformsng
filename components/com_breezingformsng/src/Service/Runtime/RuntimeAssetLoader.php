@@ -27,7 +27,8 @@ final class RuntimeAssetLoader
     public static function script(CMSApplication $application, string $uri, array $attributes = []): void
     {
         $uri = self::normalizeUri($uri);
-        $manager = $application->getDocument()->getWebAssetManager();
+        $document = $application->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $manager = $document->getWebAssetManager();
         $name = self::name('script', $uri, $attributes);
 
         if (!$manager->assetExists('script', $name)) {
@@ -43,7 +44,8 @@ final class RuntimeAssetLoader
     public static function style(CMSApplication $application, string $uri, array $attributes = []): void
     {
         $uri = self::normalizeUri($uri);
-        $manager = $application->getDocument()->getWebAssetManager();
+        $document = $application->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $manager = $document->getWebAssetManager();
         $name = self::name('style', $uri, $attributes);
 
         if (!$manager->assetExists('style', $name)) {

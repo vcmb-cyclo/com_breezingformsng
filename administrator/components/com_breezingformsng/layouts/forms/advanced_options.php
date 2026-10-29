@@ -28,7 +28,7 @@ defined('_JEXEC') or die;
 /**
  * @var \stdClass $f
  * @var string $pkg
- * @var \Joomla\CMS\Editor\Editor|null $editor
+ * @var \Joomla\CMS\Editor\Editor $editor
  * @var string $tabId
  * @var array<string, int> $tabEntryCounts
  * @var array<int, \stdClass> $initScripts

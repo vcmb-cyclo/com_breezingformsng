@@ -22,7 +22,8 @@ class IntegratorController extends BaseController
 {
     public function execute($task)
     {
-        AreaAccess::assert($this->app->getIdentity(), AreaAccess::CODE);
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+        AreaAccess::assert($user, AreaAccess::CODE);
 
         return parent::execute($task);
     }

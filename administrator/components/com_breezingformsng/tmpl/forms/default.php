@@ -19,7 +19,7 @@ $listDirn  = $this->escape((string) $this->state->get('list.direction'));
 $pagination = $this->pagination;
 $itemCount  = count($this->items);
 $saveOrder  = $listOrder === 'ordering' && strtolower($listDirn) === 'asc';
-$user = Factory::getApplication()->getIdentity();
+$user = Factory::getApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
 $userId = (int) $user->id;
 $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 ?>

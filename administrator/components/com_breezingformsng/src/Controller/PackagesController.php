@@ -119,7 +119,8 @@ final class PackagesController extends BaseController
 
     private function assertAuthorised(): void
     {
-        AreaAccess::assert($this->app->getIdentity(), AreaAccess::CONFIGURATION);
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+        AreaAccess::assert($user, AreaAccess::CONFIGURATION);
     }
 
     private function model(): PackageTransferModel

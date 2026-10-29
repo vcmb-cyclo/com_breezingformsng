@@ -444,13 +444,13 @@ final class CodeToolsRuntime
             if (!$disable) {
                 if (!$name) {
                     $name = preg_replace('/([\\s]+)/si', ' ', $code);
-                    if (strlen($name) > _FF_TRACE_NAMELIMIT)
+                    if (strlen($name ?? '') > _FF_TRACE_NAMELIMIT)
                         $name = substr($code, 0, _FF_TRACE_NAMELIMIT - 3) . '...';
                 } // if
                 $code = $this->patchCode($mode, $code, $name, $type, $id, $pane);
             } // if
         } // if trace not disabled
-        $code = str_replace($this->processor->findtags, $this->processor->replacetags, $code);
+        $code = str_replace($this->processor->findtags ?? [], $this->processor->replacetags ?? [], $code);
         return true;
     }
 

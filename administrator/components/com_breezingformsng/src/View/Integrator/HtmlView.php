@@ -11,7 +11,6 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Integrator;
 
 \defined('_JEXEC') or die;
 
-use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
@@ -30,8 +29,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
 {
     /** @var list<\stdClass> */
     public array $rules = [];
-    public ?Pagination $pagination = null;
-    public ?Registry $state = null;
+    public Pagination $pagination;
+    public Registry $state;
     public ?Form $filterForm = null;
     /** @var array<string, mixed> */
     public array $activeFilters = [];
@@ -55,7 +54,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
     public string $formFilter  = 'all';
     public function display($tpl = null): void
     {
-        AreaAccess::assert(Factory::getApplication()->getIdentity(), AreaAccess::CODE);
+        AreaAccess::assert($this->getCurrentUser(), AreaAccess::CODE);
 
         $input  = Factory::getApplication()->getInput();
         $layout = $input->getCmd('layout', 'default');
@@ -101,7 +100,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
 
         ToolbarHelper::addNew('integrator.edit');
         ToolbarHelper::deleteList('', 'integrator.remove');
-        $user = Factory::getApplication()->getIdentity();
+        $user = $this->getCurrentUser();
 
         if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
             ToolbarHelper::preferences('com_breezingformsng');
@@ -112,9 +111,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             Uri::base() . 'index.php?option=com_breezingformsng&view=integrator&layout=help&tmpl=component'
         );
 
-        /** @var CMSApplication $app */
-        $app      = Factory::getApplication();
-        $document = $app->getDocument();
+        $document = $this->getDocument();
         $wa       = $document->getWebAssetManager();
         $wa->useScript('table.columns')->useScript('multiselect');
         $wa->registerAndUseScript(
@@ -165,7 +162,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         if ($this->rule !== null) {
             /** @var HtmlDocument $document */
             $document = $this->getDocument();
-            $this->addItemPagination($document->getToolbar(), 'IntegratorRules', $id, 'integrator.navigate');
+            $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
+            $this->addItemPagination($toolbar, 'IntegratorRules', $id, 'integrator.navigate');
         }
     }
 

@@ -98,7 +98,8 @@ final class SubmissionEngine
             return '';
         }
 
-        $identity = $this->processor->app->getIdentity();
+        $identity = $this->processor->app->getIdentity()
+            ?? throw new \RuntimeException('The current user is not loaded.');
         $filemode = isset($mosConfig_fileperms)
             ? ($mosConfig_fileperms === '' ? null : (int) octdec($mosConfig_fileperms))
             : 0644;
@@ -106,9 +107,9 @@ final class SubmissionEngine
             (string) $filename,
             (string) $userfile_name,
             (string) $destpath,
-            $this->processor->findtags,
-            $this->processor->replacetags,
-            $this->processor->rows,
+            $this->processor->findtags ?? [],
+            $this->processor->replacetags ?? [],
+            $this->processor->rows ?? [],
             (string) $this->processor->submitted,
             (string) $this->processor->app->get('offset'),
             [
@@ -156,25 +157,27 @@ final class SubmissionEngine
         if ($this->processor->dying || $this->processor->submitdata)
             return;
 
+        $identity = $this->processor->app->getIdentity()
+            ?? throw new \RuntimeException('The current user is not loaded.');
         $this->processor->submitdata = array();
         $this->processor->savedata = array();
         $this->processor->maildata = array();
         $this->processor->sfdata = array();
         $this->processor->xmldata = array();
         $names = array();
-        if (count($this->processor->rows)) {
+        if (count($this->processor->rows ?? [])) {
             $time_passed = 0;
             $start_time = $this->measureTime();
             $max_exec_time = ini_get('max_execution_time');
             $max_time = !empty($max_exec_time) ? intval($max_exec_time) / 2 : 15;
-            foreach ($this->processor->rows as $row) {
+            foreach ($this->processor->rows ?? [] as $row) {
                 if (!in_array($row->name, $names)) {
                     switch ($row->type) {
                         case 'File Upload':
 
                             // CONTENTBUILDER
                             if ($cbResult !== null && isset($cbResult['data']) && $cbResult['data'] != null) {
-                                $rowdata1 = Path::clean(str_replace($this->processor->findtags, $this->processor->replacetags, $row->data1));
+                                $rowdata1 = Path::clean(str_replace($this->processor->findtags ?? [], $this->processor->replacetags ?? [], $row->data1));
                                 if ($cbResult['data']['protect_upload_directory']) {
                                     if (is_dir($rowdata1) && !file_exists($rowdata1 . '/' . '.htaccess'))
                                         File::write($rowdata1 . '/' . '.htaccess', $def = 'deny from all');
@@ -241,7 +244,7 @@ final class SubmissionEngine
                                     if ($name[$i] != '') {
                                         $rowpath1 = $row->data1;
                                         //if ($cbResult !== null && isset($cbResult['data']) && $cbResult['data'] != null) {
-                                        $rowpath1 = $this->processor->cbCreatePathByTokens($rowpath1, $this->processor->rows, $row->name);
+                                        $rowpath1 = $this->processor->cbCreatePathByTokens($rowpath1, $this->processor->rows ?? [], $row->name);
                                         //}
 
                                         $pathInfo = $this->saveUpload($tmp_name[$i], bf_sanitizeFilename($name[$i]), $rowpath1, $row->flag1, $useUrl, $useUrlDownloadDirectory, $resize_target_width, $resize_target_height, $resize_type, $resize_bgcolor, $row->name);
@@ -302,9 +305,9 @@ final class SubmissionEngine
                                                                 $userfile_name = implode('_', $parts);
                                                                 $rowpath1 = $row->data1;
                                                                 //if ($cbResult !== null && isset($cbResult['data']) && $cbResult['data'] != null) {
-                                                                $rowpath1 = $this->processor->cbCreatePathByTokens($rowpath1, $this->processor->rows, $row->name);
+                                                                $rowpath1 = $this->processor->cbCreatePathByTokens($rowpath1, $this->processor->rows ?? [], $row->name);
                                                                 //}
-                                                                $baseDir = Path::clean(str_replace($this->processor->findtags, $this->processor->replacetags, $rowpath1));
+                                                                $baseDir = Path::clean(str_replace($this->processor->findtags ?? [], $this->processor->replacetags ?? [], $rowpath1));
 
                                                                 // test if there is a filemask and remove it from the basepath
                                                                 $_baseDir = $baseDir;
@@ -317,7 +320,7 @@ final class SubmissionEngine
                                                                 if ($fmtest != basename($_baseDir)) {
                                                                     $fm = basename($_baseDir);
 
-                                                                    foreach ($this->processor->rows as $row2) {
+                                                                    foreach ($this->processor->rows ?? [] as $row2) {
 
                                                                         $rawFname = $this->processor->app->getInput()->post->get('ff_nm_' . $row2->name, [], 'raw');
                                                         $permissiveFilter = InputFilter::getInstance([], [], 1, 1);
@@ -333,9 +336,9 @@ final class SubmissionEngine
                                                                     }
 
                                                                     $fm = str_replace('{filemask:_separator}', '_', $fm);
-                                                                    $fm = str_replace('{filemask:_username}', trim($this->processor->app->getIdentity()->get('username')), $fm);
-                                                                    $fm = str_replace('{filemask:_userid}', trim($this->processor->app->getIdentity()->get('id')), $fm);
-                                                                    $fm = str_replace('{filemask:_name}', trim($this->processor->app->getIdentity()->get('name')), $fm);
+                                                                    $fm = str_replace('{filemask:_username}', trim($identity->get('username')), $fm);
+                                                                    $fm = str_replace('{filemask:_userid}', trim($identity->get('id')), $fm);
+                                                                    $fm = str_replace('{filemask:_name}', trim($identity->get('name')), $fm);
                                                                     $fm = str_replace('{filemask:_datetime}', trim($date_stamp), $fm);
                                                                     $fm = str_replace('{filemask:_date}', trim($date_stamp2), $fm);
                                                                     $fm = str_replace('{filemask:_timestamp}', (string) time(), $fm);
@@ -433,7 +436,7 @@ final class SubmissionEngine
 
                                     // CONTENTBUILDER: to keep the relative path with prefix
                                     $savedata_path = $serverPath;
-                                    foreach ($this->processor->findtags as $tag) {
+                                    foreach ($this->processor->findtags ?? [] as $tag) {
                                         if (strtolower($tag) == '{cbsite}' && isset($is_relative[$serverPath])) {
                                             $savedata_path = Path::clean(str_replace(array(JPATH_SITE, JPATH_SITE), array('{cbsite}', '{CBSite}'), $savedata_path));
                                         }
@@ -747,8 +750,9 @@ final class SubmissionEngine
         // handle Begin Submit piece
         $this->collectSubmitdata($cbResult);
 
+            $elementRows = $this->processor->rows ?? [];
             for ($i = 0; $i < $this->processor->rowcount; $i++) {
-                $row = $this->processor->rows[$i];
+                $row = $elementRows[$i];
                 if ($row->type == "Captcha") {
                     VendorHelper::load();
                     $securimage = new Securimage();
@@ -944,7 +948,7 @@ final class SubmissionEngine
                 $email_field_name = $this->processor->formrow->opt_mail;
 
                 // getting the email address from the form based on the setting in admin
-                foreach ($this->processor->submitdata as $data) {
+                foreach ($this->processor->submitdata ?? [] as $data) {
 
                     if ($data[_FF_DATA_NAME] == $email_field_name) {
                         $recipient = $data[_FF_DATA_VALUE];
@@ -1255,7 +1259,8 @@ transition: box-shadow .15s linear;
 
                                 $this->processor->app->redirect((string) $checkout_session->url, 303);
 
-                                $current_tag = $this->processor->app->getLanguage()->getTag();
+                                $current_tag = ($this->processor->app->getLanguage()
+                                        ?? throw new \RuntimeException('The language is not loaded.'))->getTag();
                                 $exploded = explode('-', $current_tag);
 
                                 $locale = 'auto';
@@ -1289,7 +1294,7 @@ transition: box-shadow .15s linear;
                                                                 });
                             
                             var options = {
-                                        name: ' . json_encode(isset($head['properties']['title_translation' . $this->processor->app->getLanguage()->getTag()]) ? $head['properties']['title_translation' . $this->processor->app->getLanguage()->getTag()] : $this->processor->formrow->title) . ',
+                                        name: ' . json_encode(isset($head['properties']['title_translation' . $current_tag]) ? $head['properties']['title_translation' . $current_tag] : $this->processor->formrow->title) . ',
                                         description: ' . json_encode($options['itemname']) . ',
                                         currency: ' . json_encode(strtolower($options['currencyCode'])) . ',
                                         amount: ' . json_encode($options['amount']) . ',
@@ -1466,7 +1471,9 @@ transition: box-shadow .15s linear;
             if ($cbResult['data']['force_login']) {
                 $is15 = false;
 
-                if (!$this->processor->app->getIdentity()->get('id', 0)) {
+                $identity = $this->processor->app->getIdentity()
+                    ?? throw new \RuntimeException('The current user is not loaded.');
+                if (!$identity->get('id', 0)) {
                     $this->processor->app->redirect(Route::_('index.php?option=com_users&view=login&Itemid=' . $this->processor->app->getInput()->getInt('Itemid', 0), false));
                 } else {
 

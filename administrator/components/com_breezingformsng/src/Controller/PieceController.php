@@ -82,7 +82,7 @@ class PieceController extends PackageItemController
             $unitTestResult = PieceTestRunner::runUnitTests($piece, $functionName, $database);
         }
 
-        $document = $this->app->getDocument();
+        $document = $this->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
         $view = $this->getView('piece', $document->getType(), '', ['base_path' => $this->basePath, 'layout' => 'test']);
 
         if (!$view instanceof HtmlView) {

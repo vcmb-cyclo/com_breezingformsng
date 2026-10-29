@@ -215,9 +215,11 @@ class OnePageRenderer
     {
         $this->p = $p;
         $default = ComponentHelper::getParams('com_languages')->get('site');
-        $this->language_tag = $this->p->app->getLanguage()->getTag() != $default ? $this->p->app->getLanguage()->getTag() : 'zz-ZZ';
+        $language = $this->p->app->getLanguage() ?? throw new \RuntimeException('The language is not loaded.');
+        $this->language_tag = $language->getTag() != $default ? $language->getTag() : 'zz-ZZ';
 
-        $this->p->app->getDocument()->getWebAssetManager()->addInlineScript('<!--');
+        $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $document->getWebAssetManager()->addInlineScript('<!--');
 
         $this->dataObject = json_decode(bf_b64dec($this->p->formrow->template_code), true);
 
@@ -229,7 +231,7 @@ class OnePageRenderer
             /* translatables */
             if (isset($this->rootMdata['title_translation' . $this->language_tag]) && $this->rootMdata['title_translation' . $this->language_tag] != '') {
                 $this->rootMdata['title'] = $this->rootMdata['title_translation' . $this->language_tag];
-                $this->p->app->getDocument()->setTitle($this->rootMdata['title']);
+                $document->setTitle($this->rootMdata['title']);
             }
             /* translatables end */
         }
@@ -265,7 +267,8 @@ class OnePageRenderer
 
         RuntimeAssetLoader::style($this->p->app, Uri::root(true) . '/media/com_breezingformsng/css/site/quickmode-runtime.css');
 
-        $this->p->app->getDocument()->getWebAssetManager()->useScript('jquery');
+        $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $document->getWebAssetManager()->useScript('jquery');
         HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
         RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/media/com_breezingformsng/js/site/quickmode-tooltip-init.js');
 
@@ -293,7 +296,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
             RuntimeAssetLoader::style($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/remodal/remodal.css');
             RuntimeAssetLoader::style($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/remodal/remodal-default-theme.css');
             RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/remodal/remodal.min.js');
-            $this->p->app->getDocument()->getWebAssetManager()->addInlineScript(
+            $document->getWebAssetManager()->addInlineScript(
                 "\n"
                 . (new QuickModeOnePageCallbackScriptBuilder())->closeRemodal(
                     (string) json_encode(Uri::getInstance()->toString()),
@@ -304,7 +307,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
 
         RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/media/com_breezingformsng/js/site/quickmode-submit-spinner.js');
 
-        $this->p->app->getDocument()->getWebAssetManager()->addInlineScript(
+        $document->getWebAssetManager()->addInlineScript(
             $jQuery . '
 			var inlineErrorElements = new Array();
 			var bfSummarizers = new Array();
@@ -348,7 +351,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
         if ($this->fading || !$this->useErrorAlerts || $this->rollover) {
             if (!$this->useErrorAlerts) {
                 $showDefaultErrors = $this->useDefaultErrors || !$this->useBalloonErrors;
-                $this->p->app->getDocument()->getWebAssetManager()->addInlineScript(
+                $document->getWebAssetManager()->addInlineScript(
                     QuickModeErrorRuntimeConfigBuilder::build($showDefaultErrors, true, "\n")
                 );
                 RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/media/com_breezingformsng/js/site/quickmode-error-alerts-bootstrap.js');
@@ -402,7 +405,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                     }
                 }
 
-                $manager = $this->p->app->getDocument()->getWebAssetManager();
+                $manager = $document->getWebAssetManager();
                 $manager->addInlineStyle($themecss);
                 if ($scriptjs) {
                     $manager->addInlineScript($scriptjs);
@@ -520,7 +523,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
 
                     preg_match_all($regex, $introtext, $matches, PREG_SET_ORDER);
 
-                    $document = $this->p->app->getDocument();
+                    $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
                     $renderer = $document->loadRenderer('modules');
                     $options = array('style' => 'xhtml');
 
@@ -588,7 +591,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                     preg_match_all($regex, $introtext, $matches, PREG_SET_ORDER);
 
                     if ($matches) {
-                        $document = $this->p->app->getDocument();
+                        $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
                         $renderer = $document->loadRenderer('modules');
                         $options = array('style' => 'xhtml');
 
@@ -1124,7 +1127,8 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
             RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/pickadate/picker.js');
             RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/pickadate/picker.date.js');
 
-            $lang = $this->p->app->getLanguage()->getTag();
+            $language = $this->p->app->getLanguage() ?? throw new \RuntimeException('The language is not loaded.');
+            $lang = $language->getTag();
             $lang = explode('-', $lang);
             $lang = strtolower($lang[0]);
             if (file_exists(JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/pickadate/translations/' . $lang . '.js')) {
@@ -1185,7 +1189,8 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                       </script>
                     ';
         }
-        $this->p->app->getDocument()->getWebAssetManager()->addInlineScript('//-->');
+        $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $document->getWebAssetManager()->addInlineScript('//-->');
     }
 
     /**

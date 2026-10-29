@@ -82,7 +82,7 @@ final class Repository
         $this->database->setQuery($query);
 
         return array_values(array_map(
-            fn (array $row): StoredCode => $this->toStoredCode($row),
+            fn (array $row): StoredCode => $this->storedCodeFromRow($row),
             $this->database->loadAssocList()
         ));
     }
@@ -92,8 +92,14 @@ final class Repository
      */
     private function toStoredCode(?array $row): ?StoredCode
     {
-        return $row === null
-            ? null
-            : new StoredCode((int) $row['id'], (string) $row['name'], (string) $row['code']);
+        return $row === null ? null : $this->storedCodeFromRow($row);
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function storedCodeFromRow(array $row): StoredCode
+    {
+        return new StoredCode((int) $row['id'], (string) $row['name'], (string) $row['code']);
     }
 }

@@ -32,9 +32,7 @@ class HtmlView extends BaseHtmlView
 
     public function display($tpl = null)
     {
-        /** @var CMSApplication $app */
-        $app = Factory::getApplication();
-        $doc = $app->getDocument();
+        $doc = $this->getDocument();
         $doc->setTitle($this->getPageTitle());
         $doc->getWebAssetManager()->getRegistry()->addExtensionRegistryFile('com_breezingformsng');
         $doc->getWebAssetManager()->addInlineStyle(

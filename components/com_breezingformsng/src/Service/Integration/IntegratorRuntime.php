@@ -211,7 +211,7 @@ class IntegratorRuntime
     public function handleCode($value, $code)
     {
         // The code of an item changes the value it writes, as in BreezingForms: $value = trim($value);
-        if (trim((string) $code) != '') {
+        if ($code !== null && trim($code) != '') {
             $this->codeExecutor()->execute($this, $code, ['value' => &$value]);
         }
         return $value;
@@ -223,7 +223,7 @@ class IntegratorRuntime
      */
     public function handleFinalizeCode($code)
     {
-        if (trim($code) != '') {
+        if ($code !== null && trim($code) != '') {
             $this->codeExecutor()->execute($this, $code);
         }
     }
@@ -420,10 +420,12 @@ class IntegratorRuntime
             foreach ($criteria['joomla'] as $crit) {
                 switch ($crit->joomla_object) {
                     case 'Userid':
-                        $jobject = Factory::getApplication()->getIdentity()->get('id', '');
+                        $user = Factory::getApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+                        $jobject = $user->get('id', '');
                         break;
                     case 'Username':
-                        $jobject = Factory::getApplication()->getIdentity()->get('username', '');
+                        $user = Factory::getApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+                        $jobject = $user->get('username', '');
                         break;
                     case 'Language':
                         $jobject = Factory::getApplication()->getLanguage()->getName();

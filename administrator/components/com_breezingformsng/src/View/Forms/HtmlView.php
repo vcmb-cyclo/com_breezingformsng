@@ -26,8 +26,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
 {
     /** @var list<\stdClass> */
     public array $items = [];
-    public ?Pagination $pagination = null;
-    public ?Registry $state = null;
+    public Pagination $pagination;
+    public Registry $state;
     public ?Form $filterForm = null;
     /** @var array<string, mixed> */
     public array $activeFilters = [];
@@ -76,7 +76,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             // Submit piece pickers call bfToggle() inline via onchange to
             // swap which code editor is visible - defined here, not in the
             // list-only branch below.
-            $document = $app->getDocument();
+            $document = $this->getDocument();
             $wa = $document->getWebAssetManager();
             $wa->registerAndUseStyle(
                 'com_breezingformsng.forms-edit',
@@ -119,7 +119,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             ToolbarHelper::apply('forms.save');
             ToolbarHelper::cancel('forms.cancel', $id > 0 ? 'JTOOLBAR_CLOSE' : 'JTOOLBAR_CANCEL');
         } else {
-            $document = $app->getDocument();
+            $document = $this->getDocument();
             $wa       = $document->getWebAssetManager();
             $wa->useScript('table.columns')->useScript('multiselect');
             $wa->registerAndUseScript(
@@ -164,7 +164,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             ToolbarHelper::unpublish('forms.unpublish', 'JTOOLBAR_UNPUBLISH', true);
             ToolbarHelper::checkin('forms.checkin');
             ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'forms.delete');
-            $user = Factory::getApplication()->getIdentity();
+            $user = $this->getCurrentUser();
 
             if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
                 ToolbarHelper::preferences('com_breezingformsng');

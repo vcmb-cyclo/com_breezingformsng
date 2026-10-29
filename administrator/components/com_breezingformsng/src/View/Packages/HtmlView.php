@@ -33,11 +33,11 @@ final class HtmlView extends BaseHtmlView
     /** Package preselected in the list, after a save. */
     public string $selectedPackage = '';
     /** Time zone the audit dates are shown in. */
-    public ?\DateTimeZone $timezone = null;
+    public \DateTimeZone $timezone;
 
     public function display($tpl = null)
     {
-        AreaAccess::assert(Factory::getApplication()->getIdentity(), AreaAccess::CONFIGURATION);
+        AreaAccess::assert($this->getCurrentUser(), AreaAccess::CONFIGURATION);
 
         if ($this->getLayout() === 'export') {
             $app = Factory::getApplication();
@@ -53,7 +53,7 @@ final class HtmlView extends BaseHtmlView
             $this->choices = $model->getExportChoices();
             $this->profiles = $model->getPackageProfiles();
             $this->selectedPackage = $app->getInput()->getString('package', '');
-            $this->timezone = $app->getIdentity()->getTimezone();
+            $this->timezone = $this->getCurrentUser()->getTimezone();
         }
 
         $this->addToolbar();
@@ -74,8 +74,8 @@ final class HtmlView extends BaseHtmlView
     {
         /** @var HtmlDocument $document */
         $document = $this->getDocument();
-        $toolbar = $document->getToolbar();
-        $user = Factory::getApplication()->getIdentity();
+        $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
+        $user = $this->getCurrentUser();
         $home = Route::_('index.php?option=com_breezingformsng&view=packages');
 
         // The validating toolbar buttons call document.formvalidator.

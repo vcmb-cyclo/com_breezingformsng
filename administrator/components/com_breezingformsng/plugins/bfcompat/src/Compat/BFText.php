@@ -31,7 +31,7 @@ final class BFText
 
 	const COMPONENT_NAME = 'com_breezingformsng';
 
-	private ?Language $language = null;
+	private Language $language;
 
 	/**
 	 * @var BFText
@@ -43,6 +43,7 @@ final class BFText
 	 */
 	private function __construct()
 	{
+		$this->language = Factory::getApplication()->getLanguage();
 	}
 
 	/**
@@ -54,7 +55,6 @@ final class BFText
 	{
 		if (!(self::$bftext instanceof BFText)) {
 			self::$bftext = new BFText();
-			self::$bftext->language = Factory::getApplication()->getLanguage();
 		}
 
 		return self::$bftext;

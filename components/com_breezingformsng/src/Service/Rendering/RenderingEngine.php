@@ -141,14 +141,15 @@ final class RenderingEngine
      */
     public function cbCreatePathByTokens(mixed $path, array $rows, mixed $fieldName): string
     {
-        $identity = $this->processor->app->getIdentity();
+        $identity = $this->processor->app->getIdentity()
+            ?? throw new \RuntimeException('The current user is not loaded.');
 
         return $this->tokenizedDirectoryResolver()->resolve(
             (string) $path,
             $rows,
             (string) $fieldName,
-            $this->processor->findtags,
-            $this->processor->replacetags,
+            $this->processor->findtags ?? [],
+            $this->processor->replacetags ?? [],
             [
                 'username' => $identity->get('username', 'anonymous'),
                 'id' => $identity->get('id', 0),
@@ -248,12 +249,12 @@ final class RenderingEngine
         $context = [
             'ff_contentid' => $input->getInt('ff_contentid', 0),
             'ff_applic' => $input->getWord('ff_applic', ''),
-            'ff_record_id' => $this->processor->record_id,
+            'ff_record_id' => $this->processor->record_id ?? '',
             'ff_module_id' => $input->getInt('ff_module_id', 0),
         ];
 
         if ($includeRunmode) {
-            $context['ff_runmode'] = $this->processor->runmode;
+            $context['ff_runmode'] = $this->processor->runmode ?? '';
         }
 
         return $context;
@@ -359,7 +360,8 @@ final class RenderingEngine
     {
         return $this->contentBuilderRecordLoaderService ??= new ContentBuilderRecordLoader(
             static function (string $referenceId, int $recordId, bool $publishedOnly, int $ownerId, bool $showAllLanguages): array {
-                $form = FormSourceFactory::getForm('com_breezingformsng', $referenceId);
+                $form = FormSourceFactory::getForm('com_breezingformsng', $referenceId)
+                    ?? throw new \RuntimeException('The ContentBuilder form source is not available.');
 
                 return (array) $form->getRecord($recordId, $publishedOnly, $ownerId, $showAllLanguages);
             }
@@ -429,10 +431,13 @@ final class RenderingEngine
                 $cbFrontend = false;
             }
 
+            $language = $this->processor->app->getLanguage()
+                ?? throw new \RuntimeException('The language is not loaded.');
+
             if ($cbFrontend) {
-                $this->processor->app->getLanguage()->load('com_contentbuilderng');
+                $language->load('com_contentbuilderng');
             } else {
-                $this->processor->app->getLanguage()->load('com_contentbuilderng', JPATH_SITE . '/administrator');
+                $language->load('com_contentbuilderng', JPATH_SITE . '/administrator');
             }
 
             $db = $this->processor->database;
@@ -470,11 +475,13 @@ final class RenderingEngine
                 if (is_array($cbData)) {
                     $cbFull = $this->contentBuilderPermissionChecker()->canViewFullArticle($permissionService, $cbFrontend);
                     $cbForm = FormSourceFactory::getForm('com_breezingformsng', $cbData['reference_id']);
+                    $identity = $this->processor->app->getIdentity()
+                        ?? throw new \RuntimeException('The current user is not loaded.');
                     $cbRecord = $this->contentBuilderRecordLoader()->load(
                         $cbData,
                         $input->getInt('cb_record_id', 0),
                         $cbFrontend,
-                        (int) $this->processor->app->getIdentity()->get('id', 0),
+                        (int) $identity->get('id', 0),
                         $input->getBool('cbIsNew', false),
                         Text::_('COM_CONTENTBUILDERNG_RECORD_NOT_FOUND')
                     );
@@ -521,8 +528,8 @@ final class RenderingEngine
         }
 
         [$fileExtensionsCheck, $cntFiles] = $this->fileExtensionsCheckBuilder()->build(
-            $this->processor->rows,
-            $this->processor->rowcount,
+            $this->processor->rows ?? [],
+            $this->processor->rowcount ?? 0,
             json_encode(
                 Text::_('COM_BREEZINGFORMSNG_FILE_EXTENSION_NOT_ALLOWED'),
                 JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR
@@ -534,8 +541,8 @@ final class RenderingEngine
             Uri::root(true),
             $this->processor->app->isClient('administrator'),
             (int) $this->processor->form,
-            $this->processor->rows,
-            $this->processor->rowcount,
+            $this->processor->rows ?? [],
+            $this->processor->rowcount ?? 0,
             Text::_('COM_BREEZINGFORMSNG_CAPTCHA_MISSING_WRONG')
         );
 
@@ -662,7 +669,9 @@ final class RenderingEngine
         $cbJs = '';
 
         if ($this->processor->editable && $cbRecord === null) {
-            $userId = $this->processor->app->getIdentity()->get('id', -1);
+            $identity = $this->processor->app->getIdentity()
+                ?? throw new \RuntimeException('The current user is not loaded.');
+            $userId = $identity->get('id', -1);
             $editableRecord = $this->editableRecordLoader()->load((int) $this->processor->form, (int) $userId);
             if ($editableRecord !== null) {
                 $this->processor->record_id = $editableRecord->id;
@@ -704,7 +713,9 @@ final class RenderingEngine
                 (int) $cbResult['data']['id']
             );
             if (count($cbNonEditableFields)) {
-                $this->processor->app->getDocument()->getWebAssetManager()->addInlineScript('<!--' . nl() . 'var bfDeactivateField = new Array();' . nl() . '//-->');
+                $document = $this->processor->app->getDocument()
+                    ?? throw new \RuntimeException('The document is not available.');
+                $document->getWebAssetManager()->addInlineScript('<!--' . nl() . 'var bfDeactivateField = new Array();' . nl() . '//-->');
                 echo $this->legacyScriptTagWrapperBuilder()->contentBuilderReadonly(
                     $this->contentBuilderHydrationScriptBuilder()->buildReadonly($cbNonEditableFields),
                     nl()
@@ -746,8 +757,9 @@ final class RenderingEngine
         // writing hidden input for groups. helps on recording updates, otherwise no value would be transferred.
         // the "cbGroupMark" won't be stored.
         if ($cbForm !== null) {
+            $elementRows = $this->processor->rows ?? [];
             for ($i = 0; $i < $this->processor->rowcount; $i++) {
-                $row = $this->processor->rows[$i];
+                $row = $elementRows[$i];
                 switch ($row->type) {
                     case 'Checkbox':
                     case 'Checkbox Group':
@@ -761,7 +773,7 @@ final class RenderingEngine
             }
         }
 
-        if ($this->paymentProviderDetector()->hasSupportedProvider($this->processor->rows)) {
+        if ($this->paymentProviderDetector()->hasSupportedProvider($this->processor->rows ?? [])) {
             echo $this->hiddenFormFieldsBuilder()->paymentMethod(indentc(1));
         }
 
@@ -775,7 +787,7 @@ final class RenderingEngine
                     $this->hiddenFormFieldsBuilder()->context($context, indentc(1)),
                     $this->hiddenFormFieldsBuilder()->submission((int) $this->processor->form, indentc(1), nl()),
                     $this->hiddenFormFieldsBuilder()->token(\Joomla\CMS\HTML\HTMLHelper::_('form.token'), indentc(1), nl()),
-                    $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align, $this->processor->top, indentc(1), true, true, true, true, nl()),
+                    $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align ?? 1, $this->processor->top ?? 0, indentc(1), true, true, true, true, nl()),
                     $this->hiddenFormFieldsBuilder()->additional($ff_otherparams, indentc(1), nl()),
                     $technical,
                     $routing,
@@ -792,7 +804,7 @@ final class RenderingEngine
                     $this->hiddenFormFieldsBuilder()->submission((int) $this->processor->form, indentc(1), nl(), true),
                     $this->hiddenFormFieldsBuilder()->token(\Joomla\CMS\HTML\HTMLHelper::_('form.token'), indentc(1), nl()),
                     $this->hiddenFormFieldsBuilder()->context($context, indentc(1)),
-                    $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align, $this->processor->top, indentc(1), true, true, true, true, nl()),
+                    $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align ?? 1, $this->processor->top ?? 0, indentc(1), true, true, true, true, nl()),
                     $technical,
                     $routing,
                     nl()
@@ -812,7 +824,7 @@ final class RenderingEngine
                     $this->hiddenFormFieldsBuilder()->submission((int) $this->processor->form, indentc(1), nl(), false, true),
                     $this->hiddenFormFieldsBuilder()->token(\Joomla\CMS\HTML\HTMLHelper::_('form.token'), indentc(1), nl()),
                     $this->hiddenFormFieldsBuilder()->context($context, indentc(1)),
-                    $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align, $this->processor->top, indentc(1), false, true, false, false, nl()),
+                    $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align ?? 1, $this->processor->top ?? 0, indentc(1), false, true, false, false, nl()),
                     $technical,
                     $routing,
                     nl()
@@ -863,8 +875,8 @@ final class RenderingEngine
     private function linkInitialOnload(array &$library, array &$linked): void
     {
         $code = $this->formOnloadScriptBuilder()->initial(
-            $this->processor->formrow->heightmode,
-            $this->processor->formrow->height,
+            $this->processor->formrow->heightmode ?? 0,
+            $this->processor->formrow->height ?? 0,
             (bool) $this->processor->showgrid,
             nl()
         );
@@ -944,10 +956,10 @@ final class RenderingEngine
 
         $code = $this->formOnloadScriptBuilder()->submitted(
             (string) $functionName,
-            $this->processor->formrow->heightmode,
-            $this->processor->formrow->height,
+            $this->processor->formrow->heightmode ?? 0,
+            $this->processor->formrow->height ?? 0,
             (bool) $this->processor->showgrid,
-            $this->processor->status,
+            $this->processor->status ?? '',
             (string) $this->processor->message,
             nl()
         );

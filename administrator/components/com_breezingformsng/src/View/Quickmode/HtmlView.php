@@ -143,7 +143,7 @@ class HtmlView extends BaseHtmlView
                 . ($this->version > 0 ? ' ' . Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_LABEL', $this->version) : '')],
         ]);
 
-        $doc = $app->getDocument();
+        $doc = $this->getDocument();
         $doc->setTitle(strip_tags($pageTitle));
         $doc->getWebAssetManager()->addInlineStyle(
             '.icon-logo_left{

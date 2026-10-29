@@ -48,7 +48,9 @@ class FormController extends BaseController
 
         $redirect = 'index.php?option=com_breezingformsng&view=forms';
 
-        if (!$this->app->getIdentity()->authorise('core.edit', 'com_breezingformsng')) {
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+
+        if (!$user->authorise('core.edit', 'com_breezingformsng')) {
             $this->setMessage(Text::_('JERROR_ALERTNOAUTHOR'), 'error');
             $this->setRedirect(Route::_($redirect, false));
 

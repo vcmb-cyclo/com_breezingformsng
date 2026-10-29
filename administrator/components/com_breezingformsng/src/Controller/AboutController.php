@@ -51,7 +51,9 @@ class AboutController extends BaseController
     {
         $application = $this->app;
 
-        if (!$application->getIdentity()->authorise('core.manage', 'com_breezingformsng')) {
+        $user = $application->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+
+        if (!$user->authorise('core.manage', 'com_breezingformsng')) {
             throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
         }
 
@@ -95,7 +97,8 @@ class AboutController extends BaseController
         $this->checkToken();
 
         try {
-            AreaAccess::assertRepair($this->getAuthorizedApplication()->getIdentity());
+            $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertRepair($user);
             $singleToken = trim((string) $this->input->post->getString('duplicate_index_group', ''));
             $selectedTokens = $singleToken !== ''
                 ? [$singleToken]
@@ -142,7 +145,8 @@ class AboutController extends BaseController
         $this->checkToken();
 
         try {
-            AreaAccess::assertRepair($this->getAuthorizedApplication()->getIdentity());
+            $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertRepair($user);
             $singleToken = trim((string) $this->input->post->getString('column_collation_issue', ''));
             $selectedTokens = $singleToken !== ''
                 ? [$singleToken]
@@ -187,7 +191,8 @@ class AboutController extends BaseController
         $this->checkToken();
 
         try {
-            AreaAccess::assertRepair($this->getAuthorizedApplication()->getIdentity());
+            $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertRepair($user);
             $singleToken = trim((string) $this->input->post->getString('table_collation_issue', ''));
             $selectedTokens = $singleToken !== ''
                 ? [$singleToken]
@@ -232,7 +237,8 @@ class AboutController extends BaseController
         $this->checkToken();
 
         try {
-            AreaAccess::assertRepair($this->getAuthorizedApplication()->getIdentity());
+            $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertRepair($user);
             $singlePath = trim((string) $this->input->post->getString('stale_installer_temp_dir', ''));
             $selectedPaths = $singlePath !== ''
                 ? [$singlePath]
@@ -280,7 +286,8 @@ class AboutController extends BaseController
 
         try {
             $application = $this->getAuthorizedApplication();
-            AreaAccess::assertRepair($application->getIdentity());
+            $user = $application->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertRepair($user);
 
             // Revalidate against a fresh audit: only a currently detected
             // "drop" candidate may be deleted, and never one still holding
@@ -338,7 +345,8 @@ class AboutController extends BaseController
 
         try {
             $application = $this->getAuthorizedApplication();
-            AreaAccess::assertRepair($application->getIdentity());
+            $user = $application->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertRepair($user);
 
             $model = $this->getMVCFactoryOf($application)
                 ->createModel('Record', 'Administrator', ['ignore_request' => true]);
@@ -386,7 +394,8 @@ class AboutController extends BaseController
 
         try {
             $app = $this->getAuthorizedApplication();
-            AreaAccess::assert($app->getIdentity(), AreaAccess::CONFIGURATION);
+            $user = $app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assert($user, AreaAccess::CONFIGURATION);
             $db = $this->getDatabase();
             $tables = [];
 
@@ -435,7 +444,8 @@ class AboutController extends BaseController
     public function importConfiguration(): void
     {
         $this->checkToken();
-        AreaAccess::assert($this->getAuthorizedApplication()->getIdentity(), AreaAccess::CONFIGURATION);
+        $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+        AreaAccess::assert($user, AreaAccess::CONFIGURATION);
         $this->setMessage(Text::_('COM_BREEZINGFORMSNG_ABOUT_IMPORT_CONFIGURATION_PREPARE'), 'warning');
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false));
     }
@@ -444,7 +454,9 @@ class AboutController extends BaseController
     {
         $application = $this->app;
 
-        if (!$application->getIdentity()->authorise('core.manage', 'com_breezingformsng')) {
+        $user = $application->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+
+        if (!$user->authorise('core.manage', 'com_breezingformsng')) {
             throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
         }
 

@@ -36,8 +36,9 @@ final class QuickModeSubmittedValueHydrator
         array $metadata,
         string $languageTag
     ): array {
+        $rows = $processor->rows ?? [];
         for ($i = 0; $i < $processor->rowcount; $i++) {
-            $row = $processor->rows[$i];
+            $row = $rows[$i];
             if ($metadata['bfName'] != $row->name) {
                 continue;
             }

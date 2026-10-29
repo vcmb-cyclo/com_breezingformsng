@@ -39,7 +39,7 @@ class RecordsimportController extends BaseController
      */
     public function execute($task)
     {
-        $user = $this->app->getIdentity();
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
 
         if (
             !$user->authorise('core.manage', 'com_breezingformsng')
@@ -93,10 +93,11 @@ class RecordsimportController extends BaseController
             return;
         }
 
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
         $importer = new RecordImporter(
             Factory::getContainer()->get(DatabaseInterface::class),
             $records,
-            $this->app->getIdentity()
+            $user
         );
         $imported = $importer->import((int) $valid['form_id'], $file, (string) $valid['encoding']);
 
