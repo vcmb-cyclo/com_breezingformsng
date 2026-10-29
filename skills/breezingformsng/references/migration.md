@@ -9,7 +9,7 @@ Install the BreezingForms NG package over the existing site. It:
 - renames the extension `com_breezingforms` to `com_breezingformsng` (extension row, assets, menu links);
 - keeps all data in place: the tables keep their `#__facileforms_*` names;
 - rewrites `option=com_breezingforms` to `option=com_breezingformsng` in stored form and element
-  content (redirect URLs, PayPal/Stripe/Sofort return URLs, init/action/validation code);
+  content (redirect URLs, PayPal/Stripe return URLs, init/action/validation code);
 - copies the legacy configuration (`#__facileforms_config`) into the component options once
   (IP storage, notification address, uploads folder, CSV settings);
 - removes the old `com_breezingforms` folders and the files dropped by earlier releases.

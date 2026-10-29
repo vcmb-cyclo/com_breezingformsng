@@ -600,7 +600,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     /**
      * Free-text form/element content authored before the NG migration -
-     * custom "thank you" redirect URLs, PayPal/Stripe/Sofortueberweisung
+     * custom "thank you" redirect URLs, PayPal/Stripe
      * return URLs, custom init/action/validation code - can hardcode
      * `option=com_breezingforms`, the pre-NG component name. That
      * component no longer exists, so any such stored link now 404s with
@@ -2863,6 +2863,12 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             JPATH_SITE . '/media/breezingforms/downloadtpl/download.php',
             JPATH_SITE . '/media/breezingforms/downloadtpl/sofort_download.php',
             JPATH_SITE . '/media/breezingforms/downloadtpl/sofort_success.php',
+            // Sofort was discontinued by Klarna and removed from the component.
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Callback/SofortCallback.php',
+            JPATH_SITE . '/components/com_breezingformsng/downloadtpl/sofort_download.php',
+            JPATH_SITE . '/components/com_breezingformsng/downloadtpl/sofort_success.php',
+            JPATH_SITE . '/media/com_breezingformsng/images/quickmode/icon_sofort.png',
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/themes/quickmode/i/icon_sofort.png',
             JPATH_SITE . '/media/breezingforms/downloadtpl/stripe_download.php',
             JPATH_SITE . '/media/breezingforms/downloadtpl/error.php',
             JPATH_SITE . '/language/fr-FR/fr-FR.com_breezingforms.ini',

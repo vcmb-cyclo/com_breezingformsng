@@ -412,6 +412,12 @@ class BootstrapRenderer
 
             $mdata = $dataObject['properties'];
 
+            // Sofort was discontinued by Klarna and removed: an element still
+            // stored in a form renders nothing until the form is saved again.
+            if (($mdata['bfType'] ?? '') === 'bfSofortueberweisung') {
+                return;
+            }
+
             if ($mdata['type'] == 'page') {
                 $parentPage = $mdata;
                 if ($parentPage['pageNumber'] > 1) {
@@ -918,10 +924,6 @@ class BootstrapRenderer
 
                     case 'bfPayPal':
                         $this->renderBootstrapStylePayPalField($mdata, $label, $tabIndex, $onblur, $onchange, $onfocus, $onselect, $readonly);
-                        break;
-
-                    case 'bfSofortueberweisung':
-                        $this->renderBootstrapStyleSofortueberweisungField($mdata, $label, $tabIndex, $onblur, $onchange, $onfocus, $onselect, $readonly);
                         break;
                 }
 

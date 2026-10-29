@@ -32,6 +32,26 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                 var appScope = this;
                 this.elementScripts = BFQMConfig.elementScripts;
                 this.dataObject = BFQMConfig.dataObject;
+
+                // Sofort was discontinued by Klarna and removed: drop the elements
+                // still stored in the form; saving the form removes them for good.
+                var removedSofortElements = 0;
+                (function dropSofortElements(node) {
+                    if (!node || !Array.isArray(node.children)) {
+                        return;
+                    }
+                    node.children = node.children.filter(function (child) {
+                        if (child && child.properties && child.properties.bfType === 'bfSofortueberweisung') {
+                            removedSofortElements++;
+                            return false;
+                        }
+                        return true;
+                    });
+                    node.children.forEach(dropSofortElements);
+                })(this.dataObject);
+                if (removedSofortElements > 0) {
+                    Joomla.renderMessages({ warning: [Joomla.Text._('COM_BREEZINGFORMSNG_QM_SOFORT_REMOVED')] });
+                }
                 this.quickModeIconBase = BFQMConfig.iconBase;
                 this.treeModel = new QuickmodeTreeModel(this.dataObject);
 
@@ -561,9 +581,6 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                                 break;
                             case 'bfElementTypePayPal':
                                 obj = appScope.createPayPal(id);
-                                break;
-                            case 'bfElementTypeSofortueberweisung':
-                                obj = appScope.createSofortueberweisung(id);
                                 break;
                         }
                         if (obj) {

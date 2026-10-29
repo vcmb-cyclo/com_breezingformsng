@@ -21,7 +21,7 @@ final class PaymentProviderDetectorTest extends TestCase
     {
         $detector = new PaymentProviderDetector();
 
-        foreach (['PayPal', 'Sofortueberweisung', 'Stripe'] as $type) {
+        foreach (['PayPal', 'Stripe'] as $type) {
             self::assertTrue($detector->hasSupportedProvider([(object) ['type' => $type]]));
         }
     }

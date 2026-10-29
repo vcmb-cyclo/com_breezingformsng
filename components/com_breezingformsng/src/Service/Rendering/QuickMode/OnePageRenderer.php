@@ -478,6 +478,12 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
 
             $mdata = $dataObject['properties'];
 
+            // Sofort was discontinued by Klarna and removed: an element still
+            // stored in a form renders nothing until the form is saved again.
+            if (($mdata['bfType'] ?? '') === 'bfSofortueberweisung') {
+                return;
+            }
+
             if ($mdata['type'] == 'page') {
                 $parentPage = $mdata;
                 if ($parentPage['pageNumber'] > 1) {
@@ -993,10 +999,6 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
 
                     case 'bfPayPal':
                         $this->renderBootstrapStylePayPalField($mdata, $label, $tabIndex, $onblur, $onchange, $onfocus, $onselect, $readonly);
-                        break;
-
-                    case 'bfSofortueberweisung':
-                        $this->renderBootstrapStyleSofortueberweisungField($mdata, $label, $tabIndex, $onblur, $onchange, $onfocus, $onselect, $readonly);
                         break;
                 }
 

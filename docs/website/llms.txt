@@ -3,7 +3,7 @@
 > BreezingForms NG (com_breezingformsng) is a free, GPL form builder for Joomla 6 and PHP 8.3+.
 > It is the community-maintained continuation of Crosstec BreezingForms: visual QuickMode editor,
 > multi-page forms, visibility rules, file uploads, signatures, captcha/reCAPTCHA, email
-> notifications, submission records with PDF/CSV/XLSX/XML export, Stripe/PayPal/Sofort payments,
+> notifications, submission records with PDF/CSV/XLSX/XML export, Stripe/PayPal payments,
 > per-form PHP and JavaScript hooks, GDPR privacy plugin, and 8 languages.
 
 Install from the GitHub releases through Joomla's extension installer. Embed a form with a menu

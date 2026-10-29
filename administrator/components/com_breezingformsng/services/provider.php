@@ -49,7 +49,6 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadPolicy;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadService;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentFormLoader;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentRecordService;
-use Vcmb\Component\BreezingformsNG\Site\Service\Callback\SofortCallback;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\StripeCallback;
 use Vcmb\Component\BreezingformsNG\Site\Service\EngineDispatcher;
 use Vcmb\Component\BreezingformsNG\Site\Service\FormRenderer;
@@ -184,21 +183,6 @@ return new class implements ServiceProviderInterface
         );
 
         $container->set(
-            SofortCallback::class,
-            static function (Container $container) use ($cmsApplication): SofortCallback {
-                return new SofortCallback(
-                    $cmsApplication(),
-                    $container->get(DatabaseInterface::class),
-                    $container->get(PaymentFormLoader::class),
-                    $container->get(PaymentRecordService::class),
-                    $container->get(RedirectHelper::class),
-                    $container->get(MailerFactoryInterface::class),
-                    $container->get(PaymentDownloadService::class),
-                );
-            }
-        );
-
-        $container->set(
             FlashUploadCallback::class,
             static function (Container $container) use ($cmsApplication): FlashUploadCallback {
                 return new FlashUploadCallback(
@@ -235,9 +219,6 @@ return new class implements ServiceProviderInterface
                     },
                     static function () use ($container): StripeCallback {
                         return $container->get(StripeCallback::class);
-                    },
-                    static function () use ($container): SofortCallback {
-                        return $container->get(SofortCallback::class);
                     },
                     static function () use ($container): FlashUploadCallback {
                         return $container->get(FlashUploadCallback::class);

@@ -650,52 +650,6 @@ trait BootstrapStyleFieldTrait
     /**
      * @param array<string, mixed> $mdata
      */
-    private function renderBootstrapStyleSofortueberweisungField(
-        array $mdata,
-        string $label,
-        string $tabIndex,
-        string $onblur,
-        string $onchange,
-        string $onfocus,
-        string $onselect,
-        string $readonly
-    ): void {
-        /* translatables */
-        if (
-            isset($mdata['image_translation' . $this->language_tag])
-            && $mdata['image_translation' . $this->language_tag] != ''
-        ) {
-            $mdata['image'] = $mdata['image_translation' . $this->language_tag];
-        }
-        /* translatables end */
-        echo '<div class="' . $this->bsClass('controls') . ' ' . $this->bsClass('form-inline') . '">';
-        echo '<div class="' . $this->bsClass('form-group') . ' ' . $this->bsClass('other-form-group') . '">';
-        echo $label;
-        echo '<span class="' . $this->bsClass('nonform-control') . '">';
-        echo QuickModePaymentButtonBuilder::build(
-            'Sofortueberweisung',
-            (string) $mdata['bfName'],
-            (int) $mdata['dbId'],
-            (string) $mdata['image'],
-            'Sofortueberweisung',
-            'Sofort.com',
-            $tabIndex,
-            $onblur,
-            $onchange,
-            $onfocus,
-            $onselect,
-            $readonly,
-            isset($mdata['actionClick']) && $mdata['actionClick'] == 1,
-            (string) ($mdata['actionFunctionName'] ?? '')
-        );
-        echo '</span>';
-        echo '</div>';
-        echo '</div>';
-    }
-
-    /**
-     * @param array<string, mixed> $mdata
-     */
     private function renderBootstrapStyleSignatureField(array $mdata, string $label): void
     {
         RuntimeAssetLoader::script(

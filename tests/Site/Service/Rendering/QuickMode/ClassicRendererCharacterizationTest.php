@@ -394,7 +394,7 @@ final class ClassicRendererCharacterizationTest extends TestCase
         $this->assertMatchesSnapshot('classic_bfPayPal.html', $html);
     }
 
-    public function testSofortueberweisungElement(): void
+    public function testStoredSofortueberweisungElementRendersNothing(): void
     {
         $renderer = $this->makeRenderer();
 
@@ -406,7 +406,7 @@ final class ClassicRendererCharacterizationTest extends TestCase
             'actionFunctionName' => '',
         ]));
 
-        $this->assertMatchesSnapshot('classic_bfSofortueberweisung.html', $html);
+        self::assertSame('', trim($html));
     }
 
     public function testCaptchaElement(): void

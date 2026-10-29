@@ -1232,102 +1232,6 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
         };
 
-        // SOFORTUEBERWEISUNG BUTTON
-        appScope.saveSofortueberweisungProperties = function (mdata, item) {
-            // dynamic properties
-
-            // DEFAULT
-
-            // account
-            mdata.user_id = JQuery('#bfElementTypeSofortueberweisungUserId').val();
-            mdata.project_id = JQuery('#bfElementTypeSofortueberweisungProjectId').val();
-            mdata.project_password = JQuery('#bfElementTypeSofortueberweisungProjectPassword').val();
-
-            mdata.reason_1 = JQuery('#bfElementTypeSofortueberweisungReason1').val();
-            mdata.reason_2 = JQuery('#bfElementTypeSofortueberweisungReason2').val();
-            mdata.amount = JQuery('#bfElementTypeSofortueberweisungAmount').val();
-            mdata.thankYouPage = JQuery('#bfElementTypeSofortueberweisungThankYouPage').val();
-            mdata.language_id = JQuery('#bfElementTypeSofortueberweisungLanguageId').val();
-            mdata.currency_id = JQuery('#bfElementTypeSofortueberweisungCurrencyId').val();
-            mdata.mailback = JQuery('#bfElementTypeSofortueberweisungMailback').prop('checked');
-            mdata.sendNotificationAfterPayment = JQuery('#bfElementTypeSofortueberweisungSendNotificationAfterPayment').prop('checked');
-
-            // ADVANCED
-
-            mdata.image = JQuery('#bfElementSofortueberweisungAdvancedImage').val();
-            mdata['image_translation'+BFQMConfig.lang] = JQuery('#bfElementSofortueberweisungAdvancedImageTrans').val();
-
-            // file
-            mdata.downloadableFile = JQuery('#bfElementSofortueberweisungAdvancedDownloadableFile').prop('checked');
-            mdata.filepath = JQuery('#bfElementSofortueberweisungAdvancedFilepath').val();
-            mdata.downloadTries = JQuery('#bfElementSofortueberweisungAdvancedDownloadTries').val();
-
-            // OTHER ADVANCED
-            mdata.hint = JQuery('#bfElementTypeSofortueberweisungHint').val();
-            mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeSofortueberweisungHintTrans').val();
-
-            mdata.hideLabel = JQuery('#bfElementSofortueberweisungAdvancedHideLabel').prop('checked');
-
-            // static properties
-            mdata.bfName = JQuery('#bfElementName').val();
-
-            mdata.label = JQuery('#bfElementLabel').val();
-            mdata['label_translation'+BFQMConfig.lang] = JQuery('#bfElementLabelTrans').val();
-
-            mdata.labelPosition = JQuery('#bfElementAdvancedLabelPosition').val();
-            mdata.tabIndex = JQuery('#bfElementAdvancedTabIndex').val();
-            mdata.hideInMailback = JQuery('#bfElementAdvancedHideInMailback').prop('checked');
-            mdata.off = JQuery('#bfElementAdvancedTurnOff').prop('checked');
-            item.properties = mdata;
-        };
-
-        appScope.populateSofortueberweisungProperties = function (mdata) {
-            // dynamic properties
-
-            // DEFAULT
-
-            // account
-            JQuery('#bfElementTypeSofortueberweisungUserId').val(mdata.user_id);
-            JQuery('#bfElementTypeSofortueberweisungProjectId').val(mdata.project_id);
-            JQuery('#bfElementTypeSofortueberweisungProjectPassword').val(mdata.project_password);
-
-            JQuery('#bfElementTypeSofortueberweisungReason1').val(mdata.reason_1);
-            JQuery('#bfElementTypeSofortueberweisungReason2').val(mdata.reason_2);
-            JQuery('#bfElementTypeSofortueberweisungAmount').val(mdata.amount);
-            JQuery('#bfElementTypeSofortueberweisungThankYouPage').val(mdata.thankYouPage);
-            JQuery('#bfElementTypeSofortueberweisungLanguageId').val(mdata.language_id);
-            JQuery('#bfElementTypeSofortueberweisungCurrencyId').val(mdata.currency_id);
-            JQuery('#bfElementTypeSofortueberweisungMailback').prop('checked', mdata.mailback);
-            JQuery('#bfElementTypeSofortueberweisungSendNotificationAfterPayment').prop('checked', mdata.sendNotificationAfterPayment);
-
-            // ADVANCED
-
-            JQuery('#bfElementSofortueberweisungAdvancedImage').val(mdata.image);
-            JQuery('#bfElementSofortueberweisungAdvancedImageTrans').val(typeof mdata['image_translation'+BFQMConfig.lang] != "undefined" ? mdata['image_translation'+BFQMConfig.lang] : "");
-
-            // file
-            JQuery('#bfElementSofortueberweisungAdvancedDownloadableFile').prop('checked', mdata.downloadableFile);
-            JQuery('#bfElementSofortueberweisungAdvancedFilepath').val(mdata.filepath);
-            JQuery('#bfElementSofortueberweisungAdvancedDownloadTries').val(mdata.downloadTries);
-
-            // OTHER ADVANCED
-            JQuery('#bfElementTypeSofortueberweisungHint').val(mdata.hint);
-            JQuery('#bfElementTypeSofortueberweisungHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
-
-            JQuery('#bfElementSofortueberweisungAdvancedHideLabel').prop('checked', mdata.hideLabel);
-
-            // static properties
-            JQuery('#bfElementName').val(mdata.bfName);
-
-            JQuery('#bfElementLabel').val(mdata.label);
-            JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
-
-            JQuery('#bfElementAdvancedTabIndex').val(mdata.tabIndex);
-            JQuery('#bfElementAdvancedHideInMailback').prop('checked', mdata.hideInMailback);
-            JQuery('#bfElementAdvancedTurnOff').prop('checked', mdata.off);
-            JQuery('#bfElementAdvancedLabelPosition').val(mdata.labelPosition);
-        };
-
         appScope.saveSelectedElementProperties = function () {
             if (appScope.selectedTreeElement) {
                 var mdata = appScope.getProperties(appScope.selectedTreeElement);
@@ -1378,10 +1282,6 @@ import { JoomlaEditor } from 'editor-api';
                                 break;
                             case 'bfPayPal':
                                 appScope.savePayPalProperties(mdata, item);
-                                appScope.saveAction(mdata, item);
-                                break;
-                            case 'bfSofortueberweisung':
-                                appScope.saveSofortueberweisungProperties(mdata, item);
                                 appScope.saveAction(mdata, item);
                                 break;
                             case 'bfCaptcha':
@@ -1588,7 +1488,6 @@ import { JoomlaEditor } from 'editor-api';
                         JQuery('#bfElementTypeStripe').css('display', 'none');
                         JQuery('#bfElementTypeSignature').css('display', 'none');
                         JQuery('#bfElementTypePayPal').css('display', 'none');
-                        JQuery('#bfElementTypeSofortueberweisung').css('display', 'none');
                         JQuery('#bfElementTypeCaptcha').css('display', 'none');
                         JQuery('#bfElementTypeReCaptcha').css('display', 'none');
                         JQuery('#bfElementTypeCalendar').css('display', 'none');
@@ -1608,7 +1507,6 @@ import { JoomlaEditor } from 'editor-api';
                         JQuery('#bfElementTypeStripeAdvanced').css('display', 'none');
                         JQuery('#bfElementTypeSignatureAdvanced').css('display', 'none');
                         JQuery('#bfElementTypePayPalAdvanced').css('display', 'none');
-                        JQuery('#bfElementTypeSofortueberweisungAdvanced').css('display', 'none');
                         JQuery('#bfElementTypeCaptchaAdvanced').css('display', 'none');
                         JQuery('#bfElementTypeReCaptchaAdvanced').css('display', 'none');
                         JQuery('#bfElementTypeCalendarAdvanced').css('display', 'none');
@@ -1686,11 +1584,6 @@ import { JoomlaEditor } from 'editor-api';
                             case 'bfPayPal':
                                 JQuery('#bfElementType').val('bfElementTypePayPal');
                                 appScope.populatePayPalProperties(mdata);
-                                appScope.populateElementActionScript();
-                                break;
-                            case 'bfSofortueberweisung':
-                                JQuery('#bfElementType').val('bfElementTypeSofortueberweisung');
-                                appScope.populateSofortueberweisungProperties(mdata);
                                 appScope.populateElementActionScript();
                                 break;
                             case 'bfCaptcha':
@@ -1877,7 +1770,7 @@ import { JoomlaEditor } from 'editor-api';
 
                 JQuery('#bfActionScript').css('display', '');
 
-                if (mdata.bfType == 'bfStripe' || mdata.bfType == 'bfSofortueberweisung' || mdata.bfType == 'bfPayPal' || mdata.bfType == 'bfIcon' || mdata.bfType == 'bfImageButton' || mdata.bfType == 'bfSubmitButton') {
+                if (mdata.bfType == 'bfStripe' || mdata.bfType == 'bfPayPal' || mdata.bfType == 'bfIcon' || mdata.bfType == 'bfImageButton' || mdata.bfType == 'bfSubmitButton') {
                     JQuery('.bfAction').css('display', 'none');
                     JQuery('.bfActionLabel').css('display', 'none');
                     JQuery('#bfActionClick').css('display', '');

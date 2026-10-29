@@ -488,7 +488,7 @@ final class OnePageRendererCharacterizationTest extends TestCase
         self::assertStringContainsString("'PayPal'", $html);
     }
 
-    public function testSofortueberweisungElement(): void
+    public function testStoredSofortueberweisungElementRendersNothing(): void
     {
         $html = $this->renderElement('bfSofortueberweisung', [
             'dbId' => 55,
@@ -498,8 +498,7 @@ final class OnePageRendererCharacterizationTest extends TestCase
             'actionFunctionName' => '',
         ]);
 
-        self::assertStringContainsString("'bfPaymentMethod'", $html);
-        self::assertStringContainsString("'Sofortueberweisung'", $html);
+        self::assertSame('', trim($html));
     }
 
     /**

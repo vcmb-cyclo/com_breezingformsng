@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- The Stripe element can also offer Klarna and iDEAL | Wero on the Stripe Checkout page
+  (options *Also offer Klarna* and *Also offer iDEAL | Wero*). The payment method must be
+  enabled in the Stripe Dashboard and accept the form currency (EUR for iDEAL | Wero).
+- A Stripe error while opening the payment page (payment method not enabled, currency not
+  accepted, invalid key) is logged and shown as a payment error instead of a fatal error.
+- The Sofort element is removed: Klarna discontinued Sofort in 2024. A Sofort element still
+  stored in a form is no longer rendered; QuickMode drops it when the form is opened and
+  warns about it, and saving the form removes it. Use the Klarna option of the Stripe
+  element instead. The installer removes the Sofort files on update. A form whose only
+  payment element was Sofort is not accepted on the site until another payment is set up:
+  it shows a message and the refusal is logged, instead of taking submissions unpaid.
+
 ## 6.1.0-RC08
 
 - Record dates are shown in the time zone of the user, which the screens now name: the

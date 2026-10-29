@@ -23,7 +23,6 @@ The type stored in the form (`bfType`) is shown next to the editor label.
 | Signature | `bfSignature` | Drawn signature pad. |
 | PayPal | `bfPayPal` | PayPal payment. |
 | Stripe | `bfStripe` | Stripe payment, optional paid download with a tries limit. |
-| Sofortüberweisung | `bfSofortueberweisung` | Sofort bank transfer. |
 
 Only one captcha (Captcha or ReCaptcha) is allowed per form.
 
