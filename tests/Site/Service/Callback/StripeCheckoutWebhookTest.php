@@ -19,6 +19,16 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Callback\StripeCheckoutWebhook;
 
 final class StripeCheckoutWebhookTest extends TestCase
 {
+    public function testBrowserReturnRequiresTheExactRecordReference(): void
+    {
+        $webhook = new StripeCheckoutWebhook();
+
+        self::assertTrue($webhook->matchesReturnRecord('42', 42));
+        self::assertFalse($webhook->matchesReturnRecord(null, 42));
+        self::assertFalse($webhook->matchesReturnRecord('41', 42));
+        self::assertFalse($webhook->matchesReturnRecord('0', 0));
+    }
+
     public function testPaidSessionEventsGiveTheirRecord(): void
     {
         $webhook = new StripeCheckoutWebhook();

@@ -87,6 +87,11 @@ Without it, the payment is only recorded on the return, as before, and the compo
 3. Copy the endpoint's signing secret (`whsec_…`) into the element's **Webhook signing
    secret**, then save the form.
 
+Checkout sessions opened before this version have no record reference and cannot safely
+confirm a record on return. Reconcile any such paid sessions manually in Stripe.
+If `bf_stripe_success.php` performs external actions, make them idempotent by the Stripe
+PaymentIntent ID: a failed request can run the script again when the webhook retries.
+
 ## Upgrading from BreezingForms (Crosstec)
 
 BreezingForms NG installs over a legacy `com_breezingforms` site and keeps your data:

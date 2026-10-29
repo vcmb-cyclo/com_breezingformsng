@@ -138,11 +138,14 @@ final class StripeCallback
                             []
                         );
 
-                        // A session belongs to the record it was opened for; sessions
-                        // opened before the reference was set carry none. A complete but
-                        // unpaid session waits for a delayed method: the webhook records
-                        // its outcome, so it is neither declined nor confirmed here.
-                        if (!in_array($session->client_reference_id, [null, (string) $record_id], true) || ($session->payment_status != 'paid' && $session->status !== 'complete')) {
+                        // A Checkout Session without a record reference cannot safely
+                        // confirm any record. A complete but unpaid session waits for
+                        // the webhook to record its delayed payment outcome.
+                        if (!$this->checkoutWebhook->matchesReturnRecord($session->client_reference_id, $record_id)) {
+                            $msg = Text::_('COM_BREEZINGFORMSNG_STRIPE_SESSION_UNVERIFIED');
+
+                            require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
+                        } elseif ($session->payment_status != 'paid' && $session->status !== 'complete') {
                             $msg = Text::_("COM_BREEZINGFORMSNG_STRIPE_DECLINED");
 
                             require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
@@ -166,16 +169,24 @@ final class StripeCallback
                             $stripeTestaccount = !$stripe_pi->livemode ? 1 : 0;
                             // The webhook may have recorded the payment first: run the
                             // success script and the notifications only once.
-                            $recordedNow = $this->paymentRecordService->storeTransactionOnce(
-                                $stripeRecordId,
-                                $stripeTxId,
-                                $stripePaymentDate,
-                                $stripeTestaccount
-                            );
+                            $db->transactionStart();
+                            try {
+                                $recordedNow = $this->paymentRecordService->storeTransactionOnce(
+                                    $stripeRecordId,
+                                    $stripeTxId,
+                                    $stripePaymentDate,
+                                    $stripeTestaccount
+                                );
 
-                            // trigger a script after succeeded payment?
-                            if ($recordedNow && file_exists(JPATH_SITE . '/bf_stripe_success.php')) {
-                                require_once(JPATH_SITE . '/bf_stripe_success.php');
+                                if ($recordedNow && file_exists(JPATH_SITE . '/bf_stripe_success.php')) {
+                                    require_once(JPATH_SITE . '/bf_stripe_success.php');
+                                }
+
+                                $db->transactionCommit();
+                            } catch (\Throwable $e) {
+                                $db->transactionRollback();
+
+                                throw $e;
                             }
 
                             // send mail after succeeded payment?
@@ -277,16 +288,26 @@ final class StripeCallback
             return;
         }
 
-        $recordedNow = $this->paymentRecordService->storeTransactionOnce(
-            $record_id,
-            'Stripe: ' . strip_tags($stripe_pi->id),
-            date('Y-m-d H:i:s', $stripe_pi->created),
-            $stripe_pi->livemode ? 0 : 1
-        );
+        $this->database->transactionStart();
+        try {
+            $recordedNow = $this->paymentRecordService->storeTransactionOnce(
+                $record_id,
+                'Stripe: ' . strip_tags($stripe_pi->id),
+                date('Y-m-d H:i:s', $stripe_pi->created),
+                $stripe_pi->livemode ? 0 : 1
+            );
 
-        // Same post-payment steps as the browser return, whichever records first.
-        if ($recordedNow && file_exists(JPATH_SITE . '/bf_stripe_success.php')) {
-            require_once JPATH_SITE . '/bf_stripe_success.php';
+            // Keep the payment pending if the custom success script fails.
+            if ($recordedNow && file_exists(JPATH_SITE . '/bf_stripe_success.php')) {
+                require_once JPATH_SITE . '/bf_stripe_success.php';
+            }
+
+            $this->database->transactionCommit();
+        } catch (\Throwable $e) {
+            $this->database->transactionRollback();
+            $this->respondToWebhook(500, $e->getMessage());
+
+            return;
         }
 
         if (

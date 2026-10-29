@@ -1354,6 +1354,8 @@ transition: box-shadow .15s linear;
                                     $html .= "</form><div style='margin-top: 25%; text-align: center; width: 100%;'><button class='thebutton' onclick='handler.open(options);'>Click To Pay</button></body></div></html>";
 
                                 echo $html;
+                                // Return and webhook use this same first Stripe element.
+                                break 2;
                             }
                         }
                         }

@@ -25,6 +25,11 @@ final class StripeCheckoutWebhook
         'checkout.session.async_payment_succeeded',
     ];
 
+    public function matchesReturnRecord(?string $clientReferenceId, int $recordId): bool
+    {
+        return $recordId > 0 && $clientReferenceId === (string) $recordId;
+    }
+
     /**
      * Returns the record a paid Checkout Session of this form was opened for,
      * or null when the event must not record a payment.
