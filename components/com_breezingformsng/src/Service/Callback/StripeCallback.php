@@ -146,10 +146,7 @@ final class StripeCallback
 
                     // A session belongs to the record it was opened for; sessions
                     // opened before the reference was set carry none.
-                    $sessionReference = $session->client_reference_id;
-                    $foreignSession = $sessionReference !== null && $sessionReference !== (string) $record_id;
-
-                    if ($foreignSession || $session->payment_status != 'paid') {
+                    if (!in_array($session->client_reference_id, [null, (string) $record_id], true) || $session->payment_status != 'paid') {
 
                         $msg = Text::_("COM_BREEZINGFORMSNG_STRIPE_DECLINED");
 
