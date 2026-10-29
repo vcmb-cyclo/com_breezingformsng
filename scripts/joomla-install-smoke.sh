@@ -113,6 +113,29 @@ docker exec "${web_container}" php -r '
     exit(@file_get_contents("http://127.0.0.1/index.php") === false ? 1 : 0);
 '
 
+table_prefix="$(
+    docker exec -e HTTP_HOST=localhost "${web_container}" php -r '
+        require "/var/www/html/configuration.php";
+        $config = new JConfig();
+        echo $config->dbprefix;
+    '
+)"
+
+# The component must not depend on Joomla's Backward Compatibility plugin:
+# disable it before installing, so every check below runs without it.
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+    -e "UPDATE \`${table_prefix}extensions\` SET enabled = 0 WHERE type = 'plugin' AND folder = 'behaviour' AND element = 'compat6';"
+
+compat_enabled_count="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "SELECT COUNT(*) FROM \`${table_prefix}extensions\` WHERE type = 'plugin' AND folder = 'behaviour' AND element = 'compat6' AND enabled = 1;"
+)"
+
+if [[ "${compat_enabled_count}" -ne 0 ]]; then
+    echo "Joomla's Backward Compatibility plugin could not be disabled." >&2
+    exit 1
+fi
+
 docker cp "${archive}" "${web_container}:${container_archive}" >/dev/null
 
 if [[ -n "${contentbuilder_archive}" ]]; then
@@ -135,14 +158,6 @@ for theme_file in themes/default/theme.css themes/aqua/theme.css; do
         exit 1
     fi
 done
-
-table_prefix="$(
-    docker exec -e HTTP_HOST=localhost "${web_container}" php -r '
-        require "/var/www/html/configuration.php";
-        $config = new JConfig();
-        echo $config->dbprefix;
-    '
-)"
 
 component_count="$(
     docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
