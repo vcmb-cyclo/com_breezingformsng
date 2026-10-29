@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 6.1.0-RC09
 
 - The Stripe element can also offer Klarna and iDEAL | Wero on the Stripe Checkout page
   (options *Also offer Klarna* and *Also offer iDEAL | Wero*). The payment method must be
@@ -11,6 +11,15 @@
   stored in a form is no longer rendered; QuickMode drops it when the form is opened and
   warns about it, and saving the form removes it. Use the Klarna option of the Stripe
   element instead. The installer removes the Sofort files on update.
+- The "code framework" buttons of the QuickMode custom init, validation and action scripts
+  work again; they did nothing since the editor script became a module (RC06). Saving an
+  element no longer also runs the page save, and forms set to show errors as alerts show
+  them as alerts on the next-page check too.
+- No more `ob_end_clean(): Failed to delete buffer` notice after a form submission on sites
+  that display notices.
+- A form page reached without an active menu item no longer ends in a fatal error.
+- The update no longer risks saving a QuickMode form empty when renaming its old
+  `com_breezingforms` links fails: the stored form is left as it is.
 
 ## 6.1.0-RC08
 
