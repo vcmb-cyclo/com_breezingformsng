@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
@@ -41,65 +42,59 @@ final class StripeCallback
 
 
 
-    $input = $this->application->getInput();
-    $form = $this->paymentFormLoader->load($input->getInt('form_id', -1));
-    if ($form === null) {
-        $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_FORM_DOES_NOT_EXIST'));
-        $this->application->close();
+        $input = $this->application->getInput();
+        $form = $this->paymentFormLoader->load($input->getInt('form_id', -1));
+        if ($form === null) {
+            $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_FORM_DOES_NOT_EXIST'));
+            $this->application->close();
 
-        return;
-    }
+            return;
+        }
 
-    $areas = $this->paymentFormLoader->decodeAreas($form);
-    if ($areas === null) {
-        $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_COULD_NOT_FIND_STRIPE_DATA'));
-        $this->application->close();
+        $areas = $this->paymentFormLoader->decodeAreas($form);
+        if ($areas === null) {
+            $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_COULD_NOT_FIND_STRIPE_DATA'));
+            $this->application->close();
 
-        return;
-    }
+            return;
+        }
 
-    $tx_token = $input->getString('token', '');
-    $record_id = $input->getInt('record_id', 0);
+        $tx_token = $input->getString('token', '');
+        $record_id = $input->getInt('record_id', 0);
 
-    foreach ($areas as $area) {
+        foreach ($areas as $area) {
+            foreach ($area['elements'] as $element) {
+                if ($element['internalType'] == 'bfStripe') {
+                    $options = $element['options'];
 
-        foreach ($area['elements'] as $element) {
+                    \Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper::load();
 
-            if ($element['internalType'] == 'bfStripe') {
+                    \Stripe\Stripe::setApiKey($options['secretKey']);
+                    $stripe = new \Stripe\StripeClient($options['secretKey']);
 
-                $options = $element['options'];
-
-                \Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper::load();
-
-                \Stripe\Stripe::setApiKey($options['secretKey']);
-                $stripe = new \Stripe\StripeClient($options['secretKey']);
-
-                // Create the charge on Stripe's servers - this will charge the user's card
-                try {
-
-
-                    $stripePrefix = 'Stripe:%';
-                    $existsQuery = $db->createQuery()
+                    // Create the charge on Stripe's servers - this will charge the user's card
+                    try {
+                        $stripePrefix = 'Stripe:%';
+                        $existsQuery = $db->createQuery()
                         ->select($db->quoteName('paypal_tx_id'))
                         ->from($db->quoteName('#__facileforms_records'))
                         ->where($db->quoteName('id') . ' = :recordId')
                         ->where($db->quoteName('paypal_tx_id') . ' LIKE :stripePrefix')
                         ->bind(':recordId', $record_id, ParameterType::INTEGER)
                         ->bind(':stripePrefix', $stripePrefix, ParameterType::STRING);
-                    $db->setQuery($existsQuery);
+                        $db->setQuery($existsQuery);
 
-                    $exists = $db->loadResult();
+                        $exists = $db->loadResult();
 
-                    if (!$exists) {
+                        if (!$exists) {
+                            /* XDA if( $this->application->getSession()->get('bf_stripe_last_payment_amount'.$record_id, null) == null ){
 
-                        /* XDA if( $this->application->getSession()->get('bf_stripe_last_payment_amount'.$record_id, null) == null ){
-
-            $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_COULD_NOT_FIND_STRIPE_AMOUNT'));
-            $this->application->close();
+                $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_COULD_NOT_FIND_STRIPE_AMOUNT'));
+                $this->application->close();
                                 } XDA */
 
-                        $stripearray = array();
-                        $stripearray = [
+                            $stripearray = array();
+                            $stripearray = [
                             "amount" => $this->application->getSession()->get('bf_stripe_last_payment_amount' . $record_id, null),
                             // amount in cents, again
                             "currency" => strtolower($options['currencyCode']),
@@ -107,14 +102,14 @@ final class StripeCallback
                             "description" => $options['itemname'],
                             "metadata" => array()
                             //,"metadata" => array("Order ID" => $_session_cart['order_id'])
-                        ];
-                        if ($this->application->getSession()->get('emailfield', '') !== '') {
-                            $stripearray += ['receipt_email' => $this->application->getSession()->get('emailfield', '')];
-                            $this->application->getSession()->remove('emailfield');
-                        }
-                        //$charge = \Stripe\Charge::create( $stripearray );
-                        /*
-                        $charge = \Stripe\Checkout\Session::create([
+                            ];
+                            if ($this->application->getSession()->get('emailfield', '') !== '') {
+                                $stripearray += ['receipt_email' => $this->application->getSession()->get('emailfield', '')];
+                                $this->application->getSession()->remove('emailfield');
+                            }
+                            //$charge = \Stripe\Charge::create( $stripearray );
+                            /*
+                            $charge = \Stripe\Checkout\Session::create([
                                 'customer_email' => 'bff@gmail.com',
                                 'billing_address_collection' => 'required',
                                 'line_items' => [[
@@ -127,95 +122,90 @@ final class StripeCallback
                                 'mode' => 'payment',
                                 'success_url' => 'https://firadeldibuixilapintura.cat/test/success',
                                 'cancel_url' => 'https://firadeldibuixilapintura.cat/test/cancel',
-                          ]);*/
+                              ]);*/
 
 
-                        $this->application->getSession()->remove('bf_stripe_last_payment_amount' . $record_id);
-                    } else {
+                            $this->application->getSession()->remove('bf_stripe_last_payment_amount' . $record_id);
+                        } else {
+                            $exploded = explode(':', $exists);
+                            //$charge = \Stripe\Charge::retrieve(trim($exploded[1]));
+                        }
 
-                        $exploded = explode(':', $exists);
-                        //$charge = \Stripe\Charge::retrieve(trim($exploded[1]));
-                    }
-
-                    //                                      $tx_token = $charge->id;
-                    $session_id = $input->getString('session_id');
-                    $session = $stripe->checkout->sessions->retrieve(
-                        "$session_id",
-                        []
-                    );
-
-                    // A session belongs to the record it was opened for; sessions
-                    // opened before the reference was set carry none. A complete but
-                    // unpaid session waits for a delayed method: the webhook records
-                    // its outcome, so it is neither declined nor confirmed here.
-                    if (!in_array($session->client_reference_id, [null, (string) $record_id], true) || ($session->payment_status != 'paid' && $session->status !== 'complete')) {
-
-                        $msg = Text::_("COM_BREEZINGFORMSNG_STRIPE_DECLINED");
-
-                        require_once (JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
-                    } elseif ($session->payment_status != 'paid') {
-                        $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_STRIPE_PAYMENT_PENDING'));
-                    } else {
-                        /** get payment intend id and creation time */
-                        $stripe_pi_id = $session->payment_intent; //payment intent id from last session also replacing tx_token/charge->id with paymentIntents->id
-                        $stripe_pi = $stripe->paymentIntents->retrieve(
-                            "$stripe_pi_id",
+                        //                                      $tx_token = $charge->id;
+                        $session_id = $input->getString('session_id');
+                        $session = $stripe->checkout->sessions->retrieve(
+                            "$session_id",
                             []
                         );
-                        $stripe_pi_create = $stripe_pi->created; // replacing charge->created with paymentIntents->created
-                        // XDA BEGIN
-                        // Stripe Payment Intent updates to complete its description from pi_xxx to BF item Name - pi_xxx
-                        $stripe->paymentIntents->update($stripe_pi->id, ['description' => $options['itemname']]);
-                        // XDA END
-                        $stripeRecordId = $input->getInt('record_id', -1);
-                        $stripeTxId = 'Stripe: ' . strip_tags($stripe_pi->id);
-                        $stripePaymentDate = date('Y-m-d H:i:s', $stripe_pi_create);
-                        $stripeTestaccount = !$stripe_pi->livemode ? 1 : 0;
-                        // The webhook may have recorded the payment first: run the
-                        // success script and the notifications only once.
-                        $recordedNow = $this->paymentRecordService->storeTransactionOnce(
-                            $stripeRecordId,
-                            $stripeTxId,
-                            $stripePaymentDate,
-                            $stripeTestaccount
-                        );
 
-                        // trigger a script after succeeded payment?
-                        if ($recordedNow && file_exists(JPATH_SITE . '/bf_stripe_success.php')) {
-                            require_once (JPATH_SITE . '/bf_stripe_success.php');
-                        }
+                        // A session belongs to the record it was opened for; sessions
+                        // opened before the reference was set carry none. A complete but
+                        // unpaid session waits for a delayed method: the webhook records
+                        // its outcome, so it is neither declined nor confirmed here.
+                        if (!in_array($session->client_reference_id, [null, (string) $record_id], true) || ($session->payment_status != 'paid' && $session->status !== 'complete')) {
+                            $msg = Text::_("COM_BREEZINGFORMSNG_STRIPE_DECLINED");
 
-                        // send mail after succeeded payment?
-                        if ($recordedNow && isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
-                            bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'admin');
-                            bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'mailback');
-                        }
-
-                        if ($options['downloadableFile']) {
-
-                            $record_id = $input->getInt('record_id', -1);
-                            $tries = $options['downloadTries'];
-                            $form_id = $input->getInt('form_id', -1);
-                            require_once (JPATH_SITE . '/components/com_breezingformsng/downloadtpl/stripe_download.php');
+                            require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
+                        } elseif ($session->payment_status != 'paid') {
+                            $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_STRIPE_PAYMENT_PENDING'));
                         } else {
+                            /** get payment intend id and creation time */
+                            $stripe_pi_id = $session->payment_intent; //payment intent id from last session also replacing tx_token/charge->id with paymentIntents->id
+                            $stripe_pi = $stripe->paymentIntents->retrieve(
+                                "$stripe_pi_id",
+                                []
+                            );
+                            $stripe_pi_create = $stripe_pi->created; // replacing charge->created with paymentIntents->created
+                            // XDA BEGIN
+                            // Stripe Payment Intent updates to complete its description from pi_xxx to BF item Name - pi_xxx
+                            $stripe->paymentIntents->update($stripe_pi->id, ['description' => $options['itemname']]);
+                            // XDA END
+                            $stripeRecordId = $input->getInt('record_id', -1);
+                            $stripeTxId = 'Stripe: ' . strip_tags($stripe_pi->id);
+                            $stripePaymentDate = date('Y-m-d H:i:s', $stripe_pi_create);
+                            $stripeTestaccount = !$stripe_pi->livemode ? 1 : 0;
+                            // The webhook may have recorded the payment first: run the
+                            // success script and the notifications only once.
+                            $recordedNow = $this->paymentRecordService->storeTransactionOnce(
+                                $stripeRecordId,
+                                $stripeTxId,
+                                $stripePaymentDate,
+                                $stripeTestaccount
+                            );
 
-                            if ($options['thankYouPage'] != '') {
-                                $this->redirectHelper->to($options['thankYouPage']);
+                            // trigger a script after succeeded payment?
+                            if ($recordedNow && file_exists(JPATH_SITE . '/bf_stripe_success.php')) {
+                                require_once(JPATH_SITE . '/bf_stripe_success.php');
+                            }
+
+                            // send mail after succeeded payment?
+                            if ($recordedNow && isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
+                                bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'admin');
+                                bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'mailback');
+                            }
+
+                            if ($options['downloadableFile']) {
+                                $record_id = $input->getInt('record_id', -1);
+                                $tries = $options['downloadTries'];
+                                $form_id = $input->getInt('form_id', -1);
+                                require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/stripe_download.php');
                             } else {
-                                $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_THANK_YOU_FOR_PAYING_WITH_STRIPE'));
+                                if ($options['thankYouPage'] != '') {
+                                    $this->redirectHelper->to($options['thankYouPage']);
+                                } else {
+                                    $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_THANK_YOU_FOR_PAYING_WITH_STRIPE'));
+                                }
                             }
                         }
+                    } catch (\Stripe\Exception\CardException $e) {
+                        $msg = Text::_("COM_BREEZINGFORMSNG_STRIPE_DECLINED");
+                        require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
                     }
-                } catch (\Stripe\Exception\CardException $e) {
 
-                    $msg = Text::_("COM_BREEZINGFORMSNG_STRIPE_DECLINED");
-                    require_once (JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
+                    break;
                 }
-
-                break;
             }
         }
-    }
     }
 
     /**
