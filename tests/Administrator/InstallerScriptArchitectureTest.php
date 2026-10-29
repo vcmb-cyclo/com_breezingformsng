@@ -146,6 +146,41 @@ final class InstallerScriptArchitectureTest extends TestCase
         }
     }
 
+    public function testPostflightRecognisesUnmodifiedGenericPdfTemplates(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../script.php');
+        $footer = file_get_contents(__DIR__ . '/Fixtures/legacy-generic-pdf-footer.php.txt');
+
+        self::assertIsString($source);
+        self::assertIsString($footer);
+        self::assertSame(
+            1,
+            preg_match('/STOCK_GENERIC_PDF_FOOTERS = \[(.+?)\];/s', $source, $footers)
+        );
+
+        // The installer normalises line endings and trailing whitespace, so
+        // a copy converted by an FTP client is still recognised as unmodified.
+        foreach ([$footer, str_replace("\n", "\r\n", $footer), $footer . "\n\n"] as $copy) {
+            $hash = hash('sha256', rtrim(str_replace("\r\n", "\n", $copy)));
+            self::assertStringContainsString("'{$hash}'", $footers[1]);
+        }
+
+        $customised = hash('sha256', rtrim($footer) . "\n// site customisation");
+        self::assertStringNotContainsString($customised, $source);
+
+        foreach (
+            [
+                "'export_header_pdf.php' => [",
+                "'export_footer_pdf.php' => self::STOCK_GENERIC_PDF_FOOTERS,",
+                "'pdf_attachment_header.php' => [",
+                "'pdf_attachment_footer.php' => self::STOCK_GENERIC_PDF_FOOTERS,",
+                "\$this->log('Unmodified generic PDF template removed: ' . \$name);",
+            ] as $expected
+        ) {
+            self::assertStringContainsString($expected, $source);
+        }
+    }
+
     public function testAboutPageUsesOnlyTheCurrentManifestPath(): void
     {
         $source = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/default.php');

@@ -49,6 +49,34 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     private const TARGET_COMPONENT = 'com_breezingformsng';
     private const MINIMUM_PHP = '8.3';
     private const MINIMUM_JOOMLA = '6.0';
+    // SHA-256 of every shipped version of the generic PDF templates that
+    // media/breezingforms/pdftpl no longer uses, line endings normalised to
+    // LF and trailing whitespace removed. Both footers always had the same
+    // content.
+    private const STOCK_GENERIC_PDF_FOOTERS = [
+        '5428c72dac8015058c5a745f9044afb4294c6acb2e0d8e17ab21e399e98de82a',
+        '62427a65323562fa77a23ed0de268736886bc7d3f47f14a366190799787192f0',
+        '9ee06e901666534231c5c9e5dafca18fa311a1bb67b51ebeb4d6b0cec77e2505',
+        'ad53e551963ddcaf8eef6dc5cfdd22dcdfa0bfbf931a16767caf379222c7d238',
+        'c42aac9997ce93b8472df2ad7a2029c751dfb904a63d0a00d417caa465905e9d',
+        'fa11de00d14e58218ad5c904cb248f3d459462d031a774ce101e671a5630a0fa',
+    ];
+    private const STOCK_GENERIC_PDF_TEMPLATES = [
+        'export_header_pdf.php' => [
+            '67771e09be2d09e625db4f11d0d6d6ce90e15d2fbc52635c41ad220d3532c990',
+            'a28df7b87a9bfd7dc80e839ea29bf5619927c6f6386bc2f4a22b26db5e3fdbe7',
+            'be8e0dedbed4fec232fc77fdc2199c58c8efdc247668ab312168c60b081286ed',
+            'ee1c9a42d6805274fed6ddbb07f108eb2f9ea389048c0f4e04ff5d2eab5a8d45',
+        ],
+        'export_footer_pdf.php' => self::STOCK_GENERIC_PDF_FOOTERS,
+        'pdf_attachment_header.php' => [
+            '15cc955a0e89adc30bde85dbb96cfac49ff9db275907997c6956e66cb34fe3a4',
+            '5b8ec60953da69a17c2c61d27f67113b6e6649b8599529c65f62f93c31fcdd4a',
+            '5e64d445a8e3d3a67d7b301e71f59e0239e26b1bc6cf2daeb73b20ba9ee33b1f',
+            '8ef950acb2bf26760d3c62836cee24c029d1e73852c39833a8ebfd9f1575f2bb',
+        ],
+        'pdf_attachment_footer.php' => self::STOCK_GENERIC_PDF_FOOTERS,
+    ];
     private const LEGACY_COMPONENT_ALIASES = [
         'breezingforms',
         'com_breezingforms',
@@ -2802,19 +2830,23 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     private function reportLegacyPdfCustomisations(): void
     {
         $templateDirectory = JPATH_SITE . '/media/breezingforms/pdftpl';
-        $genericTemplates = [
-            'export_header_pdf.php',
-            'export_footer_pdf.php',
-            'pdf_attachment_header.php',
-            'pdf_attachment_footer.php',
-        ];
         $legacyTemplates = [];
         $ignoredTemplates = [];
 
         foreach (glob($templateDirectory . '/*.php') ?: [] as $path) {
             $name = basename($path);
 
-            if (in_array($name, $genericTemplates, true)) {
+            if (isset(self::STOCK_GENERIC_PDF_TEMPLATES[$name])) {
+                // Unmodified copies are deleted; customised ones are kept for
+                // the administrator to move to a supported template.
+                $source = rtrim(str_replace("\r\n", "\n", (string) file_get_contents($path)));
+                if (in_array(hash('sha256', $source), self::STOCK_GENERIC_PDF_TEMPLATES[$name], true)) {
+                    if (File::delete($path)) {
+                        $this->log('Unmodified generic PDF template removed: ' . $name);
+                        continue;
+                    }
+                }
+
                 $ignoredTemplates[] = $name;
                 continue;
             }
