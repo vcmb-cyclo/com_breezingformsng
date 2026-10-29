@@ -1234,15 +1234,17 @@ transition: box-shadow .15s linear;
                                                     'quantity' => 1,
                                                 ]
                                             ],
-                                            'payment_method_types' => empty($options['klarna'])
-                                                ? ['card']
-                                                : ['card', 'klarna'],
+                                            'payment_method_types' => array_keys(array_filter([
+                                                'card'   => true,
+                                                'klarna' => !empty($options['klarna']),
+                                                'ideal'  => !empty($options['ideal']),
+                                            ])),
                                             'mode' => 'payment',
                                             'success_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
                                             'cancel_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
                                         ]);
                                     } catch (\Stripe\Exception\ApiErrorException $e) {
-                                        // Klarna not enabled in the Stripe account, currency not
+                                        // Klarna or iDEAL not enabled in the Stripe account, currency not
                                         // accepted, invalid key: show an error instead of a fatal.
                                         Log::add('Stripe Checkout: ' . $e->getMessage(), Log::ERROR, 'com_breezingformsng');
                                         $tx_token = '';

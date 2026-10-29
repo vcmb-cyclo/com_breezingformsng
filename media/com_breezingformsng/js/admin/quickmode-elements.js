@@ -1161,6 +1161,7 @@ var BFQMElements = (function () {
 				sendNotificationAfterPayment: false,
 				emailfield: '',
 				klarna: false,
+				ideal: false,
 
 				validationCondition: 0,
 				validationId: 0,

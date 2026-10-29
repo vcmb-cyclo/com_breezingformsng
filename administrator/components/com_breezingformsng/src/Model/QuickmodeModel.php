@@ -391,6 +391,7 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['options']['image']                     = $mdata['image'];
                         $element['options']['emailfield']                = $mdata['emailfield'] ?? '';
                         $element['options']['klarna']                    = (bool) ($mdata['klarna'] ?? false);
+                        $element['options']['ideal']                     = (bool) ($mdata['ideal'] ?? false);
                         $element['data1']                                = $mdata['image'];
                         break;
                     case 'bfSofortueberweisung':
