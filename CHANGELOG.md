@@ -24,6 +24,8 @@
   element instead. The installer removes the Sofort files on update. A form whose only
   payment element was Sofort is not accepted on the site until another payment is set up:
   it shows a message and the refusal is logged, instead of taking submissions unpaid.
+  Saving such a form in QuickMode without adding Stripe or PayPal unpublishes it, so it
+  does not become free once Sofort is gone; QuickMode warns about it when it opens.
 - The "code framework" buttons of the QuickMode custom init, validation and action scripts
   work again; they did nothing since the editor script became a module (RC06). Saving an
   element no longer also runs the page save, and forms set to show errors as alerts show

@@ -40,6 +40,16 @@ final class SofortOnlyFormDetectorTest extends TestCase
         self::assertFalse($detector->isSofortOnly('[{"elements":null},"x"]'));
     }
 
+    public function testTellsWhetherAFormKeepsAPayment(): void
+    {
+        $detector = new SofortOnlyFormDetector();
+
+        self::assertTrue($detector->hasPayment($this->areas(['bfTextfield'], ['bfStripe'])));
+        self::assertTrue($detector->hasPayment($this->areas(['bfPayPal'])));
+        self::assertFalse($detector->hasPayment($this->areas(['bfTextfield', 'bfSofortueberweisung'])));
+        self::assertFalse($detector->hasPayment(''));
+    }
+
     /**
      * @param list<string> ...$areas internal element types, one list per area
      */

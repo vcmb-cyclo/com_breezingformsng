@@ -49,7 +49,18 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                     });
                     node.children.forEach(dropSofortElements);
                 })(this.dataObject);
-                if (removedSofortElements > 0) {
+                this.containsPayment = function containsPayment(node) {
+                    return !!node && Array.isArray(node.children) && node.children.some(function (child) {
+                        var type = child && child.properties ? child.properties.bfType : '';
+                        return type === 'bfPayPal' || type === 'bfStripe' || containsPayment(child);
+                    });
+                };
+                // Without its only payment the form would become free: saving it
+                // without a new payment unpublishes it (QuickmodeModel, Options tab).
+                this.lostSofortOnlyPayment = removedSofortElements > 0 && !this.containsPayment(this.dataObject);
+                if (this.lostSofortOnlyPayment) {
+                    Joomla.renderMessages({ warning: [Joomla.Text._('COM_BREEZINGFORMSNG_QM_SOFORT_ONLY_UNPUBLISHED')] });
+                } else if (removedSofortElements > 0) {
                     Joomla.renderMessages({ warning: [Joomla.Text._('COM_BREEZINGFORMSNG_QM_SOFORT_REMOVED')] });
                 }
                 this.quickModeIconBase = BFQMConfig.iconBase;
@@ -1051,6 +1062,10 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
 
                             var base = 'base';
                             var sixty_four = '64Encode';
+
+                            if (app.lostSofortOnlyPayment && !app.containsPayment(app.dataObject)) {
+                                JQuery('#pub0').prop('checked', true);
+                            }
 
                             var cVal = JQuery[base + sixty_four](JSON.stringify(app.dataObject));
                             JQuery.ajaxSetup({ async: false });
