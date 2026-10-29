@@ -167,7 +167,7 @@ techniques sont conservés dans le plan d'architecture associé.
   `DropboxUploader`, `MailchimpClient` et `SalesforceClient`, chacun avec client HTTP injectable ; ancien
   `RemoteApiClient` conservé dans l'historique source et SDK embarqués supprimés)
 - [x] Stripe PHP `17.6.0` → `20.3.1` (2026-07-12 — classes utilisées et package Joomla 6 vérifiés)
-- [x] PDF : TCPDF 7.x géré par Composer, avec génération déléguée à `tc-lib-pdf 8.x` ; PHP 8.3 minimum
+- [x] PDF : `tc-lib-pdf 8.x` utilisé directement via Composer ; PHP 8.3 minimum. Les polices personnalisées doivent être fournies en TTF : les anciennes définitions TCPDF en `.php` ne sont plus chargées. Le code PDF personnalisé qui appelle les anciennes méthodes TCPDF doit être adapté à l'API native.
 - [x] CAPTCHA : Securimage 4.0.2 géré par Composer (`bgli100/securimage`), chargement via `VendorHelper`
 - [x] Audit About enrichi depuis les concepts CBNG (2026-07-12) : rapport persistant sur un affichage, inventaire des
   14 tables BFNG, volumes et tailles, tables manquantes, collations, index dupliqués et références orphelines ;

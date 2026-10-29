@@ -130,32 +130,24 @@ final class RecordExporter
         $fontDir = JPATH_SITE . '/media/breezingforms/pdftpl/fonts/';
         foreach ((new PdfFontDirectoryScanner())->scan($fontDir) as $f) {
             $lower = strtolower($f);
-            if (str_ends_with($lower, '.php')) {
-                $parts = explode('.', $f);
-                array_pop($parts);
-                $pdf->AddFont(implode('_', $parts), '', $fontDir . $f);
-            }
             if (str_ends_with($lower, '.ttf')) {
                 $ttfName = PdfDocument::importTtfFont($fontDir . $f);
             }
             if (str_ends_with($lower, '_active')) {
-                $parts = explode('_', $f);
-                array_pop($parts);
-                $pdf->SetFont($ttfName ?: implode('_', $parts));
                 $activeFound = true;
             }
         }
 
-        if (!$activeFound) {
-            PdfDocument::importTtfFont(JPATH_SITE . '/media/com_breezingformsng/fonts/verdana.ttf');
-            $pdf->SetFont('verdana');
+        if ($activeFound && $ttfName !== '') {
+            $pdf->selectFont($ttfName);
+        } else {
+            $pdf->selectFont(PdfDocument::importTtfFont(JPATH_SITE . '/media/com_breezingformsng/fonts/verdana.ttf'));
         }
 
         $pdf->setPrintFooter($pdf->getFooterTemplate() !== '');
         $pdf->setPrintHeader($pdf->getHeaderTemplate() !== '');
-        $pdf->AddPage();
-        $pdf->writeHTML($content);
-        $pdf->lastPage();
+        $pdf->addDocumentPage();
+        $pdf->renderHtml((string) $content);
 
         return [
             'name' => ($formName ? $formName . '-' : '') . 'ffexport-pdf-' . $datestamp->format('YmdHis', true) . '.pdf',

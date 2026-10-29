@@ -756,51 +756,30 @@ final class ExportEngine
         ob_end_clean();
 
         $active_found = false;
-        $font_loaded = false;
         $ttf_name = '';
 
         if (is_dir(JPATH_SITE . '/media/breezingforms/pdftpl/fonts/')) {
 
             $sourcePath = JPATH_SITE . '/media/breezingforms/pdftpl/fonts/';
             foreach ((new PdfFontDirectoryScanner())->scan($sourcePath) as $file) {
-                    if ($file != "." && $file != ".." && $this->processor->endsWith(strtolower($file), '.php')) {
-                        $file_sep = explode('.', $file);
-                        if (count($file_sep) > 1) {
-                            unset($file_sep[count($file_sep) - 1]);
-                            $pdf->AddFont(implode('_', $file_sep), '', $sourcePath . $file);
-                            $font_loaded = true;
-                        }
-                    }
                     if ($file != "." && $file != ".." && $this->processor->endsWith(strtolower($file), '.ttf')) {
                         $file_sep = explode('.', $file);
                         if (count($file_sep) > 1) {
                             unset($file_sep[count($file_sep) - 1]);
                             $ttf_name = PdfDocument::importTtfFont($sourcePath . $file);
-                            $font_loaded = true;
                         }
                     }
                     if ($this->processor->endsWith(strtolower($file), '_active')) {
-                        $active = explode('_', $file);
-                        if (count($active) > 1) {
-                            unset($active[count($active) - 1]);
-                            $font_name = '';
-                            if ($ttf_name != '') {
-                                $font_name = $ttf_name;
-                            } else {
-                                $font_name = implode('_', $active);
-                            }
-                            $pdf->SetFont($font_name);
-                            if ($font_loaded) {
-                                $active_found = true;
-                            }
-                        }
+                        $active_found = true;
                     }
             }
         }
 
-        if (!$active_found) {
+        if ($active_found && $ttf_name !== '') {
+            $pdf->selectFont($ttf_name);
+        } else {
             PdfDocument::importTtfFont(JPATH_SITE . '/media/com_breezingformsng/fonts/verdana.ttf');
-            $pdf->SetFont('verdana');
+            $pdf->selectFont('verdana');
         }
 
         if ($pdf->getFooterTemplate() == '') {
@@ -819,8 +798,8 @@ final class ExportEngine
             $pdf->setPrintHeader(true);
         }
 
-        $pdf->AddPage();
-        $pdf->writeHTML($c);
+        $pdf->addDocumentPage();
+        $pdf->renderHtml($c);
         mt_srand();
 
         $matches_array = array();
@@ -874,8 +853,7 @@ final class ExportEngine
             $pdfname = $this->processor->uploads . '/ffexport-pdf-' . $date_stamp . '-' . mt_rand(0, mt_getrandmax()) . '.pdf';
         }
 
-        $pdf->lastPage();
-        $pdf->Output($pdfname, "F");
+        $pdf->saveToFile($pdfname);
         return $pdfname;
     }
 

@@ -437,10 +437,17 @@ docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "
 # Exercise the update path: installing the package over the existing install
 # must succeed without errors, migrate the legacy state and leave the same
 # tables and registrations in place.
+old_pdf_library="/var/www/html/administrator/components/com_breezingformsng/vendor/tecnickcom/tcpdf"
+docker exec "${web_container}" mkdir -p "${old_pdf_library}"
+docker exec "${web_container}" touch "${old_pdf_library}/tcpdf.php"
 docker exec -e HTTP_HOST=localhost "${web_container}" php /var/www/html/cli/joomla.php extension:install \
     --path="${container_archive}" \
     --live-site=http://localhost \
     --no-interaction
+if docker exec "${web_container}" test -e "${old_pdf_library}"; then
+    echo "Obsolete TCPDF library was not removed during update." >&2
+    exit 1
+fi
 
 migrated_column_count="$(
     docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
@@ -578,14 +585,14 @@ fi
 
 # Exercise the installed Composer autoloader through the component's loader.
 # This catches packages that are present in source but missing from a clean
-# Joomla installation, including Securimage and TCPDF.
+# Joomla installation, including Securimage and tc-lib-pdf.
 docker exec "${web_container}" php -r '
     define("_JEXEC", 1);
     define("JPATH_SITE", "/var/www/html");
     define("JPATH_ADMINISTRATOR", "/var/www/html/administrator");
     require "/var/www/html/administrator/components/com_breezingformsng/src/Helper/VendorHelper.php";
     \Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper::load();
-    if (!class_exists("Securimage") || !class_exists("TCPDF")) {
+    if (!class_exists("Securimage") || !class_exists(\Com\Tecnick\Pdf\Tcpdf::class)) {
         exit(1);
     }
     require "/var/www/html/administrator/components/com_breezingformsng/src/Service/PdfDocument.php";
@@ -593,9 +600,9 @@ docker exec "${web_container}" php -r '
         exit(1);
     }
     $pdf = new \Vcmb\Component\BreezingformsNG\Administrator\Service\PdfDocument();
-    $pdf->AddPage();
-    $pdf->Write(0, "BreezingForms NG smoke test");
-    $pdfOutput = $pdf->Output("", "S");
+    $pdf->addDocumentPage();
+    $pdf->renderHtml("BreezingForms NG smoke test");
+    $pdfOutput = $pdf->getOutPDFString();
     if (!str_starts_with($pdfOutput, "%PDF-")) {
         exit(1);
     }

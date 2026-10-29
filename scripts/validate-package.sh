@@ -39,7 +39,7 @@ required=(
     "administrator/components/com_breezingformsng/vendor/bgli100/securimage/CaptchaObject.php"
     "administrator/components/com_breezingformsng/vendor/bgli100/securimage/StorageAdapter/Session.php"
     "administrator/components/com_breezingformsng/vendor/autoload.php"
-    "administrator/components/com_breezingformsng/vendor/tecnickcom/tcpdf/tcpdf.php"
+    "administrator/components/com_breezingformsng/vendor/tecnickcom/tc-lib-pdf/src/Tcpdf.php"
     "administrator/components/com_breezingformsng/vendor/tecnickcom/tc-lib-pdf-font/target/fonts/core/helvetica.json"
     "administrator/components/com_breezingformsng/vendor/phpoffice/phpspreadsheet/src/PhpSpreadsheet/Spreadsheet.php"
     "components/com_breezingformsng/breezingformsng.php"
@@ -55,6 +55,7 @@ for path in "${required[@]}"; do
 done
 
 forbidden_patterns=(
+    '^administrator/components/com_breezingformsng/vendor/tecnickcom/tcpdf/'
     '^administrator/components/com_breezingformsng/vendor/bin/'
     '^administrator/components/com_breezingformsng/vendor/phpunit/'
     '^administrator/components/com_breezingformsng/vendor/phpstan/'

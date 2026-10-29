@@ -153,6 +153,15 @@ final class InstallerScriptArchitectureTest extends TestCase
         );
 
         foreach ($matches as [, $base, $path]) {
+            if ($path === '/components/com_breezingformsng/vendor/tecnickcom/tcpdf') {
+                // The ignored local Composer vendor can still contain the old
+                // package; the release validator proves it is absent from ZIPs.
+                $validator = file_get_contents($root . '/scripts/validate-package.sh');
+                self::assertIsString($validator);
+                self::assertStringContainsString('vendor/tecnickcom/tcpdf/', $validator);
+                continue;
+            }
+
             $shipped = $root . ($base === 'ADMINISTRATOR' ? '/administrator' : '') . $path;
 
             self::assertFileDoesNotExist($shipped, "The cleanup would delete a shipped path: {$path}");
@@ -160,6 +169,7 @@ final class InstallerScriptArchitectureTest extends TestCase
 
         self::assertStringContainsString("/components/com_breezingformsng/libraries/jquery/ladda',", $body);
         self::assertStringContainsString("/components/com_breezingformsng/src/Service/ScriptManager.php',", $body);
+        self::assertStringContainsString("/components/com_breezingformsng/vendor/tecnickcom/tcpdf',", $body);
         // The classic skins may hold site customisations: they are not removed.
         self::assertStringNotContainsString("/themes/quickmode/aqua'", $body);
     }

@@ -181,7 +181,7 @@ class RecordsController extends AdminController
         $export = $this->getExporter()->pdf($this->selectedIds());
         $this->getRecordModel()->markExported($export['ids']);
 
-        $export['document']->Output($export['name'], 'D');
+        $export['document']->download($export['name']);
         $this->app->close();
     }
 

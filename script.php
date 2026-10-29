@@ -2985,6 +2985,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         $obsoleteDirectories = [
+            // Composer no longer installs the TCPDF compatibility package.
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/vendor/tecnickcom/tcpdf',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/dropbox',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/mailchimp',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/recaptcha',
