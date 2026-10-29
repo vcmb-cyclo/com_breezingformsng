@@ -88,9 +88,9 @@ class PdfDocument extends Tcpdf
         return $name;
     }
 
-    public function selectFont(string $family, string $definitionFile = ''): void
+    public function selectFont(string $family, string $definitionFile = '', string $style = '', float $size = 10): void
     {
-        $font = $this->font->insert($this->pon, $family, '', 10, ifile: $definitionFile);
+        $font = $this->font->insert($this->pon, $family, $style, $size, ifile: $definitionFile);
         if ($this->page->getPages() !== []) {
             $this->page->addContent($font['out']);
         }
@@ -106,7 +106,7 @@ class PdfDocument extends Tcpdf
         $this->printFooter = $enabled;
     }
 
-    public function addDocumentPage(): void
+    public function addDocumentPage(string $orientation = 'P'): void
     {
         if (!$this->font->hasCurrentFont()) {
             $this->selectFont('helvetica');
@@ -114,7 +114,7 @@ class PdfDocument extends Tcpdf
 
         $this->addPage([
             'format' => 'A4',
-            'orientation' => 'P',
+            'orientation' => $orientation,
             'margin' => [
                 'PL' => self::MARGIN_SIDE,
                 'PR' => self::MARGIN_SIDE,

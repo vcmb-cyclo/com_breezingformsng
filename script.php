@@ -2853,7 +2853,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             [
                 $this->findStoredCodeUsingBfpdf(),
                 'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_BFPDF_CODE',
-                'This stored code uses BFPDF, which now exposes the native tc-lib-pdf API. Calls to the '
+                'This stored code uses BFPDF, which now relies on tc-lib-pdf. BFPDF keeps AddPage(), '
+                    . 'SetFont(), writeHTML(), writeHTMLCell(), lastPage(), Output(); calls to the other '
                     . 'former TCPDF methods must be adapted: %s',
             ],
         ];
