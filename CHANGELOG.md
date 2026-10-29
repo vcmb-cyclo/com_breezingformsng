@@ -11,7 +11,9 @@
   `checkout.session.completed` and `checkout.session.async_payment_succeeded`, and enter its
   signing secret in the element. The return to the site and the webhook record a payment
   once, whichever comes first. The return now also checks that the Stripe session belongs to
-  the record it confirms.
+  the record it confirms, and tells a customer whose payment is still being processed that it
+  is pending instead of declined. A payment opened without a signing secret is logged as a
+  warning. The README describes the setup.
 - The component writes its warnings and errors to `administrator/logs/com_breezingformsng.php`;
   they were dropped before.
 - A Stripe error while opening the payment page (payment method not enabled, currency not

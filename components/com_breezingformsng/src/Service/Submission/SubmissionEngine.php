@@ -1226,6 +1226,14 @@ transition: box-shadow .15s linear;
 //      billing_address_collection' => 'required' -> 'auto'
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
+                                    if (trim((string) ($options['webhookSecret'] ?? '')) === '') {
+                                        Log::add(
+                                            'Form ' . (int) $this->processor->form . ': its Stripe element has no webhook signing secret,'
+                                            . ' so a payment is recorded only if the customer comes back to the site.',
+                                            Log::WARNING,
+                                            'com_breezingformsng'
+                                        );
+                                    }
 
                                     try {
                                         $checkout_session = \Stripe\Checkout\Session::create([

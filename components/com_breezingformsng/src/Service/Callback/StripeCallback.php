@@ -145,12 +145,16 @@ final class StripeCallback
                     );
 
                     // A session belongs to the record it was opened for; sessions
-                    // opened before the reference was set carry none.
-                    if (!in_array($session->client_reference_id, [null, (string) $record_id], true) || $session->payment_status != 'paid') {
+                    // opened before the reference was set carry none. A complete but
+                    // unpaid session waits for a delayed method: the webhook records
+                    // its outcome, so it is neither declined nor confirmed here.
+                    if (!in_array($session->client_reference_id, [null, (string) $record_id], true) || ($session->payment_status != 'paid' && $session->status !== 'complete')) {
 
                         $msg = Text::_("COM_BREEZINGFORMSNG_STRIPE_DECLINED");
 
                         require_once (JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
+                    } elseif ($session->payment_status != 'paid') {
+                        $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_STRIPE_PAYMENT_PENDING'));
                     } else {
                         /** get payment intend id and creation time */
                         $stripe_pi_id = $session->payment_intent; //payment intent id from last session also replacing tx_token/charge->id with paymentIntents->id
