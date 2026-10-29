@@ -2793,6 +2793,126 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
     }
 
+    /**
+     * PDF generation now uses the native tc-lib-pdf API. Customisations
+     * written for the former TCPDF API are not executed safely anymore, so
+     * list them for the administrator instead of letting the next form
+     * submission fail.
+     */
+    private function reportLegacyPdfCustomisations(): void
+    {
+        $templateDirectory = JPATH_SITE . '/media/breezingforms/pdftpl';
+        $genericTemplates = [
+            'export_header_pdf.php',
+            'export_footer_pdf.php',
+            'pdf_attachment_header.php',
+            'pdf_attachment_footer.php',
+        ];
+        $legacyTemplates = [];
+        $ignoredTemplates = [];
+
+        foreach (glob($templateDirectory . '/*.php') ?: [] as $path) {
+            $name = basename($path);
+
+            if (in_array($name, $genericTemplates, true)) {
+                $ignoredTemplates[] = $name;
+                continue;
+            }
+
+            $source = (string) file_get_contents($path);
+            $legacyCall = '/\$(?:this|pdf)\s*->\s*'
+                . '(?:[A-Z]\w*|writeHTML\w*|lastPage|getAlias\w+|getPage(?:Height|Width))\s*\(/';
+            if (preg_match($legacyCall, $source) === 1) {
+                $legacyTemplates[] = $name;
+            }
+        }
+
+        $legacyFonts = array_map('basename', glob($templateDirectory . '/fonts/*.php') ?: []);
+
+        $warnings = [
+            [
+                $legacyTemplates,
+                'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_LEGACY_TEMPLATES',
+                'These PDF templates still call the former TCPDF API and will fail when a PDF is generated. '
+                    . 'Adapt them to tc-lib-pdf (page numbers are available in the pdfPageNumber and '
+                    . 'pdfPageCount variables): %s',
+            ],
+            [
+                $ignoredTemplates,
+                'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_IGNORED_TEMPLATES',
+                'These generic PDF templates in media/breezingforms/pdftpl are no longer used and can be '
+                    . 'deleted. Move any customisation to a form-specific template, or to '
+                    . 'export_custom_header_pdf.php or export_custom_footer_pdf.php for exports: %s',
+            ],
+            [
+                $legacyFonts,
+                'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_LEGACY_FONTS',
+                'These TCPDF font definitions in media/breezingforms/pdftpl/fonts are no longer loaded and '
+                    . 'Verdana is used instead. Provide the fonts as TTF files: %s',
+            ],
+            [
+                $this->findStoredCodeUsingBfpdf(),
+                'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_BFPDF_CODE',
+                'This stored code uses BFPDF, which now exposes the native tc-lib-pdf API. Calls to the '
+                    . 'former TCPDF methods must be adapted: %s',
+            ],
+        ];
+
+        foreach ($warnings as [$items, $key, $fallback]) {
+            if ($items === []) {
+                continue;
+            }
+
+            sort($items);
+            $list = implode(', ', array_map(
+                static fn (string $item): string => htmlspecialchars($item, ENT_QUOTES, 'UTF-8'),
+                $items
+            ));
+            $this->log($this->installerText($key, $fallback, $list), Log::WARNING);
+        }
+    }
+
+    /** @return list<string> */
+    private function findStoredCodeUsingBfpdf(): array
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $tables = $db->getTableList();
+        $prefix = $db->getPrefix();
+        $sources = [
+            'facileforms_forms' => [
+                'script1code',
+                'script2code',
+                'piece1code',
+                'piece2code',
+                'piece3code',
+                'piece4code',
+            ],
+            'facileforms_elements' => ['script1code', 'script2code', 'script3code'],
+            'facileforms_scripts' => ['code'],
+            'facileforms_pieces' => ['code'],
+        ];
+        $found = [];
+
+        foreach ($sources as $table => $columns) {
+            if (!in_array($prefix . $table, $tables, true)) {
+                continue;
+            }
+
+            $query = $db->createQuery()
+                ->select($db->quoteName(['id', 'name']))
+                ->from($db->quoteName('#__' . $table));
+            foreach ($columns as $column) {
+                $query->orWhere($db->quoteName($column) . ' LIKE ' . $db->quote('%BFPDF%'));
+            }
+
+            foreach ($db->setQuery($query)->loadObjectList() as $row) {
+                $found[] = $table . ' #' . (int) $row->id . ' (' . $row->name . ')';
+            }
+        }
+
+        return $found;
+    }
+
     private function cleanupLegacyBreezingFormsAfterInstall(): void
     {
         $this->normalizeJoomlaComponentReferences();
@@ -3720,6 +3840,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $this->installModules();
             $this->registerActionLogExtension();
             $this->cleanupLegacyBreezingFormsAfterInstall();
+            $this->reportLegacyPdfCustomisations();
             $this->removeOldUpdateSite();
             $this->cleanupOldConfig();
             $this->purgeCaches('postflight:' . $type);

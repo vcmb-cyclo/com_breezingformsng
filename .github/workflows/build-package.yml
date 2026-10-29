@@ -226,11 +226,20 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-tests-${{ matrix.php-version }}-${{ hashFiles('composer.lock') }}
+          key: composer-tests-${{ matrix.php-version }}-${{ hashFiles('composer.lock', 'administrator/components/com_breezingformsng/composer.lock') }}
           restore-keys: composer-tests-${{ matrix.php-version }}-
 
       - name: Install test dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
+        run: |
+          composer install --prefer-dist --no-interaction --no-progress
+          composer install \
+            --working-dir=administrator/components/com_breezingformsng \
+            --prefer-dist \
+            --no-interaction \
+            --no-progress
+          # PdfDocumentTest renders real PDFs: compile the font resources the
+          # package build also compiles (see scripts/build-package.sh).
+          make -C administrator/components/com_breezingformsng/vendor/tecnickcom/tc-lib-pdf-font fonts
 
       - name: Run unit tests
         if: matrix.php-version != '8.3'

@@ -32,6 +32,14 @@ if (!class_exists(Tcpdf::class)) {
 
 class PdfDocument extends Tcpdf
 {
+    // Page layout in mm. The header box ends where the content starts, so a
+    // tall header cannot overlap the first rows of the document.
+    private const MARGIN_SIDE = 15.0;
+    private const MARGIN_TOP = 27.0;
+    private const MARGIN_BOTTOM = 25.0;
+    private const HEADER_TOP = 5.0;
+    private const FOOTER_HEIGHT = 20.0;
+
     public string $form_name = '';
     public bool $mailback = false;
     public string $which = 'attachment';
@@ -107,14 +115,24 @@ class PdfDocument extends Tcpdf
         $this->addPage([
             'format' => 'A4',
             'orientation' => 'P',
-            'margin' => ['PL' => 15, 'PR' => 15, 'PT' => 20, 'PB' => 25],
+            'margin' => [
+                'PL' => self::MARGIN_SIDE,
+                'PR' => self::MARGIN_SIDE,
+                'PT' => self::MARGIN_TOP,
+                'PB' => self::MARGIN_BOTTOM,
+            ],
         ]);
     }
 
     public function renderHtml(string $html): void
     {
         $page = $this->page->getPage();
-        $this->addHTMLCell($html, posx: 15, posy: 20, width: $page['width'] - 30);
+        $this->addHTMLCell(
+            $html,
+            posx: self::MARGIN_SIDE,
+            posy: self::MARGIN_TOP,
+            width: $page['width'] - 2 * self::MARGIN_SIDE
+        );
     }
 
     public function getOutPDFString(): string
@@ -149,12 +167,22 @@ class PdfDocument extends Tcpdf
 
         foreach ($pages as $pid => $page) {
             $this->setCurrentPage($pid);
-            $width = $page['width'] - 30;
+            $width = $page['width'] - 2 * self::MARGIN_SIDE;
             $templates = [
-                [$this->printHeader, $this->getHeaderTemplate(), 5.0],
-                [$this->printFooter, $this->getFooterTemplate(), $page['height'] - 25],
+                [
+                    $this->printHeader,
+                    $this->getHeaderTemplate(),
+                    self::HEADER_TOP,
+                    self::MARGIN_TOP - self::HEADER_TOP,
+                ],
+                [
+                    $this->printFooter,
+                    $this->getFooterTemplate(),
+                    $page['height'] - self::MARGIN_BOTTOM,
+                    self::FOOTER_HEIGHT,
+                ],
             ];
-            foreach ($templates as [$enabled, $file, $y]) {
+            foreach ($templates as [$enabled, $file, $y, $height]) {
                 if (!$enabled || $file === '') {
                     continue;
                 }
@@ -164,7 +192,10 @@ class PdfDocument extends Tcpdf
                 ob_start();
                 require $file;
                 $html = (string) ob_get_clean();
-                $this->page->addContent($this->getHTMLCell($html, posx: 15, posy: $y, width: $width, height: 20), $pid);
+                $this->page->addContent(
+                    $this->getHTMLCell($html, posx: self::MARGIN_SIDE, posy: $y, width: $width, height: $height),
+                    $pid
+                );
             }
         }
 

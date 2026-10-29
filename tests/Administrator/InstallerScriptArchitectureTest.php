@@ -100,6 +100,52 @@ final class InstallerScriptArchitectureTest extends TestCase
         );
     }
 
+    public function testPostflightReportsLegacyPdfCustomisations(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../script.php');
+
+        self::assertIsString($source);
+        self::assertStringContainsString('$this->reportLegacyPdfCustomisations();', $source);
+        self::assertSame(1, preg_match("/\\\$legacyCall = '(.+?)'\\s*\\.\\s*'(.+?)';/", $source, $match));
+
+        $legacyCall = $match[1] . $match[2];
+        $legacyCalls = [
+            '$this->SetY(-25);',
+            '$this->getAliasNbPages()',
+            '$pdf->writeHTML($html);',
+            '$pdf -> Output($name, "F");',
+        ];
+        foreach ($legacyCalls as $call) {
+            self::assertSame(1, preg_match($legacyCall, $call), $call);
+        }
+        $nativeCalls = ['$this->getHTMLCell($html);', '$pdf->addDocumentPage();', 'echo (int) $pdfPageNumber;'];
+        foreach ($nativeCalls as $call) {
+            self::assertSame(0, preg_match($legacyCall, $call), $call);
+        }
+
+        $keys = [
+            'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_LEGACY_TEMPLATES',
+            'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_IGNORED_TEMPLATES',
+            'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_LEGACY_FONTS',
+            'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_BFPDF_CODE',
+        ];
+        $languages = glob(
+            __DIR__ . '/../../administrator/components/com_breezingformsng/language/*/com_breezingformsng.ini'
+        );
+        self::assertIsArray($languages);
+        self::assertCount(8, $languages);
+
+        foreach ($keys as $key) {
+            self::assertStringContainsString("'{$key}'", $source);
+            foreach ($languages as $language) {
+                $strings = parse_ini_file($language);
+                self::assertIsArray($strings);
+                $label = basename(dirname($language)) . ' ' . $key;
+                self::assertStringEndsWith(': %s', $strings[$key] ?? '', $label);
+            }
+        }
+    }
+
     public function testAboutPageUsesOnlyTheCurrentManifestPath(): void
     {
         $source = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/default.php');

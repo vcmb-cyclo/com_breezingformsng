@@ -25,6 +25,11 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfDocument;
  * class the component's own export/notification code uses), so this facade
  * never drifts out of sync with it - see BFQuickModeBootstrap/Mobile/OnePage
  * for the same pattern applied to the Phase 9c renderers.
+ *
+ * Only the class name is preserved: PdfDocument extends the native
+ * tc-lib-pdf API, so stored code calling the former TCPDF methods
+ * (AddPage(), SetFont(), writeHTML(), Output()...) must be adapted. The
+ * installer reports stored code that still references this class.
  */
 class BFPDF extends PdfDocument
 {
