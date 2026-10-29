@@ -153,12 +153,14 @@ final class PdfDocumentTest extends TestCase
 
         self::assertNotFalse(file_put_contents($header, <<<'PHP'
 <?php
-file_put_contents(JPATH_SITE . '/template-calls.log', 'header:' . $pdfPageNumber . '/' . $pdfPageCount . "\n", FILE_APPEND);
+$call = 'header:' . $pdfPageNumber . '/' . $pdfPageCount . "\n";
+file_put_contents(JPATH_SITE . '/template-calls.log', $call, FILE_APPEND);
 echo '<p>Header</p>';
 PHP));
         self::assertNotFalse(file_put_contents($footer, <<<'PHP'
 <?php
-file_put_contents(JPATH_SITE . '/template-calls.log', 'footer:' . $pdfPageNumber . '/' . $pdfPageCount . "\n", FILE_APPEND);
+$call = 'footer:' . $pdfPageNumber . '/' . $pdfPageCount . "\n";
+file_put_contents(JPATH_SITE . '/template-calls.log', $call, FILE_APPEND);
 echo '<p>Footer</p>';
 PHP));
 

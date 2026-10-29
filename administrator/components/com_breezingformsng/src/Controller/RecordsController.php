@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
@@ -89,7 +90,8 @@ class RecordsController extends AdminController
             if (!$model instanceof RecordModel) {
                 $this->setMessage(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'), 'error');
                 $this->setRedirect(Route::_(
-                    'index.php?option=' . $this->option . '&view=' . $this->view_list . $this->getRedirectToListAppend(),
+                    'index.php?option=' . $this->option . '&view=' . $this->view_list
+                        . $this->getRedirectToListAppend(),
                     false
                 ));
 
@@ -125,10 +127,22 @@ class RecordsController extends AdminController
         }
     }
 
-    public function viewed(): void     { $this->batchFlag('viewed', 1); }
-    public function unviewed(): void   { $this->batchFlag('viewed', 0); }
-    public function exported(): void   { $this->batchFlag('exported', 1); }
-    public function unexported(): void { $this->batchFlag('exported', 0); }
+    public function viewed(): void
+    {
+        $this->batchFlag('viewed', 1);
+    }
+    public function unviewed(): void
+    {
+        $this->batchFlag('viewed', 0);
+    }
+    public function exported(): void
+    {
+        $this->batchFlag('exported', 1);
+    }
+    public function unexported(): void
+    {
+        $this->batchFlag('exported', 0);
+    }
 
     /**
      * Ajax toggle of the viewed or exported flag of one record.
@@ -348,8 +362,12 @@ class RecordsController extends AdminController
         $this->getRecordModel()->setFlagsBatch($ids, $column, $value);
 
         $keyBases = [
-            'viewed'   => $value ? 'COM_BREEZINGFORMSNG_RECORDS_N_MARKED_VIEWED' : 'COM_BREEZINGFORMSNG_RECORDS_N_UNMARKED_VIEWED',
-            'exported' => $value ? 'COM_BREEZINGFORMSNG_RECORDS_N_MARKED_EXPORTED' : 'COM_BREEZINGFORMSNG_RECORDS_N_UNMARKED_EXPORTED',
+            'viewed'   => $value
+                ? 'COM_BREEZINGFORMSNG_RECORDS_N_MARKED_VIEWED'
+                : 'COM_BREEZINGFORMSNG_RECORDS_N_UNMARKED_VIEWED',
+            'exported' => $value
+                ? 'COM_BREEZINGFORMSNG_RECORDS_N_MARKED_EXPORTED'
+                : 'COM_BREEZINGFORMSNG_RECORDS_N_UNMARKED_EXPORTED',
         ];
         $this->setRedirect(
             Route::_(self::LIST_URL, false),

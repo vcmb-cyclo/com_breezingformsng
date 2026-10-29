@@ -38,7 +38,7 @@ final class CallbackExportUploadPermissionTest extends TestCase
     {
         $engine = (new ReflectionClass(ExportEngine::class))->newInstanceWithoutConstructor();
 
-        self::assertMatchesRegularExpression('/^[a-zA-Z0-9]{24}$/', $engine->random_str(24));
+        self::assertMatchesRegularExpression('/^[a-zA-Z0-9]{24}$/', $engine->randomString(24));
         self::assertTrue($engine->endsWith('submission.csv', '.csv'));
         self::assertFalse($engine->endsWith('submission.csv', '.xml'));
     }
@@ -49,7 +49,7 @@ final class CallbackExportUploadPermissionTest extends TestCase
 
         self::assertTrue($engine->endsWith('submission.csv', ''));
         $this->expectException(\ValueError::class);
-        $engine->random_str(1, '');
+        $engine->randomString(1, '');
     }
 
     public function testExportEngineDoesNotRetainAnUnconditionalBranch(): void

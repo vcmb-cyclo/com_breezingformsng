@@ -515,7 +515,7 @@ class HTML_facileFormsProcessor
         string $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     ): string
     {
-        return $this->exportEngine()->random_str($length, $keyspace);
+        return $this->exportEngine()->randomString($length, $keyspace);
     }
 
     /**

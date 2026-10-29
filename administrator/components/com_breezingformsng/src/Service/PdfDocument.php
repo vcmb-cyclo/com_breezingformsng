@@ -218,7 +218,8 @@ class PdfDocument extends Tcpdf
             }
 
             if ($this->mailback) {
-                $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_pdf_mailback_attachment_header.php';
+                $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name
+                    . '_pdf_mailback_attachment_header.php';
                 if (file_exists($mb_file)) {
                     $file = $mb_file;
                 } else {
@@ -263,7 +264,8 @@ class PdfDocument extends Tcpdf
             }
 
             if ($this->mailback) {
-                $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_pdf_mailback_attachment_footer.php';
+                $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name
+                    . '_pdf_mailback_attachment_footer.php';
                 if (file_exists($mb_file)) {
                     $file = $mb_file;
                 } else {

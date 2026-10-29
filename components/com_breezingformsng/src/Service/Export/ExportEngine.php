@@ -1,4 +1,5 @@
 <?php
+
 /**
  * BreezingForms NG - A Joomla Forms Application
  *
@@ -74,10 +75,12 @@ final class ExportEngine
      * @return mixed
      */
     public function logToDatabase($cbResult = null)
-    { // CONTENTBUILDER
+    {
+        // CONTENTBUILDER
         global $ff_config;
-        if ($this->processor->dying)
+        if ($this->processor->dying) {
             return;
+        }
 
         $cbResult ??= [];
         /** @var \CB\Component\Contentbuilderng\Administrator\types\contentbuilderng_com_breezingformsng|\CB\Component\Contentbuilderng\Administrator\types\contentbuilderng_com_contentbuilderng|null $cbForm */
@@ -173,7 +176,14 @@ final class ExportEngine
                     $cbType = 'com_breezingformsng';
                     $insertQuery = $db->createQuery()
                         ->insert($db->quoteName('#__contentbuilderng_records'))
-                        ->columns($db->quoteName(['session_id', 'type', 'last_update', 'published', 'record_id', 'reference_id']))
+                        ->columns($db->quoteName([
+                            'session_id',
+                            'type',
+                            'last_update',
+                            'published',
+                            'record_id',
+                            'reference_id',
+                        ]))
                         ->values(':sessionId, :cbType, :lastUpdate, 0, :cbRecordReturn, :cbFormValue')
                         ->bind(':sessionId', $sessionId, ParameterType::STRING)
                         ->bind(':cbType', $cbType, ParameterType::STRING)
@@ -205,12 +215,10 @@ final class ExportEngine
         $subrecord = new SubrecordTable($this->processor->database);
         $subrecord->record = $record->id;
         if (count($this->processor->savedata ?? [])) {
-
             $cbData = array();
 
             // CONTENTBUILDER file deletion/upgrade
             if (is_object($cbForm)) {
-
                 $db = $this->processor->database;
                 $cbFormIdInput = $this->processor->app->getInput()->getInt('cb_form_id', 0);
                 $cbFormQuery = $db->createQuery()
@@ -222,17 +230,32 @@ final class ExportEngine
                 $db->setQuery($cbFormQuery);
                 $_settings = $db->loadObject();
 
-                $_record = $cbForm->getRecord($this->processor->app->getInput()->getInt('record_id', 0), $_settings->published_only, $cbResult['frontend'] ? ($_settings->own_only_fe ? $user->get('id', 0) : -1) : ($_settings->own_only ? $user->get('id', 0) : -1), true);
+                $_record = $cbForm->getRecord(
+                    $this->processor->app->getInput()->getInt('record_id', 0),
+                    $_settings->published_only,
+                    $cbResult['frontend']
+                        ? ($_settings->own_only_fe ? $user->get('id', 0) : -1)
+                        : ($_settings->own_only ? $user->get('id', 0) : -1),
+                    true
+                );
                 foreach ($_record as $_rec) {
                     $_files_deleted = array();
                     if ($_rec->recType == 'File Upload') {
-                        $_array = $this->processor->app->getInput()->get('cb_delete_' . $_rec->recElementId, [], 'array');
+                        $_array = $this->processor->app->getInput()->get(
+                            'cb_delete_' . $_rec->recElementId,
+                            [],
+                            'array'
+                        );
                         foreach ($_array as $_key => $_arr) {
                             if ($_arr == 1) {
                                 $_values = explode("\n", $_rec->recValue);
                                 if (isset($_values[$_key])) {
                                     if (str_starts_with(strtolower($_values[$_key]), '{cbsite}')) {
-                                        $_values[$_key] = str_replace(array('{cbsite}', '{CBSite}'), array(JPATH_SITE, JPATH_SITE), $_values[$_key]);
+                                        $_values[$_key] = str_replace(
+                                            array('{cbsite}', '{CBSite}'),
+                                            array(JPATH_SITE, JPATH_SITE),
+                                            $_values[$_key]
+                                        );
                                     }
                                     if (file_exists($_values[$_key])) {
                                         File::delete($_values[$_key]);
@@ -245,7 +268,11 @@ final class ExportEngine
                             }
                         }
 
-                        if (isset($_files_deleted[$_rec->recElementId]) && is_array($_files_deleted[$_rec->recElementId]) && count($_files_deleted[$_rec->recElementId])) {
+                        if (
+                            isset($_files_deleted[$_rec->recElementId])
+                            && is_array($_files_deleted[$_rec->recElementId])
+                            && count($_files_deleted[$_rec->recElementId])
+                        ) {
                             $_i = 0;
                             foreach ($this->processor->savedata ?? [] as $data) {
                                 if ($data[_FF_DATA_ID] == $_rec->recElementId) {
@@ -257,7 +284,9 @@ final class ExportEngine
                                         }
                                         $_j++;
                                     }
-                                    $this->processor->savedata[$_i][_FF_DATA_VALUE] = rtrim($this->processor->savedata[$_i][_FF_DATA_VALUE]);
+                                    $this->processor->savedata[$_i][_FF_DATA_VALUE] = rtrim(
+                                        $this->processor->savedata[$_i][_FF_DATA_VALUE]
+                                    );
                                     break;
                                 }
                                 $_i++;
@@ -274,7 +303,9 @@ final class ExportEngine
                             foreach ($_is_values as $_is_value) {
                                 $this->processor->savedata[$next][_FF_DATA_VALUE] .= $_is_value . "\n";
                             }
-                            $this->processor->savedata[$next][_FF_DATA_VALUE] = rtrim($this->processor->savedata[$next][_FF_DATA_VALUE]);
+                            $this->processor->savedata[$next][_FF_DATA_VALUE] = rtrim(
+                                $this->processor->savedata[$next][_FF_DATA_VALUE]
+                            );
                         }
                     }
                 }
@@ -294,7 +325,7 @@ final class ExportEngine
             foreach ($this->processor->savedata ?? [] as $data) {
                 // CONTENTBUILDER WILL TAKE OVER SAVING/UPDATE IF EXISTS
                 if (!is_object($cbForm)) {
-        $subrecord->id = null;
+                    $subrecord->id = null;
                     $subrecord->element = $data[_FF_DATA_ID];
                     $subrecord->name = $data[_FF_DATA_NAME];
                     $subrecord->title = strip_tags($data[_FF_DATA_TITLE]);
@@ -315,11 +346,10 @@ final class ExportEngine
                         $isset[$data[_FF_DATA_ID]] = true;
                     }
                 } else {
-
-                    $cbNonEditableFields = ListSupportService::createFromRuntimeContext()->getListNonEditableElements($cbResult['data']['id']);
+                    $cbNonEditableFields = ListSupportService::createFromRuntimeContext()
+                        ->getListNonEditableElements($cbResult['data']['id']);
 
                     if (!in_array($data[_FF_DATA_ID], $cbNonEditableFields)) {
-
                         switch ($data[_FF_DATA_TYPE]) {
                             case 'Checkbox':
                             case 'Checkbox Group':
@@ -346,7 +376,6 @@ final class ExportEngine
             } // foreach
             // CONTENTBUILDER BEGIN
             if (is_object($cbForm)) {
-
                 PluginHelper::importPlugin('contentbuilderng_submit');
 
                 $is15 = false;
@@ -358,7 +387,7 @@ final class ExportEngine
                     if (isset($cbData[$id])) {
                         if (in_array($id, $cbFileFields) && trim($cbData[$id]) == '') {
                             $values[$id] = '';
-                        } else if (in_array($id, $cbFileFields) && trim($cbData[$id]) != '') {
+                        } elseif (in_array($id, $cbFileFields) && trim($cbData[$id]) != '') {
                             $values[$id] = trim($cbData[$id]);
                         } else {
                             $values[$id] = $cbData[$id];
@@ -371,10 +400,12 @@ final class ExportEngine
                     $this->processor->app->getInput()->getInt('cb_record_id', 0),
                     $cbForm,
                     $values
-                )
-            ));
+                )));
 
-                $record_return = $cbForm->saveRecord($this->processor->app->getInput()->getInt('cb_record_id', 0), $values);
+                $record_return = $cbForm->saveRecord(
+                    $this->processor->app->getInput()->getInt('cb_record_id', 0),
+                    $values
+                );
 
                 $db = $this->processor->database;
                 $cbFormIdInput = $this->processor->app->getInput()->getInt('cb_form_id', 0);
@@ -389,13 +420,11 @@ final class ExportEngine
                 $cbData = $db->loadObject();
 
                 if ($record_return) {
-
                     $this->processor->record_id = $record_return;
 
                     $sef = '';
                     $ignore_lang_code = '*';
                     if ($cbResult['data']['default_lang_code_ignore']) {
-
                         $langSef = trim($this->processor->app->getInput()->getCmd('lang', ''));
                         $langQuery = $db->createQuery()
                             ->select($db->quoteName('lang_code'))
@@ -428,22 +457,29 @@ final class ExportEngine
                         $sef = $db->loadResult();
                     }
 
-                    $language = $cbResult['data']['default_lang_code_ignore'] ? $ignore_lang_code : $cbResult['data']['default_lang_code'];
+                    $language = $cbResult['data']['default_lang_code_ignore']
+                        ? $ignore_lang_code
+                        : $cbResult['data']['default_lang_code'];
                     $res = $db->loadResult();
                     $last_update = new \Joomla\CMS\Date\Date();
                     $last_update = $last_update->toSql();
                     if (!$res) {
-
                         $is_future = 0;
                         $created_up = (new \Joomla\CMS\Date\Date())->toSql();
                         if (intval($cbData?->default_publish_up_days) != 0) {
                             $is_future = 1;
-                            $date = new \Joomla\CMS\Date\Date((string) strtotime('now +' . intval($cbData?->default_publish_up_days) . ' days'));
+                            $date = new \Joomla\CMS\Date\Date(
+                                (string) strtotime('now +' . intval($cbData?->default_publish_up_days) . ' days')
+                            );
                             $created_up = $date->toSql();
                         }
                         $created_down = '0000-00-00 00:00:00';
                         if (intval($cbData?->default_publish_down_days) != 0) {
-                            $date = new \Joomla\CMS\Date\Date((string) strtotime($created_up . ' +' . intval($cbData?->default_publish_down_days) . ' days'));
+                            $date = new \Joomla\CMS\Date\Date(
+                                (string) strtotime(
+                                    $created_up . ' +' . intval($cbData?->default_publish_down_days) . ' days'
+                                )
+                            );
                             $created_down = $date->toSql();
                         }
 
@@ -475,9 +511,7 @@ final class ExportEngine
                             ->bind(':createdDown', $created_down, ParameterType::STRING);
                         $db->setQuery($insertRecordQuery);
                         $db->execute();
-
                     } else {
-
                         $langType = 'com_breezingformsng';
                         $langReferenceId = $cbForm->getReferenceId();
                         $langSefTrimmed = trim($sef);
@@ -505,16 +539,24 @@ final class ExportEngine
 
                 // creating the article
                 if (is_object($cbData) && $cbData->create_articles) {
-
                     $this->processor->app->getInput()->set('cb_category_id', null);
                     $this->processor->app->getInput()->set('cb_controller', null);
 
-                    if ($this->processor->app->isClient('site') && $this->processor->app->getInput()->getInt('Itemid', 0)) {
+                    if (
+                        $this->processor->app->isClient('site')
+                        && $this->processor->app->getInput()->getInt('Itemid', 0)
+                    ) {
                         $menu = $this->processor->app->getMenu();
                         $item = $menu->getActive();
                         if (is_object($item)) {
-                            $this->processor->app->getInput()->set('cb_category_id', $item->getParams()->get('cb_category_id', null));
-                            $this->processor->app->getInput()->set('cb_controller', $item->getParams()->get('cb_controller', null));
+                            $this->processor->app->getInput()->set(
+                                'cb_category_id',
+                                $item->getParams()->get('cb_category_id', null)
+                            );
+                            $this->processor->app->getInput()->set(
+                                'cb_controller',
+                                $item->getParams()->get('cb_controller', null)
+                            );
                         }
                     }
 
@@ -542,7 +584,14 @@ final class ExportEngine
                             $ids[] = $row['reference_id'];
                         }
                     }
-                    $cbData->items = $cbForm->getRecord($record_return, $cbData->published_only, $cbResult['frontend'] ? ($cbData->own_only_fe ? $user->get('id', 0) : -1) : ($cbData->own_only ? $user->get('id', 0) : -1), true);
+                    $cbData->items = $cbForm->getRecord(
+                        $record_return,
+                        $cbData->published_only,
+                        $cbResult['frontend']
+                            ? ($cbData->own_only_fe ? $user->get('id', 0) : -1)
+                            : ($cbData->own_only ? $user->get('id', 0) : -1),
+                        true
+                    );
                     if (!count($cbData->items)) {
                         throw new Exception(Text::_('COM_CONTENTBUILDERNG_RECORD_NOT_FOUND'), 404);
                     }
@@ -558,17 +607,34 @@ final class ExportEngine
                     if (!$contentBuilder instanceof ContentbuilderngComponent) {
                         throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
                     }
-                    $article_id = $contentBuilder->getContainer()->get(ArticleService::class)->createArticle($this->processor->app->getInput()->getInt('cb_form_id', 0), $record_return, $cbData->items, $ids, $cbData->title_field, $cbForm->getRecordMetadata($record_return), $config, $full, true, $this->processor->app->getInput()->get('cb_category_id', null, 'string'));
+                    $article_id = $contentBuilder->getContainer()
+                        ->get(ArticleService::class)
+                        ->createArticle(
+                            $this->processor->app->getInput()->getInt('cb_form_id', 0),
+                            $record_return,
+                            $cbData->items,
+                            $ids,
+                            $cbData->title_field,
+                            $cbForm->getRecordMetadata($record_return),
+                            $config,
+                            $full,
+                            true,
+                            $this->processor->app->getInput()->get('cb_category_id', null, 'string')
+                        );
 
                     $cacheFactory = $this->cacheControllerFactory;
                     $cache = $cacheFactory->createCacheController('callback', ['defaultgroup' => 'com_content']);
                     $cache->clean();
-                    $cache = $cacheFactory->createCacheController('callback', ['defaultgroup' => 'com_contentbuilderng']);
+                    $cache = $cacheFactory->createCacheController(
+                        'callback',
+                        ['defaultgroup' => 'com_contentbuilderng']
+                    );
                     $cache->clean();
                 }
 
                 $dispatcher = $this->processor->app->getDispatcher();
-                $dispatcher->dispatch('onAfterSubmit', new Event('onAfterSubmit',
+                $dispatcher->dispatch('onAfterSubmit', new Event(
+                    'onAfterSubmit',
                     array(
                         $record_return,
                         $article_id,
@@ -581,10 +647,11 @@ final class ExportEngine
         }
 
         $integrate = new IntegratorRuntime((int) $this->processor->form, $this->processor->database);
-        if (count($this->processor->savedata ?? []))
+        if (count($this->processor->savedata ?? [])) {
             foreach ($this->processor->savedata ?? [] as $data) {
                 $integrate->field($data);
             }
+        }
         $integrate->commit();
 
         if (isset($record_return)) {
@@ -596,11 +663,10 @@ final class ExportEngine
      * https://stackoverflow.com/questions/4356289/php-random-string-generator/31107425#31107425
      */
 
-    public function random_str(
+    public function randomString(
         int $length,
         string $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    ): string
-    {
+    ): string {
         $pieces = [];
         $max = mb_strlen($keyspace, '8bit') - 1;
         for ($i = 0; $i < $length; ++$i) {
@@ -624,10 +690,21 @@ final class ExportEngine
      * @param mixed $alt_sender
      * @return mixed
      */
-    public function sendMail($from, $fromname, $recipient, $subject, $body, $attachment = null, $html = null, $cc = null, $bcc = null, $alt_sender = '')
-    {
-        if ($this->processor->dying)
+    public function sendMail(
+        $from,
+        $fromname,
+        $recipient,
+        $subject,
+        $body,
+        $attachment = null,
+        $html = null,
+        $cc = null,
+        $bcc = null,
+        $alt_sender = ''
+    ) {
+        if ($this->processor->dying) {
             return;
+        }
 
         try {
             $this->mailSender()->send(
@@ -695,7 +772,9 @@ final class ExportEngine
         }
 
         if ($mailback) {
-            $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->processor->formrow->name . '_pdf_mailback_attachment.php';
+            $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/'
+                . $this->processor->formrow->name
+                . '_pdf_mailback_attachment.php';
             if (file_exists($mb_file)) {
                 $file = $mb_file;
             } else {
@@ -719,7 +798,9 @@ final class ExportEngine
                 if ($translate) {
                     $title_translated = '';
                     $this->processor->getFieldTranslated('label', $data[_FF_DATA_NAME], $title_translated);
-                    $data[_FF_DATA_TITLE] = $title_translated != '' ? $title_translated : strip_tags($data[_FF_DATA_TITLE]);
+                    $data[_FF_DATA_TITLE] = $title_translated != ''
+                        ? $title_translated
+                        : strip_tags($data[_FF_DATA_TITLE]);
                 }
                 $xmldata[] = $data;
                 //$processed[] = $data[_FF_DATA_NAME];
@@ -759,19 +840,18 @@ final class ExportEngine
         $ttf_name = '';
 
         if (is_dir(JPATH_SITE . '/media/breezingforms/pdftpl/fonts/')) {
-
             $sourcePath = JPATH_SITE . '/media/breezingforms/pdftpl/fonts/';
             foreach ((new PdfFontDirectoryScanner())->scan($sourcePath) as $file) {
-                    if ($file != "." && $file != ".." && $this->processor->endsWith(strtolower($file), '.ttf')) {
-                        $file_sep = explode('.', $file);
-                        if (count($file_sep) > 1) {
-                            unset($file_sep[count($file_sep) - 1]);
-                            $ttf_name = PdfDocument::importTtfFont($sourcePath . $file);
-                        }
+                if ($file != "." && $file != ".." && $this->processor->endsWith(strtolower($file), '.ttf')) {
+                    $file_sep = explode('.', $file);
+                    if (count($file_sep) > 1) {
+                        unset($file_sep[count($file_sep) - 1]);
+                        $ttf_name = PdfDocument::importTtfFont($sourcePath . $file);
                     }
-                    if ($this->processor->endsWith(strtolower($file), '_active')) {
-                        $active_found = true;
-                    }
+                }
+                if ($this->processor->endsWith(strtolower($file), '_active')) {
+                    $active_found = true;
+                }
             }
         }
 
@@ -783,18 +863,14 @@ final class ExportEngine
         }
 
         if ($pdf->getFooterTemplate() == '') {
-
             $pdf->setPrintFooter(false);
         } else {
-
             $pdf->setPrintFooter(true);
         }
 
         if ($pdf->getHeaderTemplate() == '') {
-
             $pdf->setPrintHeader(false);
         } else {
-
             $pdf->setPrintHeader(true);
         }
 
@@ -807,7 +883,6 @@ final class ExportEngine
         preg_match_all($regex, str_replace(' ', '', $c), $matches_array);
 
         if (isset($matches_array[1][0]) && trim($matches_array[1][0]) == 'fm' && isset($matches_array[2][0])) {
-
             $fm = $matches_array[2][0];
 
             if (str_starts_with(trim($fm), '{mospath}')) {
@@ -815,10 +890,17 @@ final class ExportEngine
             }
 
             foreach ($_xmldata as $data) {
+                $value = str_replace(
+                    array('.', 'ä', 'ü', 'ö', 'Ä', 'Ü', 'Ö', 'ß'),
+                    array('_', 'ae', 'ue', 'oe', 'Ae', 'Ue', 'Oe', 'ss'),
+                    $data[_FF_DATA_VALUE]
+                );
 
-                $value = str_replace(array('.', 'ä', 'ü', 'ö', 'Ä', 'Ü', 'Ö', 'ß'), array('_', 'ae', 'ue', 'oe', 'Ae', 'Ue', 'Oe', 'ss'), $data[_FF_DATA_VALUE]);
-
-                $fm = str_replace('{' . strtolower($data[_FF_DATA_NAME]) . ':value}', File::makeSafe(trim($value)), $fm);
+                $fm = str_replace(
+                    '{' . strtolower($data[_FF_DATA_NAME]) . ':value}',
+                    File::makeSafe(trim($value)),
+                    $fm
+                );
             }
 
             $user = $this->processor->app->getIdentity()
@@ -845,12 +927,11 @@ final class ExportEngine
             $pdfname = $uploads . $fm . '.pdf';
 
             if (file_exists($pdfname)) {
-
                 $pdfname = $uploads . $fm . '-' . $date_stamp . '-' . mt_rand(0, mt_getrandmax()) . '.pdf';
             }
         } else {
-
-            $pdfname = $this->processor->uploads . '/ffexport-pdf-' . $date_stamp . '-' . mt_rand(0, mt_getrandmax()) . '.pdf';
+            $pdfname = $this->processor->uploads . '/ffexport-pdf-' . $date_stamp
+                . '-' . mt_rand(0, mt_getrandmax()) . '.pdf';
         }
 
         $pdf->saveToFile($pdfname);
@@ -907,7 +988,9 @@ final class ExportEngine
             foreach ($xmldata as $data) {
                 if (!in_array($data[_FF_DATA_NAME], $filter) && !in_array($data[_FF_DATA_NAME], $processed)) {
                     $fields[strip_tags($data[_FF_DATA_TITLE])] = true;
-                    $lines[$lineNum][strip_tags($data[_FF_DATA_TITLE])][] = is_array($data[_FF_DATA_VALUE]) ? implode('|', $data[_FF_DATA_VALUE]) : $data[_FF_DATA_VALUE];
+                    $lines[$lineNum][strip_tags($data[_FF_DATA_TITLE])][] = is_array($data[_FF_DATA_VALUE])
+                        ? implode('|', $data[_FF_DATA_VALUE])
+                        : $data[_FF_DATA_VALUE];
                     //$processed[] = $data[_FF_DATA_NAME];
                 }
             } // foreach
@@ -931,9 +1014,21 @@ final class ExportEngine
             ksort($lines[$i]);
             foreach ($lines[$i] as $fieldName => $line) {
                 if ($inverted == true) {
-                    $out .= $csvquote . str_replace($csvquote, $csvquote . $csvquote, str_replace("\n", $cellnewline, str_replace("\r", "", $fieldName))) . $csvquote . $csvdelimiter;
+                    $out .= $csvquote
+                        . str_replace(
+                            $csvquote,
+                            $csvquote . $csvquote,
+                            str_replace("\n", $cellnewline, str_replace("\r", "", $fieldName))
+                        )
+                        . $csvquote . $csvdelimiter;
                 }
-                $out .= $csvquote . str_replace($csvquote, $csvquote . $csvquote, str_replace("\n", $cellnewline, str_replace("\r", "", implode('|', $line)))) . $csvquote . $csvdelimiter;
+                $out .= $csvquote
+                    . str_replace(
+                        $csvquote,
+                        $csvquote . $csvquote,
+                        str_replace("\n", $cellnewline, str_replace("\r", "", implode('|', $line)))
+                    )
+                    . $csvquote . $csvdelimiter;
 
                 if ($inverted == true) {
                     $out .= nl();
@@ -982,29 +1077,37 @@ final class ExportEngine
         $date_stamp = $timestamp->fileStamp;
         $date_file = $submitted;
 
-        if ($this->processor->dying)
+        if ($this->processor->dying) {
             return '';
+        }
         mt_srand();
         $xmlname = $this->processor->uploads . '/ffexport-' . $date_stamp . '-' . mt_rand(0, mt_getrandmax()) . '.xml';
 
         $xml = '<?xml version="1.0" encoding="utf-8" ?>' . nl() .
             '<FacileFormsExport type="records" version="' . $ff_version . '">' . nl() .
             indent(1) . '<exportdate>' . $date_file . '</exportdate>' . nl();
-        if ($this->processor->record_id != '')
+        if ($this->processor->record_id != '') {
             $xml .= indent(1) . '<record id="' . $this->processor->record_id . '">' . nl();
-        else
+        } else {
             $xml .= indent(1) . '<record>' . nl();
+        }
 
         $title_translated = $this->processor->getFormTitleTranslated();
 
         $xml .= indent(2) . '<submitted>' . $submitted . '</submitted>' . nl() .
             indent(2) . '<form>' . $this->processor->form . '</form>' . nl() .
-            indent(2) . '<title>' . htmlspecialchars($title_translated != '' ? $title_translated : ($this->processor->formrow->title ?? ''), ENT_QUOTES, 'UTF-8') . '</title>' . nl() .
+            indent(2) . '<title>' . htmlspecialchars(
+                $title_translated != '' ? $title_translated : ($this->processor->formrow->title ?? ''),
+                ENT_QUOTES,
+                'UTF-8'
+            ) . '</title>' . nl() .
             indent(2) . '<name>' . $this->processor->formrow->name . '</name>' . nl() .
             indent(2) . '<ip>' . $this->processor->ip . '</ip>' . nl() .
             indent(2) . '<browser>' . htmlspecialchars($this->processor->browser ?? '', ENT_QUOTES, 'UTF-8') .
                 '</browser>' . nl() .
-            indent(2) . '<opsys>' . htmlspecialchars($this->processor->opsys ?? '', ENT_QUOTES, 'UTF-8') . '</opsys>' . nl() .
+            indent(2) . '<opsys>'
+                . htmlspecialchars($this->processor->opsys ?? '', ENT_QUOTES, 'UTF-8')
+                . '</opsys>' . nl() .
             indent(2) . '<provider>' . $this->processor->provider . '</provider>' . nl() .
             indent(2) . '<viewed>0</viewed>' . nl() .
             indent(2) . '<exported>0</exported>' . nl() .
@@ -1016,9 +1119,8 @@ final class ExportEngine
             $xmldata = $this->processor->mb_xmldata ?? [];
         }
 
-        if (count($xmldata))
+        if (count($xmldata)) {
             foreach ($xmldata as $data) {
-
                 if ($translate) {
                     $title_translated = '';
                     $this->processor->getFieldTranslated('label', $data[_FF_DATA_NAME], $title_translated);
@@ -1026,15 +1128,24 @@ final class ExportEngine
 
                 if (!in_array($data[_FF_DATA_NAME], $filter) && !in_array($data[_FF_DATA_NAME], $processed)) {
                     $xml .= indent(2) . '<subrecord>' . nl() .
-                        indent(3) . '<element>' . $data[_FF_DATA_ID] . '</element>' . nl() .
-                        indent(3) . '<name>' . $data[_FF_DATA_NAME] . '</name>' . nl() .
-                        indent(3) . '<title>' . htmlspecialchars($title_translated != '' ? $title_translated : strip_tags($data[_FF_DATA_TITLE]), ENT_QUOTES, 'UTF-8') . '</title>' . nl() .
-                        indent(3) . '<type>' . $data[_FF_DATA_TYPE] . '</type>' . nl() .
-                        indent(3) . '<value>' . htmlspecialchars(is_array($data[_FF_DATA_VALUE]) ? implode('|', $data[_FF_DATA_VALUE]) : $data[_FF_DATA_VALUE], ENT_QUOTES, 'UTF-8') . '</value>' . nl() .
-                        indent(2) . '</subrecord>' . nl();
+                    indent(3) . '<element>' . $data[_FF_DATA_ID] . '</element>' . nl() .
+                    indent(3) . '<name>' . $data[_FF_DATA_NAME] . '</name>' . nl() .
+                    indent(3) . '<title>' . htmlspecialchars(
+                        $title_translated != '' ? $title_translated : strip_tags($data[_FF_DATA_TITLE]),
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) . '</title>' . nl() .
+                    indent(3) . '<type>' . $data[_FF_DATA_TYPE] . '</type>' . nl() .
+                    indent(3) . '<value>' . htmlspecialchars(
+                        is_array($data[_FF_DATA_VALUE]) ? implode('|', $data[_FF_DATA_VALUE]) : $data[_FF_DATA_VALUE],
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) . '</value>' . nl() .
+                    indent(2) . '</subrecord>' . nl();
                     //$processed[] = $data[_FF_DATA_NAME];
                 }
             } // foreach
+        }
         $xml .= indent(1) . '</record>' . nl() .
             '</FacileFormsExport>' . nl();
 
@@ -1052,5 +1163,4 @@ final class ExportEngine
     {
         return $this->submissionTimestampFormatterService ??= new SubmissionTimestampFormatter();
     }
-
 }

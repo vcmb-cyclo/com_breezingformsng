@@ -1,4 +1,5 @@
 <?php
+
 /**
  * BreezingForms NG - A Joomla Forms Application
  *

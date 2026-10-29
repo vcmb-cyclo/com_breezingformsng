@@ -156,7 +156,7 @@ final class SubmissionEngineArchitectureTest extends TestCase
             '$this->exportEngine->exppdf(',
             '$this->exportEngine->expcsv(',
             '$this->exportEngine->expxml(',
-            '$this->exportEngine->random_str(',
+            '$this->exportEngine->randomString(',
             '$this->notificationEngine->sendEmailNotification(',
             '$this->notificationEngine->sendMailbackNotification(',
             '$this->notificationEngine->sendMailChimpNotification(',

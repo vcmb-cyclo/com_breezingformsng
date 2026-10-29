@@ -210,7 +210,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         $sample = array_slice($blocked, 0, 10);
         $lines = array_map(
-            static fn(string $path): string => '<li><code>' . htmlspecialchars($path, ENT_QUOTES, 'UTF-8') . '</code></li>',
+            static fn(string $path): string => '<li><code>'
+                . htmlspecialchars($path, ENT_QUOTES, 'UTF-8')
+                . '</code></li>',
             $sample
         );
         $remaining = max(0, count($blocked) - count($sample));
@@ -220,7 +222,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         $this->log(
-            'BreezingForms NG update cannot copy files because some installed files or directories are not writable by Joomla.'
+            'BreezingForms NG update cannot copy files because some installed files or directories'
+            . ' are not writable by Joomla.'
             . '<br>Fix ownership/permissions before reinstalling.'
             . '<br>Examples of blocked paths:<ul>' . implode('', $lines) . '</ul>',
             Log::ERROR
@@ -338,10 +341,12 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->detectUtf8mb4Support();
 
         if ($this->utf8mb4Supported) {
-            $message = 'utf8mb4 support detected on the database server. BreezingForms tables will be checked and converted when needed.';
+            $message = 'utf8mb4 support detected on the database server.'
+                . ' BreezingForms tables will be checked and converted when needed.';
             $this->announce($message . ' Target collation: ' . $this->utf8mb4Collation . '.', 'message', Log::INFO);
         } else {
-            $message = 'utf8mb4 is not available on the database server. BreezingForms cannot auto-convert its text columns to utf8mb4 on this installation.';
+            $message = 'utf8mb4 is not available on the database server.'
+                . ' BreezingForms cannot auto-convert its text columns to utf8mb4 on this installation.';
             $this->announce($message, 'warning', Log::WARNING);
         }
 
@@ -428,7 +433,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             }
 
             if ($charset !== 'utf8mb4' || strpos($collation, 'utf8mb4_') !== 0) {
-                $issues[$tableName][] = $columnName . '=' . ($charset !== '' ? $charset : 'none') . '/' . ($collation !== '' ? $collation : 'none');
+                $issues[$tableName][] = $columnName
+                    . '=' . ($charset !== '' ? $charset : 'none')
+                    . '/' . ($collation !== '' ? $collation : 'none');
             }
         }
 
@@ -616,7 +623,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         if (!empty($converted)) {
-            $message = 'BreezingForms utf8mb4 correction applied on ' . count($converted) . ' table(s): ' . implode(', ', $converted) . '.';
+            $message = 'BreezingForms utf8mb4 correction applied on ' . count($converted)
+                . ' table(s): ' . implode(', ', $converted) . '.';
             $this->announce($message, 'warning', Log::INFO);
         }
 
@@ -1569,7 +1577,15 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                     'hideFields' => ['checked_out', 'checked_out_time', 'version', 'template_code', 'template_areas'],
                     // As for articles, the history compares the content, version left out.
                     // template_areas is rebuilt by QuickMode at each save.
-                    'ignoreChanges' => ['modified', 'modified_by', 'checked_out', 'checked_out_time', 'version', 'ordering', 'template_areas'],
+                    'ignoreChanges' => [
+                        'modified',
+                        'modified_by',
+                        'checked_out',
+                        'checked_out_time',
+                        'version',
+                        'ordering',
+                        'template_areas',
+                    ],
                     'convertToInt' => [],
                     'displayLookup' => [],
                 ],
@@ -1686,7 +1702,11 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $db = Factory::getContainer()->get(DatabaseInterface::class);
 
         try {
-            $tables = ['Form' => '#__facileforms_forms', 'Script' => '#__facileforms_scripts', 'Piece' => '#__facileforms_pieces'];
+            $tables = [
+                'Form' => '#__facileforms_forms',
+                'Script' => '#__facileforms_scripts',
+                'Piece' => '#__facileforms_pieces',
+            ];
 
             foreach ($tables as $name => $table) {
                 $model = $this->componentModel($name);
@@ -1700,7 +1720,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
                 foreach ($ids as $id) {
                     if ($model instanceof \Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel) {
-                        (new \Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning($db, $model))->keepOrigin($id);
+                        (new \Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning($db, $model))
+                            ->keepOrigin($id);
                     } elseif ($model instanceof \Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel) {
                         $model->keepOrigin($id);
                     }
@@ -1718,8 +1739,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     /**
      * The model of the scripts or of the pieces, which keeps their versions.
      */
-    private function packageItemModel(string $name): \Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel
-    {
+    private function packageItemModel(
+        string $name
+    ): \Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel {
         $model = $this->componentModel($name);
 
         if (!$model instanceof \Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel) {
@@ -1811,7 +1833,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function cleanupExtensionReferences(array $extensionIds): void
     {
-        $extensionIds = array_values(array_filter(array_map('intval', $extensionIds), static fn(int $id): bool => $id > 0));
+        $extensionIds = array_values(
+            array_filter(array_map('intval', $extensionIds), static fn(int $id): bool => $id > 0)
+        );
 
         if ($extensionIds === []) {
             return;
@@ -1829,7 +1853,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 );
                 $db->execute();
             } catch (\Throwable $e) {
-                $this->log("Unable to clean {$table} for BreezingForms legacy extension rows: " . $e->getMessage(), Log::WARNING);
+                $this->log(
+                    "Unable to clean {$table} for BreezingForms legacy extension rows: " . $e->getMessage(),
+                    Log::WARNING
+                );
             }
         }
     }
@@ -1870,7 +1897,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $db->setQuery(
                 $db->createQuery()
                     ->update($db->quoteName('#__menu'))
-                    ->set($db->quoteName('link') . ' = REGEXP_REPLACE(' . $db->quoteName('link') . ', :pattern, :replacement)')
+                    ->set(
+                        $db->quoteName('link')
+                        . ' = REGEXP_REPLACE(' . $db->quoteName('link') . ', :pattern, :replacement)'
+                    )
                     ->where($db->quoteName('link') . ' REGEXP :match')
                     ->bind(':pattern', $pattern)
                     ->bind(':replacement', $replacement)
@@ -1907,18 +1937,31 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $query = $db->createQuery()
                     ->update($db->quoteName('#__menu'))
                     ->set($db->quoteName('component_id') . ' = ' . (int) $targetId)
-                    ->set($db->quoteName('link') . ' = REPLACE(' . $db->quoteName('link') . ', ' . $db->quote('option=' . $legacyElement) . ', ' . $db->quote('option=' . $targetElement) . ')')
-                    ->set($db->quoteName('params') . ' = REPLACE(' . $db->quoteName('params') . ', ' . $db->quote('"option":"' . $legacyElement . '"') . ', ' . $db->quote('"option":"' . $targetElement . '"') . ')')
+                    ->set(
+                        $db->quoteName('link') . ' = REPLACE(' . $db->quoteName('link')
+                        . ', ' . $db->quote('option=' . $legacyElement)
+                        . ', ' . $db->quote('option=' . $targetElement) . ')'
+                    )
+                    ->set(
+                        $db->quoteName('params') . ' = REPLACE(' . $db->quoteName('params')
+                        . ', ' . $db->quote('"option":"' . $legacyElement . '"')
+                        . ', ' . $db->quote('"option":"' . $targetElement . '"') . ')'
+                    )
                     ->where(
                         '('
                         . $db->quoteName('link') . ' LIKE ' . $db->quote('%option=' . $legacyElement . '%')
-                        . ' OR ' . $db->quoteName('params') . ' LIKE ' . $db->quote('%"option":"' . $legacyElement . '"%')
+                        . ' OR ' . $db->quoteName('params')
+                        . ' LIKE ' . $db->quote('%"option":"' . $legacyElement . '"%')
                         . ')'
                     );
 
                 if ($legacyElement === 'com_breezingforms') {
-                    $query->where($db->quoteName('link') . ' NOT LIKE ' . $db->quote('%option=' . $targetElement . '%'));
-                    $query->where($db->quoteName('params') . ' NOT LIKE ' . $db->quote('%"option":"' . $targetElement . '"%'));
+                    $query->where(
+                        $db->quoteName('link') . ' NOT LIKE ' . $db->quote('%option=' . $targetElement . '%')
+                    );
+                    $query->where(
+                        $db->quoteName('params') . ' NOT LIKE ' . $db->quote('%"option":"' . $targetElement . '"%')
+                    );
                 }
 
                 $db->setQuery($query);
@@ -1929,7 +1972,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                     $this->log("Normalized {$updated} Joomla menu row(s) from {$legacyElement} to {$targetElement}.");
                 }
             } catch (\Throwable $e) {
-                $this->log("Unable to normalize Joomla menu links for {$legacyElement}: " . $e->getMessage(), Log::WARNING);
+                $this->log(
+                    "Unable to normalize Joomla menu links for {$legacyElement}: " . $e->getMessage(),
+                    Log::WARNING
+                );
             }
 
             if ($legacyId > 0) {
@@ -1942,7 +1988,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                     );
                     $db->execute();
                 } catch (\Throwable $e) {
-                    $this->log("Unable to remap Joomla menu component_id for {$legacyElement}: " . $e->getMessage(), Log::WARNING);
+                    $this->log(
+                        "Unable to remap Joomla menu component_id for {$legacyElement}: " . $e->getMessage(),
+                        Log::WARNING
+                    );
                 }
             }
 
@@ -1975,7 +2024,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                         . ' OR ' . $db->quoteName('path') . ' LIKE ' . $db->quote('%' . $oldAliasBase . '%')
                         . ' OR ' . $db->quoteName('link') . ' LIKE ' . $db->quote('%option=breezingforms%')
                         . ' OR ' . $db->quoteName('link') . ' LIKE ' . $db->quote('%option=com_breezingforms%')
-                        . ' OR ' . $db->quoteName('link') . ' LIKE ' . $db->quote('%option=' . self::TARGET_COMPONENT . '%')
+                        . ' OR ' . $db->quoteName('link')
+                        . ' LIKE ' . $db->quote('%option=' . self::TARGET_COMPONENT . '%')
                         . ')'
                     )
             );
@@ -2003,9 +2053,17 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
                 $alias = preg_replace('/com-breezingforms(?:ng)*/', $newAliasBase, $alias) ?? $alias;
                 $path = preg_replace('/com-breezingforms(?:ng)*/', $newAliasBase, $path) ?? $path;
-                $link = preg_replace('/option=com_breezingforms(?:ng)*/', 'option=' . self::TARGET_COMPONENT, $link) ?? $link;
+                $link = preg_replace(
+                    '/option=com_breezingforms(?:ng)*/',
+                    'option=' . self::TARGET_COMPONENT,
+                    $link
+                ) ?? $link;
                 $link = str_replace('option=breezingforms', 'option=' . self::TARGET_COMPONENT, $link);
-                $params = preg_replace('/"option":"com_breezingforms(?:ng)*"/', '"option":"' . self::TARGET_COMPONENT . '"', $params) ?? $params;
+                $params = preg_replace(
+                    '/"option":"com_breezingforms(?:ng)*"/',
+                    '"option":"' . self::TARGET_COMPONENT . '"',
+                    $params
+                ) ?? $params;
                 $params = str_replace('"option":"breezingforms"', '"option":"' . self::TARGET_COMPONENT . '"', $params);
 
                 // Remove a legacy entry only when the conflicting sibling is
@@ -2018,7 +2076,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 if ($collision !== null) {
                     $branchIds = $this->menuBranchIds($db, (int) $row->id);
 
-                    if ((int) $collision->component_id !== $targetId
+                    if (
+                        (int) $collision->component_id !== $targetId
                         || (string) $collision->title !== $title
                         || (string) $collision->link !== $link
                         || !$this->isLegacyBreezingFormsMenuBranch($db, $branchIds)
@@ -2064,7 +2123,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             }
 
             if ($updated > 0) {
-                $this->log("Normalized {$updated} Joomla administration menu identity row(s) for " . self::TARGET_COMPONENT . '.');
+                $this->log(
+                    "Normalized {$updated} Joomla administration menu identity row(s) for "
+                    . self::TARGET_COMPONENT . '.'
+                );
             }
         } catch (\Throwable $e) {
             $this->log('Unable to normalize Joomla administration menu identity: ' . $e->getMessage(), Log::WARNING);
@@ -2112,7 +2174,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         )->loadObjectList() ?: [];
 
         foreach ($rows as $row) {
-            if (!str_starts_with((string) $row->title, 'COM_BREEZINGFORMS')
+            if (
+                !str_starts_with((string) $row->title, 'COM_BREEZINGFORMS')
                 || !preg_match(
                     '/(?:[?&]|^)option=(?:breezingforms|com_breezingforms(?:ng)?)(?:&|$)/',
                     (string) $row->link
@@ -2224,12 +2287,19 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $root = $db->loadAssoc();
 
             if ($root === null) {
-                $this->log('#__menu root node (id=1) is missing; skipping admin menu repair to avoid computing invalid nested-set values.', Log::WARNING);
+                $this->log(
+                    '#__menu root node (id=1) is missing;'
+                    . ' skipping admin menu repair to avoid computing invalid nested-set values.',
+                    Log::WARNING
+                );
                 return false;
             }
 
             if ((int) $root['rgt'] <= (int) $root['lft']) {
-                $this->log('#__menu root node (id=1) has invalid lft/rgt values; skipping admin menu repair.', Log::WARNING);
+                $this->log(
+                    '#__menu root node (id=1) has invalid lft/rgt values; skipping admin menu repair.',
+                    Log::WARNING
+                );
                 return false;
             }
 
@@ -2261,7 +2331,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                     ->where(
                         '('
                         . $db->quoteName('component_id') . ' = ' . (int) $componentId
-                        . ' OR ' . $db->quoteName('link') . ' LIKE ' . $db->quote('index.php?option=' . self::TARGET_COMPONENT . '%')
+                        . ' OR ' . $db->quoteName('link')
+                        . ' LIKE ' . $db->quote('index.php?option=' . self::TARGET_COMPONENT . '%')
                         . ')'
                     )
                     ->order($db->quoteName('id') . ' ASC')
@@ -2450,7 +2521,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                     'breezingformsng-scripts',
                     'view=scripts',
                     [
-                        'menu-quicktask' => 'index.php?option=' . self::TARGET_COMPONENT . '&view=scripts&task=scripts.add',
+                        'menu-quicktask' => 'index.php?option=' . self::TARGET_COMPONENT
+                            . '&view=scripts&task=scripts.add',
                         'menu-quicktask-title' => 'COM_BREEZINGFORMSNG_MENUS_NEW_SCRIPT',
                         'menu-quicktask-icon' => 'plus',
                     ],
@@ -2460,7 +2532,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                     'breezingformsng-pieces',
                     'view=pieces',
                     [
-                        'menu-quicktask' => 'index.php?option=' . self::TARGET_COMPONENT . '&view=pieces&task=pieces.add',
+                        'menu-quicktask' => 'index.php?option=' . self::TARGET_COMPONENT
+                            . '&view=pieces&task=pieces.add',
                         'menu-quicktask-title' => 'COM_BREEZINGFORMSNG_MENUS_NEW_PIECE',
                         'menu-quicktask-icon' => 'plus',
                     ],
@@ -2590,9 +2663,15 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                         ->where($db->quoteName('extension_id') . ' = ' . (int) $legacyId)
                 );
                 $db->execute();
-                $this->log("Migrated legacy BreezingForms extension row from {$legacyElement} to " . self::TARGET_COMPONENT . '.');
+                $this->log(
+                    "Migrated legacy BreezingForms extension row from {$legacyElement} to "
+                    . self::TARGET_COMPONENT . '.'
+                );
             } catch (\Throwable $e) {
-                $this->log("Unable to migrate legacy BreezingForms extension row {$legacyElement}: " . $e->getMessage(), Log::WARNING);
+                $this->log(
+                    "Unable to migrate legacy BreezingForms extension row {$legacyElement}: " . $e->getMessage(),
+                    Log::WARNING
+                );
                 continue;
             }
 
@@ -2666,7 +2745,11 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             }
 
             $manifest = json_decode((string) ($row['manifest_cache'] ?? ''), true);
-            $isNg = is_array($manifest) && stripos((string) ($manifest['authorUrl'] ?? '') . ' ' . (string) ($manifest['name'] ?? ''), 'breezingforms-ng') !== false ? 1 : 0;
+            $isNg = is_array($manifest)
+                && stripos(
+                    (string) ($manifest['authorUrl'] ?? '') . ' ' . (string) ($manifest['name'] ?? ''),
+                    'breezingforms-ng'
+                ) !== false ? 1 : 0;
             $enabled = (int) ($row['enabled'] ?? 0);
             $refs = (int) ($menuRefs[$id] ?? 0);
             $score = [$isNg, $enabled, $refs, $id];
@@ -2695,7 +2778,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             );
             $db->execute();
         } catch (\Throwable $e) {
-            $this->log('Unable to remap BreezingForms menu entries to BFNG component row: ' . $e->getMessage(), Log::WARNING);
+            $this->log(
+                'Unable to remap BreezingForms menu entries to BFNG component row: ' . $e->getMessage(),
+                Log::WARNING
+            );
         }
 
         $this->cleanupExtensionReferences($removeIds);
@@ -2707,9 +2793,15 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                     ->where($db->quoteName('extension_id') . ' IN (' . implode(',', $removeIds) . ')')
             );
             $db->execute();
-            $this->log('Deduplicated BreezingForms component rows: kept extension_id ' . $keepId . ', removed ' . count($removeIds) . ' stale row(s).');
+            $this->log(
+                'Deduplicated BreezingForms component rows: kept extension_id ' . $keepId
+                . ', removed ' . count($removeIds) . ' stale row(s).'
+            );
         } catch (\Throwable $e) {
-            $this->log('Unable to remove stale BreezingForms component extension rows: ' . $e->getMessage(), Log::WARNING);
+            $this->log(
+                'Unable to remove stale BreezingForms component extension rows: ' . $e->getMessage(),
+                Log::WARNING
+            );
         }
     }
 
@@ -2735,12 +2827,19 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                     $db->createQuery()
                         ->update($db->quoteName('#__menu'))
                         ->set($db->quoteName('component_id') . ' = ' . (int) $targetId)
-                        ->set($db->quoteName('link') . ' = REPLACE(' . $db->quoteName('link') . ', ' . $db->quote('option=' . $legacyElement) . ', ' . $db->quote('option=' . self::TARGET_COMPONENT) . ')')
+                        ->set(
+                            $db->quoteName('link') . ' = REPLACE(' . $db->quoteName('link')
+                            . ', ' . $db->quote('option=' . $legacyElement)
+                            . ', ' . $db->quote('option=' . self::TARGET_COMPONENT) . ')'
+                        )
                         ->where($db->quoteName('component_id') . ' = ' . (int) $legacyId)
                 );
                 $db->execute();
             } catch (\Throwable $e) {
-                $this->log("Unable to remap legacy BreezingForms menus for {$legacyElement}: " . $e->getMessage(), Log::WARNING);
+                $this->log(
+                    "Unable to remap legacy BreezingForms menus for {$legacyElement}: " . $e->getMessage(),
+                    Log::WARNING
+                );
             }
 
             $this->cleanupExtensionReferences([$legacyId]);
@@ -2754,7 +2853,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $db->execute();
                 $this->log("Legacy BreezingForms component row removed safely: {$legacyElement} (id {$legacyId}).");
             } catch (\Throwable $e) {
-                $this->log("Unable to remove legacy BreezingForms component row {$legacyElement}: " . $e->getMessage(), Log::WARNING);
+                $this->log(
+                    "Unable to remove legacy BreezingForms component row {$legacyElement}: " . $e->getMessage(),
+                    Log::WARNING
+                );
             }
         }
     }
@@ -2778,7 +2880,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                     $this->log('Removed legacy BreezingForms directory: ' . $directory);
                 }
             } catch (\Throwable $e) {
-                $this->log('Unable to remove legacy BreezingForms directory ' . $directory . ': ' . $e->getMessage(), Log::WARNING);
+                $this->log(
+                    'Unable to remove legacy BreezingForms directory ' . $directory . ': ' . $e->getMessage(),
+                    Log::WARNING
+                );
             }
         }
     }
@@ -2965,7 +3070,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->removeLegacyBreezingFormsComponentDirectories();
         $this->removeObsoleteSystemPlugin();
         $this->removeObsoleteComponentFiles();
-        $this->log('Legacy BreezingForms component cleanup completed in safe mode; uninstall hooks intentionally skipped.');
+        $this->log(
+            'Legacy BreezingForms component cleanup completed in safe mode; uninstall hooks intentionally skipped.'
+        );
     }
 
     private function removeObsoleteSystemPlugin(): void
@@ -3070,18 +3177,29 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/tooltip.js',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/validationEngine.jquery.css',
             // Site classes merged or replaced.
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderChoiceHydrationScriptBuilder.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderEditableRecordScriptBuilder.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderFileHydrationScriptBuilder.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderFileUploadScriptBuilder.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderFlashUploadValidationBuilder.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderFormAssociationLoader.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/'
+                . 'ContentBuilderChoiceHydrationScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/'
+                . 'ContentBuilderEditableRecordScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/'
+                . 'ContentBuilderFileHydrationScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/'
+                . 'ContentBuilderFileUploadScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/'
+                . 'ContentBuilderFlashUploadValidationBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/'
+                . 'ContentBuilderFormAssociationLoader.php',
             JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderFormDataLoader.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderReadonlyScriptBuilder.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderSelectHydrationScriptBuilder.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderSignatureScriptBuilder.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderTechnicalFieldsBuilder.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/ContentBuilderValueHydrationScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/'
+                . 'ContentBuilderReadonlyScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/'
+                . 'ContentBuilderSelectHydrationScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/'
+                . 'ContentBuilderSignatureScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/'
+                . 'ContentBuilderTechnicalFieldsBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/'
+                . 'ContentBuilderValueHydrationScriptBuilder.php',
             JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/FormClosingMarkupBuilder.php',
             JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/FormModeFinalizationBuilder.php',
             JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/FormOpeningMarkupBuilder.php',
@@ -3091,9 +3209,12 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QueryListRowsRefreshBuilder.php',
             JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/MobileRenderer.php',
             JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/QuickModeCheckboxBuilder.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/QuickModePaymentImageBuilder.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/QuickModeUploadFileAddedHandlerBuilder.php',
-            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/QuickModeUploadQueueEntryScriptBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/'
+                . 'QuickModePaymentImageBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/'
+                . 'QuickModeUploadFileAddedHandlerBuilder.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Rendering/QuickMode/'
+                . 'QuickModeUploadQueueEntryScriptBuilder.php',
             JPATH_SITE . '/components/com_breezingformsng/src/Service/Upload/PaymentCacheCleaner.php',
             JPATH_SITE . '/components/com_breezingformsng/src/Service/Upload/TemporaryUploadFileCleaner.php',
             // Libraries removed from the site.
@@ -3216,7 +3337,11 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $query = $db->createQuery()
             ->select($db->quoteName('schemas.version_id'))
             ->from($db->quoteName('#__schemas', 'schemas'))
-            ->join('INNER', $db->quoteName('#__extensions', 'extensions'), 'extensions.extension_id = schemas.extension_id')
+            ->join(
+                'INNER',
+                $db->quoteName('#__extensions', 'extensions'),
+                'extensions.extension_id = schemas.extension_id'
+            )
             ->where($db->quoteName('extensions.type') . ' = ' . $db->quote('component'))
             ->where($db->quoteName('extensions.element') . ' = :element')
             ->bind(':element', $component, ParameterType::STRING);
@@ -3232,7 +3357,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function convertRecordModifiedDatesToUtc(): void
     {
-        if ($this->schemaVersionBeforeUpdate === '' || version_compare($this->schemaVersionBeforeUpdate, '6.1.2-2026-10-23', '>=')) {
+        if (
+            $this->schemaVersionBeforeUpdate === ''
+            || version_compare($this->schemaVersionBeforeUpdate, '6.1.2-2026-10-23', '>=')
+        ) {
             return;
         }
 
@@ -3257,7 +3385,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         if ($rows !== []) {
-            $this->log('Converted the modification date of ' . count($rows) . ' record(s) from ' . $siteTimezone->getName() . ' to UTC.');
+            $this->log(
+                'Converted the modification date of ' . count($rows) . ' record(s) from '
+                . $siteTimezone->getName() . ' to UTC.'
+            );
         }
     }
 
@@ -3293,7 +3424,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 isset($columns['created'])
                 && !self::columnDefinitionMatches($columns['created'], 'datetime', true, null)
             ) {
-                $db->setQuery("ALTER TABLE `{$packagesTable}` MODIFY `created` VARCHAR(20) NULL DEFAULT NULL")->execute();
+                $db->setQuery(
+                    "ALTER TABLE `{$packagesTable}` MODIFY `created` VARCHAR(20) NULL DEFAULT NULL"
+                )->execute();
                 $rows = $db->setQuery(
                     "SELECT `id`, `created` FROM `{$packagesTable}` WHERE `created` IS NOT NULL"
                 )->loadObjectList();
@@ -3375,7 +3508,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
             if (isset($columns['ip'])) {
                 if (!self::columnDefinitionMatches($columns['ip'], 'varchar(45)', false, '')) {
-                    $db->setQuery("ALTER TABLE `{$recordsTable}` MODIFY `ip` VARCHAR(45) NOT NULL DEFAULT ''")->execute();
+                    $db->setQuery(
+                        "ALTER TABLE `{$recordsTable}` MODIFY `ip` VARCHAR(45) NOT NULL DEFAULT ''"
+                    )->execute();
                     $this->log('Updated ip column definition in facileforms_records.');
                 }
             }
@@ -3392,7 +3527,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             // 1 published, 2 archived, -2 trashed. Each step can be replayed.
             if (!isset($columns['state'])) {
                 $db->setQuery(
-                    "ALTER TABLE `{$recordsTable}` ADD `state` TINYINT NOT NULL DEFAULT '1' AFTER `exported`, ADD INDEX (`state`)"
+                    "ALTER TABLE `{$recordsTable}` ADD `state` TINYINT NOT NULL DEFAULT '1' AFTER `exported`,"
+                    . " ADD INDEX (`state`)"
                 )->execute();
                 $this->log('Added column state to facileforms_records.');
             }
@@ -3453,14 +3589,20 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 isset($columns['created_by'])
                 && !self::columnDefinitionMatches($columns['created_by'], 'varchar(255)', false, '', $auditCollation)
             ) {
-                $db->setQuery("ALTER TABLE `{$formsTable}` MODIFY `created_by` VARCHAR(255){$textCollationClause} NOT NULL DEFAULT ''")->execute();
+                $db->setQuery(
+                    "ALTER TABLE `{$formsTable}` MODIFY `created_by` VARCHAR(255){$textCollationClause}"
+                    . " NOT NULL DEFAULT ''"
+                )->execute();
                 $this->log("Updated created_by column definition in facileforms_forms.");
             }
             if (
                 isset($columns['modified_by'])
                 && !self::columnDefinitionMatches($columns['modified_by'], 'varchar(255)', false, '', $auditCollation)
             ) {
-                $db->setQuery("ALTER TABLE `{$formsTable}` MODIFY `modified_by` VARCHAR(255){$textCollationClause} NOT NULL DEFAULT ''")->execute();
+                $db->setQuery(
+                    "ALTER TABLE `{$formsTable}` MODIFY `modified_by` VARCHAR(255){$textCollationClause}"
+                    . " NOT NULL DEFAULT ''"
+                )->execute();
                 $this->log("Updated modified_by column definition in facileforms_forms.");
             }
         }
@@ -3491,7 +3633,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         // Joomla check-out of the items while they are edited.
-        foreach ([$formsTable, $prefix . 'facileforms_compmenus', $scriptsTable, $piecesTable, $recordsTable] as $tableName) {
+        foreach (
+            [$formsTable, $prefix . 'facileforms_compmenus', $scriptsTable, $piecesTable, $recordsTable] as $tableName
+        ) {
             if (!isset($tables[$tableName]) || isset($tables[$tableName]['checked_out'])) {
                 continue;
             }
@@ -3520,14 +3664,20 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 isset($columns['created_by'])
                 && !self::columnDefinitionMatches($columns['created_by'], 'varchar(255)', false, '', $auditCollation)
             ) {
-                $db->setQuery("ALTER TABLE `{$tableName}` MODIFY `created_by` VARCHAR(255){$textCollationClause} NOT NULL DEFAULT ''")->execute();
+                $db->setQuery(
+                    "ALTER TABLE `{$tableName}` MODIFY `created_by` VARCHAR(255){$textCollationClause}"
+                    . " NOT NULL DEFAULT ''"
+                )->execute();
                 $this->log("Updated created_by column definition in {$tableName}.");
             }
             if (
                 isset($columns['modified_by'])
                 && !self::columnDefinitionMatches($columns['modified_by'], 'varchar(255)', false, '', $auditCollation)
             ) {
-                $db->setQuery("ALTER TABLE `{$tableName}` MODIFY `modified_by` VARCHAR(255){$textCollationClause} NOT NULL DEFAULT ''")->execute();
+                $db->setQuery(
+                    "ALTER TABLE `{$tableName}` MODIFY `modified_by` VARCHAR(255){$textCollationClause}"
+                    . " NOT NULL DEFAULT ''"
+                )->execute();
                 $this->log("Updated modified_by column definition in {$tableName}.");
             }
         }
@@ -3623,7 +3773,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 )->execute();
                 $updated++;
             } catch (\Throwable $e) {
-                $this->log("Unable to migrate quickmode icon paths for form {$row->id}: " . $e->getMessage(), Log::WARNING);
+                $this->log(
+                    "Unable to migrate quickmode icon paths for form {$row->id}: " . $e->getMessage(),
+                    Log::WARNING
+                );
             }
         }
 
@@ -3670,7 +3823,11 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 )->execute();
                 $updated++;
             } catch (\Throwable $e) {
-                $this->log("Unable to migrate gn_vcmb_ function names in the quickmode code of form {$row->id}: " . $e->getMessage(), Log::WARNING);
+                $this->log(
+                    "Unable to migrate gn_vcmb_ function names in the quickmode code of form {$row->id}: "
+                    . $e->getMessage(),
+                    Log::WARNING
+                );
             }
         }
 
@@ -3680,11 +3837,18 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 " WHERE `template_areas` LIKE '%gn\\_vcmb\\_%'"
             )->execute();
         } catch (\Throwable $e) {
-            $this->log('Unable to migrate gn_vcmb_ function names in the quickmode areas: ' . $e->getMessage(), Log::WARNING);
+            $this->log(
+                'Unable to migrate gn_vcmb_ function names in the quickmode areas: ' . $e->getMessage(),
+                Log::WARNING
+            );
         }
 
         if ($updated > 0) {
-            $this->announce("[OK] Migrated gn_vcmb_* → gn_get_vcmb_* in the quickmode code of {$updated} form(s).", 'message', Log::INFO);
+            $this->announce(
+                "[OK] Migrated gn_vcmb_* → gn_get_vcmb_* in the quickmode code of {$updated} form(s).",
+                'message',
+                Log::INFO
+            );
         }
     }
 
@@ -3820,13 +3984,19 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         $this->announce(
             '[INFO] BreezingForms ' . strtoupper($type) .
-            ' | package version: <strong>' . htmlspecialchars($this->incomingPackageVersion !== '' ? $this->incomingPackageVersion : 'unknown', ENT_QUOTES, 'UTF-8') . '</strong>' .
-            ' | installed version: <strong>' . htmlspecialchars($this->currentInstalledVersion, ENT_QUOTES, 'UTF-8') . '</strong>.',
+            ' | package version: <strong>' . htmlspecialchars(
+                $this->incomingPackageVersion !== '' ? $this->incomingPackageVersion : 'unknown',
+                ENT_QUOTES,
+                'UTF-8'
+            ) . '</strong>' .
+            ' | installed version: <strong>'
+            . htmlspecialchars($this->currentInstalledVersion, ENT_QUOTES, 'UTF-8') . '</strong>.',
             'message',
             Log::INFO
         );
         $this->announce(
-            '[INFO] Environment | Joomla <strong>' . htmlspecialchars(defined('JVERSION') ? JVERSION : 'unknown', ENT_QUOTES, 'UTF-8') . '</strong>' .
+            '[INFO] Environment | Joomla <strong>'
+            . htmlspecialchars(defined('JVERSION') ? JVERSION : 'unknown', ENT_QUOTES, 'UTF-8') . '</strong>' .
             ' | PHP <strong>' . htmlspecialchars(PHP_VERSION, ENT_QUOTES, 'UTF-8') . '</strong>' .
             ' | DB <strong>' . htmlspecialchars($this->getDatabaseRuntimeLabel(), ENT_QUOTES, 'UTF-8') . '</strong>.',
             'message',
@@ -3894,14 +4064,17 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         $durationSeconds = max(0.0, microtime(true) - $this->installStartedAt);
         $actionLabel = strtoupper((string) $type);
-        $packageVersion = $this->incomingPackageVersion !== '' ? $this->incomingPackageVersion : $this->getIncomingVersion($adapter);
+        $packageVersion = $this->incomingPackageVersion !== ''
+            ? $this->incomingPackageVersion
+            : $this->getIncomingVersion($adapter);
         $installedVersion = $this->getCurrentInstalledVersion();
 
         $finishedWithFailure = $this->hasCriticalFailure();
         $finishMessage = ($finishedWithFailure ? '[ERROR] BreezingForms ' : '[OK] BreezingForms ')
             . $actionLabel
             . ($finishedWithFailure ? ' finished with critical issue(s).' : ' finished successfully.')
-            . ' Package version: <strong>' . htmlspecialchars($packageVersion !== '' ? $packageVersion : 'unknown', ENT_QUOTES, 'UTF-8') . '</strong>'
+            . ' Package version: <strong>'
+            . htmlspecialchars($packageVersion !== '' ? $packageVersion : 'unknown', ENT_QUOTES, 'UTF-8') . '</strong>'
             . ' | installed version: <strong>' . htmlspecialchars($installedVersion, ENT_QUOTES, 'UTF-8') . '</strong>'
             . ' | duration: <strong>' . number_format($durationSeconds, 2, '.', '') . 's</strong>.';
 
@@ -3913,7 +4086,11 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         if ($finishedWithFailure) {
             $summary = $this->getCriticalFailureSummary();
-            $this->log('BreezingForms installation/update process finished with critical issue(s)' . ($summary !== '' ? ': ' . $summary : '.'), Log::ERROR);
+            $this->log(
+                'BreezingForms installation/update process finished with critical issue(s)'
+                . ($summary !== '' ? ': ' . $summary : '.'),
+                Log::ERROR
+            );
 
             // Actually fail the installer instead of silently reporting success -
             // logging alone left Joomla showing "Installation Successful" even
@@ -3931,7 +4108,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     /**
      * @return array<string, list<string>>
      */
-    function getPlugins()
+    private function getPlugins(): array
     {
         $plugins = array();
         $plugins['system'] = array();

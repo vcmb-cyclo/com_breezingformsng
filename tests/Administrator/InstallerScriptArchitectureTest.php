@@ -75,7 +75,8 @@ final class InstallerScriptArchitectureTest extends TestCase
         $source = file_get_contents(__DIR__ . '/../../script.php');
 
         self::assertIsString($source);
-        foreach ([
+        foreach (
+            [
             "JPATH_SITE . '/language/fr-FR/fr-FR.com_breezingforms.ini'",
             "JPATH_SITE . '/language/en-GB/en-GB.com_breezingforms.ini'",
             "JPATH_SITE . '/media/breezingforms/pdftpl/pdf_attachment.php'",
@@ -89,7 +90,8 @@ final class InstallerScriptArchitectureTest extends TestCase
             "JPATH_ADMINISTRATOR . '/language/fr-FR/fr-FR.com_breezingforms.sys.ini'",
             "JPATH_ADMINISTRATOR . '/language/en-GB/en-GB.com_breezingforms.sys.ini'",
             "JPATH_ADMINISTRATOR . '/language/en-GB/en-GB.com_breezingforms.ini'",
-        ] as $obsoletePath) {
+            ] as $obsoletePath
+        ) {
             self::assertStringContainsString($obsoletePath, $source);
         }
 
@@ -183,7 +185,9 @@ final class InstallerScriptArchitectureTest extends TestCase
 
     public function testAboutPageUsesOnlyTheCurrentManifestPath(): void
     {
-        $source = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/default.php');
+        $source = file_get_contents(
+            __DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/default.php'
+        );
 
         self::assertIsString($source);
         self::assertSame(
@@ -194,12 +198,14 @@ final class InstallerScriptArchitectureTest extends TestCase
             )
         );
 
-        foreach ([
+        foreach (
+            [
             "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng.xml'",
             "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/breezingforms.xml'",
             "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng_ng.xml'",
             "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng-ng.xml'",
-        ] as $obsoleteManifestPath) {
+            ] as $obsoleteManifestPath
+        ) {
             self::assertStringNotContainsString($obsoleteManifestPath, $source);
         }
     }
@@ -227,10 +233,17 @@ final class InstallerScriptArchitectureTest extends TestCase
         $start = strpos($source, 'private function removeObsoleteComponentFiles(): void');
         self::assertNotFalse($start);
         $body = substr($source, $start, strpos($source, "\n    }\n", $start) - $start);
+        // Long paths are split into concatenated literals: join them back.
+        $body = (string) preg_replace("/'\\s*\\.\\s*'/", '', $body);
 
         self::assertSame(
             1,
-            preg_match_all("/JPATH_(SITE|ADMINISTRATOR) \\. '(\\/[^']+)'/", $body, $matches, PREG_SET_ORDER) > 100 ? 1 : 0
+            preg_match_all(
+                "/JPATH_(SITE|ADMINISTRATOR) \\. '(\\/[^']+)'/",
+                $body,
+                $matches,
+                PREG_SET_ORDER
+            ) > 100 ? 1 : 0
         );
 
         foreach ($matches as [, $base, $path]) {
