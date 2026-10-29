@@ -50,6 +50,18 @@ final class SofortOnlyFormDetectorTest extends TestCase
         self::assertFalse($detector->hasPayment(''));
     }
 
+    public function testPreservedSofortRequirementBlocksOnlyUntilPaymentIsAdded(): void
+    {
+        $detector = new SofortOnlyFormDetector();
+        $withoutPayment = '[{"elements":[{"internalType":"bfTextfield"}],"sofortPaymentRequired":true}]';
+        $withPayment = '[{"elements":[{"internalType":"bfStripe"}],"sofortPaymentRequired":true}]';
+
+        self::assertTrue($detector->requiresReplacementPayment($this->areas(['bfSofortueberweisung'])));
+        self::assertTrue($detector->requiresReplacementPayment($withoutPayment));
+        self::assertFalse($detector->requiresReplacementPayment($withPayment));
+        self::assertFalse($detector->requiresReplacementPayment($this->areas(['bfTextfield'])));
+    }
+
     /**
      * @param list<string> ...$areas internal element types, one list per area
      */

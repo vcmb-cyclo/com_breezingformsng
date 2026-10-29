@@ -37,6 +37,14 @@ final class SofortOnlyFormDetector
         return array_intersect(self::PAYMENTS, $this->elementTypes($templateAreas)) !== [];
     }
 
+    public function requiresReplacementPayment(string $templateAreas): bool
+    {
+        $areas = json_decode($templateAreas, true);
+
+        return $this->isSofortOnly($templateAreas)
+            || (is_array($areas) && !empty($areas[0]['sofortPaymentRequired']) && !$this->hasPayment($templateAreas));
+    }
+
     /** @return list<mixed> the internal type of every element */
     private function elementTypes(string $templateAreas): array
     {

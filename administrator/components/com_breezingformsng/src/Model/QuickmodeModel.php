@@ -471,7 +471,7 @@ class QuickmodeModel extends BaseDatabaseModel
      * Whether a saved form whose only payment was the removed Sofort element
      * is about to be stored without any supported payment.
      */
-    private function losesSofortOnlyPayment(int $form, string $templateAreas): bool
+    private function requiresReplacementPayment(int $form, string $templateAreas): bool
     {
         $query = $this->db->createQuery()
             ->select($this->db->quoteName('template_areas'))
@@ -480,7 +480,7 @@ class QuickmodeModel extends BaseDatabaseModel
             ->bind(':form', $form, ParameterType::INTEGER);
         $detector = new SofortOnlyFormDetector();
 
-        return $detector->isSofortOnly((string) $this->db->setQuery($query)->loadResult())
+        return $detector->requiresReplacementPayment((string) $this->db->setQuery($query)->loadResult())
             && !$detector->hasPayment($templateAreas);
     }
 
@@ -573,6 +573,10 @@ class QuickmodeModel extends BaseDatabaseModel
         } else {
             // UPDATE — split template_code into 60 KB chunks to avoid MySQL gone-away errors
             $chunks        = $this->chunkString($templateCode, 60000);
+            $paymentRequired = $this->requiresReplacementPayment($form, (string) json_encode($areas));
+            if ($paymentRequired) {
+                $areas[0]['sofortPaymentRequired'] = true;
+            }
             $templateAreas = (string) json_encode($areas);
 
             $emailntf  = 0;
@@ -608,7 +612,7 @@ class QuickmodeModel extends BaseDatabaseModel
                 ->bind(':modifiedBy', $userId, ParameterType::STRING)
                 ->bind(':form', $form, ParameterType::INTEGER);
 
-            if ($this->losesSofortOnlyPayment($form, $templateAreas)) {
+            if ($paymentRequired) {
                 // QuickMode drops the removed Sofort element on load: the form
                 // would become free, so it stays unpublished until a payment is added.
                 $query->set($this->db->quoteName('published') . ' = 0');

@@ -34,6 +34,21 @@ final class PaymentRecordService
         return $this->findRecord($recordId, true);
     }
 
+    public function hasTransaction(int $recordId, int $formId, string $transaction): bool
+    {
+        $query = $this->database->createQuery()
+            ->select('1')
+            ->from($this->database->quoteName('#__facileforms_records'))
+            ->where($this->database->quoteName('id') . ' = :recordId')
+            ->where($this->database->quoteName('form') . ' = :formId')
+            ->where($this->database->quoteName('paypal_tx_id') . ' = :transaction')
+            ->bind(':recordId', $recordId, ParameterType::INTEGER)
+            ->bind(':formId', $formId, ParameterType::INTEGER)
+            ->bind(':transaction', $transaction, ParameterType::STRING);
+
+        return (bool) $this->database->setQuery($query)->loadResult();
+    }
+
     public function storeTransaction(
         int $recordId,
         string $transaction,

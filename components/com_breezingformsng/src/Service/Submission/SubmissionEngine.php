@@ -716,7 +716,7 @@ final class SubmissionEngine
 
         // Sofort was removed: a form that took no other payment must not be
         // accepted unpaid until its payment is set up again.
-        if ((new SofortOnlyFormDetector())->isSofortOnly((string) $this->processor->formrow->template_areas)) {
+        if ((new SofortOnlyFormDetector())->requiresReplacementPayment((string) $this->processor->formrow->template_areas)) {
             Log::add(
                 'Form ' . (int) $this->processor->form . ' was not submitted: Sofort is its only payment element.',
                 Log::WARNING,

@@ -35,6 +35,63 @@ if (!class_exists(ParameterType::class)) {
 
 final class PaymentRecordServiceTest extends TestCase
 {
+    public function testNotificationRetryRequiresTheSameRecordFormAndTransaction(): void
+    {
+        $database = new class implements DatabaseInterface {
+            /** @var array<string, string> */
+            public array $bindings = [];
+
+            public function createQuery(): self
+            {
+                return $this;
+            }
+
+            public function select(mixed $columns): self
+            {
+                return $this;
+            }
+
+            public function from(string $table): self
+            {
+                return $this;
+            }
+
+            public function where(string $condition): self
+            {
+                return $this;
+            }
+
+            public function bind(string $key, mixed $value, mixed $type): self
+            {
+                $this->bindings[$key] = (string) $value;
+
+                return $this;
+            }
+
+            public function quoteName(string|array $name): string|array
+            {
+                return $name;
+            }
+
+            public function setQuery(object $query, int $offset = 0, int $limit = 0): self
+            {
+                return $this;
+            }
+
+            public function loadResult(): int
+            {
+                return 1;
+            }
+        };
+
+        self::assertTrue((new PaymentRecordService($database))->hasTransaction(12, 7, 'Stripe: pi_123'));
+        self::assertSame([
+            ':recordId' => '12',
+            ':formId' => '7',
+            ':transaction' => 'Stripe: pi_123',
+        ], $database->bindings);
+    }
+
     public function testFindsUnpaidRecordAndStoresCommonPaymentFields(): void
     {
         $database = new class implements DatabaseInterface {

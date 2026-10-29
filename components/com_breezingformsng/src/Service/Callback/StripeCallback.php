@@ -179,7 +179,7 @@ final class StripeCallback
                             }
 
                             // send mail after succeeded payment?
-                            if ($recordedNow && isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
+                            if (!empty($options['sendNotificationAfterPayment']) && $this->paymentRecordService->hasTransaction($stripeRecordId, $input->getInt('form_id', -1), $stripeTxId)) {
                                 bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'admin');
                                 bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'mailback');
                             }
@@ -289,9 +289,28 @@ final class StripeCallback
             require_once JPATH_SITE . '/bf_stripe_success.php';
         }
 
-        if ($recordedNow && !empty($options['sendNotificationAfterPayment'])) {
-            bf_sendNotificationByPaymentCache($form_id, $record_id, 'admin');
-            bf_sendNotificationByPaymentCache($form_id, $record_id, 'mailback');
+        if (
+            !empty($options['sendNotificationAfterPayment'])
+            && $this->paymentRecordService->hasTransaction(
+                $record_id,
+                $form_id,
+                'Stripe: ' . strip_tags($stripe_pi->id)
+            )
+        ) {
+            try {
+                if (
+                    !bf_sendNotificationByPaymentCache($form_id, $record_id, 'admin')
+                    || !bf_sendNotificationByPaymentCache($form_id, $record_id, 'mailback')
+                ) {
+                    $this->respondToWebhook(500, 'Could not send payment notification.');
+
+                    return;
+                }
+            } catch (\Throwable $e) {
+                $this->respondToWebhook(500, $e->getMessage());
+
+                return;
+            }
         }
 
         $this->respondToWebhook(200);
