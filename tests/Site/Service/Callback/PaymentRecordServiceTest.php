@@ -35,6 +35,63 @@ if (!class_exists(ParameterType::class)) {
 
 final class PaymentRecordServiceTest extends TestCase
 {
+    public function testNotificationRetryRequiresTheSameRecordFormAndTransaction(): void
+    {
+        $database = new class implements DatabaseInterface {
+            /** @var array<string, string> */
+            public array $bindings = [];
+
+            public function createQuery(): self
+            {
+                return $this;
+            }
+
+            public function select(mixed $columns): self
+            {
+                return $this;
+            }
+
+            public function from(string $table): self
+            {
+                return $this;
+            }
+
+            public function where(string $condition): self
+            {
+                return $this;
+            }
+
+            public function bind(string $key, mixed $value, mixed $type): self
+            {
+                $this->bindings[$key] = (string) $value;
+
+                return $this;
+            }
+
+            public function quoteName(string|array $name): string|array
+            {
+                return $name;
+            }
+
+            public function setQuery(object $query, int $offset = 0, int $limit = 0): self
+            {
+                return $this;
+            }
+
+            public function loadResult(): int
+            {
+                return 1;
+            }
+        };
+
+        self::assertTrue((new PaymentRecordService($database))->hasTransaction(12, 7, 'Stripe: pi_123'));
+        self::assertSame([
+            ':recordId' => '12',
+            ':formId' => '7',
+            ':transaction' => 'Stripe: pi_123',
+        ], $database->bindings);
+    }
+
     public function testFindsUnpaidRecordAndStoresCommonPaymentFields(): void
     {
         $database = new class implements DatabaseInterface {
@@ -125,5 +182,73 @@ final class PaymentRecordServiceTest extends TestCase
             ],
             $database->queries[1]->bindings
         );
+    }
+
+    public function testStoresATransactionOnlyOnARecordWithoutOne(): void
+    {
+        foreach ([1 => true, 0 => false] as $affectedRows => $expected) {
+            $database = new class ($affectedRows) implements DatabaseInterface {
+                public ?object $query = null;
+
+                public function __construct(private readonly int $affectedRows)
+                {
+                }
+
+                public function createQuery(): object
+                {
+                    return $this->query = new class {
+                        /** @var list<string> */
+                        public array $conditions = [];
+
+                        public function update(string $table): self
+                        {
+                            return $this;
+                        }
+
+                        public function set(string $condition): self
+                        {
+                            return $this;
+                        }
+
+                        public function where(string $condition): self
+                        {
+                            $this->conditions[] = $condition;
+
+                            return $this;
+                        }
+
+                        public function bind(string $key, mixed $value, mixed $type): self
+                        {
+                            return $this;
+                        }
+                    };
+                }
+
+                public function quoteName(string|array $name): string|array
+                {
+                    return $name;
+                }
+
+                public function setQuery(object $query, int $offset = 0, int $limit = 0): void
+                {
+                }
+
+                public function execute(): bool
+                {
+                    return true;
+                }
+
+                public function getAffectedRows(): int
+                {
+                    return $this->affectedRows;
+                }
+            };
+
+            $stored = (new PaymentRecordService($database))
+                ->storeTransactionOnce(12, 'Stripe: pi_123', '2026-10-29 10:00:00', 1);
+
+            self::assertSame($expected, $stored);
+            self::assertContains("paypal_tx_id = ''", $database->query->conditions ?? []);
+        }
     }
 }

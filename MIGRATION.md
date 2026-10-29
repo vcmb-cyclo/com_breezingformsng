@@ -43,7 +43,10 @@ La clôture du chantier dépend des vérifications et corrections suivantes :
 - [ ] Exécuter la recette ContentBuilder complète : matrice ACL et export d’un
   enregistrement. Le parcours ContentBuilder du smoke test est optionnel et
   n’est pas activé par le workflow CI courant.
-- [ ] Valider Stripe (carte et Klarna) et PayPal avec des comptes sandbox dédiés.
+- [ ] Valider Stripe (carte, Klarna, iDEAL | Wero, webhook) et PayPal avec des
+  comptes sandbox dédiés. Le webhook Stripe signé enregistre le paiement même si
+  le client ne revient pas sur le site ; signature, événements ignorés et erreur
+  d’API ont été vérifiés sur une installation de test, pas encore un vrai paiement.
 - [x] Sofort : Klarna a arrêté Sofort comme moyen de paiement autonome en 2024.
   L’élément Stripe propose désormais l’option « Proposer aussi Klarna »
   (`payment_method_types` de la session Stripe Checkout).

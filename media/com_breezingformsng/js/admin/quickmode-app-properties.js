@@ -1037,6 +1037,7 @@ import { JoomlaEditor } from 'editor-api';
             // account
             mdata.secretKey = JQuery('#bfElementTypeStripeSecretKey').val();
             mdata.publishableKey = JQuery('#bfElementTypeStripePublishableKey').val();
+            mdata.webhookSecret = JQuery('#bfElementTypeStripeWebhookSecret').val();
             mdata.itemname = JQuery('#bfElementTypeStripeItemname').val();
             mdata.amount = JQuery('#bfElementTypeStripeAmount').val();
             mdata.thankYouPage = JQuery('#bfElementTypeStripeThankYouPage').val();
@@ -1085,6 +1086,8 @@ import { JoomlaEditor } from 'editor-api';
             // account
             JQuery('#bfElementTypeStripeSecretKey').val(mdata.secretKey);
             JQuery('#bfElementTypeStripePublishableKey').val(mdata.publishableKey);
+            JQuery('#bfElementTypeStripeWebhookSecret').val(typeof mdata.webhookSecret != "undefined" ? mdata.webhookSecret : "");
+            JQuery('#bfElementTypeStripeWebhookUrl').val(BFQMConfig.siteRoot + 'index.php?option=com_breezingformsng&stripeWebhook=true&form_id=' + BFQMConfig.formId);
 
             JQuery('#bfElementTypeStripeItemname').val(mdata.itemname);
             JQuery('#bfElementTypeStripeAmount').val(mdata.amount);

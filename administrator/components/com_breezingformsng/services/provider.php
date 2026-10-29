@@ -50,6 +50,7 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadService;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentFormLoader;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentRecordService;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\StripeCallback;
+use Vcmb\Component\BreezingformsNG\Site\Service\Callback\StripeCheckoutWebhook;
 use Vcmb\Component\BreezingformsNG\Site\Service\EngineDispatcher;
 use Vcmb\Component\BreezingformsNG\Site\Service\FormRenderer;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\RequestParameterParser;
@@ -87,6 +88,13 @@ return new class implements ServiceProviderInterface
         $container->share(
             PaymentDownloadPolicy::class,
             static fn(): PaymentDownloadPolicy => new PaymentDownloadPolicy(),
+        );
+
+        $container->share(
+            StripeCheckoutWebhook::class,
+            static function (): StripeCheckoutWebhook {
+                return new StripeCheckoutWebhook();
+            },
         );
 
         $container->share(
@@ -178,6 +186,7 @@ return new class implements ServiceProviderInterface
                     $container->get(PaymentRecordService::class),
                     $container->get(RedirectHelper::class),
                     $container->get(PaymentDownloadService::class),
+                    $container->get(StripeCheckoutWebhook::class),
                 );
             }
         );

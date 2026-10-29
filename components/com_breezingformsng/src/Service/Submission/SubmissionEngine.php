@@ -716,7 +716,7 @@ final class SubmissionEngine
 
         // Sofort was removed: a form that took no other payment must not be
         // accepted unpaid until its payment is set up again.
-        if ((new SofortOnlyFormDetector())->isSofortOnly((string) $this->processor->formrow->template_areas)) {
+        if ((new SofortOnlyFormDetector())->requiresReplacementPayment((string) $this->processor->formrow->template_areas)) {
             Log::add(
                 'Form ' . (int) $this->processor->form . ' was not submitted: Sofort is its only payment element.',
                 Log::WARNING,
@@ -1226,6 +1226,14 @@ transition: box-shadow .15s linear;
 //      billing_address_collection' => 'required' -> 'auto'
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 
+                                    if (trim((string) ($options['webhookSecret'] ?? '')) === '') {
+                                        Log::add(
+                                            'Form ' . (int) $this->processor->form . ': its Stripe element has no webhook signing secret,'
+                                            . ' so a payment is recorded only if the customer comes back to the site.',
+                                            Log::WARNING,
+                                            'com_breezingformsng'
+                                        );
+                                    }
 
                                     try {
                                         $checkout_session = \Stripe\Checkout\Session::create([
@@ -1255,6 +1263,12 @@ transition: box-shadow .15s linear;
                                                 'ideal'  => !empty($options['ideal']),
                                             ])),
                                             'mode' => 'payment',
+                                            // Ties the session to its record for the return and the webhook.
+                                            'client_reference_id' => (string) $this->processor->record_id,
+                                            'metadata' => [
+                                                'form_id' => (string) $this->processor->form,
+                                                'record_id' => (string) $this->processor->record_id,
+                                            ],
                                             'success_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
                                             'cancel_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
                                         ]);
@@ -1340,6 +1354,8 @@ transition: box-shadow .15s linear;
                                     $html .= "</form><div style='margin-top: 25%; text-align: center; width: 100%;'><button class='thebutton' onclick='handler.open(options);'>Click To Pay</button></body></div></html>";
 
                                 echo $html;
+                                // Return and webhook use this same first Stripe element.
+                                        break 2;
                             }
                         }
                         }

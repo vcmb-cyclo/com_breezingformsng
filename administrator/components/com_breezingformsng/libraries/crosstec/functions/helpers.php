@@ -396,17 +396,15 @@ function bf_sendNotificationBySession($session)
 
 function bf_sendNotificationByPaymentCache($formId, $recordId, $type = 'admin')
 {
-
-	$contents = array();
 	$sourcePath = JPATH_SITE . '/media/breezingforms/payment_cache/';
+	$cacheFile = null;
 	if (@file_exists($sourcePath) && @is_readable($sourcePath) && @is_dir($sourcePath) && $handle = @opendir($sourcePath)) {
 		while (false !== ($file = @readdir($handle))) {
 			if ($file != "." && $file != "..") {
 				$parts = explode('_', $file);
 				if (count($parts) == 4) {
 					if ($parts[0] == intval($formId) && $parts[1] == intval($recordId) && $parts[2] == $type) {
-						$contents = unserialize(file_get_contents($sourcePath . $file));
-						File::delete($sourcePath . $file);
+						$cacheFile = $sourcePath . $file;
 						break;
 					}
 				}
@@ -415,7 +413,29 @@ function bf_sendNotificationByPaymentCache($formId, $recordId, $type = 'admin')
 		@closedir($handle);
 	}
 
-	if (count($contents) != 0) {
+	if ($cacheFile === null) {
+		return true;
+	}
+
+	$cacheHandle = @fopen($cacheFile, 'rb');
+	if ($cacheHandle === false) {
+		return !is_file($cacheFile);
+	}
+
+	try {
+		if (!flock($cacheHandle, LOCK_EX)) {
+			return false;
+		}
+
+		// Another request may have sent and removed the cache while we waited.
+		if (!is_file($cacheFile)) {
+			return true;
+		}
+
+		$contents = unserialize((string) stream_get_contents($cacheHandle));
+		if (!is_array($contents) || $contents === []) {
+			return false;
+		}
 
 		$from = $contents['from'];
 		$fromname = $contents['fromname'];
@@ -451,8 +471,17 @@ function bf_sendNotificationByPaymentCache($formId, $recordId, $type = 'admin')
 				$mail->isHtml($html);
 			}
 
-			$mail->send();
+			if ($mail->send() === false) {
+				return false;
+			}
 		}
+
+		File::delete($cacheFile);
+
+		return !is_file($cacheFile);
+	} finally {
+		flock($cacheHandle, LOCK_UN);
+		fclose($cacheHandle);
 	}
 }
 

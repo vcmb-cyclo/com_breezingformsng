@@ -16,6 +16,7 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\Filesystem\File;
+use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
 
 class QuickmodeModel extends BaseDatabaseModel
 {
@@ -383,6 +384,7 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['options']['downloadTries']             = $mdata['downloadTries'];
                         $element['options']['secretKey']                 = $mdata['secretKey'];
                         $element['options']['publishableKey']            = $mdata['publishableKey'];
+                        $element['options']['webhookSecret']             = (string) ($mdata['webhookSecret'] ?? '');
                         $element['options']['itemname']                  = $mdata['itemname'];
                         $element['options']['amount']                    = $mdata['amount'];
                         $element['options']['thankYouPage']              = $mdata['thankYouPage'];
@@ -463,6 +465,23 @@ class QuickmodeModel extends BaseDatabaseModel
                 $this->updateDbId($child, $id, $dbId);
             }
         }
+    }
+
+    /**
+     * Whether a saved form whose only payment was the removed Sofort element
+     * is about to be stored without any supported payment.
+     */
+    private function requiresReplacementPayment(int $form, string $templateAreas): bool
+    {
+        $query = $this->db->createQuery()
+            ->select($this->db->quoteName('template_areas'))
+            ->from($this->db->quoteName('#__facileforms_forms'))
+            ->where($this->db->quoteName('id') . ' = :form')
+            ->bind(':form', $form, ParameterType::INTEGER);
+        $detector = new SofortOnlyFormDetector();
+
+        return $detector->requiresReplacementPayment((string) $this->db->setQuery($query)->loadResult())
+            && !$detector->hasPayment($templateAreas);
     }
 
     /**
@@ -554,6 +573,10 @@ class QuickmodeModel extends BaseDatabaseModel
         } else {
             // UPDATE — split template_code into 60 KB chunks to avoid MySQL gone-away errors
             $chunks        = $this->chunkString($templateCode, 60000);
+            $paymentRequired = $this->requiresReplacementPayment($form, (string) json_encode($areas));
+            if ($paymentRequired) {
+                $areas[0]['sofortPaymentRequired'] = true;
+            }
             $templateAreas = (string) json_encode($areas);
 
             $emailntf  = 0;
@@ -588,6 +611,12 @@ class QuickmodeModel extends BaseDatabaseModel
                 ->bind(':modified', $now, ParameterType::STRING)
                 ->bind(':modifiedBy', $userId, ParameterType::STRING)
                 ->bind(':form', $form, ParameterType::INTEGER);
+
+            if ($paymentRequired) {
+                // QuickMode drops the removed Sofort element on load: the form
+                // would become free, so it stays unpublished until a payment is added.
+                $query->set($this->db->quoteName('published') . ' = 0');
+            }
 
             if (($mdata['submittedScriptCondidtion'] ?? -1) != -1) {
                 $submittedScriptCond = $mdata['submittedScriptCondidtion'];

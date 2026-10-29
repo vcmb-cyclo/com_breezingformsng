@@ -596,6 +596,22 @@ use Joomla\CMS\Language\Text;
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_WEBHOOKSECRET')); ?>"
+                                                        for="bfElementTypeStripeWebhookSecret">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_WEBHOOKSECRET'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeStripeWebhookSecret" />
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_WEBHOOKURL')); ?>"
+                                                        for="bfElementTypeStripeWebhookUrl">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_WEBHOOKURL'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeStripeWebhookUrl" readonly />
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_ITEMNAME')); ?>"
                                                         for="bfElementTypeStripeItemname">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_ITEMNAME'); ?>

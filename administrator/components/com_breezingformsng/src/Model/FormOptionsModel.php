@@ -15,6 +15,7 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Event\Event;
+use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
 
 /**
  * The options of a form, edited from QuickMode or the advanced options page.
@@ -129,6 +130,17 @@ class FormOptionsModel extends BaseDatabaseModel
         $now = (new \Joomla\CMS\Date\Date())->toSql();
         $uid = (string) $this->getCurrentUser()->username;
         $id  = (int) ($data['id'] ?? 0);
+
+        if ($id > 0 && !empty($data['published'])) {
+            $form = $this->getForm($id);
+
+            if (
+                $form !== null
+                && (new SofortOnlyFormDetector())->requiresReplacementPayment((string) $form->template_areas)
+            ) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_ONLY_UNPUBLISHED'));
+            }
+        }
 
         $title = trim((string) ($data['title'] ?? ''));
         if ($title === '') {

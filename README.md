@@ -73,6 +73,25 @@ emails, take payments, and extend each form with PHP and JavaScript.
 
 Updates are then offered by the Joomla update manager.
 
+### Stripe webhook
+
+Each form with a Stripe element needs its own webhook endpoint, so that a payment is
+recorded, and its notifications sent, even when the customer does not come back to the site.
+Without it, the payment is only recorded on the return, as before, and the component log
+(`administrator/logs/com_breezingformsng.php`) warns about it at each payment.
+
+1. In QuickMode, select the Stripe element and copy its **Webhook endpoint URL**
+   (save a new form first: the URL contains its number).
+2. In the Stripe Dashboard, under **Developers → Webhooks**, add an endpoint with this URL
+   and the events `checkout.session.completed` and `checkout.session.async_payment_succeeded`.
+3. Copy the endpoint's signing secret (`whsec_…`) into the element's **Webhook signing
+   secret**, then save the form.
+
+Checkout sessions opened before this version have no record reference and cannot safely
+confirm a record on return. Reconcile any such paid sessions manually in Stripe.
+If `bf_stripe_success.php` performs external actions, make them idempotent by the Stripe
+PaymentIntent ID: a failed request can run the script again when the webhook retries.
+
 ## Upgrading from BreezingForms (Crosstec)
 
 BreezingForms NG installs over a legacy `com_breezingforms` site and keeps your data:

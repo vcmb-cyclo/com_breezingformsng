@@ -5,6 +5,17 @@
 - The Stripe element can also offer Klarna and iDEAL | Wero on the Stripe Checkout page
   (options *Also offer Klarna* and *Also offer iDEAL | Wero*). The payment method must be
   enabled in the Stripe Dashboard and accept the form currency (EUR for iDEAL | Wero).
+- Stripe payments can be confirmed by a signed webhook, so a successful payment is recorded,
+  and its notifications sent, even when the customer does not come back to the site. Add an
+  endpoint in the Stripe Dashboard with the URL the Stripe element shows, listening to
+  `checkout.session.completed` and `checkout.session.async_payment_succeeded`, and enter its
+  signing secret in the element. The return to the site and the webhook record a payment
+  once, whichever comes first. The return now also checks that the Stripe session belongs to
+  the record it confirms, and tells a customer whose payment is still being processed that it
+  is pending instead of declined. A payment opened without a signing secret is logged as a
+  warning. The README describes the setup.
+- The component writes its warnings and errors to `administrator/logs/com_breezingformsng.php`;
+  they were dropped before.
 - A Stripe error while opening the payment page (payment method not enabled, currency not
   accepted, invalid key) is logged and shown as a payment error instead of a fatal error.
 - The Sofort element is removed: Klarna discontinued Sofort in 2024. A Sofort element still
@@ -13,6 +24,8 @@
   element instead. The installer removes the Sofort files on update. A form whose only
   payment element was Sofort is not accepted on the site until another payment is set up:
   it shows a message and the refusal is logged, instead of taking submissions unpaid.
+  Saving such a form in QuickMode without adding Stripe or PayPal unpublishes it, so it
+  does not become free once Sofort is gone; QuickMode warns about it when it opens.
 - The "code framework" buttons of the QuickMode custom init, validation and action scripts
   work again; they did nothing since the editor script became a module (RC06). Saving an
   element no longer also runs the page save, and forms set to show errors as alerts show

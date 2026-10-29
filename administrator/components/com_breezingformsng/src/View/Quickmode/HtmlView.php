@@ -186,6 +186,7 @@ class HtmlView extends BaseHtmlView
         Text::script('COM_BREEZINGFORMSNG_DEBUG_MODE_DISABLED');
         Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
         Text::script('COM_BREEZINGFORMSNG_QM_SOFORT_REMOVED');
+        Text::script('COM_BREEZINGFORMSNG_QM_SOFORT_ONLY_UNPUBLISHED');
         ToolbarHelper::title($pageTitle, 'logo_left');
 
         parent::display($tpl);

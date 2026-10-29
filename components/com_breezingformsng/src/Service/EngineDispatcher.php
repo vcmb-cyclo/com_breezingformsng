@@ -63,6 +63,8 @@ final class EngineDispatcher
             ($this->payPalCallbackFactory)()->confirmIpn();
         } elseif ($this->input->getBool('confirmStripe', false) && $application === '') {
             ($this->stripeCallbackFactory)()->confirm();
+        } elseif ($this->input->getBool('stripeWebhook', false) && $application === '') {
+            ($this->stripeCallbackFactory)()->webhook();
         } elseif ($this->input->getBool('stripeDownload', false) && $application === '') {
             ($this->stripeCallbackFactory)()->download();
         } elseif ($this->input->getBool('confirmPayPal', false) && $application === '') {
@@ -89,6 +91,7 @@ final class EngineDispatcher
             || $this->input->getBool('confirmPayPalIpn', false)
             || $this->input->getBool('paypalDownload', false)
             || $this->input->getBool('stripeDownload', false)
+            || $this->input->getBool('stripeWebhook', false)
             || $this->input->getBool('showPayPalConnectMsg', false)
             || $this->input->getBool('flashUpload', false)
             || $this->input->getString('opt_in', '') === 'true'

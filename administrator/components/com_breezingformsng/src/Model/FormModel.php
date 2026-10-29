@@ -25,6 +25,7 @@ use Joomla\CMS\Versioning\VersionableModelTrait;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
+use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
 
 /**
  * List actions on forms: publish, delete, copy and reorder. The form itself
@@ -99,6 +100,31 @@ class FormModel extends AdminModel implements VersionableModelInterface
     public function getForm($data = [], $loadData = true)
     {
         return $this->getFormFactory()->createForm('com_breezingformsng.form', ['control' => 'jform']);
+    }
+
+    /** @param array<int|string, mixed> $pks */
+    public function publish(&$pks, $value = 1)
+    {
+        if ((int) $value === 1) {
+            $db = $this->getDatabase();
+            $detector = new SofortOnlyFormDetector();
+
+            foreach (ArrayHelper::toInteger((array) $pks) as $id) {
+                $query = $db->createQuery()
+                    ->select($db->quoteName('template_areas'))
+                    ->from($db->quoteName('#__facileforms_forms'))
+                    ->where($db->quoteName('id') . ' = :id')
+                    ->bind(':id', $id, ParameterType::INTEGER);
+
+                if ($detector->requiresReplacementPayment((string) $db->setQuery($query)->loadResult())) {
+                    $this->setError(Text::_('COM_BREEZINGFORMSNG_QM_SOFORT_ONLY_UNPUBLISHED'));
+
+                    return false;
+                }
+            }
+        }
+
+        return parent::publish($pks, $value);
     }
 
     /**

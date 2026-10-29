@@ -26,30 +26,41 @@ final class SofortOnlyFormDetector
 
     public function isSofortOnly(string $templateAreas): bool
     {
+        $types = $this->elementTypes($templateAreas);
+
+        return in_array(self::SOFORT, $types, true) && array_intersect(self::PAYMENTS, $types) === [];
+    }
+
+    /** Whether the form keeps a supported payment element (PayPal or Stripe). */
+    public function hasPayment(string $templateAreas): bool
+    {
+        return array_intersect(self::PAYMENTS, $this->elementTypes($templateAreas)) !== [];
+    }
+
+    public function requiresReplacementPayment(string $templateAreas): bool
+    {
         $areas = json_decode($templateAreas, true);
 
-        if (!is_array($areas)) {
-            return false;
-        }
+        return $this->isSofortOnly($templateAreas)
+            || (is_array($areas) && !empty($areas[0]['sofortPaymentRequired']) && !$this->hasPayment($templateAreas));
+    }
 
-        $hasSofort = false;
+    /** @return list<mixed> the internal type of every element */
+    private function elementTypes(string $templateAreas): array
+    {
+        $areas = json_decode($templateAreas, true);
+        $types = [];
 
-        foreach ($areas as $area) {
+        foreach (is_array($areas) ? $areas : [] as $area) {
             if (!is_array($area) || !is_array($area['elements'] ?? null)) {
                 continue;
             }
 
             foreach ($area['elements'] as $element) {
-                $type = is_array($element) ? ($element['internalType'] ?? null) : null;
-
-                if (in_array($type, self::PAYMENTS, true)) {
-                    return false;
-                }
-
-                $hasSofort = $hasSofort || $type === self::SOFORT;
+                $types[] = is_array($element) ? ($element['internalType'] ?? null) : null;
             }
         }
 
-        return $hasSofort;
+        return $types;
     }
 }
