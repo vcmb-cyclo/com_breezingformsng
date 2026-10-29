@@ -10,7 +10,9 @@
 - The Sofort element is removed: Klarna discontinued Sofort in 2024. A Sofort element still
   stored in a form is no longer rendered; QuickMode drops it when the form is opened and
   warns about it, and saving the form removes it. Use the Klarna option of the Stripe
-  element instead. The installer removes the Sofort files on update.
+  element instead. The installer removes the Sofort files on update. A form whose only
+  payment element was Sofort is not accepted on the site until another payment is set up:
+  it shows a message and the refusal is logged, instead of taking submissions unpaid.
 
 ## 6.1.0-RC08
 
