@@ -106,18 +106,42 @@ final class FormsAdvancedOptionsHtml
         return $missing;
     }
 
+    /** Keep an existing template's format when the default email is selected. */
+    public static function mailbackHtmlSelection(\stdClass $form): int
+    {
+        if ((int) ($form->id ?? 0) === 0 && (string) ($form->mb_email_custom_template ?? '') === '') {
+            return 1;
+        }
+
+        return (int) ($form->mb_email_custom_html ?? 0);
+    }
+
     /**
      * Elements of the form whose label and value an email template can use.
      *
      * @return array<int, string>
      */
-    public static function mailFieldNames(int $formId): array
+    public static function mailFieldNames(int $formId, int $emailLog): array
     {
+        if ($emailLog !== 1 && $emailLog !== 2) {
+            return [];
+        }
+
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $query = $db->createQuery()
             ->select($db->quoteName('name'))
             ->from($db->quoteName('#__facileforms_elements'))
             ->where($db->quoteName('form') . ' = :formId')
+            ->where($db->quoteName('logging') . ' = 1')
+            ->whereIn(
+                $db->quoteName('type'),
+                [
+                    'File Upload', 'Text', 'Textarea', 'Checkbox', 'Radio Button',
+                    'Select List', 'Query List', 'Radio Group', 'Checkbox Group',
+                    'Number Input', 'Calendar', 'Hidden Input', 'Signature',
+                ],
+                ParameterType::STRING
+            )
             ->whereNotIn(
                 $db->quoteName('name'),
                 ['bfFakeName', 'bfFakeName2', 'bfFakeName3', 'bfFakeName4', 'bfFakeName5', 'bfFakeName6'],

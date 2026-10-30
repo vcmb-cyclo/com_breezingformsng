@@ -51,11 +51,10 @@ HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
 $labelTip = static fn (string $key): string => ' title="' . htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8') . '"';
 
 $mailEditor = Editor::getInstance(Factory::getApplication()->get('editor'));
-$mailFieldNames = FormsAdvancedOptionsHtml::mailFieldNames((int) ($f->id ?? 0));
+$mailFieldNames = FormsAdvancedOptionsHtml::mailFieldNames((int) ($f->id ?? 0), (int) ($f->emaillog ?? 1));
 $mbCustomEmail = (int) ($f->mb_email_type ?? 0) === 1;
 $mbDefaultBody = FormsAdvancedOptionsHtml::mailbackDefaultBody($f);
-// A template that is not customized yet starts as HTML, what the editor writes.
-$mbEmailHtml = $mbCustomEmail ? (int) ($f->mb_email_custom_html ?? 0) : 1;
+$mbEmailHtml = FormsAdvancedOptionsHtml::mailbackHtmlSelection($f);
 
 $missingPieces = FormsAdvancedOptionsHtml::missingPieces(
     $f,
