@@ -252,10 +252,6 @@ joomla-toolbar-button {
     z-index: 1;
 }
 
-#triggerScrollable, #scrollElementList{
-    margin-bottom: 20px !important;
-}
-
 
 #bfQuickModeWrapper textarea {
     background: transparent !important;
@@ -613,7 +609,6 @@ scroll to top
 .scrollToTop i {
     background: rgba(63, 81, 181, 0.75);
     color: #fff;
-    font-weight: 200;
     padding: 0 12px;
 }
 

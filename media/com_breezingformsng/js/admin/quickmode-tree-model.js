@@ -149,6 +149,45 @@ export class QuickmodeTreeModel {
         return false;
     }
 
+    /**
+     * Value of the #bfElementType option describing an element node, or null
+     * for any other node.
+     */
+    getElementTypeOption(node) {
+        const bfType = node && node.properties && node.properties.bfType;
+
+        if (this.getNodeType(node) !== 'element' || !bfType) {
+            return null;
+        }
+
+        if (bfType === 'bfTextfield') {
+            return 'bfElementTypeText';
+        }
+
+        if (bfType === 'bfNumberInput' && node.properties.range) {
+            return 'bfElementTypeSlider';
+        }
+
+        return 'bfElementType' + bfType.slice(2);
+    }
+
+    /**
+     * Why target cannot contain source, or null when it can: "page" (a page
+     * only goes in the form), "form" (the form only holds pages), "element"
+     * (an element holds nothing).
+     */
+    getInsertionRefusal(target, source) {
+        if (this.canContain(target, source)) {
+            return null;
+        }
+
+        if (this.getNodeType(source) === 'page') {
+            return 'page';
+        }
+
+        return this.getNodeType(target) === 'root' ? 'form' : 'element';
+    }
+
     isDescendant(ancestor, candidate) {
         let current = this.getParent(candidate && candidate.attributes && candidate.attributes.id);
 

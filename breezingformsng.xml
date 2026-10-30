@@ -10,14 +10,14 @@
 
 	<name>COM_BREEZINGFORMSNG</name>
 	<element>com_breezingformsng</element>
-	<creationDate>2026-10-29</creationDate>
+	<creationDate>2026-10-30</creationDate>
 	<author>XDA/GIL</author>
 	<copyright>Copyright 2024 - 2026 by XDA+GIL</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
 	<authorEmail>bf@vcmb.fr</authorEmail>
 	<authorUrl>https://breezingforms-ng.vcmb.fr</authorUrl>
 	<changelogurl>https://raw.githubusercontent.com/vcmb-cyclo/com_breezingformsng/main/com_breezingformsng_changelog.xml</changelogurl>
-	<version>6.1.0-RC09</version>
+	<version>6.1.0-RC10</version>
 	<buildType>development</buildType>
 	<buildTimestamp></buildTimestamp>
 	<description>COM_BREEZINGFORMSNG_XML_DESCRIPTION</description>

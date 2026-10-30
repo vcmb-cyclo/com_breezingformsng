@@ -50,5 +50,6 @@ FormsAdvancedOptionsHtml::render([
 $app = Factory::getApplication();
 $bfDocument = $app->getDocument() ?? throw new \RuntimeException('The document is not available.');
 $bfDocument->getWebAssetManager()->useScript('com_breezingformsng.admin-form');
+$bfDocument->getWebAssetManager()->useScript('com_breezingformsng.form-mail-template');
 $bfDocument->addScriptOptions('com_breezingformsng.admin-form', ['cancelTask' => 'forms.cancel']);
 ?>

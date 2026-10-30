@@ -39,6 +39,7 @@ export default [
         files: [
             'media/com_breezingformsng/js/admin/quickmode-app.js',
             'media/com_breezingformsng/js/admin/quickmode-app-properties.js',
+            'media/com_breezingformsng/js/admin/form-mail-template.js',
             'media/com_breezingformsng/js/admin/quickmode-editor.js',
             'media/com_breezingformsng/js/admin/quickmode-form-dirty.js',
             'media/com_breezingformsng/js/admin/quickmode-tree-model.js',

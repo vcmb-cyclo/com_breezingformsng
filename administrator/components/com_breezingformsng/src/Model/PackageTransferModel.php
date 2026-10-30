@@ -135,6 +135,37 @@ final class PackageTransferModel extends BaseDatabaseModel
     }
 
     /**
+     * What is attached to a package, by kind.
+     *
+     * @return array{forms: list<array<string, mixed>>, scripts: list<array<string, mixed>>, pieces: list<array<string, mixed>>, menus: list<array<string, mixed>>}
+     */
+    public function getPackageContents(string $package): array
+    {
+        return [
+            'forms' => $this->loadPackageSummary('#__facileforms_forms', $package),
+            'scripts' => $this->loadPackageSummary('#__facileforms_scripts', $package),
+            'pieces' => $this->loadPackageSummary('#__facileforms_pieces', $package),
+            'menus' => $this->loadPackageSummary('#__facileforms_compmenus', $package),
+        ];
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function loadPackageSummary(string $table, string $package): array
+    {
+        $db = $this->getDatabase();
+        $query = $db->createQuery()
+            ->select($db->quoteName(['id', 'name', 'title', 'published']))
+            ->from($db->quoteName($table))
+            ->where($db->quoteName('package') . ' = :package')
+            ->order([$db->quoteName('name'), $db->quoteName('id')])
+            ->bind(':package', $package);
+
+        return $db->setQuery($query)->loadAssocList() ?: [];
+    }
+
+    /**
      * @param array<string, mixed> $metadata
      */
     public function export(string $package, array $metadata = []): string

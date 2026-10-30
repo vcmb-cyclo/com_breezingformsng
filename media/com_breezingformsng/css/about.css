@@ -128,6 +128,9 @@
 .bf-about-platform-badge::before {
     content: "\2713";
 }
+.bf-about-platform-badge--joomla::before {
+    content: none;
+}
 .bf-about-version-tile {
     position: relative;
     display: flex;

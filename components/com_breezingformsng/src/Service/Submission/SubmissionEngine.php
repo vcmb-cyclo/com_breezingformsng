@@ -1597,8 +1597,17 @@ final class SubmissionEngine
                                         );
                                     }
 
+                                    // Stripe now takes the payment methods from the Dashboard
+                                    // settings: only the options left off of the element are excluded.
+                                    $excludedPaymentMethods = array_keys(array_filter([
+                                        'klarna' => empty($options['klarna']),
+                                        'ideal'  => empty($options['ideal']),
+                                    ]));
+
                                     try {
-                                        $checkout_session = \Stripe\Checkout\Session::create([
+                                        $checkout_session = \Stripe\Checkout\Session::create(($excludedPaymentMethods !== []
+                                            ? ['excluded_payment_method_types' => $excludedPaymentMethods]
+                                            : []) + [
                                             'customer_email' => $stripeemail,
                                             'billing_address_collection' => 'auto',
                                             /*
@@ -1619,11 +1628,6 @@ final class SubmissionEngine
                                                     'quantity' => 1,
                                                 ]
                                             ],
-                                            'payment_method_types' => array_keys(array_filter([
-                                                'card'   => true,
-                                                'klarna' => !empty($options['klarna']),
-                                                'ideal'  => !empty($options['ideal']),
-                                            ])),
                                             'mode' => 'payment',
                                             // Ties the session to its record for the return and the webhook.
                                             'client_reference_id' => (string) $this->processor->record_id,
@@ -1635,8 +1639,8 @@ final class SubmissionEngine
                                             'cancel_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
                                         ]);
                                     } catch (\Stripe\Exception\ApiErrorException $e) {
-                                        // Klarna or iDEAL not enabled in the Stripe account, currency not
-                                        // accepted, invalid key: show an error instead of a fatal.
+                                        // Currency not accepted, amount too low, invalid key: show an
+                                        // error instead of a fatal.
                                         Log::add(
                                             'Stripe Checkout: ' . $e->getMessage(),
                                             Log::ERROR,

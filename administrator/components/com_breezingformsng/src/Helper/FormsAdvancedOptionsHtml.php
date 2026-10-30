@@ -14,7 +14,13 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Helper;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
+use Vcmb\Component\BreezingformsNG\Site\Service\Notification\MailTemplateResolver;
 
 /**
  * The "advanced options" settings block (General/Email/Scripts/Pieces/
@@ -39,7 +45,7 @@ final class FormsAdvancedOptionsHtml
             'email' => $countConfigured([
                 $f->emailntf ?? 0, $f->emailadr ?? '', $f->custom_mail_subject ?? '', $f->alt_mailfrom ?? '',
                 $f->alt_fromname ?? '', $f->mb_emailntf ?? 0, $f->mb_custom_mail_subject ?? '',
-                $f->mb_alt_mailfrom ?? '', $f->mb_alt_fromname ?? '',
+                $f->mb_alt_mailfrom ?? '', $f->mb_alt_fromname ?? '', $f->mb_emailxml ?? 0, $f->mb_email_type ?? 0,
             ]),
             'scripts' => (int) ((int) ($f->script1cond ?? 0) > 0) + (int) ((int) ($f->script2cond ?? 0) > 0),
             'form-pieces' => (int) ((int) ($f->piece1cond ?? 0) > 0) + (int) ((int) ($f->piece2cond ?? 0) > 0),
@@ -98,6 +104,140 @@ final class FormsAdvancedOptionsHtml
         }
 
         return $missing;
+    }
+
+    /** Keep an existing template's format when the default email is selected. */
+    public static function mailbackHtmlSelection(\stdClass $form): int
+    {
+        if ((int) ($form->id ?? 0) === 0 && (string) ($form->mb_email_custom_template ?? '') === '') {
+            return 1;
+        }
+
+        return (int) ($form->mb_email_custom_html ?? 0);
+    }
+
+    /**
+     * Elements of the form whose label and value an email template can use.
+     *
+     * @return array<int, string>
+     */
+    public static function mailFieldNames(int $formId, int $emailLog): array
+    {
+        if ($emailLog !== 1 && $emailLog !== 2) {
+            return [];
+        }
+
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $query = $db->createQuery()
+            ->select($db->quoteName('name'))
+            ->from($db->quoteName('#__facileforms_elements'))
+            ->where($db->quoteName('form') . ' = :formId')
+            ->where($db->quoteName('logging') . ' = 1')
+            ->whereIn(
+                $db->quoteName('type'),
+                [
+                    'File Upload', 'Text', 'Textarea', 'Checkbox', 'Radio Button',
+                    'Select List', 'Query List', 'Radio Group', 'Checkbox Group',
+                    'Number Input', 'Calendar', 'Hidden Input', 'Signature',
+                ],
+                ParameterType::STRING
+            )
+            ->whereNotIn(
+                $db->quoteName('name'),
+                ['bfFakeName', 'bfFakeName2', 'bfFakeName3', 'bfFakeName4', 'bfFakeName5', 'bfFakeName6'],
+                ParameterType::STRING
+            )
+            ->order($db->quoteName('ordering'))
+            ->bind(':formId', $formId, ParameterType::INTEGER);
+
+        return $db->setQuery($query)->loadColumn();
+    }
+
+    /**
+     * What the default confirmation email holds, as NotificationEngine builds
+     * it: the source of a template file of the site, else the submission
+     * details and fields, which is also what the template file shipped gives.
+     *
+     * @return array{file: string, content: string}
+     */
+    public static function mailbackDefaultBody(\stdClass $f): array
+    {
+        $template = (new MailTemplateResolver())->resolve(
+            JPATH_SITE . '/media/breezingforms/mailtpl',
+            (string) ($f->name ?? ''),
+            '_mailback',
+            'mailbacktpl'
+        );
+
+        if ($template['file'] !== '') {
+            // Line endings and the file header differ between released versions.
+            $normalize = static fn (string $path): string => trim((string) preg_replace(
+                '/^.*?\?>/s',
+                '',
+                str_replace("\r\n", "\n", (string) @file_get_contents($path)),
+                1
+            ));
+            $source = $normalize($template['file']);
+
+            if ($source !== $normalize(JPATH_ADMINISTRATOR . '/components/com_breezingformsng/mailtpl/mailbacktpl.txt.php')) {
+                return ['file' => basename($template['file']), 'content' => (string) file_get_contents($template['file'])];
+            }
+        }
+
+        $lines = [Text::_('COM_BREEZINGFORMSNG_PROCESS_RECORDSAVEDID') . ' …', ''];
+
+        foreach (['FORMID', 'FORMTITLE', 'FORMNAME', 'SUBMITTEDAT', 'SUBMITTERIP', 'SUBMITTERID', 'SUBMITTERUSERNAME', 'SUBMITTERFULLNAME', 'PROVIDER', 'BROWSER', 'OPSYS'] as $key) {
+            $lines[] = Text::_('COM_BREEZINGFORMSNG_PROCESS_' . $key) . ': …';
+        }
+
+        // The engine fills the fields of both emails from the same data, kept
+        // according to the emaillog setting of the administrator notification.
+        if ((int) ($f->emaillog ?? 1) > 0) {
+            $lines[] = '';
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
+            $formId = (int) ($f->id ?? 0);
+            $query = $db->createQuery()
+                ->select($db->quoteName('title'))
+                ->from($db->quoteName('#__facileforms_elements'))
+                ->where($db->quoteName('form') . ' = :formId')
+                ->where($db->quoteName('logging') . ' = 1')
+                ->order($db->quoteName('ordering'))
+                ->bind(':formId', $formId, ParameterType::INTEGER);
+
+            foreach ($db->setQuery($query)->loadColumn() as $title) {
+                $lines[] = strip_tags((string) $title) . ': …';
+            }
+        }
+
+        return ['file' => '', 'content' => implode("\n", $lines)];
+    }
+
+    /**
+     * Packages a form can be assigned to, with the one it already has.
+     *
+     * @return list<string>
+     */
+    public static function packageNames(string $current): array
+    {
+        $component = Factory::getApplication()->bootComponent('com_breezingformsng');
+
+        if (!$component instanceof MVCFactoryServiceInterface) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $model = $component->getMVCFactory()->createModel('PackageTransfer', 'Administrator', ['ignore_request' => true]);
+
+        if (!$model instanceof PackageTransferModel) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $packages = $model->getPackages();
+
+        if ($current !== '' && !in_array($current, $packages, true)) {
+            $packages[] = $current;
+        }
+
+        return $packages;
     }
 
     /**

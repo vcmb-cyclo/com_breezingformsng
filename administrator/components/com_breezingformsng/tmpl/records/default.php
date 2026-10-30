@@ -37,6 +37,10 @@ $stateIcons = [
 $stateIcons[0] = $stateIcons[RecordState::PUBLISHED];
 
 $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8');
+
+// Viewed and Exported start hidden: d-none also covers small screens, where
+// table-columns.js does not run. records-columns.js makes it the default of
+// the Columns menu, which removes d-none and applies the choice of the user.
 ?>
 <form action="index.php?option=com_breezingformsng&amp;view=records" method="post" name="adminForm" id="adminForm">
   <div id="j-main-container" class="j-main-container">
@@ -48,7 +52,7 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
         <?= Text::_('COM_BREEZINGFORMSNG_NO_RECORDS_FOUND'); ?>
       </div>
     <?php else: ?>
-      <table class="table" id="recordList">
+      <table class="table" id="recordList" data-name="bfng-records">
         <caption class="visually-hidden">
           <?= Text::_('COM_BREEZINGFORMSNG_RECORDS'); ?>,
           <span id="orderedBy"><?= Text::_('JGLOBAL_SORTED_BY'); ?> </span>,
@@ -61,8 +65,8 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
             <th scope="col" title="<?= $headerTitle('COM_BREEZINGFORMSNG_RECORDS_FORM_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORM', 'forms.title', $listDirn, $listOrder); ?></th>
             <th scope="col" title="<?= $headerTitle('COM_BREEZINGFORMSNG_IP_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_IP', 'records.ip', $listDirn, $listOrder); ?></th>
             <th scope="col" title="<?= $headerTitle('COM_BREEZINGFORMSNG_USER_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_USER', 'records.username', $listDirn, $listOrder); ?></th>
-            <th scope="col" class="text-center" title="<?= $headerTitle('COM_BREEZINGFORMSNG_VIEWED_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_VIEWED', 'records.viewed', $listDirn, $listOrder); ?></th>
-            <th scope="col" class="text-center" title="<?= $headerTitle('COM_BREEZINGFORMSNG_EXPORTED_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_EXPORTED', 'records.exported', $listDirn, $listOrder); ?></th>
+            <th scope="col" class="d-none text-center" title="<?= $headerTitle('COM_BREEZINGFORMSNG_VIEWED_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_VIEWED', 'records.viewed', $listDirn, $listOrder); ?></th>
+            <th scope="col" class="d-none text-center" title="<?= $headerTitle('COM_BREEZINGFORMSNG_EXPORTED_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_EXPORTED', 'records.exported', $listDirn, $listOrder); ?></th>
             <th scope="col" class="text-center" title="<?= $headerTitle('COM_BREEZINGFORMSNG_RECORDS_STATE_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'JSTATUS', 'records.state', $listDirn, $listOrder); ?></th>
             <th scope="col" title="<?= $headerTitle('COM_BREEZINGFORMSNG_SUBMITTED_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_SUBMITTED', 'records.submitted', $listDirn, $listOrder); ?></th>
             <th scope="col" title="<?= $headerTitle('COM_BREEZINGFORMSNG_MODIFIED_DESC'); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_MODIFIED', 'records.modified', $listDirn, $listOrder); ?></th>
@@ -88,7 +92,7 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
               </th>
               <td><?= $this->escape((string) $rec->ip); ?></td>
               <td><?= $this->escape((string) ($rec->user_full_name ?: $rec->username)); ?></td>
-              <td class="text-center">
+              <td class="d-none text-center">
                 <?php if ($canEditState): ?>
                   <a href="#" data-bf-record-id="<?= $recId; ?>" data-bf-flag="viewed" title="<?= $headerTitle('COM_BREEZINGFORMSNG_TOGGLE_VIEWED'); ?>">
                     <span class="<?= $rec->viewed ? 'icon-check text-success' : 'icon-times text-danger'; ?>" aria-hidden="true"></span>
@@ -97,7 +101,7 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
                   <span class="<?= $rec->viewed ? 'icon-check text-success' : 'icon-times text-danger'; ?>" aria-hidden="true"></span>
                 <?php endif; ?>
               </td>
-              <td class="text-center">
+              <td class="d-none text-center">
                 <?php if ($canEditState): ?>
                   <a href="#" data-bf-record-id="<?= $recId; ?>" data-bf-flag="exported" title="<?= $headerTitle('COM_BREEZINGFORMSNG_TOGGLE_EXPORTED'); ?>">
                     <span class="<?= $rec->exported ? 'icon-check text-success' : 'icon-times text-danger'; ?>" aria-hidden="true"></span>

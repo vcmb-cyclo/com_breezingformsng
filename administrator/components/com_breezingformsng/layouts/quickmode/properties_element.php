@@ -20,45 +20,54 @@ use Joomla\CMS\Language\Text;
                                                     for="bfElementType">
                                                     <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_TYPE'); ?>
                                                 </label>
+                                                <span class="bfng-type-select" id="bfElementTypeIcon">
                                                 <select id="bfElementType">
-                                                    <option value="">
+                                                    <option value="" disabled selected>
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_CHOOSE_ONE'); ?>
                                                     </option>
                                                     <?php
-                                                    $elementTypeOptions = array(
-                                                        array('value' => 'bfElementTypeCalendar', 'label' => Text::_('COM_BREEZINGFORMSNG_CALENDAR'), 'icon' => '📅'),
-                                                        array('value' => 'bfElementTypeCalendarResponsive', 'label' => Text::_('COM_BREEZINGFORMSNG_CALENDAR_RESPONSIVE'), 'icon' => '📆'),
-                                                        array('value' => 'bfElementTypeCaptcha', 'label' => Text::_('COM_BREEZINGFORMSNG_CAPTCHA'), 'icon' => '🔐'),
-                                                        array('value' => 'bfElementTypeCheckbox', 'label' => Text::_('COM_BREEZINGFORMSNG_CHECKBOX'), 'icon' => '☑️'),
-                                                        array('value' => 'bfElementTypeCheckboxGroup', 'label' => Text::_('COM_BREEZINGFORMSNG_CHECKBOX_GROUP'), 'icon' => '✅'),
-                                                        array('value' => 'bfElementTypeFile', 'label' => Text::_('COM_BREEZINGFORMSNG_FILE'), 'icon' => '📎'),
-                                                        array('value' => 'bfElementTypeHidden', 'label' => Text::_('COM_BREEZINGFORMSNG_HIDDEN'), 'icon' => '🙈'),
-                                                        array('value' => 'bfElementTypeNumberInput', 'label' => Text::_('COM_BREEZINGFORMSNG_NUMBER_INPUT'), 'icon' => '🔢'),
-                                                        array('value' => 'bfElementTypePayPal', 'label' => Text::_('COM_BREEZINGFORMSNG_PAYPAL'), 'icon' => '💳'),
-                                                        array('value' => 'bfElementTypeRadioGroup', 'label' => Text::_('COM_BREEZINGFORMSNG_RADIO_GROUP'), 'icon' => '🔘'),
-                                                        array('value' => 'bfElementTypeReCaptcha', 'label' => Text::_('COM_BREEZINGFORMSNG_ReCaptcha'), 'icon' => '🛡️'),
-                                                        array('value' => 'bfElementTypeSelect', 'label' => Text::_('COM_BREEZINGFORMSNG_SELECT'), 'icon' => '📋'),
-                                                        array('value' => 'bfElementTypeSignature', 'label' => Text::_('COM_BREEZINGFORMSNG_SIGNATURE'), 'icon' => '✍️'),
-                                                        array('value' => 'bfElementTypeSlider', 'label' => 'Slider', 'icon' => '🎚️'),
-                                                        array('value' => 'bfElementTypeStripe', 'label' => Text::_('COM_BREEZINGFORMSNG_STRIPE'), 'icon' => '💳'),
-                                                        array('value' => 'bfElementTypeSubmitButton', 'label' => Text::_('COM_BREEZINGFORMSNG_SUBMIT_BUTTON'), 'icon' => '🚀'),
-                                                        array('value' => 'bfElementTypeSummarize', 'label' => Text::_('COM_BREEZINGFORMSNG_SUMMARIZE'), 'icon' => '🧮'),
-                                                        array('value' => 'bfElementTypeTextarea', 'label' => Text::_('COM_BREEZINGFORMSNG_TEXTAREA'), 'icon' => '📝'),
-                                                        array('value' => 'bfElementTypeText', 'label' => Text::_('COM_BREEZINGFORMSNG_TEXTFIELD'), 'icon' => '🔤')
+                                                    $elementTypeFamilies = array(
+                                                        'COM_BREEZINGFORMSNG_ELEMENT_FAMILY_INPUT' => array(
+                                                            'bfElementTypeText' => Text::_('COM_BREEZINGFORMSNG_TEXTFIELD'),
+                                                            'bfElementTypeTextarea' => Text::_('COM_BREEZINGFORMSNG_TEXTAREA'),
+                                                            'bfElementTypeNumberInput' => Text::_('COM_BREEZINGFORMSNG_NUMBER_INPUT'),
+                                                            'bfElementTypeCalendar' => Text::_('COM_BREEZINGFORMSNG_CALENDAR'),
+                                                            'bfElementTypeCalendarResponsive' => Text::_('COM_BREEZINGFORMSNG_CALENDAR_RESPONSIVE'),
+                                                            'bfElementTypeHidden' => Text::_('COM_BREEZINGFORMSNG_HIDDEN'),
+                                                            'bfElementTypeFile' => Text::_('COM_BREEZINGFORMSNG_FILE'),
+                                                        ),
+                                                        'COM_BREEZINGFORMSNG_ELEMENT_FAMILY_CHOICE' => array(
+                                                            'bfElementTypeCheckbox' => Text::_('COM_BREEZINGFORMSNG_CHECKBOX'),
+                                                            'bfElementTypeCheckboxGroup' => Text::_('COM_BREEZINGFORMSNG_CHECKBOX_GROUP'),
+                                                            'bfElementTypeRadioGroup' => Text::_('COM_BREEZINGFORMSNG_RADIO_GROUP'),
+                                                            'bfElementTypeSelect' => Text::_('COM_BREEZINGFORMSNG_SELECT'),
+                                                            'bfElementTypeSlider' => 'Slider',
+                                                        ),
+                                                        'COM_BREEZINGFORMSNG_ELEMENT_FAMILY_SECURITY_PAYMENT' => array(
+                                                            'bfElementTypeCaptcha' => Text::_('COM_BREEZINGFORMSNG_CAPTCHA'),
+                                                            'bfElementTypeReCaptcha' => Text::_('COM_BREEZINGFORMSNG_ReCaptcha'),
+                                                            'bfElementTypeSignature' => Text::_('COM_BREEZINGFORMSNG_SIGNATURE'),
+                                                            'bfElementTypePayPal' => Text::_('COM_BREEZINGFORMSNG_PAYPAL'),
+                                                            'bfElementTypeStripe' => Text::_('COM_BREEZINGFORMSNG_STRIPE'),
+                                                        ),
+                                                        'COM_BREEZINGFORMSNG_ELEMENT_FAMILY_ACTION_VIEW' => array(
+                                                            'bfElementTypeSubmitButton' => Text::_('COM_BREEZINGFORMSNG_SUBMIT_BUTTON'),
+                                                            'bfElementTypeSummarize' => Text::_('COM_BREEZINGFORMSNG_SUMMARIZE'),
+                                                        ),
                                                     );
 
-                                                    usort($elementTypeOptions, function ($a, $b) {
-                                                        return strcasecmp($a['label'], $b['label']);
-                                                    });
-
-                                                    foreach ($elementTypeOptions as $elementTypeOption) :
-                                                        $optionText = $elementTypeOption['icon'] . ' ' . $elementTypeOption['label'];
+                                                    foreach ($elementTypeFamilies as $familyKey => $elementTypes) :
                                                     ?>
-                                                        <option value="<?php echo $elementTypeOption['value']; ?>">
-                                                            <?php echo htmlspecialchars($optionText, ENT_QUOTES, 'UTF-8'); ?>
-                                                        </option>
+                                                        <optgroup label="<?php echo htmlspecialchars(Text::_($familyKey), ENT_QUOTES, 'UTF-8'); ?>">
+                                                            <?php foreach ($elementTypes as $elementType => $elementTypeLabel) : ?>
+                                                                <option value="<?php echo $elementType; ?>" class="bfng-type-icon--<?php echo $elementType; ?>">
+                                                                    <?php echo htmlspecialchars($elementTypeLabel, ENT_QUOTES, 'UTF-8'); ?>
+                                                                </option>
+                                                            <?php endforeach; ?>
+                                                        </optgroup>
                                                     <?php endforeach; ?>
                                                 </select>
+                                                </span>
                                             </div>
                                             <legend>
                                                 <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_PROPERTIES'); ?>

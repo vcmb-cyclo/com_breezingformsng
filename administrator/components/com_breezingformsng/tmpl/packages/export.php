@@ -134,10 +134,6 @@ const bfPackageDetails = document.getElementById('bf-package-details');
 const bfShowProfile = () => {
     const isNew = 'new' in bfPackageChoice.selectedOptions[0].dataset;
     const id = bfPackageChoice.value;
-    const deleteButton = document.getElementById('toolbar-delete-package');
-    if (deleteButton) {
-        deleteButton.disabled = isNew || id === '';
-    }
     const profile = bfPackageProfiles[id] || {};
     const assigned = Boolean(profile.assigned);
     bfPackageDetails.classList.toggle('d-none', id === '' && !isNew);
@@ -216,8 +212,8 @@ document.getElementById('toolbar-close')?.addEventListener('click', (event) => {
     });
 });
 
-// Save and Create Package both store the form. Save reloads the screen;
-// Create Package downloads the file and leaves the page open, so the stored
+// Save and Export package both store the form. Save reloads the screen;
+// Export package downloads the file and leaves the page open, so the stored
 // details are copied into the in-memory profile (a new package joins the
 // list), and the guard comes back after a while.
 bfExportForm.addEventListener('submit', () => {

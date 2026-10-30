@@ -3,7 +3,7 @@
 	<changelog>
 		<element>com_breezingformsng</element>
 		<type>component</type>
-		<version>6.1.0-RC09</version>
+		<version>6.1.0-RC10</version>
 		<addition>
 			<item>Offer Klarna and iDEAL | Wero on the Stripe Checkout page, as options of the Stripe element.</item>
 			<item>Record Stripe payments from a signed webhook, even when the customer does not come back to the site.</item>

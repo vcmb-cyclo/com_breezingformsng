@@ -196,4 +196,13 @@ final class SubmissionEngineArchitectureTest extends TestCase
         self::assertStringContainsString('$this->exportEngine(),', $source);
         self::assertStringContainsString('$this->notificationEngine()', $source);
     }
+
+    public function testStripeCheckoutLeavesThePaymentMethodsToTheDashboard(): void
+    {
+        $engine = (string) file_get_contents(__DIR__ . '/../../../../components/com_breezingformsng/src/Service/Submission/SubmissionEngine.php');
+
+        // Stripe refuses payment_method_types when it creates a Checkout Session.
+        self::assertStringNotContainsString("'payment_method_types'", $engine);
+        self::assertStringContainsString("'excluded_payment_method_types' => $" . "excludedPaymentMethods", $engine);
+    }
 }
