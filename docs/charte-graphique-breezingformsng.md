@@ -70,6 +70,38 @@ Le pas 500 reprend `#2f70b9`, déjà présent comme repli de `--template-link-co
 
 Quatre familles remplacent la mosaïque d'icônes PNG de `media/com_breezingformsng/images/quickmode/`. Les icônes deviennent des glyphes Lucide monochromes teintés par la famille : un seul jeu vectoriel, lisible en sombre, sans image à recharger.
 
+### Icônes des types de champ
+
+Le menu « Choisir un type de champ » (`#bfElementType`) utilise **une icône Lucide unique par type** (trait 2 px, 16 px, teinte = famille `--bfng-kind-*`), jamais d'emoji, et ses options sont **regroupées par famille** (`<optgroup>`) au lieu de l'ordre alphabétique plat. **La liste des types reste telle quelle** : ne pas fusionner ni scinder d'entrées.
+
+| Famille | Type | Icône Lucide |
+|---|---|---|
+| Saisie (`input`) | Champ de texte | `Type` |
+| | Zone de texte | `AlignLeft` |
+| | Champ numérique / Slider | `Hash` |
+| | Calendrier | `Calendar` |
+| | Calendrier responsive | `CalendarDays` |
+| | Entrée cachée | `EyeOff` |
+| | Envoi de fichiers | `Paperclip` |
+| Choix (`struct`/accent) | Case à cocher | `SquareCheck` |
+| | Groupe de cases à cocher | `ListChecks` |
+| | Groupe de boutons radio | `CircleDot` |
+| | Sélection dans une liste | `SquareChevronDown` |
+| | Slider | `SlidersHorizontal` |
+| Sécurité et paiement (`logic`) | Captcha | `Lock` |
+| | ReCaptcha | `ShieldCheck` |
+| | Signature | `PenLine` |
+| | Bouton PayPal | `Wallet` |
+| | Stripe | `CreditCard` |
+| Action et vue (`static`) | Bouton Envoyer | `Send` |
+| | Vue d'ensemble | `ClipboardList` |
+
+Pour ce menu, ce tableau prévaut sur la répartition générale des familles ci-dessus (les choix y sont en `struct`, la vue d'ensemble en `static`).
+
+**Ordre** : familles dans l'ordre du tableau (Saisie → Choix → Sécurité et paiement → Action et vue) ; à l'intérieur d'une famille, ordre du tableau (du plus courant au plus spécialisé), **pas alphabétique**. Le premier élément du menu reste « Choisir un type de champ » (désactivé, sans icône). Chaque intitulé de famille est un `<optgroup label>` non sélectionnable.
+
+**Intégration** : les `<option>` natives n'acceptent pas d'icône dans tous les navigateurs (Firefox notamment). Le `<select>` natif avec `<optgroup>` reste la source de la valeur et de l'événement `change`, mais il est masqué ; `quickmode-type-menu.js` le double par un menu personnalisé (`role="combobox"` + `role="listbox"`) avec navigation clavier complète : flèches, Début/Fin, Entrée/Espace, Échap, Tab et recherche par saisie. Chaque icône est un SVG en `mask-image` (data-URI) défini une seule fois par une classe `.bfng-type-icon--<valeur de l'option>`, dans `bfng-admin.css`. Les mêmes icônes servent dans l'arbre (`.bfng-tree__icon`) et la palette.
+
 ## 03 — Mode sombre
 
 Le sombre n'inverse pas le clair : il remonte les surfaces par paliers et éclaircit l'accent pour tenir le contraste. Les seuls sélecteurs autorisés sont `[data-bs-theme="dark"] .bfng` et `.bfng[data-bs-theme="dark"]`.

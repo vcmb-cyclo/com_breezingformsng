@@ -1639,8 +1639,11 @@ import { JoomlaEditor } from 'editor-api';
                                 break;
                         }
 
-                        if (JQuery('#bfElementType').val() != '') {
-                            var selectedElementType = JQuery('#bfElementType').val();
+                        var elementTypeValue = JQuery('#bfElementType').val();
+                        JQuery('#bfElementType').get(0).dispatchEvent(new CustomEvent('bfng:type-sync'));
+
+                        if (elementTypeValue) {
+                            var selectedElementType = elementTypeValue;
                             var mappedElementType = selectedElementType === 'bfElementTypeSlider' ? 'bfElementTypeNumberInput' : selectedElementType;
                             JQuery('#bfElementTypeClass').css('display', 'none');
                             JQuery('#' + mappedElementType).css('display', '');
@@ -1878,7 +1881,13 @@ import { JoomlaEditor } from 'editor-api';
                         alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_NEW_SECTION_ERROR']);
                     }
                 } else {
-                    alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_NEW_SECTION_ERROR']);
+                    var refusal = selected ? appScope.treeModel.getInsertionRefusal(selected, obj) : null;
+
+                    alert(BFQMConfig.labels[{
+                        page: 'COM_BREEZINGFORMSNG_QM_NEW_ITEM_PAGE_ONLY_IN_FORM',
+                        form: 'COM_BREEZINGFORMSNG_QM_NEW_ITEM_NOT_IN_FORM',
+                        element: 'COM_BREEZINGFORMSNG_QM_NEW_ITEM_NOT_IN_ELEMENT'
+                    }[refusal] || 'COM_BREEZINGFORMSNG_NEW_SECTION_ERROR']);
                 }
 
                 if (inserted) {

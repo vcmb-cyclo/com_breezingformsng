@@ -182,6 +182,22 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                 /**
                  Main application
                  */
+                // The Options tab holds form-level settings: only the form root shows it.
+                // Its fields stay in the DOM, so saving from another node still posts them.
+                this.toggleOptionsTab = function (visible) {
+                    var tab = document.getElementById('fragment-3-tab');
+
+                    if (!tab) {
+                        return;
+                    }
+
+                    if (!visible && tab.classList.contains('active')) {
+                        bootstrap.Tab.getOrCreateInstance(document.getElementById('fragment-1-tab')).show();
+                    }
+
+                    tab.parentElement.classList.toggle('d-none', !visible);
+                };
+
                 this.toggleProperties = function (property) {
                     JQuery('.bfProperties').css('display', 'none');
                     JQuery('#' + property).css('display', '');
@@ -199,6 +215,16 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                 // ever gets a freshly-converted, throw-away read-only view of that data;
                 // every mutation goes through the model first, then refreshTree() re-derives
                 // the view from it - mirroring the old jTree 0.9.8 tree.refresh() pattern.
+                // Same Lucide glyph as the #bfElementType list, for an element.
+                // data.icon is left as persisted.
+                function elementTypeIcon(node) {
+                    var option = appScope.treeModel.getElementTypeOption(node);
+
+                    return option && JQuery('#bfElementType option[value="' + option + '"]').length
+                        ? 'bfng-tree__icon bfng-type-icon--' + option
+                        : null;
+                }
+
                 function toJsTreeNode(node) {
                     var type = appScope.treeModel.getNodeType(node) || 'default';
                     // data.title (the tree's own display label) only gets kept in
@@ -214,7 +240,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                     return {
                         id: node.attributes.id,
                         text: title,
-                        icon: (node.data && node.data.icon) || true,
+                        icon: elementTypeIcon(node) || (node.data && node.data.icon) || true,
                         type: type,
                         state: { opened: node.state !== 'close' },
                         children: appScope.treeModel.getChildren(node).map(toJsTreeNode)
@@ -362,6 +388,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         }
 
                         appScope.selectedTreeElement = node;
+                        appScope.toggleOptionsTab(appScope.getNodeClass(node) === 'bfQuickModeRootClass');
                         switch (appScope.getNodeClass(node)) {
                             case 'bfQuickModeRootClass':
                                 appScope.toggleProperties('bfFormProperties');

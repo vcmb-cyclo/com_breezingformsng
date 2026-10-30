@@ -88,3 +88,35 @@ test('renumbers pages and updates the thank-you-page script after removal', () =
     assert.equal(root.children.length, 1);
     assert.equal(root.properties.submittedScriptCondidtion, -1);
 });
+
+test('explains why a node cannot be inserted under the selected one', () => {
+    const root = tree();
+    const model = new QuickmodeTreeModel(root);
+    const selected = (id) => model.find(id);
+
+    assert.equal(model.getInsertionRefusal(selected('bfQuickModePage1'), element('new')), null);
+    assert.equal(model.getInsertionRefusal(selected('section1'), element('new')), null);
+    assert.equal(model.getInsertionRefusal(root, page('bfQuickModePage3')), null);
+
+    assert.equal(model.getInsertionRefusal(root, element('new')), 'form');
+    assert.equal(model.getInsertionRefusal(root, section('newSection')), 'form');
+    assert.equal(model.getInsertionRefusal(selected('section1Element'), element('new')), 'element');
+    assert.equal(model.getInsertionRefusal(selected('section1Element'), section('newSection')), 'element');
+    assert.equal(model.getInsertionRefusal(selected('bfQuickModePage1'), page('bfQuickModePage3')), 'page');
+});
+
+test('maps element nodes to their element type option', () => {
+    const root = tree();
+    const model = new QuickmodeTreeModel(root);
+    const typed = (properties) => ({ ...element('typed'), properties: { type: 'element', ...properties } });
+
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfTextfield' })), 'bfElementTypeText');
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfNumberInput', range: false })), 'bfElementTypeNumberInput');
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfNumberInput', range: true })), 'bfElementTypeSlider');
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfCalendarResponsive' })), 'bfElementTypeCalendarResponsive');
+
+    assert.equal(model.getElementTypeOption(typed({})), null);
+    assert.equal(model.getElementTypeOption(root), null);
+    assert.equal(model.getElementTypeOption(model.find('bfQuickModePage1')), null);
+    assert.equal(model.getElementTypeOption(section('section2')), null);
+});

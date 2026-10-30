@@ -64,10 +64,19 @@
     },
 
     {
+      "name": "com_breezingformsng.quickmode-type-menu",
+      "type": "script",
+      "uri": "media/com_breezingformsng/js/admin/quickmode-type-menu.js",
+      "attributes": {"defer": true},
+      "version": "auto"
+    },
+
+    {
       "name": "com_breezingformsng.quickmode-app",
       "type": "script",
       "uri": "media/com_breezingformsng/js/admin/quickmode-app.js",
       "dependencies": [
+        "com_breezingformsng.quickmode-type-menu",
         "com_breezingformsng.quickmode-elements",
         "com_breezingformsng.quickmode-compat",
         "com_breezingformsng.quickmode-app-properties",
@@ -184,6 +193,15 @@
       "type": "script",
       "uri": "com_breezingformsng/js/admin/admin-form.js",
       "dependencies": ["core"],
+      "version": "auto"
+    },
+
+    {
+      "name": "com_breezingformsng.form-mail-template",
+      "type": "script",
+      "uri": "media/com_breezingformsng/js/admin/form-mail-template.js",
+      "dependencies": ["editor-api"],
+      "attributes": {"type": "module"},
       "version": "auto"
     },
 

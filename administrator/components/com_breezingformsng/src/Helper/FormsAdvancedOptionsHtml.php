@@ -14,7 +14,10 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Helper;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 
 /**
  * The "advanced options" settings block (General/Email/Scripts/Pieces/
@@ -39,7 +42,7 @@ final class FormsAdvancedOptionsHtml
             'email' => $countConfigured([
                 $f->emailntf ?? 0, $f->emailadr ?? '', $f->custom_mail_subject ?? '', $f->alt_mailfrom ?? '',
                 $f->alt_fromname ?? '', $f->mb_emailntf ?? 0, $f->mb_custom_mail_subject ?? '',
-                $f->mb_alt_mailfrom ?? '', $f->mb_alt_fromname ?? '',
+                $f->mb_alt_mailfrom ?? '', $f->mb_alt_fromname ?? '', $f->mb_emailxml ?? 0, $f->mb_email_type ?? 0,
             ]),
             'scripts' => (int) ((int) ($f->script1cond ?? 0) > 0) + (int) ((int) ($f->script2cond ?? 0) > 0),
             'form-pieces' => (int) ((int) ($f->piece1cond ?? 0) > 0) + (int) ((int) ($f->piece2cond ?? 0) > 0),
@@ -98,6 +101,29 @@ final class FormsAdvancedOptionsHtml
         }
 
         return $missing;
+    }
+
+    /**
+     * Elements of the form whose label and value an email template can use.
+     *
+     * @return array<int, string>
+     */
+    public static function mailFieldNames(int $formId): array
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $query = $db->createQuery()
+            ->select($db->quoteName('name'))
+            ->from($db->quoteName('#__facileforms_elements'))
+            ->where($db->quoteName('form') . ' = :formId')
+            ->whereNotIn(
+                $db->quoteName('name'),
+                ['bfFakeName', 'bfFakeName2', 'bfFakeName3', 'bfFakeName4', 'bfFakeName5', 'bfFakeName6'],
+                ParameterType::STRING
+            )
+            ->order($db->quoteName('ordering'))
+            ->bind(':formId', $formId, ParameterType::INTEGER);
+
+        return $db->setQuery($query)->loadColumn();
     }
 
     /**
