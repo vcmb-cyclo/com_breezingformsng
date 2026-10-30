@@ -55,7 +55,7 @@ use Joomla\CMS\Language\Text;
                                                             'bfElementTypeSummarize' => Text::_('COM_BREEZINGFORMSNG_SUMMARIZE'),
                                                         ),
                                                     );
-                                                
+
                                                     foreach ($elementTypeFamilies as $familyKey => $elementTypes) :
                                                     ?>
                                                         <optgroup label="<?php echo htmlspecialchars(Text::_($familyKey), ENT_QUOTES, 'UTF-8'); ?>">

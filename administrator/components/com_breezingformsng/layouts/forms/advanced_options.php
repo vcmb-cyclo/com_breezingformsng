@@ -113,7 +113,7 @@ $paneErrors = [
         <div class="col-sm-9">
           <select class="form-select" id="jf_package" name="package">
             <option value=""><?= Text::_('COM_BREEZINGFORMSNG_FORMS_NONE'); ?></option>
-            <?php foreach (FormsAdvancedOptionsHtml::packageNames($pkg) as $packageName): ?>
+            <?php foreach (FormsAdvancedOptionsHtml::packageNames($pkg) as $packageName) : ?>
               <option value="<?= htmlspecialchars($packageName, ENT_QUOTES, 'UTF-8'); ?>"<?= $packageName === $pkg ? ' selected' : ''; ?>><?= htmlspecialchars($packageName, ENT_QUOTES, 'UTF-8'); ?></option>
             <?php endforeach; ?>
           </select>
@@ -319,7 +319,7 @@ $paneErrors = [
         <label class="col-sm-3 col-form-label hasTooltip" for="jf_mb_emaillog"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_MB_REPORT_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_REPORT'); ?></label>
         <div class="col-sm-9">
           <select class="form-select w-auto" id="jf_mb_emaillog" name="mb_emaillog">
-            <?php foreach ([0 => 'COM_BREEZINGFORMSNG_FORMS_HDRONLY', 1 => 'COM_BREEZINGFORMSNG_FORMS_NONEMPTY', 2 => 'COM_BREEZINGFORMSNG_FORMS_ALLVALS'] as $v => $key): ?>
+            <?php foreach ([0 => 'COM_BREEZINGFORMSNG_FORMS_HDRONLY', 1 => 'COM_BREEZINGFORMSNG_FORMS_NONEMPTY', 2 => 'COM_BREEZINGFORMSNG_FORMS_ALLVALS'] as $v => $key) : ?>
               <option value="<?= $v; ?>"<?= (int) ($f->mb_emaillog ?? 1) === $v ? ' selected' : ''; ?>><?= Text::_($key); ?></option>
             <?php endforeach; ?>
           </select>
@@ -332,7 +332,7 @@ $paneErrors = [
           <select class="form-select w-auto" id="jf_mb_emailxml" name="mb_emailxml">
             <?php // 2 is the former "XML: all values": the engine sends it as XML.
             $mbAttachment = (int) ($f->mb_emailxml ?? 0) === 2 ? 1 : (int) ($f->mb_emailxml ?? 0);
-            foreach ([0 => Text::_('JNO'), 1 => 'XML', 3 => 'CSV', 4 => 'PDF'] as $v => $label): ?>
+            foreach ([0 => Text::_('JNO'), 1 => 'XML', 3 => 'CSV', 4 => 'PDF'] as $v => $label) : ?>
               <option value="<?= $v; ?>"<?= $mbAttachment === $v ? ' selected' : ''; ?>><?= $label; ?></option>
             <?php endforeach; ?>
           </select>
@@ -342,7 +342,7 @@ $paneErrors = [
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label hasTooltip"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_TYPE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_BODY'); ?></label>
         <div class="col-sm-9 d-flex gap-3">
-          <?php foreach ([0 => 'COM_BREEZINGFORMSNG_EMAIL_TYPE_DEFAULT', 1 => 'COM_BREEZINGFORMSNG_EMAIL_TYPE_CUSTOM'] as $v => $key): ?>
+          <?php foreach ([0 => 'COM_BREEZINGFORMSNG_EMAIL_TYPE_DEFAULT', 1 => 'COM_BREEZINGFORMSNG_EMAIL_TYPE_CUSTOM'] as $v => $key) : ?>
             <div class="form-check">
               <input class="form-check-input" type="radio" name="mb_email_type" id="mbetype<?= $v; ?>" value="<?= $v; ?>" data-bf-mail-template-toggle="bfMbEmailTemplate" data-bf-mail-default-toggle="bfMbEmailDefault"<?= $mbCustomEmail === ($v === 1) ? ' checked' : ''; ?>>
               <label class="form-check-label" for="mbetype<?= $v; ?>"><?= Text::_($key); ?></label>
@@ -354,10 +354,10 @@ $paneErrors = [
       <div id="bfMbEmailDefault" class="row mb-3"<?= $mbCustomEmail ? ' hidden' : ''; ?>>
         <div class="col-sm-9 offset-sm-3">
           <div class="form-text mb-2">
-            <?php if ($mbDefaultBody['file'] !== ''): ?>
-              <?= Text::sprintf('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_DEFAULT_FILE', htmlspecialchars($mbDefaultBody['file'], ENT_QUOTES, 'UTF-8')); ?>
-            <?php else: ?>
-              <?= Text::sprintf('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_DEFAULT_HINT', Text::_('COM_BREEZINGFORMSNG_FORMS_EMAILLOG'), Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_ADMIN')); ?>
+            <?php if ($mbDefaultBody['file'] !== '') : ?>
+                <?= Text::sprintf('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_DEFAULT_FILE', htmlspecialchars($mbDefaultBody['file'], ENT_QUOTES, 'UTF-8')); ?>
+            <?php else : ?>
+                <?= Text::sprintf('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_DEFAULT_HINT', Text::_('COM_BREEZINGFORMSNG_FORMS_EMAILLOG'), Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_ADMIN')); ?>
             <?php endif; ?>
           </div>
           <pre class="border rounded p-3 mb-0 overflow-auto bg-body-tertiary" style="max-height:400px;white-space:pre-wrap"><?= htmlspecialchars($mbDefaultBody['content'], ENT_QUOTES, 'UTF-8'); ?></pre>
@@ -368,7 +368,7 @@ $paneErrors = [
         <div class="row mb-3">
           <label class="col-sm-3 col-form-label hasTooltip"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_HTML_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_EMAIL_CUSTOM_HTML'); ?></label>
           <div class="col-sm-9 d-flex gap-3">
-            <?php foreach ([1 => 'JYES', 0 => 'JNO'] as $v => $key): ?>
+            <?php foreach ([1 => 'JYES', 0 => 'JNO'] as $v => $key) : ?>
               <div class="form-check">
                 <input class="form-check-input" type="radio" name="mb_email_custom_html" id="mbehtml<?= $v; ?>" value="<?= $v; ?>"<?= $mbEmailHtml === $v ? ' checked' : ''; ?>>
                 <label class="form-check-label" for="mbehtml<?= $v; ?>"><?= Text::_($key); ?></label>
@@ -381,11 +381,11 @@ $paneErrors = [
           <div class="col-sm-3">
             <div class="form-text mb-2"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_FIELDS_HINT'); ?></div>
             <div class="overflow-auto" style="max-height:400px">
-              <?php foreach ($mailFieldNames as $mailFieldName): ?>
-                <?php foreach (['label', 'value'] as $mailFieldPart):
-                    $mailPlaceholder = htmlspecialchars('{' . $mailFieldName . ':' . $mailFieldPart . '}', ENT_QUOTES, 'UTF-8'); ?>
-                  <button type="button" class="btn btn-link btn-sm d-block p-0 text-start" data-bf-mail-placeholder="<?= $mailPlaceholder; ?>" data-bf-mail-target="jf_mb_email_custom_template"><?= $mailPlaceholder; ?></button>
-                <?php endforeach; ?>
+              <?php foreach ($mailFieldNames as $mailFieldName) : ?>
+                    <?php foreach (['label', 'value'] as $mailFieldPart) : ?>
+                        <?php $mailPlaceholder = htmlspecialchars('{' . $mailFieldName . ':' . $mailFieldPart . '}', ENT_QUOTES, 'UTF-8'); ?>
+                        <button type="button" class="btn btn-link btn-sm d-block p-0 text-start" data-bf-mail-placeholder="<?= $mailPlaceholder; ?>" data-bf-mail-target="jf_mb_email_custom_template"><?= $mailPlaceholder; ?></button>
+                    <?php endforeach; ?>
               <?php endforeach; ?>
             </div>
           </div>
