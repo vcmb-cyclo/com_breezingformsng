@@ -2967,7 +2967,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
             $source = (string) file_get_contents($path);
             $legacyCall = '/\$(?:this|pdf)\s*->\s*'
-                . '(?:[A-Z]\w*|writeHTML\w*|lastPage|getAlias\w+|getPage(?:Height|Width))\s*\(/';
+                . '(?:[A-Z]\w*|(?i:cell|multiCell|write|ln|setX|setY|setXY|setFont|addFont'
+                . '|writeHTML\w*|lastPage|getAlias\w+|getPage(?:Height|Width)))\s*\(/';
             if (preg_match($legacyCall, $source) === 1) {
                 $legacyTemplates[] = $name;
             }

@@ -189,6 +189,7 @@ class PdfDocument extends Tcpdf
 
                 $pdfPageNumber = $pid + 1;
                 $pdfPageCount = $total;
+                $pdf = $this;
                 ob_start();
                 require $file;
                 $html = (string) ob_get_clean();

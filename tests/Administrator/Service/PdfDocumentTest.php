@@ -153,12 +153,18 @@ final class PdfDocumentTest extends TestCase
 
         self::assertNotFalse(file_put_contents($header, <<<'PHP'
 <?php
+if (!isset($pdf) || $pdf !== $this) {
+    throw new \LogicException('PDF header template requires the document alias.');
+}
 $call = 'header:' . $pdfPageNumber . '/' . $pdfPageCount . "\n";
 file_put_contents(JPATH_SITE . '/template-calls.log', $call, FILE_APPEND);
 echo '<p>Header</p>';
 PHP));
         self::assertNotFalse(file_put_contents($footer, <<<'PHP'
 <?php
+if (!isset($pdf) || $pdf !== $this) {
+    throw new \LogicException('PDF footer template requires the document alias.');
+}
 $call = 'footer:' . $pdfPageNumber . '/' . $pdfPageCount . "\n";
 file_put_contents(JPATH_SITE . '/template-calls.log', $call, FILE_APPEND);
 echo '<p>Footer</p>';
