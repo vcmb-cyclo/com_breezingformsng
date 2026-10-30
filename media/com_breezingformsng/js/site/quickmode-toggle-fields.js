@@ -190,7 +190,7 @@ function bfRegisterToggleFields() {
 
                   // The or-case in lists
                   var found = false;
-                  var chkGrpValues = new Array();
+                  var chkGrpValues;
                   if (thisToggleFieldsArray[k].value.beginsWith("#", true) && JQuery(this).get(0).name == "ff_nm_" + thisToggleFieldsArray[k].sName + "[]") {
                     chkGrpValues = thisToggleFieldsArray[k].value.substring(1, thisToggleFieldsArray[k].value.length).split("|");
                     for (var l = 0; l < chkGrpValues.length; l++) {

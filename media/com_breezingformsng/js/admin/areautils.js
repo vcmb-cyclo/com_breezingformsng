@@ -49,10 +49,6 @@ function codeAreaChange(element, ev)
                 n++;
             } // for
             if (n != area.linecnt) {
-                var t = '';
-                for (p = 1; p <= n; p++) t += p+'\n';
-                t += p;
-                //area.lines.value = t;
                 area.linecnt = n;
             } // if
             break;

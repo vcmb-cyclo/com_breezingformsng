@@ -105,8 +105,7 @@
 								var breakableText = JQuery("#"+bfSummarizers[i].id).html().replace(/\\r/g, "").replace(/\\n/g, "<br/>");
 
 								if(breakableText != ""){
-									var calc = null;
-									calc = typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
+									var calc = typeof window["bfFieldCalc"+bfSummarizers[i].id] == "function" ? window["bfFieldCalc"+bfSummarizers[i].id] : null;
 									if(calc){
 										breakableText = calc(breakableText);
 									}
