@@ -23,12 +23,9 @@ function bfLoadText(attempt) {
 	attempt = attempt || 0;
 
 	var editor = bfEditorInstance();
-	var appReady = parent.app
-		&& typeof parent.app.findDataObjectItem === 'function'
-		&& parent.app.selectedTreeElement
-		&& parent.app.dataObject;
+	var item = parent.BFQMApp && parent.BFQMApp.selectedTreeElement;
 
-	if (!editor || !appReady) {
+	if (!editor || !item) {
 		setTimeout(function () {
 			bfLoadText(attempt + 1);
 		}, 250);
@@ -38,15 +35,6 @@ function bfLoadText(attempt) {
 
 	var keyPageIntro = 'pageIntro' + bfLangSuffix;
 	var keyDescription = 'description' + bfLangSuffix;
-
-	var item = parent.app.findDataObjectItem(parent.app.selectedTreeElement.id, parent.app.dataObject);
-	if (!item) {
-		setTimeout(function () {
-			bfLoadText(attempt + 1);
-		}, 250);
-
-		return;
-	}
 
 	// workaround for quote bug with jce
 	var testEditor = editor.getValue();
@@ -69,7 +57,7 @@ function bfLoadText(attempt) {
 function saveText() {
 	var keyPageIntro = 'pageIntro' + bfLangSuffix;
 	var keyDescription = 'description' + bfLangSuffix;
-	var item = parent.app.findDataObjectItem(parent.app.selectedTreeElement.id, parent.app.dataObject);
+	var item = parent.BFQMApp.selectedTreeElement;
 	if (item && item.properties.type == 'page') {
 		item.properties[keyPageIntro] = bfEditorGet();
 	} else if (item && item.properties.type == 'section') {
@@ -80,7 +68,7 @@ function saveText() {
 
 function setIntro0() {
 	var key = 'pageIntro' + bfLangSuffix;
-	var item = parent.app.findDataObjectItem(parent.app.selectedTreeElement.id, parent.app.dataObject);
+	var item = parent.BFQMApp.selectedTreeElement;
 	if (typeof item.properties[key] == 'undefined') {
 		item.properties[key] = '';
 	}
@@ -100,7 +88,7 @@ function setIntro0() {
 
 function setIntro00() {
 	var key = 'pageIntro' + bfLangSuffix;
-	var item = parent.app.findDataObjectItem(parent.app.selectedTreeElement.id, parent.app.dataObject);
+	var item = parent.BFQMApp.selectedTreeElement;
 	if (typeof item.properties[key] == 'undefined') {
 		item.properties[key] = '';
 	}
@@ -114,7 +102,7 @@ function setIntro00() {
 
 function setDescription0() {
 	var key = 'description' + bfLangSuffix;
-	var item = parent.app.findDataObjectItem(parent.app.selectedTreeElement.id, parent.app.dataObject);
+	var item = parent.BFQMApp.selectedTreeElement;
 	if (typeof item.properties[key] == 'undefined') {
 		item.properties[key] = '';
 	}
@@ -134,7 +122,7 @@ function setDescription0() {
 
 function setDescription00() {
 	var key = 'description' + bfLangSuffix;
-	var item = parent.app.findDataObjectItem(parent.app.selectedTreeElement.id, parent.app.dataObject);
+	var item = parent.BFQMApp.selectedTreeElement;
 	if (typeof item.properties[key] == 'undefined') {
 		item.properties[key] = '';
 	}
@@ -148,13 +136,13 @@ function setDescription00() {
 
 function setIntro() {
 	var key = 'pageIntro' + bfLangSuffix;
-	var item = parent.app.findDataObjectItem(parent.app.selectedTreeElement.id, parent.app.dataObject);
+	var item = parent.BFQMApp.selectedTreeElement;
 	bfEditorSet('' + item.properties[key] + '');
 }
 
 function setDescription() {
 	var key = 'description' + bfLangSuffix;
-	var item = parent.app.findDataObjectItem(parent.app.selectedTreeElement.id, parent.app.dataObject);
+	var item = parent.BFQMApp.selectedTreeElement;
 	if (typeof item.properties[key] == 'undefined') {
 		item.properties[key] = '';
 	}

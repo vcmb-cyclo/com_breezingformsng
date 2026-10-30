@@ -30,4 +30,20 @@ final class QuickmodeOptionsTabVisibilityTest extends TestCase
         );
         self::assertStringContainsString("tab.parentElement.classList.toggle('d-none', !visible);", $script);
     }
+
+    public function testTheTextEditorReadsTheSelectedNodeOfTheApp(): void
+    {
+        $script = (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/js/admin/quickmode-editor.js');
+        $layout = (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/quickmode/editor.php');
+
+        self::assertStringNotContainsString('parent.app', $script);
+        self::assertStringContainsString('parent.BFQMApp.selectedTreeElement', $script);
+        self::assertStringContainsString("JoomlaEditor.get('bfEditor')", $script);
+        self::assertStringContainsString("false, 'bfEditor')", $layout);
+        // Without media/, Joomla finds no file and writes no script tag.
+        self::assertStringContainsString(
+            '"uri": "media/com_breezingformsng/js/admin/quickmode-editor.js"',
+            (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/joomla.asset.json')
+        );
+    }
 }

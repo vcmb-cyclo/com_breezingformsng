@@ -18,10 +18,12 @@ document.addEventListener('click', (event) => {
 });
 
 // form.submit() in admin-form.js does not fire the submit event CodeMirror syncs its textarea on.
-document.addEventListener('breezingformsng:form-submit', () => {
-	const template = document.getElementById('jf_mb_email_custom_template');
+document.addEventListener('breezingformsng:form-submit', (event) => {
+	event.target.querySelectorAll('textarea[id]').forEach((field) => {
+		const editor = JoomlaEditor.get(field.id);
 
-	if (template) {
-		template.value = JoomlaEditor.get(template.id).getValue();
-	}
+		if (editor) {
+			field.value = editor.getValue();
+		}
+	});
 }, true);

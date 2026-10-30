@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
   "name": "com_breezingformsng",
-  "version": "6.1.0-RC09",
+  "version": "6.1.0-RC10",
   "description": "BreezingForms NG Web Assets",
   "license": "GPL-2.0-or-later",
   "assets": [
@@ -232,8 +232,8 @@
     {
       "name": "com_breezingformsng.quickmode-editor",
       "type": "script",
-      "uri": "com_breezingformsng/js/admin/quickmode-editor.js",
-      "dependencies": ["core"],
+      "uri": "media/com_breezingformsng/js/admin/quickmode-editor.js",
+      "dependencies": ["core", "editor-api"],
       "attributes": {"type": "module"},
       "version": "auto"
     },

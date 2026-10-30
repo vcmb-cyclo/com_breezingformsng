@@ -20,7 +20,8 @@ use Joomla\CMS\Language\Text;
 $app = Factory::getApplication();
 $document = $app->getDocument() ?? throw new \RuntimeException('The document is not available.');
 
-if ($app->getInput()->getCmd('task') === 'quickmode.editor') {
+// Save & Close posts the iframe to this page: only then the modal closes.
+if ($app->getInput()->getMethod() === 'POST') {
     $document->getWebAssetManager()->addInlineScript('
     parent.document.querySelector(".modal.show .btn-close")?.click();
     ');
@@ -41,7 +42,7 @@ $editor = Editor::getInstance($app->get('editor'));
 <form action="index.php" method="post" name="adminForm" id="adminForm">
     <input type="submit" class="btn btn-primary" value="<?php echo Text::_('JSAVE'); ?>" onclick="saveText();" /><br /><br />
     <div id="bfModalContainer" style="width:900px;">
-        <?php echo $editor->display('bfEditor', '', '900', '300', 40, 20, false); ?>
+        <?php echo $editor->display('bfEditor', '', '900', '300', 40, 20, false, 'bfEditor'); ?>
     </div>
     <br /><input type="submit" class="btn btn-primary" value="<?php echo Text::_('JSAVE'); ?>" onclick="saveText();" />
 
