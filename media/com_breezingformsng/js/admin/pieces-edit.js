@@ -258,7 +258,7 @@ function checkIdentifier(value)
 							try {
 								data = JSON.parse(normalizedText);
 							} catch (e) {
-								throw new Error(text || Joomla.Text._('COM_BREEZINGFORMSNG_TEST_INVALID_SERVER_RESPONSE'));
+								throw new Error(text || Joomla.Text._('COM_BREEZINGFORMSNG_TEST_INVALID_SERVER_RESPONSE'), { cause: e });
 							}
 							return data;
 						})

@@ -43,7 +43,7 @@ function bfSignatureResizeCanvas(dbId, restoreArg) {
 		JQuery("#ff_elem" + dbId).val(data.replace("data:image/png;base64,", ""));
 	}
 
-	pad = bfSignaturePads[dbId] = new SignaturePad(canvas, {
+	bfSignaturePads[dbId] = new SignaturePad(canvas, {
 		backgroundColor: "rgb(255,255,255)",
 		penColor: "rgb(0,0,0)",
 		onEnd: function () {
