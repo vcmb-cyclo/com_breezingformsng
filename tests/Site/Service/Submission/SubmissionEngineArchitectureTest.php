@@ -150,7 +150,8 @@ final class SubmissionEngineArchitectureTest extends TestCase
             self::assertStringContainsString('private readonly ' . $service . ' $', $source);
         }
 
-        foreach ([
+        foreach (
+            [
             '$this->scriptingEngine->execPiece(',
             '$this->exportEngine->logToDatabase(',
             '$this->exportEngine->exppdf(',
@@ -161,11 +162,13 @@ final class SubmissionEngineArchitectureTest extends TestCase
             '$this->notificationEngine->sendMailbackNotification(',
             '$this->notificationEngine->sendMailChimpNotification(',
             '$this->notificationEngine->sendSalesforceNotification(',
-        ] as $call) {
+            ] as $call
+        ) {
             self::assertStringContainsString($call, $source);
         }
 
-        foreach ([
+        foreach (
+            [
             'execPiece',
             'logToDatabase',
             'exppdf',
@@ -176,7 +179,8 @@ final class SubmissionEngineArchitectureTest extends TestCase
             'sendMailbackNotification',
             'sendMailChimpNotification',
             'sendSalesforceNotification',
-        ] as $method) {
+            ] as $method
+        ) {
             self::assertStringNotContainsString('$this->processor->' . $method . '(', $source);
         }
     }

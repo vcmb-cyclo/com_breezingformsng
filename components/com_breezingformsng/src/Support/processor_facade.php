@@ -2,12 +2,13 @@
 
 /**
  * BreezingForms NG - A Joomla Forms Application
- * 
+ *
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2008-2020 by Markus Bopp
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
  * @license GNU General Public License version 2 or later; see LICENSE.txt
  * */
+
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Application\CMSApplication;
@@ -513,8 +514,7 @@ class HTML_facileFormsProcessor
     public function random_str(
         int $length,
         string $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    ): string
-    {
+    ): string {
         return $this->exportEngine()->randomString($length, $keyspace);
     }
 
@@ -531,8 +531,18 @@ class HTML_facileFormsProcessor
      * @param mixed $alt_sender
      * @return null
      */
-    public function sendMail($from, $fromname, $recipient, $subject, $body, $attachment = null, $html = null, $cc = null, $bcc = null, $alt_sender = '')
-    {
+    public function sendMail(
+        $from,
+        $fromname,
+        $recipient,
+        $subject,
+        $body,
+        $attachment = null,
+        $html = null,
+        $cc = null,
+        $bcc = null,
+        $alt_sender = ''
+    ) {
         return $this->exportEngine()->sendMail(
             $from,
             $fromname,
@@ -944,8 +954,19 @@ class HTML_facileFormsProcessor
      * @param mixed $field_name
      * @return array{default: string, server: string}|''
      */
-    public function saveUpload($filename, $userfile_name, $destpath, $timestamp, $useUrl = false, $useUrlDownloadDirectory = '', $resize_target_width = 0, $resize_target_height = 0, $resize_type = '', $resize_bgcolor = '#ffffff', $field_name = '')
-    {
+    public function saveUpload(
+        $filename,
+        $userfile_name,
+        $destpath,
+        $timestamp,
+        $useUrl = false,
+        $useUrlDownloadDirectory = '',
+        $resize_target_width = 0,
+        $resize_target_height = 0,
+        $resize_type = '',
+        $resize_bgcolor = '#ffffff',
+        $field_name = ''
+    ) {
         return $this->submissionEngine()->saveUpload(
             $filename,
             $userfile_name,
@@ -997,8 +1018,13 @@ class HTML_facileFormsProcessor
      * @param list<int> $bgcolor
      * @return mixed
      */
-    public function resize_image($source_image, $destination_width, $destination_height, $type = 0, $bgcolor = [0, 0, 0])
-    {
+    public function resize_image(
+        $source_image,
+        $destination_width,
+        $destination_height,
+        $type = 0,
+        $bgcolor = [0, 0, 0]
+    ) {
         return $this->uploadRuntime()->resizeImage(
             $source_image,
             (int) $destination_width,
@@ -1053,7 +1079,7 @@ class HTML_facileFormsProcessor
      * @param int $editable
      * @param int $editable_override
      */
-    function __construct(
+    public function __construct(
         CMSApplication $application,
         DatabaseInterface $database,
         MailerFactoryInterface $mailerFactory,
@@ -1137,5 +1163,4 @@ class HTML_facileFormsProcessor
     }
 
     //  HTML_facileFormsProcessor
-
 }
