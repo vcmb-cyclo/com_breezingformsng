@@ -3,9 +3,10 @@ import { test, expect } from '@playwright/test';
 const MARKUP = `
     <script type="importmap">{"imports": {"editor-api": "data:text/javascript,export const JoomlaEditor = { get: (id) => ({ getValue: () => 'edited', replaceSelection: (value) => { window.inserted.push([id, value]); } }) };"}}</script>
     <script>window.inserted = [];</script>
-    <input type="radio" name="mb_email_type" id="default" value="0" data-bf-mail-template-toggle="template" checked>
-    <input type="radio" name="mb_email_type" id="custom" value="1" data-bf-mail-template-toggle="template">
+    <input type="radio" name="mb_email_type" id="default" value="0" data-bf-mail-template-toggle="template" data-bf-mail-default-toggle="preview" checked>
+    <input type="radio" name="mb_email_type" id="custom" value="1" data-bf-mail-template-toggle="template" data-bf-mail-default-toggle="preview">
     <form id="adminForm"><textarea id="jf_mb_email_custom_template">stale</textarea></form>
+    <div id="preview">Default body</div>
     <div id="template" hidden>
         <button type="button" id="field" data-bf-mail-placeholder="{name:value}" data-bf-mail-target="jf_template">{name:value}</button>
     </div>`;
@@ -17,12 +18,15 @@ test.describe('form-mail-template.js', () => {
         await page.waitForLoadState('networkidle');
     });
 
-    test('shows the template only for a custom email', async ({ page }) => {
+    test('always shows a body: the default preview or the custom template', async ({ page }) => {
         await expect(page.locator('#template')).toBeHidden();
+        await expect(page.locator('#preview')).toBeVisible();
         await page.locator('#custom').check();
         await expect(page.locator('#template')).toBeVisible();
+        await expect(page.locator('#preview')).toBeHidden();
         await page.locator('#default').check();
         await expect(page.locator('#template')).toBeHidden();
+        await expect(page.locator('#preview')).toBeVisible();
     });
 
     test('inserts the clicked placeholder into the editor', async ({ page }) => {

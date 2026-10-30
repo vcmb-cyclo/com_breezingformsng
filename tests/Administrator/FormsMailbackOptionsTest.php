@@ -57,9 +57,18 @@ final class FormsMailbackOptionsTest extends TestCase
             $ini = file_get_contents(self::COMPONENT . '/language/' . $language . '/com_breezingformsng.ini');
             self::assertIsString($ini);
 
-            foreach (['REPORT_TIP', 'EMAILXML_TIP', 'EMAIL_TYPE_TIP', 'EMAIL_HTML_TIP', 'EMAIL_FIELDS_HINT', 'EMAIL_SOURCE_HINT'] as $key) {
+            foreach (['REPORT_TIP', 'EMAILXML_TIP', 'EMAIL_TYPE_TIP', 'EMAIL_HTML_TIP', 'EMAIL_FIELDS_HINT', 'EMAIL_SOURCE_HINT', 'EMAIL_BODY', 'EMAIL_DEFAULT_HINT', 'EMAIL_DEFAULT_FILE'] as $key) {
                 self::assertMatchesRegularExpression('/^COM_BREEZINGFORMSNG_FORMS_MB_' . $key . '="[^"]+"\s*$/m', $ini, $language . ': ' . $key);
             }
         }
+    }
+
+    public function testTheBodyIsAlwaysShown(): void
+    {
+        $layout = $this->layout();
+
+        self::assertStringContainsString('<div id="bfMbEmailDefault" class="row mb-3"<?= $mbCustomEmail ? \' hidden\' : \'\'; ?>>', $layout);
+        self::assertStringContainsString('<div id="bfMbEmailTemplate"<?= $mbCustomEmail ? \'\' : \' hidden\'; ?>>', $layout);
+        self::assertStringContainsString("Text::_('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_BODY')", $layout);
     }
 }

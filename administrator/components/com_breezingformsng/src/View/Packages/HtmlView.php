@@ -30,6 +30,8 @@ final class HtmlView extends BaseHtmlView
     public array $choices = [];
     /** @var array<array<string, mixed>> */
     public array $profiles = [];
+    /** @var array<string, list<array<string, mixed>>> What is attached to the selected package. */
+    public array $contents = [];
     /** Package preselected in the list, after a save. */
     public string $selectedPackage = '';
     /** Time zone the audit dates are shown in. */
@@ -53,8 +55,11 @@ final class HtmlView extends BaseHtmlView
             $this->selectedPackage = $app->getInput()->getString('package', '');
 
             if ($this->getLayout() === 'delete') {
-                if ($this->selectedPackage === '' || !in_array($this->selectedPackage, $this->packages, true)) {
-                    throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'), 404);
+                if ($this->selectedPackage !== '') {
+                    if (!in_array($this->selectedPackage, $this->packages, true)) {
+                        throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'), 404);
+                    }
+                    $this->contents = $model->getPackageContents($this->selectedPackage);
                 }
             } else {
                 $this->choices = $model->getExportChoices();
@@ -104,23 +109,19 @@ final class HtmlView extends BaseHtmlView
                 $toolbar->apply('packages.save')
                     ->form('bf-package-export')
                     ->formValidation(true);
-                $toolbar->standardButton('download', 'COM_BREEZINGFORMSNG_INSTALLER_CREATEPKG', 'packages.export')
+                $toolbar->standardButton('download', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_EXPORT_PACKAGE', 'packages.export')
                     ->form('bf-package-export')
                     ->formValidation(true);
-                $toolbar->standardButton('delete-package', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE', 'packages.confirmDelete')
-                    ->form('bf-package-export')
-                    ->formValidation(true)
-                    ->icon('icon-trash');
                 $toolbar->linkButton('close', 'JTOOLBAR_CLOSE')->url($home)->icon('icon-times');
                 break;
 
             case 'delete':
-                $toolbar->standardButton('delete', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE', 'packages.delete')
-                    ->form('bf-package-delete')
-                    ->icon('icon-trash');
-                $toolbar->linkButton('close', 'JTOOLBAR_CANCEL')
-                    ->url(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . rawurlencode($this->selectedPackage)))
-                    ->icon('icon-times');
+                if ($this->selectedPackage !== '') {
+                    $toolbar->standardButton('delete', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE', 'packages.delete')
+                        ->form('bf-package-delete')
+                        ->icon('icon-trash');
+                }
+                $toolbar->linkButton('close', 'JTOOLBAR_CANCEL')->url($home)->icon('icon-times');
                 break;
 
             case 'import':
@@ -137,6 +138,9 @@ final class HtmlView extends BaseHtmlView
                 $toolbar->linkButton('createpkg', 'COM_BREEZINGFORMSNG_INSTALLER_CREATEPKG')
                     ->url(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export'))
                     ->icon('icon-plus');
+                $toolbar->linkButton('delete-package', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE')
+                    ->url(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete'))
+                    ->icon('icon-trash');
 
                 // Last: Joomla right-aligns Options and every button after it.
                 if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {

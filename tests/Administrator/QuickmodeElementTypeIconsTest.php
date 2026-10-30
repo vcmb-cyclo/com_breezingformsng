@@ -55,10 +55,10 @@ final class QuickmodeElementTypeIconsTest extends TestCase
         self::assertIsString($css);
 
         $icons = [];
-        foreach (self::FAMILIES as [$kind, $types]) {
+        foreach (self::FAMILIES as [, $types]) {
             foreach ($types as $type) {
                 self::assertMatchesRegularExpression(
-                    '/\.bfng-type-icon--bfElementType' . $type . ' \{\s*--bfng-type-icon: url\("(data:image\/svg\+xml,[^"]+)"\);\s*--bfng-type-color: var\(--bfng-kind-' . $kind . '\);/',
+                    '/\.bfng-type-icon--bfElementType' . $type . ' \{\s*--bfng-type-icon: url\("(data:image\/svg\+xml,[^"]+)"\);\s*--bfng-type-color: var\(--bfng-type-' . strtolower($type) . '\);/',
                     $css,
                     $type
                 );
@@ -68,6 +68,13 @@ final class QuickmodeElementTypeIconsTest extends TestCase
         }
 
         self::assertCount(19, array_unique($icons));
+
+        // One color per type, in the light theme and in the dark one.
+        $tokens = (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/css/bfng-tokens.css');
+        preg_match_all('/--bfng-type-\w+: (#[0-9a-f]{6});/', $tokens, $colors);
+        self::assertCount(38, $colors[1]);
+        self::assertCount(19, array_unique(array_slice($colors[1], 0, 19)));
+        self::assertCount(19, array_unique(array_slice($colors[1], 19)));
     }
 
     public function testFamilyLabelsAreTranslated(): void

@@ -39,8 +39,29 @@
   --bfng-success: #1f7a52;  --bfng-warning: #96650f;  --bfng-danger: #a8332c;
 
   /* element families */
-  --bfng-kind-struct: var(--bfng-accent-500);  --bfng-kind-input: #147d78;
-  --bfng-kind-logic:  #6b4fa1;                 --bfng-kind-static: #7b8794;
+  --bfng-kind-struct: var(--bfng-accent-500);  --bfng-kind-input: #0d9488;
+  --bfng-kind-logic:  #7c3aed;                 --bfng-kind-static: #c2610c;
+
+  /* field types: one color each */
+  --bfng-type-text: #2563eb;
+  --bfng-type-textarea: #4f46e5;
+  --bfng-type-numberinput: #0e7490;
+  --bfng-type-calendar: #dc2626;
+  --bfng-type-calendarresponsive: #db2777;
+  --bfng-type-hidden: #64748b;
+  --bfng-type-file: #b45309;
+  --bfng-type-checkbox: #15803d;
+  --bfng-type-checkboxgroup: #065f46;
+  --bfng-type-radiogroup: #7c3aed;
+  --bfng-type-select: #0f766e;
+  --bfng-type-slider: #c2410c;
+  --bfng-type-captcha: #92400e;
+  --bfng-type-recaptcha: #047857;
+  --bfng-type-signature: #9333ea;
+  --bfng-type-paypal: #1d4ed8;
+  --bfng-type-stripe: #635bff;
+  --bfng-type-submitbutton: #e11d48;
+  --bfng-type-summarize: #0369a1;
 
   /* geometry */
   --bfng-space-1: 2px;   --bfng-space-2: 4px;   --bfng-space-3: 6px;   --bfng-space-4: 8px;
@@ -77,7 +98,26 @@
   --bfng-accent-100: color-mix(in oklab, var(--bfng-accent-500) 20%, transparent);
   --bfng-accent-50:  color-mix(in oklab, var(--bfng-accent-500) 12%, transparent);
   --bfng-success: #4fb888;         --bfng-warning: #dba449;   --bfng-danger: #e0736a;
-  --bfng-kind-input: #4bb5ae;      --bfng-kind-logic: #a58ede;  --bfng-kind-static: #9aa5b4;
+  --bfng-kind-input: #2dd4bf;      --bfng-kind-logic: #a78bfa;  --bfng-kind-static: #fb923c;
+  --bfng-type-text: #60a5fa;
+  --bfng-type-textarea: #818cf8;
+  --bfng-type-numberinput: #22d3ee;
+  --bfng-type-calendar: #f87171;
+  --bfng-type-calendarresponsive: #f472b6;
+  --bfng-type-hidden: #94a3b8;
+  --bfng-type-file: #fbbf24;
+  --bfng-type-checkbox: #4ade80;
+  --bfng-type-checkboxgroup: #34d399;
+  --bfng-type-radiogroup: #a78bfa;
+  --bfng-type-select: #2dd4bf;
+  --bfng-type-slider: #fb923c;
+  --bfng-type-captcha: #d6a26a;
+  --bfng-type-recaptcha: #6ee7b7;
+  --bfng-type-signature: #c084fc;
+  --bfng-type-paypal: #93c5fd;
+  --bfng-type-stripe: #a5a0ff;
+  --bfng-type-submitbutton: #fb7185;
+  --bfng-type-summarize: #38bdf8;
   --bfng-shadow-1: 0 1px 2px rgb(0 0 0 / 40%);
   --bfng-shadow-2: 0 6px 16px rgb(0 0 0 / 48%);
   --bfng-shadow-3: 0 16px 40px rgb(0 0 0 / 56%);

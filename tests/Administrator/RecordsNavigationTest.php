@@ -221,4 +221,18 @@ final class RecordsNavigationTest extends TestCase
 
         return $model;
     }
+
+    public function testViewedAndExportedColumnsStartHidden(): void
+    {
+        $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $layout = (string) file_get_contents($component . '/tmpl/records/default.php');
+        $view = (string) file_get_contents($component . '/src/View/Records/HtmlView.php');
+
+        self::assertStringContainsString('data-name="bfng-records"', $layout);
+        self::assertSame(4, substr_count($layout, 'class="d-none text-center"'));
+        self::assertLessThan(
+            strpos($view, "useScript('table.columns')"),
+            strpos($view, "'com_breezingformsng.records-columns'")
+        );
+    }
 }

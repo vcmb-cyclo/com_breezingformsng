@@ -64,15 +64,15 @@ Le pas 500 reprend `#2f70b9`, déjà présent comme repli de `--template-link-co
 | Jeton | Clair | Éléments |
 |---|---|---|
 | `--bfng-kind-struct` | `#2f70b9` | Formulaire, page, section |
-| `--bfng-kind-input` | `#147d78` | Saisie, choix, fichier, date |
-| `--bfng-kind-logic` | `#6b4fa1` | Script, calcul, pièce, condition |
-| `--bfng-kind-static` | `#7b8794` | Texte, image, séparateur, bouton |
+| `--bfng-kind-input` | `#0d9488` | Saisie, choix, fichier, date |
+| `--bfng-kind-logic` | `#7c3aed` | Script, calcul, pièce, condition |
+| `--bfng-kind-static` | `#c2610c` | Texte, image, séparateur, bouton |
 
 Quatre familles remplacent la mosaïque d'icônes PNG de `media/com_breezingformsng/images/quickmode/`. Les icônes deviennent des glyphes Lucide monochromes teintés par la famille : un seul jeu vectoriel, lisible en sombre, sans image à recharger.
 
 ### Icônes des types de champ
 
-Le menu « Choisir un type de champ » (`#bfElementType`) utilise **une icône Lucide unique par type** (trait 2 px, 16 px, teinte = famille `--bfng-kind-*`), jamais d'emoji, et ses options sont **regroupées par famille** (`<optgroup>`) au lieu de l'ordre alphabétique plat. **La liste des types reste telle quelle** : ne pas fusionner ni scinder d'entrées.
+Le menu « Choisir un type de champ » (`#bfElementType`) utilise **une icône Lucide unique par type** (trait 2 px, 16 px, **une couleur propre à chaque type**, jeton `--bfng-type-*`), jamais d'emoji, et ses options sont **regroupées par famille** (`<optgroup>`) au lieu de l'ordre alphabétique plat. **La liste des types reste telle quelle** : ne pas fusionner ni scinder d'entrées.
 
 | Famille | Type | Icône Lucide |
 |---|---|---|
@@ -96,7 +96,7 @@ Le menu « Choisir un type de champ » (`#bfElementType`) utilise **une icône L
 | Action et vue (`static`) | Bouton Envoyer | `Send` |
 | | Vue d'ensemble | `ClipboardList` |
 
-Pour ce menu, ce tableau prévaut sur la répartition générale des familles ci-dessus (les choix y sont en `struct`, la vue d'ensemble en `static`).
+Les familles de ce tableau organisent le menu ; elles ne donnent pas la couleur. Chaque type a sa teinte, en clair et en sombre, avec un contraste d'au moins 3:1 sur le fond du menu.
 
 **Ordre** : familles dans l'ordre du tableau (Saisie → Choix → Sécurité et paiement → Action et vue) ; à l'intérieur d'une famille, ordre du tableau (du plus courant au plus spécialisé), **pas alphabétique**. Le premier élément du menu reste « Choisir un type de champ » (désactivé, sans icône). Chaque intitulé de famille est un `<optgroup label>` non sélectionnable.
 
@@ -273,8 +273,8 @@ media/com_breezingformsng/css/
   --bfng-success: #1f7a52;  --bfng-warning: #96650f;  --bfng-danger: #a8332c;
 
   /* familles d'éléments */
-  --bfng-kind-struct: var(--bfng-accent-500);  --bfng-kind-input: #147d78;
-  --bfng-kind-logic:  #6b4fa1;                 --bfng-kind-static: #7b8794;
+  --bfng-kind-struct: var(--bfng-accent-500);  --bfng-kind-input: #0d9488;
+  --bfng-kind-logic:  #7c3aed;                 --bfng-kind-static: #c2610c;
 
   /* géométrie */
   --bfng-space-1: 2px;   --bfng-space-2: 4px;   --bfng-space-3: 6px;   --bfng-space-4: 8px;
@@ -311,7 +311,7 @@ media/com_breezingformsng/css/
   --bfng-accent-100: color-mix(in oklab, var(--bfng-accent-500) 20%, transparent);
   --bfng-accent-50:  color-mix(in oklab, var(--bfng-accent-500) 12%, transparent);
   --bfng-success: #4fb888;         --bfng-warning: #dba449;   --bfng-danger: #e0736a;
-  --bfng-kind-input: #4bb5ae;      --bfng-kind-logic: #a58ede;  --bfng-kind-static: #9aa5b4;
+  --bfng-kind-input: #2dd4bf;      --bfng-kind-logic: #a78bfa;  --bfng-kind-static: #fb923c;
   --bfng-shadow-1: 0 1px 2px rgb(0 0 0 / 40%);
   --bfng-shadow-2: 0 6px 16px rgb(0 0 0 / 48%);
   --bfng-shadow-3: 0 16px 40px rgb(0 0 0 / 56%);

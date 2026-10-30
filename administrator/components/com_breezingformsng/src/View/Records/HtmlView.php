@@ -49,6 +49,11 @@ class HtmlView extends BaseHtmlView
         $this->prepareListToolbar();
 
         $document = $this->getDocument();
+        // Not deferred: it must run before the table.columns module reads the state.
+        $document->getWebAssetManager()->registerAndUseScript(
+            'com_breezingformsng.records-columns',
+            'media/com_breezingformsng/js/admin/records-columns.js'
+        );
         $document->getWebAssetManager()->useScript('table.columns')->useScript('multiselect');
         $document->getWebAssetManager()->registerAndUseScript(
             'com_breezingformsng.record-flags',

@@ -16,8 +16,11 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Helper;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
+use Vcmb\Component\BreezingformsNG\Site\Service\Notification\MailTemplateResolver;
 
 /**
  * The "advanced options" settings block (General/Email/Scripts/Pieces/
@@ -124,6 +127,93 @@ final class FormsAdvancedOptionsHtml
             ->bind(':formId', $formId, ParameterType::INTEGER);
 
         return $db->setQuery($query)->loadColumn();
+    }
+
+    /**
+     * What the default confirmation email holds, as NotificationEngine builds
+     * it: the source of a template file of the site, else the submission
+     * details and fields, which is also what the template file shipped gives.
+     *
+     * @return array{file: string, content: string}
+     */
+    public static function mailbackDefaultBody(\stdClass $f): array
+    {
+        $template = (new MailTemplateResolver())->resolve(
+            JPATH_SITE . '/media/breezingforms/mailtpl',
+            (string) ($f->name ?? ''),
+            '_mailback',
+            'mailbacktpl'
+        );
+
+        if ($template['file'] !== '') {
+            // Line endings and the file header differ between released versions.
+            $normalize = static fn (string $path): string => trim((string) preg_replace(
+                '/^.*?\?>/s',
+                '',
+                str_replace("\r\n", "\n", (string) @file_get_contents($path)),
+                1
+            ));
+            $source = $normalize($template['file']);
+
+            if ($source !== $normalize(JPATH_ADMINISTRATOR . '/components/com_breezingformsng/mailtpl/mailbacktpl.txt.php')) {
+                return ['file' => basename($template['file']), 'content' => (string) file_get_contents($template['file'])];
+            }
+        }
+
+        $lines = [Text::_('COM_BREEZINGFORMSNG_PROCESS_RECORDSAVEDID') . ' …', ''];
+
+        foreach (['FORMID', 'FORMTITLE', 'FORMNAME', 'SUBMITTEDAT', 'SUBMITTERIP', 'SUBMITTERID', 'SUBMITTERUSERNAME', 'SUBMITTERFULLNAME', 'PROVIDER', 'BROWSER', 'OPSYS'] as $key) {
+            $lines[] = Text::_('COM_BREEZINGFORMSNG_PROCESS_' . $key) . ': …';
+        }
+
+        // The engine fills the fields of both emails from the same data, kept
+        // according to the emaillog setting of the administrator notification.
+        if ((int) ($f->emaillog ?? 1) > 0) {
+            $lines[] = '';
+            $db = Factory::getContainer()->get(DatabaseInterface::class);
+            $formId = (int) ($f->id ?? 0);
+            $query = $db->createQuery()
+                ->select($db->quoteName('title'))
+                ->from($db->quoteName('#__facileforms_elements'))
+                ->where($db->quoteName('form') . ' = :formId')
+                ->where($db->quoteName('logging') . ' = 1')
+                ->order($db->quoteName('ordering'))
+                ->bind(':formId', $formId, ParameterType::INTEGER);
+
+            foreach ($db->setQuery($query)->loadColumn() as $title) {
+                $lines[] = strip_tags((string) $title) . ': …';
+            }
+        }
+
+        return ['file' => '', 'content' => implode("\n", $lines)];
+    }
+
+    /**
+     * Packages a form can be assigned to, with the one it already has.
+     *
+     * @return list<string>
+     */
+    public static function packageNames(string $current): array
+    {
+        $component = Factory::getApplication()->bootComponent('com_breezingformsng');
+
+        if (!$component instanceof MVCFactoryServiceInterface) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $model = $component->getMVCFactory()->createModel('PackageTransfer', 'Administrator', ['ignore_request' => true]);
+
+        if (!$model instanceof PackageTransferModel) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $packages = $model->getPackages();
+
+        if ($current !== '' && !in_array($current, $packages, true)) {
+            $packages[] = $current;
+        }
+
+        return $packages;
     }
 
     /**

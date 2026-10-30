@@ -5,6 +5,7 @@ document.addEventListener('change', (event) => {
 
 	if (toggle) {
 		document.getElementById(toggle.dataset.bfMailTemplateToggle).hidden = toggle.value !== '1';
+		document.getElementById(toggle.dataset.bfMailDefaultToggle).hidden = toggle.value === '1';
 	}
 });
 

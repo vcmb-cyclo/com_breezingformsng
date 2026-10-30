@@ -53,6 +53,7 @@ $labelTip = static fn (string $key): string => ' title="' . htmlspecialchars(Tex
 $mailEditor = Editor::getInstance(Factory::getApplication()->get('editor'));
 $mailFieldNames = FormsAdvancedOptionsHtml::mailFieldNames((int) ($f->id ?? 0));
 $mbCustomEmail = (int) ($f->mb_email_type ?? 0) === 1;
+$mbDefaultBody = FormsAdvancedOptionsHtml::mailbackDefaultBody($f);
 // A template that is not customized yet starts as HTML, what the editor writes.
 $mbEmailHtml = $mbCustomEmail ? (int) ($f->mb_email_custom_html ?? 0) : 1;
 
@@ -109,7 +110,15 @@ $paneErrors = [
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label hasTooltip" for="jf_package"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_PACKAGE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PACKAGE'); ?></label>
-        <div class="col-sm-9"><input type="text" class="form-control" id="jf_package" name="package" value="<?= htmlspecialchars($pkg); ?>"></div>
+        <div class="col-sm-9">
+          <select class="form-select" id="jf_package" name="package">
+            <option value=""><?= Text::_('COM_BREEZINGFORMSNG_FORMS_NONE'); ?></option>
+            <?php foreach (FormsAdvancedOptionsHtml::packageNames($pkg) as $packageName): ?>
+              <option value="<?= htmlspecialchars($packageName, ENT_QUOTES, 'UTF-8'); ?>"<?= $packageName === $pkg ? ' selected' : ''; ?>><?= htmlspecialchars($packageName, ENT_QUOTES, 'UTF-8'); ?></option>
+            <?php endforeach; ?>
+          </select>
+          <div class="form-text"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PACKAGE_HINT'); ?></div>
+        </div>
       </div>
 
       <div class="row mb-3">
@@ -331,14 +340,27 @@ $paneErrors = [
       </div>
 
       <div class="row mb-3">
-        <label class="col-sm-3 col-form-label hasTooltip"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_TYPE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_EDIT_EMAILS'); ?></label>
+        <label class="col-sm-3 col-form-label hasTooltip"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_TYPE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_BODY'); ?></label>
         <div class="col-sm-9 d-flex gap-3">
           <?php foreach ([0 => 'COM_BREEZINGFORMSNG_EMAIL_TYPE_DEFAULT', 1 => 'COM_BREEZINGFORMSNG_EMAIL_TYPE_CUSTOM'] as $v => $key): ?>
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="mb_email_type" id="mbetype<?= $v; ?>" value="<?= $v; ?>" data-bf-mail-template-toggle="bfMbEmailTemplate"<?= $mbCustomEmail === ($v === 1) ? ' checked' : ''; ?>>
+              <input class="form-check-input" type="radio" name="mb_email_type" id="mbetype<?= $v; ?>" value="<?= $v; ?>" data-bf-mail-template-toggle="bfMbEmailTemplate" data-bf-mail-default-toggle="bfMbEmailDefault"<?= $mbCustomEmail === ($v === 1) ? ' checked' : ''; ?>>
               <label class="form-check-label" for="mbetype<?= $v; ?>"><?= Text::_($key); ?></label>
             </div>
           <?php endforeach; ?>
+        </div>
+      </div>
+
+      <div id="bfMbEmailDefault" class="row mb-3"<?= $mbCustomEmail ? ' hidden' : ''; ?>>
+        <div class="col-sm-9 offset-sm-3">
+          <div class="form-text mb-2">
+            <?php if ($mbDefaultBody['file'] !== ''): ?>
+              <?= Text::sprintf('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_DEFAULT_FILE', htmlspecialchars($mbDefaultBody['file'], ENT_QUOTES, 'UTF-8')); ?>
+            <?php else: ?>
+              <?= Text::sprintf('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_DEFAULT_HINT', Text::_('COM_BREEZINGFORMSNG_FORMS_EMAILLOG'), Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_ADMIN')); ?>
+            <?php endif; ?>
+          </div>
+          <pre class="border rounded p-3 mb-0 overflow-auto bg-body-tertiary" style="max-height:400px;white-space:pre-wrap"><?= htmlspecialchars($mbDefaultBody['content'], ENT_QUOTES, 'UTF-8'); ?></pre>
         </div>
       </div>
 
