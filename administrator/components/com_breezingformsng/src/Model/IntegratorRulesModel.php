@@ -25,7 +25,7 @@ class IntegratorRulesModel extends ListModel implements ListPositionInterface
 {
     use ListPositionTrait;
 
-    private const SORTS = ['rules.name', 'rules.type', 'forms.name', 'rules.reference_table', 'rules.published'];
+    private const SORTS = ['rules.id', 'rules.name', 'rules.type', 'forms.name', 'rules.reference_table', 'rules.published'];
 
     /**
      * @param array<string, mixed> $config

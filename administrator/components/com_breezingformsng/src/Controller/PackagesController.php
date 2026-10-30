@@ -112,6 +112,43 @@ final class PackagesController extends BaseController
         $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=import', false));
     }
 
+    public function confirmDelete(): void
+    {
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
+        $this->assertAuthorised();
+        $this->checkToken();
+        $package = $this->submittedPackage();
+
+        $selectedPackage = $app->getInput()->getString('selected_package', '');
+        if ($package === '' || $selectedPackage !== $package || !in_array($package, $this->model()->getPackages(), true)) {
+            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'), 'error');
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export', false));
+            return;
+        }
+
+        $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete&package=' . rawurlencode($package), false));
+    }
+
+    public function delete(): void
+    {
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
+        $this->assertAuthorised();
+        $this->checkToken();
+        $package = $this->submittedPackage();
+
+        try {
+            $this->model()->deletePackage($package);
+            (new ActionLogger($app))->log(ActionLogger::DELETED, ActionLogger::PACKAGE, [], $package);
+            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETED'), 'message');
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export', false));
+        } catch (\Throwable $exception) {
+            $app->enqueueMessage($exception->getMessage(), 'error');
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export', false));
+        }
+    }
+
     private function submittedPackage(): string
     {
         return trim(Factory::getApplication()->getInput()->getString('package', ''));

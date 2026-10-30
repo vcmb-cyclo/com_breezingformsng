@@ -26,6 +26,7 @@ $listDirn  = $this->escape((string) $this->state->get('list.direction'));
         <th class="w-1 text-center">
           <?= HTMLHelper::_('grid.checkall'); ?>
         </th>
+        <th class="w-1"><?= HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'rules.id', $listDirn, $listOrder); ?></th>
         <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_INTEGRATOR_RULENAME', 'rules.name', $listDirn, $listOrder); ?></th>
         <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_TYPE', 'rules.type', $listDirn, $listOrder); ?></th>
         <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORM', 'forms.name', $listDirn, $listOrder); ?></th>
@@ -35,11 +36,12 @@ $listDirn  = $this->escape((string) $this->state->get('list.direction'));
     </thead>
     <tbody>
       <?php if (empty($this->rules)): ?>
-        <tr><td colspan="6" class="text-center"><?= Text::_('JGLOBAL_NO_MATCHING_RESULTS'); ?></td></tr>
+        <tr><td colspan="7" class="text-center"><?= Text::_('JGLOBAL_NO_MATCHING_RESULTS'); ?></td></tr>
       <?php else: ?>
         <?php foreach ($this->rules as $i => $rule): ?>
           <tr>
             <td class="text-center"><?= HTMLHelper::_('grid.id', $i, $rule->id); ?></td>
+            <td><?= (int) $rule->id; ?></td>
             <td>
               <a href="index.php?option=com_breezingformsng&view=integrator&layout=edit&id=<?= (int) $rule->id; ?>">
                 <?= htmlspecialchars($rule->name); ?>

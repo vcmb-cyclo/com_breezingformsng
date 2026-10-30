@@ -39,7 +39,7 @@ final class HtmlView extends BaseHtmlView
     {
         AreaAccess::assert($this->getCurrentUser(), AreaAccess::CONFIGURATION);
 
-        if ($this->getLayout() === 'export') {
+        if (in_array($this->getLayout(), ['export', 'delete'], true)) {
             $app = Factory::getApplication();
             $component = $app->bootComponent('com_breezingformsng');
             if (!$component instanceof MVCFactoryServiceInterface) {
@@ -50,10 +50,17 @@ final class HtmlView extends BaseHtmlView
                 throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
             $this->packages = $model->getPackages();
-            $this->choices = $model->getExportChoices();
-            $this->profiles = $model->getPackageProfiles();
             $this->selectedPackage = $app->getInput()->getString('package', '');
-            $this->timezone = $this->getCurrentUser()->getTimezone();
+
+            if ($this->getLayout() === 'delete') {
+                if ($this->selectedPackage === '' || !in_array($this->selectedPackage, $this->packages, true)) {
+                    throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'), 404);
+                }
+            } else {
+                $this->choices = $model->getExportChoices();
+                $this->profiles = $model->getPackageProfiles();
+                $this->timezone = $this->getCurrentUser()->getTimezone();
+            }
         }
 
         $this->addToolbar();
@@ -65,6 +72,7 @@ final class HtmlView extends BaseHtmlView
     {
         return match ($this->getLayout()) {
             'export' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_CREATEPKG'),
+            'delete' => Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE_CONFIRM_TITLE'),
             'import' => Text::_('COM_BREEZINGFORMSNG_INSTALLER'),
             default => null,
         };
@@ -99,7 +107,20 @@ final class HtmlView extends BaseHtmlView
                 $toolbar->standardButton('download', 'COM_BREEZINGFORMSNG_INSTALLER_CREATEPKG', 'packages.export')
                     ->form('bf-package-export')
                     ->formValidation(true);
+                $toolbar->standardButton('delete-package', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE', 'packages.confirmDelete')
+                    ->form('bf-package-export')
+                    ->formValidation(true)
+                    ->icon('icon-trash');
                 $toolbar->linkButton('close', 'JTOOLBAR_CLOSE')->url($home)->icon('icon-times');
+                break;
+
+            case 'delete':
+                $toolbar->standardButton('delete', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE', 'packages.delete')
+                    ->form('bf-package-delete')
+                    ->icon('icon-trash');
+                $toolbar->linkButton('close', 'JTOOLBAR_CANCEL')
+                    ->url(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . rawurlencode($this->selectedPackage)))
+                    ->icon('icon-times');
                 break;
 
             case 'import':

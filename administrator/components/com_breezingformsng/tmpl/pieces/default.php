@@ -42,6 +42,7 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
         <thead>
           <tr>
             <td class="w-1 text-center"><?= HTMLHelper::_('grid.checkall'); ?></td>
+            <th scope="col" class="w-1"><?= HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'id', $listDirn, $listOrder); ?></th>
             <th scope="col" class="w-1 text-center"><?= HTMLHelper::_('searchtools.sort', 'JSTATUS', 'published', $listDirn, $listOrder); ?></th>
             <th scope="col"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_PIECES_TITLE', 'title', $listDirn, $listOrder); ?></th>
             <th scope="col"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_PIECES_NAME', 'name', $listDirn, $listOrder); ?></th>
@@ -49,7 +50,6 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
             <th scope="col"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_PIECES_TYPE', 'type', $listDirn, $listOrder); ?></th>
             <th scope="col"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_PIECES_DESCRIPTION', 'description', $listDirn, $listOrder); ?></th>
             <th scope="col" class="text-nowrap"><?= HTMLHelper::_('searchtools.sort', 'JGLOBAL_MODIFIED', 'modified', $listDirn, $listOrder); ?></th>
-            <th scope="col" class="w-1"><?= HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'id', $listDirn, $listOrder); ?></th>
           </tr>
         </thead>
         <tbody>
@@ -57,6 +57,7 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
             <?php $editUrl = Route::_('index.php?option=com_breezingformsng&task=piece.edit&id=' . (int) $row->id); ?>
             <tr class="row<?= $i % 2; ?>">
               <td class="text-center"><?= HTMLHelper::_('grid.id', $i, (int) $row->id, false, 'cid', 'cb', (string) $row->title); ?></td>
+              <td><?= (int) $row->id; ?></td>
               <td class="text-center">
                 <?php if ($this->canEdit): ?>
                   <a href="#"
@@ -95,7 +96,6 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
                 <?php $modified = $row->modified ?: $row->created; ?>
                 <?= $modified ? HTMLHelper::_('date', $modified, 'Y-m-d H:i') : '-'; ?>
               </td>
-              <td><?= (int) $row->id; ?></td>
             </tr>
           <?php endforeach; ?>
         </tbody>

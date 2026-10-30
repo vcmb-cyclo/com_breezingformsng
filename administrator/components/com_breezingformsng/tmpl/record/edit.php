@@ -94,6 +94,14 @@ $formEditorUrl = 'index.php?option=com_breezingformsng&task=quickmode.display&fo
 // rendered as links, with the markup of joomla.pagination.link. The links go
 // through record.navigate, which checks the record being left in.
 $pages = $this->pagination?->getPaginationPages() ?? [];
+if ($pages !== []) {
+    $first = max(1, min($this->pagination->pagesCurrent - 1, $this->pagination->pagesTotal - 2));
+    $pages['pages'] = array_filter(
+        $pages['pages'],
+        static fn (int $number): bool => $number >= $first && $number < $first + 3,
+        ARRAY_FILTER_USE_KEY
+    );
+}
 $pageLink = static function (array $page, string $icon = '', string $aria = ''): string {
     $item = $page['data'];
     $display = $icon !== '' ? '<span class="' . $icon . '" aria-hidden="true"></span>' : $item->text;

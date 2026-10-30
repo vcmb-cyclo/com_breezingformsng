@@ -56,7 +56,7 @@ $auditText = static fn (mixed $text): string => htmlspecialchars((string) ($text
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-md-6">
                             <label class="form-label" for="bf-package-choice"><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE'); ?></label>
-                            <select class="form-select" id="bf-package-choice">
+                            <select class="form-select" id="bf-package-choice" name="selected_package">
                                 <option value=""><?= Text::_('JGLOBAL_SELECT_AN_OPTION'); ?></option>
                                 <option value="" data-new><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE'); ?></option>
                                 <?php foreach ($this->profiles as $id => $profile) : ?>
@@ -134,6 +134,10 @@ const bfPackageDetails = document.getElementById('bf-package-details');
 const bfShowProfile = () => {
     const isNew = 'new' in bfPackageChoice.selectedOptions[0].dataset;
     const id = bfPackageChoice.value;
+    const deleteButton = document.getElementById('toolbar-delete-package');
+    if (deleteButton) {
+        deleteButton.disabled = isNew || id === '';
+    }
     const profile = bfPackageProfiles[id] || {};
     const assigned = Boolean(profile.assigned);
     bfPackageDetails.classList.toggle('d-none', id === '' && !isNew);

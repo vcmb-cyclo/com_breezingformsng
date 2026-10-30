@@ -1,50 +1,36 @@
 # AGENTS.md
 
-## Scope
-- Joomla 6 only.
-- PHP 8.3+ only.
+## Scope and sources
 
-## Core rules
-- Use native Joomla 6 APIs and modern conventions only.
-- No backward compatibility for older Joomla or PHP versions.
-- No legacy/deprecated APIs.
-- No fallbacks, polyfills, shims, runtime version checks, or compatibility workarounds.
-- Prefer clean, strict, minimal, production-ready implementations.
+- Joomla 6 and PHP 8.3+ only. Use native, non-deprecated APIs and modern conventions. No compatibility code for older versions: no fallbacks, polyfills, shims or runtime version checks.
+- Before editing, read `docs/best-practices/README.md` and only the relevant thematic guides it lists. Verify API signatures against the installed CMS source or versioned official documentation; do not assume external documentation matches the installed patch release.
+- Follow higher-priority instructions when they conflict with this file, and flag repository-level conflicts.
 
-## Efficiency
-- Do only what is explicitly requested.
-- Do not assume missing requirements.
-- Only inspect and modify files strictly necessary for the task.
-- Keep changes minimal and targeted.
-- Stop after completing the requested task.
+## Changes
 
-## Agent workflow
-- Default to a multi-agent workflow: when a task splits into independent, non-overlapping units, parallelize it across subagents — at least 4 running concurrently whenever the task has that many independent units to give them.
-- Good candidates: auditing or reading multiple unrelated files/areas, applying the same well-defined fix across several independent modules, one worker per language batch on a translation pass, researching several separate questions, running independent verification passes (tests, linters, screenshots) once edits land.
-- Keep subagents scoped to read-only investigation, or to edits touching disjoint files with no shared state. Never split work that needs one coherent, evolving decision across files — a single git commit, a design choice that must stay consistent as it's made (e.g. this project's `--bfng-*` design-token rollout), a refactor with cross-file dependencies, or anything that depends on the outcome of the immediately preceding step.
-- When a task is inherently ordered or single-file, stay sequential — parallelizing it adds coordination overhead with no benefit, and risks inconsistent decisions across the split.
-- After subagents return, merge their output yourself, then verify (tests, PHPStan, PHPCS) and commit as one coherent change — don't let subagents commit independently.
-
-## Joomla
-- Prefer native Joomla 6 admin patterns before custom markup, CSS, or JavaScript.
-- Keep custom CSS and JavaScript minimal.
-- Respect MVC separation strictly.
-- Route all user-facing strings through translation keys.
-- New admin UI should follow native Joomla behavior when applicable.
-- Preserve a non-AJAX fallback when practical.
+- Inspect the affected code, extension manifest, project conventions, tests and configured Joomla/PHP versions. The baseline is Joomla 6.0.x / PHP 8.3 until the project proves otherwise.
+- Identify the task boundaries, existing design, persistence effects, security threats and test plan. Change only what the task requires; avoid unrelated formatting, refactoring, dependency upgrades and translation changes.
+- Preserve data, forms, URLs, ACL behavior, translations, backward-facing interfaces and migration paths unless the task explicitly changes them.
+- Use namespaced MVC, the extension service provider / DI and official APIs for new Joomla code. Follow native Joomla 6 administrator patterns; keep custom CSS and JavaScript minimal, separate MVC responsibilities, and preserve a non-AJAX fallback when practical.
+- Validate authorization server-side; protect state-changing web actions against CSRF; validate input; escape output by context; bind untrusted SQL values and allowlist SQL identifiers. Never leak secrets or log sensitive submitted form data.
+- Do not run destructive schema changes, data deletion, mass renames or installer cleanup without explicit authorization and a migration/rollback plan. Keep installers idempotent and handle existing installations, upgrades and reinstalls conservatively.
 
 ## Translations
-- Update `en-GB`, `fr-FR`, `de-DE`, `it-IT`, `es-ES`, `hu-HU`, `nl-NL`, and `tr-TR` together for every translation change.
-- Keep wording aligned across languages.
-- French must use correct spelling, grammar, typography, and accents.
-- Italian must use correct spelling, grammar, typography, and accents.
-- Spanish, Hungarian, Dutch, and Turkish must use correct spelling, grammar, typography, and accents.
-- In translation conflicts, apply explicit instructions from Gilles and this
-  repository's `AGENTS.md` before the translation skill, Joomla conventions and
-  upstream wording. Preserve keys and placeholders.
+
+- Route user-facing strings through translation keys. Update `en-GB`, `fr-FR`, `de-DE`, `it-IT`, `es-ES`, `hu-HU`, `nl-NL` and `tr-TR` together for every translation change. Keep wording aligned, with correct spelling, grammar, typography and accents in each language. Preserve keys and placeholders.
+- In translation conflicts, follow explicit instructions from Gilles and this file before the translation skill, Joomla conventions and upstream wording.
+
+## Verification and report
+
+- Add or update relevant tests. Run `php -l` on changed PHP files and configured PHPCS, PHPStan, PHPUnit and functional checks when installed and feasible.
+- For installer/DB changes, verify fresh install, upgrade from the previous schema and rerun idempotence against disposable database copies. For view/form changes, verify relevant frontend and administrator paths, ACL deny/allow, CSRF, translations and dark/mobile layout.
+- Report changed files, functional and migration impact, security considerations, checks run with pass/fail/not-run results, and remaining risks. Never claim a check passed unless executed.
+
+## Agent workflow
+
+- By default, delegate independent, non-overlapping work to as many subagents as the task and available capacity warrant. Give them read-only investigations or ownership of disjoint files; keep ordered or cross-file decisions with one agent.
+- Integrate subagent results and verify the complete change. If a commit is requested, make one coherent commit; do not let subagents commit independently.
 
 ## Output
-- Return final code directly when coding is requested.
-- Keep explanations concise.
-- No legacy alternatives.
-- No pseudocode unless requested.
+
+- Complete the requested task, then stop. Return final code directly when coding is requested; keep explanations concise. Do not add legacy alternatives or pseudocode unless requested.

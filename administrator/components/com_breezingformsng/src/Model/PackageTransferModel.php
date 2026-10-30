@@ -99,6 +99,42 @@ final class PackageTransferModel extends BaseDatabaseModel
     }
 
     /**
+     * Removes a package while keeping its forms, scripts, pieces and menus.
+     */
+    public function deletePackage(string $package): void
+    {
+        $package = trim($package);
+
+        if ($package === '' || !in_array($package, $this->getPackages(), true)) {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'));
+        }
+
+        $db = $this->getDatabase();
+        $db->transactionStart();
+
+        try {
+            foreach (['#__facileforms_forms', '#__facileforms_scripts', '#__facileforms_pieces', '#__facileforms_compmenus'] as $table) {
+                $query = $db->createQuery()
+                    ->update($db->quoteName($table))
+                    ->set($db->quoteName('package') . ' = ' . $db->quote(''))
+                    ->where($db->quoteName('package') . ' = :package')
+                    ->bind(':package', $package);
+                $db->setQuery($query)->execute();
+            }
+
+            $query = $db->createQuery()
+                ->delete($db->quoteName('#__facileforms_packages'))
+                ->where($db->quoteName('id') . ' = :package')
+                ->bind(':package', $package);
+            $db->setQuery($query)->execute();
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+            throw $exception;
+        }
+    }
+
+    /**
      * @param array<string, mixed> $metadata
      */
     public function export(string $package, array $metadata = []): string
