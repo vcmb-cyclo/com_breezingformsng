@@ -42,7 +42,7 @@ sed -i \
 
 # Install PHP dependencies (managed by Composer) into the package.
 # Some dependencies declare hard PHP extension requirements: tecnickcom/
-# tc-lib-barcode (via TCPDF v7's tc-lib-pdf) needs ext-bcmath, and
+# tc-lib-barcode (via tc-lib-pdf) needs ext-bcmath, and
 # phpoffice/phpspreadsheet needs ext-gd, ext-zip, ext-xml and friends.
 # Those only have to be present on the deployment target - not on the
 # machine running this build script - so skip the extension checks only
@@ -51,8 +51,8 @@ composer install --no-dev --no-interaction --quiet \
     --ignore-platform-req='ext-*' \
     --working-dir="${package_dir}/administrator/components/com_breezingformsng"
 
-# TCPDF v7 ships its font engine (tecnickcom/tc-lib-pdf-font) without the
-# compiled font resource files (target/fonts/*.json) that TCPDF needs at
+# tc-lib-pdf uses tecnickcom/tc-lib-pdf-font, which ships without the
+# compiled font resource files (target/fonts/*.json) that PDF generation needs at
 # runtime - "composer install" alone leaves the package unusable for PDF
 # generation. Compile them from the bundled AFM/TTF sources.
 pdf_font_dir="${package_dir}/administrator/components/com_breezingformsng/vendor/tecnickcom/tc-lib-pdf-font"
@@ -64,7 +64,7 @@ if [[ -d "${pdf_font_dir}" ]]; then
     # "key=value").
     (cd "${pdf_font_dir}" && make fonts >&2)
 
-    # Prune TCPDF font families the component does not use: it relies on
+    # Prune font families the component does not use: it relies on
     # the helvetica core fonts plus a runtime TTF conversion of
     # media/.../verdana.ttf (imported into the same target/fonts directory
     # on first use - see PdfDocument::importTtfFont()).
@@ -79,9 +79,9 @@ if [[ -d "${pdf_font_dir}" ]]; then
     rm -rf "${pdf_font_dir}/util"
 fi
 
-# TCPDF v7's dependency tree is 15 separate tecnickcom/* packages (vs. one
-# self-contained package for v6). Each ships its own test suite, CI config
-# and examples, none of which are needed at runtime - prune them.
+# tc-lib-pdf's dependency tree contains separate tecnickcom/* packages.
+# Each ships its own test suite, CI config and examples, none of which are
+# needed at runtime - prune them.
 tecnickcom_dir="${package_dir}/administrator/components/com_breezingformsng/vendor/tecnickcom"
 if [[ -d "${tecnickcom_dir}" ]]; then
     find "${tecnickcom_dir}" -mindepth 2 -maxdepth 2 -type d \

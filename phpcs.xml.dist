@@ -143,9 +143,12 @@
         <exclude-pattern>*/Controller/*</exclude-pattern>
     </rule>
 
-    <!-- Joomla installer discovers this global class by its fixed name. -->
+    <!-- Joomla installer discovers this global class by its fixed name.
+         The bfcompat facades keep the global class names that code stored
+         in the database still calls. -->
     <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
         <exclude-pattern>script.php</exclude-pattern>
+        <exclude-pattern>*/plugins/bfcompat/src/Compat/*</exclude-pattern>
     </rule>
     <rule ref="Squiz.Classes.ValidClassName">
         <exclude-pattern>script.php</exclude-pattern>

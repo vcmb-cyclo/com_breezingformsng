@@ -9,7 +9,7 @@
         "ext-bcmath": "*",
         "phpoffice/phpspreadsheet": "^5.8",
         "stripe/stripe-php": "^22.0",
-        "tecnickcom/tcpdf": "^7.0"
+        "tecnickcom/tc-lib-pdf": "^8"
     },
     "config": {
         "optimize-autoloader": true,

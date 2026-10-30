@@ -79,7 +79,10 @@ final class JoomlaInstallSmokeScriptTest extends TestCase
         self::assertIsString($source);
         self::assertStringContainsString('src/Helper/VendorHelper.php', $source);
         self::assertStringContainsString('VendorHelper::load();', $source);
-        self::assertStringContainsString('class_exists("TCPDF")', $source);
+        self::assertStringContainsString('class_exists(\Com\Tecnick\Pdf\Tcpdf::class)', $source);
         self::assertStringContainsString('src/Service/PdfDocument.php', $source);
+        self::assertStringContainsString('$pdf->addDocumentPage();', $source);
+        self::assertStringContainsString('$pdf->renderHtml("BreezingForms NG smoke test");', $source);
+        self::assertStringContainsString('$pdf->getOutPDFString();', $source);
     }
 }

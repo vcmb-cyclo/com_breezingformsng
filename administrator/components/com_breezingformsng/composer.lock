@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6ed1ae6fbb688f9d198a08f1accd51bf",
+    "content-hash": "9e7f803187a983cbd2f90c630cce33b4",
     "packages": [
         {
             "name": "bgli100/securimage",
@@ -828,16 +828,16 @@
         },
         {
             "name": "tecnickcom/tc-lib-pdf",
-            "version": "8.81.1",
+            "version": "8.82.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tecnickcom/tc-lib-pdf.git",
-                "reference": "a0626686715391dd4210c5622aee849d033b8baf"
+                "reference": "81d1ed0dd17f16fbfc3746d5cd2b2711ac1afbda"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tecnickcom/tc-lib-pdf/zipball/a0626686715391dd4210c5622aee849d033b8baf",
-                "reference": "a0626686715391dd4210c5622aee849d033b8baf",
+                "url": "https://api.github.com/repos/tecnickcom/tc-lib-pdf/zipball/81d1ed0dd17f16fbfc3746d5cd2b2711ac1afbda",
+                "reference": "81d1ed0dd17f16fbfc3746d5cd2b2711ac1afbda",
                 "shasum": ""
             },
             "require": {
@@ -858,7 +858,7 @@
                 "tecnickcom/tc-lib-pdf-font": "^4.6",
                 "tecnickcom/tc-lib-pdf-graph": "^2.18",
                 "tecnickcom/tc-lib-pdf-image": "^3.15",
-                "tecnickcom/tc-lib-pdf-page": "^4.17",
+                "tecnickcom/tc-lib-pdf-page": "^4.18",
                 "tecnickcom/tc-lib-pdf-parser": "^3.16",
                 "tecnickcom/tc-lib-pdf-sign": "^2.0",
                 "tecnickcom/tc-lib-unicode": "^3.2",
@@ -910,7 +910,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-17T10:55:55+00:00"
+            "time": "2026-10-24T09:59:28+00:00"
         },
         {
             "name": "tecnickcom/tc-lib-pdf-encrypt",
@@ -1249,16 +1249,16 @@
         },
         {
             "name": "tecnickcom/tc-lib-pdf-page",
-            "version": "4.17.2",
+            "version": "4.18.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tecnickcom/tc-lib-pdf-page.git",
-                "reference": "5fbe02e4b3fdbfd84f87d8a2f048da608e6ae8d3"
+                "reference": "49b70ca9b909454ad7f83a8df1150be65fe1b5ef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tecnickcom/tc-lib-pdf-page/zipball/5fbe02e4b3fdbfd84f87d8a2f048da608e6ae8d3",
-                "reference": "5fbe02e4b3fdbfd84f87d8a2f048da608e6ae8d3",
+                "url": "https://api.github.com/repos/tecnickcom/tc-lib-pdf-page/zipball/49b70ca9b909454ad7f83a8df1150be65fe1b5ef",
+                "reference": "49b70ca9b909454ad7f83a8df1150be65fe1b5ef",
                 "shasum": ""
             },
             "require": {
@@ -1307,7 +1307,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-17T10:52:35+00:00"
+            "time": "2026-10-24T08:38:58+00:00"
         },
         {
             "name": "tecnickcom/tc-lib-pdf-parser",
@@ -1561,77 +1561,6 @@
                 }
             ],
             "time": "2026-10-17T10:48:16+00:00"
-        },
-        {
-            "name": "tecnickcom/tcpdf",
-            "version": "7.0.19",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/tecnickcom/TCPDF.git",
-                "reference": "c60c7bd8ed0923a09424b2a8d9e9d17a2401c785"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/tecnickcom/TCPDF/zipball/c60c7bd8ed0923a09424b2a8d9e9d17a2401c785",
-                "reference": "c60c7bd8ed0923a09424b2a8d9e9d17a2401c785",
-                "shasum": ""
-            },
-            "require": {
-                "ext-curl": "*",
-                "php": ">=8.2",
-                "tecnickcom/tc-lib-pdf": "^8.81"
-            },
-            "require-dev": {
-                "carthage-software/mago": "1.57.0",
-                "pdepend/pdepend": "^3.0",
-                "phpunit/phpunit": "^11.5 || ^12.5 || ^13.4"
-            },
-            "suggest": {
-                "ext-gd": "Enables additional image handling in some workflows.",
-                "ext-imagick": "Enables additional image format support when available.",
-                "ext-zlib": "Recommended for compressed streams and related features.",
-                "tecnickcom/tc-lib-pdf": "Modern replacement for TCPDF for new projects."
-            },
-            "type": "library",
-            "autoload": {
-                "classmap": [
-                    "config",
-                    "tcpdf.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "LGPL-3.0-or-later"
-            ],
-            "authors": [
-                {
-                    "name": "Nicola Asuni",
-                    "email": "info@tecnick.com",
-                    "role": "lead"
-                }
-            ],
-            "description": "Deprecated legacy PDF engine for PHP. Use instead tecnickcom/tc-lib-pdf.",
-            "homepage": "https://tcpdf.org",
-            "keywords": [
-                "PDFD32000-2008",
-                "TCPDF",
-                "barcodes",
-                "datamatrix",
-                "pdf",
-                "pdf417",
-                "qrcode"
-            ],
-            "support": {
-                "issues": "https://github.com/tecnickcom/TCPDF/issues",
-                "source": "https://github.com/tecnickcom/TCPDF"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/sponsors/tecnickcom",
-                    "type": "github"
-                }
-            ],
-            "time": "2026-10-17T11:01:32+00:00"
         }
     ],
     "packages-dev": [],

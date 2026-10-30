@@ -72,7 +72,8 @@ final class RecordExporter
      */
     public function exceedsSpreadsheetRows(array $ids): bool
     {
-        return $this->records->countRecords($ids, $this->formSelection, $this->stateFilter) > self::EXPORT_XLSX_MAX_ROWS;
+        return $this->records->countRecords($ids, $this->formSelection, $this->stateFilter)
+            > self::EXPORT_XLSX_MAX_ROWS;
     }
 
     /**
@@ -130,35 +131,28 @@ final class RecordExporter
         $fontDir = JPATH_SITE . '/media/breezingforms/pdftpl/fonts/';
         foreach ((new PdfFontDirectoryScanner())->scan($fontDir) as $f) {
             $lower = strtolower($f);
-            if (str_ends_with($lower, '.php')) {
-                $parts = explode('.', $f);
-                array_pop($parts);
-                $pdf->AddFont(implode('_', $parts), '', $fontDir . $f);
-            }
             if (str_ends_with($lower, '.ttf')) {
                 $ttfName = PdfDocument::importTtfFont($fontDir . $f);
             }
             if (str_ends_with($lower, '_active')) {
-                $parts = explode('_', $f);
-                array_pop($parts);
-                $pdf->SetFont($ttfName ?: implode('_', $parts));
                 $activeFound = true;
             }
         }
 
-        if (!$activeFound) {
-            PdfDocument::importTtfFont(JPATH_SITE . '/media/com_breezingformsng/fonts/verdana.ttf');
-            $pdf->SetFont('verdana');
+        if ($activeFound && $ttfName !== '') {
+            $pdf->selectFont($ttfName);
+        } else {
+            $pdf->selectFont(PdfDocument::importTtfFont(JPATH_SITE . '/media/com_breezingformsng/fonts/verdana.ttf'));
         }
 
         $pdf->setPrintFooter($pdf->getFooterTemplate() !== '');
         $pdf->setPrintHeader($pdf->getHeaderTemplate() !== '');
-        $pdf->AddPage();
-        $pdf->writeHTML($content);
-        $pdf->lastPage();
+        $pdf->addDocumentPage();
+        $pdf->renderHtml((string) $content);
 
         return [
-            'name' => ($formName ? $formName . '-' : '') . 'ffexport-pdf-' . $datestamp->format('YmdHis', true) . '.pdf',
+            'name' => ($formName ? $formName . '-' : '') . 'ffexport-pdf-'
+                . $datestamp->format('YmdHis', true) . '.pdf',
             'document' => $pdf,
             'ids' => $updIds,
         ];
@@ -180,7 +174,11 @@ final class RecordExporter
         [$formName, $headers, $rows, $updIds] = $this->buildTabularExport($ids);
 
         $q = fn($val) => $quote
-            . str_replace($quote, $quote . $quote, str_replace("\n", $cellNewline, str_replace("\r", '', (string) $val)))
+            . str_replace(
+                $quote,
+                $quote . $quote,
+                str_replace("\n", $cellNewline, str_replace("\r", '', (string) $val))
+            )
             . $quote;
 
         $header = implode($delimiter, array_map($q, $headers)) . "\n";
@@ -210,7 +208,8 @@ final class RecordExporter
         VendorHelper::load();
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheetTitle = preg_replace('/[\\\\\\/:*?\[\]]/', '', (string) $formName) ?: Text::_('COM_BREEZINGFORMSNG_RECORDS_RECORDINFO');
+        $sheetTitle = preg_replace('/[\\\\\\/:*?\[\]]/', '', (string) $formName)
+            ?: Text::_('COM_BREEZINGFORMSNG_RECORDS_RECORDINFO');
         $sheet->setTitle(mb_substr($sheetTitle, 0, 31));
 
         foreach ($headers as $columnIndex => $header) {
@@ -279,7 +278,8 @@ final class RecordExporter
                     . $ind(2) . '<submitted>' . $date->format('Y-m-d H:i:s', true) . '</submitted>' . "\n"
                     . $ind(2) . '<user_id>' . (int) $rec->user_id . '</user_id>' . "\n"
                     . $ind(2) . '<username>' . htmlspecialchars((string) $rec->username) . '</username>' . "\n"
-                    . $ind(2) . '<user_full_name>' . htmlspecialchars((string) $rec->user_full_name) . '</user_full_name>' . "\n"
+                    . $ind(2) . '<user_full_name>' . htmlspecialchars((string) $rec->user_full_name)
+                    . '</user_full_name>' . "\n"
                     . $ind(2) . '<form>' . (int) $rec->form . '</form>' . "\n"
                     . $ind(2) . '<title>' . htmlspecialchars((string) $rec->title) . '</title>' . "\n"
                     . $ind(2) . '<name>' . htmlspecialchars((string) $rec->name) . '</name>' . "\n"

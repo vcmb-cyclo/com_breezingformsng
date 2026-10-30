@@ -2,7 +2,7 @@
 
 /**
  * BreezingForms NG - A Joomla Forms Application
- * 
+ *
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2008-2020 by Markus Bopp
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
@@ -16,13 +16,9 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper;
+use Com\Tecnick\Pdf\Tcpdf;
 
-// TCPDF's own tcpdf_autoconfig.php assumes tc-lib-pdf-font is nested inside
-// its own vendor/ dir (a standalone, non-Composer install layout). Under a
-// flat top-level Composer install the package is a sibling instead, so the
-// built-in default resolves to a directory that never exists. Point it at
-// the real location before class_exists() below can trigger TCPDF's
-// classmapped autoload (which would otherwise lock in the wrong default).
+// Custom fonts are imported beside the compiled core fonts.
 if (!defined('K_PATH_FONTS')) {
     define(
         'K_PATH_FONTS',
@@ -30,32 +26,26 @@ if (!defined('K_PATH_FONTS')) {
     );
 }
 
-if (!class_exists(\TCPDF::class)) {
+if (!class_exists(Tcpdf::class)) {
     VendorHelper::load();
 }
 
-class PdfDocument extends \TCPDF
+class PdfDocument extends Tcpdf
 {
-    private ?PdfFontDirectoryScanner $fontDirectoryScannerService = null;
+    // Page layout in mm. The header box ends where the content starts, so a
+    // tall header cannot overlap the first rows of the document.
+    private const MARGIN_SIDE = 15.0;
+    private const MARGIN_TOP = 27.0;
+    private const MARGIN_BOTTOM = 25.0;
+    private const HEADER_TOP = 5.0;
+    private const FOOTER_HEIGHT = 20.0;
 
     public string $form_name = '';
     public bool $mailback = false;
     public string $which = 'attachment';
-
-    /**
-     * @param string $orientation
-     * @param string $unit
-     * @param string|array<mixed> $format
-     * @param bool $unicode
-     * @param string $encoding
-     * @param bool $diskcache
-     * @param bool|int $pdfa
-     */
-    public function __construct($orientation = 'P', $unit = 'mm', $format = 'A4', $unicode = true, $encoding = 'UTF-8', $diskcache = false, $pdfa = false)
-    {
-
-        parent::__construct($orientation, $unit, $format, $unicode, $encoding, $diskcache, $pdfa);
-    }
+    private bool $printHeader = false;
+    private bool $printFooter = false;
+    private bool $pageDecorated = false;
 
     public function setFormName(string $name): void
     {
@@ -75,11 +65,11 @@ class PdfDocument extends \TCPDF
     }
 
     /**
-     * Imports a TTF file into TCPDF's font cache and returns its family name.
+     * Imports a TTF file into the font cache and returns its family name.
      * Com\Tecnick\Pdf\Font\Import throws if the definition file it would
      * write already exists (e.g. Header() and Footer() importing the same
      * font in one request), so skip the import once the cached definition
-     * is on disk and return the deterministic name TCPDF derives from the
+     * is on disk and return the deterministic name the font importer derives from the
      * filename (see Com\Tecnick\Pdf\Font\Import::makeFontName).
      */
     public static function importTtfFont(string $path): string
@@ -98,133 +88,120 @@ class PdfDocument extends \TCPDF
         return $name;
     }
 
-    /** @return void */
-    public function Header()
+    public function selectFont(string $family, string $definitionFile = '', string $style = '', float $size = 10): void
     {
-
-        $pdf = $this;
-
-        $active_found = '';
-        $font_loaded = false;
-        $ttf_name = '';
-
-        if (is_dir(JPATH_SITE . '/media/breezingforms/pdftpl/fonts/')) {
-
-            $sourcePath = JPATH_SITE . '/media/breezingforms/pdftpl/fonts/';
-            foreach ($this->fontDirectoryScanner()->scan($sourcePath) as $file) {
-                if ($file != "." && $file != ".." && $this->endsWith(strtolower($file), '.php')) {
-                    $file_sep = explode('.', $file);
-                    if (count($file_sep) > 1) {
-                        unset($file_sep[count($file_sep) - 1]);
-                        $pdf->AddFont(implode('_', $file_sep), '', $sourcePath . $file);
-                        $font_loaded = true;
-                    }
-                }
-                if ($file != "." && $file != ".." && $this->endsWith(strtolower($file), '.ttf')) {
-                    $ttf_name = self::importTtfFont($sourcePath . $file);
-                    $font_loaded = true;
-                }
-                if ($this->endsWith(strtolower($file), '_active')) {
-                    $active = explode('_', $file);
-                    if (count($active) > 1) {
-                        unset($active[count($active) - 1]);
-                        $font_name = '';
-                        if ($ttf_name != '') {
-                            $font_name = $ttf_name;
-                        } else {
-                            $font_name = implode('_', $active);
-                        }
-                        $pdf->SetFont($font_name);
-                        if ($font_loaded) {
-                            $active_found = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!$active_found) {
-            self::importTtfFont(JPATH_SITE . '/media/com_breezingformsng/fonts/verdana.ttf');
-            $pdf->SetFont('verdana');
-        }
-
-        $file = $this->getHeaderTemplate();
-
-        if ($file != '') {
-
-            ob_start();
-            require($file);
-            $contents = ob_get_contents();
-            ob_end_clean();
-
-            $this->writeHTML($contents, true, true, true, false, '');
+        $font = $this->font->insert($this->pon, $family, $style, $size, ifile: $definitionFile);
+        if ($this->page->getPages() !== []) {
+            $this->page->addContent($font['out']);
         }
     }
 
-    /** @return void */
-    public function Footer()
+    public function setPrintHeader(bool $enabled): void
     {
+        $this->printHeader = $enabled;
+    }
 
-        $pdf = $this;
+    public function setPrintFooter(bool $enabled): void
+    {
+        $this->printFooter = $enabled;
+    }
 
-        $active_found = '';
-        $font_loaded = false;
-        $ttf_name = '';
+    public function addDocumentPage(string $orientation = 'P'): void
+    {
+        if (!$this->font->hasCurrentFont()) {
+            $this->selectFont('helvetica');
+        }
 
-        if (is_dir(JPATH_SITE . '/media/breezingforms/pdftpl/fonts/')) {
+        $this->addPage([
+            'format' => 'A4',
+            'orientation' => $orientation,
+            'margin' => [
+                'PL' => self::MARGIN_SIDE,
+                'PR' => self::MARGIN_SIDE,
+                'PT' => self::MARGIN_TOP,
+                'PB' => self::MARGIN_BOTTOM,
+            ],
+        ]);
+    }
 
-            $sourcePath = JPATH_SITE . '/media/breezingforms/pdftpl/fonts/';
-            foreach ($this->fontDirectoryScanner()->scan($sourcePath) as $file) {
-                if ($file != "." && $file != ".." && $this->endsWith(strtolower($file), '.php')) {
-                    $file_sep = explode('.', $file);
-                    if (count($file_sep) > 1) {
-                        unset($file_sep[count($file_sep) - 1]);
-                        $pdf->AddFont(implode('_', $file_sep), '', $sourcePath . $file);
-                        $font_loaded = true;
-                    }
+    public function renderHtml(string $html): void
+    {
+        $page = $this->page->getPage();
+        $this->addHTMLCell(
+            $html,
+            posx: self::MARGIN_SIDE,
+            posy: self::MARGIN_TOP,
+            width: $page['width'] - 2 * self::MARGIN_SIDE
+        );
+    }
+
+    public function getOutPDFString(): string
+    {
+        if (!$this->pageDecorated) {
+            $this->decoratePages();
+            $this->pageDecorated = true;
+        }
+
+        return parent::getOutPDFString();
+    }
+
+    public function download(string $filename): void
+    {
+        $this->setPDFFilename($filename);
+        $this->downloadPDF($this->getOutPDFString());
+    }
+
+    public function saveToFile(string $path): void
+    {
+        $bytes = $this->getOutPDFString();
+        if (file_put_contents($path, $bytes) !== strlen($bytes)) {
+            throw new \RuntimeException('Unable to write PDF file: ' . $path);
+        }
+    }
+
+    private function decoratePages(): void
+    {
+        $pages = $this->page->getPages();
+        $total = count($pages);
+        $current = $this->page->getPageId();
+
+        foreach ($pages as $pid => $page) {
+            $this->setCurrentPage($pid);
+            $width = $page['width'] - 2 * self::MARGIN_SIDE;
+            $templates = [
+                [
+                    $this->printHeader,
+                    $this->getHeaderTemplate(),
+                    self::HEADER_TOP,
+                    self::MARGIN_TOP - self::HEADER_TOP,
+                ],
+                [
+                    $this->printFooter,
+                    $this->getFooterTemplate(),
+                    $page['height'] - self::MARGIN_BOTTOM,
+                    self::FOOTER_HEIGHT,
+                ],
+            ];
+            foreach ($templates as [$enabled, $file, $y, $height]) {
+                if (!$enabled || $file === '') {
+                    continue;
                 }
-                if ($file != "." && $file != ".." && $this->endsWith(strtolower($file), '.ttf')) {
-                    $ttf_name = self::importTtfFont($sourcePath . $file);
-                    $font_loaded = true;
-                }
-                if ($this->endsWith(strtolower($file), '_active')) {
-                    $active = explode('_', $file);
-                    if (count($active) > 1) {
-                        unset($active[count($active) - 1]);
-                        $font_name = '';
-                        if ($ttf_name != '') {
-                            $font_name = $ttf_name;
-                        } else {
-                            $font_name = implode('_', $active);
-                        }
-                        $pdf->SetFont($font_name);
-                        if ($font_loaded) {
-                            $active_found = true;
-                        }
-                    }
-                }
+
+                $pdfPageNumber = $pid + 1;
+                $pdfPageCount = $total;
+                $pdf = $this;
+                ob_start();
+                require $file;
+                $html = (string) ob_get_clean();
+                $this->page->addContent(
+                    $this->getHTMLCell($html, posx: self::MARGIN_SIDE, posy: $y, width: $width, height: $height),
+                    $pid
+                );
             }
         }
 
-        if (!$active_found) {
-            self::importTtfFont(JPATH_SITE . '/media/com_breezingformsng/fonts/verdana.ttf');
-            $pdf->SetFont('verdana');
-        }
-
-        $file = $this->getFooterTemplate();
-
-        if ($file != '') {
-
-            ob_start();
-            require($file);
-            $contents = ob_get_contents();
-            ob_end_clean();
-
-            // The footer sits below the bottom margin, where TCPDF breaks an
-            // unbounded HTML block to the next page: bound it to the space
-            // left on this page so it stays here.
-            $y = $this->GetY();
-            $this->writeHTMLCell(0, $this->getPageHeight() - $y, $this->GetX(), $y, $contents, 0, 1, false, true, '');
+        if ($total > 0) {
+            $this->setCurrentPage($current);
         }
     }
 
@@ -235,15 +212,15 @@ class PdfDocument extends \TCPDF
         $file = '';
 
         if ($this->which == 'attachment') {
-
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_pdf_attachment_header.php';
 
             if (!file_exists($file)) {
-                $file = JPATH_SITE . '/media/breezingforms/pdftpl/pdf_attachment_header.php';
+                $file = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/pdftpl/pdf_attachment_header.php';
             }
 
             if ($this->mailback) {
-                $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_pdf_mailback_attachment_header.php';
+                $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name
+                    . '_pdf_mailback_attachment_header.php';
                 if (file_exists($mb_file)) {
                     $file = $mb_file;
                 } else {
@@ -253,15 +230,13 @@ class PdfDocument extends \TCPDF
                     }
                 }
             }
-        } else if ($this->which == 'export') {
-
+        } elseif ($this->which == 'export') {
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_custom_header_pdf.php';
             if (!file_exists($file)) {
-                $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_header_pdf.php';
+                $file = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/pdftpl/export_header_pdf.php';
             }
 
             if ($this->form_name != '') {
-
                 $file2 = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_export_header_pdf.php';
                 if (file_exists($file2)) {
                     $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_export_header_pdf.php';
@@ -270,7 +245,6 @@ class PdfDocument extends \TCPDF
         }
 
         if ($file == '' || !file_exists($file)) {
-
             return '';
         }
 
@@ -284,15 +258,15 @@ class PdfDocument extends \TCPDF
         $file = '';
 
         if ($this->which == 'attachment') {
-
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_pdf_attachment_footer.php';
 
             if (!file_exists($file)) {
-                $file = JPATH_SITE . '/media/breezingforms/pdftpl/pdf_attachment_footer.php';
+                $file = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/pdftpl/pdf_attachment_footer.php';
             }
 
             if ($this->mailback) {
-                $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_pdf_mailback_attachment_footer.php';
+                $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name
+                    . '_pdf_mailback_attachment_footer.php';
                 if (file_exists($mb_file)) {
                     $file = $mb_file;
                 } else {
@@ -302,15 +276,13 @@ class PdfDocument extends \TCPDF
                     }
                 }
             }
-        } else if ($this->which == 'export') {
-
+        } elseif ($this->which == 'export') {
             $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_custom_footer_pdf.php';
             if (!file_exists($file)) {
-                $file = JPATH_SITE . '/media/breezingforms/pdftpl/export_footer_pdf.php';
+                $file = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/pdftpl/export_footer_pdf.php';
             }
 
             if ($this->form_name != '') {
-
                 $file2 = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_export_footer_pdf.php';
                 if (file_exists($file2)) {
                     $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->form_name . '_export_footer_pdf.php';
@@ -319,7 +291,6 @@ class PdfDocument extends \TCPDF
         }
 
         if ($file == '' || !file_exists($file)) {
-
             return '';
         }
 
@@ -329,10 +300,5 @@ class PdfDocument extends \TCPDF
     public function endsWith(string $haystack, string $needle): bool
     {
         return str_ends_with($haystack, $needle);
-    }
-
-    private function fontDirectoryScanner(): PdfFontDirectoryScanner
-    {
-        return $this->fontDirectoryScannerService ??= new PdfFontDirectoryScanner();
     }
 }

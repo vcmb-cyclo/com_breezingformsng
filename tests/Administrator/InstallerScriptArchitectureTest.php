@@ -75,7 +75,8 @@ final class InstallerScriptArchitectureTest extends TestCase
         $source = file_get_contents(__DIR__ . '/../../script.php');
 
         self::assertIsString($source);
-        foreach ([
+        foreach (
+            [
             "JPATH_SITE . '/language/fr-FR/fr-FR.com_breezingforms.ini'",
             "JPATH_SITE . '/language/en-GB/en-GB.com_breezingforms.ini'",
             "JPATH_SITE . '/media/breezingforms/pdftpl/pdf_attachment.php'",
@@ -89,7 +90,8 @@ final class InstallerScriptArchitectureTest extends TestCase
             "JPATH_ADMINISTRATOR . '/language/fr-FR/fr-FR.com_breezingforms.sys.ini'",
             "JPATH_ADMINISTRATOR . '/language/en-GB/en-GB.com_breezingforms.sys.ini'",
             "JPATH_ADMINISTRATOR . '/language/en-GB/en-GB.com_breezingforms.ini'",
-        ] as $obsoletePath) {
+            ] as $obsoletePath
+        ) {
             self::assertStringContainsString($obsoletePath, $source);
         }
 
@@ -100,9 +102,107 @@ final class InstallerScriptArchitectureTest extends TestCase
         );
     }
 
+    public function testPostflightReportsLegacyPdfCustomisations(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../script.php');
+
+        self::assertIsString($source);
+        self::assertStringContainsString('$this->reportLegacyPdfCustomisations();', $source);
+        // Templates are checked against the installed PdfDocument methods
+        // (see PdfDocumentTest), loaded without redeclaring a class and
+        // without aborting the update when it cannot be loaded.
+        foreach (
+            [
+                "preg_match('/_(?:header|footer)(?:_pdf)?\\.php\$/', \$name) === 1",
+                "if (!class_exists(\$namespace . 'Helper\\\\VendorHelper', false)) {",
+                'if (!class_exists($class, false)) {',
+                "\$this->log('Unable to check the PDF templates: ' . \$e->getMessage(), Log::WARNING);",
+            ] as $expected
+        ) {
+            self::assertStringContainsString($expected, $source);
+        }
+        self::assertStringNotContainsString('$legacyCall', $source);
+
+        $keys = [
+            'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_LEGACY_TEMPLATES',
+            'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_IGNORED_TEMPLATES',
+            'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_LEGACY_FONTS',
+            'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_BFPDF_CODE',
+        ];
+        $languages = glob(
+            __DIR__ . '/../../administrator/components/com_breezingformsng/language/*/com_breezingformsng.ini'
+        );
+        self::assertIsArray($languages);
+        self::assertCount(8, $languages);
+
+        foreach ($keys as $key) {
+            self::assertStringContainsString("'{$key}'", $source);
+            foreach ($languages as $language) {
+                $strings = parse_ini_file($language);
+                self::assertIsArray($strings);
+                $label = basename(dirname($language)) . ' ' . $key;
+                self::assertStringEndsWith(': %s', $strings[$key] ?? '', $label);
+            }
+        }
+    }
+
+    public function testPostflightRecognisesUnmodifiedGenericPdfTemplates(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../script.php');
+        $footer = file_get_contents(__DIR__ . '/Fixtures/legacy-generic-pdf-footer.php.txt');
+
+        self::assertIsString($source);
+        self::assertIsString($footer);
+        self::assertSame(
+            1,
+            preg_match('/STOCK_GENERIC_PDF_FOOTERS = \[(.+?)\];/s', $source, $footers)
+        );
+
+        // The installer normalises line endings and trailing whitespace, so
+        // a copy converted by an FTP client is still recognised as unmodified.
+        foreach ([$footer, str_replace("\n", "\r\n", $footer), $footer . "\n\n"] as $copy) {
+            $hash = hash('sha256', rtrim(str_replace("\r\n", "\n", $copy)));
+            self::assertStringContainsString("'{$hash}'", $footers[1]);
+        }
+
+        $customised = hash('sha256', rtrim($footer) . "\n// site customisation");
+        self::assertStringNotContainsString($customised, $source);
+
+        foreach (
+            [
+                "'export_header_pdf.php' => [",
+                "'export_footer_pdf.php' => self::STOCK_GENERIC_PDF_FOOTERS,",
+                "'pdf_attachment_header.php' => [",
+                "'pdf_attachment_footer.php' => self::STOCK_GENERIC_PDF_FOOTERS,",
+                "\$this->log('Unmodified generic PDF template removed: ' . \$name);",
+                'use Joomla\\Filesystem\\Exception\\FilesystemException;',
+            ] as $expected
+        ) {
+            self::assertStringContainsString($expected, $source);
+        }
+    }
+
+    public function testAReadOnlyMediaFolderDoesNotAbortTheUpdate(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../script.php');
+
+        self::assertIsString($source);
+        $start = strpos($source, 'private function reportLegacyPdfCustomisations(): void');
+        self::assertNotFalse($start);
+        $body = substr($source, $start, strpos($source, "\n    }\n", $start) - $start);
+
+        // File::delete() throws instead of returning false.
+        self::assertMatchesRegularExpression(
+            '/try \{\s+File::delete\(\$path\);.+?\} catch \(FilesystemException \$e\) \{/s',
+            $body
+        );
+    }
+
     public function testAboutPageUsesOnlyTheCurrentManifestPath(): void
     {
-        $source = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/default.php');
+        $source = file_get_contents(
+            __DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/default.php'
+        );
 
         self::assertIsString($source);
         self::assertSame(
@@ -113,12 +213,14 @@ final class InstallerScriptArchitectureTest extends TestCase
             )
         );
 
-        foreach ([
+        foreach (
+            [
             "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng.xml'",
             "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/breezingforms.xml'",
             "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng_ng.xml'",
             "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/com_breezingformsng-ng.xml'",
-        ] as $obsoleteManifestPath) {
+            ] as $obsoleteManifestPath
+        ) {
             self::assertStringNotContainsString($obsoleteManifestPath, $source);
         }
     }
@@ -146,13 +248,29 @@ final class InstallerScriptArchitectureTest extends TestCase
         $start = strpos($source, 'private function removeObsoleteComponentFiles(): void');
         self::assertNotFalse($start);
         $body = substr($source, $start, strpos($source, "\n    }\n", $start) - $start);
+        // Long paths are split into concatenated literals: join them back.
+        $body = (string) preg_replace("/'\\s*\\.\\s*'/", '', $body);
 
         self::assertSame(
             1,
-            preg_match_all("/JPATH_(SITE|ADMINISTRATOR) \\. '(\\/[^']+)'/", $body, $matches, PREG_SET_ORDER) > 100 ? 1 : 0
+            preg_match_all(
+                "/JPATH_(SITE|ADMINISTRATOR) \\. '(\\/[^']+)'/",
+                $body,
+                $matches,
+                PREG_SET_ORDER
+            ) > 100 ? 1 : 0
         );
 
         foreach ($matches as [, $base, $path]) {
+            if ($path === '/components/com_breezingformsng/vendor/tecnickcom/tcpdf') {
+                // The ignored local Composer vendor can still contain the old
+                // package; the release validator proves it is absent from ZIPs.
+                $validator = file_get_contents($root . '/scripts/validate-package.sh');
+                self::assertIsString($validator);
+                self::assertStringContainsString('vendor/tecnickcom/tcpdf/', $validator);
+                continue;
+            }
+
             $shipped = $root . ($base === 'ADMINISTRATOR' ? '/administrator' : '') . $path;
 
             self::assertFileDoesNotExist($shipped, "The cleanup would delete a shipped path: {$path}");
@@ -160,6 +278,7 @@ final class InstallerScriptArchitectureTest extends TestCase
 
         self::assertStringContainsString("/components/com_breezingformsng/libraries/jquery/ladda',", $body);
         self::assertStringContainsString("/components/com_breezingformsng/src/Service/ScriptManager.php',", $body);
+        self::assertStringContainsString("/components/com_breezingformsng/vendor/tecnickcom/tcpdf',", $body);
         // The classic skins may hold site customisations: they are not removed.
         self::assertStringNotContainsString("/themes/quickmode/aqua'", $body);
     }

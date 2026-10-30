@@ -995,7 +995,7 @@ final class SubmissionEngine
                         );
 
                         $lastID = $this->processor->record_id;
-                        $token = $this->exportEngine->random_str(20);
+                        $token = $this->exportEngine->randomString(20);
                         $optToken = bf_b64enc($token);
                         $updateQuery = $this->processor->database->createQuery()
                             ->update($this->processor->database->quoteName('#__facileforms_records'))

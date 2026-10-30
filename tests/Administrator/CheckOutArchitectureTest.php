@@ -68,16 +68,20 @@ final class CheckOutArchitectureTest extends TestCase
     {
         $script = $this->read('script.php');
 
-        self::assertStringContainsString(
-            "foreach ([\$formsTable, \$prefix . 'facileforms_compmenus', \$scriptsTable, \$piecesTable, \$recordsTable] as \$tableName) {",
-            $script
+        $loop = preg_quote(
+            "[\$formsTable, \$prefix . 'facileforms_compmenus', \$scriptsTable, \$piecesTable, \$recordsTable]"
+                . ' as $tableName',
+            '/'
         );
+        self::assertMatchesRegularExpression('/foreach \(\s*' . $loop . '\s*\) \{/', $script);
         self::assertStringContainsString("isset(\$tables[\$tableName]['checked_out'])", $script);
     }
 
     public function testMovingToAnotherScriptOrPieceChecksItOut(): void
     {
-        $controller = $this->read('administrator/components/com_breezingformsng/src/Controller/PackageItemController.php');
+        $controller = $this->read(
+            'administrator/components/com_breezingformsng/src/Controller/PackageItemController.php'
+        );
 
         self::assertMatchesRegularExpression(
             '/if \(!\$model->checkout\(\$targetId\)\) \{.*?return;\s+\}\s+\$model->checkin\(\$itemId\);/s',
@@ -87,7 +91,9 @@ final class CheckOutArchitectureTest extends TestCase
 
     public function testQuickModeChecksTheFormOutAndCloseChecksItIn(): void
     {
-        $controller = $this->read('administrator/components/com_breezingformsng/src/Controller/QuickmodeController.php');
+        $controller = $this->read(
+            'administrator/components/com_breezingformsng/src/Controller/QuickmodeController.php'
+        );
         $app = $this->read('media/com_breezingformsng/js/admin/quickmode-app.js');
         $forms = $this->read('administrator/components/com_breezingformsng/src/Controller/FormsController.php');
 
@@ -98,7 +104,10 @@ final class CheckOutArchitectureTest extends TestCase
         );
         self::assertStringContainsString('task=quickmode.close&form=', $app);
         self::assertStringContainsString("Joomla.getOptions('csrf.token')", $app);
-        self::assertMatchesRegularExpression('/public function cancel\(\): void\s+\{\s+\$this->checkToken\(\);.*?->checkin\(\$id\)/s', $forms);
+        self::assertMatchesRegularExpression(
+            '/public function cancel\(\): void\s+\{\s+\$this->checkToken\(\);.*?->checkin\(\$id\)/s',
+            $forms
+        );
     }
 
     /**
@@ -110,18 +119,29 @@ final class CheckOutArchitectureTest extends TestCase
     public function testCheckInGoesThroughTheModelAndReportsARefusal(): void
     {
         $controllers = [
-            'QuickmodeController' => "\$this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
-            'FormsController' => "\$this->app->enqueueMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
+            'QuickmodeController' => '$this->setMessage('
+                . "Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
+            'FormsController' => '$this->app->enqueueMessage('
+                . "Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
         ];
 
         foreach ($controllers as $controller => $message) {
-            $source = $this->read('administrator/components/com_breezingformsng/src/Controller/' . $controller . '.php');
+            $source = $this->read(
+                'administrator/components/com_breezingformsng/src/Controller/' . $controller . '.php'
+            );
 
-            self::assertMatchesRegularExpression('/if \(!\$model->checkin\(\$(formId|id)\)\) \{/', $source, $controller);
+            self::assertMatchesRegularExpression(
+                '/if \(!\$model->checkin\(\$(formId|id)\)\) \{/',
+                $source,
+                $controller
+            );
             self::assertStringContainsString($message, $source, $controller);
         }
 
-        foreach (glob(self::ROOT . '/administrator/components/com_breezingformsng/src/Controller/*.php') ?: [] as $file) {
+        $controllerFiles = glob(
+            self::ROOT . '/administrator/components/com_breezingformsng/src/Controller/*.php'
+        ) ?: [];
+        foreach ($controllerFiles as $file) {
             self::assertStringNotContainsString('->checkIn(', (string) file_get_contents($file), basename($file));
         }
     }
