@@ -5,6 +5,33 @@
 		<type>component</type>
 		<version>6.1.0-RC10</version>
 		<addition>
+			<item>Show the email body of the user confirmation: a preview of the default email, or the template editor with its field variables.</item>
+			<item>List what is attached to a package before dissolving it, and warn that a later import creates duplicates.</item>
+			<item>Add one icon and one color per field type, grouped by family, in the QuickMode menu and tree.</item>
+		</addition>
+		<change>
+			<item>Let the Stripe Dashboard set the payment methods: card must be enabled there, and other enabled methods can appear on the payment page.</item>
+			<item>Rename Create Package to Create or edit package, its download button to Export package, and move Delete package to the Configuration screen as Dissolve package.</item>
+			<item>Choose the package of a form from a list of existing packages.</item>
+			<item>Hide the Viewed and Exported columns of the records list by default.</item>
+			<item>Show the QuickMode Options tab on the form root only, and add a tooltip to every label of the form options.</item>
+			<item>Use paquet instead of package in the French interface.</item>
+		</change>
+		<fix>
+			<item>Open the Stripe payment page again: Stripe now refuses payment_method_types.</item>
+			<item>Restore the settings of the User Confirmation tab, which each save reset, custom template included.</item>
+			<item>Repair the Edit modals of the QuickMode page and section texts.</item>
+			<item>Keep the code edited in scripts and pieces when saving on the classic form screen.</item>
+			<item>Share the width between the QuickMode tree and panel on narrow screens.</item>
+			<item>Repair the Keep panel docked and Scroll element list settings of QuickMode.</item>
+			<item>Show the arrow of the back to top button.</item>
+		</fix>
+	</changelog>
+	<changelog>
+		<element>com_breezingformsng</element>
+		<type>component</type>
+		<version>6.1.0-RC09</version>
+		<addition>
 			<item>Offer Klarna and iDEAL | Wero on the Stripe Checkout page, as options of the Stripe element.</item>
 			<item>Record Stripe payments from a signed webhook, even when the customer does not come back to the site.</item>
 			<item>Write the component warnings and errors to administrator/logs/com_breezingformsng.php.</item>

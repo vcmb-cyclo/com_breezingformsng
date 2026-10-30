@@ -1,5 +1,48 @@
 # Changelog
 
+## 6.1.0-RC10
+
+- The Stripe payment page opens again: Stripe now refuses `payment_method_types` when a
+  Checkout Session is created. The payment methods now come from the Stripe Dashboard, so
+  card must be enabled there, and other methods enabled there can appear on the payment
+  page. A Klarna or iDEAL | Wero option left off in the element excludes that method; one
+  that is on is offered only if it is enabled in the Dashboard.
+- The *User Confirmation* tab of the form options shows the report, attachment, email body,
+  HTML sending and custom template settings again. They were missing, and each save reset
+  them, including the custom template. A template lost this way cannot be restored: the
+  form shows *default* until it is entered again.
+- The *Email body* setting always shows the body: a preview of the default email, or the
+  template editor with the list of field variables. The *Report* setting applies to the
+  attachment; the fields of the default email follow *Attach Submission Data* of the
+  *Administrator Notification* tab.
+- The *Edit* links of the QuickMode page and section texts open with their content and can
+  save it again, translations included. Their modal stayed empty.
+- On the classic form screen, saving keeps the code edited in scripts and pieces. It was
+  lost because the editor content was not posted.
+- Deleting a package moves to the Configuration screen and is now called *Dissolve package*:
+  choose a package, see what is attached to it, then confirm. Its items are kept and
+  detached. Importing the package again later creates duplicates, and the screen warns
+  about it. *Create Package* becomes *Create or edit package*, and its download button
+  *Export package*.
+- A form chooses its package from the list of existing packages. A package is created with
+  *Create or edit package*; a value not in the list is kept. Scripts and pieces keep their
+  free text field.
+- The QuickMode tree and panel share the width on narrow screens and the margins shrink
+  first. A long form title no longer widens the page.
+- *Keep panel docked* and *Scroll element list* of the QuickMode tree settings work again,
+  and the browser remembers them.
+- The QuickMode *Options* tab shows on the form root only, and every label of the form
+  options has a tooltip.
+- The field types are grouped by family in a keyboard accessible menu, with one Lucide icon
+  and one color per type, in the menu and in the tree, replacing the emoji.
+- *Viewed* and *Exported* start hidden in the records list and can be shown again from the
+  *Columns* menu. A column choice already saved on this screen is reset once.
+- The back to top button shows its arrow again.
+- The French interface says « paquet » instead of « package ».
+
+Known issue: the *Administrator Notification* tab still has no email body setting, and each
+save resets its email type and custom template.
+
 ## 6.1.0-RC09
 
 - The Stripe element can also offer Klarna and iDEAL | Wero on the Stripe Checkout page
