@@ -70,6 +70,67 @@ final class PdfDocumentTest extends TestCase
         self::assertStringStartsWith('%PDF-', $pdf->getOutPDFString());
     }
 
+    public function testInstallerReportsTemplateCallsThePdfDocumentLacks(): void
+    {
+        $source = file_get_contents(self::ROOT . '/script.php');
+        self::assertIsString($source);
+        $start = strpos($source, '    private static function undefinedPdfTemplateCalls(');
+        self::assertNotFalse($start);
+        $method = substr($source, $start, strpos($source, "\n    }\n", $start) + 7 - $start);
+        $installer = eval('return new class { '
+            . str_replace('private static function', 'public static function', $method) . ' };');
+        $methods = array_map(
+            static fn (\ReflectionMethod $method): string => $method->getName(),
+            (new \ReflectionClass(PdfDocument::class))->getMethods()
+        );
+
+        // Former TCPDF calls, whatever their case, and BFPDF-only methods,
+        // in a header or footer template, where $this is the document.
+        $legacy = <<<'PHP'
+<?php
+$this->SetY(-25);
+$this->sety(-25);
+echo $this->getAliasNbPages();
+$pdf->setCellPaddings(1, 1, 1, 1);
+$pdf->output('report.pdf', 'F');
+$pdf -> Output('report.pdf', 'F');
+PHP;
+        self::assertSame(
+            ['SetY', 'getAliasNbPages', 'setCellPaddings', 'output'],
+            $installer::undefinedPdfTemplateCalls($legacy, $methods, true)
+        );
+
+        // In a body template $this is the exporter: only $pdf is checked.
+        $body = <<<'PHP'
+<?php
+foreach ($this->getSubrecords((int) $rec->id) as $sub) {
+}
+$pdf->SetY(-25);
+PHP;
+        self::assertSame(['SetY'], $installer::undefinedPdfTemplateCalls($body, $methods, false));
+
+        $native = <<<'PHP'
+<?php
+$pdf->selectFont('helvetica');
+$this->AddPage(['format' => 'A4']);
+$this->setPrintHeader(false);
+echo $this->getHTMLCell('<p>Header</p>', 15, 5, 180, 20);
+echo $this->form_name, (int) $pdfPageNumber;
+$this->page->getPage();
+PHP;
+        self::assertSame([], $installer::undefinedPdfTemplateCalls($native, $methods, true));
+
+        foreach (glob(self::ROOT . '/administrator/components/com_breezingformsng/pdftpl/*.php') ?: [] as $template) {
+            $packaged = (string) file_get_contents($template);
+            $insideDocument = preg_match('/_(?:header|footer)(?:_pdf)?\.php$/', basename($template)) === 1;
+            self::assertSame(
+                [],
+                $installer::undefinedPdfTemplateCalls($packaged, $methods, $insideDocument),
+                basename($template)
+            );
+        }
+    }
+
     public function testTypedStateSettersAndSuffixHelper(): void
     {
         $pdf = new PdfDocument();

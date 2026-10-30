@@ -108,27 +108,20 @@ final class InstallerScriptArchitectureTest extends TestCase
 
         self::assertIsString($source);
         self::assertStringContainsString('$this->reportLegacyPdfCustomisations();', $source);
-        self::assertSame(1, preg_match("/\\\$legacyCall = (.+?);/s", $source, $match));
-        self::assertSame(3, preg_match_all("/'([^']*)'/", $match[1], $parts));
-
-        $legacyCall = implode('', $parts[1]);
-        $legacyCalls = [
-            '$this->SetY(-25);',
-            '$this->getAliasNbPages()',
-            '$pdf->writeHTML($html);',
-            '$pdf -> Output($name, "F");',
-            '$this->sety(-25);',
-            '$pdf->cell(40, 10, "Text");',
-            '$pdf->writehtml($html);',
-            '$this->getaliasnbpages();',
-        ];
-        foreach ($legacyCalls as $call) {
-            self::assertSame(1, preg_match($legacyCall, $call), $call);
+        // Templates are checked against the installed PdfDocument methods
+        // (see PdfDocumentTest), loaded without redeclaring a class and
+        // without aborting the update when it cannot be loaded.
+        foreach (
+            [
+                "preg_match('/_(?:header|footer)(?:_pdf)?\\.php\$/', \$name) === 1",
+                "if (!class_exists(\$namespace . 'Helper\\\\VendorHelper', false)) {",
+                'if (!class_exists($class, false)) {',
+                "\$this->log('Unable to check the PDF templates: ' . \$e->getMessage(), Log::WARNING);",
+            ] as $expected
+        ) {
+            self::assertStringContainsString($expected, $source);
         }
-        $nativeCalls = ['$this->getHTMLCell($html);', '$pdf->addDocumentPage();', 'echo (int) $pdfPageNumber;'];
-        foreach ($nativeCalls as $call) {
-            self::assertSame(0, preg_match($legacyCall, $call), $call);
-        }
+        self::assertStringNotContainsString('$legacyCall', $source);
 
         $keys = [
             'COM_BREEZINGFORMSNG_INSTALLER_WARNING_PDF_LEGACY_TEMPLATES',

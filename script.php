@@ -2936,6 +2936,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     private function reportLegacyPdfCustomisations(): void
     {
         $templateDirectory = JPATH_SITE . '/media/breezingforms/pdftpl';
+        $documentMethods = $this->pdfDocumentMethods();
         $legacyTemplates = [];
         $ignoredTemplates = [];
 
@@ -2965,12 +2966,19 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 continue;
             }
 
-            $source = (string) file_get_contents($path);
-            $legacyCall = '/\$(?:this|pdf)\s*->\s*'
-                . '(?:[A-Z]\w*|(?i:cell|multiCell|write|ln|setX|setY|setXY|setFont|addFont'
-                . '|writeHTML\w*|lastPage|getAlias\w+|getPage(?:Height|Width)))\s*\(/';
-            if (preg_match($legacyCall, $source) === 1) {
-                $legacyTemplates[] = $name;
+            if ($documentMethods === null) {
+                continue;
+            }
+
+            // Header and footer templates run inside the document; body
+            // templates run inside the exporter and receive it as $pdf.
+            $missing = self::undefinedPdfTemplateCalls(
+                (string) file_get_contents($path),
+                $documentMethods,
+                preg_match('/_(?:header|footer)(?:_pdf)?\.php$/', $name) === 1
+            );
+            if ($missing !== []) {
+                $legacyTemplates[] = $name . ' (' . implode(', ', $missing) . ')';
             }
         }
 
@@ -3064,6 +3072,67 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         return $found;
+    }
+
+    /**
+     * Methods of the installed PdfDocument, which PDF templates reach through
+     * $this and $pdf; null when the class cannot be loaded.
+     *
+     * @return list<string>|null
+     */
+    private function pdfDocumentMethods(): ?array
+    {
+        $namespace = 'Vcmb\\Component\\BreezingformsNG\\Administrator\\';
+        $class = $namespace . 'Service\\PdfDocument';
+        $component = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src/';
+
+        try {
+            // Never redeclare a class already loaded in this request.
+            if (!class_exists($namespace . 'Helper\\VendorHelper', false)) {
+                require_once $component . 'Helper/VendorHelper.php';
+            }
+            if (!class_exists($class, false)) {
+                require_once $component . 'Service/PdfDocument.php';
+            }
+
+            return array_map(
+                static fn (\ReflectionMethod $method): string => $method->getName(),
+                (new \ReflectionClass($class))->getMethods()
+            );
+        } catch (\Throwable $e) {
+            $this->log('Unable to check the PDF templates: ' . $e->getMessage(), Log::WARNING);
+
+            return null;
+        }
+    }
+
+    /**
+     * Methods a PDF template calls on the document that it does not provide:
+     * through $pdf, and through $this when the template runs inside the
+     * document. PHP method names are case-insensitive.
+     *
+     * @param list<string> $documentMethods
+     *
+     * @return list<string>
+     */
+    private static function undefinedPdfTemplateCalls(
+        string $source,
+        array $documentMethods,
+        bool $insideDocument
+    ): array {
+        $receiver = $insideDocument ? '(?:this|pdf)' : 'pdf';
+        preg_match_all('/\$' . $receiver . '\s*->\s*(\w+)\s*\(/', $source, $calls);
+        $known = array_flip(array_map('strtolower', $documentMethods));
+        $missing = [];
+
+        foreach ($calls[1] as $method) {
+            $key = strtolower($method);
+            if (!isset($known[$key])) {
+                $missing[$key] ??= $method;
+            }
+        }
+
+        return array_values($missing);
     }
 
     private function cleanupLegacyBreezingFormsAfterInstall(): void
