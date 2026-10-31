@@ -14,7 +14,7 @@ use Joomla\CMS\Language\Text;
 ?>
 <div class="d-flex align-items-center gap-3 ms-auto">
     <div class="d-inline-flex align-items-center gap-2">
-        <span class="fw-semibold hasTooltip" title="<?php echo Text::_('COM_BREEZINGFORMSNG_PUBLISH_TIP'); ?>">
+        <span class="fw-semibold" title="<?php echo Text::_('COM_BREEZINGFORMSNG_PUBLISH_TIP'); ?>">
             <?php echo Text::_('COM_BREEZINGFORMSNG_PUBLISHED'); ?>
         </span>
         <a href="#"
@@ -30,7 +30,7 @@ use Joomla\CMS\Language\Text;
         <input type="checkbox" name="cid[]" id="bfformstate<?php echo (int) $formId; ?>" value="<?php echo (int) $formId; ?>" hidden />
     </div>
     <div class="d-inline-flex align-items-center gap-2">
-        <span class="fw-semibold hasTooltip" title="<?php echo Text::_('COM_BREEZINGFORMSNG_DEBUG_MODE_TIP'); ?>">
+        <span class="fw-semibold" title="<?php echo Text::_('COM_BREEZINGFORMSNG_DEBUG_MODE_TIP'); ?>">
             <?php echo Text::_('COM_BREEZINGFORMSNG_DEBUG_MODE'); ?>
         </span>
         <a href="#"

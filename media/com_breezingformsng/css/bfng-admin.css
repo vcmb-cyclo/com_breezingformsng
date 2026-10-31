@@ -483,3 +483,65 @@ body:has(#bfQuickModeWrapper) .page-title {
 .bfng-type-menu__option.is-active {
   background: var(--bfng-surface-3);
 }
+
+/* Stripe element: the settings grouped in sections. */
+.bfng-stripe-section {
+  margin-bottom: var(--bfng-space-5);
+  padding: var(--bfng-space-4);
+  border: 1px solid var(--bfng-border);
+  border-radius: var(--bfng-radius);
+  background: var(--bfng-surface);
+}
+.bfng-stripe-section__title {
+  margin: 0 0 var(--bfng-space-3);
+  padding-bottom: var(--bfng-space-2);
+  border-bottom: 1px solid var(--bfng-border);
+  color: var(--bfng-text);
+  font-size: var(--bfng-fs-base);
+  font-weight: 600;
+}
+.bfng-stripe-secret {
+  display: inline-flex;
+  gap: var(--bfng-space-2);
+  align-items: center;
+  width: min(100%, 25rem);
+  vertical-align: top;
+}
+#bfElementTypeStripe .bfng-stripe-secret input { flex: 1 1 auto; width: auto; min-width: 0; }
+#bfElementTypeStripe .bfng-stripe-choice input,
+#bfElementTypeStripe .bfng-stripe-methods input { flex: 0 0 auto; width: auto; margin: 0; }
+#bfElementTypeStripe .bfng-stripe-methods label { width: auto; min-width: 8rem; }
+#bfElementTypeStripe .btn-group .btn.active {
+  border-color: var(--bfng-accent-500);
+  background: var(--bfng-accent-500);
+  color: #fff;
+}
+.bfng-stripe-question { margin-bottom: var(--bfng-space-2); font-weight: 600; }
+.bfng-stripe-choice {
+  display: flex;
+  gap: var(--bfng-space-3);
+  align-items: flex-start;
+  margin-bottom: var(--bfng-space-2);
+  padding: var(--bfng-space-3);
+  border: 1px solid var(--bfng-border);
+  border-radius: var(--bfng-radius-sm);
+  cursor: pointer;
+}
+.bfng-stripe-choice:has(input:checked) { border-color: var(--bfng-accent-500); }
+.bfng-stripe-choice small { display: block; color: var(--bfng-text-2); }
+.bfng-stripe-methods {
+  margin: 0 0 var(--bfng-space-3);
+  padding: 0;
+  border: 1px solid var(--bfng-border);
+  border-radius: var(--bfng-radius-sm);
+  list-style: none;
+}
+.bfng-stripe-methods li {
+  display: flex;
+  gap: var(--bfng-space-3);
+  align-items: center;
+  padding: var(--bfng-space-2) var(--bfng-space-3);
+}
+.bfng-stripe-methods li + li { border-top: 1px solid var(--bfng-border); }
+.bfng-stripe-methods label { flex: 0 0 auto; min-width: 8rem; margin: 0; }
+.bfng-stripe-methods small { color: var(--bfng-text-2); }

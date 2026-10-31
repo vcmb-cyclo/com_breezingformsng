@@ -2,7 +2,9 @@
 // Requires: BFQMConfig (inline), BFQMElements (quickmode-elements.js)
 /* global BFQMConfig, BFQMElements, JQuery, Joomla, bootstrap */
 import { JoomlaEditor } from 'editor-api';
-import { QuickmodeTreeModel } from './quickmode-tree-model.js';
+// Through the import map, which carries the version: a relative import has none,
+// and a browser would keep an old copy of the module after an update.
+import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
 
 (function () {
     'use strict';
@@ -448,6 +450,26 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                         appScope.moveDataObjectItem(data.node.id, data.parent, data.position, appScope.dataObject);
                         appScope.refreshTree();
                     });
+
+                // A Stripe amount from a field must name a field of the form, or
+                // every payment would be refused on the site.
+                this.stripeAmountFieldsAreSet = function () {
+                    var items = [];
+                    appScope.getItemsFlattened(appScope.dataObject, items);
+                    var names = items.map(function (item) { return item.properties.bfName; });
+                    var missing = items.find(function (item) {
+                        var properties = item.properties;
+                        return properties.bfType === 'bfStripe'
+                            && properties.amountSource === 'field'
+                            && names.indexOf(properties.amountField) === -1;
+                    });
+
+                    if (missing) {
+                        alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_QM_STRIPE_AMOUNT_FIELD_MISSING'].replace('%s', missing.properties.bfName));
+                    }
+
+                    return !missing;
+                };
 
                 this.saveButton = function () {
                     var error = false;
@@ -962,7 +984,15 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                 tempForm.target = 'bfOptionsSaveFrame';
                 tempForm.style.display = 'none';
                 document.body.appendChild(tempForm);
-                JQuery(tempForm).append($wrap.children());
+                // A copy of the values: moving the fields would break the rich text
+                // editors among them while the page is still open.
+                $wrap.find(':input').serializeArray().forEach(function (field) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = field.name;
+                    input.value = field.value;
+                    tempForm.appendChild(input);
+                });
                 tempForm.submit();
             }
 
@@ -994,15 +1024,31 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                             var returnUrl = "index.php?option=com_breezingformsng&task=quickmode.display&form=" + encodeURIComponent(data) + "&active_language_code=" + encodeURIComponent(document.adminForm.active_language_code.value)
                                 + (activeTab ? "#" + activeTab : "");
                             submitOptionsTab(function () {
-                                location.href = returnUrl;
+                                // Only the hash would change, whatever the open tab: no reload,
+                                // an old version number and a Save button left locked.
+                                var target = new URL(returnUrl, location.href);
+                                if (target.pathname + target.search === location.pathname + location.search) {
+                                    location.hash = target.hash;
+                                    location.reload();
+                                } else {
+                                    location.href = returnUrl;
+                                }
                             });
 
                         } else if (JQuery.trim(data) == '') {
-                            JQuery("#bfSaveQueue").get(0).innerHTML = BFQMConfig.labels['COM_BREEZINGFORMSNG_LOAD_PACKAGE'] + (chunki + 1) + BFQMConfig.labels['COM_BREEZINGFORMSNG_LOAD_PACKAGE_OF'] + (chunks.length - 1);
+                            JQuery("#bfSaveQueue").get(0).textContent = BFQMConfig.labels['COM_BREEZINGFORMSNG_QM_SAVE_PROGRESS']
+                                .replace('%1$s', chunki + 1)
+                                .replace('%2$s', chunks.length - 1);
                             chunki++;
                             setTimeout(postTheStuff, 100);
 
-                        }
+                        } else {
+    // An answer that is neither the form id nor empty: say it and allow a new try.
+    JQuery("#bfSaveQueue").removeClass('bfng-message--info').addClass('bfng-message--danger')
+        .text(BFQMConfig.labels['COM_BREEZINGFORMSNG_QM_SAVE_FAILED'])
+        .css({ display: '', visibility: 'visible' });
+    saveButtonClicked = false;
+}
                     },
                     error: function () {
                         JQuery("#bfSaveQueue").get(0).innerHTML = 'connection problem, trying again in 120 seconds, please wait...';
@@ -1074,7 +1120,7 @@ import { QuickmodeTreeModel } from './quickmode-tree-model.js';
                                 return false;
                             };
 
-                            if (!app.saveButton()) {
+                            if (!app.saveButton() || !app.stripeAmountFieldsAreSet()) {
                                 saveButtonClicked = false;
                                 return;
                             }

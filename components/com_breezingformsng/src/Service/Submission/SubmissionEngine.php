@@ -1200,6 +1200,20 @@ final class SubmissionEngine
             return;
         }
 
+        // After the Begin Submit piece, which can compute the amount, and before
+        // anything is stored or sent: a refused amount leaves no record.
+        if ($this->stripeFieldAmountIsRefused()) {
+            Log::add(
+                'Form ' . (int) $this->processor->form . ' was not submitted: the Stripe amount is empty, invalid or not offered by the form.',
+                Log::WARNING,
+                'com_breezingformsng'
+            );
+            echo '<div class="alert alert-warning">'
+                . Text::_('COM_BREEZINGFORMSNG_STRIPE_AMOUNT_INVALID')
+                . '</div>';
+            return;
+        }
+
         if ($this->processor->status == _FF_STATUS_OK) {
             if (!$this->processor->formrow->published) {
                 $this->processor->status = _FF_STATUS_UNPUBLISHED;
@@ -1491,7 +1505,12 @@ final class SubmissionEngine
                                         }
                                     }
 
-                                    $options['amount'] = (int) round(floatval($options['amount']) * 100);
+                                    $options['amount'] = $this->stripeAmount()->comesFromField($options)
+                                        ? (int) $this->stripeFieldAmount($options)
+                                        : $this->stripeAmount()->fixedToMinorUnits(
+                                            $options['amount'],
+                                            $this->stripeAmount()->currency($options)
+                                        );
 
                                     $this->processor->app->getSession()->set(
                                         'bf_stripe_last_payment_amount' . $this->processor->record_id,
@@ -1597,12 +1616,7 @@ final class SubmissionEngine
                                         );
                                     }
 
-                                    // Stripe now takes the payment methods from the Dashboard
-                                    // settings: only the options left off of the element are excluded.
-                                    $excludedPaymentMethods = array_keys(array_filter([
-                                        'klarna' => empty($options['klarna']),
-                                        'ideal'  => empty($options['ideal']),
-                                    ]));
+                                    $excludedPaymentMethods = (new StripePaymentMethods())->excluded($options);
 
                                     try {
                                         $checkout_session = \Stripe\Checkout\Session::create(($excludedPaymentMethods !== []
@@ -1619,7 +1633,7 @@ final class SubmissionEngine
                                             'line_items' => [
                                                 [
                                                     'price_data' => [
-                                                        'currency' => strtolower($options['currencyCode']),
+                                                        'currency' => strtolower($this->stripeAmount()->currency($options)),
                                                         'product_data' => [
                                                             'name' => "$productName",
                                                         ],
@@ -2170,6 +2184,80 @@ final class SubmissionEngine
         if (!defined('VMBFCF_RUNNING')) {
             exit;
         }
+    }
+
+    private function stripeAmount(): StripeAmount
+    {
+        return new StripeAmount();
+    }
+
+    /** @return mixed */
+    private function stripeFieldValue(string $field)
+    {
+        return $this->processor->app->getInput()->get('ff_nm_' . $field, [], 'array');
+    }
+
+    /** @return list<array<mixed>> */
+    private function formElements(): array
+    {
+        $areas = json_decode((string) $this->processor->formrow->template_areas, true);
+        $elements = [];
+
+        foreach (is_array($areas) ? $areas : [] as $area) {
+            foreach ((array) ($area['elements'] ?? []) as $element) {
+                $elements[] = (array) $element;
+            }
+        }
+
+        return $elements;
+    }
+
+    /** Whether a list field offers the value: a free field offers anything. */
+    private function stripeValueIsOffered(string $field): bool
+    {
+        foreach ($this->formElements() as $element) {
+            if (
+                ($element['name'] ?? '') === $field
+                && in_array($element['internalType'] ?? '', ['bfSelect', 'bfRadioGroup'], true)
+            ) {
+                return $this->stripeAmount()->isListed($this->stripeFieldValue($field), (string) ($element['data2'] ?? ''));
+            }
+        }
+
+        return true;
+    }
+
+    /** @param array<mixed> $options */
+    private function stripeFieldAmount(array $options): ?int
+    {
+        $field = trim((string) ($options['amountField'] ?? ''));
+
+        if ($field === '' || !$this->stripeValueIsOffered($field)) {
+            return null;
+        }
+
+        return $this->stripeAmount()->toMinorUnits($this->stripeFieldValue($field), $this->stripeAmount()->currency($options));
+    }
+
+    /** A Stripe payment whose amount is not valid, or not one the form offers. */
+    private function stripeFieldAmountIsRefused(): bool
+    {
+        if ($this->processor->app->getInput()->getString('ff_payment_method', '') !== 'Stripe') {
+            return false;
+        }
+
+        foreach ($this->formElements() as $element) {
+            // The first Stripe element is the one the payment uses.
+            if (($element['internalType'] ?? '') === 'bfStripe') {
+                $options = (array) ($element['options'] ?? []);
+
+                return $this->stripeAmount()->comesFromField($options)
+                    ? $this->stripeFieldAmount($options) === null
+                    : $this->stripeFieldValue('bfPaymentSelect') !== [] && !$this->stripeValueIsOffered('bfPaymentSelect');
+            }
+        }
+
+        return false;
     }
 
     private function uploadFileToDropbox(string $localFile): void

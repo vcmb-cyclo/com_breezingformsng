@@ -152,14 +152,19 @@ class FormsController extends AdminController
             'dropbox_reset_auth'       => 'INT',
         ]);
 
-        $data['salesforce_fields'] = implode(',', array_filter(
-            $input->post->get('salesforce_fields', [], 'array'),
-            static fn($value): bool => is_string($value) && $value !== ''
-        ));
-        $data['dropbox_submission_types'] = implode(',', array_intersect(
-            $input->post->get('dropbox_submission_types', [], 'array'),
-            ['pdf', 'csv', 'xml']
-        ));
+        // Only when the screen sends them: an empty list is not an absent one.
+        if ($input->post->exists('salesforce_fields')) {
+            $data['salesforce_fields'] = implode(',', array_filter(
+                $input->post->get('salesforce_fields', [], 'array'),
+                static fn($value): bool => is_string($value) && $value !== ''
+            ));
+        }
+        if ($input->post->exists('dropbox_submission_types')) {
+            $data['dropbox_submission_types'] = implode(',', array_intersect(
+                $input->post->get('dropbox_submission_types', [], 'array'),
+                ['pdf', 'csv', 'xml']
+            ));
+        }
 
         $id = (int) ($data['id'] ?? 0);
         if ($id > 0 && $data['salesforce_password'] === '') {
@@ -174,7 +179,7 @@ class FormsController extends AdminController
         foreach (['piece1code', 'piece2code', 'piece3code', 'piece4code',
                   'script1code', 'script2code',
                   'email_custom_template', 'mb_email_custom_template'] as $field) {
-            $data[$field] = $input->post->get($field, '', 'raw');
+            $data[$field] = $input->post->get($field, null, 'raw');
         }
 
         try {
@@ -190,7 +195,7 @@ class FormsController extends AdminController
             } catch (\Throwable $e) {
                 $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_KEPT', $e->getMessage()), 'warning');
             }
-            $pkg = (string) ($data['package'] ?? '');
+            $pkg = (string) ($data['package'] ?? $this->getOptionsModel()->getForm($id)->package ?? '');
             // Set by the QuickMode "Options" tab's own form (bfOptionsForm) so
             // the redirect lands back on that tab instead of the default one.
             $returnTab = $input->post->getCmd('return_tab', '');

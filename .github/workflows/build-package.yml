@@ -314,6 +314,27 @@ jobs:
       - name: Test installation, update and migration on Joomla
         run: scripts/joomla-install-smoke.sh "${{ steps.package.outputs.archive }}"
 
+      - name: Setup Node.js for the browser journeys
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Install the browser journeys tooling
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run the browser journeys on an installed Joomla
+        run: scripts/joomla-e2e.sh "${{ steps.package.outputs.archive }}"
+
+      - name: Upload the journey traces
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-traces
+          path: test-results/
+          retention-days: 7
+
       - name: Upload installation package
         uses: actions/upload-artifact@v7
         with:

@@ -42,12 +42,24 @@ final class FormsOptionsLabelTooltipsTest extends TestCase
     {
         $layout = $this->layout();
 
-        self::assertStringContainsString("HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');", $layout);
-        self::assertStringNotContainsString('col-form-label"', $layout);
         self::assertSame(
-            substr_count($layout, 'col-form-label hasTooltip"'),
+            substr_count($layout, 'col-form-label"'),
             substr_count($layout, '<?= $labelTip(')
         );
+    }
+
+    /** Like the Joomla lists: a title attribute, which the browser shows. */
+    public function testTheAdministrationLeavesTooltipsToTheBrowser(): void
+    {
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(self::COMPONENT, \FilesystemIterator::SKIP_DOTS));
+
+        foreach ($files as $file) {
+            $path = str_replace('\\', '/', $file->getPathname());
+
+            if ($file->getExtension() === 'php' && preg_match('~/(src|tmpl|layouts)/~', $path)) {
+                self::assertStringNotContainsString('hasTooltip', (string) file_get_contents($path), $path);
+            }
+        }
     }
 
     public function testEveryTooltipIsTranslated(): void

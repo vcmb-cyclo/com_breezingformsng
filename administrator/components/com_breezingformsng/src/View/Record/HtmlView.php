@@ -76,7 +76,6 @@ class HtmlView extends BaseHtmlView
 
         $app->getInput()->set('hidemainmenu', true);
         $this->addToolbar();
-        HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
         HTMLHelper::_('bootstrap.collapse');
 
         parent::display($tpl);

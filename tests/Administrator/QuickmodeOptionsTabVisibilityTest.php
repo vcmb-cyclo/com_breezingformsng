@@ -46,4 +46,56 @@ final class QuickmodeOptionsTabVisibilityTest extends TestCase
             (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/joomla.asset.json')
         );
     }
+
+    public function testNoModuleIsImportedWithoutItsVersion(): void
+    {
+        $directory = __DIR__ . '/../../media/com_breezingformsng/js';
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS));
+
+        foreach ($files as $file) {
+            if ($file->getExtension() === 'js') {
+                self::assertDoesNotMatchRegularExpression(
+                    '/^\s*import\b[^;]*from\s+[\'"]\.{1,2}\//m',
+                    (string) file_get_contents($file->getPathname()),
+                    $file->getPathname()
+                );
+            }
+        }
+    }
+
+    public function testASecondSaveReloadsThePage(): void
+    {
+        $script = (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/js/admin/quickmode-app.js');
+
+        self::assertStringContainsString('target.pathname + target.search === location.pathname + location.search', $script);
+        self::assertStringContainsString('location.reload();', $script);
+        self::assertStringContainsString("labels['COM_BREEZINGFORMSNG_QM_SAVE_FAILED']", $script);
+    }
+
+    public function testTheSaveAnswersOnlyTheFormId(): void
+    {
+        $controller = (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Controller/QuickmodeController.php');
+
+        self::assertLessThan(
+            strpos($controller, '->keepOrigin($form)'),
+            strpos($controller, 'ob_start();')
+        );
+        self::assertLessThan(
+            strpos($controller, 'echo $formId;'),
+            strpos($controller, 'ob_get_clean()')
+        );
+        self::assertStringContainsString('} finally {', $controller);
+    }
+
+    public function testTheSaveProgressIsAFullSentenceWithTheChartTokens(): void
+    {
+        $script = (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/js/admin/quickmode-app.js');
+        $helper = (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Helper/QuickmodeHtml.php');
+
+        self::assertStringContainsString("labels['COM_BREEZINGFORMSNG_QM_SAVE_PROGRESS']", $script);
+        self::assertStringNotContainsString('COM_BREEZINGFORMSNG_LOAD_PACKAGE', $script);
+        self::assertStringContainsString("'COM_BREEZINGFORMSNG_QM_SAVE_PROGRESS',", $helper);
+        // The tokens of the chart only exist inside .bfng: without it the icon font is lost.
+        self::assertStringContainsString('id="bfSaveQueue" class="bfng bfng-message', $helper);
+    }
 }

@@ -69,8 +69,9 @@ final class QuickmodeHtml
             'COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS',
             'COM_BREEZINGFORMSNG_ERROR_ENTER_TITLE',
             'COM_BREEZINGFORMSNG_ERROR_NAME_EXISTS',
-            'COM_BREEZINGFORMSNG_LOAD_PACKAGE',
-            'COM_BREEZINGFORMSNG_LOAD_PACKAGE_OF',
+            'COM_BREEZINGFORMSNG_QM_SAVE_PROGRESS',
+            'COM_BREEZINGFORMSNG_QM_SAVE_FAILED',
+            'COM_BREEZINGFORMSNG_QM_STRIPE_AMOUNT_FIELD_MISSING',
             'COM_BREEZINGFORMSNG_NEW_SECTION_ERROR',
             'COM_BREEZINGFORMSNG_NO_CHILDREN_ERROR',
             'COM_BREEZINGFORMSNG_PAGE',
@@ -177,7 +178,6 @@ final class QuickmodeHtml
         $document = $app->getDocument() ?? throw new \RuntimeException('The document is not available.');
         $wa = $document->getWebAssetManager();
         HTMLHelper::_('bootstrap.modal');
-        HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
         $wa->useScript('keepalive');
         $iconBase = Uri::root() . 'media/com_breezingformsng/images/quickmode/';
         $decodedThemeObject = null;
@@ -270,7 +270,7 @@ final class QuickmodeHtml
         );
 
         ?>
-        <div style="display:none;visibility:hidden;" id="bfSaveQueue" class="bfng-message bfng-message--info"></div>
+        <div style="display:none;visibility:hidden;" id="bfSaveQueue" class="bfng bfng-message bfng-message--info"></div>
         <div id="bfQuickModeWrapper" class="bfClearfix bfng bfng-split">
 
             <div id="bfQuickModeLeft" class="bfClearfix bfng-split__aside">
@@ -424,8 +424,8 @@ final class QuickmodeHtml
                                             .tab-content for Bootstrap's ".tab-content > .tab-pane"
                                             CSS to hide/show it - see quickmode-options-tab-plan.md),
                                             and nesting a second <form> inside bfForm is invalid
-                                            HTML. The standard toolbar "Enregistrer" button moves
-                                            these fields into a detached <form>, posted into a
+                                            HTML. The standard toolbar "Enregistrer" button copies
+                                            their values into a detached <form>, posted into a
                                             hidden iframe, as part of saving everything in one
                                             click - see quickmode-app.js's submitOptionsTab().
                                         -->

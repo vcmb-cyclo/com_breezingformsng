@@ -27,11 +27,11 @@ final class QuickmodeOptionsEditorSyncTest extends TestCase
         self::assertIsString($source);
 
         $syncCall = strpos($source, 'syncOptionsEditors($wrap);');
-        $moveFields = strpos($source, 'JQuery(tempForm).append($wrap.children());');
+        $copyFields = strpos($source, "\$wrap.find(':input').serializeArray()");
 
         self::assertIsInt($syncCall);
-        self::assertIsInt($moveFields);
-        self::assertLessThan($moveFields, $syncCall);
+        self::assertIsInt($copyFields);
+        self::assertLessThan($copyFields, $syncCall);
         self::assertStringContainsString("\$wrap.find('textarea').each", $source);
         self::assertStringContainsString("var editor = JoomlaEditor.get(field.id);", $source);
         self::assertStringContainsString("editor = JoomlaEditor.get(field.name);", $source);

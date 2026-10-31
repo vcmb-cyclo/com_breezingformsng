@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
   "name": "com_breezingformsng",
-  "version": "6.1.0-RC10",
+  "version": "6.1.0-RC11",
   "description": "BreezingForms NG Web Assets",
   "license": "GPL-2.0-or-later",
   "assets": [
@@ -34,6 +34,7 @@
       "name": "com_breezingformsng.quickmode-tree-model",
       "type": "script",
       "uri": "media/com_breezingformsng/js/admin/quickmode-tree-model.js",
+      "importmap": true,
       "attributes": {"type": "module"},
       "version": "auto"
     },

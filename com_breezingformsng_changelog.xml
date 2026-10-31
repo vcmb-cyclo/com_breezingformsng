@@ -3,6 +3,28 @@
 	<changelog>
 		<element>com_breezingformsng</element>
 		<type>component</type>
+		<version>6.1.0-RC11</version>
+		<addition>
+			<item>Let the amount of the Stripe element come from a form field, and refuse the form when the field holds no valid amount.</item>
+			<item>Show the email body and template settings in the Administrator Notification tab.</item>
+			<item>Group the Stripe element settings in sections, with masked keys, the test or production mode, and automatic or manual payment methods.</item>
+		</addition>
+		<change>
+			<item>Use the browser tooltips of the title attributes in the administration, as the Joomla article list does.</item>
+			<item>Use EUR by default for the Stripe element, and rename iDEAL | Wero to Wero.</item>
+		</change>
+		<fix>
+			<item>Keep a setting that a form options screen does not send, instead of resetting it on save.</item>
+			<item>Complete QuickMode saves on forms with old elements when the site displays PHP notices: options, version and reload were lost.</item>
+			<item>Reload the page after each QuickMode save, so the title shows the new version number.</item>
+			<item>Keep the rich text editors working while the QuickMode Options tab is saved.</item>
+			<item>Show a clear save message with its icon.</item>
+			<item>Load the QuickMode tree script with its version, so a browser cannot keep an old copy after an update.</item>
+		</fix>
+	</changelog>
+	<changelog>
+		<element>com_breezingformsng</element>
+		<type>component</type>
 		<version>6.1.0-RC10</version>
 		<addition>
 			<item>Show the email body of the user confirmation: a preview of the default email, or the template editor with its field variables.</item>

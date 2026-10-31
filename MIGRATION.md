@@ -4,6 +4,74 @@
 > Le suivi détaillé de l’architecture est maintenu dans
 > [`docs/maintenance/php-architecture-migration-plan.md`](docs/maintenance/php-architecture-migration-plan.md).
 
+## Qualité et fiabilité des écrans — plan du 2026-10-31
+
+Fait : `FormOptionsModel::saveForm()` préserve les colonnes absentes lors de la mise à jour
+d'un formulaire existant. « Notification administrateur » et « Confirmation utilisateur »
+exposent les mêmes réglages dans l'interface ; l'envoi réel des e-mails reste à tester.
+Des parcours de bout en bout sur un Joomla installé sont configurés dans le workflow CI
+(`scripts/joomla-e2e.sh`, `tests/E2E`) ; leur réussite en CI reste à constater.
+
+Reste à faire, par priorité :
+
+### 1. Fiabiliser les paiements — blocage avant usage en production
+
+- Déterminer côté serveur un prix autorisé pour Stripe **et** PayPal, y compris les choix
+  `bfPaymentSelect` et les montants issus d'un champ : contrôler le choix contre les
+  tarifs configurés, sans faire confiance au montant, à la taxe ou à la devise envoyés
+  par le navigateur.
+- Conserver avec chaque enregistrement le montant attendu en unités minimales et la devise.
+  Au retour Stripe et dans le webhook, comparer ces valeurs à la session ou au paiement
+  confirmé avant d'enregistrer la transaction, d'envoyer des notifications ou d'ouvrir
+  les téléchargements. Appliquer la même vérification au retour PayPal, notamment quand
+  un élément de sélection désactive aujourd'hui le contrôle montant/devise.
+- Garder les clés secrètes Stripe et les secrets de webhook côté serveur, hors du JSON
+  transmis à l'éditeur et des champs HTML. Migrer les formulaires existants sans perdre
+  leurs clés ; adapter sauvegarde et import/export des packages. Définir le retour arrière
+  et vérifier installation neuve, mise à niveau et réexécution de la migration sur des
+  copies jetables avant de retirer les anciennes valeurs.
+- Valider des paiements sandbox Stripe et PayPal, y compris retour sur le site, webhook
+  Stripe, paiement différé, échec, rejeu et montant/devise altérés.
+
+### 2. Élargir les parcours de bout en bout
+
+- Formulaire réellement ancien, importé d'une installation existante, en plus de l'élément
+  dont les parcours retirent les clés ; vérifier la conservation des formulaires,
+  enregistrements et réglages après mise à niveau et réinstallation.
+- Scripts, pièces, packages, enregistrements, intégrateur et écran public en mode paiement.
+- Exécution sur la dernière version de Joomla prise en charge, et avec TinyMCE et CodeMirror.
+- Confirmer une exécution CI réussie et couvrir l'envoi réel des notifications administrateur
+  et des confirmations utilisateur.
+
+### 3. Rendre les pannes visibles
+
+- `quickmode.doAjaxSave` répond en JSON ; le JS borne les tentatives et affiche un message
+  exploitable si la sauvegarde échoue, y compris celle de l'onglet Options.
+- Un test vérifie que chaque asset de `joomla.asset.json` pointe vers un fichier existant :
+  sans `media/`, Joomla n'écrit aucune balise `<script>` et rien ne le signale.
+- Les erreurs Stripe affichent leur cause aux administrateurs.
+- Supprimer la source des avertissements PHP des anciens éléments dans `QuickmodeModel::save()`
+  (`password`, `mailback`, `mailbackAsSender`, `logging`), aujourd'hui seulement journalisés.
+
+### 4. Unifier les écrans
+
+- Réduire `custom.css` et `admin.css`, sources de règles anciennes et de `!important`.
+- Un seul gabarit de formulaire, sur le modèle des sections de l'élément Stripe.
+- Liste de contrôle par écran : mode sombre, largeur 800 px, clavier, droits refusés, langues.
+- Choisir l'aide des champs longs : l'attribut `title` natif ne s'ouvre ni au clavier ni sur
+  écran tactile.
+- Rétablir le marquage « Vu » à l'ouverture d'un enregistrement et un filtre Vu / Non vu.
+- Corriger les libellés français des e-mails (« Soumis par », « Envoyer le nom d'utilisateur »)
+  et le libellé « Journal seulement », qui envoie bien l'e-mail.
+- Maquette de l'élément Stripe encore à faire : deux jeux de clés, « Tester la connexion »,
+  moyens de paiement lus sur le compte.
+
+### 5. Sécuriser le déploiement
+
+- Installer le paquet sur les conteneurs de développement plutôt que copier des fichiers.
+- Faire relire les langues autres que le français par des locuteurs natifs.
+- Garder l'affichage des erreurs PHP actif en développement.
+
 ## État de la migration — 2026-10-15
 
 La migration du code principal vers Joomla 6 et PHP 8.3+ est réalisée : les
