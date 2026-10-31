@@ -190,7 +190,7 @@ jobs:
       - name: Extract Joomla core for class discovery
         if: steps.joomla-stubs-cache.outputs.cache-hit != 'true'
         run: |
-          container="$(docker create joomla:6.1.2-php8.3-apache)"
+          container="$(docker create joomla:6.2.0-php8.3-apache)"
           mkdir -p joomla-stubs
           docker cp "${container}:/usr/src/joomla/libraries" joomla-stubs/libraries
           docker rm "${container}"
