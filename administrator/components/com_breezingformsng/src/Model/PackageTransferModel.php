@@ -623,6 +623,12 @@ final class PackageTransferModel extends BaseDatabaseModel
             // The version number belongs to the form of this site, not to the package.
             $data = $this->only($form['data'], $formColumns, ['id', 'created', 'created_by', 'modified', 'modified_by', 'version']);
             $data['package'] = $package;
+            // A package can hold a form saved as "Backend only": it stays off the
+            // site, unpublished, as the update does for the forms of this site.
+            if ((int) ($data['runmode'] ?? 0) === 1) {
+                $data['published'] = 0;
+                $data['runmode'] = 0;
+            }
             $this->remapReferences($data, $scriptIds, $pieceIds);
             $name = trim((string) ($data['name'] ?? ''));
             if ($name === '') {

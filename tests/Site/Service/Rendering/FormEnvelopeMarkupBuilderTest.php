@@ -32,28 +32,11 @@ final class FormEnvelopeMarkupBuilderTest extends TestCase
         self::assertSame("</div><!-- form end -->\n", (new FormEnvelopeMarkupBuilder())->closing("\n"));
     }
 
-    public function testPreservesFrontendAndBackendFieldOrder(): void
+    public function testPreservesFrontendFieldOrder(): void
     {
-        $builder = new FormEnvelopeMarkupBuilder();
-
         self::assertSame(
             "contextsubmissiontokenoptionaladditionaltechnicalrouting</form>\n",
-            $builder->frontend('context', 'submission', 'token', 'optional', 'additional', 'technical', 'routing', "\n")
-        );
-        self::assertSame(
-            "submissiontokencontextoptionaltechnicalrouting</form>\n",
-            $builder->backend('submission', 'token', 'context', 'optional', 'technical', 'routing', "\n")
-        );
-    }
-
-    public function testPreviewReturnsNothingOutsideAnIframe(): void
-    {
-        $builder = new FormEnvelopeMarkupBuilder();
-
-        self::assertSame('', $builder->preview(false, 'submission', 'token', 'context', 'optional', 'technical', 'routing', "\n"));
-        self::assertSame(
-            "submissiontokencontextoptionaltechnicalrouting</form>\n",
-            $builder->preview(true, 'submission', 'token', 'context', 'optional', 'technical', 'routing', "\n")
+            (new FormEnvelopeMarkupBuilder())->frontend('context', 'submission', 'token', 'optional', 'additional', 'technical', 'routing', "\n")
         );
     }
 }

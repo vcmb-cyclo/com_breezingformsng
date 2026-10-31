@@ -34,6 +34,8 @@ $ff_resnames = array(
 	'ff_top'
 );
 
+// The site always runs in frontend mode. Stored scripts and pieces may still
+// compare $ff_processor->runmode with these public constants.
 DEFINE('_FF_RUNMODE_FRONTEND', 0);
 DEFINE('_FF_RUNMODE_BACKEND', 1);
 DEFINE('_FF_RUNMODE_PREVIEW', 2);
