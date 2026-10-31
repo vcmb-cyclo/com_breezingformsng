@@ -1,5 +1,36 @@
 # Changelog
 
+## 6.1.0-RC11
+
+- Saving form options only writes the settings the screen sends, so a setting missing from a
+  screen keeps its value.
+- The *Administrator Notification* tab shows the report, attachment, email body, HTML sending
+  and custom template settings, like *User Confirmation*. Each save reset its email type and
+  custom template; a template lost this way cannot be restored.
+- A QuickMode save no longer stops silently on a form with old elements on a site that displays
+  PHP notices. It stopped after the tree was stored, without the options, the version or the
+  reload. The notices now go to the component log.
+- Each QuickMode save reloads the page, so the title shows the new version number. A second save
+  in a row used to leave the old number on screen.
+- Saving the QuickMode *Options* tab no longer breaks the rich text editors of the page.
+- The save message reads « Enregistrement en cours… (1/2) », with its icon. It called a chunk of
+  the save a package, without spaces, and showed a box instead of the icon.
+- The amount of the Stripe element is fixed or comes from a form field. An empty or invalid value
+  in the field refuses the form before any record or notification. The value comes from the
+  browser: make the field read only, and compute it on the server if the visitor must not be
+  able to change it.
+- The Stripe element groups its settings in sections, masks its keys on screen, shows the test or
+  production mode from the secret key, and warns about a local webhook address. The keys are still
+  sent to the administrator's browser with the form data.
+- The payment methods of the Stripe element can be left to Stripe, which new elements do, or
+  selected by hand. Existing elements keep their selection. EUR is the default currency of new
+  elements, and of an element whose currency is empty.
+- *iDEAL | Wero* is now called *Wero*.
+- The administration uses the browser tooltips of the `title` attributes, as the Joomla article
+  list does, instead of Bootstrap tooltips. They do not open with the keyboard or on touch screens.
+- QuickMode no longer fails with `getElementTypeOption is not a function` when a browser kept an
+  old copy of a script after an update: the script is now loaded with its version.
+
 ## 6.1.0-RC10
 
 - The Stripe payment page opens again: Stripe now refuses `payment_method_types` when a
