@@ -49,17 +49,6 @@ final class AdminRunModeRemovalTest extends TestCase
         }
     }
 
-    public function testPackageImportKeepsBackendOnlyFormsOffTheSite(): void
-    {
-        $source = $this->read('src/Model/PackageTransferModel.php');
-
-        self::assertMatchesRegularExpression(
-            "/\\['runmode'\\] \\?\\? 0\\) === 1\\) \\{\\s+"
-            . "\\\$data\\['published'\\] = 0;\\s+\\\$data\\['runmode'\\] = 0;/",
-            $source
-        );
-    }
-
     public function testRestoringAVersionLeavesTheRunModeAlone(): void
     {
         self::assertMatchesRegularExpression(

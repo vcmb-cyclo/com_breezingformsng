@@ -314,4 +314,41 @@ test.describe('forms', () => {
 
         expect(formRow(formId).records).toBe(before);
     });
+
+    test('a package import warns about the forms it unpublishes', async () => {
+        const name = 'e2e-<i>backend</i>-only';
+        const row = formRow(formId);
+        ['id', 'records', 'history'].forEach((column) => delete row[column]);
+        const packageForm = () => JSON.parse(db('package-form', 'e2e-runmode'));
+        const importPackage = async (runmode) => {
+            await page.goto(`${ADMIN}?option=com_breezingformsng&view=packages&layout=import`);
+            await page.setInputFiles('#bf-package-file', {
+                name: 'package.json',
+                mimeType: 'application/json',
+                buffer: Buffer.from(JSON.stringify({
+                    format: 'breezingformsng-package',
+                    version: 2,
+                    package: 'e2e-runmode',
+                    forms: [{ data: { ...row, name, published: 1, runmode }, elements: [] }],
+                })),
+            });
+            await Promise.all([
+                page.waitForNavigation(),
+                page.locator('#bf-package-file').evaluate((input) => input.form.requestSubmit()),
+            ]);
+        };
+
+        await importPackage(0);
+        expect(packageForm()).toMatchObject({ published: '1', runmode: '0' });
+
+        await importPackage(1);
+        expect(packageForm()).toMatchObject({ published: '0', runmode: '0' });
+        const warning = page.locator('joomla-alert[type="warning"], .alert-warning').filter({ hasText: 'e2e-<i>backend</i>-only' });
+        await expect(warning).toContainText('Published');
+        await expect(warning.locator('i')).toHaveCount(0);
+
+        const log = execFileSync('docker', ['exec', CONTAINER, 'cat', '/var/www/html/administrator/logs/com_breezingformsng.php']).toString();
+        expect(log).toContain('package e2e-runmode) was saved as "Backend only"');
+        expect(log).toContain('published in the package: 1, before the import: 1');
+    });
 });

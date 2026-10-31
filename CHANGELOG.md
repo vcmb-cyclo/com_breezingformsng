@@ -6,8 +6,9 @@
   code behind it, the *Run Mode* form option and the *Sync to Joomla Menu* button are gone.
 - The update removes the administrator menu entries the sync created: they opened an empty page.
 - The update unpublishes each form saved as *Backend only* and logs it, so it stays off the site.
-  Publish it to show it. A package import does the same. Restoring a form version no longer
-  changes the stored run mode.
+  Publish it to show it. A package import does the same: it warns about each of these forms,
+  with its state before the import, and logs it. Restoring a form version no longer changes the
+  stored run mode.
 - The module and the content plugin show forms saved as *Frontend & Backend*, as the component
   page does. They answered that the form was not found.
 - Error traces no longer link to the administrator; those links only appeared in the removed

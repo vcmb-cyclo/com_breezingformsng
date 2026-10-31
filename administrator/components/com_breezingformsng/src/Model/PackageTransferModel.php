@@ -11,6 +11,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\SqlDate;
@@ -218,7 +219,11 @@ final class PackageTransferModel extends BaseDatabaseModel
         return $json . "\n";
     }
 
-    public function import(string $filename): void
+    /**
+     * @return list<array{id: int, name: string, packagePublished: int, previousPublished: ?int}>
+     *         The forms saved as "Backend only" that the import left unpublished.
+     */
+    public function import(string $filename): array
     {
         $contents = file_get_contents($filename);
         if ($contents === false) {
@@ -242,7 +247,7 @@ final class PackageTransferModel extends BaseDatabaseModel
         try {
             $scriptIds = $this->importLibraries('#__facileforms_scripts', (array) ($payload['scripts'] ?? []), $package, $this->packageItemModel('Script'));
             $pieceIds = $this->importLibraries('#__facileforms_pieces', (array) ($payload['pieces'] ?? []), $package, $this->packageItemModel('Piece'));
-            $this->importForms((array) ($payload['forms'] ?? []), $package, $scriptIds, $pieceIds);
+            $retiredForms = $this->importForms((array) ($payload['forms'] ?? []), $package, $scriptIds, $pieceIds);
 
             if (($payload['version'] ?? null) === self::VERSION) {
                 $this->importMenus((array) ($payload['menus'] ?? []), $package);
@@ -259,6 +264,20 @@ final class PackageTransferModel extends BaseDatabaseModel
             $db->transactionRollback();
             throw $exception;
         }
+
+        foreach ($retiredForms as $form) {
+            $previous = $form['previousPublished'] ?? 'none';
+            Log::add(
+                'Package import: form ' . $form['id'] . ' ('
+                . preg_replace('/[\x00-\x1F\x7F]+/', ' ', $form['name'] . ', package ' . $package)
+                . ') was saved as "Backend only" and is now unpublished'
+                . " (published in the package: {$form['packagePublished']}, before the import: {$previous}).",
+                Log::WARNING,
+                'com_breezingformsng'
+            );
+        }
+
+        return $retiredForms;
     }
 
     /**
@@ -602,9 +621,11 @@ final class PackageTransferModel extends BaseDatabaseModel
      * @param array<mixed>    $forms
      * @param array<int, int> $scriptIds
      * @param array<int, int> $pieceIds
+     * @return list<array{id: int, name: string, packagePublished: int, previousPublished: ?int}>
      */
-    private function importForms(array $forms, string $package, array $scriptIds, array $pieceIds): void
+    private function importForms(array $forms, string $package, array $scriptIds, array $pieceIds): array
     {
+        $retiredForms = [];
         $db = $this->getDatabase();
         $formColumns = $this->tableColumns('#__facileforms_forms');
         $elementColumns = $this->tableColumns('#__facileforms_elements');
@@ -625,7 +646,9 @@ final class PackageTransferModel extends BaseDatabaseModel
             $data['package'] = $package;
             // A package can hold a form saved as "Backend only": it stays off the
             // site, unpublished, as the update does for the forms of this site.
-            if ((int) ($data['runmode'] ?? 0) === 1) {
+            $backendOnly = (int) ($data['runmode'] ?? 0) === 1;
+            $packagePublished = (int) ($data['published'] ?? 0);
+            if ($backendOnly) {
                 $data['published'] = 0;
                 $data['runmode'] = 0;
             }
@@ -635,6 +658,7 @@ final class PackageTransferModel extends BaseDatabaseModel
                 throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_FILE'));
             }
             $id = $this->findId('#__facileforms_forms', $package, $name);
+            $previousPublished = $id > 0 && $backendOnly ? $this->publishedState($id) : null;
             if ($id > 0) {
                 // The form replaced keeps its state as its version of origin.
                 $versioning->keepOrigin($id);
@@ -647,6 +671,15 @@ final class PackageTransferModel extends BaseDatabaseModel
                 $object = (object) $data;
                 $db->insertObject('#__facileforms_forms', $object, 'id');
                 $id = (int) $db->insertid();
+            }
+
+            if ($backendOnly) {
+                $retiredForms[] = [
+                    'id' => $id,
+                    'name' => $name,
+                    'packagePublished' => $packagePublished,
+                    'previousPublished' => $previousPublished,
+                ];
             }
 
             foreach ($form['elements'] as $element) {
@@ -662,6 +695,19 @@ final class PackageTransferModel extends BaseDatabaseModel
 
             $versioning->record($id);
         }
+
+        return $retiredForms;
+    }
+
+    private function publishedState(int $formId): int
+    {
+        $db = $this->getDatabase();
+        $query = $db->createQuery()
+            ->select($db->quoteName('published'))
+            ->from($db->quoteName('#__facileforms_forms'))
+            ->where($db->quoteName('id') . ' = ' . $formId);
+
+        return (int) $db->setQuery($query)->loadResult();
     }
 
     private function packageItemModel(string $name): PackageItemModel
