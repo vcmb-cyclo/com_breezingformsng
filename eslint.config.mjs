@@ -66,7 +66,7 @@ export default [
     },
     {
         // page.evaluate() callbacks run in the page and read its globals.
-        files: ['tests/Browser/**/*.mjs'],
+        files: ['tests/Browser/**/*.mjs', 'tests/E2E/**/*.mjs'],
         languageOptions: {
             globals: { ...globals.node, ...browserGlobals },
         },

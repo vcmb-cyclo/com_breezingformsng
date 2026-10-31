@@ -205,4 +205,15 @@ final class SubmissionEngineArchitectureTest extends TestCase
         self::assertStringNotContainsString("'payment_method_types'", $engine);
         self::assertStringContainsString("'excluded_payment_method_types' => $" . "excludedPaymentMethods", $engine);
     }
+
+    public function testAnInvalidStripeFieldAmountIsRefusedBeforeAnyRecord(): void
+    {
+        $engine = (string) file_get_contents(__DIR__ . '/../../../../components/com_breezingformsng/src/Service/Submission/SubmissionEngine.php');
+
+        self::assertLessThan(
+            strpos($engine, '// CONTENTBUILDER BEGIN'),
+            strpos($engine, 'if ($this->stripeFieldAmountIsRefused())')
+        );
+        self::assertStringContainsString("?: 'EUR'", $engine);
+    }
 }

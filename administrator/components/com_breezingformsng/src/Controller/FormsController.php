@@ -174,7 +174,7 @@ class FormsController extends AdminController
         foreach (['piece1code', 'piece2code', 'piece3code', 'piece4code',
                   'script1code', 'script2code',
                   'email_custom_template', 'mb_email_custom_template'] as $field) {
-            $data[$field] = $input->post->get($field, '', 'raw');
+            $data[$field] = $input->post->get($field, null, 'raw');
         }
 
         try {

@@ -71,4 +71,25 @@ final class FormsMailbackOptionsTest extends TestCase
         self::assertStringContainsString('<div id="bfMbEmailTemplate"<?= $mbCustomEmail ? \'\' : \' hidden\'; ?>>', $layout);
         self::assertStringContainsString("Text::_('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_BODY')", $layout);
     }
+
+    public function testTheAdministratorNotificationShowsItsBodyToo(): void
+    {
+        $layout = $this->layout();
+
+        foreach (['emaillog', 'emailxml', 'email_type', 'email_custom_html'] as $column) {
+            self::assertStringContainsString('name="' . $column . '"', $layout, $column);
+        }
+
+        self::assertStringContainsString("\$mailEditor->display('email_custom_template'", $layout);
+        self::assertStringContainsString('<div id="bfEmailDefault" class="row mb-3"', $layout);
+    }
+
+    public function testASaveOnlyWritesWhatTheScreenPosted(): void
+    {
+        $model = (string) file_get_contents(self::COMPONENT . '/src/Model/FormOptionsModel.php');
+        $controller = (string) file_get_contents(self::COMPONENT . '/src/Controller/FormsController.php');
+
+        self::assertStringContainsString('if ($id > 0 && !isset($data[$col])) {', $model);
+        self::assertStringContainsString("\$input->post->get(\$field, null, 'raw')", $controller);
+    }
 }

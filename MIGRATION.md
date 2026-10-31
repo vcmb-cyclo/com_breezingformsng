@@ -4,6 +4,57 @@
 > Le suivi détaillé de l’architecture est maintenu dans
 > [`docs/maintenance/php-architecture-migration-plan.md`](docs/maintenance/php-architecture-migration-plan.md).
 
+## Qualité et fiabilité des écrans — plan du 2026-10-31
+
+Fait : un écran n'écrase plus les colonnes qu'il n'envoie pas (`FormOptionsModel::saveForm()`),
+« Notification administrateur » a les mêmes réglages que « Confirmation utilisateur », et des
+parcours de bout en bout tournent en CI sur un Joomla installé (`scripts/joomla-e2e.sh`,
+`tests/E2E`).
+
+Reste à faire, par priorité :
+
+### 1. Élargir les parcours de bout en bout
+
+- Formulaire réellement ancien, importé d'une installation existante, en plus de l'élément
+  dont les parcours retirent les clés.
+- Scripts, pièces, packages, enregistrements, intégrateur et écran public en mode paiement.
+- Exécution sur la dernière version de Joomla prise en charge, et avec TinyMCE et CodeMirror.
+
+### 2. Rendre les pannes visibles
+
+- `quickmode.doAjaxSave` répond en JSON, et le JS affiche un message si la sauvegarde échoue.
+- Un test vérifie que chaque asset de `joomla.asset.json` pointe vers un fichier existant :
+  sans `media/`, Joomla n'écrit aucune balise `<script>` et rien ne le signale.
+- Les erreurs Stripe affichent leur cause aux administrateurs.
+- Supprimer la source des avertissements PHP des anciens éléments dans `QuickmodeModel::save()`
+  (`password`, `mailback`, `mailbackAsSender`, `logging`), aujourd'hui seulement journalisés.
+
+### 3. Fiabiliser les paiements (avant tout usage en production)
+
+- Recalculer le montant côté serveur : `bfPaymentSelect` et le montant issu d'un champ viennent
+  du navigateur.
+- Ne plus envoyer la clé secrète Stripe au navigateur : elle est seulement masquée à l'écran.
+- Valider un paiement en mode test, retour sur le site et webhook compris.
+- Maquette de l'élément Stripe encore à faire : deux jeux de clés, « Tester la connexion »,
+  moyens de paiement lus sur le compte.
+
+### 4. Unifier les écrans
+
+- Réduire `custom.css` et `admin.css`, sources de règles anciennes et de `!important`.
+- Un seul gabarit de formulaire, sur le modèle des sections de l'élément Stripe.
+- Liste de contrôle par écran : mode sombre, largeur 800 px, clavier, droits refusés, langues.
+- Choisir l'aide des champs longs : l'attribut `title` natif ne s'ouvre ni au clavier ni sur
+  écran tactile.
+- Rétablir le marquage « Vu » à l'ouverture d'un enregistrement et un filtre Vu / Non vu.
+- Corriger les libellés français des e-mails (« Soumis par », « Envoyer le nom d'utilisateur »)
+  et le libellé « Journal seulement », qui envoie bien l'e-mail.
+
+### 5. Sécuriser le déploiement
+
+- Installer le paquet sur les conteneurs de développement plutôt que copier des fichiers.
+- Faire relire les langues autres que le français par des locuteurs natifs.
+- Garder l'affichage des erreurs PHP actif en développement.
+
 ## État de la migration — 2026-10-15
 
 La migration du code principal vers Joomla 6 et PHP 8.3+ est réalisée : les

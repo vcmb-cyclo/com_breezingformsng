@@ -62,4 +62,26 @@ final class QuickmodeOptionsTabVisibilityTest extends TestCase
             }
         }
     }
+
+    public function testASecondSaveReloadsThePage(): void
+    {
+        $script = (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/js/admin/quickmode-app.js');
+
+        self::assertStringContainsString('if (new URL(returnUrl, location.href).href === location.href) {', $script);
+        self::assertStringContainsString('location.reload();', $script);
+    }
+
+    public function testTheSaveAnswersOnlyTheFormId(): void
+    {
+        $controller = (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Controller/QuickmodeController.php');
+
+        self::assertLessThan(
+            strpos($controller, '$this->getQuickmodeModel()->save($form, $dataObject)'),
+            strpos($controller, 'ob_start();')
+        );
+        self::assertLessThan(
+            strpos($controller, 'echo $formId;'),
+            strpos($controller, 'ob_get_clean()')
+        );
+    }
 }

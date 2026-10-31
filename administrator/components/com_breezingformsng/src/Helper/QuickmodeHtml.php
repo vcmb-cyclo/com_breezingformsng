@@ -423,8 +423,8 @@ final class QuickmodeHtml
                                             .tab-content for Bootstrap's ".tab-content > .tab-pane"
                                             CSS to hide/show it - see quickmode-options-tab-plan.md),
                                             and nesting a second <form> inside bfForm is invalid
-                                            HTML. The standard toolbar "Enregistrer" button moves
-                                            these fields into a detached <form>, posted into a
+                                            HTML. The standard toolbar "Enregistrer" button copies
+                                            their values into a detached <form>, posted into a
                                             hidden iframe, as part of saving everything in one
                                             click - see quickmode-app.js's submitOptionsTab().
                                         -->

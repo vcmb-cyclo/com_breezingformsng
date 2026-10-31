@@ -1040,12 +1040,15 @@ import { JoomlaEditor } from 'editor-api';
             mdata.webhookSecret = JQuery('#bfElementTypeStripeWebhookSecret').val();
             mdata.itemname = JQuery('#bfElementTypeStripeItemname').val();
             mdata.amount = JQuery('#bfElementTypeStripeAmount').val();
+            mdata.amountSource = JQuery('#bfElementTypeStripeAmountSourceField').prop('checked') ? 'field' : 'fixed';
+            mdata.amountField = JQuery('#bfElementTypeStripeAmountField').val() || '';
             mdata.thankYouPage = JQuery('#bfElementTypeStripeThankYouPage').val();
 
             mdata.currencyCode = JQuery('#bfElementTypeStripeCurrencyCode').val();
             mdata.sendNotificationAfterPayment = JQuery('#bfElementTypeStripeSendNotificationAfterPayment').prop('checked');
             mdata.klarna = JQuery('#bfElementTypeStripeKlarna').prop('checked');
             mdata.ideal = JQuery('#bfElementTypeStripeIdeal').prop('checked');
+            mdata.paymentMethodsMode = JQuery('#bfStripeMethodsAuto').prop('checked') ? 'auto' : 'manual';
 
             // ADVANCED
 
@@ -1078,6 +1081,76 @@ import { JoomlaEditor } from 'editor-api';
             item.properties = mdata;
         };
 
+        // The fields of the form that hold one value; a chosen field since
+        // removed or renamed stays listed, so the choice is not lost silently.
+        appScope.populateStripeAmountSource = function (mdata) {
+            var fromField = mdata.amountSource === 'field';
+            var select = JQuery('#bfElementTypeStripeAmountField');
+            var valueTypes = ['bfTextfield', 'bfHidden', 'bfNumberInput', 'bfSelect', 'bfRadioGroup'];
+            var chosen = mdata.amountField || '';
+            var items = [];
+
+            select.find('option:not(:first)').remove();
+            appScope.getItemsFlattened(appScope.dataObject, items);
+            items.forEach(function (item) {
+                if (valueTypes.indexOf(item.properties.bfType) !== -1) {
+                    select.append(new Option(item.properties.label + ' — ' + item.properties.bfName, item.properties.bfName));
+                }
+            });
+            if (chosen !== '' && select.find('option').filter(function () { return this.value === chosen; }).length === 0) {
+                select.append(new Option(chosen, chosen));
+            }
+            select.val(chosen);
+
+            JQuery('#bfElementTypeStripeAmountSourceField').prop('checked', fromField);
+            JQuery('#bfElementTypeStripeAmountSourceFixed').prop('checked', !fromField);
+            appScope.toggleStripeAmountSource(fromField);
+        };
+
+        // The mode is the one of the secret key: Stripe has no other setting for it.
+        appScope.refreshStripeConnection = function () {
+            var key = String(JQuery('#bfElementTypeStripeSecretKey').val() || '');
+            var banner = JQuery('#bfStripeModeBanner');
+            var mode = /^[sr]k_test_/.test(key) ? 'test' : (/^[sr]k_live_/.test(key) ? 'live' : 'unknown');
+            var url = String(JQuery('#bfElementTypeStripeWebhookUrl').val() || '');
+
+            banner.text(banner.attr('data-' + mode))
+                .toggleClass('alert-warning', mode === 'test')
+                .toggleClass('alert-success', mode === 'live')
+                .toggleClass('alert-info', mode === 'unknown');
+            JQuery('#bfStripeWebhookLocal').css('display', /^https?:\/\/(localhost|127\.|\[::1\])/.test(url) ? '' : 'none');
+        };
+
+        JQuery(document).on('input', '#bfElementTypeStripeSecretKey', appScope.refreshStripeConnection);
+
+        JQuery(document).on('change', 'input[name="bfStripeMethodsMode"]', function () {
+            JQuery('#bfStripeMethodsList').css('display', this.value === 'manual' && this.checked ? '' : 'none');
+        });
+
+        JQuery(document).on('click', '[data-bf-stripe-reveal]', function () {
+            var input = document.getElementById(this.getAttribute('data-bf-stripe-reveal'));
+            var label = this.textContent;
+
+            input.type = input.type === 'password' ? 'text' : 'password';
+            this.textContent = this.getAttribute('data-hide');
+            this.setAttribute('data-hide', label);
+        });
+
+        JQuery(document).on('click', '[data-bf-stripe-copy]', function () {
+            navigator.clipboard.writeText(document.getElementById(this.getAttribute('data-bf-stripe-copy')).value);
+        });
+
+        appScope.toggleStripeAmountSource = function (fromField) {
+            JQuery('#bfElementTypeStripeAmountFixedWrap').css('display', fromField ? 'none' : '');
+            JQuery('#bfElementTypeStripeAmountFieldWrap').css('display', fromField ? '' : 'none');
+            JQuery('label[for="bfElementTypeStripeAmountSourceFixed"]').toggleClass('active', !fromField);
+            JQuery('label[for="bfElementTypeStripeAmountSourceField"]').toggleClass('active', fromField);
+        };
+
+        JQuery(document).on('change', 'input[name="bfElementTypeStripeAmountSource"]', function () {
+            appScope.toggleStripeAmountSource(this.value === 'field' && this.checked);
+        });
+
         appScope.populateStripeProperties = function (mdata) {
             // dynamic properties
 
@@ -1091,11 +1164,18 @@ import { JoomlaEditor } from 'editor-api';
 
             JQuery('#bfElementTypeStripeItemname').val(mdata.itemname);
             JQuery('#bfElementTypeStripeAmount').val(mdata.amount);
+            appScope.populateStripeAmountSource(mdata);
             JQuery('#bfElementTypeStripeThankYouPage').val(mdata.thankYouPage);
             JQuery('#bfElementTypeStripeCurrencyCode').val(mdata.currencyCode);
             JQuery('#bfElementTypeStripeSendNotificationAfterPayment').prop('checked', mdata.sendNotificationAfterPayment);
             JQuery('#bfElementTypeStripeKlarna').prop('checked', mdata.klarna === true);
             JQuery('#bfElementTypeStripeIdeal').prop('checked', mdata.ideal === true);
+            // Absent on an element saved before the mode existed: its options still apply.
+            var stripeMethodsAuto = mdata.paymentMethodsMode === 'auto';
+            JQuery('#bfStripeMethodsAuto').prop('checked', stripeMethodsAuto);
+            JQuery('#bfStripeMethodsManual').prop('checked', !stripeMethodsAuto);
+            JQuery('#bfStripeMethodsList').css('display', stripeMethodsAuto ? 'none' : '');
+            appScope.refreshStripeConnection();
             // ADVANCED
 
             JQuery('#bfElementStripeAdvancedImage').val(mdata.image);

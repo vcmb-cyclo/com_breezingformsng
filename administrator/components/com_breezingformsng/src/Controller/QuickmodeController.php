@@ -146,6 +146,10 @@ class QuickmodeController extends BaseController
                 }
             }
 
+            // The browser reads the answer as the form id: a PHP notice shown on
+            // a site that displays errors would stop the save right after this
+            // request, without the options, the version or the reload.
+            ob_start();
             $formId = $this->getQuickmodeModel()->save($form, $dataObject);
             (new ContentBuilderFormSync($app, $db))->sync($formId);
 
@@ -156,6 +160,12 @@ class QuickmodeController extends BaseController
                     // The save stays; this request only answers with the form id.
                     Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
                 }
+            }
+
+            $notices = trim((string) ob_get_clean());
+
+            if ($notices !== '') {
+                Log::add('QuickMode save of form ' . $formId . ': ' . mb_substr(strip_tags($notices), 0, 1000), Log::WARNING, 'com_breezingformsng');
             }
 
             $app->setHeader('Content-Type', 'text/plain; charset=UTF-8', true);

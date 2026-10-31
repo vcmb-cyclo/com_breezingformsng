@@ -44,7 +44,7 @@ final class FormsAdvancedOptionsHtml
             'general' => $countConfigured([$f->title ?? '', $f->name ?? '', $f->package ?? '', $f->description ?? '', $f->class1 ?? '']),
             'email' => $countConfigured([
                 $f->emailntf ?? 0, $f->emailadr ?? '', $f->custom_mail_subject ?? '', $f->alt_mailfrom ?? '',
-                $f->alt_fromname ?? '', $f->mb_emailntf ?? 0, $f->mb_custom_mail_subject ?? '',
+                $f->alt_fromname ?? '', $f->emailxml ?? 0, $f->email_type ?? 0, $f->mb_emailntf ?? 0, $f->mb_custom_mail_subject ?? '',
                 $f->mb_alt_mailfrom ?? '', $f->mb_alt_fromname ?? '', $f->mb_emailxml ?? 0, $f->mb_email_type ?? 0,
             ]),
             'scripts' => (int) ((int) ($f->script1cond ?? 0) > 0) + (int) ((int) ($f->script2cond ?? 0) > 0),
@@ -116,6 +116,16 @@ final class FormsAdvancedOptionsHtml
         return (int) ($form->mb_email_custom_html ?? 0);
     }
 
+    /** The same choice for the administrator notification. */
+    public static function notificationHtmlSelection(\stdClass $form): int
+    {
+        if ((int) ($form->id ?? 0) === 0 && (string) ($form->email_custom_template ?? '') === '') {
+            return 1;
+        }
+
+        return (int) ($form->email_custom_html ?? 0);
+    }
+
     /**
      * Elements of the form whose label and value an email template can use.
      *
@@ -162,11 +172,27 @@ final class FormsAdvancedOptionsHtml
      */
     public static function mailbackDefaultBody(\stdClass $f): array
     {
+        return self::defaultBody($f, '_mailback', 'mailbacktpl');
+    }
+
+    /**
+     * The same for the administrator notification.
+     *
+     * @return array{file: string, content: string}
+     */
+    public static function notificationDefaultBody(\stdClass $f): array
+    {
+        return self::defaultBody($f, '', 'mailtpl');
+    }
+
+    /** @return array{file: string, content: string} */
+    private static function defaultBody(\stdClass $f, string $suffix, string $defaultName): array
+    {
         $template = (new MailTemplateResolver())->resolve(
             JPATH_SITE . '/media/breezingforms/mailtpl',
             (string) ($f->name ?? ''),
-            '_mailback',
-            'mailbacktpl'
+            $suffix,
+            $defaultName
         );
 
         if ($template['file'] !== '') {
@@ -179,7 +205,7 @@ final class FormsAdvancedOptionsHtml
             ));
             $source = $normalize($template['file']);
 
-            if ($source !== $normalize(JPATH_ADMINISTRATOR . '/components/com_breezingformsng/mailtpl/mailbacktpl.txt.php')) {
+            if ($source !== $normalize(JPATH_ADMINISTRATOR . '/components/com_breezingformsng/mailtpl/' . $defaultName . '.txt.php')) {
                 return ['file' => basename($template['file']), 'content' => (string) file_get_contents($template['file'])];
             }
         }

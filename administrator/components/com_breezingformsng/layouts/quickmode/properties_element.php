@@ -587,14 +587,9 @@ use Joomla\CMS\Language\Text;
 
                                             <!-- STRIPE BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeStripe" style="display:none">
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_SECRETKEY')); ?>"
-                                                        for="bfElementTypeStripeSecretKey">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_SECRETKEY'); ?>
-                                                    </label>
-                                                    <input type="text" value="" id="bfElementTypeStripeSecretKey" />
-                                                </div>
+                                                <section class="bfng-stripe-section">
+                                                    <h3 class="bfng-stripe-section__title"><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_SECTION_CONNECTION'); ?></h3>
+                                                    <div id="bfStripeModeBanner" class="alert mb-3" role="status" data-test="<?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_MODE_TEST'); ?>" data-live="<?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_MODE_LIVE'); ?>" data-unknown="<?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_MODE_UNKNOWN'); ?>"></div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_PUBLISHABLEKEY')); ?>"
@@ -605,11 +600,25 @@ use Joomla\CMS\Language\Text;
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_SECRETKEY')); ?>"
+                                                        for="bfElementTypeStripeSecretKey">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_SECRETKEY'); ?>
+                                                    </label>
+                                                    <span class="bfng-stripe-secret">
+                                                        <input type="password" value="" id="bfElementTypeStripeSecretKey" autocomplete="new-password" />
+                                                        <button type="button" class="btn btn-secondary btn-sm" data-bf-stripe-reveal="bfElementTypeStripeSecretKey" data-hide="<?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_HIDE'); ?>"><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_SHOW'); ?></button>
+                                                    </span>
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_WEBHOOKSECRET')); ?>"
                                                         for="bfElementTypeStripeWebhookSecret">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_WEBHOOKSECRET'); ?>
                                                     </label>
-                                                    <input type="text" value="" id="bfElementTypeStripeWebhookSecret" />
+                                                    <span class="bfng-stripe-secret">
+                                                        <input type="password" value="" id="bfElementTypeStripeWebhookSecret" autocomplete="new-password" />
+                                                        <button type="button" class="btn btn-secondary btn-sm" data-bf-stripe-reveal="bfElementTypeStripeWebhookSecret" data-hide="<?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_HIDE'); ?>"><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_SHOW'); ?></button>
+                                                    </span>
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
@@ -617,18 +626,26 @@ use Joomla\CMS\Language\Text;
                                                         for="bfElementTypeStripeWebhookUrl">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_WEBHOOKURL'); ?>
                                                     </label>
-                                                    <input type="text" value="" id="bfElementTypeStripeWebhookUrl" readonly />
+                                                    <span class="bfng-stripe-secret">
+                                                        <input type="text" value="" id="bfElementTypeStripeWebhookUrl" readonly />
+                                                        <button type="button" class="btn btn-secondary btn-sm" data-bf-stripe-copy="bfElementTypeStripeWebhookUrl"><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_COPY'); ?></button>
+                                                    </span>
+                                                    <div class="alert alert-warning mt-2 mb-0" id="bfStripeWebhookLocal" role="note" style="display:none"><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_WEBHOOK_LOCAL'); ?></div>
                                                 </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_ITEMNAME')); ?>"
-                                                        for="bfElementTypeStripeItemname">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_ITEMNAME'); ?>
-                                                    </label>
-                                                    <input type="text" value="" id="bfElementTypeStripeItemname" />
-                                                </div>
+                                                </section>
 
+                                                <section class="bfng-stripe-section">
+                                                    <h3 class="bfng-stripe-section__title"><?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_AMOUNT_SOURCE'); ?></h3>
                                                 <div class="bfPropertyWrap bfng-field">
+                                                    <span class="bfPropertyLabel bfng-field__label"></span>
+                                                    <span class="btn-group" role="group">
+                                                        <input type="radio" class="btn-check" name="bfElementTypeStripeAmountSource" id="bfElementTypeStripeAmountSourceFixed" value="fixed" autocomplete="off" />
+                                                        <label class="btn btn-outline-primary btn-sm" for="bfElementTypeStripeAmountSourceFixed" title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_AMOUNT_SOURCE')); ?>"><?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_AMOUNT_FIXED'); ?></label>
+                                                        <input type="radio" class="btn-check" name="bfElementTypeStripeAmountSource" id="bfElementTypeStripeAmountSourceField" value="field" autocomplete="off" />
+                                                        <label class="btn btn-outline-primary btn-sm" for="bfElementTypeStripeAmountSourceField" title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_AMOUNT_SOURCE')); ?>"><?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_AMOUNT_FROM_FIELD'); ?></label>
+                                                    </span>
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field" id="bfElementTypeStripeAmountFixedWrap">
                                                     <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_AMOUNT')); ?>"
                                                         for="bfElementTypeStripeAmount">
@@ -636,7 +653,18 @@ use Joomla\CMS\Language\Text;
                                                     </label>
                                                     <input type="text" value="" id="bfElementTypeStripeAmount" />
                                                 </div>
-
+                                                <div id="bfElementTypeStripeAmountFieldWrap" class="bfPropertyWrap bfng-field" style="display:none">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_AMOUNT_FIELD')); ?>"
+                                                        for="bfElementTypeStripeAmountField">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_AMOUNT_FIELD'); ?>
+                                                    </label>
+                                                    <select id="bfElementTypeStripeAmountField">
+                                                        <option value=""><?php echo Text::_('JGLOBAL_SELECT_AN_OPTION'); ?></option>
+                                                    </select>
+                                                    <div class="form-text"><?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_AMOUNT_FORMAT'); ?></div>
+                                                    <div class="alert alert-warning mt-2 mb-0" role="note"><?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_AMOUNT_WARNING'); ?></div>
+                                                </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_CURRENCY')); ?>"
@@ -645,7 +673,37 @@ use Joomla\CMS\Language\Text;
                                                     </label>
                                                     <input type="text" value="" id="bfElementTypeStripeCurrencyCode" />
                                                 </div>
+                                                </section>
 
+                                                <section class="bfng-stripe-section">
+                                                    <h3 class="bfng-stripe-section__title"><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_SECTION_METHODS'); ?></h3>
+                                                    <p class="bfng-stripe-question"><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_METHODS_QUESTION'); ?></p>
+                                                    <label class="bfng-stripe-choice" for="bfStripeMethodsAuto">
+                                                        <input type="radio" name="bfStripeMethodsMode" id="bfStripeMethodsAuto" value="auto" />
+                                                        <span><strong><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_METHODS_AUTO'); ?></strong><small><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_METHODS_AUTO_DESC'); ?></small></span>
+                                                    </label>
+                                                    <label class="bfng-stripe-choice" for="bfStripeMethodsManual">
+                                                        <input type="radio" name="bfStripeMethodsMode" id="bfStripeMethodsManual" value="manual" />
+                                                        <span><strong><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_METHODS_MANUAL'); ?></strong><small><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_METHODS_MANUAL_DESC'); ?></small></span>
+                                                    </label>
+                                                    <ul id="bfStripeMethodsList" class="bfng-stripe-methods" style="display:none">
+                                                        <li><input type="checkbox" id="bfStripeMethodCard" checked disabled /><label for="bfStripeMethodCard"><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_METHOD_CARD'); ?></label><small><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_METHOD_CARD_NOTE'); ?></small></li>
+                                                        <li><input type="checkbox" id="bfElementTypeStripeKlarna" /><label for="bfElementTypeStripeKlarna" title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_KLARNA')); ?>">Klarna</label><small><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_METHOD_KLARNA_NOTE'); ?></small></li>
+                                                        <li><input type="checkbox" id="bfElementTypeStripeIdeal" /><label for="bfElementTypeStripeIdeal" title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_IDEAL')); ?>">Wero</label><small><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_METHOD_WERO_NOTE'); ?></small></li>
+                                                    </ul>
+                                                    <p class="form-text mb-0"><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_METHODS_DASHBOARD'); ?></p>
+                                                </section>
+
+                                                <section class="bfng-stripe-section">
+                                                    <h3 class="bfng-stripe-section__title"><?php echo Text::_('COM_BREEZINGFORMSNG_STRIPE_SECTION_CUSTOMER'); ?></h3>
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_ITEMNAME')); ?>"
+                                                        for="bfElementTypeStripeItemname">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_ITEMNAME'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeStripeItemname" />
+                                                </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_THANKYOUPAGE')); ?>"
@@ -654,7 +712,6 @@ use Joomla\CMS\Language\Text;
                                                     </label>
                                                     <input type="text" value="" id="bfElementTypeStripeThankYouPage" />
                                                 </div>
-
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_SENDNOTAFPAY')); ?>"
@@ -664,26 +721,8 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value=""
                                                         id="bfElementTypeStripeSendNotificationAfterPayment" />
                                                 </div>
+                                                </section>
 
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_KLARNA')); ?>"
-                                                        for="bfElementTypeStripeKlarna">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_KLARNA'); ?>
-                                                    </label>
-                                                    <input type="checkbox" value=""
-                                                        id="bfElementTypeStripeKlarna" />
-                                                </div>
-
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_IDEAL')); ?>"
-                                                        for="bfElementTypeStripeIdeal">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_IDEAL'); ?>
-                                                    </label>
-                                                    <input type="checkbox" value=""
-                                                        id="bfElementTypeStripeIdeal" />
-                                                </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"

@@ -387,6 +387,8 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['options']['webhookSecret']             = (string) ($mdata['webhookSecret'] ?? '');
                         $element['options']['itemname']                  = $mdata['itemname'];
                         $element['options']['amount']                    = $mdata['amount'];
+                        $element['options']['amountSource']              = ($mdata['amountSource'] ?? 'fixed') === 'field' ? 'field' : 'fixed';
+                        $element['options']['amountField']               = (string) ($mdata['amountField'] ?? '');
                         $element['options']['thankYouPage']              = $mdata['thankYouPage'];
                         $element['options']['currencyCode']              = $mdata['currencyCode'];
                         $element['options']['sendNotificationAfterPayment'] = $mdata['sendNotificationAfterPayment'];
@@ -394,6 +396,7 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['options']['emailfield']                = $mdata['emailfield'] ?? '';
                         $element['options']['klarna']                    = (bool) ($mdata['klarna'] ?? false);
                         $element['options']['ideal']                     = (bool) ($mdata['ideal'] ?? false);
+                        $element['options']['paymentMethodsMode']        = ($mdata['paymentMethodsMode'] ?? 'manual') === 'auto' ? 'auto' : 'manual';
                         $element['data1']                                = $mdata['image'];
                         break;
                     default:

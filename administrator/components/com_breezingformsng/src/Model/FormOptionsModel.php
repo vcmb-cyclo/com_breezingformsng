@@ -173,6 +173,12 @@ class FormOptionsModel extends BaseDatabaseModel
 
         $sets = [];
         foreach ($cols as $col) {
+            // A column the screen did not post keeps its value: only a new form
+            // takes its defaults, so a field missing from a screen loses nothing.
+            if ($id > 0 && !isset($data[$col])) {
+                continue;
+            }
+
             $val = $data[$col] ?? '';
             $sets[$col] = in_array($col, ['width', 'widthmode', 'height', 'heightmode', 'pages',
                 'published', 'ordering', 'runmode', 'prevmode', 'prevwidth', 'autoheight',

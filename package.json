@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "npm run lint:css && npm run lint:js && npm run lint:inline-scripts",
     "lint:css": "stylelint \"media/com_breezingformsng/css/**/*.css\"",
-    "lint:js": "eslint media/com_breezingformsng/js scripts tests/JavaScript tests/Browser eslint.config.mjs playwright.config.mjs stylelint.config.mjs",
+    "lint:js": "eslint media/com_breezingformsng/js scripts tests/JavaScript tests/Browser tests/E2E eslint.config.mjs playwright.config.mjs playwright.e2e.config.mjs stylelint.config.mjs",
     "lint:inline-scripts": "node scripts/check-inline-scripts.mjs",
     "lint:css:fix": "stylelint \"media/com_breezingformsng/css/**/*.css\" --fix",
     "test:tree-model": "node --test tests/JavaScript/quickmode-tree-model.test.mjs",

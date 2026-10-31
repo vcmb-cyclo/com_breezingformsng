@@ -964,7 +964,15 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                 tempForm.target = 'bfOptionsSaveFrame';
                 tempForm.style.display = 'none';
                 document.body.appendChild(tempForm);
-                JQuery(tempForm).append($wrap.children());
+                // A copy of the values: moving the fields would break the rich text
+                // editors among them while the page is still open.
+                $wrap.find(':input').serializeArray().forEach(function (field) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = field.name;
+                    input.value = field.value;
+                    tempForm.appendChild(input);
+                });
                 tempForm.submit();
             }
 
@@ -996,7 +1004,13 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                             var returnUrl = "index.php?option=com_breezingformsng&task=quickmode.display&form=" + encodeURIComponent(data) + "&active_language_code=" + encodeURIComponent(document.adminForm.active_language_code.value)
                                 + (activeTab ? "#" + activeTab : "");
                             submitOptionsTab(function () {
-                                location.href = returnUrl;
+                                // Only the hash would change on a second save: no reload,
+                                // an old version number and the Options fields left moved.
+                                if (new URL(returnUrl, location.href).href === location.href) {
+                                    location.reload();
+                                } else {
+                                    location.href = returnUrl;
+                                }
                             });
 
                         } else if (JQuery.trim(data) == '') {
