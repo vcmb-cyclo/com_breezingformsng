@@ -84,4 +84,16 @@ final class QuickmodeOptionsTabVisibilityTest extends TestCase
             strpos($controller, 'ob_get_clean()')
         );
     }
+
+    public function testTheSaveProgressIsAFullSentenceWithTheChartTokens(): void
+    {
+        $script = (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/js/admin/quickmode-app.js');
+        $helper = (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Helper/QuickmodeHtml.php');
+
+        self::assertStringContainsString("labels['COM_BREEZINGFORMSNG_QM_SAVE_PROGRESS']", $script);
+        self::assertStringNotContainsString('COM_BREEZINGFORMSNG_LOAD_PACKAGE', $script);
+        self::assertStringContainsString("'COM_BREEZINGFORMSNG_QM_SAVE_PROGRESS',", $helper);
+        // The tokens of the chart only exist inside .bfng: without it the icon font is lost.
+        self::assertStringContainsString('id="bfSaveQueue" class="bfng bfng-message', $helper);
+    }
 }

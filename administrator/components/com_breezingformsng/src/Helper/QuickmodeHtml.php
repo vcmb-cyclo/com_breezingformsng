@@ -69,8 +69,7 @@ final class QuickmodeHtml
             'COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS',
             'COM_BREEZINGFORMSNG_ERROR_ENTER_TITLE',
             'COM_BREEZINGFORMSNG_ERROR_NAME_EXISTS',
-            'COM_BREEZINGFORMSNG_LOAD_PACKAGE',
-            'COM_BREEZINGFORMSNG_LOAD_PACKAGE_OF',
+            'COM_BREEZINGFORMSNG_QM_SAVE_PROGRESS',
             'COM_BREEZINGFORMSNG_NEW_SECTION_ERROR',
             'COM_BREEZINGFORMSNG_NO_CHILDREN_ERROR',
             'COM_BREEZINGFORMSNG_PAGE',
@@ -269,7 +268,7 @@ final class QuickmodeHtml
         );
 
         ?>
-        <div style="display:none;visibility:hidden;" id="bfSaveQueue" class="bfng-message bfng-message--info"></div>
+        <div style="display:none;visibility:hidden;" id="bfSaveQueue" class="bfng bfng-message bfng-message--info"></div>
         <div id="bfQuickModeWrapper" class="bfClearfix bfng bfng-split">
 
             <div id="bfQuickModeLeft" class="bfClearfix bfng-split__aside">

@@ -1014,7 +1014,9 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                             });
 
                         } else if (JQuery.trim(data) == '') {
-                            JQuery("#bfSaveQueue").get(0).innerHTML = BFQMConfig.labels['COM_BREEZINGFORMSNG_LOAD_PACKAGE'] + (chunki + 1) + BFQMConfig.labels['COM_BREEZINGFORMSNG_LOAD_PACKAGE_OF'] + (chunks.length - 1);
+                            JQuery("#bfSaveQueue").get(0).textContent = BFQMConfig.labels['COM_BREEZINGFORMSNG_QM_SAVE_PROGRESS']
+                                .replace('%1$s', chunki + 1)
+                                .replace('%2$s', chunks.length - 1);
                             chunki++;
                             setTimeout(postTheStuff, 100);
 
