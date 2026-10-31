@@ -2,7 +2,9 @@
 // Requires: BFQMConfig (inline), BFQMElements (quickmode-elements.js)
 /* global BFQMConfig, BFQMElements, JQuery, Joomla, bootstrap */
 import { JoomlaEditor } from 'editor-api';
-import { QuickmodeTreeModel } from './quickmode-tree-model.js';
+// Through the import map, which carries the version: a relative import has none,
+// and a browser would keep an old copy of the module after an update.
+import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
 
 (function () {
     'use strict';

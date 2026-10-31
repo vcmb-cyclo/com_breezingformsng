@@ -69,7 +69,7 @@ $stateText = sprintf(
     htmlspecialchars(Text::_(RecordState::label($state)), ENT_QUOTES, 'UTF-8')
 );
 $systemLabel = static fn(string $label, string $description): string => sprintf(
-    '<span class="hasTooltip" title="%s">%s</span>',
+    '<span title="%s">%s</span>',
     htmlspecialchars(Text::_($description), ENT_QUOTES, 'UTF-8'),
     htmlspecialchars(Text::_($label), ENT_QUOTES, 'UTF-8'),
 );

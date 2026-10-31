@@ -34,6 +34,7 @@
       "name": "com_breezingformsng.quickmode-tree-model",
       "type": "script",
       "uri": "media/com_breezingformsng/js/admin/quickmode-tree-model.js",
+      "importmap": true,
       "attributes": {"type": "module"},
       "version": "auto"
     },

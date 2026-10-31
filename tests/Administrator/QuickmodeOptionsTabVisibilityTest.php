@@ -46,4 +46,20 @@ final class QuickmodeOptionsTabVisibilityTest extends TestCase
             (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/joomla.asset.json')
         );
     }
+
+    public function testNoModuleIsImportedWithoutItsVersion(): void
+    {
+        $directory = __DIR__ . '/../../media/com_breezingformsng/js';
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS));
+
+        foreach ($files as $file) {
+            if ($file->getExtension() === 'js') {
+                self::assertDoesNotMatchRegularExpression(
+                    '/^\s*import\b[^;]*from\s+[\'"]\.{1,2}\//m',
+                    (string) file_get_contents($file->getPathname()),
+                    $file->getPathname()
+                );
+            }
+        }
+    }
 }

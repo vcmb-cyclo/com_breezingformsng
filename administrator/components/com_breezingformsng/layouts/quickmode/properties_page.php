@@ -18,7 +18,7 @@ use Joomla\CMS\Language\Text;
                                                 <?php echo Text::_('COM_BREEZINGFORMSNG_PAGE_PROPERTIES'); ?>
                                             </legend>
                                             <div class="bfPropertyWrap bfng-field">
-                                                <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                <label class="bfPropertyLabel bfng-field__label"
                                                     title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAGE_INTRO')); ?>"
                                                     for="bfPageIntro">
                                                     <?php echo Text::_('COM_BREEZINGFORMSNG_PAGE_INTRO'); ?>
@@ -42,7 +42,7 @@ use Joomla\CMS\Language\Text;
                                             </div>
 
                                             <div class="bfPropertyWrap bfTrans bfng-field">
-                                                <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                <label class="bfPropertyLabel bfng-field__label"
                                                     title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAGE_INTRO')); ?>"
                                                     for="bfPageIntroTrans">
                                                     <?php echo Text::_('COM_BREEZINGFORMSNG_PAGE_INTRO'); ?>

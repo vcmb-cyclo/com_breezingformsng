@@ -15,7 +15,7 @@ use Joomla\CMS\Language\Text;
                                         <br />
                                         <fieldset>
                                             <div class="bfPropertyWrap bfng-field">
-                                                <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                <label class="bfPropertyLabel bfng-field__label"
                                                     title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TYPE')); ?>"
                                                     for="bfElementType">
                                                     <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_TYPE'); ?>
@@ -73,7 +73,7 @@ use Joomla\CMS\Language\Text;
                                                 <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_PROPERTIES'); ?>
                                             </legend>
                                             <div class="bfPropertyWrap bfng-field">
-                                                <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                <label class="bfPropertyLabel bfng-field__label"
                                                     title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_LABEL')); ?>"
                                                     for="bfElementLabel">
                                                     <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_LABEL'); ?>
@@ -82,7 +82,7 @@ use Joomla\CMS\Language\Text;
                                             </div>
 
                                             <div class="bfPropertyWrap bfTrans bfng-field">
-                                                <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                <label class="bfPropertyLabel bfng-field__label"
                                                     title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_LABEL')); ?>"
                                                     for="bfElementLabelTrans">
                                                     <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_LABEL'); ?>
@@ -94,7 +94,7 @@ use Joomla\CMS\Language\Text;
                                             </div>
 
                                             <div class="bfPropertyWrap bfng-field">
-                                                <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                <label class="bfPropertyLabel bfng-field__label"
                                                     title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_NAME')); ?>"
                                                     for="bfElementName">
                                                     <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_NAME'); ?>
@@ -105,14 +105,14 @@ use Joomla\CMS\Language\Text;
                                             <!-- NUMBER INPUT BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeNumberInput" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label" title="<?php echo 'value'; ?>"
+                                                    <label class="bfPropertyLabel bfng-field__label" title="<?php echo 'value'; ?>"
                                                         for="bfElementTypeNumberInputValue">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
                                                     </label>
                                                     <input type="text" value="" id="bfElementTypeNumberInputValue" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo 'placeholder'; ?>"
                                                         for="bfElementTypeNumberInputPlaceholder">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_TEXT_PLACEHOLDER'); ?>
@@ -120,7 +120,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeNumberInputPlaceholder" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo 'translated placholder'; ?>"
                                                         for="bfElementTypeNumberInputPlaceholderTrans">
                                                         <?php echo 'translated placeholder'; ?>
@@ -138,7 +138,7 @@ use Joomla\CMS\Language\Text;
                                                     ?>
 
                                                     <div class="bfPropertyWrap bfng-field">
-                                                        <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                        <label class="bfPropertyLabel bfng-field__label"
                                                             title="<?php echo 'icon element'; ?>"
                                                             for="bfElementTypeNumberInputIcon">
                                                             <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_ICON'); ?>
@@ -148,7 +148,7 @@ use Joomla\CMS\Language\Text;
                                                 <?php } ?>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTFIELD_SIZE')); ?>"
                                                         for="bfElementTypeNumberInputSize">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_SIZE'); ?>
@@ -156,7 +156,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeNumberInputSize" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTFIELD_MAXLENGTH')); ?>"
                                                         for="bfElementTypeNumberInputMaxLength">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_MAX_LENGTH'); ?>
@@ -165,7 +165,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTFIELD_HINT')); ?>"
                                                         for="bfElementTypeNumberInputHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -174,7 +174,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTFIELD_HINT')); ?>"
                                                         for="bfElementTypeNumberInputHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -190,7 +190,7 @@ use Joomla\CMS\Language\Text;
                                             <!-- HIDDEN BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeHidden" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HIDDEN_VALUE')); ?>"
                                                         for="bfElementTypeHiddenValue">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
@@ -202,7 +202,7 @@ use Joomla\CMS\Language\Text;
                                             <!-- SUMMARIZE BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeSummarize" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_SUMMARIZE_CONNECTWITH')); ?>"
                                                         for="bfElementTypeSummarizeConnectWith">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_SUMMARIZE_CONNECT_WITH'); ?>
@@ -215,7 +215,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_SUMMARIZE_EMPTY_MESSAGE')); ?>"
                                                         for="bfElementTypeSummarizeEmptyMessage">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_EMPTY_MESSAGE'); ?>
@@ -224,7 +224,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_SUMMARIZE_EMPTY_MESSAGE')); ?>"
                                                         for="bfElementTypeSummarizeEmptyMessageTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_EMPTY_MESSAGE'); ?>
@@ -236,7 +236,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_SUMMARIZE_EMPTY_HIDE')); ?>"
                                                         for="bfElementTypeSummarizeHideIfEmpty">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HIDE_EMPTY'); ?>
@@ -244,7 +244,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value="" id="bfElementTypeSummarizeHideIfEmpty" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_SUMMARIZE_USE_LABEL')); ?>"
                                                         for="bfElementTypeSummarizeUseElementLabel">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_USE_LABEL'); ?>
@@ -257,7 +257,7 @@ use Joomla\CMS\Language\Text;
                                             <!-- TEXTFIELD BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeText" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTFIELD_VALUE')); ?>"
                                                         for="bfElementTypeTextValue">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
@@ -266,7 +266,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTFIELD_VALUE')); ?>"
                                                         for="bfElementTypeTextValueTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
@@ -278,7 +278,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTFIELD_PLACEHOLDER')); ?>"
                                                         for="bfElementTypeTextPlaceholder">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_TEXT_PLACEHOLDER'); ?>
@@ -287,7 +287,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTFIELD_PLACEHOLDER')); ?>"
                                                         for="bfElementTypeTextPlaceholderTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_TEXT_PLACEHOLDER'); ?>
@@ -305,7 +305,7 @@ use Joomla\CMS\Language\Text;
                                                     ?>
 
                                                     <div class="bfPropertyWrap bfng-field">
-                                                        <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                        <label class="bfPropertyLabel bfng-field__label"
                                                             title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_ICON')); ?>"
                                                             for="bfElementTypeTextIcon">
                                                             <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_ICON'); ?>
@@ -316,7 +316,7 @@ use Joomla\CMS\Language\Text;
                                                 <?php } ?>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTFIELD_SIZE')); ?>"
                                                         for="bfElementTypeTextSize">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_SIZE'); ?>
@@ -324,7 +324,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeTextSize" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTFIELD_MAXLENGTH')); ?>"
                                                         for="bfElementTypeTextMaxLength">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_MAX_LENGTH'); ?>
@@ -333,7 +333,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTFIELD_HINT')); ?>"
                                                         for="bfElementTypeTextHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -342,7 +342,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTFIELD_HINT')); ?>"
                                                         for="bfElementTypeTextHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -357,7 +357,7 @@ use Joomla\CMS\Language\Text;
                                             <!-- TEXTAREA BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeTextarea" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTAREA_VALUE')); ?>"
                                                         for="bfElementTypeTextareaValue">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
@@ -366,7 +366,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTAREA_VALUE')); ?>"
                                                         for="bfElementTypeTextareaValueTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
@@ -378,7 +378,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTAREA_PLACEHOLDER')); ?>"
                                                         for="bfElementTypeTextareaPlaceholder">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_TEXT_PLACEHOLDER'); ?>
@@ -387,7 +387,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTAREA_PLACEHOLDER')); ?>"
                                                         for="bfElementTypeTextareaPlaceholderTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_TEXT_PLACEHOLDER'); ?>
@@ -405,7 +405,7 @@ use Joomla\CMS\Language\Text;
                                                     ?>
 
                                                     <div class="bfPropertyWrap bfng-field">
-                                                        <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                        <label class="bfPropertyLabel bfng-field__label"
                                                             title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_ICON')); ?>"
                                                             for="bfElementTypeTextareaIcon">
                                                             <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_ICON'); ?>
@@ -415,7 +415,7 @@ use Joomla\CMS\Language\Text;
 
                                                 <?php } ?>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTAREA_WIDTH')); ?>"
                                                         for="bfElementTypeTextareaWidth">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_WIDTH'); ?>
@@ -423,7 +423,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeTextareaWidth" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTAREA_HEIGHT')); ?>"
                                                         for="bfElementTypeTextareaHeight">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HEIGHT'); ?>
@@ -431,7 +431,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeTextareaHeight" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTAREA_MAXLENGTH')); ?>"
                                                         for="bfElementTypeTextareaMaxLength">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_MAX_LENGTH'); ?>
@@ -439,7 +439,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeTextareaMaxLength" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTAREA_MAXLENGTH_SHOW')); ?>"
                                                         for="bfElementTypeTextareaMaxLengthShow">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_MAX_LENGTH_SHOW'); ?>
@@ -447,13 +447,13 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value="" id="bfElementTypeTextareaMaxLengthShow" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TEXTAREA_HTML')); ?>"
                                                         for="bfElementTypeTextareaIsHtml">HTML</label>
                                                     <input type="checkbox" value="" id="bfElementTypeTextareaIsHtml" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeTextareaHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -462,7 +462,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeTextareaHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -479,7 +479,7 @@ use Joomla\CMS\Language\Text;
                                             <div class="bfElementTypeClass" id="bfElementTypeRadioGroup" style="display:none">
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_RADIO_GROUP')); ?>"
                                                         for="bfElementTypeRadioGroupGroups">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_GROUP'); ?>
@@ -488,7 +488,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_RADIO_GROUP')); ?>"
                                                         for="bfElementTypeRadioGroupGroupsTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_GROUP'); ?>
@@ -500,7 +500,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_RADIO_GROUP_READONLY')); ?>"
                                                         for="bfElementTypeRadioGroupReadonly">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_READONLY'); ?>
@@ -508,7 +508,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value="" id="bfElementTypeRadioGroupReadonly" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_RADIO_GROUP_WRAP')); ?>"
                                                         for="bfElementTypeRadioGroupWrap">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_WRAP'); ?>
@@ -516,7 +516,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value="" id="bfElementTypeRadioGroupWrap" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeRadioGroupHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -525,7 +525,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeRadioGroupHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -540,7 +540,7 @@ use Joomla\CMS\Language\Text;
                                             <!-- SUBMITBUTTON BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeSubmitButton" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SUBMIT_VALUE')); ?>"
                                                         for="bfElementTypeSubmitButtonValue">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
@@ -550,7 +550,7 @@ use Joomla\CMS\Language\Text;
 
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SUBMIT_VALUE')); ?>"
                                                         for="bfElementTypeSubmitButtonValueTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
@@ -562,7 +562,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeSubmitButtonHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -571,7 +571,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeSubmitButtonHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -588,7 +588,7 @@ use Joomla\CMS\Language\Text;
                                             <!-- STRIPE BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeStripe" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_SECRETKEY')); ?>"
                                                         for="bfElementTypeStripeSecretKey">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_SECRETKEY'); ?>
@@ -596,7 +596,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeStripeSecretKey" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_PUBLISHABLEKEY')); ?>"
                                                         for="bfElementTypeStripePublishableKey">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_PUBLISHABLEKEY'); ?>
@@ -604,7 +604,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeStripePublishableKey" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_WEBHOOKSECRET')); ?>"
                                                         for="bfElementTypeStripeWebhookSecret">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_WEBHOOKSECRET'); ?>
@@ -612,7 +612,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeStripeWebhookSecret" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_WEBHOOKURL')); ?>"
                                                         for="bfElementTypeStripeWebhookUrl">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_WEBHOOKURL'); ?>
@@ -620,7 +620,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeStripeWebhookUrl" readonly />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_ITEMNAME')); ?>"
                                                         for="bfElementTypeStripeItemname">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_ITEMNAME'); ?>
@@ -629,7 +629,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_AMOUNT')); ?>"
                                                         for="bfElementTypeStripeAmount">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_AMOUNT'); ?>
@@ -638,7 +638,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_CURRENCY')); ?>"
                                                         for="bfElementTypeStripeCurrencyCode">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_CURRENCY_CODE'); ?>
@@ -647,7 +647,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_THANKYOUPAGE')); ?>"
                                                         for="bfElementTypeStripeThankYouPage">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_THANKYOU_PAGE'); ?>
@@ -656,7 +656,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_SENDNOTAFPAY')); ?>"
                                                         for="bfElementTypeStripeSendNotificationAfterPayment">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_NOTIFICATION_AFTER_PAYMENT'); ?>
@@ -666,7 +666,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_KLARNA')); ?>"
                                                         for="bfElementTypeStripeKlarna">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_KLARNA'); ?>
@@ -676,7 +676,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_IDEAL')); ?>"
                                                         for="bfElementTypeStripeIdeal">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_IDEAL'); ?>
@@ -685,7 +685,7 @@ use Joomla\CMS\Language\Text;
                                                         id="bfElementTypeStripeIdeal" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeStripeHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -694,7 +694,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeStripeHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -711,7 +711,7 @@ use Joomla\CMS\Language\Text;
                                             <!-- PAYPAL BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypePayPal" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAYPAL_BUSINESS')); ?>"
                                                         for="bfElementTypePayPalBusiness">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_BUSINESS'); ?>
@@ -719,7 +719,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypePayPalBusiness" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAYPAL_TOKEN')); ?>"
                                                         for="bfElementTypePayPalToken">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_TOKEN'); ?>
@@ -727,7 +727,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypePayPalToken" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAYPAL_ITEMNAME')); ?>"
                                                         for="bfElementTypePayPalItemname">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_ITEMNAME'); ?>
@@ -735,7 +735,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypePayPalItemname" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAYPAL_ITEMNUMBER')); ?>"
                                                         for="bfElementTypePayPalItemnumber">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_ITEMNUMBER'); ?>
@@ -743,7 +743,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypePayPalItemnumber" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAYPAL_AMOUNT')); ?>"
                                                         for="bfElementTypePayPalAmount">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_AMOUNT'); ?>
@@ -751,7 +751,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypePayPalAmount" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAYPAL_TAX')); ?>"
                                                         for="bfElementTypePayPalTax">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_TAX'); ?>
@@ -759,7 +759,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypePayPalTax" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAYPAL_THANKYOUPAGE')); ?>"
                                                         for="bfElementTypePayPalThankYouPage">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_THANKYOU_PAGE'); ?>
@@ -767,7 +767,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypePayPalThankYouPage" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAYPAL_CANCEL')); ?>"
                                                         for="bfElementTypePayPalCancelURL">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_CANCEL_URL'); ?>
@@ -775,7 +775,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypePayPalCancelURL" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAYPAL_LOCALE')); ?>"
                                                         for="bfElementTypePayPalLocale">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_LOCALE'); ?>
@@ -783,7 +783,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypePayPalLocale" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAYPAL_CURRENCY')); ?>"
                                                         for="bfElementTypePayPalCurrencyCode">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_CURRENCY_CODE'); ?>
@@ -791,7 +791,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypePayPalCurrencyCode" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_PAYPAL_SENDNOTAFPAY')); ?>"
                                                         for="bfElementTypePayPalSendNotificationAfterPayment">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_NOTIFICATION_AFTER_PAYMENT'); ?>
@@ -800,7 +800,7 @@ use Joomla\CMS\Language\Text;
                                                         id="bfElementTypePayPalSendNotificationAfterPayment" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypePayPalHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -809,7 +809,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypePayPalHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -824,7 +824,7 @@ use Joomla\CMS\Language\Text;
                                             <!-- CAPTCHA BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCaptcha" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeCaptchaHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -833,7 +833,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeCaptchaHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -845,7 +845,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CAPTCHA_WIDTH')); ?>"
                                                         for="bfElementTypeCaptchaWidth">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_CAPTCHA_WIDTH'); ?>
@@ -858,7 +858,7 @@ use Joomla\CMS\Language\Text;
                                             <div class="bfElementTypeClass" id="bfElementTypeReCaptcha" style="display:none">
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label for="bfElementTypeReCaptchaNew" class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label for="bfElementTypeReCaptchaNew" class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RECAPTCHA_NEW_CAPTCHA_HINT')); ?>">reCaptcha</label>
 
                                                     <label>
@@ -873,31 +873,31 @@ use Joomla\CMS\Language\Text;
                                                     </label>
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RECAPTCHA_PUBKEY')); ?>"
                                                         for=bfElementTypeReCaptchaPubkey><?php echo Text::_('COM_BREEZINGFORMSNG_PUBLIC_KEY'); ?></label>
                                                     <input type="text" value="" id="bfElementTypeReCaptchaPubkey" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RECAPTCHA_PRIVKEY')); ?>"
                                                         for=bfElementTypeReCaptchaPrivkey><?php echo Text::_('COM_BREEZINGFORMSNG_PRIVATE_KEY'); ?></label>
                                                     <input type="text" value="" id="bfElementTypeReCaptchaPrivkey" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RECAPTCHA_THEME')); ?>"
                                                         for=bfElementTypeReCaptchaTheme><?php echo Text::_('COM_BREEZINGFORMSNG_Theme'); ?></label>
                                                     <input type="text" value="red" id="bfElementTypeReCaptchaTheme" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RECAPTCHA_SIZE')); ?>"
                                                         for=bfElementTypeReCaptchaSize><?php echo Text::_('COM_BREEZINGFORMSNG_RECAPTCHA_SIZE'); ?></label>
                                                     <input type="text" value="normal" id="bfElementTypeReCaptchaSize" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeReCaptchaHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -906,7 +906,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeReCaptchaHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -922,7 +922,7 @@ use Joomla\CMS\Language\Text;
                                             <div class="bfElementTypeClass" id="bfElementTypeCalendarResponsive"
                                                 style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CALENDAR_FORMAT')); ?>"
                                                         for="bfElementTypeCalendarResponsiveFormat">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_FORMAT'); ?>
@@ -931,7 +931,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CALENDAR_FORMAT')); ?>"
                                                         for="bfElementTypeCalendarResponsiveFormatTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_FORMAT'); ?>
@@ -944,7 +944,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CALENDAR_VALUE')); ?>"
                                                         for="bfElementTypeCalendarResponsiveValue">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
@@ -953,7 +953,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CALENDAR_VALUE')); ?>"
                                                         for="bfElementTypeCalendarResponsiveValueTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
@@ -972,7 +972,7 @@ use Joomla\CMS\Language\Text;
                                                     ?>
 
                                                     <div class="bfPropertyWrap bfng-field">
-                                                        <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                        <label class="bfPropertyLabel bfng-field__label"
                                                             title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_ICON')); ?>"
                                                             for="bfElementTypeCalendarResponsiveIcon">
                                                             <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_ICON'); ?>
@@ -982,7 +982,7 @@ use Joomla\CMS\Language\Text;
 
                                                 <?php } ?>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CALENDAR_SIZE')); ?>"
                                                         for="bfElementTypeCalendarResponsiveSize">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_SIZE'); ?>
@@ -990,7 +990,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeCalendarResponsiveSize" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeCalendarResponsiveHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -999,7 +999,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeCalendarResponsiveHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1014,7 +1014,7 @@ use Joomla\CMS\Language\Text;
                                             <!-- CALENDAR BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCalendar" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CALENDAR_FORMAT')); ?>"
                                                         for="bfElementTypeCalendarFormat">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_FORMAT'); ?>
@@ -1023,7 +1023,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CALENDAR_FORMAT')); ?>"
                                                         for="bfElementTypeCalendarFormatTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_FORMAT'); ?>
@@ -1035,7 +1035,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CALENDAR_VALUE')); ?>"
                                                         for="bfElementTypeCalendarValue">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
@@ -1044,7 +1044,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CALENDAR_VALUE')); ?>"
                                                         for="bfElementTypeCalendarValueTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
@@ -1063,7 +1063,7 @@ use Joomla\CMS\Language\Text;
                                                     ?>
 
                                                     <div class="bfPropertyWrap bfng-field">
-                                                        <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                        <label class="bfPropertyLabel bfng-field__label"
                                                             title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_ICON')); ?>"
                                                             for="bfElementTypeCalendarIcon">
                                                             <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_ICON'); ?>
@@ -1074,7 +1074,7 @@ use Joomla\CMS\Language\Text;
                                                 <?php } ?>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CALENDAR_SIZE')); ?>"
                                                         for="bfElementTypeCalendarSize">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_SIZE'); ?>
@@ -1082,7 +1082,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeCalendarSize" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeCalendarHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1091,7 +1091,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeCalendarHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1107,7 +1107,7 @@ use Joomla\CMS\Language\Text;
                                             <div class="bfElementTypeClass" id="bfElementTypeSignature" style="display:none">
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeSignatureHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1116,7 +1116,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeSignatureHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1132,7 +1132,7 @@ use Joomla\CMS\Language\Text;
                                             <div class="bfElementTypeClass" id="bfElementTypeCheckboxGroup"
                                                 style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CHECKBOX_GROUP')); ?>"
                                                         for="bfElementTypeCheckboxGroupGroups">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_GROUP'); ?>
@@ -1141,7 +1141,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CHECKBOX_GROUP')); ?>"
                                                         for="bfElementTypeCheckboxGroupGroupsTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_GROUP'); ?>
@@ -1153,7 +1153,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CHECKBOX_GROUP_READONLY')); ?>"
                                                         for="bfElementTypeCheckboxGroupReadonly">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_READONLY'); ?>
@@ -1161,7 +1161,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value="" id="bfElementTypeCheckboxGroupReadonly" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CHECKBOX_GROUP_WRAP')); ?>"
                                                         for="bfElementTypeCheckboxGroupWrap">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_WRAP'); ?>
@@ -1169,7 +1169,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value="" id="bfElementTypeCheckboxGroupWrap" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeCheckboxGroupHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1178,7 +1178,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeCheckboxGroupHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1193,7 +1193,7 @@ use Joomla\CMS\Language\Text;
                                             <!-- CHECKBOX BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCheckbox" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_CHECKBOX_VALUE')); ?>"
                                                         for="bfElementTypeCheckboxValue">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALUE'); ?>
@@ -1201,7 +1201,7 @@ use Joomla\CMS\Language\Text;
                                                     <textarea id="bfElementTypeCheckboxValue"></textarea>
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_CHECKBOX_CHECKED')); ?>"
                                                         for="bfElementTypeCheckboxChecked">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_CHECKED'); ?>
@@ -1209,7 +1209,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value="" id="bfElementTypeCheckboxChecked" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_CHECKBOX_READONLY')); ?>"
                                                         for="bfElementTypeCheckboxReadonly">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_READONLY'); ?>
@@ -1217,7 +1217,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value="" id="bfElementTypeCheckboxReadonly" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeCheckboxHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1226,7 +1226,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeCheckboxHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1241,7 +1241,7 @@ use Joomla\CMS\Language\Text;
                                             <!-- SELECT BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeSelect" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SELECTLIST')); ?>"
                                                         for="bfElementTypeSelectList">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_LIST'); ?>
@@ -1250,7 +1250,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SELECTLIST')); ?>"
                                                         for="bfElementTypeSelectListTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_LIST'); ?>
@@ -1262,7 +1262,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SELECTLIST_MULTIPLE')); ?>"
                                                         for="bfElementTypeSelectMultiple">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_MULTIPLE'); ?>
@@ -1270,7 +1270,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value="" id="bfElementTypeSelectMultiple" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SELECTLIST_WIDTH')); ?>"
                                                         for="bfElementTypeSelectListWidth">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_WIDTH'); ?>
@@ -1278,7 +1278,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeSelectListWidth" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SELECTLIST_HEIGHT')); ?>"
                                                         for="bfElementTypeSelectListHeight">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HEIGHT'); ?>
@@ -1286,7 +1286,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="text" value="" id="bfElementTypeSelectListHeight" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_SELECTLIST_READONLY')); ?>"
                                                         for="bfElementTypeSelectReadonly">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_READONLY'); ?>
@@ -1294,7 +1294,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value="" id="bfElementTypeSelectReadonly" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeSelectHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1303,7 +1303,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeSelectHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1318,7 +1318,7 @@ use Joomla\CMS\Language\Text;
                                             <!-- FILE BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeFile" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_FILE_READONLY')); ?>"
                                                         for="bfElementTypeFileReadonly">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_READONLY'); ?>
@@ -1326,7 +1326,7 @@ use Joomla\CMS\Language\Text;
                                                     <input type="checkbox" value="" id="bfElementTypeFileReadonly" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeFileHint">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1335,7 +1335,7 @@ use Joomla\CMS\Language\Text;
                                                 </div>
 
                                                 <div class="bfPropertyWrap bfTrans bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
                                                         for="bfElementTypeFileHintTrans">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
@@ -1354,7 +1354,7 @@ use Joomla\CMS\Language\Text;
                                             </legend>
                                             <span id="bfElementValidationRequiredSet" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_VALIDATION_REQUIRED')); ?>"
                                                         for="bfElementValidationRequired">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALIDATION_REQUIRED'); ?>
@@ -1365,7 +1365,7 @@ use Joomla\CMS\Language\Text;
 
                                             <div>
                                                 <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel hasTooltip bfng-field__label"
+                                                    <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_VALIDATION_TYPE')); ?>"
                                                         for="bfElementValidation">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_VALIDATION_LABEL'); ?>
@@ -1394,7 +1394,7 @@ use Joomla\CMS\Language\Text;
                                                 <div id="bfValidationScriptFlags" style="display:none">
                                                     <hr />
                                                     <div class="bfPropertyWrap bfng-field">
-                                                        <span class="hasTooltip"
+                                                        <span
                                                             title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_VALIDATION_ERROR_MESSAGE')); ?>">
                                                             <?php echo Text::_('COM_BREEZINGFORMSNG_ERROR_MESSAGE') ?>
                                                             :
@@ -1404,7 +1404,7 @@ use Joomla\CMS\Language\Text;
                                                     </div>
 
                                                     <div class="bfPropertyWrap bfTrans bfng-field">
-                                                        <span class="hasTooltip"
+                                                        <span
                                                             title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_VALIDATION_ERROR_MESSAGE')); ?>">
                                                             <?php echo Text::_('COM_BREEZINGFORMSNG_ERROR_MESSAGE') ?>
                                                             <em>(
@@ -1420,7 +1420,7 @@ use Joomla\CMS\Language\Text;
                                                 <div id="bfValidationScriptLibrary" style="display:none">
                                                     <hr />
                                                     <div class="bfPropertyWrap bfng-field">
-                                                        <span class="hasTooltip"
+                                                        <span
                                                             title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_VALIDATION_SCRIPTLIBRARY')); ?>">
                                                             <?php echo Text::_('COM_BREEZINGFORMSNG_SCRIPT') ?>
                                                             :
@@ -1433,7 +1433,7 @@ use Joomla\CMS\Language\Text;
                                                 <div id="bfValidationScriptCustom" style="display:none">
                                                     <hr />
                                                     <div class="bfPropertyWrap bfng-field">
-                                                        <div class="hasTooltip btn btn-secondary"
+                                                        <div class="btn btn-secondary"
                                                             title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_VALIDATION_CODEFRAMEWORK')); ?>"
                                                             style="cursor: pointer;" onclick="createValidationCode()">
                                                             <?php echo Text::_('COM_BREEZINGFORMSNG_CREATE_CODE_FRAMEWORK') ?>

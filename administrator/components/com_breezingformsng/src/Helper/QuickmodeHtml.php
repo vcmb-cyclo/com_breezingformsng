@@ -177,7 +177,6 @@ final class QuickmodeHtml
         $document = $app->getDocument() ?? throw new \RuntimeException('The document is not available.');
         $wa = $document->getWebAssetManager();
         HTMLHelper::_('bootstrap.modal');
-        HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
         $wa->useScript('keepalive');
         $iconBase = Uri::root() . 'media/com_breezingformsng/images/quickmode/';
         $decodedThemeObject = null;
