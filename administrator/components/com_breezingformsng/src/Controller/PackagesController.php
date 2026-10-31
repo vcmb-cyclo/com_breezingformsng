@@ -103,9 +103,24 @@ final class PackagesController extends BaseController
             if ($path === '' || !is_uploaded_file($path)) {
                 throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_FILE_REQUIRED'));
             }
-            $this->model()->import($path);
+            $retiredForms = $this->model()->import($path);
             (new ActionLogger($app))->log(ActionLogger::IMPORTED, ActionLogger::PACKAGE);
             $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORTED'), 'message');
+
+            foreach ($retiredForms as $form) {
+                // The name comes from the uploaded file.
+                $name = htmlspecialchars($form['name'], ENT_QUOTES, 'UTF-8');
+                $app->enqueueMessage(
+                    $form['previousPublished'] === null
+                        ? Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_BACKEND_ONLY_NEW', $name)
+                        : Text::sprintf(
+                            'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_BACKEND_ONLY_REPLACED',
+                            $name,
+                            Text::_($form['previousPublished'] === 1 ? 'JPUBLISHED' : 'JUNPUBLISHED')
+                        ),
+                    'warning'
+                );
+            }
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
         }

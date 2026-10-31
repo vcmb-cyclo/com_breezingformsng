@@ -2002,93 +2002,40 @@ final class SubmissionEngine
             if (!$this->processor->inline) {
                 $url = ($this->processor->inframe)
                     ? $ff_mossite . '/index.php?format=html&tmpl=component'
-                    : (($this->processor->runmode == _FF_RUNMODE_FRONTEND)
-                        ? ''
-                        : 'index.php?format=html' . ($this->processor->app->getInput()->getCmd('tmpl', '')
-                            ? '&tmpl=' . $this->processor->app->getInput()->getCmd('tmpl', '')
-                            : ''));
+                    : '';
                 echo '<form name="ff_submitform" action="' . $url . '" method="post">' . nl();
             } // if
 
-            switch ($this->processor->runmode) {
-                case _FF_RUNMODE_FRONTEND:
-                    echo indentc(1) . '<input type="hidden" name="ff_form" value="'
-                        . htmlentities((string) $this->processor->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                    if ($this->processor->target > 1) {
-                        echo indentc(1) . '<input type="hidden" name="ff_target" value="'
-                            . htmlentities((string) $this->processor->target, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                    }
-                    if ($this->processor->inframe) {
-                        echo indentc(1) . '<input type="hidden" name="ff_frame" value="1"/>' . nl();
-                    }
-                    if ($this->processor->border) {
-                        echo indentc(1) . '<input type="hidden" name="ff_border" value="1"/>' . nl();
-                    }
-                    if ($this->processor->page != 1) {
-                        indentc(1) . '<input type="hidden" name="ff_page" value="'
-                            . htmlentities((string) $this->processor->page, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                    }
-                    if ($this->processor->align != 1) {
-                        echo indentc(1) . '<input type="hidden" name="ff_align" value="'
-                            . htmlentities((string) $this->processor->align, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                    }
-                    if ($this->processor->top != 0) {
-                        echo indentc(1) . '<input type="hidden" name="ff_top" value="'
-                            . htmlentities((string) $this->processor->top, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                    }
-                    reset($ff_otherparams);
-                    foreach ($ff_otherparams as $prop => $val) {
-                        echo indentc(1) . '<input type="hidden" name="'
-                            . htmlentities((string) $prop, ENT_QUOTES, 'UTF-8') . '" value="'
-                            . htmlentities((string) $val, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                    }
-                    break;
-
-                case _FF_RUNMODE_BACKEND:
-                    echo indentc(1) . '<input type="hidden" name="option" value="com_breezingformsng"/>' . nl() .
-                        indentc(1) . '<input type="hidden" name="act" value="run"/>' . nl() .
-                        indentc(1) . '<input type="hidden" name="ff_form" value="'
-                            . htmlentities((string) $this->processor->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
-                        indentc(1) . '<input type="hidden" name="ff_runmode" value="'
-                            . htmlentities((string) $this->processor->runmode, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                    if ($this->processor->target > 1) {
-                        echo indentc(1) . '<input type="hidden" name="ff_target" value="'
-                            . htmlentities((string) $this->processor->target, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                    }
-                    if ($this->processor->inframe) {
-                        echo indentc(1) . '<input type="hidden" name="ff_frame" value="1"/>' . nl();
-                    }
-                    if ($this->processor->border) {
-                        echo indentc(1) . '<input type="hidden" name="ff_border" value="1"/>' . nl();
-                    }
-                    if ($this->processor->page != 1) {
-                        indentc(1) . '<input type="hidden" name="ff_page" value="'
-                            . htmlentities((string) $this->processor->page, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                    }
-                    if ($this->processor->align != 1) {
-                        echo indentc(1) . '<input type="hidden" name="ff_align" value="'
-                            . htmlentities((string) $this->processor->align, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                    }
-                    if ($this->processor->top != 0) {
-                        echo indentc(1) . '<input type="hidden" name="ff_top" value="'
-                            . htmlentities((string) $this->processor->top, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                    }
-                    break;
-
-                default: // _FF_RUNMODE_PREVIEW:
-                    if ($this->processor->inframe) {
-                        echo indentc(1) . '<input type="hidden" name="option" value="com_breezingformsng"/>' . nl() .
-                            indentc(1) . '<input type="hidden" name="ff_frame" value="1"/>' . nl() .
-                            indentc(1) . '<input type="hidden" name="ff_form" value="'
-                                . htmlentities((string) $this->processor->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl() .
-                            indentc(1) . '<input type="hidden" name="ff_runmode" value="'
-                                . htmlentities((string) $this->processor->runmode, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                        if ($this->processor->page != 1) {
-                            indentc(1) . '<input type="hidden" name="ff_page" value="'
-                                . htmlentities((string) $this->processor->page, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
-                        }
-                    } // if
-            } // if
+            echo indentc(1) . '<input type="hidden" name="ff_form" value="'
+                . htmlentities((string) $this->processor->form, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
+            if ($this->processor->target > 1) {
+                echo indentc(1) . '<input type="hidden" name="ff_target" value="'
+                    . htmlentities((string) $this->processor->target, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
+            }
+            if ($this->processor->inframe) {
+                echo indentc(1) . '<input type="hidden" name="ff_frame" value="1"/>' . nl();
+            }
+            if ($this->processor->border) {
+                echo indentc(1) . '<input type="hidden" name="ff_border" value="1"/>' . nl();
+            }
+            if ($this->processor->page != 1) {
+                indentc(1) . '<input type="hidden" name="ff_page" value="'
+                    . htmlentities((string) $this->processor->page, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
+            }
+            if ($this->processor->align != 1) {
+                echo indentc(1) . '<input type="hidden" name="ff_align" value="'
+                    . htmlentities((string) $this->processor->align, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
+            }
+            if ($this->processor->top != 0) {
+                echo indentc(1) . '<input type="hidden" name="ff_top" value="'
+                    . htmlentities((string) $this->processor->top, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
+            }
+            reset($ff_otherparams);
+            foreach ($ff_otherparams as $prop => $val) {
+                echo indentc(1) . '<input type="hidden" name="'
+                    . htmlentities((string) $prop, ENT_QUOTES, 'UTF-8') . '" value="'
+                    . htmlentities((string) $val, ENT_QUOTES, 'UTF-8') . '"/>' . nl();
+            }
 
             echo indentc(1) . '<input type="hidden" name="ff_contentid" value="'
                 . $this->processor->app->getInput()->getInt('ff_contentid', 0) . '"/>' . nl() .

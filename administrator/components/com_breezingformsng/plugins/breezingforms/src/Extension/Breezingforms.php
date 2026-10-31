@@ -76,7 +76,7 @@ final class Breezingforms extends CMSPlugin implements SubscriberInterface
             ->from($database->quoteName('#__facileforms_forms'))
             ->where($database->quoteName('name') . ' = :name')
             ->where($database->quoteName('published') . ' = 1')
-            ->where($database->quoteName('runmode') . ' < 2')
+            ->where($database->quoteName('runmode') . ' <> 1')
             ->order([$database->quoteName('ordering'), $database->quoteName('id')])
             ->bind(':name', $name);
         $form = $database->setQuery($query, 0, 1)->loadObject();
@@ -101,7 +101,6 @@ final class Breezingforms extends CMSPlugin implements SubscriberInterface
             'ff_border' => (int) (($matches[3] ?? '') !== '' ? $matches[3] : 1),
             'ff_suffix' => $matches[5] ?? '',
             'ff_frame' => 0,
-            'ff_runmode' => 0,
             'ff_target' => $target,
             'raw' => false,
             'ff_task' => $isTarget ? $input->getCmd('ff_task', 'view') : 'view',

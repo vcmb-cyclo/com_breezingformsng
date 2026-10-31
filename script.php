@@ -2928,6 +2928,79 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     }
 
     /**
+     * The menu sync created administrator entries with an act=run link, which
+     * no route renders any more: they opened an empty page. Children go first,
+     * and an entry added by hand under one of them moves up instead of going.
+     */
+    private function removeAdminRunMenuEntries(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $linkPattern = 'index.php?option=' . self::TARGET_COMPONENT . '&act=run%';
+
+        try {
+            $query = $db->createQuery()
+                ->select($db->quoteName(['id', 'title', 'link']))
+                ->from($db->quoteName('#__menu'))
+                ->where($db->quoteName('client_id') . ' = 1')
+                ->where($db->quoteName('link') . ' LIKE :linkPattern')
+                ->order($db->quoteName('lft') . ' DESC')
+                ->bind(':linkPattern', $linkPattern);
+            $rows = $db->setQuery($query)->loadObjectList() ?: [];
+
+            foreach ($rows as $row) {
+                $menu = new Menu($db);
+
+                if (!$menu->delete((int) $row->id, false)) {
+                    throw new \RuntimeException('Menu entry ' . (int) $row->id . ' could not be removed.');
+                }
+
+                $this->log("[OK] Removed administrator menu entry {$row->id} ({$row->title}): {$row->link}");
+            }
+        } catch (\Throwable $e) {
+            $this->log('Unable to remove act=run administrator menu entries: ' . $e->getMessage(), Log::WARNING);
+        }
+    }
+
+    /**
+     * The form's run-mode option is gone, so a form saved as "Backend only" (1)
+     * would stay off the site with no setting to change it. It stays off the
+     * site as an unpublished form, which the administrator can publish. Other
+     * values already show on the site and are left as they are.
+     */
+    private function retireBackendOnlyForms(): void
+    {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+
+        try {
+            $query = $db->createQuery()
+                ->select($db->quoteName(['id', 'name', 'published']))
+                ->from($db->quoteName('#__facileforms_forms'))
+                ->where($db->quoteName('runmode') . ' = 1');
+            $forms = $db->setQuery($query)->loadObjectList() ?: [];
+
+            foreach ($forms as $form) {
+                $formId = (int) $form->id;
+                $db->setQuery(
+                    $db->createQuery()
+                        ->update($db->quoteName('#__facileforms_forms'))
+                        ->set($db->quoteName('published') . ' = 0')
+                        ->set($db->quoteName('runmode') . ' = 0')
+                        ->where($db->quoteName('id') . ' = :id')
+                        ->bind(':id', $formId, ParameterType::INTEGER)
+                )->execute();
+                // Enough to restore the row by hand: runmode 1 and this published value.
+                $this->log(
+                    "[WARNING] Form {$formId} ({$form->name}) was saved as \"Backend only\": it is now unpublished"
+                    . " (published was {$form->published}). Publish it to show it on the site.",
+                    Log::WARNING
+                );
+            }
+        } catch (\Throwable $e) {
+            $this->log('Unable to retire backend-only forms: ' . $e->getMessage(), Log::WARNING);
+        }
+    }
+
+    /**
      * PDF generation now uses the native tc-lib-pdf API. Customisations
      * written for the former TCPDF API are not executed safely anymore, so
      * list them for the administrator instead of letting the next form
@@ -3140,6 +3213,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->normalizeJoomlaComponentReferences();
 
         if ($this->ensureAdminMenuRootNodeExists()) {
+            // Before the main entry is ensured: a level 1 act=run row would be
+            // taken for it and rewritten.
+            $this->removeAdminRunMenuEntries();
             $this->ensureAdministrationMainMenuEntry();
             $this->migrateStaleMenuLinks();
             $this->ensureAdministrationSubmenuEntries();
@@ -4116,6 +4192,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 $this->migrateDatabase();
             }
             $this->migrateLegacyConfig();
+            $this->retireBackendOnlyForms();
             // The forms, scripts and pieces taken over keep their state as
             // their version of origin before the standard library updates them.
             $this->registerContentTypes();

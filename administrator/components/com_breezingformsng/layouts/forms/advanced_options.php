@@ -187,17 +187,6 @@ $paneErrors = [
       </div>
 
       <div class="row mb-3">
-        <label class="col-sm-3 col-form-label"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_RUNMODE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_RUNMODE'); ?></label>
-        <div class="col-sm-9">
-          <select class="form-select" name="runmode">
-            <option value="0"<?= (int) ($f->runmode ?? 0) === 0 ? ' selected' : ''; ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_RUNMODE_FRONTEND'); ?></option>
-            <option value="1"<?= (int) ($f->runmode ?? 0) === 1 ? ' selected' : ''; ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_RUNMODE_BACKEND'); ?></option>
-            <option value="2"<?= (int) ($f->runmode ?? 0) === 2 ? ' selected' : ''; ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_RUNMODE_BOTH'); ?></option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row mb-3">
         <label class="col-sm-3 col-form-label"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_DBLOG_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_DBLOG'); ?></label>
         <div class="col-sm-9 d-flex gap-3">
           <div class="form-check">

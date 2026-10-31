@@ -243,21 +243,16 @@ final class RenderingEngine
     /**
      * @return array<string, int|string>
      */
-    private function buildFormContext(bool $includeRunmode): array
+    private function buildFormContext(): array
     {
         $input = $this->processor->app->getInput();
-        $context = [
+
+        return [
             'ff_contentid' => $input->getInt('ff_contentid', 0),
             'ff_applic' => $input->getWord('ff_applic', ''),
             'ff_record_id' => $this->processor->record_id ?? '',
             'ff_module_id' => $input->getInt('ff_module_id', 0),
         ];
-
-        if ($includeRunmode) {
-            $context['ff_runmode'] = $this->processor->runmode ?? '';
-        }
-
-        return $context;
     }
 
 
@@ -654,7 +649,7 @@ final class RenderingEngine
         if (!$this->processor->inline) {
             $current_url = Uri::getInstance()->toString();
 
-            $url = ($this->processor->inframe) ? $ff_mossite . '/index.php?format=html&tmpl=component' : (($this->processor->runmode == _FF_RUNMODE_FRONTEND) ? $current_url : 'index.php?format=html' . ($this->processor->app->getInput()->getCmd('tmpl', '') ? '&tmpl=' . $this->processor->app->getInput()->getCmd('tmpl', '') : $current_url));
+            $url = ($this->processor->inframe) ? $ff_mossite . '/index.php?format=html&tmpl=component' : $current_url;
             echo $this->quickModeFormTagBuilder()->build(
                 $url,
                 (string) $this->processor->form_id,
@@ -777,59 +772,20 @@ final class RenderingEngine
             echo $this->hiddenFormFieldsBuilder()->paymentMethod(indentc(1));
         }
 
-        switch ($this->processor->runmode) {
-            case _FF_RUNMODE_FRONTEND:
-                $input = $this->processor->app->getInput();
-                $context = $this->buildFormContext(false);
-                $routing = $this->hiddenFormFieldsBuilder()->routing($input->getString('return', ''), $input->getString('tmpl', ''), nl());
-                $technical = $this->buildContentBuilderTechnicalFields();
-                echo $this->formEnvelopeMarkupBuilder()->frontend(
-                    $this->hiddenFormFieldsBuilder()->context($context, indentc(1)),
-                    $this->hiddenFormFieldsBuilder()->submission((int) $this->processor->form, indentc(1), nl()),
-                    $this->hiddenFormFieldsBuilder()->token(\Joomla\CMS\HTML\HTMLHelper::_('form.token'), indentc(1), nl()),
-                    $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align ?? 1, $this->processor->top ?? 0, indentc(1), true, true, true, true, nl()),
-                    $this->hiddenFormFieldsBuilder()->additional($ff_otherparams, indentc(1), nl()),
-                    $technical,
-                    $routing,
-                    nl()
-                );
-                break;
-
-            case _FF_RUNMODE_BACKEND:
-                $input = $this->processor->app->getInput();
-                $context = $this->buildFormContext(true);
-                $routing = $this->hiddenFormFieldsBuilder()->routing($input->getString('return', ''), $input->getString('tmpl', ''), nl());
-                $technical = $this->buildContentBuilderTechnicalFields();
-                echo $this->formEnvelopeMarkupBuilder()->backend(
-                    $this->hiddenFormFieldsBuilder()->submission((int) $this->processor->form, indentc(1), nl(), true),
-                    $this->hiddenFormFieldsBuilder()->token(\Joomla\CMS\HTML\HTMLHelper::_('form.token'), indentc(1), nl()),
-                    $this->hiddenFormFieldsBuilder()->context($context, indentc(1)),
-                    $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align ?? 1, $this->processor->top ?? 0, indentc(1), true, true, true, true, nl()),
-                    $technical,
-                    $routing,
-                    nl()
-                );
-                break;
-
-            default:
-                if (!$this->processor->inframe) {
-                    break;
-                }
-                $input = $this->processor->app->getInput();
-                $context = $this->buildFormContext(true);
-                $routing = $this->hiddenFormFieldsBuilder()->routing($input->getString('return', ''), $input->getString('tmpl', ''), nl());
-                $technical = $this->buildContentBuilderTechnicalFields();
-                echo $this->formEnvelopeMarkupBuilder()->preview(
-                    true,
-                    $this->hiddenFormFieldsBuilder()->submission((int) $this->processor->form, indentc(1), nl(), false, true),
-                    $this->hiddenFormFieldsBuilder()->token(\Joomla\CMS\HTML\HTMLHelper::_('form.token'), indentc(1), nl()),
-                    $this->hiddenFormFieldsBuilder()->context($context, indentc(1)),
-                    $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align ?? 1, $this->processor->top ?? 0, indentc(1), false, true, false, false, nl()),
-                    $technical,
-                    $routing,
-                    nl()
-                );
-        }
+        $input = $this->processor->app->getInput();
+        $context = $this->buildFormContext();
+        $routing = $this->hiddenFormFieldsBuilder()->routing($input->getString('return', ''), $input->getString('tmpl', ''), nl());
+        $technical = $this->buildContentBuilderTechnicalFields();
+        echo $this->formEnvelopeMarkupBuilder()->frontend(
+            $this->hiddenFormFieldsBuilder()->context($context, indentc(1)),
+            $this->hiddenFormFieldsBuilder()->submission((int) $this->processor->form, indentc(1), nl()),
+            $this->hiddenFormFieldsBuilder()->token(\Joomla\CMS\HTML\HTMLHelper::_('form.token'), indentc(1), nl()),
+            $this->hiddenFormFieldsBuilder()->optionalContext((int) $this->processor->target, (bool) $this->processor->inframe, (bool) $this->processor->border, (int) $this->processor->page, $this->processor->align ?? 1, $this->processor->top ?? 0, indentc(1), true, true, true, true, nl()),
+            $this->hiddenFormFieldsBuilder()->additional($ff_otherparams, indentc(1), nl()),
+            $technical,
+            $routing,
+            nl()
+        );
         if ($this->executeAfterFormPiece()) {
             $this->abortViewRendering();
             return;

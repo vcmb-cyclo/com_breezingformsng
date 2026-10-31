@@ -80,8 +80,6 @@ final class ProcessorRuntimeContextInitializerTest extends TestCase
             $application,
             $configuration,
             $this->formrow(),
-            0,
-            false,
             12,
             2,
             '/var/www',
@@ -102,7 +100,7 @@ final class ProcessorRuntimeContextInitializerTest extends TestCase
         self::assertSame('/var/www/images/contact/2/uploads/4/{cbsite}', $context->paths->uploads);
     }
 
-    public function testPreservesPreviewGridAndMaskedRequestState(): void
+    public function testPreservesMaskedRequestState(): void
     {
         $application = new CMSApplication();
         $application->config = ['offset' => 'UTC'];
@@ -114,8 +112,6 @@ final class ProcessorRuntimeContextInitializerTest extends TestCase
             $application,
             $configuration,
             $this->formrow(),
-            2,
-            false,
             9,
             1,
             '/var/www',
@@ -123,9 +119,9 @@ final class ProcessorRuntimeContextInitializerTest extends TestCase
         );
 
         self::assertSame('0', $context->requestMetadata->ip);
-        self::assertSame('adminForm', $context->display->formId);
-        self::assertSame('index.php?tmpl=component', $context->display->homepage);
-        self::assertTrue($context->display->showGrid);
+        self::assertSame('ff_form9', $context->display->formId);
+        self::assertSame('https://example.test', $context->display->homepage);
+        self::assertFalse($context->display->showGrid);
     }
 
     public function testFacadeDelegatesRuntimeContextAssembly(): void
