@@ -17,7 +17,7 @@
 	<authorEmail>bf@vcmb.fr</authorEmail>
 	<authorUrl>https://breezingforms-ng.vcmb.fr</authorUrl>
 	<changelogurl>https://raw.githubusercontent.com/vcmb-cyclo/com_breezingformsng/main/com_breezingformsng_changelog.xml</changelogurl>
-	<version>6.1.0-RC10</version>
+	<version>6.1.0-RC11</version>
 	<buildType>development</buildType>
 	<buildTimestamp></buildTimestamp>
 	<description>COM_BREEZINGFORMSNG_XML_DESCRIPTION</description>
