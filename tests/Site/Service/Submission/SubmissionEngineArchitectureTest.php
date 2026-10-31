@@ -210,10 +210,7 @@ final class SubmissionEngineArchitectureTest extends TestCase
     {
         $engine = (string) file_get_contents(__DIR__ . '/../../../../components/com_breezingformsng/src/Service/Submission/SubmissionEngine.php');
 
-        self::assertLessThan(
-            strpos($engine, '// CONTENTBUILDER BEGIN'),
-            strpos($engine, 'if ($this->stripeFieldAmountIsRefused())')
-        );
-        self::assertStringContainsString("?: 'EUR'", $engine);
+        self::assertLessThan(strpos($engine, 'logToDatabase($cbResult)'), strpos($engine, 'if ($this->stripeFieldAmountIsRefused())'));
+        self::assertLessThan(strpos($engine, 'if ($this->stripeFieldAmountIsRefused())'), strpos($engine, 'piece3cond'));
     }
 }

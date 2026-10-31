@@ -618,6 +618,7 @@ $paneErrors = [
       <?php endforeach; ?>
       <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_dropbox_submission_enabled"<?= $labelTip('COM_BREEZINGFORMSNG_DROPBOX_UPLOAD_SUBMISSION_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DROPBOX_UPLOAD_SUBMISSION'); ?></label><div class="col-sm-9 form-check form-switch"><input type="hidden" name="dropbox_submission_enabled" value="0"><input class="form-check-input" id="jf_dropbox_submission_enabled" type="checkbox" name="dropbox_submission_enabled" value="1"<?= !empty($f->dropbox_submission_enabled) ? ' checked' : ''; ?>></div></div>
       <div class="row mb-3"><span class="col-sm-3 col-form-label"<?= $labelTip('COM_BREEZINGFORMSNG_DROPBOX_SUBMISSION_TYPES_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DROPBOX_SUBMISSION_TYPES'); ?></span><div class="col-sm-9 d-flex gap-3">
+        <input type="hidden" name="dropbox_submission_types[]" value="">
         <?php $dropboxTypes = explode(',', (string) ($f->dropbox_submission_types ?? 'pdf')); foreach (['pdf', 'csv', 'xml'] as $type): ?>
         <label class="form-check"><input class="form-check-input" type="checkbox" name="dropbox_submission_types[]" value="<?= $type; ?>"<?= in_array($type, $dropboxTypes, true) ? ' checked' : ''; ?>> <?= strtoupper($type); ?></label>
         <?php endforeach; ?>

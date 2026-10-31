@@ -218,7 +218,7 @@ class FormOptionsModel extends BaseDatabaseModel
             $id = (int) $db->insertid();
         }
 
-        $this->reorder((string) ($sets['package'] ?? ''));
+        $this->reorder((string) ($sets['package'] ?? $this->getForm($id)->package ?? ''));
 
         PluginHelper::importPlugin('breezingforms_addons');
         $this->getDispatcher()

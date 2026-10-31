@@ -135,37 +135,41 @@ class QuickmodeController extends BaseController
 
             $db = Factory::getContainer()->get(DatabaseInterface::class);
 
-            if ($form > 0) {
-                try {
-                    // A form without versions keeps the state it had before this save.
-                    (new FormVersioning($db, $this->getFormModel()))->keepOrigin($form);
-                } catch (\Throwable $e) {
-                    Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
-                    $app->setHeader('status', '500', true);
-                    $app->close();
-                }
-            }
-
             // The browser reads the answer as the form id: a PHP notice shown on
             // a site that displays errors would stop the save right after this
             // request, without the options, the version or the reload.
             ob_start();
-            $formId = $this->getQuickmodeModel()->save($form, $dataObject);
-            (new ContentBuilderFormSync($app, $db))->sync($formId);
 
-            if ($input->getInt('recordVersion', 1) === 1) {
-                try {
-                    (new FormVersioning($db, $this->getFormModel()))->record($formId);
-                } catch (\Throwable $e) {
-                    // The save stays; this request only answers with the form id.
-                    Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
+            try {
+                if ($form > 0) {
+                    try {
+                        // A form without versions keeps the state it had before this save.
+                        (new FormVersioning($db, $this->getFormModel()))->keepOrigin($form);
+                    } catch (\Throwable $e) {
+                        Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
+                        $app->setHeader('status', '500', true);
+                        ob_end_clean();
+                        $app->close();
+                    }
                 }
-            }
 
-            $notices = trim((string) ob_get_clean());
+                $formId = $this->getQuickmodeModel()->save($form, $dataObject);
+                (new ContentBuilderFormSync($app, $db))->sync($formId);
 
-            if ($notices !== '') {
-                Log::add('QuickMode save of form ' . $formId . ': ' . mb_substr(strip_tags($notices), 0, 1000), Log::WARNING, 'com_breezingformsng');
+                if ($input->getInt('recordVersion', 1) === 1) {
+                    try {
+                        (new FormVersioning($db, $this->getFormModel()))->record($formId);
+                    } catch (\Throwable $e) {
+                        // The save stays; this request only answers with the form id.
+                        Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
+                    }
+                }
+            } finally {
+                $notices = trim((string) ob_get_clean());
+
+                if ($notices !== '') {
+                    Log::add('QuickMode save of form ' . $form . ': ' . mb_substr(strip_tags($notices), 0, 1000), Log::WARNING, 'com_breezingformsng');
+                }
             }
 
             $app->setHeader('Content-Type', 'text/plain; charset=UTF-8', true);

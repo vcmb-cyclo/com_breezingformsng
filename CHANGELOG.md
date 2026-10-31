@@ -15,10 +15,15 @@
 - Saving the QuickMode *Options* tab no longer breaks the rich text editors of the page.
 - The save message reads « Enregistrement en cours… (1/2) », with its icon. It called a chunk of
   the save a package, without spaces, and showed a box instead of the icon.
-- The amount of the Stripe element is fixed or comes from a form field. An empty or invalid value
-  in the field refuses the form before any record or notification. The value comes from the
-  browser: make the field read only, and compute it on the server if the visitor must not be
-  able to change it.
+- The amount of the Stripe element is fixed or comes from a form field. An empty or invalid amount,
+  one outside what Stripe charges, or one a list or radio field does not offer refuses the form
+  before any record or notification. A Begin Submit piece runs first and can compute the amount.
+  The value of a free field comes from the browser, and the visitor can change it.
+- Stripe amounts follow the currency: zero-decimal currencies such as JPY are no longer charged
+  100 times too much, and three-decimal ones such as KWD are correct. A selected `bfPaymentSelect`
+  list value must be one the list offers.
+- QuickMode refuses to save a Stripe element set to an amount field without an existing field.
+- A QuickMode save that gets an unexpected answer now says so and can be run again.
 - The Stripe element groups its settings in sections, masks its keys on screen, shows the test or
   production mode from the secret key, and warns about a local webhook address. The keys are still
   sent to the administrator's browser with the form data.

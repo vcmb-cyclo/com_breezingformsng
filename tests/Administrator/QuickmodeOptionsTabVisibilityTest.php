@@ -67,8 +67,9 @@ final class QuickmodeOptionsTabVisibilityTest extends TestCase
     {
         $script = (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/js/admin/quickmode-app.js');
 
-        self::assertStringContainsString('if (new URL(returnUrl, location.href).href === location.href) {', $script);
+        self::assertStringContainsString('target.pathname + target.search === location.pathname + location.search', $script);
         self::assertStringContainsString('location.reload();', $script);
+        self::assertStringContainsString("labels['COM_BREEZINGFORMSNG_QM_SAVE_FAILED']", $script);
     }
 
     public function testTheSaveAnswersOnlyTheFormId(): void
@@ -76,13 +77,14 @@ final class QuickmodeOptionsTabVisibilityTest extends TestCase
         $controller = (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Controller/QuickmodeController.php');
 
         self::assertLessThan(
-            strpos($controller, '$this->getQuickmodeModel()->save($form, $dataObject)'),
+            strpos($controller, '->keepOrigin($form)'),
             strpos($controller, 'ob_start();')
         );
         self::assertLessThan(
             strpos($controller, 'echo $formId;'),
             strpos($controller, 'ob_get_clean()')
         );
+        self::assertStringContainsString('} finally {', $controller);
     }
 
     public function testTheSaveProgressIsAFullSentenceWithTheChartTokens(): void

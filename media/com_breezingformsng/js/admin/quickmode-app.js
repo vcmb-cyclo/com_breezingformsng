@@ -451,6 +451,26 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                         appScope.refreshTree();
                     });
 
+                // A Stripe amount from a field must name a field of the form, or
+                // every payment would be refused on the site.
+                this.stripeAmountFieldsAreSet = function () {
+                    var items = [];
+                    appScope.getItemsFlattened(appScope.dataObject, items);
+                    var names = items.map(function (item) { return item.properties.bfName; });
+                    var missing = items.find(function (item) {
+                        var properties = item.properties;
+                        return properties.bfType === 'bfStripe'
+                            && properties.amountSource === 'field'
+                            && names.indexOf(properties.amountField) === -1;
+                    });
+
+                    if (missing) {
+                        alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_QM_STRIPE_AMOUNT_FIELD_MISSING'].replace('%s', missing.properties.bfName));
+                    }
+
+                    return !missing;
+                };
+
                 this.saveButton = function () {
                     var error = false;
                     if (appScope.selectedTreeElement) {
@@ -1004,9 +1024,11 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                             var returnUrl = "index.php?option=com_breezingformsng&task=quickmode.display&form=" + encodeURIComponent(data) + "&active_language_code=" + encodeURIComponent(document.adminForm.active_language_code.value)
                                 + (activeTab ? "#" + activeTab : "");
                             submitOptionsTab(function () {
-                                // Only the hash would change on a second save: no reload,
-                                // an old version number and the Options fields left moved.
-                                if (new URL(returnUrl, location.href).href === location.href) {
+                                // Only the hash would change, whatever the open tab: no reload,
+                                // an old version number and a Save button left locked.
+                                var target = new URL(returnUrl, location.href);
+                                if (target.pathname + target.search === location.pathname + location.search) {
+                                    location.hash = target.hash;
                                     location.reload();
                                 } else {
                                     location.href = returnUrl;
@@ -1020,7 +1042,13 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                             chunki++;
                             setTimeout(postTheStuff, 100);
 
-                        }
+                        } else {
+    // An answer that is neither the form id nor empty: say it and allow a new try.
+    JQuery("#bfSaveQueue").removeClass('bfng-message--info').addClass('bfng-message--danger')
+        .text(BFQMConfig.labels['COM_BREEZINGFORMSNG_QM_SAVE_FAILED'])
+        .css({ display: '', visibility: 'visible' });
+    saveButtonClicked = false;
+}
                     },
                     error: function () {
                         JQuery("#bfSaveQueue").get(0).innerHTML = 'connection problem, trying again in 120 seconds, please wait...';
@@ -1092,7 +1120,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                                 return false;
                             };
 
-                            if (!app.saveButton()) {
+                            if (!app.saveButton() || !app.stripeAmountFieldsAreSet()) {
                                 saveButtonClicked = false;
                                 return;
                             }

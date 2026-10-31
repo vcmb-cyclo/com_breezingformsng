@@ -1050,19 +1050,6 @@ final class SubmissionEngine
             return;
         }
 
-        // Checked first: a refused amount must not leave a record or send a notification.
-        if ($this->stripeFieldAmountIsRefused()) {
-            Log::add(
-                'Form ' . (int) $this->processor->form . ' was not submitted: the Stripe amount field is empty or invalid.',
-                Log::WARNING,
-                'com_breezingformsng'
-            );
-            echo '<div class="alert alert-warning">'
-                . Text::_('COM_BREEZINGFORMSNG_STRIPE_AMOUNT_INVALID')
-                . '</div>';
-            return;
-        }
-
         // CONTENTBUILDER BEGIN
         $cbRecordId = 0;
         $cbEmailNotifications = false;
@@ -1210,6 +1197,20 @@ final class SubmissionEngine
                 break;
         } // switch
         if ($this->processor->bury()) {
+            return;
+        }
+
+        // After the Begin Submit piece, which can compute the amount, and before
+        // anything is stored or sent: a refused amount leaves no record.
+        if ($this->stripeFieldAmountIsRefused()) {
+            Log::add(
+                'Form ' . (int) $this->processor->form . ' was not submitted: the Stripe amount is empty, invalid or not offered by the form.',
+                Log::WARNING,
+                'com_breezingformsng'
+            );
+            echo '<div class="alert alert-warning">'
+                . Text::_('COM_BREEZINGFORMSNG_STRIPE_AMOUNT_INVALID')
+                . '</div>';
             return;
         }
 
@@ -1505,8 +1506,11 @@ final class SubmissionEngine
                                     }
 
                                     $options['amount'] = $this->stripeAmount()->comesFromField($options)
-                                        ? (int) $this->stripeFieldCents($options)
-                                        : (int) round(floatval($options['amount']) * 100);
+                                        ? (int) $this->stripeFieldAmount($options)
+                                        : $this->stripeAmount()->fixedToMinorUnits(
+                                            $options['amount'],
+                                            $this->stripeAmount()->currency($options)
+                                        );
 
                                     $this->processor->app->getSession()->set(
                                         'bf_stripe_last_payment_amount' . $this->processor->record_id,
@@ -1629,7 +1633,7 @@ final class SubmissionEngine
                                             'line_items' => [
                                                 [
                                                     'price_data' => [
-                                                        'currency' => strtolower(trim((string) ($options['currencyCode'] ?? '')) ?: 'EUR'),
+                                                        'currency' => strtolower($this->stripeAmount()->currency($options)),
                                                         'product_data' => [
                                                             'name' => "$productName",
                                                         ],
@@ -2187,36 +2191,69 @@ final class SubmissionEngine
         return new StripeAmount();
     }
 
+    /** @return mixed */
+    private function stripeFieldValue(string $field)
+    {
+        return $this->processor->app->getInput()->get('ff_nm_' . $field, [], 'array');
+    }
+
+    /** @return list<array<mixed>> */
+    private function formElements(): array
+    {
+        $areas = json_decode((string) $this->processor->formrow->template_areas, true);
+        $elements = [];
+
+        foreach (is_array($areas) ? $areas : [] as $area) {
+            foreach ((array) ($area['elements'] ?? []) as $element) {
+                $elements[] = (array) $element;
+            }
+        }
+
+        return $elements;
+    }
+
+    /** Whether a list field offers the value: a free field offers anything. */
+    private function stripeValueIsOffered(string $field): bool
+    {
+        foreach ($this->formElements() as $element) {
+            if (
+                ($element['name'] ?? '') === $field
+                && in_array($element['internalType'] ?? '', ['bfSelect', 'bfRadioGroup'], true)
+            ) {
+                return $this->stripeAmount()->isListed($this->stripeFieldValue($field), (string) ($element['data2'] ?? ''));
+            }
+        }
+
+        return true;
+    }
+
     /** @param array<mixed> $options */
-    private function stripeFieldCents(array $options): ?int
+    private function stripeFieldAmount(array $options): ?int
     {
         $field = trim((string) ($options['amountField'] ?? ''));
 
-        return $field === ''
-            ? null
-            : $this->stripeAmount()->toCents(
-                $this->processor->app->getInput()->get('ff_nm_' . $field, [], 'array')
-            );
+        if ($field === '' || !$this->stripeValueIsOffered($field)) {
+            return null;
+        }
+
+        return $this->stripeAmount()->toMinorUnits($this->stripeFieldValue($field), $this->stripeAmount()->currency($options));
     }
 
-    /** A Stripe payment whose amount comes from a field holding no valid amount. */
+    /** A Stripe payment whose amount is not valid, or not one the form offers. */
     private function stripeFieldAmountIsRefused(): bool
     {
         if ($this->processor->app->getInput()->getString('ff_payment_method', '') !== 'Stripe') {
             return false;
         }
 
-        $areas = json_decode((string) $this->processor->formrow->template_areas, true);
+        foreach ($this->formElements() as $element) {
+            // The first Stripe element is the one the payment uses.
+            if (($element['internalType'] ?? '') === 'bfStripe') {
+                $options = (array) ($element['options'] ?? []);
 
-        foreach (is_array($areas) ? $areas : [] as $area) {
-            foreach ((array) ($area['elements'] ?? []) as $element) {
-                if (
-                    ($element['internalType'] ?? '') === 'bfStripe'
-                    && $this->stripeAmount()->comesFromField((array) ($element['options'] ?? []))
-                    && $this->stripeFieldCents((array) $element['options']) === null
-                ) {
-                    return true;
-                }
+                return $this->stripeAmount()->comesFromField($options)
+                    ? $this->stripeFieldAmount($options) === null
+                    : $this->stripeFieldValue('bfPaymentSelect') !== [] && !$this->stripeValueIsOffered('bfPaymentSelect');
             }
         }
 

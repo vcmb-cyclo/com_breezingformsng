@@ -1137,7 +1137,18 @@ import { JoomlaEditor } from 'editor-api';
         });
 
         JQuery(document).on('click', '[data-bf-stripe-copy]', function () {
-            navigator.clipboard.writeText(document.getElementById(this.getAttribute('data-bf-stripe-copy')).value);
+            var field = document.getElementById(this.getAttribute('data-bf-stripe-copy'));
+            // navigator.clipboard only exists on HTTPS and localhost.
+            var selectAndCopy = function () {
+                field.select();
+                document.execCommand('copy');
+            };
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(field.value).catch(selectAndCopy);
+            } else {
+                selectAndCopy();
+            }
         });
 
         appScope.toggleStripeAmountSource = function (fromField) {

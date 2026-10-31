@@ -228,4 +228,90 @@ test.describe('forms', () => {
 
         expect(formRow(formId).records).toBe(before + 1);
     });
+
+    test('a save from another tab reloads the page too', async () => {
+        await openQuickMode();
+        const before = Number(formRow(formId).version);
+        await page.locator('#fragment-2-tab').click();
+        await saveQuickMode();
+
+        expect(Number(formRow(formId).version)).toBe(before + 1);
+        await expect(page.locator('h1.page-title')).toContainText(`(version ${before + 1})`);
+
+        // Back on the first tab, the Save button still answers.
+        await page.locator('#fragment-1-tab').click();
+        await saveQuickMode();
+        expect(Number(formRow(formId).version)).toBe(before + 2);
+    });
+
+    test('a Stripe amount from a field is required, then checked before any record', async () => {
+        await openQuickMode();
+        await selectNode('section');
+        await page.locator('#bfNewElementButton').click();
+        await page.waitForFunction(() => {
+            const app = window.BFQMApp;
+            const items = [];
+            app.getItemsFlattened(app.dataObject, items);
+            return items.length === 2;
+        });
+
+        const added = await page.evaluate(() => {
+            const app = window.BFQMApp;
+            const items = [];
+            app.getItemsFlattened(app.dataObject, items);
+            return items.find((item) => item.properties.bfName !== 'firstname').attributes.id;
+        });
+        await page.locator(`[id="${added}"] > a`).click();
+        await page.waitForTimeout(300);
+        await page.locator('#bfElementTypeButton').click();
+        await page.locator('#bfElementTypeList .bfng-type-icon--bfElementTypeStripe').first().click();
+        await page.waitForTimeout(300);
+        await page.fill('#bfElementLabel', 'Pay');
+        await page.fill('#bfElementName', 'paybutton');
+        await page.locator('label[for="bfElementTypeStripeAmountSourceField"]').click();
+
+        // No field chosen: the save stops and says so.
+        let refusal = '';
+        page.once('dialog', async (dialog) => {
+            refusal = dialog.message();
+            await dialog.accept();
+        });
+        await page.locator('#toolbar-apply').click();
+        await expect.poll(() => refusal).toContain('paybutton');
+
+        await page.selectOption('#bfElementTypeStripeAmountField', 'firstname');
+        await saveQuickMode();
+
+        const submit = async (value) => {
+            await page.goto(`index.php?option=com_breezingformsng&ff_form=${formId}`);
+            await page.evaluate((amount) => {
+                const form = document.querySelector('form[name^="ff_form"], form[id^="ff_form"]');
+                const add = (name, content) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = name;
+                    input.value = content;
+                    form.appendChild(input);
+                };
+                form.querySelector('[name="ff_nm_firstname[]"]').value = amount;
+                add('ff_payment_method', 'Stripe');
+                add('ff_task', 'submit');
+                HTMLFormElement.prototype.submit.call(form);
+            }, value);
+            await expect(page.locator('.alert-warning').first()).toContainText(/amount|montant/i);
+        };
+
+        const before = formRow(formId).records;
+
+        for (const value of ['', 'abc', '0.10']) {
+            await submit(value);
+        }
+
+        // A Begin Submit piece runs first: what it computes replaces what the browser sent.
+        db('set', String(formId), 'piece3cond', '2');
+        db('set', String(formId), 'piece3code', "\\Joomla\\CMS\\Factory::getApplication()->getInput()->set('ff_nm_firstname', ['abc']);");
+        await submit('25.00');
+
+        expect(formRow(formId).records).toBe(before);
+    });
 });
