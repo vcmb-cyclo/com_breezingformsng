@@ -19,7 +19,7 @@ The supported versions require Joomla 6 and PHP 8.3 or later.
 
 Do not report a vulnerability in a public issue, pull request or discussion.
 
-Send it by email to [bf@vcmb.fr](mailto:bf@vcmb.fr), with:
+Open an issue, with:
 
 - the affected version, and your Joomla and PHP versions;
 - the affected screen, URL or file;
