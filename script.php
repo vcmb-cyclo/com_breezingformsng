@@ -2689,7 +2689,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         try {
             $db->setQuery(
                 $db->createQuery()
-                    ->select($db->quoteName(['extension_id', 'enabled', 'manifest_cache']))
+                    ->select($db->quoteName(['extension_id', 'enabled', 'manifest_cache', 'params']))
                     ->from($db->quoteName('#__extensions'))
                     ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
                     ->where($db->quoteName('element') . ' = ' . $db->quote(self::TARGET_COMPONENT))
@@ -2737,7 +2737,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         $keepId = 0;
-        $bestScore = [-1, -1, -1, -1];
+        $bestScore = [-1, -1, -1, -1, -1];
+        $configurationRow = [];
+        $bestConfigurationScore = [-1, -1, -1, -1];
 
         foreach ($rows as $row) {
             $id = (int) ($row['extension_id'] ?? 0);
@@ -2753,7 +2755,19 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 ) !== false ? 1 : 0;
             $enabled = (int) ($row['enabled'] ?? 0);
             $refs = (int) ($menuRefs[$id] ?? 0);
-            $score = [$isNg, $enabled, $refs, $id];
+            $configurationScore = [$isNg, $enabled, $refs, $id];
+            if ($configurationRow === [] || $configurationScore > $bestConfigurationScore) {
+                $configurationRow = $row;
+                $bestConfigurationScore = $configurationScore;
+            }
+
+            // Preflight can rename the legacy row after Joomla has already
+            // selected an install route. Keep the new row Joomla just stored,
+            // including its manifest, namespace and schema registration.
+            $isIncoming = $this->incomingPackageVersion !== ''
+                && is_array($manifest)
+                && ($manifest['version'] ?? '') === $this->incomingPackageVersion ? 1 : 0;
+            $score = [$isIncoming, $isNg, $enabled, $refs, $id];
 
             if ($keepId === 0 || $score > $bestScore) {
                 $keepId = $id;
@@ -2763,6 +2777,40 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         if ($keepId <= 0) {
             return;
+        }
+
+        if ((int) ($configurationRow['extension_id'] ?? 0) !== $keepId) {
+            foreach ($rows as $row) {
+                if ((int) ($row['extension_id'] ?? 0) !== $keepId) {
+                    continue;
+                }
+
+                $currentParams = json_decode((string) ($row['params'] ?? ''), true);
+                $preservedParams = json_decode((string) ($configurationRow['params'] ?? ''), true);
+                $params = json_encode(array_replace(
+                    is_array($currentParams) ? $currentParams : [],
+                    is_array($preservedParams) ? $preservedParams : []
+                ), JSON_THROW_ON_ERROR);
+
+                try {
+                    $db->setQuery(
+                        $db->createQuery()
+                            ->update($db->quoteName('#__extensions'))
+                            ->set($db->quoteName('params') . ' = :params')
+                            ->where($db->quoteName('extension_id') . ' = :extensionId')
+                            ->bind(':params', $params)
+                            ->bind(':extensionId', $keepId, ParameterType::INTEGER)
+                    )->execute();
+                } catch (\Throwable $e) {
+                    $this->log(
+                        'Unable to preserve BreezingForms component parameters: ' . $e->getMessage(),
+                        Log::ERROR
+                    );
+                    return;
+                }
+
+                break;
+            }
         }
 
         $removeIds = array_values(array_filter($ids, static fn(int $id): bool => $id !== $keepId));

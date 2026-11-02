@@ -43,6 +43,9 @@ jobs:
           set -o pipefail
           git ls-files -z '*.php' | xargs -0 -n1 -P4 php -l > /dev/null
 
+      - name: Test legacy component migration regression
+        run: php tests/InstallerComponentDeduplicationRegression.php
+
   lint:
     name: PHP, XML and translation checks
     runs-on: ubuntu-latest
@@ -136,7 +139,9 @@ jobs:
         run: npm run lint:inline-scripts
 
       - name: Run JavaScript tests
-        run: npm run test:tree-model
+        run: |
+          npm run test:tree-model
+          node --test tests/JavaScript/about-easter-egg.test.mjs
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
