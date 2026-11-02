@@ -373,12 +373,14 @@ test.describe('forms', () => {
             await page.route('**/*', (route) => {
                 if (route.request().method() === 'POST' && /ff_payment_method/.test(route.request().postData() || '')) {
                     posted = route.request().postData();
-                    return route.abort();
+                    return route.fulfill({ status: 200, contentType: 'text/html', body: '<!DOCTYPE html><title>Posted</title>' });
                 }
                 return route.continue();
             });
+            const answered = page.waitForEvent('load');
             await page.locator('[name="ff_nm_paybutton[]"]').click();
-            await expect.poll(() => posted).toMatch(/name="ff_payment_method"\s+Stripe/);
+            await answered;
+            expect(posted).toMatch(/name="ff_payment_method"\s+Stripe/);
             await page.unroute('**/*');
         };
 
