@@ -215,6 +215,52 @@ test.describe('forms', () => {
         expect(row.mb_emailxml).toBe('4');
     });
 
+    test('a QuickMode save shows its message on the page', async () => {
+        await openQuickMode();
+        await saveQuickMode();
+
+        await expect(page.locator('joomla-alert[type="success"]')).toContainText(formRow(formId).title);
+    });
+
+    test('a QuickMode save stores the tree values and the options of the mail', async () => {
+        db('set', String(formId), 'pages', '9');
+        await openQuickMode();
+        const pages = await page.evaluate(() => window.BFQMApp.dataObject.children.length);
+
+        await page.fill('#bfFormMailRecipient', 'tree@example.invalid');
+        await saveQuickMode();
+        let row = formRow(formId);
+        expect(Number(row.pages)).toBe(pages);
+        expect(row.emailadr).toBe('tree@example.invalid');
+
+        // Edited on the Options tab, the recipient stays too.
+        await page.evaluate(() => { document.getElementById('jf_emailadr').value = 'options@example.invalid'; });
+        await saveQuickMode();
+        row = formRow(formId);
+        expect(row.emailadr).toBe('options@example.invalid');
+        await expect(page.locator('#bfFormMailRecipient')).toHaveValue('options@example.invalid');
+    });
+
+    test('a failed Options save says so, stays on the page and can be tried again', async () => {
+        await openQuickMode();
+        const before = Number(formRow(formId).version);
+        const token = await page.evaluate(() => {
+            const field = [...document.querySelectorAll('#bfOptionsFieldsWrap input[type=hidden]')]
+                .find((input) => /^[0-9a-f]{32}$/.test(input.name));
+            const name = field.name;
+            field.name = 'badtoken';
+            return name;
+        });
+
+        await page.locator('#toolbar-apply').click();
+        await expect(page.locator('joomla-alert[type="danger"], joomla-alert[type="error"]').first()).toBeVisible();
+        expect(Number(formRow(formId).version)).toBe(before);
+
+        await page.evaluate((name) => { document.querySelector('[name="badtoken"]').name = name; }, token);
+        await saveQuickMode();
+        expect(Number(formRow(formId).version)).toBe(before + 1);
+    });
+
     test('a submission on the site makes a record', async () => {
         // The notifications stay off the journey.
         db('set', String(formId), 'emailntf', '0');
@@ -313,6 +359,18 @@ test.describe('forms', () => {
         await submit('25.00');
 
         expect(formRow(formId).records).toBe(before);
+    });
+
+    test('a QuickMode save keeps the script of the thank-you page', async () => {
+        await openQuickMode();
+        await page.locator('#bfNewPageButton').click();
+        await selectNode('root');
+        await page.locator('#bfFormLastPageThankYou').check();
+        await saveQuickMode();
+
+        const row = formRow(formId);
+        expect(Number(row.script2cond)).toBe(2);
+        expect(row.script2code).toContain('ff_switchpage');
     });
 
     test('a package import warns about the forms it unpublishes', async () => {

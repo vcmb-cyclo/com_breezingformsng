@@ -3,6 +3,39 @@
 	<changelog>
 		<element>com_breezingformsng</element>
 		<type>component</type>
+		<version>6.1.0-RC13</version>
+		<addition>
+			<item>Show an Unsaved changes badge in the script editor, and warn before leaving the page with unsaved changes.</item>
+		</addition>
+		<change>
+			<item>Take the number of pages of a QuickMode form from its tree: a value typed in the Pages field of the Options tab is ignored, and a wrong number is corrected at the next save.</item>
+		</change>
+		<fix>
+			<item>Show the messages of a QuickMode save on the page. A failed save of the options looked like a success: the page now shows the error, stays open and lets you save again.</item>
+			<item>Keep the notification recipient and the thank-you page script changed in the QuickMode tree, instead of putting back their old values.</item>
+		</fix>
+	</changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
+        <version>6.1.0-RC12</version>
+        <addition>
+            <item>Click the Piranha logo five times on the About page to play its animation. The final frame stays visible until you close it with X or Escape; opening it again restarts playback.</item>
+        </addition>
+        <change>
+            <item>Remove the unavailable administrator form display, its Run Mode option and the Sync to Joomla Menu button. The update removes administrator menu entries that opened empty pages.</item>
+            <item>Forms previously saved as Backend only are unpublished during updates and package imports to keep them off the site. Publish them explicitly to make them available. Imports warn about each affected form, show its previous publication state and record the change in the log.</item>
+        </change>
+        <fix>
+            <item>Display forms saved as Frontend &amp; Backend through modules and article plugins instead of reporting that the form was not found.</item>
+            <item>Keep a form's display mode unchanged when restoring a saved version.</item>
+            <item>Remove obsolete administrator links from form error reports.</item>
+            <item>Preserve component settings and correctly register the installed version when upgrading a legacy BreezingForms installation.</item>
+        </fix>
+    </changelog>
+	<changelog>
+		<element>com_breezingformsng</element>
+		<type>component</type>
 		<version>6.1.0-RC11</version>
 		<addition>
 			<item>Let the amount of the Stripe element come from a form field, and refuse the form when the field holds no valid amount.</item>

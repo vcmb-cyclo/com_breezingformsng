@@ -68,6 +68,8 @@ forbidden_patterns=(
     '^administrator/components/com_breezingformsng/vendor/staabm/'
     '^\.git/'
     '^\.github/'
+    '/vendor/(.*/)?(test|tests|PHPStan|\.github|bin)/'
+    '/vendor/.*(phpunit[^/]*\.xml|phpstan[^/]*\.neon|phpcs[^/]*\.xml)'
     '^scripts/'
     '^build/'
     '/cache/'

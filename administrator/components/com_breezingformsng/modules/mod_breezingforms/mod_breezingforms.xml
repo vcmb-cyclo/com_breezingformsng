@@ -2,10 +2,10 @@
 <extension type="module" client="site" method="upgrade">
     <name>MOD_BREEZINGFORMS</name>
     <author>XDA/GIL</author>
-    <creationDate>2026-10-08</creationDate>
+    <creationDate>2026-11-02</creationDate>
     <copyright>Copyright 2008-2020 Markus Bopp; 2024-2026 XDA+GIL</copyright>
     <license>GNU General Public License version 2 or later</license>
-    <version>6.1.0-RC11</version>
+    <version>6.1.0-RC13</version>
     <description>MOD_BREEZINGFORMS_XML_DESCRIPTION</description>
     <namespace path="src">Vcmb\Module\Breezingforms</namespace>
     <files>

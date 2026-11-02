@@ -1,4 +1,5 @@
 var __bfOpts = Joomla.getOptions('com_breezingformsng.scripts-edit') || {};
+var __bfEditSubmitting = false;
 
 function checkIdentifier(value, name)
 						{
@@ -28,6 +29,7 @@ function checkIdentifier(value, name)
 					alert(error);
 					return;
 				}
+				__bfEditSubmitting = true;
 				Joomla.submitform('script.' + action, form);
 			} // submitbutton
 			Joomla.submitbutton = submitbutton;
@@ -127,6 +129,13 @@ function checkIdentifier(value, name)
 						button.title = '';
 					}
 				});
+			}
+
+			function syncEditDirtyBadge() {
+				var badge = document.getElementById('bf-edit-script-dirty-badge');
+				if (badge) {
+					badge.hidden = !isEditDirty();
+				}
 			}
 
 			function syncEditTestToolbarButton() {
@@ -383,6 +392,7 @@ function checkIdentifier(value, name)
 			window.addEventListener('load', function () {
 				var form = document.getElementById('adminForm');
 				syncEditUnitTestsButton();
+				syncEditDirtyBadge();
 				syncEditSaveToolbarButton();
 				syncEditTestToolbarButton();
 				syncEditPrevNextToolbarButtons();
@@ -390,6 +400,7 @@ function checkIdentifier(value, name)
 					['input', 'change'].forEach(function (eventName) {
 						form.addEventListener(eventName, function () {
 							syncEditUnitTestsButton();
+							syncEditDirtyBadge();
 							syncEditSaveToolbarButton();
 							syncEditTestToolbarButton();
 							syncEditPrevNextToolbarButtons();
@@ -397,9 +408,17 @@ function checkIdentifier(value, name)
 					});
 					window.setInterval(function () {
 						syncEditUnitTestsButton();
+						syncEditDirtyBadge();
 						syncEditSaveToolbarButton();
 						syncEditTestToolbarButton();
 						syncEditPrevNextToolbarButtons();
 					}, 500);
+				}
+			});
+
+			window.addEventListener('beforeunload', function (event) {
+				if (!__bfEditSubmitting && isEditDirty()) {
+					event.preventDefault();
+					event.returnValue = '';
 				}
 			});

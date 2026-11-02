@@ -81,6 +81,79 @@ class FormsController extends AdminController
             return;
         }
 
+        $data = $this->postedOptions();
+
+        try {
+            $id = $this->storeOptions($data);
+            $pkg = (string) ($data['package'] ?? $this->getOptionsModel()->getForm($id)->package ?? '');
+            // Set by the QuickMode "Options" tab's own form (bfOptionsForm) so
+            // the redirect lands back on that tab instead of the default one.
+            $returnTab = $input->post->getCmd('return_tab', '');
+            $app->redirect(Route::_(
+                'index.php?option=com_breezingformsng&task=quickmode.display&form=' . $id
+                . ($pkg !== '' ? '&pkg=' . rawurlencode($pkg) : '')
+                . ($returnTab === 'options' ? '#fragment-3' : ''),
+                false
+            ));
+        } catch (\Throwable $e) {
+            $app->enqueueMessage($e->getMessage(), 'error');
+            $id  = (int) ($data['id'] ?? 0);
+            $pkg = (string) ($data['package'] ?? '');
+            $app->redirect(Route::_(
+                'index.php?option=com_breezingformsng&view=forms&layout=edit&id=' . $id . '&pkg=' . rawurlencode($pkg),
+                false
+            ));
+        }
+    }
+
+    /**
+     * Saves the QuickMode "Options" tab, posted by quickmode-app.js right after
+     * the tree. Answers without a redirect: followed by the browser, it would
+     * show the messages of this save in a response nobody reads. The page shows
+     * them when it reloads, or the message of this answer after a failure.
+     */
+    public function saveOptions(): void
+    {
+        $app = $this->app;
+        ob_start();
+
+        if (!$this->checkToken('post', false)) {
+            $this->answerOptionsSave(Text::_('JINVALID_TOKEN'));
+
+            return;
+        }
+
+        try {
+            $this->storeOptions($this->postedOptions());
+        } catch (\Throwable $e) {
+            $this->answerOptionsSave($e->getMessage());
+
+            return;
+        }
+
+        $app->getSession()->set('application.queue', $app->getMessageQueue());
+        $this->answerOptionsSave();
+    }
+
+    private function answerOptionsSave(?string $error = null): void
+    {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        $this->app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
+        $this->app->sendHeaders();
+        echo new JsonResponse(null, $error, $error !== null, true);
+        $this->app->close();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function postedOptions(): array
+    {
+        $input = $this->app->getInput();
+
         $data = $input->post->getArray([
             'id'                       => 'INT',
             'package'                  => 'STRING',
@@ -181,45 +254,43 @@ class FormsController extends AdminController
             $data[$field] = $input->post->get($field, null, 'raw');
         }
 
-        try {
-            if ($id > 0) {
-                // A form without versions keeps the state it had before this save.
-                (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class), $this->getFormModel()))->keepOrigin($id);
-            }
+        return $data;
+    }
 
-            $id  = $this->getOptionsModel()->saveForm($data);
+    /**
+     * Stores the posted options and the version of the form, with the message
+     * of the save in the queue.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return int The form id
+     */
+    private function storeOptions(array $data): int
+    {
+        $app = $this->app;
+        $id  = (int) ($data['id'] ?? 0);
 
-            try {
-                (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class), $this->getFormModel()))->record($id);
-            } catch (\Throwable $e) {
-                $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_KEPT', $e->getMessage()), 'warning');
-            }
-            $pkg = (string) ($data['package'] ?? $this->getOptionsModel()->getForm($id)->package ?? '');
-            // Set by the QuickMode "Options" tab's own form (bfOptionsForm) so
-            // the redirect lands back on that tab instead of the default one.
-            $returnTab = $input->post->getCmd('return_tab', '');
-            $title = trim((string) ($data['title'] ?? ''));
-            $app->enqueueMessage(
-                $title !== ''
-                    ? Text::sprintf('COM_BREEZINGFORMSNG_FORM_SAVE_SUCCESS', $title)
-                    : Text::_('JLIB_APPLICATION_SAVE_SUCCESS'),
-                'message'
-            );
-            $app->redirect(Route::_(
-                'index.php?option=com_breezingformsng&task=quickmode.display&form=' . $id
-                . ($pkg !== '' ? '&pkg=' . rawurlencode($pkg) : '')
-                . ($returnTab === 'options' ? '#fragment-3' : ''),
-                false
-            ));
-        } catch (\Throwable $e) {
-            $app->enqueueMessage($e->getMessage(), 'error');
-            $id  = (int) ($data['id'] ?? 0);
-            $pkg = (string) ($data['package'] ?? '');
-            $app->redirect(Route::_(
-                'index.php?option=com_breezingformsng&view=forms&layout=edit&id=' . $id . '&pkg=' . rawurlencode($pkg),
-                false
-            ));
+        if ($id > 0) {
+            // A form without versions keeps the state it had before this save.
+            (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class), $this->getFormModel()))->keepOrigin($id);
         }
+
+        $id  = $this->getOptionsModel()->saveForm($data);
+
+        try {
+            (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class), $this->getFormModel()))->record($id);
+        } catch (\Throwable $e) {
+            $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_KEPT', $e->getMessage()), 'warning');
+        }
+        $title = trim((string) ($data['title'] ?? ''));
+        $app->enqueueMessage(
+            $title !== ''
+                ? Text::sprintf('COM_BREEZINGFORMSNG_FORM_SAVE_SUCCESS', $title)
+                : Text::_('JLIB_APPLICATION_SAVE_SUCCESS'),
+            'message'
+        );
+
+        return $id;
     }
 
     public function cancel(): void
