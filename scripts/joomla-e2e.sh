@@ -4,7 +4,7 @@
 set -euo pipefail
 
 archive="${1:?Usage: scripts/joomla-e2e.sh path/to/package.zip}"
-joomla_image="${JOOMLA_IMAGE:-joomla:6.1.2-php8.3-apache}"
+joomla_image="${JOOMLA_IMAGE:-joomla:6.2.0-php8.3-apache}"
 mysql_image="${MYSQL_IMAGE:-mysql:8.4}"
 port="${BFNG_E2E_PORT:-18080}"
 run_id="${GITHUB_RUN_ID:-local}-$$"

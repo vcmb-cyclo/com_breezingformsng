@@ -17,7 +17,6 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\AdminController;
-use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\MenuModel;
@@ -48,29 +47,6 @@ class MenusController extends AdminController
         } else {
             $this->getMenuModel()->copy($ids);
             $this->setMessage(Text::plural('COM_BREEZINGFORMSNG_MENUS_N_COPIED', count($ids)));
-        }
-
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&view=menus', false));
-    }
-
-    /**
-     * Rebuilds the entries of the Joomla administration menu.
-     */
-    public function sync(): void
-    {
-        $this->checkToken();
-
-        try {
-            $menusComponent = $this->app->bootComponent('com_menus');
-
-            if (!$menusComponent instanceof MVCFactoryServiceInterface) {
-                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-            }
-
-            $this->getMenuModel()->syncToJoomlaMenu($menusComponent->getMVCFactory());
-            $this->setMessage(Text::_('COM_BREEZINGFORMSNG_MENUS_SAVED'));
-        } catch (\Throwable $e) {
-            $this->setMessage($e->getMessage(), 'error');
         }
 
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&view=menus', false));

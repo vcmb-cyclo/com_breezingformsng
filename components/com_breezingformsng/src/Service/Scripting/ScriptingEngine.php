@@ -768,7 +768,7 @@ final class ScriptingEngine
             "    var totheight = height+value;" . nl() .
             "    if ((mode==2 && totheight>ff_currentheight) || (mode!=2 && totheight!=ff_currentheight)) {" . nl();
         if ($this->processor->inframe) {
-            $fn = ($this->processor->runmode == _FF_RUNMODE_PREVIEW) ? 'ff_prevframe' : ('ff_frame' . $this->processor->form);
+            $fn = 'ff_frame' . $this->processor->form;
             $code .= "        parent.document.getElementById('" . $fn . "').style.height = totheight+'px';" . nl() .
                 "        parent.window.scrollTo(0,0);" . nl() .
                 "        document.getElementById('ff_formdiv" . $this->processor->form . "').style.height = height+'px';" . nl() .

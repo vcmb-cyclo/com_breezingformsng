@@ -16,9 +16,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Filter\OutputFilter;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
@@ -213,110 +211,5 @@ class MenuModel extends AdminModel
         }
 
         return (int) $this->getState($this->getName() . '.id');
-    }
-
-    public function syncToJoomlaMenu(MVCFactoryInterface $menusFactory): void
-    {
-        $db = $this->getDatabase();
-        $linkPattern = 'index.php?option=com_breezingformsng&act=run%';
-        $existingQuery = $db->createQuery()
-            ->select($db->quoteName('id'))
-            ->from($db->quoteName('#__menu'))
-            ->where($db->quoteName('link') . ' LIKE :linkPattern')
-            ->where($db->quoteName('checked_out') . ' = 0')
-            ->bind(':linkPattern', $linkPattern);
-        $existingIds = array_map('intval', $db->setQuery($existingQuery)->loadColumn() ?: []);
-
-        $menuQ = $db->createQuery()
-            ->select('*')
-            ->from($db->quoteName('#__facileforms_compmenus'))
-            ->where($db->quoteName('published') . ' = 1')
-            ->order($db->quoteName('id') . ' ASC');
-        $items = $db->setQuery($menuQ)->loadObjectList() ?: [];
-
-        $componentLink = 'index.php?option=com_breezingformsng';
-        $parentRowQ = $db->createQuery()
-            ->select($db->quoteName('id'))
-            ->from($db->quoteName('#__menu'))
-            ->where($db->quoteName('link') . ' = :componentLink')
-            ->where($db->quoteName('client_id') . ' = 1')
-            ->bind(':componentLink', $componentLink);
-        $rootMenuId = (int) $db->setQuery($parentRowQ)->loadResult();
-
-        if ($rootMenuId < 1) {
-            return;
-        }
-
-        $extensionType = 'component';
-        $element = 'com_breezingformsng';
-        $extensionQuery = $db->createQuery()
-            ->select($db->quoteName('extension_id'))
-            ->from($db->quoteName('#__extensions'))
-            ->where($db->quoteName('type') . ' = :extensionType')
-            ->where($db->quoteName('element') . ' = :element')
-            ->bind(':extensionType', $extensionType)
-            ->bind(':element', $element);
-        $componentId = (int) $db->setQuery($extensionQuery)->loadResult();
-
-        if ($componentId < 1) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-        }
-
-        $idMap = [];
-
-        $db->transactionStart();
-
-        try {
-            foreach ($existingIds as $existingId) {
-                $table = $menusFactory->createTable('Menu', 'Administrator');
-
-                if (!$table instanceof \Joomla\CMS\Table\Menu || !$table->delete($existingId, true)) {
-                    throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-                }
-            }
-
-            foreach ($items as $item) {
-                $parentId = (int) $item->parent;
-                $joomlaParentId = $parentId > 0 && isset($idMap[$parentId])
-                    ? $idMap[$parentId]
-                    : $rootMenuId;
-                $title = (string) $item->title;
-                $alias = OutputFilter::stringURLSafe($title) . '-' . (int) $item->id;
-                $table = $menusFactory->createTable('Menu', 'Administrator');
-
-                if (!$table instanceof \Joomla\CMS\Table\Menu) {
-                    throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-                }
-
-                $table->setLocation($joomlaParentId, 'last-child');
-                $data = [
-                    'menutype' => 'main',
-                    'title' => $title,
-                    'alias' => $alias,
-                    'link' => 'index.php?option=com_breezingformsng&act=run&ff_name=' . rawurlencode((string) $item->name),
-                    'type' => 'component',
-                    'published' => 1,
-                    'parent_id' => $joomlaParentId,
-                    'component_id' => $componentId,
-                    'browserNav' => 0,
-                    'access' => 0,
-                    'params' => '',
-                    'home' => 0,
-                    'language' => '*',
-                    'client_id' => 1,
-                ];
-
-                if (!$table->bind($data) || !$table->check() || !$table->store()) {
-                    throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-                }
-
-                $idMap[(int) $item->id] = (int) $table->id;
-            }
-
-            $db->transactionCommit();
-        } catch (\Throwable $exception) {
-            $db->transactionRollback();
-            throw $exception;
-        }
     }
 }

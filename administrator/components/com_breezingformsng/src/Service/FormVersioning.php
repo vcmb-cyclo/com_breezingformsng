@@ -36,11 +36,11 @@ final class FormVersioning
 
     /**
      * Columns a restore leaves as they are: identity, place in the list,
-     * publication, lock and audit, and what QuickMode rebuilds from the
-     * structure.
+     * publication, lock and audit, what QuickMode rebuilds from the structure,
+     * and the retired run mode.
      */
     private const KEPT_COLUMNS = [
-        'id', 'package', 'ordering', 'published', 'version',
+        'id', 'package', 'ordering', 'published', 'version', 'runmode',
         'checked_out', 'checked_out_time', 'created', 'created_by', 'modified', 'modified_by',
         'template_code', 'template_areas', 'template_code_processed',
     ];

@@ -77,8 +77,6 @@ class HtmlView extends BaseHtmlView
             $toolbar->delete('menus.delete')->message('JGLOBAL_CONFIRM_DELETE')->listCheck(true);
         }
 
-        $toolbar->standardButton('sync', 'COM_BREEZINGFORMSNG_MENUS_SYNC', 'menus.sync')->icon('icon-refresh')->listCheck(false);
-
         $document->getWebAssetManager()->useScript('table.columns')->useScript('multiselect');
     }
 }

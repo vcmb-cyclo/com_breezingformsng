@@ -19,19 +19,9 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\FormDisplayContextResolv
 
 final class FormDisplayContextResolverTest extends TestCase
 {
-    public function testResolvesFrontendFormAndRunMode(): void
+    public function testResolvesFrontendForm(): void
     {
-        $context = (new FormDisplayContextResolver())->resolve(
-            0,
-            false,
-            12,
-            0,
-            true,
-            0,
-            false,
-            0,
-            'https://example.test'
-        );
+        $context = (new FormDisplayContextResolver())->resolve(12, 0, true, 'https://example.test');
 
         self::assertSame(0, $context->inline);
         self::assertSame(0, $context->template);
@@ -41,79 +31,18 @@ final class FormDisplayContextResolverTest extends TestCase
         self::assertTrue($context->canRun);
     }
 
-    public function testFrontendRunsFormSavedForFrontendAndBackend(): void
+    public function testRunsFormSavedForFrontendAndBackend(): void
     {
-        $context = (new FormDisplayContextResolver())->resolve(
-            0,
-            false,
-            12,
-            2,
-            true,
-            0,
-            false,
-            0,
-            'https://example.test'
-        );
-
-        self::assertTrue($context->canRun);
+        self::assertTrue((new FormDisplayContextResolver())->resolve(12, 2, true, 'https://example.test')->canRun);
     }
 
-    public function testFrontendRejectsFormSavedForBackendOnly(): void
+    public function testRejectsFormSavedForBackendOnly(): void
     {
-        $context = (new FormDisplayContextResolver())->resolve(
-            0,
-            false,
-            12,
-            1,
-            true,
-            0,
-            false,
-            0,
-            'https://example.test'
-        );
-
-        self::assertFalse($context->canRun);
+        self::assertFalse((new FormDisplayContextResolver())->resolve(12, 1, true, 'https://example.test')->canRun);
     }
 
-    public function testResolvesBackendFrameAndRunModeRestriction(): void
+    public function testRejectsUnpublishedForm(): void
     {
-        $context = (new FormDisplayContextResolver())->resolve(
-            1,
-            true,
-            7,
-            1,
-            true,
-            0,
-            false,
-            0,
-            'https://example.test'
-        );
-
-        self::assertSame(0, $context->inline);
-        self::assertSame(0, $context->template);
-        self::assertSame('https://example.test/administrator/index.php?tmpl=component', $context->homepage);
-        self::assertFalse($context->canRun);
-    }
-
-    public function testResolvesPreviewGridAndRejectsUnpublishedForm(): void
-    {
-        $context = (new FormDisplayContextResolver())->resolve(
-            2,
-            false,
-            9,
-            0,
-            false,
-            1,
-            true,
-            2,
-            'https://example.test'
-        );
-
-        self::assertSame(1, $context->inline);
-        self::assertSame(1, $context->template);
-        self::assertSame('adminForm', $context->formId);
-        self::assertSame('index.php?tmpl=component', $context->homepage);
-        self::assertTrue($context->showGrid);
-        self::assertFalse($context->canRun);
+        self::assertFalse((new FormDisplayContextResolver())->resolve(9, 0, false, 'https://example.test')->canRun);
     }
 }

@@ -33,8 +33,6 @@ final class ProcessorRuntimeContextInitializer
         CMSApplication $application,
         FormConfiguration $configuration,
         object $formrow,
-        int $runMode,
-        bool $inFrame,
         int $formId,
         int $page,
         string $sitePath,
@@ -47,14 +45,9 @@ final class ProcessorRuntimeContextInitializer
             Text::_('COM_BREEZINGFORMSNG_PROCESS_UNKNOWN')
         );
         $displayContext = $this->displayContextResolver->resolve(
-            $runMode,
-            $inFrame,
             $formId,
             (int) $formrow->runmode,
             (bool) $formrow->published,
-            (int) $formrow->prevmode,
-            (int) $configuration->gridshow === 1,
-            (int) $configuration->gridsize,
             $siteUrl
         );
         $formPaths = $this->formPathResolver->resolve(

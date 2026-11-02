@@ -95,7 +95,6 @@ class FormsController extends AdminController
             'pages'                    => 'INT',
             'published'                => 'INT',
             'ordering'                 => 'INT',
-            'runmode'                  => 'INT',
             'prevmode'                 => 'INT',
             'prevwidth'                => 'INT',
             'autoheight'               => 'INT',
@@ -254,22 +253,6 @@ class FormsController extends AdminController
         }
 
         $this->setRedirect(Route::_(self::LIST_URL, false));
-    }
-
-    public function run(): void
-    {
-        $input  = $this->app->getInput();
-        $formId = $input->getInt('id', 0);
-
-        if ($formId <= 0) {
-            $this->app->redirect(Route::_(self::LIST_URL, false));
-            return;
-        }
-
-        $this->app->redirect(Route::_(
-            'index.php?option=com_breezingformsng&ff_form=' . $formId,
-            false
-        ));
     }
 
     public function setPublished(): void

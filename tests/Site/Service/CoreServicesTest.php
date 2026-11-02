@@ -204,29 +204,11 @@ final class CoreServicesTest extends TestCase
     }
 
     #[DataProvider('displayContextProvider')]
-    public function testResolvesFormDisplayContext(
-        int $runMode,
-        bool $inFrame,
-        int $formRunMode,
-        bool $published,
-        int $previewMode,
-        bool $gridEnabled,
-        int $gridSize,
-        array $expected
-    ): void {
-        $context = (new FormDisplayContextResolver())->resolve(
-            $runMode,
-            $inFrame,
-            12,
-            $formRunMode,
-            $published,
-            $previewMode,
-            $gridEnabled,
-            $gridSize,
-            'https://example.test'
-        );
+    public function testResolvesFormDisplayContext(int $formRunMode, bool $published, bool $canRun): void
+    {
+        $context = (new FormDisplayContextResolver())->resolve(12, $formRunMode, $published, 'https://example.test');
 
-        self::assertSame($expected, [
+        self::assertSame([0, 0, 'ff_form12', 'https://example.test', false, $canRun], [
             $context->inline,
             $context->template,
             $context->formId,
@@ -239,34 +221,10 @@ final class CoreServicesTest extends TestCase
     public static function displayContextProvider(): array
     {
         return [
-            'frontend form allowed' => [
-                0, false, 0, true, 0, false, 1,
-                [0, 0, 'ff_form12', 'https://example.test', false, true],
-            ],
-            'frontend form rejected when backend only' => [
-                0, false, 1, true, 0, false, 1,
-                [0, 0, 'ff_form12', 'https://example.test', false, false],
-            ],
-            'frontend form rejected when unpublished' => [
-                0, false, 0, false, 0, false, 1,
-                [0, 0, 'ff_form12', 'https://example.test', false, false],
-            ],
-            'backend iframe uses administrator homepage' => [
-                1, true, 2, true, 0, false, 1,
-                [0, 1, 'ff_form12', 'https://example.test/administrator/index.php?tmpl=component', false, true],
-            ],
-            'backend non iframe uses component homepage' => [
-                1, false, 1, true, 0, false, 1,
-                [0, 1, 'ff_form12', 'index.php?tmpl=component', false, false],
-            ],
-            'preview enables grid and inline form' => [
-                2, false, 0, false, 1, true, 2,
-                [1, 1, 'adminForm', 'index.php?tmpl=component', true, false],
-            ],
-            'preview keeps grid hidden when disabled' => [
-                2, false, 0, true, 1, false, 4,
-                [1, 1, 'adminForm', 'index.php?tmpl=component', false, true],
-            ],
+            'form allowed' => [0, true, true],
+            'form saved for frontend and backend allowed' => [2, true, true],
+            'form rejected when backend only' => [1, true, false],
+            'form rejected when unpublished' => [0, false, false],
         ];
     }
 }

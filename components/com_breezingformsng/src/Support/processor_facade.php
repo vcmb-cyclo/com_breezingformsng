@@ -210,7 +210,7 @@ function _ff_errorHandler($errno, $errstr, $errfile, $errline)
         return true;
     }
 
-    (new ErrorHandlerRuntime($ff_processor, (string) $ff_mossite))->handle(
+    (new ErrorHandlerRuntime($ff_processor))->handle(
         (int) $errno,
         (string) $errstr,
         (string) $errfile,
@@ -1134,8 +1134,6 @@ class HTML_facileFormsProcessor
             $this->app,
             $ff_config,
             $this->formrow,
-            (int) $runmode,
-            (bool) $this->inframe,
             (int) $form,
             (int) $this->page,
             (string) $this->mospath,

@@ -88,26 +88,6 @@ final class HiddenFormFieldsBuilderTest extends TestCase
         );
     }
 
-    public function testSubmissionBuildsBackendAndPreviewFields(): void
-    {
-        $builder = new HiddenFormFieldsBuilder();
-
-        self::assertSame(
-            "\t<input type=\"hidden\" name=\"option\" value=\"com_breezingformsng\"/>\r\n"
-            . "\t<input type=\"hidden\" name=\"act\" value=\"run\"/>\r\n"
-            . "\t<input type=\"hidden\" name=\"ff_form\" value=\"13\"/>\r\n"
-            . "\t<input type=\"hidden\" name=\"ff_task\" value=\"submit\"/>\r\n",
-            $builder->submission(13, "\t", "\r\n", true)
-        );
-        self::assertSame(
-            "\t<input type=\"hidden\" name=\"option\" value=\"com_breezingformsng\"/>\r\n"
-            . "\t<input type=\"hidden\" name=\"ff_frame\" value=\"1\"/>\r\n"
-            . "\t<input type=\"hidden\" name=\"ff_form\" value=\"14\"/>\r\n"
-            . "\t<input type=\"hidden\" name=\"ff_task\" value=\"submit\"/>\r\n",
-            $builder->submission(14, "\t", "\r\n", false, true)
-        );
-    }
-
     public function testContextBuildsFieldsInProvidedOrderAndEscapesValues(): void
     {
         self::assertSame(

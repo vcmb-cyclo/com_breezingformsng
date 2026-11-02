@@ -54,7 +54,7 @@ final class Dispatcher extends AbstractModuleDispatcher
             ->from($database->quoteName('#__facileforms_forms'))
             ->where($database->quoteName('name') . ' = :name')
             ->where($database->quoteName('published') . ' = 1')
-            ->where($database->quoteName('runmode') . ' < 2')
+            ->where($database->quoteName('runmode') . ' <> 1')
             ->order([$database->quoteName('ordering'), $database->quoteName('id')])
             ->bind(':name', $name);
         $formId = (int) $database->setQuery($query, 0, 1)->loadResult();
@@ -72,7 +72,6 @@ final class Dispatcher extends AbstractModuleDispatcher
             'ff_name' => $name,
             'ff_applic' => 'mod_facileforms',
             'ff_module_id' => (int) $this->module->id,
-            'ff_runmode' => 0,
             'ff_task' => $isTarget ? $input->getCmd('ff_task', 'view') : 'view',
             'ff_page' => $isTarget ? $input->getInt('ff_page', max(1, (int) $params->get('ff_mod_page', 1)))
                 : max(1, (int) $params->get('ff_mod_page', 1)),

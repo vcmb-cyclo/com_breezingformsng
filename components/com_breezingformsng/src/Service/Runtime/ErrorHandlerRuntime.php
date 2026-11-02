@@ -14,7 +14,6 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Runtime;
 
 use HTML_facileFormsProcessor;
 use Joomla\CMS\Language\Text;
-use Joomla\Database\ParameterType;
 
 /**
  * Formats and records errors raised while executing stored form code.
@@ -22,15 +21,12 @@ use Joomla\Database\ParameterType;
 final class ErrorHandlerRuntime
 {
     public function __construct(
-        private readonly HTML_facileFormsProcessor $processor,
-        private readonly string $site
+        private readonly HTML_facileFormsProcessor $processor
     ) {
     }
 
     public function handle(int $errno, string $errstr, string $errfile, int $errline): void
     {
-        $database = $this->processor->database;
-
         if ($this->processor->dying) {
             return;
         }
@@ -82,89 +78,6 @@ final class ErrorHandlerRuntime
                 $info[2] . ' ' . Text::_('COM_BREEZINGFORMSNG_PROCESS_ATLINE') . ' ' . $info[3],
                 ENT_QUOTES
             );
-            $type = $info[4];
-            $id = $info[5];
-            $pane = $info[6];
-            if ($type && $id && $this->processor->runmode != _FF_RUNMODE_FRONTEND) {
-                $url = $this->site . '/administrator/index.php?option=com_breezingformsng&format=html&tmpl=component';
-                $what = $id;
-                switch ($type) {
-                    case 'f':
-                        $url .= '&task=quickmode.display' .
-                            '&form=' . $this->processor->form;
-                        if ($this->processor->formrow->package != '') {
-                            $url .= '&pkg=' . urlencode((string) $this->processor->formrow->package);
-                        }
-                        if ($pane > 0) {
-                            $url .= '&tabpane=' . $pane;
-                        }
-                        $what = 'form ' . $this->processor->formrow->name;
-                        break;
-                    case 'e':
-                        $page = 1;
-                        foreach ($this->processor->rows ?? [] as $row) {
-                            if ($row->id == $id) {
-                                $page = $row->page;
-                                $what = $row->name;
-                                break;
-                            }
-                        }
-                        $what = 'element ' . $what;
-                        $url .= '&task=quickmode.display' .
-                            '&form=' . $this->processor->form .
-                            '&page=' . $page;
-                        if ($this->processor->formrow->package != '') {
-                            $url .= '&pkg=' . urlencode((string) $this->processor->formrow->package);
-                        }
-                        if ($pane > 0) {
-                            $url .= '&tabpane=' . $pane;
-                        }
-                        break;
-                    case 'p':
-                        $package = '';
-                        $piecesQuery = $database->createQuery()
-                            ->select(['name', 'package'])
-                            ->from('#__facileforms_pieces')
-                            ->where($database->quoteName('id') . ' = :id')
-                            ->bind(':id', $id, ParameterType::INTEGER);
-                        $database->setQuery($piecesQuery);
-                        $rows = $database->loadObjectList();
-                        if (count($rows)) {
-                            $package = $rows[0]->package;
-                            $what = $rows[0]->name;
-                        }
-                        $what = 'piece ' . $what;
-                        $url .= '&task=piece.edit' .
-                            '&id=' . $id;
-                        break;
-                    case 's':
-                        $package = '';
-                        $scriptsQuery = $database->createQuery()
-                            ->select(['name', 'package'])
-                            ->from('#__facileforms_scripts')
-                            ->where($database->quoteName('id') . ' = :id')
-                            ->bind(':id', $id, ParameterType::INTEGER);
-                        $database->setQuery($scriptsQuery);
-                        $rows = $database->loadObjectList();
-                        if (count($rows)) {
-                            $package = $rows[0]->package;
-                            $what = $rows[0]->name;
-                        }
-                        $what = 'script ' . $what;
-                        $url .= '&task=script.edit' .
-                            '&id=' . $id;
-                        break;
-                    default:
-                        $url = null;
-                }
-                if ($url) {
-                    $name = '<a href="#" ' .
-                        'onMouseOver="window.status=\'Open ' . $what . '\';return true;" ' .
-                        'onMouseOut="window.status=\'\';return true;" ' .
-                        'onClick="ff_redirectParent(\'' . htmlspecialchars($url, ENT_QUOTES) . '\');return true;"' .
-                        '>' . $name . '</a>';
-                }
-            }
             $msg .= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_PROCESS_LASTPOS'), ENT_QUOTES) . ' ' . $name . "\n";
         }
         $msg .= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_PROCESS_ERRMSG') . " $errstr\n\n", ENT_QUOTES);
