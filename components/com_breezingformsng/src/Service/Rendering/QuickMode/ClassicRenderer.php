@@ -1245,8 +1245,8 @@ float:left;
             (string) $mdata['bfName'],
             (int) $mdata['dbId'],
             (string) $mdata['image'],
-            'PayPal',
-            '',
+            'Stripe',
+            'Stripe',
             $tabIndex,
             $onblur,
             $onchange,
@@ -1254,7 +1254,8 @@ float:left;
             $onselect,
             $readonly,
             isset($mdata['actionClick']) && $mdata['actionClick'] == 1,
-            (string) ($mdata['actionFunctionName'] ?? '')
+            (string) ($mdata['actionFunctionName'] ?? ''),
+            $this->quickModeSubmitActionBuilder()->buildForPaymentButton(false)
         );
     }
 
@@ -1283,7 +1284,8 @@ float:left;
             $onselect,
             $readonly,
             isset($mdata['actionClick']) && $mdata['actionClick'] == 1,
-            (string) ($mdata['actionFunctionName'] ?? '')
+            (string) ($mdata['actionFunctionName'] ?? ''),
+            $this->quickModeSubmitActionBuilder()->buildForPaymentButton(false)
         );
     }
 
