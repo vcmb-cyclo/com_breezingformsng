@@ -1,5 +1,12 @@
 # Changelog
 
+## 6.1.0-RC14
+
+### Changed
+
+- Reduce the installer download size by excluding unused CAPTCHA background-noise recordings.
+  Installation and updates also remove these recordings left by earlier versions. Image CAPTCHA, XLSX exports and the About Piranha animation remain available.
+
 ## 6.1.0-RC13
 
 ### Added

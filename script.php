@@ -3273,9 +3273,38 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->removeLegacyBreezingFormsComponentDirectories();
         $this->removeObsoleteSystemPlugin();
         $this->removeObsoleteComponentFiles();
+        $this->removeObsoleteCaptchaNoise();
         $this->log(
             'Legacy BreezingForms component cleanup completed in safe mode; uninstall hooks intentionally skipped.'
         );
+    }
+
+    /** Remove only background-noise assets omitted from production packages. */
+    private function removeObsoleteCaptchaNoise(): void
+    {
+        $directory = JPATH_ADMINISTRATOR
+            . '/components/com_breezingformsng/vendor/bgli100/securimage/audio/noise';
+
+        if (!is_link($directory) && !Folder::exists($directory)) {
+            return;
+        }
+
+        try {
+            // Remove a deployment symlink itself, never the directory it targets.
+            $deleted = is_link($directory) ? File::delete($directory) : Folder::delete($directory);
+
+            if (!$deleted) {
+                $this->log(Text::sprintf('JLIB_FILESYSTEM_ERROR_FOLDER_DELETE', $directory), Log::ERROR);
+                return;
+            }
+
+            $this->log('Removed obsolete CAPTCHA background noise assets.');
+        } catch (FilesystemException | \UnexpectedValueException $e) {
+            $this->log(
+                $e->getMessage(),
+                Log::ERROR
+            );
+        }
     }
 
     private function removeObsoleteSystemPlugin(): void

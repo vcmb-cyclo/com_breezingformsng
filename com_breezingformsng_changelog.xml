@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelogs>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
+        <version>6.1.0-RC14</version>
+        <change>
+            <item>Reduce the installer download size by excluding unused CAPTCHA background-noise recordings. Installation and updates also remove these recordings left by earlier versions. Image CAPTCHA, XLSX exports and the About Piranha animation remain available.</item>
+        </change>
+    </changelog>
 	<changelog>
 		<element>com_breezingformsng</element>
 		<type>component</type>

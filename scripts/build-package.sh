@@ -18,6 +18,22 @@ if [[ -z "${version}" ]]; then
     exit 1
 fi
 
+# A package must have its public release notes before any staging cleanup.
+release_notes="$(awk -v version="${version}" '
+    { sub(/\r$/, "") }
+    $0 == "## " version || index($0, "## " version " ") == 1 { found = 1; next }
+    found && /^## / { exit }
+    found { print }
+' "${root_dir}/CHANGELOG.md")"
+if ! grep -q '[^[:space:]]' <<<"${release_notes}"; then
+    echo "CHANGELOG.md has no non-empty section for ${version}." >&2
+    exit 1
+fi
+if ! grep -Fq "<version>${version}</version>" "${root_dir}/com_breezingformsng_changelog.xml"; then
+    echo "com_breezingformsng_changelog.xml has no entry for ${version}." >&2
+    exit 1
+fi
+
 rm -rf "${package_dir}"
 mkdir -p "${package_dir}" "${output_dir}"
 
@@ -91,6 +107,9 @@ fi
 
 # Production dependencies can still ship development-only files.
 vendor_dir="${package_dir}/administrator/components/com_breezingformsng/vendor"
+# Keep the CAPTCHA engine and English audio; exclude optional background noise.
+rm -rf "${vendor_dir}/bgli100/securimage/audio/noise"
+
 find "${vendor_dir}" -depth -type d \
     \( -iname test -o -iname tests -o -name .github -o -name PHPStan -o -name .phpunit.cache \) \
     -exec rm -rf {} +
