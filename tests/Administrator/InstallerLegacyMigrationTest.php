@@ -108,7 +108,7 @@ final class InstallerLegacyMigrationTest extends TestCase
 
         return eval('use Joomla\\CMS\\Installer\\InstallerAdapter; return new class { public array $calls = [];'
             . 'public function __call(string $name, array $arguments): mixed {'
-            . '$this->calls[] = $name; return $name === "getCurrentInstalledVersion" ? "5.0.0-RC13" : null; }'
+            . '$this->calls[] = $name; return $name === "getCurrentInstalledVersion" ? "5.0.0-RC11" : null; }'
             . $update . $postflight . ' };');
     }
 }
