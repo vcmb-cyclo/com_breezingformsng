@@ -31,7 +31,8 @@ final class QuickModePaymentButtonBuilder
         string $onselect,
         string $readonly,
         bool $actionClick,
-        string $actionFunctionName
+        string $actionFunctionName,
+        string $submitAction
     ): string {
         $type = $image === '' ? 'submit' : 'image';
         $value = $image === ''
@@ -41,6 +42,8 @@ final class QuickModePaymentButtonBuilder
         $onclick = 'onclick="document.getElementById(\'bfPaymentMethod\').value=\'' . $provider . '\';';
         if ($actionClick) {
             $onclick .= $actionFunctionName . '(this,\'click\');';
+        } else {
+            $onclick .= $submitAction . ';';
         }
         $onclick .= '" ';
         $escapedType = htmlspecialchars($type, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');

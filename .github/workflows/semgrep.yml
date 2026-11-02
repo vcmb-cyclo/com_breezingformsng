@@ -1,0 +1,47 @@
+name: Semgrep
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+  schedule:
+    - cron: '39 15 * * 6'
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+    name: Scan
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:1.182.1
+    steps:
+      - uses: actions/checkout@v7
+
+      # Only the code of this project: the third-party libraries it ships are left out.
+      - name: Scan the code
+        run: >-
+          semgrep scan
+          --config p/php --config p/javascript --config p/security-audit --config p/secrets
+          --metrics=off --timeout 20
+          --exclude vendor --exclude '*.min.js' --exclude 'jquery*'
+          --sarif --output=semgrep.sarif
+          administrator/components/com_breezingformsng/src
+          administrator/components/com_breezingformsng/libraries/crosstec
+          administrator/components/com_breezingformsng/tmpl
+          administrator/components/com_breezingformsng/layouts
+          components/com_breezingformsng
+          media/com_breezingformsng/js
+          script.php
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v4.39.1
+        with:
+          sarif_file: semgrep.sarif
+        if: always()

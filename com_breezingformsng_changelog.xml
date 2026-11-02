@@ -7,6 +7,10 @@
         <change>
             <item>Reduce the installer download size by excluding unused CAPTCHA background-noise recordings. Installation and updates also remove these recordings left by earlier versions. Image CAPTCHA, XLSX exports and the About Piranha animation remain available.</item>
         </change>
+        <fix>
+            <item>Start Stripe and PayPal payments without an action script, for both fixed amounts and amounts from a field.</item>
+            <item>Show Stripe instead of PayPal on a classic-layout Stripe button without an image.</item>
+        </fix>
     </changelog>
 	<changelog>
 		<element>com_breezingformsng</element>

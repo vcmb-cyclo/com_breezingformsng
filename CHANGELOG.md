@@ -5,7 +5,14 @@
 ### Changed
 
 - Reduce the installer download size by excluding unused CAPTCHA background-noise recordings.
-  Installation and updates also remove these recordings left by earlier versions. Image CAPTCHA, XLSX exports and the About Piranha animation remain available.
+  Installation and updates also remove these recordings left by earlier versions.
+  Image CAPTCHA, XLSX exports and the About Piranha animation remain available.
+
+### Fixed
+
+- The Stripe and PayPal buttons start the payment without an action script, in both Fixed amount
+  and From a field modes. With ActionScript set to None, a click on them did nothing.
+- The Stripe button of the classic layout reads Stripe instead of PayPal when it has no image.
 
 ## 6.1.0-RC13
 

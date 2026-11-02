@@ -39,9 +39,37 @@ final class QuickModePaymentButtonBuilderTest extends TestCase
                 '',
                 '',
                 true,
-                'pay'
+                'pay',
+                'submit()'
             )
         );
+    }
+
+    public function testStartsTheSubmitWithoutAClickActionOfItsOwn(): void
+    {
+        $markup = QuickModePaymentButtonBuilder::build(
+            'Stripe',
+            'payment',
+            55,
+            '',
+            'Stripe',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            false,
+            'ignored',
+            'submit()'
+        );
+
+        self::assertStringContainsString(
+            'onclick="document.getElementById(\'bfPaymentMethod\').value=\'Stripe\';submit();" ',
+            $markup
+        );
+        self::assertStringNotContainsString('ignored', $markup);
     }
 
     public function testBuildsImageButtonAndEscapesFieldName(): void
@@ -60,7 +88,8 @@ final class QuickModePaymentButtonBuilderTest extends TestCase
             '',
             '',
             false,
-            ''
+            '',
+            'submit()'
         );
 
         self::assertStringContainsString('type="image"', $markup);
@@ -88,7 +117,8 @@ final class QuickModePaymentButtonBuilderTest extends TestCase
             '',
             '',
             false,
-            ''
+            '',
+            'submit()'
         );
 
         self::assertStringNotContainsString('src=', $markup);
@@ -111,7 +141,8 @@ final class QuickModePaymentButtonBuilderTest extends TestCase
             '',
             '',
             false,
-            ''
+            '',
+            'submit()'
         );
 
         self::assertStringContainsString(

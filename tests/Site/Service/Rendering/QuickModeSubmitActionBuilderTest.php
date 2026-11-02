@@ -50,4 +50,13 @@ final class QuickModeSubmitActionBuilderTest extends TestCase
             (new QuickModeSubmitActionBuilder())->build(true, true)
         );
     }
+
+    public function testPaymentButtonUsesTheSubmitOfItsLayout(): void
+    {
+        $builder = new QuickModeSubmitActionBuilder();
+
+        self::assertStringEndsWith("else{ff_validate_submit(this, 'click')}", $builder->buildForPaymentButton(false));
+        self::assertStringEndsWith("else{bf_validate_submit(this, 'click')}", $builder->buildForPaymentButton(true));
+        self::assertStringContainsString("typeof bfDoFlashUpload != 'undefined'", $builder->buildForPaymentButton(false));
+    }
 }
