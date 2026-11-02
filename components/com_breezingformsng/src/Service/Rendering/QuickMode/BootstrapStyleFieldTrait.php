@@ -594,7 +594,8 @@ trait BootstrapStyleFieldTrait
             $onselect,
             $readonly,
             isset($mdata['actionClick']) && $mdata['actionClick'] == 1,
-            (string) ($mdata['actionFunctionName'] ?? '')
+            (string) ($mdata['actionFunctionName'] ?? ''),
+            $this->quickModeSubmitActionBuilder()->buildForPaymentButton($this instanceof OnePageRenderer)
         );
         echo '</span>';
         echo '</div>';
@@ -641,7 +642,8 @@ trait BootstrapStyleFieldTrait
             $onselect,
             $readonly,
             isset($mdata['actionClick']) && $mdata['actionClick'] == 1,
-            (string) ($mdata['actionFunctionName'] ?? '')
+            (string) ($mdata['actionFunctionName'] ?? ''),
+            $this->quickModeSubmitActionBuilder()->buildForPaymentButton($this instanceof OnePageRenderer)
         );
         echo '</span>';
         echo '</div>';

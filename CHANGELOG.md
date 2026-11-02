@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- The Stripe and PayPal buttons start the payment without an action script, in both *Fixed amount*
+  and *From a field* modes. With *ActionScript* set to *None*, a click on them did nothing.
+- The Stripe button of the classic layout reads *Stripe* instead of *PayPal* when it has no image.
+
 ## 6.1.0-RC13
 
 ### Added

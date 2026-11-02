@@ -361,6 +361,47 @@ test.describe('forms', () => {
         expect(formRow(formId).records).toBe(before);
     });
 
+    test('the Stripe button without an action script starts the payment, in both amount modes', async () => {
+        db('set', String(formId), 'piece3cond', '0');
+
+        const clickPays = async () => {
+            await page.goto(`index.php?option=com_breezingformsng&ff_form=${formId}`);
+            await page.locator('[name="ff_nm_firstname[]"]').fill('25.00');
+
+            // The form is posted: what Stripe answers is not part of the journey.
+            let posted = '';
+            await page.route('**/*', (route) => {
+                if (route.request().method() === 'POST' && /ff_payment_method/.test(route.request().postData() || '')) {
+                    posted = route.request().postData();
+                    return route.abort();
+                }
+                return route.continue();
+            });
+            await page.locator('[name="ff_nm_paybutton[]"]').click();
+            await expect.poll(() => posted).toMatch(/name="ff_payment_method"\s+Stripe/);
+            await page.unroute('**/*');
+        };
+
+        await clickPays();
+
+        await openQuickMode();
+        const stripe = await page.evaluate(() => {
+            const app = window.BFQMApp;
+            const items = [];
+            app.getItemsFlattened(app.dataObject, items);
+            const button = items.find((item) => item.properties.bfName === 'paybutton');
+            return { id: button.attributes.id, actionClick: Number(button.properties.actionClick) };
+        });
+        expect(stripe.actionClick).toBe(0);
+        await page.locator(`[id="${stripe.id}"] > a`).click();
+        await page.waitForTimeout(300);
+        await page.locator('label[for="bfElementTypeStripeAmountSourceFixed"]').click();
+        await page.fill('#bfElementTypeStripeAmount', '25.00');
+        await saveQuickMode();
+
+        await clickPays();
+    });
+
     test('a QuickMode save keeps the script of the thank-you page', async () => {
         await openQuickMode();
         await page.locator('#bfNewPageButton').click();
