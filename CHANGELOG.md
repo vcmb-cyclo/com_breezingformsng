@@ -1,23 +1,48 @@
 # Changelog
 
-## Unreleased
+## 6.1.0-RC13
 
-- The administrator no longer has a run mode for forms, which no route rendered any more. The
-  code behind it, the *Run Mode* form option and the *Sync to Joomla Menu* button are gone.
-- The update removes the administrator menu entries the sync created: they opened an empty page.
-- The update unpublishes each form saved as *Backend only* and logs it, so it stays off the site.
-  Publish it to show it. A package import does the same: it warns about each of these forms,
-  with its state before the import, and logs it. Restoring a form version no longer changes the
-  stored run mode.
-- The module and the content plugin show forms saved as *Frontend & Backend*, as the component
-  page does. They answered that the form was not found.
-- Error traces no longer link to the administrator; those links only appeared in the removed
-  run modes.
-- A QuickMode save shows its messages on the page. They appeared in a hidden frame, so a failed
-  save of the options looked like a success: it now shows the error, stays on the page and can be
-  tried again.
-- A QuickMode save no longer puts back old values: the number of pages, the notification
-  recipient and the script of the thank-you page changed in the tree stay saved.
+### Added
+
+- The script editor shows an *Unsaved changes* badge and warns before you leave the page with
+  unsaved changes.
+
+### Changed
+
+- In QuickMode, the number of pages of a form always comes from its tree. A value typed in the
+  *Pages* field of the *Options* tab is ignored, and a wrong number is corrected at the next save.
+
+### Fixed
+
+- Show the messages of a QuickMode save on the page. They appeared in a hidden frame, so a failed
+  save of the options looked like a success: the page now shows the error, stays open and lets
+  you save again.
+- Keep the notification recipient and the thank-you page script changed in the QuickMode tree.
+  The save of the options put back their old values.
+
+## 6.1.0-RC12
+
+### Added
+
+- Click the Piranha logo five times on the About page to play its animation. The final
+  frame stays visible until you close it with X or Escape; opening it again restarts playback.
+
+### Changed
+
+- Remove the unavailable administrator form display, its Run Mode option and the Sync to
+  Joomla Menu button. The update removes administrator menu entries that opened empty pages.
+- Forms previously saved as Backend only are unpublished during updates and package imports
+  to keep them off the site. Publish them explicitly to make them available. Imports warn about
+  each affected form, show its previous publication state and record the change in the log.
+
+### Fixed
+
+- Display forms saved as Frontend & Backend through modules and article plugins instead of
+  reporting that the form was not found.
+- Keep a form's display mode unchanged when restoring a saved version.
+- Remove obsolete administrator links from form error reports.
+- Preserve component settings and correctly register the installed version when upgrading
+  a legacy BreezingForms installation.
 
 ## 6.1.0-RC11
 
