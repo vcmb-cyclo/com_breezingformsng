@@ -23,6 +23,10 @@ $hasUnitTests = $saved && trim((string) $this->item->unit_tests) !== '';
 $action = Route::_('index.php?option=com_breezingformsng&view=script&layout=edit&id=' . (int) $this->item->id);
 ?>
 <form action="<?= $action; ?>" method="post" name="adminForm" id="adminForm">
+  <div id="bf-edit-script-dirty-badge" class="badge text-bg-warning mb-3" role="status" hidden>
+    <?= Text::_('COM_BREEZINGFORMSNG_QM_UNSAVED_CHANGES'); ?>
+  </div>
+
   <?php if (!$this->canEdit): ?>
     <div class="alert alert-info"><?= Text::_('COM_BREEZINGFORMSNG_READ_ONLY_NOTICE'); ?></div>
   <?php endif; ?>
