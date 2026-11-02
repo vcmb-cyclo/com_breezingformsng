@@ -13,6 +13,11 @@
   page does. They answered that the form was not found.
 - Error traces no longer link to the administrator; those links only appeared in the removed
   run modes.
+- A QuickMode save shows its messages on the page. They appeared in a hidden frame, so a failed
+  save of the options looked like a success: it now shows the error, stays on the page and can be
+  tried again.
+- A QuickMode save no longer puts back old values: the number of pages, the notification
+  recipient and the script of the thank-you page changed in the tree stay saved.
 
 ## 6.1.0-RC11
 

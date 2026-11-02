@@ -781,6 +781,10 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                     item.properties.description = BFQMConfig.formDesc;
                     item.properties.mailRecipient = BFQMConfig.formEmailadr;
                     item.properties.mailNotification = BFQMConfig.formEmailntf;
+                    loadedSubmittedScript = {
+                        condition: item.properties.submittedScriptCondidtion,
+                        code: item.properties.submittedScriptCode
+                    };
                     // data.title is the tree's own display label - a separate
                     // field from properties.title, only ever kept in sync by
                     // saveFormProperties() (itself only triggered by switching
@@ -927,16 +931,10 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
             window.createValidationCode = createValidationCode;
             window.createActionCode = createActionCode;
 
-            // Submits the "Options" tab's fields (see the comment further below,
-            // at the original click handler this replaces) into the hidden
-            // bfOptionsSaveFrame iframe rather than the main window, so the
-            // single standard toolbar Save button can persist both the
-            // QuickMode JSON tree and the Options tab without a page reload
-            // in between - callback runs once that submission has actually
-            // completed (the iframe's own "load" event, after its server
-            // redirect resolves), not merely once it was sent: navigating the
-            // main window before then would abort the iframe's in-flight
-            // request, since it is a child of the document being replaced.
+            // Posts the "Options" tab's fields after the tree, so the single
+            // standard toolbar Save button persists both - callback runs once
+            // that post has succeeded. It answers without a redirect and keeps
+            // its messages for the reload: see FormsController::saveOptions().
             // No-ops immediately if the Options tab was never rendered
             // (formId === 0, nothing to save there yet).
             function syncOptionsEditors($wrap) {
@@ -952,6 +950,41 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                         field.value = editor.getValue();
                     }
                 });
+            }
+
+            // The tree save above writes these columns too, and the Options post
+            // would put back the values of the page load. The tree decides the
+            // number of pages; the mail and script fields exist on both sides, so
+            // the tree only decides what was changed on its side since the load.
+            function syncTreeValuesToOptions($wrap) {
+                var mdata = app.findDataObjectItem('bfQuickModeRoot', app.dataObject).properties;
+                var recipient = String(mdata.mailRecipient || '');
+
+                JQuery('#jf_pages').val(app.dataObject.children.length);
+
+                if (recipient !== BFQMConfig.formEmailadr || !!mdata.mailNotification !== !!BFQMConfig.formEmailntf) {
+                    JQuery('#jf_emailadr').val(recipient);
+                    // As QuickmodeModel::save2().
+                    JQuery('#entf' + (!mdata.mailNotification ? 0 : (recipient.trim() === '' ? 1 : 2))).prop('checked', true);
+                }
+
+                if (mdata.submittedScriptCondidtion != -1
+                    && (mdata.submittedScriptCondidtion != loadedSubmittedScript.condition
+                        || mdata.submittedScriptCode !== loadedSubmittedScript.code)) {
+                    JQuery('#s2c' + mdata.submittedScriptCondidtion).prop('checked', true);
+                    $wrap.find('[name="script2code"]').val(mdata.submittedScriptCode);
+                }
+            }
+
+            // The tree is saved at this point: say what is missing and allow a new try.
+            function optionsSaveFailed(message) {
+                JQuery('#bfSaveQueue').css({ display: 'none', visibility: 'hidden' });
+                var messages = [BFQMConfig.labels['COM_BREEZINGFORMSNG_QM_SAVE_FAILED']];
+                if (message) {
+                    messages.push(message);
+                }
+                Joomla.renderMessages({ error: messages });
+                saveButtonClicked = false;
             }
 
             function submitOptionsTab(callback) {
@@ -975,25 +1008,27 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                 JQuery('#jf_description').val(JQuery('#bfFormDescription').val());
                 syncOptionsEditors($wrap);
 
-                var $iframe = JQuery('#bfOptionsSaveFrame');
-                $iframe.one('load', callback);
+                syncTreeValuesToOptions($wrap);
 
-                var tempForm = document.createElement('form');
-                tempForm.method = 'post';
-                tempForm.action = 'index.php?option=com_breezingformsng';
-                tempForm.target = 'bfOptionsSaveFrame';
-                tempForm.style.display = 'none';
-                document.body.appendChild(tempForm);
-                // A copy of the values: moving the fields would break the rich text
-                // editors among them while the page is still open.
+                var body = new URLSearchParams();
                 $wrap.find(':input').serializeArray().forEach(function (field) {
-                    var input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = field.name;
-                    input.value = field.value;
-                    tempForm.appendChild(input);
+                    body.append(field.name, field.value);
                 });
-                tempForm.submit();
+
+                fetch('index.php?option=com_breezingformsng', { method: 'POST', body: body })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (answer) {
+                        if (answer.success) {
+                            callback();
+                        } else {
+                            optionsSaveFailed(answer.message);
+                        }
+                    })
+                    .catch(function () {
+                        optionsSaveFailed('');
+                    });
             }
 
             function postTheStuff() {
@@ -1070,6 +1105,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                 });
             }
 
+            var loadedSubmittedScript = {};
             var chunki = 0;
             var rndAdd = Math.random();
             var chunks = new Array();
@@ -1143,6 +1179,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                             var cVal = JQuery[base + sixty_four](JSON.stringify(app.dataObject));
                             JQuery.ajaxSetup({ async: false });
                             rndAdd = Math.random();
+                            chunki = 0;
                             chunks = new Array();
                             var chunk = '';
                             if (cVal.length > 10000) {

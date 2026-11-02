@@ -424,9 +424,8 @@ final class QuickmodeHtml
                                             .tab-content for Bootstrap's ".tab-content > .tab-pane"
                                             CSS to hide/show it - see quickmode-options-tab-plan.md),
                                             and nesting a second <form> inside bfForm is invalid
-                                            HTML. The standard toolbar "Enregistrer" button copies
-                                            their values into a detached <form>, posted into a
-                                            hidden iframe, as part of saving everything in one
+                                            HTML. The standard toolbar "Enregistrer" button posts
+                                            their values as part of saving everything in one
                                             click - see quickmode-app.js's submitOptionsTab().
                                         -->
                                         <div id="bfOptionsFieldsWrap">
@@ -446,7 +445,7 @@ final class QuickmodeHtml
                                             ]);
                                             ?>
                                             <input type="hidden" name="id" value="<?php echo (int) $formId; ?>">
-                                            <input type="hidden" name="task" value="forms.save">
+                                            <input type="hidden" name="task" value="forms.saveOptions">
                                             <?php echo HTMLHelper::_('form.token'); ?>
                                         </div>
                                     <?php endif; ?>
@@ -458,16 +457,6 @@ final class QuickmodeHtml
                     </div>
 
                 </form>
-
-                <!-- Target for the "Options" tab's fields when the standard toolbar
-                     "Enregistrer" button saves everything - see
-                     quickmode-app.js's submitOptionsTab(). Kept off-screen rather
-                     than display:none so the browser still processes its
-                     navigation/load event while hidden. -->
-                <iframe name="bfOptionsSaveFrame" id="bfOptionsSaveFrame"
-                    src="about:blank"
-                    style="position:absolute; width:1px; height:1px; left:-9999px;"
-                    title="<?php echo Text::_('COM_BREEZINGFORMSNG_OPTIONS'); ?>"></iframe>
 
             </div> <!-- ##### bfQuickModeRight end ##### -->
 
