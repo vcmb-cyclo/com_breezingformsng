@@ -89,6 +89,16 @@ if [[ -d "${tecnickcom_dir}" ]]; then
         -exec rm -rf {} +
 fi
 
+# Production dependencies can still ship development-only files.
+vendor_dir="${package_dir}/administrator/components/com_breezingformsng/vendor"
+find "${vendor_dir}" -depth -type d \
+    \( -iname test -o -iname tests -o -name .github -o -name PHPStan -o -name .phpunit.cache \) \
+    -exec rm -rf {} +
+find "${vendor_dir}" -type f \
+    \( -iname 'phpunit*.xml*' -o -iname 'phpstan*.neon*' -o -iname '*phpcs*.xml*' -o -name .phpunit.result.cache \) \
+    -delete
+rm -rf "${vendor_dir}/bin"
+
 archive="${output_dir}/com_breezingformsng-${version}.zip"
 rm -f "${archive}"
 

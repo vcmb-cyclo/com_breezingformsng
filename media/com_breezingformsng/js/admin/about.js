@@ -1,6 +1,59 @@
 (function () {
     'use strict';
 
+    function initializeEasterEgg() {
+        var hotspot = document.querySelector('[data-bf-easter-egg-hotspot]');
+        var overlay = document.querySelector('[data-bf-easter-egg]');
+        var image = overlay ? overlay.querySelector('[data-bf-easter-egg-image]') : null;
+        var closeButton = overlay ? overlay.querySelector('[data-bf-easter-egg-close]') : null;
+        var clickCount = 0;
+        var resetTimer = 0;
+
+        if (!hotspot || !overlay || !image || !closeButton) {
+            return;
+        }
+
+        var close = function () {
+            overlay.hidden = true;
+            overlay.setAttribute('aria-hidden', 'true');
+            image.removeAttribute('src');
+            document.body.classList.remove('bf-easter-egg-open');
+            hotspot.focus();
+        };
+
+        var open = function () {
+            var source = String(image.dataset.src || '');
+            image.src = source + (source.indexOf('?') === -1 ? '?' : '&') + 'play=' + Date.now();
+            overlay.hidden = false;
+            overlay.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('bf-easter-egg-open');
+            closeButton.focus();
+        };
+
+        hotspot.addEventListener('click', function () {
+            clickCount += 1;
+            window.clearTimeout(resetTimer);
+            resetTimer = window.setTimeout(function () {
+                clickCount = 0;
+            }, 3000);
+
+            if (clickCount < 5) {
+                return;
+            }
+
+            clickCount = 0;
+            window.clearTimeout(resetTimer);
+            open();
+        });
+
+        closeButton.addEventListener('click', close);
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !overlay.hidden) {
+                close();
+            }
+        });
+    }
+
     function initialiseTableInventorySorting() {
         document.querySelectorAll('[data-bf-sortable-table]').forEach(function (table) {
             var buttons = table.querySelectorAll('[data-bf-table-sort]');
@@ -76,9 +129,14 @@
         });
     });
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initialiseTableInventorySorting);
-    } else {
+    function initialiseAbout() {
         initialiseTableInventorySorting();
+        initializeEasterEgg();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initialiseAbout);
+    } else {
+        initialiseAbout();
     }
 }());

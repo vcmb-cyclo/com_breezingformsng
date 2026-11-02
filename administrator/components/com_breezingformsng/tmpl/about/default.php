@@ -431,6 +431,12 @@ HTMLHelper::_('bootstrap.collapse');
                 style="max-width: 150px; height: auto;"
                 loading="lazy"
             />
+            <button
+                type="button"
+                class="bf-about-easter-egg-hotspot"
+                data-bf-easter-egg-hotspot
+                aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT'), ENT_QUOTES, 'UTF-8'); ?>"
+            ></button>
         </div>
         <div class="bf-about-intro-content">
             <p class="mb-0">
@@ -1231,3 +1237,14 @@ HTMLHelper::_('bootstrap.collapse');
     <input type="hidden" name="table_collation_issue" id="bf-table-collation-issue" value="" />
     <?php echo HTMLHelper::_('form.token'); ?>
 </form>
+
+<div class="bf-about-easter-egg" data-bf-easter-egg hidden aria-hidden="true">
+    <div class="bf-about-easter-egg-dialog" role="dialog" aria-modal="true" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT'), ENT_QUOTES, 'UTF-8'); ?>">
+        <button type="button" class="bf-about-easter-egg-close" data-bf-easter-egg-close aria-label="<?php echo htmlspecialchars(Text::_('JCLOSE'), ENT_QUOTES, 'UTF-8'); ?>">
+            <span class="fa-solid fa-xmark" aria-hidden="true"></span>
+        </button>
+        <img data-bf-easter-egg-image
+            data-src="<?php echo htmlspecialchars(Uri::root(true) . '/media/com_breezingformsng/images/bfng-easter-egg-2026.webp', ENT_QUOTES, 'UTF-8'); ?>"
+            alt="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT'), ENT_QUOTES, 'UTF-8'); ?>" />
+    </div>
+</div>

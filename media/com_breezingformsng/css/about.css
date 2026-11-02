@@ -6,7 +6,17 @@
     gap: 1rem;
 }
 .bf-about-intro-media {
+    position: relative;
     flex: 0 0 auto;
+}
+.bf-about-easter-egg-hotspot {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
 }
 .bf-about-intro-content {
     flex: 1 1 auto;
@@ -407,3 +417,53 @@
 .bf-audit-orphans > summary {
     cursor: pointer;
 }
+
+    .bf-about-easter-egg {
+        position: fixed;
+        inset: 0;
+        z-index: 100000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(0, 0, 0, .82);
+        backdrop-filter: blur(3px);
+    }
+    body.bf-easter-egg-open {
+        overflow: hidden;
+    }
+    .bf-about-easter-egg[hidden] {
+        display: none;
+    }
+    .bf-about-easter-egg-dialog {
+        position: relative;
+        max-width: min(960px, 94vw);
+        max-height: 92vh;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, .4);
+        border-radius: .75rem;
+        background: #000;
+        box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, .55);
+    }
+    .bf-about-easter-egg-dialog img {
+        display: block;
+        max-width: 94vw;
+        max-height: 88vh;
+        width: auto;
+        height: auto;
+    }
+    .bf-about-easter-egg-close {
+        position: absolute;
+        inset-block-start: .55rem;
+        inset-inline-end: .55rem;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border: 1px solid rgba(255, 255, 255, .65);
+        border-radius: 50%;
+        color: #fff;
+        background: rgba(0, 0, 0, .62);
+    }
