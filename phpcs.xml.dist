@@ -119,6 +119,8 @@
     <exclude-pattern>*/node_modules/*</exclude-pattern>
     <exclude-pattern>*/build/*</exclude-pattern>
     <exclude-pattern>*/coverage/*</exclude-pattern>
+    <!-- Semgrep rule test cases: deliberately unsafe sample code, not project code. -->
+    <exclude-pattern>*/.semgrep/*</exclude-pattern>
 
     <!--
         Legacy runtime surfaces are intentionally excluded until they are
