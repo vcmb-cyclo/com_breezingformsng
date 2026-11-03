@@ -70,8 +70,7 @@ final class FlashUploadCallback
             if ($temporaryUploads->ensure()) {
                 $secureTicket = $this->application->getSession()->get('secure_ticket', '');
                 if ($secureTicket == '') {
-                    mt_srand();
-                    $secureTicket = md5(strtotime('now') . mt_rand(0, mt_getrandmax()));
+                    $secureTicket = bin2hex(random_bytes(16));
                     $this->application->getSession()->set('secure_ticket', $secureTicket);
                 }
 

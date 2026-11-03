@@ -327,8 +327,7 @@ float:left;
         $this->rolloverColor = $this->rootMdata['rolloverColor'];
         $this->toggleFields = $this->parseToggleFields(isset($this->rootMdata['toggleFields']) ? $this->rootMdata['toggleFields'] : '[]');
 
-        mt_srand();
-        $this->flashUploadTicket = md5(strtotime('now') . mt_rand(0, mt_getrandmax()));
+        $this->flashUploadTicket = bin2hex(random_bytes(16));
         $this->cancelImagePath = Uri::root(true) . '/media/breezingforms/themes/cancel.png';
         $this->uploadImagePath = Uri::root(true) . '/media/breezingforms/themes/upload.png';
         if (is_file(JPATH_SITE . '/media/breezingforms/themes/' . $this->rootMdata['theme'] . '/img/cancel.png')) {

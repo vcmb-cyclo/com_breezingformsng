@@ -246,8 +246,7 @@ class BootstrapRenderer
         $this->rolloverColor = $this->rootMdata['rolloverColor'];
         $this->toggleFields = $this->parseToggleFields(isset($this->rootMdata['toggleFields']) ? $this->rootMdata['toggleFields'] : '[]');
 
-        mt_srand();
-        $this->flashUploadTicket = md5(strtotime('now') . mt_rand(0, mt_getrandmax()));
+        $this->flashUploadTicket = bin2hex(random_bytes(16));
 
         $this->cancelImagePath = Uri::root(true) . '/components/com_breezingformsng/themes/quickmode-bootstrap' . '5' . '/cancel.png';
         if (isset($this->rootMdata['themebootstrap']) && is_file(JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $this->rootMdata['themebootstrap'] . '/images/cancel.png')) {

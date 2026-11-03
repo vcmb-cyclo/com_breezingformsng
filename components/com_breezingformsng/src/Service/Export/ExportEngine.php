@@ -876,7 +876,6 @@ final class ExportEngine
 
         $pdf->addDocumentPage();
         $pdf->renderHtml($c);
-        mt_srand();
 
         $matches_array = array();
         $regex = '<!--(.+?)=(.+?)-->';
@@ -912,7 +911,7 @@ final class ExportEngine
             $fm = str_replace('{filemask:_datetime}', trim($date_stamp), $fm);
             $fm = str_replace('{filemask:_date}', trim($date_stamp2), $fm);
             $fm = str_replace('{filemask:_timestamp}', (string) time(), $fm);
-            $fm = str_replace('{filemask:_random}', (string) mt_rand(0, mt_getrandmax()), $fm);
+            $fm = str_replace('{filemask:_random}', (string) random_int(0, mt_getrandmax()), $fm);
             if ($fm == '') {
                 $fm = '__empty__';
             }
@@ -927,11 +926,11 @@ final class ExportEngine
             $pdfname = $uploads . $fm . '.pdf';
 
             if (file_exists($pdfname)) {
-                $pdfname = $uploads . $fm . '-' . $date_stamp . '-' . mt_rand(0, mt_getrandmax()) . '.pdf';
+                $pdfname = $uploads . $fm . '-' . $date_stamp . '-' . random_int(0, mt_getrandmax()) . '.pdf';
             }
         } else {
             $pdfname = $this->processor->uploads . '/ffexport-pdf-' . $date_stamp
-                . '-' . mt_rand(0, mt_getrandmax()) . '.pdf';
+                . '-' . random_int(0, mt_getrandmax()) . '.pdf';
         }
 
         $pdf->saveToFile($pdfname);
@@ -1040,8 +1039,7 @@ final class ExportEngine
                 $out .= nl();
             }
         }
-        mt_srand();
-        $csvname = $this->processor->uploads . '/ffexport-' . $date_stamp . '-' . mt_rand(0, mt_getrandmax()) . '.csv';
+        $csvname = $this->processor->uploads . '/ffexport-' . $date_stamp . '-' . random_int(0, mt_getrandmax()) . '.csv';
         File::makeSafe($csvname);
         if (function_exists('mb_convert_encoding')) {
             $to_encoding = 'UTF-16LE';
@@ -1080,8 +1078,7 @@ final class ExportEngine
         if ($this->processor->dying) {
             return '';
         }
-        mt_srand();
-        $xmlname = $this->processor->uploads . '/ffexport-' . $date_stamp . '-' . mt_rand(0, mt_getrandmax()) . '.xml';
+        $xmlname = $this->processor->uploads . '/ffexport-' . $date_stamp . '-' . random_int(0, mt_getrandmax()) . '.xml';
 
         $xml = '<?xml version="1.0" encoding="utf-8" ?>' . nl() .
             '<FacileFormsExport type="records" version="' . $ff_version . '">' . nl() .

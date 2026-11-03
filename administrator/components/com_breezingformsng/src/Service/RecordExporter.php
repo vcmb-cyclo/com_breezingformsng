@@ -344,6 +344,7 @@ final class RecordExporter
 
         $fieldKeys = [];
         foreach ($this->records->getElementFields($formIds) as $field) {
+            // nosemgrep: php.lang.security.weak-crypto.weak-crypto -- MD5 only builds a column key, not a secret.
             $key = md5(strip_tags((string) $field->name));
             $fieldKeys[$key] ??= strip_tags((string) $field->name);
         }
@@ -373,6 +374,7 @@ final class RecordExporter
 
                 $subValues = [];
                 foreach ($subrecordsByRecord[(int) $record->id] ?? [] as $subrecord) {
+                    // nosemgrep: php.lang.security.weak-crypto.weak-crypto -- MD5 only builds a column key, not a secret.
                     $key = md5(strip_tags((string) $subrecord->name));
                     $subValues[$key][] = (string) $subrecord->value;
                 }

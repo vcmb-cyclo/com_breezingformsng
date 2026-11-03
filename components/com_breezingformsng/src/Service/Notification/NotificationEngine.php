@@ -589,15 +589,13 @@ final class NotificationEngine
         } else {
 
             $paymentCache = JPATH_SITE . '/media/breezingforms/payment_cache/';
-            mt_srand();
-            $paymentFile = $this->processor->form . '_' . $this->processor->record_id . '_admin_' . md5(date('YmdHis') . mt_rand(0, mt_getrandmax())) . '.txt';
+            $paymentFile = $this->processor->form . '_' . $this->processor->record_id . '_admin_' . bin2hex(random_bytes(16)) . '.txt';
             $i = 0;
             while (file_exists($paymentCache . $paymentFile)) {
                 if ($i > 1000) {
                     break;
                 }
-                mt_srand();
-                $paymentFile = $this->processor->form . '_' . $this->processor->record_id . '_admin_' . md5(date('YmdHis') . mt_rand(0, mt_getrandmax())) . '.txt';
+                $paymentFile = $this->processor->form . '_' . $this->processor->record_id . '_admin_' . bin2hex(random_bytes(16)) . '.txt';
                 $i++;
             }
 
@@ -1219,15 +1217,13 @@ final class NotificationEngine
         } else {
 
             $paymentCache = JPATH_SITE . '/media/breezingforms/payment_cache/';
-            mt_srand();
-            $paymentFile = $this->processor->form . '_' . $this->processor->record_id . '_mailback_' . md5(date('YmdHis') . mt_rand(0, mt_getrandmax())) . '.txt';
+            $paymentFile = $this->processor->form . '_' . $this->processor->record_id . '_mailback_' . bin2hex(random_bytes(16)) . '.txt';
             $i = 0;
             while (file_exists($paymentCache . $paymentFile)) {
                 if ($i > 1000) {
                     break;
                 }
-                mt_srand();
-                $paymentFile = $this->processor->form . '_' . $this->processor->record_id . '_mailback_' . md5(date('YmdHis') . mt_rand(0, mt_getrandmax())) . '.txt';
+                $paymentFile = $this->processor->form . '_' . $this->processor->record_id . '_mailback_' . bin2hex(random_bytes(16)) . '.txt';
                 $i++;
             }
 
@@ -1379,6 +1375,7 @@ final class NotificationEngine
 
             // MailChimp API v3 update
             foreach ($list_ids as $list_id) {
+                // nosemgrep: php.lang.security.weak-crypto.weak-crypto -- Mailchimp identifies members by the MD5 of their lowercase email.
                 $resource = 'lists/' . rawurlencode(trim($list_id)) . '/members/' . md5(strtolower($email));
 
                 try {
