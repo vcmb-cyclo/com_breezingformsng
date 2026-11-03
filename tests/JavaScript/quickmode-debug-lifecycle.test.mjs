@@ -14,7 +14,7 @@ function openEditor(active, savedReload = false) {
         setAttribute: () => {},
     };
     const context = {
-        Joomla: { getOptions: () => ({ csrfToken: 'test-token' }) },
+        Joomla: { getOptions: () => ({ csrfToken: 'test-token' }), Text: { _: (key) => key } },
         document: {
             addEventListener: () => {},
             getElementById: (id) => id === 'bfFormDebugToggle' ? toggle : null,
@@ -31,7 +31,7 @@ function openEditor(active, savedReload = false) {
     };
 
     vm.runInNewContext(source, context);
-    return { requests, stored };
+    return { requests, stored, context };
 }
 
 test('opening a form resets a debug state left on', () => {
@@ -51,4 +51,23 @@ test('an inactive form consumes any stale reload marker', () => {
     const { requests, stored } = openEditor(false, true);
     assert.equal(requests.length, 0);
     assert.equal(stored.has('bfqm:preserve-debug:42'), false);
+});
+
+test('the debug icon uses the red badge styling when enabled', () => {
+    const { context } = openEditor(false);
+    const icon = { className: '' };
+    const classes = new Set();
+    const link = {
+        querySelector: () => icon,
+        classList: { toggle: (name, enabled) => enabled ? classes.add(name) : classes.delete(name) },
+        hasAttribute: () => false,
+    };
+
+    context.bfSetToggleIcon(link, 1, 'debug');
+    assert.equal(icon.className, 'fa-solid fa-bug');
+    assert.equal(classes.has('active'), true);
+
+    context.bfSetToggleIcon(link, 0, 'debug');
+    assert.equal(icon.className, 'fa-solid fa-bug text-muted');
+    assert.equal(classes.has('active'), false);
 });

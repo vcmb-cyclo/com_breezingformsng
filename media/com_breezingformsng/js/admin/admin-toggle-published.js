@@ -4,7 +4,7 @@ function bfSetToggleIcon(link, state, stateType) {
 	var span = link.querySelector('span');
 
 	span.className = stateType === 'debug'
-		? (state ? 'fa fa-bug text-success' : 'fa fa-bug text-muted')
+		? (state ? 'fa-solid fa-bug' : 'fa-solid fa-bug text-muted')
 		: (state ? 'icon-publish' : 'icon-unpublish');
 	link.classList.toggle('active', Boolean(state));
 	link.title = stateType === 'debug'
