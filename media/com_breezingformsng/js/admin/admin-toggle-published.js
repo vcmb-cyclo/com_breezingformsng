@@ -90,3 +90,18 @@ document.addEventListener('click', function (event) {
 		link
 	);
 });
+
+var bfDebugToggle = document.getElementById('bfFormDebugToggle');
+if (bfDebugToggle) {
+	var bfDebugFormId = bfDebugToggle.dataset.itemFormId;
+	var bfPreserveDebug = false;
+	try {
+		bfPreserveDebug = sessionStorage.getItem('bfqm:preserve-debug:' + bfDebugFormId) === '1';
+		sessionStorage.removeItem('bfqm:preserve-debug:' + bfDebugFormId);
+	} catch (e) {
+		// Debug is reset when session storage is unavailable.
+	}
+	if (bfDebugToggle.classList.contains('active') && !bfPreserveDebug) {
+		bfRequestFormState(bfDebugFormId, 'forms.setDebug', 0, 'debug', bfDebugToggle);
+	}
+}

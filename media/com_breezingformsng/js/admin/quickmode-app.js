@@ -1140,6 +1140,11 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                                 + (activeTab ? "#" + activeTab : "");
                             submitOptionsTab(function () {
                                 window.dispatchEvent(new Event('bfqm:saved'));
+                                try {
+                                    sessionStorage.setItem('bfqm:preserve-debug:' + data, '1');
+                                } catch (e) {
+                                    // A blocked storage API only ends the temporary debug session.
+                                }
                                 // Only the hash would change, whatever the open tab: no reload,
                                 // an old version number and a Save button left locked.
                                 var target = new URL(returnUrl, location.href);
