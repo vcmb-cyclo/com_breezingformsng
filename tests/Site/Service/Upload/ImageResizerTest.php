@@ -25,7 +25,6 @@ final class ImageResizerTest extends TestCase
         self::assertNotFalse($path);
         $image = imagecreatetruecolor(4, 3);
         self::assertTrue(imagepng($image, $path));
-        imagedestroy($image);
 
         try {
             $resizer = new ImageResizer();
@@ -44,8 +43,6 @@ final class ImageResizerTest extends TestCase
 
         self::assertSame(3, imagesx($resized));
         self::assertSame(3, imagesy($resized));
-        imagedestroy($resized);
-        imagedestroy($source);
     }
 
     public function testSimpleResizingPreservesAspectRatioWithinTarget(): void
@@ -56,8 +53,6 @@ final class ImageResizerTest extends TestCase
 
         self::assertSame(3, imagesx($resized));
         self::assertSame(2, imagesy($resized));
-        imagedestroy($resized);
-        imagedestroy($source);
     }
 
     public function testExactResizingUsesRequestedCanvas(): void
@@ -68,7 +63,5 @@ final class ImageResizerTest extends TestCase
 
         self::assertSame(3, imagesx($resized));
         self::assertSame(3, imagesy($resized));
-        imagedestroy($resized);
-        imagedestroy($source);
     }
 }
