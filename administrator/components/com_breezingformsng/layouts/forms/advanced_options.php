@@ -56,7 +56,7 @@ if (!empty($quickMode)) {
     // email toolbars in the editor rather than docking them outside it.
     /** @var \Joomla\CMS\Application\AdministratorApplication $application */
     $application = Factory::getApplication();
-    $application->getDocument()->addScriptOptions('plg_editor_tinymce', [
+    $application->getDocument()?->addScriptOptions('plg_editor_tinymce', [
         'tinyMCE' => [
             'email_custom_template' => ['toolbar_sticky' => false],
             'mb_email_custom_template' => ['toolbar_sticky' => false],
