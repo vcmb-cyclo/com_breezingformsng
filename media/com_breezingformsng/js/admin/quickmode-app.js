@@ -274,6 +274,33 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                     }
                 };
 
+                JQuery('#bfFormSearch').on('input', function () {
+                    var term = this.value.trim().toLocaleLowerCase();
+                    var results = JQuery('#bfFormSearchResults').empty();
+                    if (!term) {
+                        return;
+                    }
+
+                    function visit(node) {
+                        if (!node || typeof node !== 'object') {
+                            return;
+                        }
+                        var title = String((node.properties && (node.properties.label || node.properties.title || node.properties.name)) || (node.data && node.data.title) || '');
+                        var content = JSON.stringify([node.properties || {}, node.attributes && node.attributes.mdata || '']).toLocaleLowerCase();
+                        if (content.includes(term) && node.attributes && node.attributes.id) {
+                            JQuery('<button type="button" class="list-group-item list-group-item-action"></button>')
+                                .text(title)
+                                .on('click', function () {
+                                    appScope.selectTreeBranch(node.attributes.id);
+                                })
+                                .appendTo(results);
+                        }
+                        (node.children || []).forEach(visit);
+                    }
+
+                    visit(appScope.dataObject);
+                });
+
                 JQuery('#bfElementExplorer').jstree({
                     core: {
                         data: [toJsTreeNode(appScope.dataObject)],
@@ -1059,6 +1086,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                             var returnUrl = "index.php?option=com_breezingformsng&task=quickmode.display&form=" + encodeURIComponent(data) + "&active_language_code=" + encodeURIComponent(document.adminForm.active_language_code.value)
                                 + (activeTab ? "#" + activeTab : "");
                             submitOptionsTab(function () {
+                                window.dispatchEvent(new Event('bfqm:saved'));
                                 // Only the hash would change, whatever the open tab: no reload,
                                 // an old version number and a Save button left locked.
                                 var target = new URL(returnUrl, location.href);

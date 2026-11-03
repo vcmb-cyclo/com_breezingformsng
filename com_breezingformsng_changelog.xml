@@ -3,6 +3,28 @@
     <changelog>
         <element>com_breezingformsng</element>
         <type>component</type>
+        <version>6.1.0-RC15</version>
+        <addition>
+            <item>Search form elements by text or property value in the QuickMode editor while Debug is enabled.</item>
+            <item>Choose a BreezingForms page number or an external URL as the Stripe return destination.</item>
+        </addition>
+        <change>
+            <item>New Stripe elements use an amount from a form element by default.</item>
+            <item>Improve contrast on selected administrator tabs and spacing around element script controls.</item>
+        </change>
+        <fix>
+            <item>Show active Stripe and email notification choices clearly, keep them readable on hover, and show the element label in form search results.</item>
+            <item>Avoid an unsaved changes warning when browsing QuickMode elements and tabs without editing.</item>
+            <item>Increase spacing between validation choices in the element editor.</item>
+            <item>Warn before leaving QuickMode with a newly added element or other unsaved changes.</item>
+            <item>Detect edits to element properties and Stripe settings in the unsaved changes warning.</item>
+            <item>Keep the unsaved changes warning active after direct edits to any QuickMode element field.</item>
+            <item>Keep the email editor toolbar visible when BreezingForms enters full page mode.</item>
+        </fix>
+    </changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
         <version>6.1.0-RC14</version>
         <change>
             <item>Reduce the installer download size by excluding unused CAPTCHA background-noise recordings. Installation and updates also remove these recordings left by earlier versions. Image CAPTCHA, XLSX exports and the About Piranha animation remain available.</item>

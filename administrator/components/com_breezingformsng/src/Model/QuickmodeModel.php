@@ -390,6 +390,8 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['options']['amountSource']              = ($mdata['amountSource'] ?? 'fixed') === 'field' ? 'field' : 'fixed';
                         $element['options']['amountField']               = (string) ($mdata['amountField'] ?? '');
                         $element['options']['thankYouPage']              = $mdata['thankYouPage'];
+                        $element['options']['thankYouPageMode']          = ($mdata['thankYouPageMode'] ?? (empty($mdata['thankYouPage']) ? 'bf' : 'url')) === 'url' ? 'url' : 'bf';
+                        $element['options']['thankYouPageNumber']        = max(1, (int) ($mdata['thankYouPageNumber'] ?? 2));
                         $element['options']['currencyCode']              = $mdata['currencyCode'];
                         $element['options']['sendNotificationAfterPayment'] = $mdata['sendNotificationAfterPayment'];
                         $element['options']['image']                     = $mdata['image'];

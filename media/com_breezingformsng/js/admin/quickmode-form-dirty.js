@@ -26,86 +26,150 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    function editorValues() {
-        return Array.from(form.querySelectorAll('textarea[id]')).sort(function (first, second) {
-            return first.id.localeCompare(second.id);
-        }).map(function (field) {
-            var name = field.id;
-            var editor = JoomlaEditor.get(name);
-
-            if (!editor || typeof editor.getValue !== 'function') {
-                return null;
-            }
-
-            try {
-                return name + '=' + editor.getValue();
-            } catch (e) {
-                return name + '=';
-            }
-        }).filter(function (value) {
-            return value !== null;
-        }).join(' ');
-    }
-
     function treeState() {
         try {
-            return JSON.stringify(window.BFQMApp.dataObject);
+            return JSON.stringify(window.BFQMApp.dataObject, function (key, value) {
+                return key === 'state' && this.attributes && this.properties ? undefined : value;
+            });
         } catch (e) {
             return '';
         }
     }
 
-    function formState() {
-        return new URLSearchParams(new FormData(form)).toString() + ' ' + editorValues() + ' ' + treeState();
+    function treeStructure() {
+        function nodes(value) {
+            if (Array.isArray(value)) {
+                return value.map(nodes);
+            }
+            if (!value || typeof value !== 'object') {
+                return null;
+            }
+            return [value.attributes?.id || null, nodes(value.children || [])];
+        }
+        return JSON.stringify(nodes(window.BFQMApp.dataObject));
+    }
+
+    function formState(options) {
+        // QuickMode property controls usually have an id but no name, so
+        // FormData misses edits to element labels, Stripe settings, etc.
+        var fields = Array.from(form.querySelectorAll('input, select, textarea')).filter(function (field) {
+            return Boolean(field.closest('#fragment-3')) === options
+                && !['button', 'submit', 'reset'].includes(field.type);
+        }).map(function (field) {
+            var value = field.value;
+            if (field.type === 'checkbox' || field.type === 'radio') {
+                value = field.checked;
+            } else if (field.multiple) {
+                value = Array.from(field.selectedOptions, function (option) { return option.value; });
+            } else if (field.tagName === 'TEXTAREA' && field.id) {
+                try {
+                    var editor = JoomlaEditor.get(field.id);
+                    if (editor && typeof editor.getValue === 'function') {
+                        value = editor.getValue();
+                    }
+                } catch (e) {
+                    value = field.value;
+                }
+            }
+            return [field.id || field.name, value];
+        });
+        return JSON.stringify(fields);
     }
 
     // quickmode-app.js creates BFQMApp during the load event. Capturing the
     // baseline at DOMContentLoaded would therefore record an empty tree and
     // mark the form as dirty as soon as the QuickMode app is initialized.
-    // Some of the Options tab's CodeMirror editors (jf_piece1code..
-    // jf_piece4code) take noticeably longer than a single 500ms tick to
-    // register with JoomlaEditor after load/bfqm:ready - editorValues()
-    // silently skips whatever isn't ready yet, so two absences in a row can
-    // still look "stable" even though those editors simply haven't started
-    // mounting. Require several consecutive stable ticks (a few seconds of
-    // genuine quiet) before trusting the state as a baseline, with a hard
-    // cap so a field that's legitimately still changing that long after
-    // load doesn't leave the badge permanently disabled.
+    // Wait for the QuickMode tree and Options fields to settle before taking
+    // the baseline. Unmounted editors use their textarea value, so opening
+    // an editor later does not count as a change.
     var REQUIRED_STABLE_TICKS = 6;
     var MAX_BASELINE_TICKS = 20;
 
     var initialState = null;
+    var initialOptions = null;
+    var initialTree = null;
+    var initialStructure = null;
+    var selectedNode = null;
+    var selectedNodeState = null;
+    var previousTree = null;
+    var nodeEdited = false;
     var pendingState = null;
     var stableTicks = 0;
     var totalTicks = 0;
+    var saved = false;
+    var userEdited = false;
 
     function sync() {
         if (!window.BFQMApp) {
             return;
         }
 
-        var currentState = formState();
+        var options = formState(true);
+        var tree = treeState();
+        var structure = treeStructure();
+        var node = formState(false);
+        var nodeId = window.BFQMApp.selectedTreeElement?.attributes?.id || null;
+        var currentState = options + ' ' + tree + ' ' + node;
 
         if (initialState === null) {
+            if (initialStructure === null) {
+                initialStructure = structure;
+            }
             totalTicks++;
             stableTicks = (pendingState === currentState) ? stableTicks + 1 : 0;
             pendingState = currentState;
 
             if (stableTicks >= REQUIRED_STABLE_TICKS || totalTicks >= MAX_BASELINE_TICKS) {
                 initialState = currentState;
-                badge.hidden = true;
+                initialOptions = options;
+                initialTree = tree;
+                selectedNode = nodeId;
+                selectedNodeState = node;
+                previousTree = tree;
+                badge.hidden = !userEdited && structure === initialStructure;
             }
 
             return;
         }
 
-        badge.hidden = currentState === initialState;
+        if (nodeId !== selectedNode) {
+            // QuickMode commits the previous panel on every selection. That
+            // commit can normalize stored properties even when nothing was
+            // edited; treat that result as the new clean baseline.
+            if (!nodeEdited && previousTree === initialTree && structure === initialStructure) {
+                initialTree = tree;
+            }
+            selectedNode = nodeId;
+            selectedNodeState = node;
+        }
+        nodeEdited = node !== selectedNodeState;
+        previousTree = tree;
+        badge.hidden = !userEdited && options === initialOptions && tree === initialTree
+            && structure === initialStructure && node === selectedNodeState;
     }
 
-    form.addEventListener('input', sync);
-    form.addEventListener('change', sync);
+    function onFieldEdit(event) {
+        // Programmatic population while browsing nodes must stay clean.
+        // A real field edit must still warn even during baseline settling.
+        if (event.isTrusted !== false) {
+            userEdited = true;
+        }
+        sync();
+    }
+
+    form.addEventListener('input', onFieldEdit);
+    form.addEventListener('change', onFieldEdit);
     window.addEventListener('bfqm:ready', sync);
     window.addEventListener('load', sync);
+    window.addEventListener('bfqm:saved', function () { saved = true; });
+    window.addEventListener('beforeunload', function (event) {
+        sync();
+        if (!saved && (userEdited || initialState !== null && !badge.hidden
+            || initialStructure !== null && treeStructure() !== initialStructure)) {
+            event.preventDefault();
+            event.returnValue = '';
+        }
+    });
 
     // Neither CodeMirror (via JoomlaEditor) nor tree structure
     // edits (app.dataObject, mutated directly by quickmode-app.js's

@@ -1,5 +1,27 @@
 # Changelog
 
+## 6.1.0-RC15
+
+### Added
+
+- Search form elements by text or property value in the QuickMode editor while Debug is enabled.
+- Choose a BreezingForms page number or an external URL as the Stripe return destination.
+
+### Changed
+
+- New Stripe elements use an amount from a form element by default.
+- Improve contrast on selected administrator tabs and spacing around element script controls.
+
+### Fixed
+
+- Show active Stripe and email notification choices clearly, keep them readable on hover, and show the element label in form search results.
+- Avoid an unsaved changes warning when browsing QuickMode elements and tabs without editing.
+- Increase spacing between validation choices in the element editor.
+- Warn before leaving QuickMode with a newly added element or other unsaved changes.
+- Detect edits to element properties and Stripe settings in the unsaved changes warning.
+- Keep the unsaved changes warning active after direct edits to any QuickMode element field.
+- Keep the email editor toolbar visible when BreezingForms enters full page mode.
+
 ## 6.1.0-RC14
 
 ### Changed

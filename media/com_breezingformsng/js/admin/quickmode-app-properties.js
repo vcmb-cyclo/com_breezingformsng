@@ -1043,6 +1043,8 @@ import { JoomlaEditor } from 'editor-api';
             mdata.amountSource = JQuery('#bfElementTypeStripeAmountSourceField').prop('checked') ? 'field' : 'fixed';
             mdata.amountField = JQuery('#bfElementTypeStripeAmountField').val() || '';
             mdata.thankYouPage = JQuery('#bfElementTypeStripeThankYouPage').val();
+            mdata.thankYouPageMode = JQuery('#bfStripeReturnExternalUrl').prop('checked') ? 'url' : 'bf';
+            mdata.thankYouPageNumber = Math.max(1, parseInt(JQuery('#bfStripeReturnPageNumber').val(), 10) || 2);
 
             mdata.currencyCode = JQuery('#bfElementTypeStripeCurrencyCode').val();
             mdata.sendNotificationAfterPayment = JQuery('#bfElementTypeStripeSendNotificationAfterPayment').prop('checked');
@@ -1158,6 +1160,17 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('label[for="bfElementTypeStripeAmountSourceField"]').toggleClass('active', fromField);
         };
 
+appScope.toggleStripeReturnMode = function (mode) {
+    JQuery('#bfStripeReturnPageWrap').css('display', mode === 'url' ? 'none' : '');
+    JQuery('#bfStripeReturnUrlWrap').css('display', mode === 'url' ? '' : 'none');
+    JQuery('label[for="bfStripeReturnBfPage"]').toggleClass('active', mode !== 'url');
+    JQuery('label[for="bfStripeReturnExternalUrl"]').toggleClass('active', mode === 'url');
+};
+
+JQuery(document).on('change', 'input[name="bfStripeReturnMode"]', function () {
+    if (this.checked) appScope.toggleStripeReturnMode(this.value);
+});
+
         JQuery(document).on('change', 'input[name="bfElementTypeStripeAmountSource"]', function () {
             appScope.toggleStripeAmountSource(this.value === 'field' && this.checked);
         });
@@ -1177,6 +1190,11 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeStripeAmount').val(mdata.amount);
             appScope.populateStripeAmountSource(mdata);
             JQuery('#bfElementTypeStripeThankYouPage').val(mdata.thankYouPage);
+            var returnMode = mdata.thankYouPageMode || (mdata.thankYouPage ? 'url' : 'bf');
+            JQuery('#bfStripeReturnExternalUrl').prop('checked', returnMode === 'url');
+            JQuery('#bfStripeReturnBfPage').prop('checked', returnMode !== 'url');
+            JQuery('#bfStripeReturnPageNumber').val(mdata.thankYouPageNumber || 2);
+            appScope.toggleStripeReturnMode(returnMode);
             JQuery('#bfElementTypeStripeCurrencyCode').val(mdata.currencyCode);
             JQuery('#bfElementTypeStripeSendNotificationAfterPayment').prop('checked', mdata.sendNotificationAfterPayment);
             JQuery('#bfElementTypeStripeKlarna').prop('checked', mdata.klarna === true);

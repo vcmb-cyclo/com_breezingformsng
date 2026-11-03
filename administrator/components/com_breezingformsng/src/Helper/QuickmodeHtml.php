@@ -311,6 +311,12 @@ final class QuickmodeHtml
                         </div>
                     </div>
                 </div>
+                <div class="bfng-form-search mb-3"<?php echo $debugMode ? '' : ' hidden'; ?>>
+                    <label for="bfFormSearch" class="form-label"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_SEARCH_FORM'); ?></label>
+                    <input type="search" id="bfFormSearch" class="form-control" autocomplete="off"
+                        placeholder="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_QM_SEARCH_FORM_PLACEHOLDER'), ENT_QUOTES, 'UTF-8'); ?>">
+                    <div id="bfFormSearchResults" class="list-group mt-2" aria-live="polite"></div>
+                </div>
                 <div id="bfElementExplorer" class="bfng-tree"></div>
 
             </div> <!-- ##### bfQuickModeLeft end ##### -->
@@ -435,6 +441,7 @@ final class QuickmodeHtml
                                                 'pkg' => (string) ($optionsForm->package ?? ''),
                                                 'editor' => $optionsEditor,
                                                 'tabId' => 'bfOptionsFormTabs',
+                                                'quickMode' => true,
                                                 'tabEntryCounts' => $optionsTabEntryCounts,
                                                 'initScripts' => $optionsInitScripts,
                                                 'submittedScripts' => $optionsSubmittedScripts,

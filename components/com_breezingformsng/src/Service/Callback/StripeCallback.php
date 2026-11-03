@@ -201,8 +201,13 @@ final class StripeCallback
                                 $form_id = $input->getInt('form_id', -1);
                                 require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/stripe_download.php');
                             } else {
-                                if ($options['thankYouPage'] != '') {
-                                    $this->redirectHelper->to($options['thankYouPage']);
+                                $returnMode = (string) ($options['thankYouPageMode'] ?? '');
+                                if ($returnMode === 'bf') {
+                                    $page = max(1, (int) ($options['thankYouPageNumber'] ?? 2));
+                                    $formId = $input->getInt('form_id', 0);
+                                    $this->redirectHelper->to(Uri::root() . 'index.php?option=com_breezingformsng&ff_form=' . $formId . '&ff_page=' . $page);
+                                } elseif (($options['thankYouPage'] ?? '') !== '') {
+                                    $this->redirectHelper->to((string) $options['thankYouPage']);
                                 } else {
                                     $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_THANK_YOU_FOR_PAYING_WITH_STRIPE'));
                                 }

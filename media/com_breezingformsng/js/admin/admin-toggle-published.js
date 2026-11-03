@@ -40,6 +40,16 @@ function bfRequestFormState(id, task, state, stateType, link) {
 		}
 
 		bfSetToggleIcon(link, Number(data.State), stateType);
+		if (stateType === 'debug') {
+			var search = document.querySelector('.bfng-form-search');
+			if (search) {
+				search.hidden = Number(data.State) !== 1;
+				if (search.hidden) {
+					search.querySelector('#bfFormSearch').value = '';
+					search.querySelector('#bfFormSearchResults').replaceChildren();
+				}
+			}
+		}
 
 		return Number(data.State);
 	}).catch(function () {
