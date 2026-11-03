@@ -3454,6 +3454,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/jquery.validationEngine-en.js',
             JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/jquery.validationEngine.js',
             JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/jq-ui.min.js',
+            JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/expressInstall.swf',
             JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/plupload/Moxie.swf',
             JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/tooltip.css',
             JPATH_SITE . '/components/com_breezingformsng/libraries/jquery/tooltip.js',
