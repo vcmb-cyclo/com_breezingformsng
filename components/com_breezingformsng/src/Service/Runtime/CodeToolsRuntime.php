@@ -133,8 +133,8 @@ final class CodeToolsRuntime
                 case '':
                     return '';
                 case 'function':
-                case 'return';
-                case 'ff_trace(';
+                case 'return':
+                case 'ff_trace(':
                 case '{':
                 case '}':
                 case '(':
@@ -275,7 +275,7 @@ final class CodeToolsRuntime
                     if ($flevel > 0)
                         $flevel++;
                     break;
-                case '}';
+                case '}':
                     if ($flevel > 0) {
                         $flevel--;
                         if (!$flevel) {
