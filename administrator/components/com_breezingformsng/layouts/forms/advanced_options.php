@@ -478,7 +478,7 @@ $paneErrors = [
           <div id="s1lib" style="display:<?= (int) ($f->script1cond ?? 0) === 1 ? '' : 'none'; ?>">
             <?= FormsAdvancedOptionsHtml::bfSel($initScripts, 'script1id', (int) ($f->script1id ?? 0)); ?>
           </div>
-          <div id="s1code" style="display:<?= (int) ($f->script1cond ?? 0) === 2 ? '' : 'none'; ?>">
+          <div id="s1code" data-bf-search-code="<?= htmlspecialchars($f->script1code ?? '', ENT_QUOTES, 'UTF-8'); ?>" style="display:<?= (int) ($f->script1cond ?? 0) === 2 ? '' : 'none'; ?>">
             <?= $editor->display('script1code', htmlspecialchars($f->script1code ?? ''), '100%', '200px', 60, 10, false, 'jf_script1code', null, null, ['syntax' => 'javascript']); ?>
           </div>
         </div>
@@ -503,7 +503,7 @@ $paneErrors = [
           <div id="s2lib" style="display:<?= (int) ($f->script2cond ?? 0) === 1 ? '' : 'none'; ?>">
             <?= FormsAdvancedOptionsHtml::bfSel($submittedScripts, 'script2id', (int) ($f->script2id ?? 0)); ?>
           </div>
-          <div id="s2code" style="display:<?= (int) ($f->script2cond ?? 0) === 2 ? '' : 'none'; ?>">
+          <div id="s2code" data-bf-search-code="<?= htmlspecialchars($f->script2code ?? '', ENT_QUOTES, 'UTF-8'); ?>" style="display:<?= (int) ($f->script2cond ?? 0) === 2 ? '' : 'none'; ?>">
             <?= $editor->display('script2code', htmlspecialchars($f->script2code ?? ''), '100%', '200px', 60, 10, false, 'jf_script2code', null, null, ['syntax' => 'javascript']); ?>
           </div>
         </div>
@@ -550,7 +550,7 @@ $paneErrors = [
             <?php endif; ?>
             <?= FormsAdvancedOptionsHtml::bfSel($pieces, $idName, (int) ($f->$idName ?? 0), isset($missingPieces[$pieceIndex]) ? 'aria-invalid="true"' : ''); ?>
           </div>
-          <div id="<?= $pfx; ?>code" style="display:<?= (int) ($f->$condName ?? 0) === 2 ? '' : 'none'; ?>">
+          <div id="<?= $pfx; ?>code" data-bf-search-code="<?= htmlspecialchars($f->$codeName ?? '', ENT_QUOTES, 'UTF-8'); ?>" style="display:<?= (int) ($f->$condName ?? 0) === 2 ? '' : 'none'; ?>">
             <?= $editor->display($codeName, htmlspecialchars($f->$codeName ?? ''), '100%', '200px', 60, 10, false, 'jf_' . $codeName, null, null, ['syntax' => 'php']); ?>
           </div>
         </div>

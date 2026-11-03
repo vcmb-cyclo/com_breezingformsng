@@ -3,6 +3,18 @@
     <changelog>
         <element>com_breezingformsng</element>
         <type>component</type>
+        <version>6.1.0-RC16</version>
+        <addition>
+            <item>Search form scripts and form or submit pieces from QuickMode Options while Debug is enabled, including saved custom code and edits in the code editor.</item>
+        </addition>
+        <change>
+            <item>Turn off a form's Debug mode when opening or closing QuickMode, while keeping it available through a Save reload.</item>
+            <item>Show active Debug with the same red badge and white bug icon used by ContentBuilder.</item>
+        </change>
+    </changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
         <version>6.1.0-RC15</version>
         <addition>
             <item>Search form elements by text or property value in the QuickMode editor while Debug is enabled.</item>

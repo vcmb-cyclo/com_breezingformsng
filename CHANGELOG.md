@@ -1,5 +1,16 @@
 # Changelog
 
+## 6.1.0-RC16
+
+### Added
+
+- Search form scripts and form or submit pieces from QuickMode Options while Debug is enabled, including saved custom code and edits in the code editor.
+
+### Changed
+
+- Turn off a form's Debug mode when opening or closing QuickMode, while keeping it available through a Save reload.
+- Show active Debug with the same red badge and white bug icon used by ContentBuilder.
+
 ## 6.1.0-RC15
 
 ### Added

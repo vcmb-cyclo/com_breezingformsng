@@ -299,6 +299,59 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                     }
 
                     visit(appScope.dataObject);
+
+                    var optionsWrap = document.getElementById('bfOptionsFieldsWrap');
+                    if (!optionsWrap) {
+                        return;
+                    }
+
+                    ['pane-scripts', 'pane-form-pieces', 'pane-submit-pieces'].forEach(function (paneId) {
+                        var pane = document.getElementById(paneId);
+                        if (!pane || !optionsWrap.contains(pane)) {
+                            return;
+                        }
+
+                        pane.querySelectorAll('.card').forEach(function (card) {
+                            var values = [];
+                            card.querySelectorAll('input, select, textarea').forEach(function (field) {
+                                if (field.type === 'hidden' || field.type === 'password') {
+                                    return;
+                                }
+                                values.push(field.value || '');
+                                if (field.tagName === 'SELECT') {
+                                    values.push(field.selectedOptions[0]?.textContent || '');
+                                }
+                            });
+                            card.querySelectorAll('[data-bf-search-code]').forEach(function (code) {
+                                values.push(code.dataset.bfSearchCode || '');
+                                var textarea = code.querySelector('textarea');
+                                if (textarea) {
+                                    try {
+                                        values.push(JoomlaEditor.get(textarea.id)?.getValue() || '');
+                                    } catch (e) {
+                                        // The saved code and textarea remain searchable.
+                                    }
+                                }
+                            });
+                            if (!values.join(' ').toLocaleLowerCase().includes(term)) {
+                                return;
+                            }
+
+                            var paneTab = optionsWrap.querySelector('[data-bs-target="#' + paneId + '"]');
+                            var label = [document.getElementById('fragment-3-tab')?.firstChild?.textContent,
+                                paneTab?.firstChild?.textContent, card.querySelector('.card-header')?.textContent]
+                                .map(function (part) { return (part || '').trim(); }).filter(Boolean).join(' / ');
+                            JQuery('<button type="button" class="list-group-item list-group-item-action"></button>')
+                                .text(label)
+                                .on('click', function () {
+                                    appScope.selectTreeBranch('bfQuickModeRoot');
+                                    new bootstrap.Tab(document.getElementById('fragment-3-tab')).show();
+                                    new bootstrap.Tab(paneTab).show();
+                                    card.scrollIntoView({ block: 'center' });
+                                })
+                                .appendTo(results);
+                        });
+                    });
                 });
 
                 JQuery('#bfElementExplorer').jstree({
@@ -1087,6 +1140,11 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                                 + (activeTab ? "#" + activeTab : "");
                             submitOptionsTab(function () {
                                 window.dispatchEvent(new Event('bfqm:saved'));
+                                try {
+                                    sessionStorage.setItem('bfqm:preserve-debug:' + data, '1');
+                                } catch (e) {
+                                    // A blocked storage API only ends the temporary debug session.
+                                }
                                 // Only the hash would change, whatever the open tab: no reload,
                                 // an old version number and a Save button left locked.
                                 var target = new URL(returnUrl, location.href);

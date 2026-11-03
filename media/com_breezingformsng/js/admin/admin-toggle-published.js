@@ -4,7 +4,7 @@ function bfSetToggleIcon(link, state, stateType) {
 	var span = link.querySelector('span');
 
 	span.className = stateType === 'debug'
-		? (state ? 'fa fa-bug text-success' : 'fa fa-bug text-muted')
+		? (state ? 'fa-solid fa-bug' : 'fa-solid fa-bug text-muted')
 		: (state ? 'icon-publish' : 'icon-unpublish');
 	link.classList.toggle('active', Boolean(state));
 	link.title = stateType === 'debug'
@@ -90,3 +90,18 @@ document.addEventListener('click', function (event) {
 		link
 	);
 });
+
+var bfDebugToggle = document.getElementById('bfFormDebugToggle');
+if (bfDebugToggle) {
+	var bfDebugFormId = bfDebugToggle.dataset.itemFormId;
+	var bfPreserveDebug = false;
+	try {
+		bfPreserveDebug = sessionStorage.getItem('bfqm:preserve-debug:' + bfDebugFormId) === '1';
+		sessionStorage.removeItem('bfqm:preserve-debug:' + bfDebugFormId);
+	} catch (e) {
+		// Debug is reset when session storage is unavailable.
+	}
+	if (bfDebugToggle.classList.contains('active') && !bfPreserveDebug) {
+		bfRequestFormState(bfDebugFormId, 'forms.setDebug', 0, 'debug', bfDebugToggle);
+	}
+}

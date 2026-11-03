@@ -21,6 +21,7 @@ use Joomla\Filesystem\File;
 use Joomla\Filesystem\Folder;
 use Joomla\Filesystem\Path;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ContentBuilderFormSync;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
@@ -65,6 +66,8 @@ class QuickmodeController extends BaseController
             // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
             if (!$model->checkin($formId)) {
                 $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()), 'error');
+            } else {
+                $this->getOptionsModel()->setDebugMode($formId, 0);
             }
         }
 
@@ -220,6 +223,17 @@ class QuickmodeController extends BaseController
         $model = $component->getMVCFactory()->createModel('Form', 'Administrator', ['ignore_request' => true]);
 
         if (!$model instanceof FormModel) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        return $model;
+    }
+
+    private function getOptionsModel(): FormOptionsModel
+    {
+        $model = $this->getModel('FormOptions');
+
+        if (!$model instanceof FormOptionsModel) {
             throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 
