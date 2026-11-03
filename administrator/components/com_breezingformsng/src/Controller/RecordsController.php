@@ -164,6 +164,7 @@ class RecordsController extends AdminController
      * screen: a record the user had checked out stays checked out to them, and
      * no lock is created for a user who only has the edit-state right.
      */
+    // nosemgrep: bfng-controller-task-without-token -- sendStateChange() checks the token first.
     public function setState(): void
     {
         $state = $this->input->post->getInt('state', RecordState::PUBLISHED);

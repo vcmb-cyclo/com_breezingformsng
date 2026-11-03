@@ -24,11 +24,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # The project rules must still find what their test file expects.
+      - name: Test the project rules
+        run: semgrep --test --metrics=off --config .semgrep/joomla.yml .semgrep/joomla.php
+
       # Only the code of this project: the third-party libraries it ships are left out.
       - name: Scan the code
         run: >-
           semgrep scan
           --config p/php --config p/javascript --config p/security-audit --config p/secrets
+          --config p/phpcs-security-audit --config .semgrep/
           --metrics=off --timeout 20
           --exclude vendor --exclude '*.min.js' --exclude 'jquery*'
           --sarif --output=semgrep.sarif

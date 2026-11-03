@@ -1,0 +1,170 @@
+# Project rules for BreezingForms NG (Joomla 6 / PHP 8.3).
+# Run by .github/workflows/semgrep.yml together with the registry rule sets.
+rules:
+  - id: bfng-input-to-sql
+    mode: taint
+    languages: [php]
+    severity: ERROR
+    message: >-
+      Request input reaches an SQL query without being bound or quoted.
+      Use $query->bind() for values, and $db->quoteName() with an allowlist for identifiers.
+    metadata:
+      category: security
+      cwe: "CWE-89: SQL Injection"
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: $APP->getInput()->$GET(...)
+              - pattern: $APP->getInput()->$SOURCE->$GET(...)
+              - pattern: $APP->input->$GET(...)
+              - pattern: $APP->input->$SOURCE->$GET(...)
+              - patterns:
+                  - pattern-either:
+                      - pattern: $INPUT->$GET(...)
+                      - pattern: $INPUT->$SOURCE->$GET(...)
+                  - metavariable-regex:
+                      metavariable: $INPUT
+                      regex: ^\$?(input|jinput|post)$
+          - metavariable-regex:
+              metavariable: $GET
+              regex: ^(get|getString|getRaw|getHtml|getVar|getPath|getUsername|getTrim)$
+    pattern-sanitizers:
+      # A value passed to bind() is sent as a parameter: it does not taint the query object.
+      - patterns:
+          - pattern: $Q->bind($KEY, $VALUE, ...)
+          - focus-metavariable: $VALUE
+      - pattern-either:
+          - pattern: $DB->quote(...)
+          - pattern: $DB->q(...)
+          - pattern: $DB->quoteName(...)
+          - pattern: $DB->qn(...)
+          - pattern: (int) $X
+          - pattern: intval(...)
+          - pattern: (float) $X
+          - pattern: (bool) $X
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $DB->setQuery($SQL, ...)
+              - pattern: $Q->where($SQL, ...)
+              - pattern: $Q->orWhere($SQL, ...)
+              - pattern: $Q->andWhere($SQL, ...)
+              - pattern: $Q->having($SQL, ...)
+              - pattern: $Q->order($SQL, ...)
+              - pattern: $Q->group($SQL, ...)
+              - pattern: $Q->set($SQL, ...)
+              - pattern: $Q->select($SQL, ...)
+              - pattern: $Q->from($SQL, ...)
+              - pattern: $Q->join($T, $SQL, ...)
+          - focus-metavariable: $SQL
+
+  - id: bfng-input-to-output
+    mode: taint
+    languages: [php]
+    severity: WARNING
+    message: >-
+      Request input is written to the page without escaping.
+      Escape it for its context ($this->escape(), htmlspecialchars(), json_encode()).
+    metadata:
+      category: security
+      cwe: "CWE-79: Cross-site Scripting"
+    # Only direct flows: helpers that build markup are trusted to escape what they receive.
+    options:
+      taint_assume_safe_functions: true
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: $APP->getInput()->$GET(...)
+              - pattern: $APP->getInput()->$SOURCE->$GET(...)
+              - pattern: $APP->input->$GET(...)
+              - pattern: $APP->input->$SOURCE->$GET(...)
+              - patterns:
+                  - pattern-either:
+                      - pattern: $INPUT->$GET(...)
+                      - pattern: $INPUT->$SOURCE->$GET(...)
+                  - metavariable-regex:
+                      metavariable: $INPUT
+                      regex: ^\$?(input|jinput|post)$
+          - metavariable-regex:
+              metavariable: $GET
+              regex: ^(get|getString|getRaw|getHtml|getVar|getPath|getUsername|getTrim)$
+    pattern-sanitizers:
+      - pattern-either:
+          - pattern: $THIS->escape(...)
+          - pattern: htmlspecialchars(...)
+          - pattern: htmlentities(...)
+          - pattern: json_encode(...)
+          - pattern: urlencode(...)
+          - pattern: rawurlencode(...)
+          - pattern: (int) $X
+          - pattern: intval(...)
+          - pattern: (float) $X
+    pattern-sinks:
+      - pattern-either:
+          - pattern: echo ...;
+          - pattern: print(...)
+          - pattern: printf(...)
+
+  - id: bfng-superglobal-access
+    languages: [php]
+    severity: WARNING
+    message: >-
+      Read request data through Joomla's Input object ($app->getInput()), which filters it,
+      instead of PHP superglobals.
+    metadata:
+      category: security
+    pattern-either:
+      - pattern: $_GET
+      - pattern: $_POST
+      - pattern: $_REQUEST
+      - pattern: $_COOKIE
+      - pattern: $_FILES
+
+  - id: bfng-unserialize-without-allowed-classes
+    languages: [php]
+    severity: WARNING
+    message: >-
+      unserialize() can instantiate arbitrary objects. Prefer JSON, or pass
+      ['allowed_classes' => false] (or an explicit list of classes).
+    metadata:
+      category: security
+      cwe: "CWE-502: Deserialization of Untrusted Data"
+    patterns:
+      - pattern: unserialize($DATA)
+      - pattern-not: unserialize($DATA, [..., 'allowed_classes' => $X, ...])
+
+  - id: bfng-controller-task-without-token
+    languages: [php]
+    severity: WARNING
+    message: >-
+      This controller task changes data or redirects but never checks the CSRF token.
+      Call $this->checkToken() (or 'get' for links) at the start of the task.
+    metadata:
+      category: security
+      cwe: "CWE-352: Cross-Site Request Forgery"
+    patterns:
+      - pattern-inside: |
+          class $C extends $PARENT { ... }
+      - metavariable-regex:
+          metavariable: $C
+          regex: ^\w*Controller$
+      - pattern-either:
+          - pattern: |
+              public function $TASK(...) { ... $M->save(...); ... }
+          - pattern: |
+              public function $TASK(...) { ... $M->delete(...); ... }
+          - pattern: |
+              public function $TASK(...) { ... $M->publish(...); ... }
+          - pattern: |
+              public function $TASK(...) { ... $M->store(...); ... }
+          - pattern: |
+              public function $TASK(...) { ... $DB->execute(); ... }
+      - pattern-not: |
+          public function $TASK(...) { ... $this->checkToken(...); ... }
+      - pattern-not: |
+          public function $TASK(...) { ... Session::checkToken(...); ... }
+      # Tasks that hand over to the Joomla parent task, which checks the token itself.
+      - pattern-not-regex: (?s)\bparent::(publish|unpublish|delete|save|apply|archive|trash|checkin|saveorder|reorder|batch)\s*\(
+      - metavariable-regex:
+          metavariable: $TASK
+          regex: ^(?!(display|getModel|__construct|execute)$)\w+$
