@@ -73,7 +73,6 @@ final class RuntimeAssetLoaderTest extends TestCase
     {
         $manager = $application->getDocument()->getWebAssetManager();
         $reflection = new \ReflectionProperty($manager, 'registered');
-        $reflection->setAccessible(true);
 
         /** @var array<string, true> $registered */
         $registered = $reflection->getValue($manager);

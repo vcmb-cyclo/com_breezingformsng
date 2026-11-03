@@ -248,8 +248,5 @@ final class ImageResizer
         if ($buffer !== false) {
             File::write($path, $buffer);
         }
-
-        imagedestroy($resized);
-        imagedestroy($source);
     }
 }

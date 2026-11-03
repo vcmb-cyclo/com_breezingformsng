@@ -81,7 +81,6 @@ final class PieceTestRunnerTest extends TestCase
     private function invokeStatic(string $methodName, mixed ...$arguments): mixed
     {
         $method = new ReflectionMethod(PieceTestRunner::class, $methodName);
-        $method->setAccessible(true);
 
         return $method->invoke(null, ...$arguments);
     }
