@@ -45,6 +45,7 @@ required=(
     "components/com_breezingformsng/breezingformsng.php"
     "components/com_breezingformsng/src/Service/Rendering/QuickMode/QuickModeSubmittedValueHydrator.php"
     "media/com_breezingformsng/css/custom.css"
+    "media/com_breezingformsng/images/bfng-easter-egg-2026.webp"
 )
 
 for path in "${required[@]}"; do
@@ -55,6 +56,7 @@ for path in "${required[@]}"; do
 done
 
 forbidden_patterns=(
+    '^administrator/components/com_breezingformsng/vendor/bgli100/securimage/audio/noise/'
     '^administrator/components/com_breezingformsng/vendor/tecnickcom/tcpdf/'
     '^administrator/components/com_breezingformsng/vendor/bin/'
     '^administrator/components/com_breezingformsng/vendor/phpunit/'
