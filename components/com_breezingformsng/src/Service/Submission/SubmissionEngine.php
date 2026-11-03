@@ -457,7 +457,7 @@ final class SubmissionEngine
                                                 $fm = str_replace('{filemask:_timestamp}', (string) time(), $fm);
                                                 $fm = str_replace(
                                                     '{filemask:_random}',
-                                                    (string) mt_rand(0, mt_getrandmax()),
+                                                    (string) random_int(0, mt_getrandmax()),
                                                     $fm
                                                 );
                                                 $fm = str_replace(
@@ -482,7 +482,7 @@ final class SubmissionEngine
                                                     true
                                                 )
                                             ) {
-                                                $rnd = md5((string) mt_rand(0, mt_getrandmax()));
+                                                $rnd = bin2hex(random_bytes(16));
                                                 $path = $baseDir . '/' . $rnd . '_' . $userfile_name;
                                                 //if ($row->flag1) $path .= '.'.date('YmdHis');
                                                 if (file_exists($path)) {
@@ -838,6 +838,7 @@ final class SubmissionEngine
                                         }
                                         $sig_decoded = bf_b64dec($value);
                                         $sig_file = JPATH_SITE . '/media/breezingforms/signatures/'
+                                            // nosemgrep: php.lang.security.weak-crypto.weak-crypto -- MD5 names the signature file after its content, not a secret.
                                             . $row->name . '-' . md5($value) . '.png';
                                         File::write($sig_file, $sig_decoded);
                                         $value = basename($sig_file);

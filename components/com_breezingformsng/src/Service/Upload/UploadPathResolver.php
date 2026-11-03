@@ -105,7 +105,7 @@ final class UploadPathResolver
             '{filemask:_datetime}' => $dateTime,
             '{filemask:_date}' => $date,
             '{filemask:_timestamp}' => (string) time(),
-            '{filemask:_random}' => (string) mt_rand(0, mt_getrandmax()),
+            '{filemask:_random}' => (string) random_int(0, mt_getrandmax()),
             '{filemask:_filename}' => trim(basename($clientFilename, '.' . $extension)),
         ];
         $filemask = str_replace(array_keys($replacements), array_values($replacements), $filemask);

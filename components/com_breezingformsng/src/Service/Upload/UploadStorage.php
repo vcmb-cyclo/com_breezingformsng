@@ -48,7 +48,7 @@ final class UploadStorage
 
         if (file_exists($path)) {
             if ($preserveExistingFile) {
-                $path = $directory . '/' . md5((string) mt_rand(0, mt_getrandmax())) . '_' . $filename;
+                $path = $directory . '/' . bin2hex(random_bytes(16)) . '_' . $filename;
 
                 if (file_exists($path)) {
                     return UploadResult::failure(UploadError::FileExists);
