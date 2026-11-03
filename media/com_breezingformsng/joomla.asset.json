@@ -111,6 +111,13 @@
     },
 
     {
+      "name": "com_breezingformsng.quickmode-options-toggle",
+      "type": "script",
+      "uri": "media/com_breezingformsng/js/admin/quickmode-options-toggle.js",
+      "version": "auto"
+    },
+
+    {
       "name": "com_breezingformsng.center",
       "type": "script",
       "uri": "components/com_breezingformsng/libraries/jquery/center.js",

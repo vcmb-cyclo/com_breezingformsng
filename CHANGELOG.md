@@ -21,6 +21,7 @@
 - Detect edits to element properties and Stripe settings in the unsaved changes warning.
 - Keep the unsaved changes warning active after direct edits to any QuickMode element field.
 - Keep the email editor toolbar visible when BreezingForms enters full page mode.
+- Restore the None, Library and Custom selectors for scripts and pieces in QuickMode Options.
 
 ## 6.1.0-RC14
 

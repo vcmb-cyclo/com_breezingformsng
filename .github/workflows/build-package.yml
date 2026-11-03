@@ -142,6 +142,7 @@ jobs:
         run: |
           npm run test:tree-model
           node --test tests/JavaScript/quickmode-form-dirty.test.mjs
+          node --test tests/JavaScript/quickmode-options-toggle.test.mjs
           node --test tests/JavaScript/about-easter-egg.test.mjs
 
       - name: Install Playwright browser

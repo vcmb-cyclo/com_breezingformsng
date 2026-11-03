@@ -199,6 +199,7 @@ final class QuickmodeHtml
         $wa->useScript('com_breezingformsng.scroll');
         $wa->useScript('com_breezingformsng.quickmode-elements');
         $wa->useScript('com_breezingformsng.quickmode-app');
+        $wa->useScript('com_breezingformsng.quickmode-options-toggle');
         $wa->useScript('com_breezingformsng.jquery-restore');
         $wa->useScript('com_breezingformsng.quickmode-form-dirty');
 

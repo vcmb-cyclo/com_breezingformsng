@@ -54,7 +54,9 @@ if (!empty($quickMode)) {
     // Joomla enables TinyMCE's sticky toolbar against the document scroll.
     // QuickMode's full-page button scrolls <main> instead, so keep these
     // email toolbars in the editor rather than docking them outside it.
-    Factory::getApplication()->getDocument()->addScriptOptions('plg_editor_tinymce', [
+    /** @var \Joomla\CMS\Application\AdministratorApplication $application */
+    $application = Factory::getApplication();
+    $application->getDocument()->addScriptOptions('plg_editor_tinymce', [
         'tinyMCE' => [
             'email_custom_template' => ['toolbar_sticky' => false],
             'mb_email_custom_template' => ['toolbar_sticky' => false],
