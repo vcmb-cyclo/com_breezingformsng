@@ -24,6 +24,9 @@
 
 - Add or update relevant tests. Run `php -l` on changed PHP files and configured PHPCS, PHPStan, PHPUnit and functional checks when installed and feasible.
 - Run all tests without the Joomla 6.2 compatibility plugin and without the BreezingForms compatibility plugin for old classes.
+- Put every locally built release ZIP directly in the repository's `build/` directory.
+- Use the local Docker environment `breezingforms-61` for BF tests; its Joomla container is named `bf61_joomla`.
+- After copying files into `bf61_joomla`, restore the installed files to `www-data:www-data` with normal file permissions so Joomla updates remain writable.
 - For installer/DB changes, verify fresh install, upgrade from the previous schema and rerun idempotence against disposable database copies. For view/form changes, verify relevant frontend and administrator paths, ACL deny/allow, CSRF, translations and dark/mobile layout.
 - Report changed files, functional and migration impact, security considerations, checks run with pass/fail/not-run results, and remaining risks. Never claim a check passed unless executed.
 

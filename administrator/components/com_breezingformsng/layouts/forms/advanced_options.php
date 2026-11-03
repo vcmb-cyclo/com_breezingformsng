@@ -50,6 +50,19 @@ HTMLHelper::_('bootstrap.tab');
 $labelTip = static fn (string $key): string => ' title="' . htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8') . '"';
 
 $mailEditor = Editor::getInstance(Factory::getApplication()->get('editor'));
+if (!empty($quickMode)) {
+    // Joomla enables TinyMCE's sticky toolbar against the document scroll.
+    // QuickMode's full-page button scrolls <main> instead, so keep these
+    // email toolbars in the editor rather than docking them outside it.
+    /** @var \Joomla\CMS\Application\AdministratorApplication $application */
+    $application = Factory::getApplication();
+    $application->getDocument()?->addScriptOptions('plg_editor_tinymce', [
+        'tinyMCE' => [
+            'email_custom_template' => ['toolbar_sticky' => false],
+            'mb_email_custom_template' => ['toolbar_sticky' => false],
+        ],
+    ]);
+}
 $mailFieldNames = FormsAdvancedOptionsHtml::mailFieldNames((int) ($f->id ?? 0), (int) ($f->emaillog ?? 1));
 $mbCustomEmail = (int) ($f->mb_email_type ?? 0) === 1;
 $mbDefaultBody = FormsAdvancedOptionsHtml::mailbackDefaultBody($f);

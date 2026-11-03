@@ -13,6 +13,27 @@
     border-color: var(--template-link-color, #2f70b9);
 }
 
+.bf-forms-edit #pane-email .nav-tabs .nav-link.active {
+    color: #fff;
+    background-color: #164b83;
+    border-color: #164b83;
+}
+.bf-forms-edit #pane-email .nav-tabs .nav-link:hover,
+.bf-forms-edit #pane-email .nav-tabs .nav-link:focus-visible {
+    color: #fff;
+    background-color: #164b83;
+    border-color: #164b83;
+}
+.bf-forms-edit #pane-email :is(#tab-email-admin, #tab-email-user) {
+    border: 1px solid #164b83 !important;
+    color: #164b83 !important;
+}
+.bf-forms-edit #pane-email :is(#tab-email-admin, #tab-email-user):is(.active, :hover, :focus-visible) {
+    background: #164b83 !important;
+    border-color: #164b83 !important;
+    color: #fff !important;
+}
+
 .bf-forms-edit > .tab-content {
     background: var(--card-bg, #fff);
 }

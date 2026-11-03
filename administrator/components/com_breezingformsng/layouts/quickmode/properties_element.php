@@ -704,13 +704,24 @@ use Joomla\CMS\Language\Text;
                                                     </label>
                                                     <input type="text" value="" id="bfElementTypeStripeItemname" />
                                                 </div>
-                                                <div class="bfPropertyWrap bfng-field">
-                                                    <label class="bfPropertyLabel bfng-field__label"
-                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_STRIPE_THANKYOUPAGE')); ?>"
-                                                        for="bfElementTypeStripeThankYouPage">
+                                                <div class="bfPropertyWrap bfng-field" id="bfStripeReturnModeWrap">
+                                                    <span class="bfPropertyLabel bfng-field__label">
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_THANKYOU_PAGE'); ?>
-                                                    </label>
-                                                    <input type="text" value="" id="bfElementTypeStripeThankYouPage" />
+                                                    </span>
+                                                    <span class="btn-group" role="group">
+                                                        <input type="radio" class="btn-check" name="bfStripeReturnMode" id="bfStripeReturnBfPage" value="bf" autocomplete="off" />
+                                                        <label class="btn btn-outline-primary btn-sm" for="bfStripeReturnBfPage"><?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_RETURN_BF_PAGE'); ?></label>
+                                                        <input type="radio" class="btn-check" name="bfStripeReturnMode" id="bfStripeReturnExternalUrl" value="url" autocomplete="off" />
+                                                        <label class="btn btn-outline-primary btn-sm" for="bfStripeReturnExternalUrl"><?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_RETURN_EXTERNAL_URL'); ?></label>
+                                                    </span>
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field" id="bfStripeReturnPageWrap">
+                                                    <label class="bfPropertyLabel bfng-field__label" for="bfStripeReturnPageNumber"><?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_RETURN_PAGE_NUMBER'); ?></label>
+                                                    <input type="number" id="bfStripeReturnPageNumber" min="1" step="1" value="2" />
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field" id="bfStripeReturnUrlWrap" style="display:none">
+                                                    <label class="bfPropertyLabel bfng-field__label" for="bfElementTypeStripeThankYouPage"><?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_STRIPE_RETURN_EXTERNAL_URL'); ?></label>
+                                                    <input type="url" value="" id="bfElementTypeStripeThankYouPage" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"

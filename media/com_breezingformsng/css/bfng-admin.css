@@ -511,10 +511,83 @@ body:has(#bfQuickModeWrapper) .page-title {
 #bfElementTypeStripe .bfng-stripe-choice input,
 #bfElementTypeStripe .bfng-stripe-methods input { flex: 0 0 auto; width: auto; margin: 0; }
 #bfElementTypeStripe .bfng-stripe-methods label { width: auto; min-width: 8rem; }
+
+/* Keep Advanced script controls readable when several radios or flags share a row. */
+#bfElementAdvanced :is(#bfInitScript, #bfActionScript) input[type="radio"],
+#bfElementAdvanced :is(#bfInitScript, #bfActionScript) input[type="checkbox"] {
+  margin-inline: .65rem .3rem;
+}
+#bfElementAdvanced :is(#bfInitScript, #bfActionScript) .bfPropertyWrap > input:first-of-type {
+  margin-inline-start: .75rem;
+}
+#bfElementAdvanced #bfActionScriptFlags .bfActionLabel {
+  margin-inline-end: .8rem;
+}
+/* Give Validation the same spacing as the Init and Action script choices. */
+#bfValidationScript .bfPropertyWrap input[type="radio"] {
+  margin-inline: .65rem .3rem;
+}
+#bfValidationScript .bfPropertyWrap > input[type="radio"]:first-of-type {
+  margin-inline-start: .75rem;
+}
+#bfValidationScript #bfElementValidationRequired {
+  margin-inline-start: .75rem;
+}
 #bfElementTypeStripe .btn-group .btn.active {
   border-color: var(--bfng-accent-500);
   background: var(--bfng-accent-500);
   color: #fff;
+}
+#bfElementTypeStripe .btn-group .btn-check:checked + .btn,
+#bfElementTypeStripe .btn-group .btn-check:focus-visible + .btn {
+  background: #164b83;
+  border-color: #164b83;
+  color: #fff;
+}
+#bfQuickModeWrapper #bfElementTypeStripe .btn-group .btn-check:checked + .btn,
+#bfQuickModeWrapper #bfElementTypeStripe .btn-group .btn-check:checked + .btn:hover,
+#bfQuickModeWrapper #bfElementTypeStripe .btn-group .btn-check:checked + .btn:focus-visible,
+#bfQuickModeWrapper #bfElementTypeStripe .btn-group .btn:hover,
+#bfQuickModeWrapper #bfElementTypeStripe .btn-group .btn:focus-visible {
+  background-color: #164b83;
+  border-color: #164b83;
+  color: #fff;
+}
+#bfElementTypeStripe :is(#bfStripeReturnModeWrap, #bfStripeReturnPageWrap, #bfStripeReturnUrlWrap) .bfng-field__label {
+  color: var(--bfng-text);
+  font-size: var(--bfng-fs-base);
+  font-weight: 600;
+}
+#bfElementTypeStripe #bfStripeReturnModeWrap .btn {
+  font-size: var(--bfng-fs-base);
+}
+#bfQuickModeWrapper #bfElementTypeStripe .btn-group > label.btn {
+  background: #fff !important;
+  border: 1px solid #164b83 !important;
+  color: #164b83 !important;
+}
+#bfQuickModeWrapper #bfElementTypeStripe .btn-group > label.btn:hover,
+#bfQuickModeWrapper #bfElementTypeStripe .btn-group > label.btn:focus-visible,
+#bfQuickModeWrapper #bfElementTypeStripe .btn-group > label.btn.active,
+#bfQuickModeWrapper #bfElementTypeStripe .btn-group > input.btn-check:checked + label.btn {
+  background: #164b83 !important;
+  border-color: #164b83 !important;
+  color: #fff !important;
+}
+#bfQuickModeWrapper #fragment-3 #pane-email :is(#tab-email-admin, #tab-email-user) {
+  background: #fff !important;
+  border: 1px solid #164b83 !important;
+  color: #164b83 !important;
+}
+#bfQuickModeWrapper #fragment-3 #pane-email :is(#tab-email-admin, #tab-email-user):is(.active, :hover, :focus-visible) {
+  background: #164b83 !important;
+  border-color: #164b83 !important;
+  color: #fff !important;
+}
+#bfQuickModeWrapper #bfElementTypeStripe #bfStripeReturnModeWrap .bfng-field__label {
+  color: var(--bfng-text) !important;
+  font-size: var(--bfng-fs-base) !important;
+  font-weight: 600;
 }
 .bfng-stripe-question { margin-bottom: var(--bfng-space-2); font-weight: 600; }
 .bfng-stripe-choice {
