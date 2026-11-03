@@ -45,7 +45,6 @@ class QuickmodeController extends BaseController
 
                 return $this;
             }
-
         }
 
         $this->app->getInput()->set('view', 'quickmode');
