@@ -53,8 +53,10 @@ export default [
             'scripts/**/*.mjs',
             'tests/JavaScript/**/*.mjs',
             'tests/Browser/**/*.mjs',
+            'tests/E2E/**/*.mjs',
             'eslint.config.mjs',
             'playwright.config.mjs',
+            'playwright.e2e.config.mjs',
             'stylelint.config.mjs',
         ],
         languageOptions: {

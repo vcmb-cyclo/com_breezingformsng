@@ -24,18 +24,18 @@ function bf_add_yearscroller(fieldname) {
 				bf_add_yearscroller(fieldname);
 			});
 
-			var myVal = JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').val();
-			var myInterval = setInterval(function () {
-				if (myVal != JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').val()) {
-					clearInterval(myInterval);
+			var yearValue = JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').val();
+			var yearInterval = setInterval(function () {
+				if (yearValue != JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--year').val()) {
+					clearInterval(yearInterval);
 					bf_add_yearscroller(fieldname);
 				}
 			}, 200);
 
-			var myVal = JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').val();
-			var myInterval = setInterval(function () {
-				if (myVal != JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').val()) {
-					clearInterval(myInterval);
+			var monthValue = JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').val();
+			var monthInterval = setInterval(function () {
+				if (monthValue != JQuery('.bfCalendarResponsiveContainer' + fieldname + ' .picker__select--month').val()) {
+					clearInterval(monthInterval);
 					bf_add_yearscroller(fieldname);
 				}
 			}, 200);

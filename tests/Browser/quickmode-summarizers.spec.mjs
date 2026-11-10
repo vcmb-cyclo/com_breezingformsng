@@ -46,9 +46,9 @@ for (const helper of HELPERS) {
 
         test('renders raw option values as text without fieldCalc', async ({ page }) => {
             await page.evaluate(() => {
-                bfRegisterSummarize('sumRadio', 'radio', 'bfRadioGroup', '', false);
-                bfRegisterSummarize('sumSelect', 'select', 'bfSelect', '', false);
-                populateSummarizers();
+                window.bfRegisterSummarize('sumRadio', 'radio', 'bfRadioGroup', '', false);
+                window.bfRegisterSummarize('sumSelect', 'select', 'bfSelect', '', false);
+                window.populateSummarizers();
             });
 
             await expect(page.locator('#sumRadio')).toHaveText('<b>A&B</b>');
@@ -58,14 +58,14 @@ for (const helper of HELPERS) {
 
         test('passes raw values to fieldCalc and renders its HTML', async ({ page }) => {
             await page.evaluate(() => {
-                window.bfFieldCalcsumRadio = function (value) { received.push(value); return '<em>radio</em>'; };
-                window.bfFieldCalcsumSelect = function (value) { received.push(value); return '<em>select</em>'; };
-                bfRegisterSummarize('sumRadio', 'radio', 'bfRadioGroup', '', false);
-                bfRegisterSummarize('sumSelect', 'select', 'bfSelect', '', false);
-                populateSummarizers();
+                window.bfFieldCalcsumRadio = function (value) { window.received.push(value); return '<em>radio</em>'; };
+                window.bfFieldCalcsumSelect = function (value) { window.received.push(value); return '<em>select</em>'; };
+                window.bfRegisterSummarize('sumRadio', 'radio', 'bfRadioGroup', '', false);
+                window.bfRegisterSummarize('sumSelect', 'select', 'bfSelect', '', false);
+                window.populateSummarizers();
             });
 
-            expect(await page.evaluate(() => received)).toEqual(['<b>A&B</b>', 'A&B, C<D']);
+            expect(await page.evaluate(() => window.received)).toEqual(['<b>A&B</b>', 'A&B, C<D']);
             await expect(page.locator('#sumRadio em')).toHaveText('radio');
             await expect(page.locator('#sumSelect em')).toHaveText('select');
         });

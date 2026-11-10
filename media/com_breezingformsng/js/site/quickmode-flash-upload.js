@@ -28,7 +28,8 @@ function bfDoFlashUpload(){
         JQuery("#"+bfUploaderErrorElements[i]).html("");
     }
     bfUploaderErrorElements = [];
-    if(ff_validation(0) == ""){
+    var error = ff_validation(0);
+    if(error == ""){
         try{
             bfFlashUploadInterval = window.setInterval( bfCheckFlashUploadProgress, 1000 );
             if(bfFlashUploadersLength > 0){
