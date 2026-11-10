@@ -2,7 +2,11 @@ import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 
 const template = readFileSync('administrator/components/com_breezingformsng/tmpl/packages/import.php', 'utf8');
-const script = template.match(/<script>([\s\S]*?)<\/script>/)[1]
+const scriptMatch = template.match(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/i);
+if (!scriptMatch) {
+    throw new Error('Expected a <script> block in package import template');
+}
+const script = scriptMatch[1]
     .replace("import('joomla.dialog')", 'Promise.resolve({ default: window.testDialog })');
 
 test('confirmation cancels and submits without interpreting the filename as HTML', async ({ page }) => {
