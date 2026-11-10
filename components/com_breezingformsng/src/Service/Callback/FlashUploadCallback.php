@@ -44,6 +44,9 @@ final class FlashUploadCallback
     if (ob_get_level() > 0) {
         ob_end_clean();
     }
+    // Responses are displayed as plain text by the uploader, never as HTML.
+    $this->application->setHeader('Content-Type', 'text/plain; charset=utf-8', true);
+    $this->application->sendHeaders();
     $input = $this->application->getInput();
     $uploadedFile = $input->files->get('Filedata', [], 'array');
     if (is_numeric($input->getString('form', '')) && $uploadedFile !== [] && $input->getString('bfFlashUploadTicket', '') != '') {
