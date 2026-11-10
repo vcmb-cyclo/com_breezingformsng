@@ -72,8 +72,9 @@ final class PackagesController extends BaseController
             $pieceIds = $input->get("pieces", [], "array");
             $menuIds = $input->get("menus", [], "array");
             $metadata = $input->get('metadata', [], 'array');
-            $withTemplates = $input->getBool('include_templates');
-            $withIntegrator = $input->getBool('include_integrator');
+            // An unchecked switch is not posted: Input returns the default as it is.
+            $withTemplates = $input->getBool('include_templates', false);
+            $withIntegrator = $input->getBool('include_integrator', false);
             // Template files are PHP code run by the site.
             if ($withTemplates && !$this->mayTransferTemplates()) {
                 throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_TEMPLATES_NOT_ALLOWED', Text::_('JACTION_ADMIN')));
