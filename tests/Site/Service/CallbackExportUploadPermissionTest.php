@@ -248,6 +248,25 @@ final class CallbackExportUploadPermissionTest extends TestCase
         }
     }
 
+    public function testFlashUploadValidationReturnsOnlyTheMatchingFieldLimit(): void
+    {
+        $validator = new FlashUploadSizeValidator();
+        $file = tempnam(sys_get_temp_dir(), 'bfng-upload-test-');
+        self::assertNotFalse($file);
+        file_put_contents($file, '123456');
+
+        try {
+            $data = ['children' => [
+                ['properties' => ['type' => 'element', 'bfType' => 'bfFile', 'bfName' => 'first', 'flashUploaderBytes' => 2]],
+                ['properties' => ['type' => 'element', 'bfType' => 'bfFile', 'bfName' => 'second', 'flashUploaderBytes' => 4, 'label' => 'Second']],
+            ]];
+            self::assertSame(['label' => 'Second', 'maxBytes' => 4], $validator->findOversized($data, $file, 'second'));
+            self::assertNull($validator->findOversized($data, $file, 'missing'));
+        } finally {
+            @unlink($file);
+        }
+    }
+
     public function testCallbacksKeepBoundDatabaseQueriesAndInputAuthorizationChecks(): void
     {
         foreach (['StripeCallback', 'PayPalCallback'] as $callback) {

@@ -40,10 +40,14 @@ final class FileExtensionsCheckBuilder
             $extensions = explode(',', $row->data2);
 
             foreach ($extensions as $extension) {
+                $extensionLiteral = json_encode(
+                    '.' . strtolower(trim($extension)),
+                    JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR
+                );
                 $script .= '
 								if(!ff_elem' . $id
                     . 'Exts && document.getElementById("ff_elem' . $id
-                    . '").value.toLowerCase().lastIndexOf(".' . strtolower(trim($extension)) . '") != -1){
+                    . '").value.toLowerCase().lastIndexOf(' . $extensionLiteral . ') != -1){
 								ff_elem' . $id . 'Exts = true;
 								}else if(!ff_elem' . $id
                     . 'Exts && document.getElementById("ff_elem' . $id
@@ -52,12 +56,23 @@ final class FileExtensionsCheckBuilder
 							}';
             }
 
+            $allowedLiteral = json_encode(
+                implode(', ', array_map('trim', $extensions)),
+                JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR
+            );
             $script .= '
 					if(!ff_elem' . $id . 'Exts){
+						var uploadInput = document.getElementById("ff_elem' . $id . '");
+						var uploadName = uploadInput.value.split(/[\\\\\/]/).pop();
+						var uploadMessage = ' . $fileExtensionError . '.replace(/%([12])\$s/g, function(_, n) {
+							return n == "1" ? uploadName : ' . $allowedLiteral . ';
+						});
 						if(typeof bfUseErrorAlerts == "undefined"){
-							alert(' . $fileExtensionError . ');
+							alert(uploadMessage);
 						} else {
-							bfShowErrors(' . $fileExtensionError . ');
+							var uploadText = document.createElement("span");
+							uploadText.textContent = uploadMessage;
+							bfShowErrors(uploadText.innerHTML);
 						}
 						if(ff_currentpage != ' . $row->page . ')ff_switchpage(' . $row->page . ');
                                                 if(document.getElementById("bfSubmitButton")){

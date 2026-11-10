@@ -83,16 +83,19 @@ final class FlashUploadCallback
 
                     $dataObject = json_decode(bf_b64dec($objectList[0]->template_code), true);
 
-                    $validationLabel = $this->uploadSizeValidator->findOversizedLabel(
+                    $oversized = $this->uploadSizeValidator->findOversized(
                         $dataObject,
                         $finaltargetFile,
                         $itemName
                     );
 
-                    if ($validationLabel !== null) {
+                    if ($oversized !== null) {
                         File::delete($finaltargetFile);
-                        echo $validationLabel . ': '
-                            . Text::_('COM_BREEZINGFORMSNG_FLASH_UPLOADER_TOO_LARGE');
+                        echo $oversized['label'] . ': ' . Text::sprintf(
+                            'COM_BREEZINGFORMSNG_UPLOAD_FILE_TOO_LARGE_DETAIL',
+                            basename(str_replace('\\', '/', $input->getString('name', 'unknown'))),
+                            (string) $oversized['maxBytes']
+                        );
                         $this->application->close();
                     }
 

@@ -104,6 +104,16 @@ final class HtmlView extends BaseHtmlView
             Text::script('COM_BREEZINGFORMSNG_CONFIRM_DISCARD_CHANGES');
         }
 
+        // The import asks for confirmation, telling what the file will write.
+        if ($this->getLayout() === 'import') {
+            $document->getWebAssetManager()->useScript('joomla.dialog');
+            Text::script('JYES');
+            Text::script('JNO');
+            foreach (['FILE', 'CONTENT', 'REPLACE', 'TEMPLATES', 'INTEGRATOR'] as $part) {
+                Text::script('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_' . $part);
+            }
+        }
+
         switch ($this->getLayout()) {
             case 'export':
                 $toolbar->apply('packages.save')

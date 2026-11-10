@@ -416,6 +416,30 @@ test.describe('forms', () => {
         expect(row.script2code).toContain('ff_switchpage');
     });
 
+    test('an invalid package identifies the uploaded file safely', async () => {
+        const filename = 'invalid-<img src=x>.json';
+        const cases = [
+            ['{', `The file '${filename}' does not contain valid JSON.`],
+            [JSON.stringify({ format: 'breezingformsng-package', version: 999, package: 'e2e-invalid' }), `The package version in the file '${filename}' is not supported.`],
+            [JSON.stringify({ format: 'breezingformsng-package', version: 2, package: 'e2e-invalid', metadata: 'invalid' }), `The file '${filename}' is not a valid BFNG package.`],
+        ];
+        for (const [content, message] of cases) {
+            await page.goto(`${ADMIN}?option=com_breezingformsng&view=packages&layout=import`);
+            await page.setInputFiles('#bf-package-file', {
+                name: filename,
+                mimeType: 'application/json',
+                buffer: Buffer.from(content),
+            });
+            await Promise.all([
+                page.waitForNavigation(),
+                page.locator('#bf-package-file').evaluate((input) => input.form.submit()),
+            ]);
+            const error = page.locator('joomla-alert[type="danger"], .alert-danger').filter({ hasText: filename });
+            await expect(error).toContainText(message);
+            await expect(error.locator('img')).toHaveCount(0);
+        }
+    });
+
     test('a package import warns about the forms it unpublishes', async () => {
         const name = 'e2e-<i>backend</i>-only';
         const row = formRow(formId);
@@ -435,11 +459,12 @@ test.describe('forms', () => {
             });
             await Promise.all([
                 page.waitForNavigation(),
-                page.locator('#bf-package-file').evaluate((input) => input.form.requestSubmit()),
+                page.locator('#bf-package-file').evaluate((input) => input.form.submit()),
             ]);
         };
 
         await importPackage(0);
+        await expect(page.locator('joomla-alert[type="success"], .alert-success')).toContainText("The package 'e2e-runmode' has been imported.");
         expect(packageForm()).toMatchObject({ published: '1', runmode: '0' });
 
         await importPackage(1);

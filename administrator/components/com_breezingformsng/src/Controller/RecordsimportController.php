@@ -76,12 +76,22 @@ class RecordsimportController extends BaseController
         $valid = $model->validate($form, $data);
         $file = (string) ($upload['tmp_name'] ?? '');
 
-        if ($valid === false) {
+        $uploadError = (int) ($upload['error'] ?? UPLOAD_ERR_NO_FILE);
+
+        if ($uploadError !== UPLOAD_ERR_OK) {
+            $key = match ($uploadError) {
+                UPLOAD_ERR_NO_FILE => 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_UPLOAD_REQUIRED',
+                UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_UPLOAD_TOO_LARGE',
+                default => 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_UPLOAD_FAILED',
+            };
+            $this->app->enqueueMessage(Text::_($key), 'warning');
+            $valid = false;
+        } elseif ($valid === false) {
             foreach ($model->getErrors() as $error) {
                 $this->app->enqueueMessage($error instanceof \Throwable ? $error->getMessage() : (string) $error, 'warning');
             }
-        } elseif ((int) ($upload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($file)) {
-            $this->app->enqueueMessage(Text::_('JLIB_MEDIA_ERROR_UPLOAD_INPUT'), 'warning');
+        } elseif (!is_uploaded_file($file)) {
+            $this->app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_RECORDS_IMPORT_UPLOAD_FAILED'), 'warning');
             $valid = false;
         }
 
@@ -105,8 +115,38 @@ class RecordsimportController extends BaseController
 
         if ($imported > 0) {
             $this->setMessage(Text::plural('COM_BREEZINGFORMSNG_RECORDS_N_IMPORTED', $imported));
+            $ignored = $importer->getIgnoredColumns();
+            if ($ignored !== []) {
+                // File headers are untrusted and may be very long. Never include cell values.
+                $names = array_map(static function (string $name): string {
+                    $name = preg_replace('/[\x00-\x1f\x7f]/', ' ', $name) ?? '';
+                    return '“' . htmlspecialchars(mb_strimwidth($name, 0, 80, '…'), ENT_QUOTES, 'UTF-8') . '”';
+                }, array_slice($ignored, 0, 20));
+                if (count($ignored) > 20) {
+                    $names[] = '…';
+                }
+                $this->app->enqueueMessage(Text::sprintf(
+                    'COM_BREEZINGFORMSNG_RECORDS_IMPORT_SKIPPED_COLUMNS',
+                    implode(', ', $names)
+                ), 'warning');
+            }
         } else {
-            $this->setMessage(Text::_('COM_BREEZINGFORMSNG_RECORDS_IMPORT_NONE'), 'warning');
+            $key = $importer->getError() ?? 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_NONE';
+            $name = basename(str_replace('\\', '/', (string) ($upload['name'] ?? '')));
+            $message = match ($key) {
+                'COM_BREEZINGFORMSNG_RECORDS_IMPORT_FILE_UNREADABLE',
+                'COM_BREEZINGFORMSNG_RECORDS_IMPORT_HEADER_INVALID',
+                'COM_BREEZINGFORMSNG_RECORDS_IMPORT_EMPTY' => Text::sprintf(
+                    $key,
+                    htmlspecialchars($name, ENT_QUOTES, 'UTF-8')
+                ),
+                'COM_BREEZINGFORMSNG_RECORDS_IMPORT_ENCODING_FAILED' => Text::sprintf(
+                    $key,
+                    htmlspecialchars((string) $valid['encoding'], ENT_QUOTES, 'UTF-8')
+                ),
+                default => Text::_($key),
+            };
+            $this->setMessage($message, 'warning');
         }
 
         $this->setRedirect(Route::_(self::LIST_URL, false));

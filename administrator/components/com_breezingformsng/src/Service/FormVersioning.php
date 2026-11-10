@@ -65,7 +65,7 @@ final class FormVersioning
      *
      * @return int The new version number
      */
-    public function record(int $formId): int
+    public function record(int $formId, string $note = ''): int
     {
         $db = $this->db;
         // A savepoint inside the transaction of a restore, a transaction on
@@ -92,7 +92,8 @@ final class FormVersioning
             if (self::isEnabled()) {
                 $this->forms->setState($this->forms->getName() . '.id', $formId);
 
-                if (!$this->forms->saveHistory([], self::TYPE_ALIAS)) {
+                // The note column of the history holds 255 characters.
+                if (!$this->forms->saveHistory(['version_note' => mb_substr($note, 0, 255)], self::TYPE_ALIAS)) {
                     throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
                 }
             }
@@ -111,13 +112,13 @@ final class FormVersioning
      * Stores the current state of the form as its version of origin, kept
      * forever, when it has no version yet: a form at version 0 goes to 1.
      */
-    public function keepOrigin(int $formId): void
+    public function keepOrigin(int $formId, string $note = ''): void
     {
         if (!self::isEnabled() || VersionOrigin::missing($this->db, self::TYPE_ALIAS, [$formId]) === []) {
             return;
         }
 
-        $this->record($formId);
+        $this->record($formId, $note !== '' ? $note : Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOTE_ORIGIN'));
         VersionOrigin::keepForever($this->db, self::TYPE_ALIAS . '.' . $formId);
     }
 

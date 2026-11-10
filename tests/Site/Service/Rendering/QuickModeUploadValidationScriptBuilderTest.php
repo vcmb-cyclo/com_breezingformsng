@@ -25,8 +25,8 @@ final class QuickModeUploadValidationScriptBuilderTest extends TestCase
 
         self::assertStringContainsString('var thebytes = 2048;', $script);
         self::assertStringContainsString("var exts = 'jpg,png'.split(',');", $script);
-        self::assertStringContainsString('alert("Too large");', $script);
-        self::assertStringContainsString('alert("Bad type");', $script);
+        self::assertStringContainsString('alert("Too large".replace(', $script);
+        self::assertStringContainsString('alert("Bad type".replace(', $script);
         self::assertStringContainsString("JQuery('#'+files[i].id+'queueitem').remove();", $script);
         self::assertStringContainsString('bfFlashUploadersLength++;', $script);
     }
@@ -41,8 +41,8 @@ final class QuickModeUploadValidationScriptBuilderTest extends TestCase
             "\n"
         );
 
-        self::assertStringContainsString("alert(\"Too large');alert(1);\\/\\/\");", $script);
-        self::assertStringContainsString("alert(\"Bad type');alert(2);\\/\\/\");", $script);
+        self::assertStringContainsString('alert("Too large\\u0027);alert(1);\\/\\/".replace(', $script);
+        self::assertStringContainsString('alert("Bad type\\u0027);alert(2);\\/\\/".replace(', $script);
         self::assertStringContainsString("var exts = 'jpg,po\\u0027wn\\u003C/script\\u003E'.split(',');", $script);
     }
 }

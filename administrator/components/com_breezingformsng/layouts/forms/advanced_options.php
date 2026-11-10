@@ -127,8 +127,8 @@ $paneErrors = [
         <div class="col-sm-9">
           <select class="form-select" id="jf_package" name="package">
             <option value=""><?= Text::_('COM_BREEZINGFORMSNG_FORMS_NONE'); ?></option>
-            <?php foreach (FormsAdvancedOptionsHtml::packageNames($pkg) as $packageName) : ?>
-              <option value="<?= htmlspecialchars($packageName, ENT_QUOTES, 'UTF-8'); ?>"<?= $packageName === $pkg ? ' selected' : ''; ?>><?= htmlspecialchars($packageName, ENT_QUOTES, 'UTF-8'); ?></option>
+            <?php foreach (FormsAdvancedOptionsHtml::packageNames($pkg) as $packageId => $packageLabel) : ?>
+              <option value="<?= htmlspecialchars((string) $packageId, ENT_QUOTES, 'UTF-8'); ?>"<?= (string) $packageId === $pkg ? ' selected' : ''; ?>><?= htmlspecialchars($packageLabel, ENT_QUOTES, 'UTF-8'); ?></option>
             <?php endforeach; ?>
           </select>
           <div class="form-text"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PACKAGE_HINT'); ?></div>

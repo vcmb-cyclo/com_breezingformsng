@@ -254,14 +254,18 @@ class FormModel extends AdminModel implements VersionableModelInterface
                     $db->createQuery()
                         ->insert($db->quoteName('#__facileforms_elements'))
                         ->columns($db->quoteName(array_map('strval', array_keys($element))))
-                        ->values(implode(',', array_map([$db, 'quote'], array_values($element))))
+                        // As for the form above: a NULL stays NULL, which an integer column accepts.
+                        ->values(implode(',', array_map(
+                            static fn($value) => $value === null ? 'NULL' : $db->quote($value),
+                            array_values($element)
+                        )))
                 )->execute();
             }
 
             $table = $this->getTable();
             $table->reorder($this->getReorderConditions($source));
             try {
-                (new FormVersioning($db, $this))->record($newId);
+                (new FormVersioning($db, $this))->record($newId, Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOTE_COPY', $source->name));
             } catch (\Throwable $e) {
                 // The copy stays: only its first version is missing.
                 Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');

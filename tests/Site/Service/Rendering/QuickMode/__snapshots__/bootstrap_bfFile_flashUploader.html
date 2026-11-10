@@ -151,7 +151,7 @@
                                                                                 );
                                                                                 var thebytes = 2097152;
                                                                                 if(thebytes > 0 && typeof files[i].size != 'undefined' && files[i].size > thebytes){
-                                                                                     alert(" COM_BREEZINGFORMSNG_FLASH_UPLOADER_TOO_LARGE");
+                                                                                     alert("COM_BREEZINGFORMSNG_UPLOAD_FILE_TOO_LARGE_DETAIL".replace(/%([12])\$s/g, function(_, n) { return n == "1" ? files[i].name.split(/[\\\/]/).pop() : String(thebytes); }));
                                                                                      error = true;
                                                                                 }
                                                                                 var ext = files[i].name.replace(/[/\?%*:|"<>]/g, '').split('.').pop().toLowerCase();
@@ -163,7 +163,7 @@
                                                                                     }
                                                                                 }
                                                                                 if(found == 0){
-                                                                                    alert(" COM_BREEZINGFORMSNG_FILE_EXTENSION_NOT_ALLOWED");
+                                                                                    alert("COM_BREEZINGFORMSNG_UPLOAD_EXTENSION_NOT_ALLOWED_DETAIL".replace(/%([12])\$s/g, function(_, n) { return n == "1" ? files[i].name.split(/[\\\/]/).pop() : exts.join(", "); }));
                                                                                     error = true;
                                                                                 }
                                                                                 if(error){

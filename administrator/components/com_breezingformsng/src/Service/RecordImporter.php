@@ -26,6 +26,11 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
  */
 final class RecordImporter
 {
+    private ?string $error = null;
+
+    /** @var list<string> */
+    private array $ignoredColumns = [];
+
     public function __construct(
         private readonly DatabaseInterface $db,
         private readonly RecordModel $model,
@@ -38,7 +43,15 @@ final class RecordImporter
      */
     public function import(int $formId, string $file, string $encoding = '0'): int
     {
-        if ($formId < 1 || !is_file($file) || !is_readable($file)) {
+        $this->error = null;
+        $this->ignoredColumns = [];
+
+        if ($formId < 1) {
+            $this->error = 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_FORM_MISSING';
+            return 0;
+        }
+        if (!is_file($file) || !is_readable($file)) {
+            $this->error = 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_FILE_UNREADABLE';
             return 0;
         }
 
@@ -52,30 +65,46 @@ final class RecordImporter
         $form = $db->loadObject();
 
         if ($form === null) {
+            $this->error = 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_FORM_MISSING';
             return 0;
         }
 
-        $handle = fopen($file, 'rb');
+        $handle = @fopen($file, 'rb');
 
         if ($handle === false) {
+            $this->error = 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_FILE_UNREADABLE';
             return 0;
         }
 
         if ($encoding !== '0') {
             $content = stream_get_contents($handle);
             fclose($handle);
-            $converted = iconv($encoding, 'UTF-8//TRANSLIT', $content === false ? '' : $content);
+            if ($content === false) {
+                $this->error = 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_FILE_UNREADABLE';
+                return 0;
+            }
+
+            try {
+                $converted = @iconv($encoding, 'UTF-8//TRANSLIT', $content);
+            } catch (\ValueError) {
+                $converted = false;
+            }
 
             if ($converted === false) {
-                throw new \RuntimeException('Unable to convert CSV input to UTF-8.');
+                $this->error = 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_ENCODING_FAILED';
+                return 0;
             }
 
-            $handle = fopen('php://temp', 'w+b');
+            $handle = @fopen('php://temp', 'w+b');
             if ($handle === false) {
-                throw new \RuntimeException('Unable to open a temporary stream for the CSV input.');
+                $this->error = 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_TEMP_FAILED';
+                return 0;
             }
-            fwrite($handle, $converted);
-            rewind($handle);
+            if (fwrite($handle, $converted) !== strlen($converted) || !rewind($handle)) {
+                fclose($handle);
+                $this->error = 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_TEMP_FAILED';
+                return 0;
+            }
         }
 
         $config = $this->model->getExportConfig();
@@ -87,6 +116,9 @@ final class RecordImporter
 
         if (!is_array($header) || count($header) < 2) {
             fclose($handle);
+            $this->error = $header === false
+                ? 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_EMPTY'
+                : 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_HEADER_INVALID';
             return 0;
         }
 
@@ -107,6 +139,15 @@ final class RecordImporter
             'user_id', 'username', 'user_full_name', 'paypal_tx_id', 'paypal_payment_date',
             'paypal_testaccount', 'paypal_download_tries', 'double_opt_in', 'opted',
         ];
+        foreach ($header as $index => $fieldName) {
+            if (
+                !in_array($normalizedHeader[$index], $fixedHeaders, true)
+                && !isset($elementsByName[$fieldName])
+                && !isset($elementsByName[strtolower($fieldName)])
+            ) {
+                $this->ignoredColumns[] = $fieldName;
+            }
+        }
         $identity = $this->user;
         $valueAt = static function (array $row, array $keys, string $key, mixed $default = ''): mixed {
             $index = array_search($key, $keys, true);
@@ -191,6 +232,21 @@ final class RecordImporter
             fclose($handle);
         }
 
+        if ($imported === 0) {
+            $this->error = 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_EMPTY';
+        }
+
         return $imported;
+    }
+
+    public function getError(): ?string
+    {
+        return $this->error;
+    }
+
+    /** @return list<string> */
+    public function getIgnoredColumns(): array
+    {
+        return $this->ignoredColumns;
     }
 }

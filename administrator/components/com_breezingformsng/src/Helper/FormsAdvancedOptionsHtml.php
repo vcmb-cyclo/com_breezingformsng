@@ -239,9 +239,11 @@ final class FormsAdvancedOptionsHtml
     }
 
     /**
-     * Packages a form can be assigned to, with the one it already has.
+     * Packages a form can be assigned to, with the one it already has,
+     * as identifier => label. The label is the package name, followed by
+     * its identifier when they differ.
      *
-     * @return list<string>
+     * @return array<string, string>
      */
     public static function packageNames(string $current): array
     {
@@ -257,11 +259,19 @@ final class FormsAdvancedOptionsHtml
             throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 
-        $packages = $model->getPackages();
+        $packages = [];
 
-        if ($current !== '' && !in_array($current, $packages, true)) {
-            $packages[] = $current;
+        foreach ($model->getPackageProfiles() as $id => $profile) {
+            $id = (string) $id;
+            $name = trim((string) ($profile['name'] ?? ''));
+            $packages[$id] = $name === '' || $name === $id ? $id : $name . ' (' . $id . ')';
         }
+
+        if ($current !== '' && !isset($packages[$current])) {
+            $packages[$current] = $current;
+        }
+
+        natcasesort($packages);
 
         return $packages;
     }
