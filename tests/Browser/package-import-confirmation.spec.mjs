@@ -2,11 +2,14 @@ import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 
 const template = readFileSync('administrator/components/com_breezingformsng/tmpl/packages/import.php', 'utf8');
-const scriptMatch = template.match(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/i);
-if (!scriptMatch) {
+// The script block of our own layout is cut out by position: no HTML is
+// parsed or filtered here, so no tag pattern is needed.
+const scriptStart = template.indexOf('<script>');
+const scriptEnd = template.indexOf('</script>', scriptStart);
+if (scriptStart === -1 || scriptEnd === -1) {
     throw new Error('Expected a <script> block in package import template');
 }
-const script = scriptMatch[1]
+const script = template.slice(scriptStart + '<script>'.length, scriptEnd)
     .replace("import('joomla.dialog')", 'Promise.resolve({ default: window.testDialog })');
 
 test('confirmation cancels and submits without interpreting the filename as HTML', async ({ page }) => {
