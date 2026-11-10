@@ -51,7 +51,9 @@ test('the import confirmation safely handles cancel and confirm', async ({ page 
         buffer: Buffer.from('{'),
     });
 
-    const dialog = page.locator('joomla-dialog.joomla-dialog-confirm');
+    // <joomla-dialog> has no size of its own: its native <dialog> is shown in
+    // the top layer, so visibility is checked on that inner element.
+    const dialog = page.locator('joomla-dialog.joomla-dialog-confirm dialog');
     await page.locator('#bf-package-import').evaluate((form) => form.requestSubmit());
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText(filename);
