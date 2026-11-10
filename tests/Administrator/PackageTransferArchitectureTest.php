@@ -130,7 +130,9 @@ final class PackageTransferArchitectureTest extends TestCase
 
         // The export of a whole package and of a selection, and the import of
         // forms and of script or piece libraries, all check the names.
-        self::assertSame(6, substr_count($model, '$this->assertImportableNames("#__facileforms_') + substr_count($model, "\$this->assertImportableNames('#__facileforms_") - 1);
+        // Both exports go through buildPayload(), which checks the three kinds.
+        self::assertSame(3, substr_count($model, "\$this->assertImportableNames('#__facileforms_") - 1);
+        self::assertSame(2, substr_count($model, 'return $this->buildPayload('));
         self::assertSame(2, substr_count($model, '$this->assertImportableNames(\'#__facileforms_forms\', $this->fileNames(') + substr_count($model, '$this->assertImportableNames($table, $this->fileNames('));
         // Names the database holds as equal must not overwrite an item written by the same import.
         self::assertSame(2, substr_count($model, '$this->assertNotWrittenTwice('));

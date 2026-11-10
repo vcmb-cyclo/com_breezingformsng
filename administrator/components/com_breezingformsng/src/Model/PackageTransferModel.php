@@ -52,13 +52,19 @@ final class PackageTransferModel extends BaseDatabaseModel
         'criteria_joomla' => ['#__facileforms_integrator_criteria_joomla', null],
     ];
 
-    /** @var array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>} */
-    private array $importSummary = ['templates' => 0, 'rules' => 0, 'failed' => [], 'package' => '', 'unlinked' => 0, 'shared' => []];
+    /**
+     * @var array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>, skipped: list<string>}
+     *      skipped: the optional parts left out, as the user may not write them.
+     */
+    private array $importSummary = ['templates' => 0, 'rules' => 0, 'failed' => [], 'package' => '', 'unlinked' => 0, 'shared' => [], 'skipped' => []];
 
     /** Notes of the form versions written by the running import. */
     private string $importedNote = '';
 
     private string $originNote = '';
+
+    /** @var list<int> Every form written by the running import. */
+    private array $importedFormIds = [];
 
     /** Language key part naming the items of each table found by name on import. */
     private const NAMED_KINDS = [
@@ -220,54 +226,16 @@ final class PackageTransferModel extends BaseDatabaseModel
             throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED'));
         }
 
-        $db = $this->getDatabase();
-        $forms = $this->loadPackageRows('#__facileforms_forms', $package);
-        $scripts = $this->loadPackageRows('#__facileforms_scripts', $package);
-        $pieces = $this->loadPackageRows('#__facileforms_pieces', $package);
-        $menus = $this->loadPackageRows('#__facileforms_compmenus', $package);
-
-        if ($forms === [] && $scripts === [] && $pieces === [] && $menus === []) {
-            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_INSTALLER_SELECTAPKG'));
-        }
-
-        $this->assertImportableNames('#__facileforms_forms', $forms, true);
-        $this->assertImportableNames('#__facileforms_scripts', $scripts, true);
-        $this->assertImportableNames('#__facileforms_pieces', $pieces, true);
-
-        $formIds = array_map(static fn(array $form): int => (int) $form['id'], $forms);
-        $elements = $formIds === [] ? [] : $this->loadElements($formIds);
-        $elementsByForm = [];
-
-        foreach ($elements as $element) {
-            // The source id lets the Integrator rules find their elements again.
-            $elementsByForm[(int) $element['form']][] = ['source_id' => (int) $element['id']] + $this->without($element, ['id', 'form']);
-        }
-
-        $payloadForms = [];
-        foreach ($forms as $form) {
-            $sourceId = (int) $form['id'];
-            $payloadForms[] = [
-                'source_id' => $sourceId,
-                'data' => $this->without($form, ['id', 'created', 'created_by', 'modified', 'modified_by']),
-                'elements' => $elementsByForm[$sourceId] ?? [],
-            ];
-        }
-
-        $payload = [
-            'format' => self::FORMAT,
-            'version' => self::VERSION,
-            'package' => $package,
-            'exported_at' => (new \Joomla\CMS\Date\Date())->toSql(),
-            'scripts' => array_map(fn(array $row): array => $this->libraryExportRow($row), $scripts),
-            'pieces' => array_map(fn(array $row): array => $this->libraryExportRow($row), $pieces),
-            'menus' => array_map(fn(array $row): array => $this->menuExportRow($row), $this->includeMenuAncestors($menus)),
-            'forms' => $payloadForms,
-            'metadata' => $this->metadataForExport($package, $metadata),
-        ];
-        $payload += $this->formExtras($forms, $withTemplates, $withIntegrator);
-        $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
-
-        return $json . "\n";
+        return $this->buildPayload(
+            $package,
+            $this->loadPackageRows('#__facileforms_forms', $package),
+            $this->loadPackageRows('#__facileforms_scripts', $package),
+            $this->loadPackageRows('#__facileforms_pieces', $package),
+            $this->includeMenuAncestors($this->loadPackageRows('#__facileforms_compmenus', $package)),
+            $metadata,
+            $withTemplates,
+            $withIntegrator
+        );
     }
 
     /**
@@ -280,7 +248,8 @@ final class PackageTransferModel extends BaseDatabaseModel
         string $sourceName = '',
         bool $allowIntegrator = false
     ): array {
-        $this->importSummary = ['templates' => 0, 'rules' => 0, 'failed' => [], 'package' => '', 'unlinked' => 0, 'shared' => []];
+        $this->importSummary = ['templates' => 0, 'rules' => 0, 'failed' => [], 'package' => '', 'unlinked' => 0, 'shared' => [], 'skipped' => []];
+        $this->importedFormIds = [];
         // The uploaded file is a temporary one: its name of origin goes in the version notes.
         $sourceName = $sourceName !== '' ? $sourceName : basename($filename);
 
@@ -303,9 +272,16 @@ final class PackageTransferModel extends BaseDatabaseModel
             throw new InvalidPackageException(null, InvalidPackageException::VERSION);
         }
 
-        // Even an empty rule list replaces a form's existing Integrator rules.
+        // Templates and Integrator rules are PHP code: without the permission to
+        // write them, they are left out and the rest of the package is imported.
+        // Even an empty rule list would replace the existing rules of a form.
         if (!$allowIntegrator && !empty($payload['integrator'])) {
-            throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+            unset($payload['integrator']);
+            $this->importSummary['skipped'][] = 'integrator';
+        }
+        if (!$allowTemplates && !empty($payload['templates'])) {
+            unset($payload['templates']);
+            $this->importSummary['skipped'][] = 'templates';
         }
 
         $db = $this->getDatabase();
@@ -326,7 +302,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             }
             $retiredForms = $this->importForms((array) ($payload['forms'] ?? []), $package, $scriptIds, $pieceIds, $imported, $rulesInFile);
             $this->importSummary['rules'] = $this->importIntegrator($payload['integrator'] ?? [], $imported);
-            $this->importSummary['unlinked'] = $this->countUnlinkedRules(array_values(array_column($imported, 'id')));
+            $this->importSummary['unlinked'] = $this->countUnlinkedRules($this->importedFormIds);
             $templates = $this->templatesToWrite($payload['templates'] ?? [], $imported, $allowTemplates);
 
             if (($payload['version'] ?? null) === self::VERSION) {
@@ -392,46 +368,74 @@ final class PackageTransferModel extends BaseDatabaseModel
             throw new \RuntimeException(Text::_("COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED"));
         }
 
-        $forms = $this->loadRowsByIds("#__facileforms_forms", $formIds);
-        $scripts = $this->loadRowsByIds("#__facileforms_scripts", $scriptIds);
-        $pieces = $this->loadRowsByIds("#__facileforms_pieces", $pieceIds);
-        $menus = $this->includeMenuAncestors($this->loadRowsByIds('#__facileforms_compmenus', $menuIds));
+        return $this->buildPayload(
+            $package,
+            $this->loadRowsByIds('#__facileforms_forms', $formIds),
+            $this->loadRowsByIds('#__facileforms_scripts', $scriptIds),
+            $this->loadRowsByIds('#__facileforms_pieces', $pieceIds),
+            $this->includeMenuAncestors($this->loadRowsByIds('#__facileforms_compmenus', $menuIds)),
+            $metadata,
+            $withTemplates,
+            $withIntegrator
+        );
+    }
 
+    /**
+     * The package file of these items, menus with their ancestors: the whole
+     * package and a selection export the same way.
+     *
+     * @param array<array<string, mixed>> $forms
+     * @param array<array<string, mixed>> $scripts
+     * @param array<array<string, mixed>> $pieces
+     * @param array<array<string, mixed>> $menus
+     * @param array<string, mixed>        $metadata
+     */
+    private function buildPayload(
+        string $package,
+        array $forms,
+        array $scripts,
+        array $pieces,
+        array $menus,
+        array $metadata,
+        bool $withTemplates,
+        bool $withIntegrator
+    ): string {
         if ($forms === [] && $scripts === [] && $pieces === [] && $menus === []) {
-            throw new \RuntimeException(Text::_("COM_BREEZINGFORMSNG_INSTALLER_SELECTAPKG"));
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_INSTALLER_SELECTAPKG'));
         }
 
-        $this->assertImportableNames("#__facileforms_forms", $forms, true);
-        $this->assertImportableNames("#__facileforms_scripts", $scripts, true);
-        $this->assertImportableNames("#__facileforms_pieces", $pieces, true);
+        $this->assertImportableNames('#__facileforms_forms', $forms, true);
+        $this->assertImportableNames('#__facileforms_scripts', $scripts, true);
+        $this->assertImportableNames('#__facileforms_pieces', $pieces, true);
 
-        $formIds = array_map(static fn(array $form): int => (int) $form["id"], $forms);
+        $formIds = array_values(array_map(static fn(array $form): int => (int) $form['id'], $forms));
         $elementsByForm = [];
 
         foreach ($formIds === [] ? [] : $this->loadElements($formIds) as $element) {
-            $elementsByForm[(int) $element["form"]][] = ["source_id" => (int) $element["id"]] + $this->without($element, ["id", "form"]);
+            // The source id lets the Integrator rules find their elements again.
+            $elementsByForm[(int) $element['form']][] = ['source_id' => (int) $element['id']] + $this->without($element, ['id', 'form']);
         }
 
         $payloadForms = [];
         foreach ($forms as $form) {
-            $sourceId = (int) $form["id"];
+            $sourceId = (int) $form['id'];
             $payloadForms[] = [
-                "source_id" => $sourceId,
-                "data" => $this->without($form, ["id", "created", "created_by", "modified", "modified_by"]),
-                "elements" => $elementsByForm[$sourceId] ?? [],
+                'source_id' => $sourceId,
+                'data' => $this->without($form, ['id', 'created', 'created_by', 'modified', 'modified_by']),
+                'elements' => $elementsByForm[$sourceId] ?? [],
             ];
         }
 
         $payload = [
-            "format" => self::FORMAT,
-            "version" => self::VERSION,
-            "package" => $package,
-            "exported_at" => (new \Joomla\CMS\Date\Date())->toSql(),
-            "scripts" => array_map(fn(array $row): array => $this->libraryExportRow($row), $scripts),
-            "pieces" => array_map(fn(array $row): array => $this->libraryExportRow($row), $pieces),
-            "menus" => array_map(fn(array $row): array => $this->menuExportRow($row), $menus),
-            "forms" => $payloadForms,
-            "metadata" => $this->metadataForExport($package, $metadata),
+            'format' => self::FORMAT,
+            'version' => self::VERSION,
+            'package' => $package,
+            'exported_at' => (new \Joomla\CMS\Date\Date())->toSql(),
+            'scripts' => array_map(fn(array $row): array => $this->libraryExportRow($row), $scripts),
+            'pieces' => array_map(fn(array $row): array => $this->libraryExportRow($row), $pieces),
+            'menus' => array_map(fn(array $row): array => $this->menuExportRow($row), $menus),
+            'forms' => $payloadForms,
+            'metadata' => $this->metadataForExport($package, $metadata),
         ];
         $payload += $this->formExtras($forms, $withTemplates, $withIntegrator);
 
@@ -809,6 +813,7 @@ final class PackageTransferModel extends BaseDatabaseModel
                     $elementIds[$element['source_id']] = (int) $db->insertid();
                 }
             }
+            $this->importedFormIds[] = $id;
             if (is_int($form['source_id'] ?? null)) {
                 $imported[$form['source_id']] = ['id' => $id, 'name' => $name, 'elements' => $elementIds];
             }
@@ -887,7 +892,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     /**
      * What the last import wrote besides forms, scripts, pieces and menus.
      *
-     * @return array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>}
+     * @return array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>, skipped: list<string>}
      */
     public function getImportSummary(): array
     {
@@ -908,8 +913,9 @@ final class PackageTransferModel extends BaseDatabaseModel
             $extras['templates'] = [];
             foreach ($forms as $form) {
                 $name = (string) $form['name'];
+                // The import could not write them either: say so instead of leaving them out.
                 if (!$this->isFileSafeName($name)) {
-                    continue;
+                    throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_TEMPLATE_UNSAFE_NAME_EXPORT', htmlspecialchars($name, ENT_QUOTES, 'UTF-8')));
                 }
                 foreach (self::TEMPLATE_SUFFIXES as $folder => $suffixes) {
                     foreach ($suffixes as $suffix) {
@@ -1015,13 +1021,17 @@ final class PackageTransferModel extends BaseDatabaseModel
         $childColumns = array_map(fn (array $child): array => $this->tableColumns($child[0]), self::INTEGRATOR_CHILDREN);
         $count = 0;
 
+        $seen = [];
         foreach ($entries as $entry) {
+            // A second entry of a form would delete the rules the first one wrote.
             if (
                 !is_array($entry) || !is_int($entry['form_source_id'] ?? null)
                 || !isset($imported[$entry['form_source_id']]) || !is_array($entry['rules'] ?? null)
+                || isset($seen[$entry['form_source_id']])
             ) {
                 throw new InvalidPackageException();
             }
+            $seen[$entry['form_source_id']] = true;
             $form = $imported[$entry['form_source_id']];
             $this->deleteIntegratorRules($form['id']);
 
@@ -1096,12 +1106,16 @@ final class PackageTransferModel extends BaseDatabaseModel
         // The first element of a name, as the lists of the form show it.
         $newIds = array_flip(array_reverse($this->elementNames($formId), true));
 
-        foreach ($replaced as $oldId => $name) {
-            if (!isset($newIds[$name])) {
-                continue;
-            }
-            $newId = (int) $newIds[$name];
-            foreach (['#__facileforms_integrator_items', '#__facileforms_integrator_criteria_form'] as $table) {
+        foreach (['#__facileforms_integrator_items', '#__facileforms_integrator_criteria_form'] as $table) {
+            // Only the elements the rules name, not every element of the form.
+            $query = $db->createQuery()->select('DISTINCT ' . $db->quoteName('element_id'))->from($db->quoteName($table))
+                ->whereIn($db->quoteName('rule_id'), $ruleIds);
+            foreach (array_map('intval', $db->setQuery($query)->loadColumn() ?: []) as $oldId) {
+                $name = $replaced[$oldId] ?? null;
+                if ($name === null || !isset($newIds[$name])) {
+                    continue;
+                }
+                $newId = (int) $newIds[$name];
                 $query = $db->createQuery()->update($db->quoteName($table))
                     ->set($db->quoteName('element_id') . ' = :newId')
                     ->where($db->quoteName('element_id') . ' = :oldId')
@@ -1151,10 +1165,12 @@ final class PackageTransferModel extends BaseDatabaseModel
             return;
         }
 
-        foreach (self::INTEGRATOR_CHILDREN as [$table]) {
-            $db->setQuery($db->createQuery()->delete($db->quoteName($table))->whereIn($db->quoteName('rule_id'), $ruleIds))->execute();
+        // As the Integrator screen deletes rules, with all their rows.
+        $integrator = $this->getMVCFactory()->createModel('Integrator', 'Administrator', ['ignore_request' => true]);
+        if (!$integrator instanceof IntegratorModel) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
-        $db->setQuery($db->createQuery()->delete($db->quoteName('#__facileforms_integrator_rules'))->whereIn($db->quoteName('id'), $ruleIds))->execute();
+        $integrator->deleteRules($ruleIds);
     }
 
     /**
@@ -1168,8 +1184,9 @@ final class PackageTransferModel extends BaseDatabaseModel
         if (!is_array($entries)) {
             throw new InvalidPackageException();
         }
+        // import() has already left out the templates a user may not write.
         if ($entries !== [] && !$allowTemplates) {
-            throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_TEMPLATES_NOT_ALLOWED', Text::_('JACTION_ADMIN')));
+            throw new \LogicException('Templates reached the import without the permission to write them.');
         }
 
         $files = [];

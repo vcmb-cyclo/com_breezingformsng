@@ -91,10 +91,28 @@ final class FormVersioning
 
             if (self::isEnabled()) {
                 $this->forms->setState($this->forms->getName() . '.id', $formId);
+                $itemId = self::TYPE_ALIAS . '.' . $formId;
+                $lastVersion = $this->lastHistoryId($itemId);
 
-                // The note column of the history holds 255 characters.
-                if (!$this->forms->saveHistory(['version_note' => mb_substr($note, 0, 255)], self::TYPE_ALIAS)) {
+                // Saved without its note: given a note, Joomla rewrites the note and
+                // the date of a version already holding the same content, such as the
+                // version a restore brings back or the origin kept before an import.
+                if (!$this->forms->saveHistory([], self::TYPE_ALIAS)) {
                     throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
+                }
+
+                $newVersion = $this->lastHistoryId($itemId);
+                if ($note !== '' && $newVersion > $lastVersion) {
+                    // The note column of the history holds 255 characters.
+                    $note = mb_substr($note, 0, 255);
+                    $db->setQuery(
+                        $db->createQuery()
+                            ->update($db->quoteName('#__history'))
+                            ->set($db->quoteName('version_note') . ' = :note')
+                            ->where($db->quoteName('version_id') . ' = :versionId')
+                            ->bind(':note', $note)
+                            ->bind(':versionId', $newVersion, ParameterType::INTEGER)
+                    )->execute();
                 }
             }
 
@@ -106,6 +124,18 @@ final class FormVersioning
         }
 
         return $version;
+    }
+
+    /** The latest history row of the item, 0 when it has none. */
+    private function lastHistoryId(string $itemId): int
+    {
+        return (int) $this->db->setQuery(
+            $this->db->createQuery()
+                ->select('MAX(' . $this->db->quoteName('version_id') . ')')
+                ->from($this->db->quoteName('#__history'))
+                ->where($this->db->quoteName('item_id') . ' = :itemId')
+                ->bind(':itemId', $itemId)
+        )->loadResult();
     }
 
     /**

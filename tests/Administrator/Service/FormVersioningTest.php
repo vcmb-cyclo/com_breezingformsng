@@ -98,8 +98,10 @@ final class FormVersioningTest extends TestCase
         self::assertStringContainsString('use VersionableModelTrait;', $model);
         self::assertStringNotContainsString('VersionableTableInterface', $table);
         self::assertStringNotContainsString('Versioning::', $service);
-        // The version note goes in the data, as Joomla reads it (version_note).
-        self::assertStringContainsString("->saveHistory(['version_note' => mb_substr(\$note, 0, 255)], self::TYPE_ALIAS)", $service);
+        // Saved without its note, which goes on the new row only: given a note,
+        // Joomla rewrites the note and date of a row with the same content.
+        self::assertStringContainsString('->saveHistory([], self::TYPE_ALIAS)', $service);
+        self::assertStringContainsString("if (\$note !== '' && \$newVersion > \$lastVersion) {", $service);
     }
 
     public function testRecordingIsAllOrNothingAndChecksTheHistory(): void
@@ -109,7 +111,7 @@ final class FormVersioningTest extends TestCase
         $record = substr($record, 0, (int) strpos($record, 'public function load('));
 
         self::assertStringContainsString('$db->transactionStart(true);', $record);
-        self::assertStringContainsString("if (!\$this->forms->saveHistory(['version_note' => mb_substr(\$note, 0, 255)], self::TYPE_ALIAS)) {", $record);
+        self::assertStringContainsString("if (!\$this->forms->saveHistory([], self::TYPE_ALIAS)) {", $record);
         self::assertStringContainsString('$db->transactionCommit(true);', $record);
         self::assertStringContainsString('$db->transactionRollback(true);', $record);
         self::assertLessThan(strpos($record, 'transactionCommit(true)'), strpos($record, 'saveHistory('));

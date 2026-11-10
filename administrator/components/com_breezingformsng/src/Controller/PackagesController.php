@@ -147,6 +147,12 @@ final class PackagesController extends BaseController
             if ($summary['unlinked'] > 0) {
                 $app->enqueueMessage(Text::plural('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INTEGRATOR_UNLINKED', $summary['unlinked']), 'warning');
             }
+            if (in_array('templates', $summary['skipped'], true)) {
+                $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SKIPPED_TEMPLATES', Text::_('JACTION_ADMIN')), 'warning');
+            }
+            if (in_array('integrator', $summary['skipped'], true)) {
+                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SKIPPED_INTEGRATOR'), 'warning');
+            }
             if ($summary['shared'] !== []) {
                 // The names come from the uploaded file.
                 $app->enqueueMessage(Text::sprintf(

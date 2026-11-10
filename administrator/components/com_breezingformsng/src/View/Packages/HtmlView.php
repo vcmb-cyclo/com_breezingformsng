@@ -44,6 +44,9 @@ final class HtmlView extends BaseHtmlView
     public function display($tpl = null)
     {
         AreaAccess::assert($this->getCurrentUser(), AreaAccess::CONFIGURATION);
+        // Export and import tell beforehand what the user may not transfer.
+        $this->mayTransferTemplates = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
+        $this->mayTransferIntegrator = AreaAccess::isAllowed($this->getCurrentUser(), AreaAccess::CODE);
 
         if (in_array($this->getLayout(), ['export', 'delete'], true)) {
             $app = Factory::getApplication();
@@ -69,8 +72,6 @@ final class HtmlView extends BaseHtmlView
                 $this->choices = $model->getExportChoices();
                 $this->profiles = $model->getPackageProfiles();
                 $this->timezone = $this->getCurrentUser()->getTimezone();
-                $this->mayTransferTemplates = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
-                $this->mayTransferIntegrator = AreaAccess::isAllowed($this->getCurrentUser(), AreaAccess::CODE);
             }
         }
 
@@ -115,7 +116,7 @@ final class HtmlView extends BaseHtmlView
             $document->getWebAssetManager()->useScript('joomla.dialog');
             Text::script('JYES');
             Text::script('JNO');
-            foreach (['FILE', 'CONTENT', 'REPLACE', 'TEMPLATES', 'INTEGRATOR'] as $part) {
+            foreach (['FILE', 'CONTENT', 'REPLACE', 'TEMPLATES', 'INTEGRATOR', 'TEMPLATES_SKIPPED', 'INTEGRATOR_SKIPPED'] as $part) {
                 Text::script('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_' . $part);
             }
         }

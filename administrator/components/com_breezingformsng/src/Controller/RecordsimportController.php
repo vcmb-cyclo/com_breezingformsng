@@ -78,19 +78,27 @@ class RecordsimportController extends BaseController
 
         $uploadError = (int) ($upload['error'] ?? UPLOAD_ERR_NO_FILE);
 
-        if ($uploadError !== UPLOAD_ERR_OK) {
-            $key = match ($uploadError) {
-                UPLOAD_ERR_NO_FILE => 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_UPLOAD_REQUIRED',
-                UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_UPLOAD_TOO_LARGE',
-                default => 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_UPLOAD_FAILED',
-            };
-            $this->app->enqueueMessage(Text::_($key), 'warning');
-            $valid = false;
-        } elseif ($valid === false) {
+        // Every problem of the submission is told at once: the form fields,
+        // then the upload, so a second attempt does not reveal another one.
+        $formErrors = $valid === false;
+        if ($formErrors) {
             foreach ($model->getErrors() as $error) {
                 $this->app->enqueueMessage($error instanceof \Throwable ? $error->getMessage() : (string) $error, 'warning');
             }
-        } elseif (!is_uploaded_file($file)) {
+        }
+
+        if ($uploadError !== UPLOAD_ERR_OK) {
+            // The file field is required: its validation already tells a missing file.
+            if ($uploadError !== UPLOAD_ERR_NO_FILE || !$formErrors) {
+                $key = match ($uploadError) {
+                    UPLOAD_ERR_NO_FILE => 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_UPLOAD_REQUIRED',
+                    UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_UPLOAD_TOO_LARGE',
+                    default => 'COM_BREEZINGFORMSNG_RECORDS_IMPORT_UPLOAD_FAILED',
+                };
+                $this->app->enqueueMessage(Text::_($key), 'warning');
+            }
+            $valid = false;
+        } elseif (!$formErrors && !is_uploaded_file($file)) {
             $this->app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_RECORDS_IMPORT_UPLOAD_FAILED'), 'warning');
             $valid = false;
         }

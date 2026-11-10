@@ -22,7 +22,7 @@ use Joomla\CMS\Language\Text;
     <div class="col-12 col-xl-6">
         <div class="card">
             <div class="card-body">
-                <form action="index.php?option=com_breezingformsng" method="post" enctype="multipart/form-data" id="bf-package-import">
+                <form action="index.php?option=com_breezingformsng" method="post" enctype="multipart/form-data" id="bf-package-import" data-may-templates="<?= $this->mayTransferTemplates ? '1' : '0'; ?>" data-may-integrator="<?= $this->mayTransferIntegrator ? '1' : '0'; ?>">
                     <label class="form-label" for="bf-package-file"><?= Text::_("COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_FILE"); ?></label>
                     <input class="form-control" id="bf-package-file" name="package_file" type="file" accept="application/json,.json" required>
                     <input type="hidden" name="task" value="packages.import">
@@ -54,11 +54,13 @@ const bfImportLines = (file, payload) => {
         const count = (key) => (Array.isArray(payload[key]) ? payload[key].length : 0);
         lines.push(text('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_CONTENT', payload.package ?? '', count('forms'), count('scripts'), count('pieces'), count('menus')));
         lines.push(Joomla.Text._('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_REPLACE'));
+        // What the user may not write is left out by the server: say it beforehand.
+        const may = (part) => bfImportForm.dataset[part] === '1';
         if (count('templates') > 0) {
-            lines.push(text('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_TEMPLATES', count('templates')));
+            lines.push(text(may('mayTemplates') ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_TEMPLATES' : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_TEMPLATES_SKIPPED', count('templates')));
         }
         if (count('integrator') > 0) {
-            lines.push(text('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_INTEGRATOR', count('integrator')));
+            lines.push(text(may('mayIntegrator') ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_INTEGRATOR' : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_INTEGRATOR_SKIPPED', count('integrator')));
         }
     }
 

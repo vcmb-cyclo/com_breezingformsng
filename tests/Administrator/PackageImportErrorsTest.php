@@ -60,15 +60,17 @@ final class PackageImportErrorsTest extends TestCase
                 [['form_source_id' => 1, 'rules' => []]],
                 [['form_source_id' => 1, 'rules' => [['data' => ['finalize_code' => 'php']]]]],
             ];
+            // Without the permission, the rules are left out before any database
+            // access, and the rest of the package goes on to be imported.
             foreach ($denied as $entries) {
                 file_put_contents($path, json_encode($payload + ['integrator' => $entries], JSON_THROW_ON_ERROR));
                 try {
                     $model->import($path);
-                    self::fail('Integrator data must be rejected without permission.');
-                } catch (\RuntimeException $exception) {
-                    self::assertSame(403, $exception->getCode());
-                    self::assertSame('JERROR_ALERTNOAUTHOR', $exception->getMessage());
+                    self::fail('The test database stub should stop the import.');
+                } catch (\LogicException $exception) {
+                    self::assertSame('database reached', $exception->getMessage());
                 }
+                self::assertSame(['integrator'], $model->getImportSummary()['skipped']);
             }
 
             // Permitted Integrator data and older files proceed to the database.
