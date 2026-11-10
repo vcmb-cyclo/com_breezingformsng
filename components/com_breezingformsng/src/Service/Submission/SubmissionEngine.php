@@ -1476,7 +1476,8 @@ final class SubmissionEngine
                 $message = Text::_('COM_BREEZINGFORMSNG_CAPTCHA_ENTRY_FAILED');
                 break;
             case _FF_STATUS_FILE_EXTENSION_NOT_ALLOWED:
-                $message = Text::_('COM_BREEZINGFORMSNG_FILE_EXTENSION_NOT_ALLOWED');
+                // The detailed message names the file and the allowed extensions.
+                $message = $this->processor->message !== '' ? '' : Text::_('COM_BREEZINGFORMSNG_FILE_EXTENSION_NOT_ALLOWED');
                 break;
             default:
                 $message = '';

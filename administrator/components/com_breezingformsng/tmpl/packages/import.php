@@ -39,10 +39,15 @@ const bfImportForm = document.getElementById('bf-package-import');
 let bfImportConfirmed = false;
 
 const bfImportLines = (file, payload) => {
-    const text = (key, ...values) => values.reduce(
-        (message, value, index) => message.replace('%' + (index + 1) + '$s', String(value)).replace('%s', String(value)),
-        Joomla.Text._(key)
-    );
+    // One pass, with a function: names from the file are never read as
+    // placeholders or as replacement patterns such as $&.
+    const text = (key, ...values) => {
+        let next = 0;
+        return Joomla.Text._(key).replace(/%(?:(\d+)\$)?[sd]/g, (match, position) => {
+            const index = position === undefined ? next++ : Number(position) - 1;
+            return index < values.length ? String(values[index]) : match;
+        });
+    };
     const lines = [text('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_FILE', file.name)];
 
     if (payload && typeof payload === 'object') {
@@ -63,7 +68,9 @@ const bfImportLines = (file, payload) => {
         content.appendChild(document.createElement('p')).textContent = line;
     }
 
-    return content;
+    // JoomlaDialog restores HTMLElement content to its original parent on
+    // close. Return escaped markup so a detached element needs no restoration.
+    return content.innerHTML;
 };
 
 bfImportForm.addEventListener('submit', (event) => {
@@ -89,6 +96,11 @@ bfImportForm.addEventListener('submit', (event) => {
                 bfImportConfirmed = true;
                 bfImportForm.submit();
             }
+        }, () => {
+            // The file could not be read or the dialog not opened: the import
+            // goes on as without JavaScript, and the server reports any problem.
+            bfImportConfirmed = true;
+            bfImportForm.submit();
         });
 });
 </script>

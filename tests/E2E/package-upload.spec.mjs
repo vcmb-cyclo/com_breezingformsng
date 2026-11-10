@@ -40,3 +40,33 @@ test('a file rejected by the form size limit is identified as too large', async 
     await expect(page.locator('joomla-alert[type="danger"], .alert-danger'))
         .toContainText('The file exceeds the allowed upload size.');
 });
+
+test('the import confirmation safely handles cancel and confirm', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    const filename = 'invalid-<img src=x>.json';
+    await page.setInputFiles('#bf-package-file', {
+        name: filename,
+        mimeType: 'application/json',
+        buffer: Buffer.from('{'),
+    });
+
+    const dialog = page.locator('joomla-dialog.joomla-dialog-confirm');
+    await page.locator('#bf-package-import').evaluate((form) => form.requestSubmit());
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(filename);
+    await expect(dialog.locator('img')).toHaveCount(0);
+    await dialog.locator('[data-button-cancel]').click();
+    await expect(dialog).toHaveCount(0);
+    await expect(page.locator('#bf-package-import')).toBeVisible();
+
+    await page.locator('#bf-package-import').evaluate((form) => form.requestSubmit());
+    await expect(dialog).toBeVisible();
+    await Promise.all([
+        page.waitForNavigation(),
+        dialog.locator('[data-button-ok]').click(),
+    ]);
+    await expect(page.locator('joomla-alert[type="danger"], .alert-danger'))
+        .toContainText(`The file '${filename}' does not contain valid JSON.`);
+    expect(errors).toEqual([]);
+});

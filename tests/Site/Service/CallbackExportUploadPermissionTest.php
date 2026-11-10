@@ -207,7 +207,7 @@ final class CallbackExportUploadPermissionTest extends TestCase
         self::assertSame(4, file_put_contents($file, 'test'));
 
         try {
-            $result = $validator->findOversizedLabel([
+            $result = $validator->findOversized([
                 'children' => [[
                     'properties' => [
                         'type' => 'element',
@@ -232,7 +232,7 @@ final class CallbackExportUploadPermissionTest extends TestCase
         self::assertSame(5, file_put_contents($file, 'large'));
 
         try {
-            self::assertSame('Attachment', $validator->findOversizedLabel([
+            self::assertSame('Attachment', $validator->findOversized([
                 'children' => [[
                     'properties' => [
                         'type' => 'element',
@@ -242,7 +242,7 @@ final class CallbackExportUploadPermissionTest extends TestCase
                         'label' => 'Attachment',
                     ],
                 ]],
-            ], $file, ' attachment '));
+            ], $file, ' attachment ')['label'] ?? null);
         } finally {
             @unlink($file);
         }

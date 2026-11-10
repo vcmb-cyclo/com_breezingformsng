@@ -144,7 +144,7 @@ final class PackageTransferArchitectureTest extends TestCase
         foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $language) {
             $ini = (string) file_get_contents($component . '/language/' . $language . '/com_breezingformsng.ini');
 
-            foreach (['ORIGIN', 'COPY', 'RESTORED', 'IMPORTED', 'BEFORE_IMPORT'] as $note) {
+            foreach (['ORIGIN', 'COPY', 'RESTORED_DATE', 'IMPORTED', 'BEFORE_IMPORT'] as $note) {
                 self::assertMatchesRegularExpression('/^COM_BREEZINGFORMSNG_FORM_VERSION_NOTE_' . $note . '="[^"]+"\s*$/m', $ini, $language);
             }
             self::assertMatchesRegularExpression('/^COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INTEGRATOR_UNLINKED="[^"]*%d[^"]*"\s*$/m', $ini, $language);

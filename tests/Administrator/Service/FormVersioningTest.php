@@ -133,6 +133,14 @@ final class FormVersioningTest extends TestCase
         );
     }
 
+    public function testRestoreNoteIdentifiesTheSavedHistoryDate(): void
+    {
+        $controller = $this->read('administrator/components/com_breezingformsng/src/Controller/FormController.php');
+
+        self::assertStringContainsString("'COM_BREEZINGFORMSNG_FORM_VERSION_NOTE_RESTORED_DATE', \$version['saveDate']", $controller);
+        self::assertStringNotContainsString("\$version['columns']['version'] ?? 0", $controller);
+    }
+
     public function testVersionsFollowJoomlaArticles(): void
     {
         $service = $this->read('administrator/components/com_breezingformsng/src/Service/FormVersioning.php');

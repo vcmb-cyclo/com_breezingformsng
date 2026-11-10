@@ -85,7 +85,7 @@ class FormController extends BaseController
                     $formId,
                     FormVersioning::resetMissingElementIds($version['structure'], $versioning->elementIds($formId))
                 );
-                $versioning->record($formId, Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOTE_RESTORED', (int) ($version['columns']['version'] ?? 0)));
+                $versioning->record($formId, Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOTE_RESTORED_DATE', $version['saveDate']));
                 // As loadHistory(): the restored version is the current one.
                 $forms->markRestoredVersion($formId, $version['versionId']);
                 $db->transactionCommit();

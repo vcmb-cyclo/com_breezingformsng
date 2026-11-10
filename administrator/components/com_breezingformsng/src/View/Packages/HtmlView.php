@@ -36,6 +36,10 @@ final class HtmlView extends BaseHtmlView
     public string $selectedPackage = '';
     /** Time zone the audit dates are shown in. */
     public \DateTimeZone $timezone;
+    /** Template files hold PHP code: exporting them takes the Configure permission, as the controller checks. */
+    public bool $mayTransferTemplates = false;
+    /** Integrator rules hold PHP code: exporting them takes the code area, as the controller checks. */
+    public bool $mayTransferIntegrator = false;
 
     public function display($tpl = null)
     {
@@ -65,6 +69,8 @@ final class HtmlView extends BaseHtmlView
                 $this->choices = $model->getExportChoices();
                 $this->profiles = $model->getPackageProfiles();
                 $this->timezone = $this->getCurrentUser()->getTimezone();
+                $this->mayTransferTemplates = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
+                $this->mayTransferIntegrator = AreaAccess::isAllowed($this->getCurrentUser(), AreaAccess::CODE);
             }
         }
 

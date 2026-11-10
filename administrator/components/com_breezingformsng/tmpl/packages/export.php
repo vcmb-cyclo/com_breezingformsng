@@ -14,7 +14,6 @@ defined("_JEXEC") or die;
 
 /** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Packages\HtmlView $this */
 
-use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 
@@ -27,8 +26,7 @@ $sections = [
 
 // Each field explains itself in the tooltip of its label.
 $labelTip = static fn (string $key): string => ' title="' . htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8') . '"';
-// Template files are PHP code: moving them takes the Configure permission, as checked on export.
-$mayTransferTemplates = (bool) Factory::getApplication()->getIdentity()?->authorise('core.admin', 'com_breezingformsng');
+$mayTransferTemplates = $this->mayTransferTemplates;
 
 $metadataFields = [
     'name' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE') . ' ' . Text::_('COM_BREEZINGFORMSNG_INSTALLER_NAME'),
@@ -110,8 +108,8 @@ $auditText = static fn (mixed $text): string => htmlspecialchars((string) ($text
                                     : ' title="' . htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_TEMPLATES_DENIED', Text::_('JACTION_ADMIN')), ENT_QUOTES, 'UTF-8') . '"'; ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_TEMPLATES'); ?></label>
                             </div>
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="bf-include-integrator" name="include_integrator" value="1">
-                                <label class="form-check-label" for="bf-include-integrator"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR'); ?></label>
+                                <input class="form-check-input" type="checkbox" role="switch" id="bf-include-integrator" name="include_integrator" value="1"<?= $this->mayTransferIntegrator ? '' : ' disabled'; ?>>
+                                <label class="form-check-label" for="bf-include-integrator"<?= $labelTip($this->mayTransferIntegrator ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR_TIP' : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR_DENIED'); ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR'); ?></label>
                             </div>
                         </fieldset>
                         <div class="card mt-4 d-none" id="bf-package-audit">

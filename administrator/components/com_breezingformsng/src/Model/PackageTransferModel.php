@@ -52,8 +52,8 @@ final class PackageTransferModel extends BaseDatabaseModel
         'criteria_joomla' => ['#__facileforms_integrator_criteria_joomla', null],
     ];
 
-    /** @var array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int} */
-    private array $importSummary = ['templates' => 0, 'rules' => 0, 'failed' => [], 'package' => '', 'unlinked' => 0];
+    /** @var array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>} */
+    private array $importSummary = ['templates' => 0, 'rules' => 0, 'failed' => [], 'package' => '', 'unlinked' => 0, 'shared' => []];
 
     /** Notes of the form versions written by the running import. */
     private string $importedNote = '';
@@ -230,9 +230,9 @@ final class PackageTransferModel extends BaseDatabaseModel
             throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_INSTALLER_SELECTAPKG'));
         }
 
-        $this->assertImportableNames('#__facileforms_forms', $forms);
-        $this->assertImportableNames('#__facileforms_scripts', $scripts);
-        $this->assertImportableNames('#__facileforms_pieces', $pieces);
+        $this->assertImportableNames('#__facileforms_forms', $forms, true);
+        $this->assertImportableNames('#__facileforms_scripts', $scripts, true);
+        $this->assertImportableNames('#__facileforms_pieces', $pieces, true);
 
         $formIds = array_map(static fn(array $form): int => (int) $form['id'], $forms);
         $elements = $formIds === [] ? [] : $this->loadElements($formIds);
@@ -274,9 +274,13 @@ final class PackageTransferModel extends BaseDatabaseModel
      * @return list<array{id: int, name: string, packagePublished: int, previousPublished: ?int}>
      *         The forms saved as "Backend only" that the import left unpublished.
      */
-    public function import(string $filename, bool $allowTemplates = false, string $sourceName = ''): array
-    {
-        $this->importSummary = ['templates' => 0, 'rules' => 0, 'failed' => [], 'package' => '', 'unlinked' => 0];
+    public function import(
+        string $filename,
+        bool $allowTemplates = false,
+        string $sourceName = '',
+        bool $allowIntegrator = false
+    ): array {
+        $this->importSummary = ['templates' => 0, 'rules' => 0, 'failed' => [], 'package' => '', 'unlinked' => 0, 'shared' => []];
         // The uploaded file is a temporary one: its name of origin goes in the version notes.
         $sourceName = $sourceName !== '' ? $sourceName : basename($filename);
 
@@ -299,6 +303,11 @@ final class PackageTransferModel extends BaseDatabaseModel
             throw new InvalidPackageException(null, InvalidPackageException::VERSION);
         }
 
+        // Even an empty rule list replaces a form's existing Integrator rules.
+        if (!$allowIntegrator && !empty($payload['integrator'])) {
+            throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+        }
+
         $db = $this->getDatabase();
         $package = $payload['package'];
         $this->importedNote = Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOTE_IMPORTED', $package, $sourceName);
@@ -309,7 +318,13 @@ final class PackageTransferModel extends BaseDatabaseModel
             $scriptIds = $this->importLibraries('#__facileforms_scripts', (array) ($payload['scripts'] ?? []), $package, $this->packageItemModel('Script'));
             $pieceIds = $this->importLibraries('#__facileforms_pieces', (array) ($payload['pieces'] ?? []), $package, $this->packageItemModel('Piece'));
             $imported = [];
-            $retiredForms = $this->importForms((array) ($payload['forms'] ?? []), $package, $scriptIds, $pieceIds, $imported);
+            $rulesInFile = [];
+            foreach (is_array($payload['integrator'] ?? null) ? $payload['integrator'] : [] as $entry) {
+                if (is_array($entry) && is_int($entry['form_source_id'] ?? null)) {
+                    $rulesInFile[$entry['form_source_id']] = true;
+                }
+            }
+            $retiredForms = $this->importForms((array) ($payload['forms'] ?? []), $package, $scriptIds, $pieceIds, $imported, $rulesInFile);
             $this->importSummary['rules'] = $this->importIntegrator($payload['integrator'] ?? [], $imported);
             $this->importSummary['unlinked'] = $this->countUnlinkedRules(array_values(array_column($imported, 'id')));
             $templates = $this->templatesToWrite($payload['templates'] ?? [], $imported, $allowTemplates);
@@ -386,9 +401,9 @@ final class PackageTransferModel extends BaseDatabaseModel
             throw new \RuntimeException(Text::_("COM_BREEZINGFORMSNG_INSTALLER_SELECTAPKG"));
         }
 
-        $this->assertImportableNames("#__facileforms_forms", $forms);
-        $this->assertImportableNames("#__facileforms_scripts", $scripts);
-        $this->assertImportableNames("#__facileforms_pieces", $pieces);
+        $this->assertImportableNames("#__facileforms_forms", $forms, true);
+        $this->assertImportableNames("#__facileforms_scripts", $scripts, true);
+        $this->assertImportableNames("#__facileforms_pieces", $pieces, true);
 
         $formIds = array_map(static fn(array $form): int => (int) $form["id"], $forms);
         $elementsByForm = [];
@@ -442,7 +457,7 @@ final class PackageTransferModel extends BaseDatabaseModel
         foreach ($fields as $field) {
             $value = $submitted[$field] ?? $stored[$field] ?? '';
             if (!is_string($value)) {
-                throw new InvalidPackageException();
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_METADATA_INVALID'));
             }
             $metadata[$field] = trim($value);
         }
@@ -517,14 +532,15 @@ final class PackageTransferModel extends BaseDatabaseModel
             $seen = [];
             $parent = (int) $row['parent'];
             while ($parent > 0) {
+                // An export error: no file is involved yet.
                 if (isset($seen[$parent])) {
-                    throw new InvalidPackageException();
+                    throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_MENU_PARENT_INVALID', htmlspecialchars((string) $row['title'], ENT_QUOTES, 'UTF-8')));
                 }
                 $seen[$parent] = true;
                 if (!isset($byId[$parent])) {
                     $ancestor = $this->loadRowsByIds('#__facileforms_compmenus', [$parent]);
                     if ($ancestor === []) {
-                        throw new InvalidPackageException();
+                        throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_MENU_PARENT_INVALID', htmlspecialchars((string) $row['title'], ENT_QUOTES, 'UTF-8')));
                     }
                     $byId[$parent] = $ancestor[0];
                 }
@@ -700,9 +716,10 @@ final class PackageTransferModel extends BaseDatabaseModel
      * @param array<int, int> $scriptIds
      * @param array<int, int> $pieceIds
      * @param array<int, array{id: int, name: string, elements: array<int, int>}> $imported Filled with each imported form, by source id.
+     * @param array<int, true> $rulesInFile Source ids of the forms whose Integrator rules the file replaces.
      * @return list<array{id: int, name: string, packagePublished: int, previousPublished: ?int}>
      */
-    private function importForms(array $forms, string $package, array $scriptIds, array $pieceIds, array &$imported = []): array
+    private function importForms(array $forms, string $package, array $scriptIds, array $pieceIds, array &$imported = [], array $rulesInFile = []): array
     {
         $retiredForms = [];
         $db = $this->getDatabase();
@@ -717,9 +734,18 @@ final class PackageTransferModel extends BaseDatabaseModel
         $versioning = new FormVersioning($db, $formModel);
         $written = [];
 
+        $sourceIds = [];
         foreach ($forms as $form) {
             if (!is_array($form) || !is_array($form['data'] ?? null) || !is_array($form['elements'] ?? null)) {
                 throw new InvalidPackageException();
+            }
+            // The templates and Integrator rules of the file find their form by
+            // its source id: one missing or shared would send them to another form.
+            if (array_key_exists('source_id', $form) && (!is_int($form['source_id']) || isset($sourceIds[$form['source_id']]))) {
+                throw new InvalidPackageException();
+            }
+            if (is_int($form['source_id'] ?? null)) {
+                $sourceIds[$form['source_id']] = true;
             }
         }
         $this->assertImportableNames('#__facileforms_forms', $this->fileNames($forms));
@@ -738,6 +764,8 @@ final class PackageTransferModel extends BaseDatabaseModel
             }
             $this->remapReferences($data, $scriptIds, $pieceIds);
             $name = trim((string) ($data['name'] ?? ''));
+            // Stored as it is found: the template file names are built from the stored name.
+            $data['name'] = $name;
             $id = $this->findId('#__facileforms_forms', $package, $name);
             $this->assertNotWrittenTwice('#__facileforms_forms', $written, $id, $name);
             $previousPublished = $id > 0 && $backendOnly ? $this->publishedState($id) : null;
@@ -781,8 +809,11 @@ final class PackageTransferModel extends BaseDatabaseModel
                     $elementIds[$element['source_id']] = (int) $db->insertid();
                 }
             }
-            $imported[(int) ($form['source_id'] ?? 0)] = ['id' => $id, 'name' => $name, 'elements' => $elementIds];
-            if ($replacedElements !== null) {
+            if (is_int($form['source_id'] ?? null)) {
+                $imported[$form['source_id']] = ['id' => $id, 'name' => $name, 'elements' => $elementIds];
+            }
+            // Rules the file replaces right after need no relinking.
+            if ($replacedElements !== null && !(is_int($form['source_id'] ?? null) && isset($rulesInFile[$form['source_id']]))) {
                 $this->relinkIntegratorRules($id, $replacedElements);
             }
 
@@ -856,7 +887,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     /**
      * What the last import wrote besides forms, scripts, pieces and menus.
      *
-     * @return array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int}
+     * @return array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>}
      */
     public function getImportSummary(): array
     {
@@ -925,17 +956,30 @@ final class PackageTransferModel extends BaseDatabaseModel
             ->where($db->quoteName('form_id') . ' = :formId')->order($db->quoteName('id'))
             ->bind(':formId', $formId, ParameterType::INTEGER);
         $rules = [];
-        $elements = $this->elementNames($formId);
+        $ruleRows = $db->setQuery($query)->loadAssocList() ?: [];
 
-        foreach ($db->setQuery($query)->loadAssocList() ?: [] as $rule) {
+        if ($ruleRows === []) {
+            return [];
+        }
+
+        $elements = $this->elementNames($formId);
+        $ruleIds = array_map(static fn (array $rule): int => (int) $rule['id'], $ruleRows);
+        // One query per kind of row for all the rules of the form.
+        $children = [];
+        foreach (self::INTEGRATOR_CHILDREN as $key => [$table]) {
+            $query = $db->createQuery()->select('*')->from($db->quoteName($table))
+                ->whereIn($db->quoteName('rule_id'), $ruleIds)->order($db->quoteName('id'));
+            foreach ($db->setQuery($query)->loadAssocList() ?: [] as $row) {
+                $children[$key][(int) $row['rule_id']][] = $row;
+            }
+        }
+
+        foreach ($ruleRows as $rule) {
             $ruleId = (int) $rule['id'];
             $entry = ['data' => $this->without($rule, ['id', 'form_id'])];
-            foreach (self::INTEGRATOR_CHILDREN as $key => [$table, $elementColumn]) {
-                $query = $db->createQuery()->select('*')->from($db->quoteName($table))
-                    ->where($db->quoteName('rule_id') . ' = :ruleId')->order($db->quoteName('id'))
-                    ->bind(':ruleId', $ruleId, ParameterType::INTEGER);
+            foreach (self::INTEGRATOR_CHILDREN as $key => [, $elementColumn]) {
                 $entry[$key] = [];
-                foreach ($db->setQuery($query)->loadAssocList() ?: [] as $row) {
+                foreach ($children[$key][$ruleId] ?? [] as $row) {
                     // A row naming an element the form no longer has is ignored by
                     // the Integrator, which joins the elements: it is not exported.
                     if ($elementColumn !== null && !isset($elements[(int) $row[$elementColumn]])) {
@@ -1129,6 +1173,8 @@ final class PackageTransferModel extends BaseDatabaseModel
         }
 
         $files = [];
+        $shared = [];
+        $sharedNames = [];
 
         foreach ($entries as $entry) {
             $folder = is_array($entry) ? ($entry['folder'] ?? null) : null;
@@ -1146,11 +1192,32 @@ final class PackageTransferModel extends BaseDatabaseModel
             if (!$this->isFileSafeName($name)) {
                 throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_TEMPLATE_UNSAFE_NAME', htmlspecialchars($name, ENT_QUOTES, 'UTF-8')));
             }
+            // The template files of a form are found by its name alone: another form
+            // of the same name, in another package, uses them too and keeps them.
+            $formId = $imported[$entry['form_source_id']]['id'];
+            $shared[$formId] ??= $this->nameUsedElsewhere($formId, $name);
+            if ($shared[$formId]) {
+                $sharedNames[$name] = $name;
+                continue;
+            }
             // The file takes the name of the imported form, which the file may have renamed.
             $files[JPATH_SITE . '/media/breezingforms/' . $folder . '/' . $name . $suffix] = $content;
         }
+        $this->importSummary['shared'] = array_values($sharedNames);
 
         return $files;
+    }
+
+    /** Whether another form of the site has exactly this name, as the template file names use it. */
+    private function nameUsedElsewhere(int $formId, string $name): bool
+    {
+        $db = $this->getDatabase();
+        $query = $db->createQuery()->select($db->quoteName('name'))->from($db->quoteName('#__facileforms_forms'))
+            ->where($db->quoteName('name') . ' = :name')->where($db->quoteName('id') . ' <> :id')
+            ->bind(':name', $name)->bind(':id', $formId, ParameterType::INTEGER);
+
+        // The column compares without case, the file system does not.
+        return in_array($name, $db->setQuery($query)->loadColumn() ?: [], true);
     }
 
     /**
@@ -1185,7 +1252,7 @@ final class PackageTransferModel extends BaseDatabaseModel
      *
      * @param array<array<string, mixed>> $rows Rows with their id and name.
      */
-    private function assertImportableNames(string $table, array $rows): void
+    private function assertImportableNames(string $table, array $rows, bool $databaseRows = false): void
     {
         $kind = self::NAMED_KINDS[$table];
         $unnamed = [];
@@ -1200,12 +1267,43 @@ final class PackageTransferModel extends BaseDatabaseModel
                 continue;
             }
 
-            // The database compares names without case or trailing spaces.
             $byName[mb_strtolower($name)][] = ['name' => $name, 'id' => $id];
         }
 
         if ($unnamed !== []) {
             throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UNNAMED_' . $kind, implode(', ', $unnamed)));
+        }
+
+        if ($databaseRows && count($rows) > 1) {
+            // Import trims names in PHP, then compares them using the column's
+            // collation. Carry that collation onto the exact PHP-trimmed values.
+            $db = $this->getDatabase();
+            $query = $db->createQuery();
+            $ids = array_map(static fn (array $row): int => (int) $row['id'], $rows);
+            $names = array_map(static fn (array $row): string => trim((string) $row['name']), $rows);
+            $idParams = $query->bindArray($ids, ParameterType::INTEGER);
+            $nameParams = $query->bindArray($names, ParameterType::STRING);
+            $cases = [];
+
+            foreach ($ids as $index => $id) {
+                $cases[] = 'WHEN ' . $idParams[$index] . ' THEN ' . $nameParams[$index];
+            }
+
+            $nameExpression = 'CONCAT(LEFT(' . $db->quoteName('name') . ', 0), CASE '
+                . $db->quoteName('id') . ' ' . implode(' ', $cases) . ' END)';
+            $query
+                ->select([
+                    $db->quoteName('id'),
+                    $db->quoteName('name'),
+                    'DENSE_RANK() OVER (ORDER BY ' . $nameExpression . ') AS ' . $db->quoteName('name_group'),
+                ])
+                ->from($db->quoteName($table))
+                ->whereIn($db->quoteName('id'), $ids);
+            $byName = [];
+
+            foreach ($db->setQuery($query)->loadAssocList() as $row) {
+                $byName[(int) $row['name_group']][] = ['name' => trim((string) $row['name']), 'id' => '#' . (int) $row['id']];
+            }
         }
 
         $duplicates = [];
@@ -1230,7 +1328,10 @@ final class PackageTransferModel extends BaseDatabaseModel
     private function fileNames(array $rows): array
     {
         return array_map(
-            static fn (array $row): array => ['id' => (int) $row['source_id'], 'name' => is_scalar($row['data']['name'] ?? null) ? (string) $row['data']['name'] : ''],
+            static fn (array $row): array => [
+                'id' => is_int($row['source_id'] ?? null) ? $row['source_id'] : 0,
+                'name' => is_scalar($row['data']['name'] ?? null) ? (string) $row['data']['name'] : '',
+            ],
             array_values($rows)
         );
     }
