@@ -27,7 +27,10 @@ jobs:
 
       # Report findings without blocking existing builds; execution errors still fail the job.
       - name: Scan dependency lockfiles
-        uses: aquasecurity/trivy-action@0.36.0
+        # Pinned to the commit of the v0.36.0 tag: the repository of the action
+        # re-published all its earlier tags in March 2026, and this step runs
+        # with permission to write security events.
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: fs
           scan-ref: .
