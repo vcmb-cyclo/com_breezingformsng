@@ -20,6 +20,8 @@ parameters:
         - administrator/components/com_breezingformsng/plugins/breezingforms/services
         - administrator/components/com_breezingformsng/plugins/privacy/src
         - administrator/components/com_breezingformsng/plugins/privacy/services
+        - administrator/components/com_breezingformsng/plugins/webservices/src
+        - administrator/components/com_breezingformsng/plugins/webservices/services
         - administrator/components/com_breezingformsng/services/provider.php
         - administrator/components/com_breezingformsng/src
         - administrator/components/com_breezingformsng/layouts
@@ -27,6 +29,7 @@ parameters:
         - components/com_breezingformsng/src
         - components/com_breezingformsng/downloadtpl
         - components/com_breezingformsng/tmpl
+        - api/components/com_breezingformsng/src
         - script.php
     excludePaths:
         - administrator/components/com_breezingformsng/vendor

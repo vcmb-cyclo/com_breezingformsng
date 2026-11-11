@@ -1,0 +1,7 @@
+Model Context Protocol logo, unmodified, from the official MCP repository:
+https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/docs/logo
+(light.svg: dark marks for light backgrounds; dark.svg: light marks for dark backgrounds)
+
+Copyright Model Context Protocol a Series of LF Projects, LLC. Shown only to
+say that BreezingForms NG offers an MCP endpoint; BreezingForms NG is not
+endorsed by the Model Context Protocol project. Do not recolor or alter it.

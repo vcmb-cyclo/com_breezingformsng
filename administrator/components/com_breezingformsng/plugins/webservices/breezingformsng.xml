@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="webservices" method="upgrade">
+	<name>PLG_WEBSERVICES_BREEZINGFORMSNG</name>
+	<author>XDA/GIL</author>
+	<creationDate>2026-11-11</creationDate>
+	<copyright>Copyright 2026 by XDA+GIL</copyright>
+	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+	<version>6.1.0-RC17</version>
+	<description>PLG_WEBSERVICES_BREEZINGFORMSNG_XML_DESCRIPTION</description>
+	<namespace path="src">Vcmb\Plugin\WebServices\Breezingformsng</namespace>
+	<files>
+		<folder plugin="breezingformsng">services</folder>
+		<folder>src</folder>
+		<folder>language</folder>
+	</files>
+	<languages folder="language">
+		<language tag="de-DE">de-DE/plg_webservices_breezingformsng.ini</language>
+		<language tag="de-DE">de-DE/plg_webservices_breezingformsng.sys.ini</language>
+		<language tag="en-GB">en-GB/plg_webservices_breezingformsng.ini</language>
+		<language tag="en-GB">en-GB/plg_webservices_breezingformsng.sys.ini</language>
+		<language tag="es-ES">es-ES/plg_webservices_breezingformsng.ini</language>
+		<language tag="es-ES">es-ES/plg_webservices_breezingformsng.sys.ini</language>
+		<language tag="fr-FR">fr-FR/plg_webservices_breezingformsng.ini</language>
+		<language tag="fr-FR">fr-FR/plg_webservices_breezingformsng.sys.ini</language>
+		<language tag="hu-HU">hu-HU/plg_webservices_breezingformsng.ini</language>
+		<language tag="hu-HU">hu-HU/plg_webservices_breezingformsng.sys.ini</language>
+		<language tag="it-IT">it-IT/plg_webservices_breezingformsng.ini</language>
+		<language tag="it-IT">it-IT/plg_webservices_breezingformsng.sys.ini</language>
+		<language tag="nl-NL">nl-NL/plg_webservices_breezingformsng.ini</language>
+		<language tag="nl-NL">nl-NL/plg_webservices_breezingformsng.sys.ini</language>
+		<language tag="tr-TR">tr-TR/plg_webservices_breezingformsng.ini</language>
+		<language tag="tr-TR">tr-TR/plg_webservices_breezingformsng.sys.ini</language>
+	</languages>
+</extension>

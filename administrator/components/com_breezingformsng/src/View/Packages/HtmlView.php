@@ -16,6 +16,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
 use Vcmb\Component\BreezingformsNG\Administrator\Controller\PackagesController;
+use Vcmb\Component\BreezingformsNG\Administrator\Mcp\McpAvailability;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
@@ -49,6 +50,11 @@ final class HtmlView extends BaseHtmlView
      * @var array{package?: string, items?: array<string, list<array<string, mixed>>>}
      */
     public array $importReport = [];
+
+    /** MCP: enabled in the options, and its route plugin enabled. */
+    public bool $mcpEnabled = false;
+    public bool $mcpRouted = false;
+    public bool $canConfigure = false;
 
     public function display($tpl = null)
     {
@@ -90,6 +96,13 @@ final class HtmlView extends BaseHtmlView
             $report = $app->getUserState(PackagesController::REPORT_STATE, []);
             $this->importReport = is_array($report) ? $report : [];
             $app->setUserState(PackagesController::REPORT_STATE, null);
+        }
+
+        if ($this->getLayout() === 'default') {
+            $this->mcpEnabled = McpAvailability::isEnabled();
+            $this->mcpRouted = McpAvailability::isRouted();
+            $this->canConfigure = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
+            $this->getDocument()->getWebAssetManager()->useStyle('com_breezingformsng.mcp-status');
         }
 
         $this->addToolbar();

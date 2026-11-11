@@ -50,6 +50,8 @@ test('the import confirmation safely handles cancel and confirm', async ({ page 
         mimeType: 'application/json',
         buffer: Buffer.from('{'),
     });
+    // The page ignores a submission while it reads the file: the Import button says when it is done.
+    await expect(page.locator('joomla-toolbar-button[task="packages.import"] button')).toBeEnabled();
 
     // <joomla-dialog> has no size of its own: its native <dialog> is shown in
     // the top layer, so visibility is checked on that inner element.

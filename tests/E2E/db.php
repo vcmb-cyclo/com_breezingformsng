@@ -31,6 +31,38 @@ switch ($argv[1] ?? '') {
     case 'set':
         $db->query("UPDATE {$forms} SET `" . $db->real_escape_string($argv[3]) . "` = '" . $db->real_escape_string($argv[4]) . "' WHERE id = {$id}");
         break;
+    case 'plugin':
+        // plugin <folder> <element> [enabled]: prints the state, after setting it when given.
+        $folder = $db->real_escape_string($argv[2] ?? '');
+        $element = $db->real_escape_string($argv[3] ?? '');
+        $where = "type = 'plugin' AND folder = '{$folder}' AND element = '{$element}'";
+        if (isset($argv[4])) {
+            $db->query("UPDATE {$config->dbprefix}extensions SET enabled = " . (int) $argv[4] . " WHERE {$where}");
+        }
+        echo json_encode($db->query("SELECT enabled FROM {$config->dbprefix}extensions WHERE {$where}")->fetch_assoc());
+        break;
+    case 'sample-form':
+        // sample-form <name>: a form with a text element, created once; prints its id.
+        $name = $db->real_escape_string($argv[2] ?? '');
+        $form = $db->query("SELECT id FROM {$forms} WHERE name = '{$name}'")->fetch_assoc();
+        if ($form === null) {
+            $db->query("INSERT INTO {$forms} (name, title, published, pages, emailadr, mailchimp_api_key) VALUES ('{$name}', 'Sample {$name}', 1, 1, 'owner@example.invalid', 'secret-key')");
+            $formId = $db->insert_id;
+            $db->query("INSERT INTO {$config->dbprefix}facileforms_elements (form, page, ordering, published, name, title, type, data1, data2, data3) VALUES ({$formId}, 1, 1, 1, 'email', 'Email', 'Text', '', '', '')");
+            $form = ['id' => $formId];
+        }
+        echo (int) $form['id'];
+        break;
+    case 'api-token':
+        // api-token <username>: gives the user a new Joomla API token, as the User - Joomla API Token plugin does.
+        $user = $db->query("SELECT id FROM {$config->dbprefix}users WHERE username = '" . $db->real_escape_string($argv[2] ?? '') . "'")->fetch_assoc();
+        $userId = (int) $user['id'];
+        $seed = random_bytes(32);
+        $profiles = $config->dbprefix . 'user_profiles';
+        $db->query("DELETE FROM {$profiles} WHERE user_id = {$userId} AND profile_key LIKE 'joomlatoken.%'");
+        $db->query("INSERT INTO {$profiles} (user_id, profile_key, profile_value, ordering) VALUES ({$userId}, 'joomlatoken.token', '" . base64_encode($seed) . "', 1), ({$userId}, 'joomlatoken.enabled', '1', 2)");
+        echo base64_encode('sha256:' . $userId . ':' . hash_hmac('sha256', $seed, $config->secret));
+        break;
     default:
         exit(1);
 }

@@ -1,5 +1,45 @@
 # Changelog
 
+## 6.1.0-RC17
+
+### Added
+
+- Let AI assistants such as Claude Code or Codex read your forms through a read-only MCP endpoint of the Joomla API, with a user's API token and that user's permissions. It is off by default: turn it on with "Enable MCP" in the options. The Configuration page shows whether it is enabled.
+- Choose what to import from a package file: its items are listed by kind with their status (new, replaced or identical), identical items are left untouched, and the confirmation says what will be written.
+- See what an import wrote: the forms, scripts, pieces, menu items, Integrator rules and template files, each with a link. Items about to be replaced link to the existing one.
+- Import packages exported as XML by BreezingForms or FacileForms. The accepted formats are shown on the import screen, and the Import button stays disabled until a file is chosen.
+- Export and import the custom email and PDF templates of forms, and their Integrator rules, in a package. Templates need the Configure permission and rules the code permission; without it they are left out with a warning and the rest of the package is imported.
+- Record imports, copies and restores in a form's history, with a version note and the version of origin.
+
+### Changed
+
+- Package files hold the QuickMode template code of forms as readable text. Files exported by earlier versions are still imported.
+- Show clearer import errors naming the file, the upload size and JSON problems, tooltips on the export fields, and the package name in the package list of a form.
+- The standard database pieces (ff_query, ff_select, ff_selectValue and ff_databaseToSelect) use the Joomla database directly and no longer need the BreezingForms compatibility plugin. Updates keep any piece you customised.
+- Use the word element in the Stripe amount help and capitalize the QuickMode add buttons in all eight languages.
+- Update the bundled Stripe and PDF libraries.
+- Remove the last Adobe Flash file from the package. Updates delete it from existing sites.
+
+### Fixed
+
+- Fix the standard piece ff_databaseToSelect, whose code had a syntax error.
+- Export every form column, including the admin and user email settings, and refuse forms, scripts and pieces without a name or sharing one instead of silently keeping only one of them.
+- Export a package without having to check both the template and the Integrator switches.
+- Keep the elements of an imported form in their original order and keep the selection made in the import tables.
+- Keep the Integrator rules of a replaced form on its new elements, and report the rules left without their element.
+- Do not let a package overwrite the template files of a form of another package. The import says which forms were left out.
+- Refuse a package whose forms have a missing, shared or invalid id, so that templates and Integrator rules cannot reach another form.
+- Copy a form whose elements hold empty (NULL) columns.
+- Translate the captcha refresh button and the double opt-in email subject where they were wrong or still in English.
+- Remove PHP 8.5 deprecation notices raised when resizing uploaded images.
+- Report form errors and upload errors together when importing records, with clearer upload size and extension messages.
+
+### Security
+
+- Generate upload tickets, stored upload names, payment cache files and export file names from a cryptographically secure random source. They were predictable, and payment cache files sit in the public media folder.
+- Answer the upload callback in plain text, so that browsers never interpret an uploaded file name as HTML.
+- Require the code permission to export or import Integrator rules, and show names from an imported file as plain text in the confirmation.
+
 ## 6.1.0-RC16
 
 ### Added

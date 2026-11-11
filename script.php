@@ -862,6 +862,13 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             count($importer->pieces) . ' piece(s).'
         );
 
+        if ($importer->warnings !== []) {
+            $this->log(
+                'Custom standard pieces preserved without replacing their code: ' . implode(', ', $importer->warnings),
+                Log::WARNING
+            );
+        }
+
         $this->announceImportedLibraryChanges($importer);
     }
 
@@ -4349,6 +4356,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $plugins['system'][] = 'bfcompat';
         $plugins['content'] = ['breezingforms'];
         $plugins['privacy'] = ['breezingformsng'];
+        $plugins['webservices'] = ['breezingformsng'];
         return $plugins;
     }
 

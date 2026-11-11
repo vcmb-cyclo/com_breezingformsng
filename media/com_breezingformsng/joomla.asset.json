@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
   "name": "com_breezingformsng",
-  "version": "6.1.0-RC16",
+  "version": "6.1.0-RC17",
   "description": "BreezingForms NG Web Assets",
   "license": "GPL-2.0-or-later",
   "assets": [
@@ -306,6 +306,13 @@
       "type": "style",
       "uri": "media/com_breezingformsng/css/bfng-admin.css",
       "dependencies": ["com_breezingformsng.tokens"],
+      "version": "auto"
+    },
+
+    {
+      "name": "com_breezingformsng.mcp-status",
+      "type": "style",
+      "uri": "media/com_breezingformsng/css/admin/mcp-status.css",
       "version": "auto"
     },
 
