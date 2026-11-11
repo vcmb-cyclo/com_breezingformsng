@@ -200,6 +200,7 @@ final class PackagesController extends BaseController
             $key = match ($exception->getReason()) {
                 InvalidPackageException::READ => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_FILE_NAMED_READ_ERROR',
                 InvalidPackageException::JSON => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_JSON',
+                InvalidPackageException::XML => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_XML',
                 InvalidPackageException::VERSION => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UNSUPPORTED_VERSION',
                 default => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_NAMED_FILE',
             };

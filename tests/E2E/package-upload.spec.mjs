@@ -93,7 +93,11 @@ test('only the checked items are imported, then listed with a link', async ({ pa
             forms: [],
         })),
     };
+    // The Import button is greyed out until a file is chosen.
+    const importButton = page.locator('joomla-toolbar-button[task="packages.import"] button');
+    await expect(importButton).toBeDisabled();
     await page.setInputFiles('#bf-package-file', packageFile);
+    await expect(importButton).toBeEnabled();
 
     const selection = page.locator('#bf-package-selection');
     await expect(selection).toBeVisible();
@@ -104,7 +108,9 @@ test('only the checked items are imported, then listed with a link', async ({ pa
 
     const dialog = page.locator('joomla-dialog.joomla-dialog-confirm dialog');
     await page.locator('#bf-package-import').evaluate((form) => form.requestSubmit());
-    await expect(dialog).toContainText('0 form(s), 1 script(s)');
+    // Counts take the singular or the plural.
+    await expect(dialog).toContainText('Package e2e_selection: 0 forms, 1 script, 0 pieces, 0 menu items.');
+    await expect(dialog).toContainText('1 item will be created and 0 replaced.');
     await Promise.all([
         page.waitForNavigation(),
         dialog.locator('[data-button-ok]').click(),
@@ -127,8 +133,54 @@ test('only the checked items are imported, then listed with a link', async ({ pa
     await expect(kept).toBeDisabled();
     await expect(kept).not.toBeChecked();
     await expect(page.locator('#bf-package-selection tbody tr').first()).toContainText('Identical');
+    // The item of the site opens in a new tab; a new item has none to open.
+    const existing = page.locator('#bf-package-selection tbody tr').first().locator('a');
+    await expect(existing).toHaveText('Open existing');
+    await expect(existing).toHaveAttribute('target', '_blank');
+    await expect(existing).toHaveAttribute('href', /task=script\.edit&id=\d+$/);
+    await expect(page.locator('#bf-package-selection tbody tr').nth(1).locator('a')).toHaveCount(0);
     await expect(page.locator('#bf-import-scripts-1')).toBeEnabled();
     await expect(page.locator('#bf-import-scripts-1')).toBeChecked();
     await expect(page.locator('#bf-package-selection tbody tr').nth(1)).toContainText('New');
+    expect(errors).toEqual([]);
+});
+
+test('a legacy XML package is listed by the server, imported and reported', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await expect(page.locator('#bf-package-file-formats')).toContainText('.xml');
+    await page.setInputFiles('#bf-package-file', {
+        name: 'legacy.xml',
+        mimeType: 'text/xml',
+        buffer: Buffer.from(`<?xml version="1.0" encoding="utf-8" ?>
+<FacileFormsPackage id="e2e_legacy" type="autoincrement" version="1.7.5">
+    <name>e2e_legacy</name>
+    <script id="41">
+        <package>e2e_legacy</package>
+        <name>e2e_legacy_script</name>
+        <title>Legacy\\x2C script</title>
+        <type>Untyped</type>
+        <code>// legacy\\x3B</code>
+    </script>
+</FacileFormsPackage>
+`),
+    });
+
+    // The browser cannot read the XML file: the tables come from the server.
+    const selection = page.locator('#bf-package-selection');
+    await expect(selection.locator('tbody tr')).toHaveCount(1);
+    await expect(selection.locator('tbody tr').first()).toContainText('Legacy, script');
+    await expect(selection.locator('tbody tr').first()).toContainText('New');
+
+    const dialog = page.locator('joomla-dialog.joomla-dialog-confirm dialog');
+    await page.locator('#bf-package-import').evaluate((form) => form.requestSubmit());
+    await expect(dialog).toContainText('Package e2e_legacy: 0 forms, 1 script, 0 pieces, 0 menu items.');
+    await Promise.all([
+        page.waitForNavigation(),
+        dialog.locator('[data-button-ok]').click(),
+    ]);
+    const report = page.locator('#bf-package-import-report');
+    await expect(report).toContainText('e2e_legacy');
+    await expect(report.locator('tbody a')).toHaveText('Legacy, script');
     expect(errors).toEqual([]);
 });

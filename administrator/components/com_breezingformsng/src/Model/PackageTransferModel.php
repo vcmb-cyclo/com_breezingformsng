@@ -17,12 +17,15 @@ use Joomla\Database\ParameterType;
 use Joomla\Filesystem\File;
 use Vcmb\Component\BreezingformsNG\Administrator\Exception\InvalidPackageException;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\LegacyXmlPackage;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\PackageTemplateCode;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\SqlDate;
 
 final class PackageTransferModel extends BaseDatabaseModel
 {
     private const FORMAT = 'breezingformsng-package';
-    private const VERSION = 2;
+    /** Version 3 holds the template code of the forms in clear; 1 and 2, as the database stores it. */
+    private const VERSION = 3;
     private const LIBRARY_COLUMNS = ['published', 'package', 'name', 'title', 'description', 'type', 'code', 'unit_tests'];
 
     /**
@@ -66,6 +69,8 @@ final class PackageTransferModel extends BaseDatabaseModel
 
     /** @var array<int, true> Source ids of the forms the site already has as they are. */
     private array $identicalForms = [];
+    /** @var array<string, array<int, int>> Id of the item of the site each item of the file compares with, 0 for none. */
+    private array $comparedIds = [];
 
     /** Parts of a package the user can choose from on import, by key of the file. */
     public const SELECTABLE_PARTS = ['forms', 'scripts', 'pieces', 'menus'];
@@ -325,7 +330,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             $this->importSummary['unlinked'] = $this->countUnlinkedRules($this->importedFormIds);
             $templates = $this->templatesToWrite($payload['templates'] ?? [], $imported, $allowTemplates);
 
-            if (($payload['version'] ?? null) === self::VERSION) {
+            if (($payload['version'] ?? 1) >= 2) {
                 $this->importMenus((array) ($payload['menus'] ?? []), $package);
                 if (isset($payload['metadata'])) {
                     if (!is_array($payload['metadata'])) {
@@ -372,22 +377,49 @@ final class PackageTransferModel extends BaseDatabaseModel
             throw new InvalidPackageException(null, InvalidPackageException::READ);
         }
 
-        try {
-            $payload = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException $exception) {
-            throw new InvalidPackageException($exception, InvalidPackageException::JSON);
+        if (LegacyXmlPackage::isXml($contents)) {
+            // A package exported by BreezingForms or FacileForms: read as a package file of today.
+            try {
+                $payload = LegacyXmlPackage::toPayload($contents);
+            } catch (\UnexpectedValueException $exception) {
+                throw new InvalidPackageException($exception, InvalidPackageException::XML);
+            }
+            $payload = $this->withLegacyBlanks($payload);
+        } else {
+            try {
+                $payload = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException $exception) {
+                throw new InvalidPackageException($exception, InvalidPackageException::JSON);
+            }
         }
 
         if (!is_array($payload) || ($payload['format'] ?? '') !== self::FORMAT || !is_string($payload['package'] ?? null) || $payload['package'] === '') {
             throw new InvalidPackageException();
         }
 
-        if (!in_array($payload['version'] ?? null, [1, self::VERSION], true)) {
+        if (!in_array($payload['version'] ?? null, [1, 2, self::VERSION], true)) {
             throw new InvalidPackageException(null, InvalidPackageException::VERSION);
         }
         foreach (self::SELECTABLE_PARTS as $part) {
             if (isset($payload[$part]) && (!is_array($payload[$part]) || !array_is_list($payload[$part]))) {
                 throw new InvalidPackageException();
+            }
+        }
+
+        // The template code is read back as the database stores it.
+        if ($payload['version'] === self::VERSION) {
+            foreach ($payload['forms'] ?? [] as $position => $form) {
+                if (!is_array($form) || !is_array($form['data'] ?? null) || !array_key_exists('template_code', $form['data'])) {
+                    continue;
+                }
+                try {
+                    $payload['forms'][$position]['data']['template_code'] = PackageTemplateCode::fromFile(
+                        $form['data']['template_code'],
+                        $form['template_code_encoding'] ?? null
+                    );
+                } catch (\UnexpectedValueException $exception) {
+                    throw new InvalidPackageException($exception);
+                }
             }
         }
 
@@ -398,11 +430,14 @@ final class PackageTransferModel extends BaseDatabaseModel
      * What importing each item of a package file would do: create it, replace
      * the item of the same name, or nothing, as the site has it as it is.
      *
-     * @return array<string, list<string>> Status of each item, by part, in the order of the file.
+     * @return array{statuses: array<string, list<string>>, ids: array<string, list<int>>, payload: array<string, mixed>}
+     *         Status of each item, by part, in the order of the file, the id of the item of the site it
+     *         would replace, 0 for a new one, and what the tables of the import page list of the file.
      */
     public function compareFile(string $filename, bool $allowTemplates, bool $allowIntegrator): array
     {
         $payload = $this->readPayload($filename);
+        $summary = $this->payloadSummary($payload);
         // The parts the user may not write are left out of the import, and of the comparison.
         if (!$allowIntegrator) {
             unset($payload['integrator']);
@@ -411,7 +446,49 @@ final class PackageTransferModel extends BaseDatabaseModel
             unset($payload['templates']);
         }
 
-        return array_map('array_values', $this->compareItems($payload));
+        $statuses = $this->compareItems($payload);
+        $ids = [];
+        foreach ($statuses as $part => $partStatuses) {
+            foreach (array_keys($partStatuses) as $position) {
+                $ids[$part][] = $this->comparedIds[$part][$position] ?? 0;
+            }
+        }
+
+        return ['statuses' => array_map('array_values', $statuses), 'ids' => $ids, 'payload' => $summary];
+    }
+
+    /**
+     * The items of a package file as the import page lists them, with no code:
+     * an XML file of BreezingForms is read by the server only.
+     *
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    private function payloadSummary(array $payload): array
+    {
+        $summary = ['package' => (string) $payload['package']];
+        foreach (self::SELECTABLE_PARTS as $part) {
+            $summary[$part] = [];
+            foreach ((array) ($payload[$part] ?? []) as $row) {
+                $data = is_array($row) && is_array($row['data'] ?? null) ? $row['data'] : [];
+                $entry = [
+                    'source_id' => is_array($row) ? ($row['source_id'] ?? null) : null,
+                    'data' => ['name' => (string) ($data['name'] ?? ''), 'title' => (string) ($data['title'] ?? '')],
+                ];
+                if ($part === 'forms') {
+                    $entry['element_count'] = is_array($row) && is_array($row['elements'] ?? null) ? count($row['elements']) : 0;
+                }
+                $summary[$part][] = $entry;
+            }
+        }
+        foreach (['templates', 'integrator'] as $part) {
+            $summary[$part] = [];
+            foreach (is_array($payload[$part] ?? null) ? $payload[$part] : [] as $entry) {
+                $summary[$part][] = ['form_source_id' => is_array($entry) ? ($entry['form_source_id'] ?? null) : null];
+            }
+        }
+
+        return $summary;
     }
 
     /**
@@ -423,6 +500,7 @@ final class PackageTransferModel extends BaseDatabaseModel
         $package = (string) $payload['package'];
         $statuses = [];
         $libraryIds = [];
+        $this->comparedIds = [];
 
         foreach (['scripts' => '#__facileforms_scripts', 'pieces' => '#__facileforms_pieces'] as $part => $table) {
             $statuses[$part] = [];
@@ -439,6 +517,7 @@ final class PackageTransferModel extends BaseDatabaseModel
                     // A new item gets an id of its own, which no form of the site uses yet.
                     $libraryIds[$part][$row['source_id']] = $id > 0 ? $id : -1;
                 }
+                $this->comparedIds[$part][$position] = $id;
                 $statuses[$part][$position] = $id === 0 ? self::STATUS_NEW
                     : ($this->rowMatches($table, $id, $data) ? self::STATUS_IDENTICAL : self::STATUS_REPLACE);
             }
@@ -466,6 +545,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             [$data] = $this->prepareFormData($form['data'], $package, $libraryIds['scripts'], $libraryIds['pieces']);
             $id = $this->findId('#__facileforms_forms', $package, $data['name']);
             $sourceId = is_int($form['source_id'] ?? null) ? $form['source_id'] : null;
+            $this->comparedIds['forms'][$position] = $id;
             $statuses['forms'][$position] = $id === 0 ? self::STATUS_NEW : (
                 $this->formMatches(
                     $id,
@@ -516,6 +596,7 @@ final class PackageTransferModel extends BaseDatabaseModel
                     (int) $data['parent']
                 );
                 $menuIds[$row['source_id']] = $id > 0 ? $id : -1;
+                $this->comparedIds['menus'][$position] = $id;
                 $statuses[$position] = $id === 0 ? self::STATUS_NEW
                     : ($this->rowMatches('#__facileforms_compmenus', $id, $data) ? self::STATUS_IDENTICAL : self::STATUS_REPLACE);
                 unset($pending[$position]);
@@ -539,10 +620,6 @@ final class PackageTransferModel extends BaseDatabaseModel
      */
     private function formMatches(int $id, array $data, array $elements, array $libraryIds, array $rules, array $templates): bool
     {
-        if (!$this->rowMatches('#__facileforms_forms', $id, $this->without($data, ['checked_out', 'checked_out_time']))) {
-            return false;
-        }
-
         $db = $this->getDatabase();
         $siteElements = $db->setQuery(
             $db->createQuery()->select('*')->from($db->quoteName('#__facileforms_elements'))
@@ -550,6 +627,24 @@ final class PackageTransferModel extends BaseDatabaseModel
                 ->bind(':form', $id, ParameterType::INTEGER)
         )->loadAssocList() ?: [];
         if (count($siteElements) !== count($elements)) {
+            return false;
+        }
+
+        // The template code compared points to the ids the import would give it.
+        if (is_string($data['template_code'] ?? null)) {
+            $elementIds = [];
+            $elementByName = [];
+            foreach (array_values($elements) as $position => $element) {
+                if (is_array($element) && is_int($element['source_id'] ?? null)) {
+                    $elementIds[$element['source_id']] = (int) $siteElements[$position]['id'];
+                }
+                if (is_array($element) && is_string($element['name'] ?? null)) {
+                    $elementByName[$element['name']] ??= (int) $siteElements[$position]['id'];
+                }
+            }
+            $data['template_code'] = PackageTemplateCode::remapIds($data['template_code'], $elementIds, $libraryIds['scripts'], $elementByName);
+        }
+        if (!$this->rowMatches('#__facileforms_forms', $id, $this->without($data, ['checked_out', 'checked_out_time']))) {
             return false;
         }
 
@@ -853,11 +948,16 @@ final class PackageTransferModel extends BaseDatabaseModel
         $payloadForms = [];
         foreach ($forms as $form) {
             $sourceId = (int) $form['id'];
-            $payloadForms[] = [
-                'source_id' => $sourceId,
-                'data' => $this->without($form, ['id', 'created', 'created_by', 'modified', 'modified_by']),
-                'elements' => $elementsByForm[$sourceId] ?? [],
-            ];
+            $data = $this->without($form, ['id', 'created', 'created_by', 'modified', 'modified_by']);
+            $entry = ['source_id' => $sourceId];
+            // In clear, to be read and compared; kept as stored only when clear text cannot hold it.
+            if (array_key_exists('template_code', $data)) {
+                [$data['template_code'], $encoding] = PackageTemplateCode::toFile((string) $data['template_code']);
+                if ($encoding !== null) {
+                    $entry['template_code_encoding'] = $encoding;
+                }
+            }
+            $payloadForms[] = $entry + ['data' => $data, 'elements' => $elementsByForm[$sourceId] ?? []];
         }
 
         $payload = [
@@ -1268,6 +1368,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             }
 
             $elementIds = [];
+            $elementByName = [];
             foreach ($form['elements'] as $element) {
                 if (!is_array($element)) {
                     throw new InvalidPackageException();
@@ -1277,9 +1378,19 @@ final class PackageTransferModel extends BaseDatabaseModel
                 $this->remapReferences($elementData, $scriptIds, $pieceIds);
                 $elementObject = (object) $elementData;
                 $db->insertObject('#__facileforms_elements', $elementObject, 'id');
+                $elementId = (int) $db->insertid();
                 if (is_int($element['source_id'] ?? null)) {
-                    $elementIds[$element['source_id']] = (int) $db->insertid();
+                    $elementIds[$element['source_id']] = $elementId;
                 }
+                if (is_string($elementData['name'] ?? null)) {
+                    $elementByName[$elementData['name']] ??= $elementId;
+                }
+            }
+            // QuickMode writes the ids of its template code back into the elements at each save.
+            $templateCode = PackageTemplateCode::remapIds((string) ($data['template_code'] ?? ''), $elementIds, $scriptIds, $elementByName);
+            if ($templateCode !== (string) ($data['template_code'] ?? '')) {
+                $object = (object) ['id' => $id, 'template_code' => $templateCode];
+                $db->updateObject('#__facileforms_forms', $object, 'id');
             }
             $this->importedFormIds[] = $id;
             $this->importSummary['items']['forms'][] = [
@@ -1964,6 +2075,50 @@ final class PackageTransferModel extends BaseDatabaseModel
     private function libraryExportRow(array $row): array
     {
         return ['source_id' => (int) $row['id'], 'data' => $this->only($row, self::LIBRARY_COLUMNS)];
+    }
+
+    /**
+     * The legacy exporter leaves out the empty values, and the columns added
+     * since: as the legacy importer, and as a form saved on this site, they are
+     * written empty or 0, never NULL, which the rendering does not expect.
+     *
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    private function withLegacyBlanks(array $payload): array
+    {
+        $blanks = static function (array $types, array $excluded): array {
+            $values = [];
+            foreach ($types as $column => $type) {
+                if (in_array($column, $excluded, true)) {
+                    continue;
+                }
+                if (preg_match('/^(tiny|small|medium|big)?int/i', (string) $type) === 1) {
+                    $values[$column] = '0';
+                } elseif (preg_match('/(char|text)/i', (string) $type) === 1) {
+                    $values[$column] = '';
+                }
+            }
+
+            return $values;
+        };
+        $db = $this->getDatabase();
+        $kept = ['id', 'form', 'package', 'checked_out', 'checked_out_time', 'created', 'created_by', 'modified', 'modified_by', 'version', 'ordering'];
+        $formBlanks = $blanks($db->getTableColumns('#__facileforms_forms'), $kept);
+        $elementBlanks = $blanks($db->getTableColumns('#__facileforms_elements'), $kept);
+        $menuBlanks = $blanks($db->getTableColumns('#__facileforms_compmenus'), [...$kept, 'parent']);
+
+        foreach ($payload['forms'] as $position => $form) {
+            $payload['forms'][$position]['data'] = $form['data'] + $formBlanks;
+            foreach ($form['elements'] as $index => $element) {
+                $payload['forms'][$position]['elements'][$index] = $element + $elementBlanks;
+            }
+        }
+        foreach ($payload['menus'] as $position => $menu) {
+            $payload['menus'][$position]['data'] = $menu['data'] + $menuBlanks;
+        }
+
+        return $payload;
     }
 
     /**

@@ -10,6 +10,7 @@ final class InvalidPackageException extends \RuntimeException
 {
     public const INVALID = 'invalid';
     public const JSON = 'json';
+    public const XML = 'xml';
     public const VERSION = 'version';
     public const READ = 'read';
 

@@ -137,7 +137,8 @@ $hasReport = array_filter($reportItems) !== [];
                 <form action="index.php?option=com_breezingformsng" method="post" enctype="multipart/form-data" id="bf-package-import" data-may-templates="<?= $this->mayTransferTemplates ? '1' : '0'; ?>" data-may-integrator="<?= $this->mayTransferIntegrator ? '1' : '0'; ?>">
                     <div class="col-12 col-xl-6">
                         <label class="form-label" for="bf-package-file"><?= Text::_("COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_FILE"); ?></label>
-                        <input class="form-control" id="bf-package-file" name="package_file" type="file" accept="application/json,.json" required>
+                        <input class="form-control" id="bf-package-file" name="package_file" type="file" accept="application/json,.json,application/xml,text/xml,.xml" required aria-describedby="bf-package-file-formats">
+                        <div class="form-text" id="bf-package-file-formats"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_FORMATS'); ?></div>
                     </div>
                     <!-- Filled from the chosen file: one table per kind of item, to choose what to import. -->
                     <div id="bf-package-selection" class="mt-4" hidden>
@@ -170,9 +171,20 @@ const bfImportStatusBadges = {
     replace: ['bg-warning text-dark', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_STATUS_REPLACE'],
     identical: ['bg-secondary', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_STATUS_IDENTICAL'],
 };
+// The page that edits an item of the site, by part.
+const bfImportEditUrls = {
+    forms: (id, payload) => `index.php?option=com_breezingformsng&task=quickmode.display&form=${id}&pkg=${encodeURIComponent(String(payload.package ?? ''))}`,
+    scripts: (id) => `index.php?option=com_breezingformsng&task=script.edit&id=${id}`,
+    pieces: (id) => `index.php?option=com_breezingformsng&task=piece.edit&id=${id}`,
+    menus: (id) => `index.php?option=com_breezingformsng&task=menu.edit&id=${id}`,
+};
 let bfImportConfirmed = false;
 // What the server says the import would do with each item, by part; null when unknown.
 let bfImportStatuses = null;
+// The id of the item of the site each item would replace, by part; 0 for a new one.
+let bfImportIds = null;
+// The items of the file the tables list, as the server read them; null when unknown.
+let bfImportPayload = null;
 let bfImportReading = 0;
 
 // One pass, with a function: names from the file are never read as
@@ -183,6 +195,21 @@ const bfImportText = (key, ...values) => {
         const index = position === undefined ? next++ : Number(position) - 1;
         return index < values.length ? String(values[index]) : match;
     });
+};
+
+// A count, in the singular or plural form of the page language: the key ending
+// in _1 is the singular, the key itself the plural.
+const bfImportPluralRules = new Intl.PluralRules(document.documentElement.lang || undefined);
+const bfImportCount = (key, count) => {
+    const singular = bfImportPluralRules.select(count) === 'one' && Joomla.Text._(`${key}_1`, '') !== '';
+    return bfImportText(singular ? `${key}_1` : key, count);
+};
+
+const bfImportElementCount = (row) => {
+    if (row && Number.isInteger(row.element_count)) {
+        return row.element_count;
+    }
+    return Array.isArray(row && row.elements) ? row.elements.length : 0;
 };
 
 const bfImportRows = (payload, part) => (payload && Array.isArray(payload[part]) ? payload[part] : []);
@@ -209,7 +236,8 @@ const bfImportLines = (file, payload, chosen = null) => {
         const formSources = new Set(kept('forms').map((form) => form && form.source_id));
         // Templates and rules come with the forms chosen.
         const ofChosenForms = (part) => bfImportRows(payload, part).filter((entry) => !chosen || formSources.has(entry && entry.form_source_id)).length;
-        lines.push(bfImportText('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_CONTENT', payload.package ?? '', kept('forms').length, kept('scripts').length, kept('pieces').length, kept('menus').length));
+        const count = (part) => bfImportCount(`COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_${part.toUpperCase()}`, kept(part).length);
+        lines.push(bfImportText('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_CONTENT', payload.package ?? '', count('forms'), count('scripts'), count('pieces'), count('menus')));
         if (bfImportStatuses) {
             let created = 0;
             let replaced = 0;
@@ -220,17 +248,21 @@ const bfImportLines = (file, payload, chosen = null) => {
                     replaced += status === 'replace' ? 1 : 0;
                 }
             }
-            lines.push(bfImportText('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_STATUS', created, replaced));
+            lines.push(bfImportText(
+                'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_STATUS',
+                bfImportCount('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_CREATED', created),
+                bfImportCount('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_REPLACED', replaced)
+            ));
         } else {
             lines.push(Joomla.Text._('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_REPLACE'));
         }
         // What the user may not write is left out by the server: say it beforehand.
         const may = (part) => bfImportForm.dataset[part] === '1';
         if (ofChosenForms('templates') > 0) {
-            lines.push(bfImportText(may('mayTemplates') ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_TEMPLATES' : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_TEMPLATES_SKIPPED', ofChosenForms('templates')));
+            lines.push(bfImportCount(may('mayTemplates') ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_TEMPLATES' : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_TEMPLATES_SKIPPED', ofChosenForms('templates')));
         }
         if (ofChosenForms('integrator') > 0) {
-            lines.push(bfImportText(may('mayIntegrator') ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_INTEGRATOR' : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_INTEGRATOR_SKIPPED', ofChosenForms('integrator')));
+            lines.push(bfImportCount(may('mayIntegrator') ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_INTEGRATOR' : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_INTEGRATOR_SKIPPED', ofChosenForms('integrator')));
         }
     }
 
@@ -261,7 +293,7 @@ const bfImportPreview = () => {
     data.set('task', 'packages.preview');
     return fetch(bfImportForm.action, { method: 'POST', body: data, credentials: 'same-origin' })
         .then((response) => response.json())
-        .then((json) => (json && json.success && json.data && typeof json.data === 'object' ? json.data : null))
+        .then((json) => (json && json.success && json.data && typeof json.data.statuses === 'object' ? json.data : null))
         .catch(() => null);
 };
 
@@ -342,12 +374,24 @@ const bfImportShowSelection = (payload) => {
             } else {
                 boxes.push(box);
             }
-            const title = line.insertCell().appendChild(document.createElement('label'));
+            const titleCell = line.insertCell();
+            const title = titleCell.appendChild(document.createElement('label'));
             title.htmlFor = box.id;
             title.textContent = String(data.title ?? '') || String(data.name ?? '');
+            // The item of the site it would replace opens in a new tab: the chosen file stays here.
+            const id = bfImportIds && Array.isArray(bfImportIds[part]) ? Number(bfImportIds[part][position]) : 0;
+            if (Number.isInteger(id) && id > 0) {
+                const link = titleCell.appendChild(document.createElement('a'));
+                link.href = bfImportEditUrls[part](id, payload);
+                link.target = '_blank';
+                link.rel = 'noopener';
+                link.className = 'ms-2 small';
+                link.textContent = Joomla.Text._('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_OPEN_EXISTING');
+                link.setAttribute('aria-label', bfImportText('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_OPEN_EXISTING_LABEL', title.textContent));
+            }
             line.insertCell().textContent = String(data.name ?? '');
             if (part === 'forms') {
-                line.insertCell().textContent = String(Array.isArray(row && row.elements) ? row.elements.length : 0);
+                line.insertCell().textContent = String(bfImportElementCount(row));
             }
             if (bfImportStatuses) {
                 const cell = line.insertCell();
@@ -388,20 +432,36 @@ const bfImportShowSelection = (payload) => {
     }
 };
 
+// The Import toolbar button stays greyed out until a file is chosen.
+const bfImportButton = document.querySelector('joomla-toolbar-button[task="packages.import"] button');
+const bfImportSyncButton = () => {
+    if (bfImportButton) {
+        bfImportButton.disabled = document.getElementById('bf-package-file').files.length === 0;
+    }
+};
+bfImportSyncButton();
+window.addEventListener('pageshow', bfImportSyncButton);
+
 document.getElementById('bf-package-file').addEventListener('change', (event) => {
+    bfImportSyncButton();
     const file = event.target.files[0];
     const reading = ++bfImportReading;
     bfImportStatuses = null;
+    bfImportIds = null;
+    bfImportPayload = null;
     if (!file) {
         bfImportShowSelection(null);
         return;
     }
     bfImportRead(file)
-        .then((payload) => (payload ? bfImportPreview().then((statuses) => [payload, statuses]) : [null, null]))
-        .then(([payload, statuses]) => {
+        // An XML file of BreezingForms is read by the server only: its answer lists the items.
+        .then((payload) => bfImportPreview().then((preview) => [preview && preview.payload ? preview.payload : payload, preview]))
+        .then(([payload, preview]) => {
             // Only the answer for the file still chosen is shown.
             if (reading === bfImportReading) {
-                bfImportStatuses = statuses;
+                bfImportStatuses = preview ? preview.statuses : null;
+                bfImportIds = preview && preview.ids && typeof preview.ids === 'object' ? preview.ids : null;
+                bfImportPayload = preview && preview.payload ? preview.payload : null;
                 bfImportShowSelection(payload);
             }
         }, () => bfImportShowSelection(null));
@@ -425,7 +485,7 @@ bfImportForm.addEventListener('submit', (event) => {
     }
 
     bfImportRead(file)
-        .then((payload) => import('joomla.dialog').then((module) => module.default.confirm(bfImportLines(file, payload, chosen))))
+        .then((payload) => import('joomla.dialog').then((module) => module.default.confirm(bfImportLines(file, bfImportPayload ?? payload, chosen))))
         .then((confirmed) => {
             if (confirmed) {
                 bfImportConfirmed = true;
