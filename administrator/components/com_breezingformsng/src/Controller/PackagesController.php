@@ -154,6 +154,12 @@ final class PackagesController extends BaseController
             if ($summary['unlinked'] > 0) {
                 $app->enqueueMessage(Text::plural('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INTEGRATOR_UNLINKED', $summary['unlinked']), 'warning');
             }
+            if ($summary['unresolved'] !== []) {
+                $app->enqueueMessage(Text::sprintf(
+                    'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UNRESOLVED_REFERENCES',
+                    htmlspecialchars(implode(', ', $summary['unresolved']), ENT_QUOTES, 'UTF-8')
+                ), 'warning');
+            }
             if (in_array('templates', $summary['skipped'], true)) {
                 $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SKIPPED_TEMPLATES', Text::_('JACTION_ADMIN')), 'warning');
             }

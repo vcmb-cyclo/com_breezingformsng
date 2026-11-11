@@ -56,7 +56,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     ];
 
     private const EMPTY_SUMMARY = [
-        'templates' => 0, 'rules' => 0, 'failed' => [], 'package' => '', 'unlinked' => 0, 'shared' => [], 'skipped' => [], 'conflicts' => [],
+        'templates' => 0, 'rules' => 0, 'failed' => [], 'package' => '', 'unlinked' => 0, 'shared' => [], 'skipped' => [], 'conflicts' => [], 'unresolved' => [],
         'items' => ['forms' => [], 'scripts' => [], 'pieces' => [], 'menus' => [], 'rules' => [], 'templates' => []],
     ];
 
@@ -76,7 +76,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     public const SELECTABLE_PARTS = ['forms', 'scripts', 'pieces', 'menus'];
 
     /**
-     * @var array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>, skipped: list<string>, conflicts: list<string>, items: array<string, list<array<string, mixed>>>}
+     * @var array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>, skipped: list<string>, conflicts: list<string>, unresolved: list<string>, items: array<string, list<array<string, mixed>>>}
      *      skipped: the optional parts left out, as the user may not write them.
      *      items: what the import wrote, by kind, for the report shown after it.
      */
@@ -318,6 +318,7 @@ final class PackageTransferModel extends BaseDatabaseModel
         try {
             $scriptIds = $this->importLibraries('#__facileforms_scripts', (array) ($payload['scripts'] ?? []), $package, $this->packageItemModel('Script'));
             $pieceIds = $this->importLibraries('#__facileforms_pieces', (array) ($payload['pieces'] ?? []), $package, $this->packageItemModel('Piece'));
+            $this->importSummary['unresolved'] = $this->unresolvedReferences((array) ($payload['forms'] ?? []), $scriptIds, $pieceIds);
             $imported = [];
             $rulesInFile = [];
             foreach (is_array($payload['integrator'] ?? null) ? $payload['integrator'] : [] as $entry) {
@@ -620,12 +621,8 @@ final class PackageTransferModel extends BaseDatabaseModel
      */
     private function formMatches(int $id, array $data, array $elements, array $libraryIds, array $rules, array $templates): bool
     {
-        $db = $this->getDatabase();
-        $siteElements = $db->setQuery(
-            $db->createQuery()->select('*')->from($db->quoteName('#__facileforms_elements'))
-                ->where($db->quoteName('form') . ' = :form')->order($db->quoteName('id'))
-                ->bind(':form', $id, ParameterType::INTEGER)
-        )->loadAssocList() ?: [];
+        // Compare in the same order as export, even after elements are reordered.
+        $siteElements = $this->loadElements([$id]);
         if (count($siteElements) !== count($elements)) {
             return false;
         }
@@ -1321,7 +1318,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             if ($id > 0 && ($this->statuses['forms'][$position] ?? null) === self::STATUS_IDENTICAL) {
                 // Left as it is: its elements keep their ids, which the file's ones point to.
                 $written[$id] = true;
-                $siteElements = array_keys($this->elementNames($id));
+                $siteElements = array_column($this->loadElements([$id]), 'id');
                 $elementIds = [];
                 foreach (array_values($form['elements']) as $index => $element) {
                     if (is_array($element) && is_int($element['source_id'] ?? null) && isset($siteElements[$index])) {
@@ -1480,6 +1477,47 @@ final class PackageTransferModel extends BaseDatabaseModel
     }
 
     /**
+     * Active references missing from this package retain their source ids. Report
+     * them because those ids can identify different code on the target site.
+     *
+     * @param array<mixed>    $forms
+     * @param array<int, int> $scriptIds
+     * @param array<int, int> $pieceIds
+     * @return list<string>
+     */
+    private function unresolvedReferences(array $forms, array $scriptIds, array $pieceIds): array
+    {
+        $unresolved = [];
+        foreach ($forms as $form) {
+            if (!is_array($form) || !is_array($form['data'] ?? null)) {
+                continue;
+            }
+            $formName = is_scalar($form['data']['name'] ?? null) ? (string) $form['data']['name'] : '';
+            $rows = [[$formName, $form['data']]];
+            foreach (is_array($form['elements'] ?? null) ? $form['elements'] : [] as $element) {
+                if (is_array($element)) {
+                    $elementName = is_scalar($element['name'] ?? null) ? (string) $element['name'] : '';
+                    $rows[] = [$formName . ' / ' . $elementName, $element];
+                }
+            }
+            foreach ($rows as [$name, $row]) {
+                foreach (['script' => [3, $scriptIds], 'piece' => [4, $pieceIds]] as $kind => [$last, $ids]) {
+                    for ($number = 1; $number <= $last; $number++) {
+                        $prefix = $kind . $number;
+                        $id = (int) ($row[$prefix . 'id'] ?? 0);
+                        if ((int) ($row[$prefix . 'cond'] ?? 0) === 1 && $id > 0 && !isset($ids[$id])) {
+                            $reference = $name . ': ' . $prefix . 'id #' . $id;
+                            $unresolved[$reference] = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return array_keys($unresolved);
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     private function loadPackageRows(string $table, string $package): array
@@ -1504,7 +1542,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     /**
      * What the last import wrote besides forms, scripts, pieces and menus.
      *
-     * @return array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>, skipped: list<string>, conflicts: list<string>, items: array<string, list<array<string, mixed>>>}
+     * @return array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>, skipped: list<string>, conflicts: list<string>, unresolved: list<string>, items: array<string, list<array<string, mixed>>>}
      */
     public function getImportSummary(): array
     {

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2026 by XDA+GIL

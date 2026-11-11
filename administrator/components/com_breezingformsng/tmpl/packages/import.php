@@ -186,6 +186,7 @@ let bfImportIds = null;
 // The items of the file the tables list, as the server read them; null when unknown.
 let bfImportPayload = null;
 let bfImportReading = 0;
+let bfImportPending = false;
 
 // One pass, with a function: names from the file are never read as
 // placeholders or as replacement patterns such as $&.
@@ -288,8 +289,9 @@ const bfImportRead = (file) => file.text().then((source) => {
 
 // Asks the server what the import would do with each item; nothing is written.
 // Without an answer, the tables are shown without it.
-const bfImportPreview = () => {
+const bfImportPreview = (file) => {
     const data = new FormData(bfImportForm);
+    data.set('package_file', file);
     data.set('task', 'packages.preview');
     return fetch(bfImportForm.action, { method: 'POST', body: data, credentials: 'same-origin' })
         .then((response) => response.json())
@@ -432,30 +434,32 @@ const bfImportShowSelection = (payload) => {
     }
 };
 
-// The Import toolbar button stays greyed out until a file is chosen.
+// Keep Import disabled while the chosen file is being read and compared.
 const bfImportButton = document.querySelector('joomla-toolbar-button[task="packages.import"] button');
 const bfImportSyncButton = () => {
     if (bfImportButton) {
-        bfImportButton.disabled = document.getElementById('bf-package-file').files.length === 0;
+        bfImportButton.disabled = bfImportPending || document.getElementById('bf-package-file').files.length === 0;
     }
 };
 bfImportSyncButton();
 window.addEventListener('pageshow', bfImportSyncButton);
 
 document.getElementById('bf-package-file').addEventListener('change', (event) => {
-    bfImportSyncButton();
     const file = event.target.files[0];
     const reading = ++bfImportReading;
+    bfImportPending = !!file;
     bfImportStatuses = null;
     bfImportIds = null;
     bfImportPayload = null;
+    // The old selection must never be submitted for the new file.
+    bfImportShowSelection(null);
+    bfImportSyncButton();
     if (!file) {
-        bfImportShowSelection(null);
         return;
     }
     bfImportRead(file)
         // An XML file of BreezingForms is read by the server only: its answer lists the items.
-        .then((payload) => bfImportPreview().then((preview) => [preview && preview.payload ? preview.payload : payload, preview]))
+        .then((payload) => bfImportPreview(file).then((preview) => [preview && preview.payload ? preview.payload : payload, preview]))
         .then(([payload, preview]) => {
             // Only the answer for the file still chosen is shown.
             if (reading === bfImportReading) {
@@ -463,13 +467,25 @@ document.getElementById('bf-package-file').addEventListener('change', (event) =>
                 bfImportIds = preview && preview.ids && typeof preview.ids === 'object' ? preview.ids : null;
                 bfImportPayload = preview && preview.payload ? preview.payload : null;
                 bfImportShowSelection(payload);
+                bfImportPending = false;
+                bfImportSyncButton();
             }
-        }, () => bfImportShowSelection(null));
+        }, () => {
+            if (reading === bfImportReading) {
+                bfImportShowSelection(null);
+                bfImportPending = false;
+                bfImportSyncButton();
+            }
+        });
 });
 
 bfImportForm.addEventListener('submit', (event) => {
     const file = document.getElementById('bf-package-file').files[0];
 
+    if (bfImportPending) {
+        event.preventDefault();
+        return;
+    }
     if (bfImportConfirmed || !file) {
         return;
     }
@@ -484,18 +500,22 @@ bfImportForm.addEventListener('submit', (event) => {
         return;
     }
 
+    const reading = bfImportReading;
     bfImportRead(file)
-        .then((payload) => import('joomla.dialog').then((module) => module.default.confirm(bfImportLines(file, bfImportPayload ?? payload, chosen))))
+        .then((payload) => import('joomla.dialog').then((module) => reading === bfImportReading
+            ? module.default.confirm(bfImportLines(file, bfImportPayload ?? payload, chosen)) : false))
         .then((confirmed) => {
-            if (confirmed) {
+            if (confirmed && reading === bfImportReading) {
                 bfImportConfirmed = true;
                 bfImportForm.submit();
             }
         }, () => {
             // The file could not be read or the dialog not opened: the import
             // goes on as without JavaScript, and the server reports any problem.
-            bfImportConfirmed = true;
-            bfImportForm.submit();
+            if (reading === bfImportReading) {
+                bfImportConfirmed = true;
+                bfImportForm.submit();
+            }
         });
 });
 </script>
