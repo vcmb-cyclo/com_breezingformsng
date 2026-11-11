@@ -25,7 +25,7 @@ final class QuickModeBootstrapClassMapBuilderTest extends TestCase
 
         self::assertCount(54, $classes);
         self::assertSame('col-md-12', $classes['span12']);
-        self::assertSame('fas fa-question-circle', $classes['icon-question-sign']);
+        self::assertSame('fa-solid fa-circle-question', $classes['icon-question-sign']);
         self::assertSame('', $classes['controls']);
         self::assertSame('input-group', $classes['input-append']);
         self::assertSame('form-select', $classes['form-select']);

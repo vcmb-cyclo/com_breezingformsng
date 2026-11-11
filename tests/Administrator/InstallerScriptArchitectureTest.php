@@ -282,4 +282,31 @@ final class InstallerScriptArchitectureTest extends TestCase
         // The classic skins may hold site customisations: they are not removed.
         self::assertStringNotContainsString("/themes/quickmode/aqua'", $body);
     }
+
+    public function testTheUnusedFontAwesome4CopyIsRemovedByExactPathsOnly(): void
+    {
+        $root = __DIR__ . '/../..';
+        $source = (string) file_get_contents($root . '/script.php');
+        $validator = (string) file_get_contents($root . '/scripts/validate-package.sh');
+        $files = [
+            'css/font-awesome.css', 'css/font-awesome.min.css', 'fonts/FontAwesome.otf',
+            'fonts/fontawesome-webfont.eot', 'fonts/fontawesome-webfont.svg', 'fonts/fontawesome-webfont.ttf',
+            'fonts/fontawesome-webfont.woff', 'fonts/fontawesome-webfont.woff2',
+        ];
+
+        foreach ($files as $file) {
+            self::assertStringContainsString("JPATH_SITE . '/media/com_breezingformsng/font-awesome/{$file}',", $source, $file);
+            self::assertStringContainsString("\"media/com_breezingformsng/font-awesome/{$file}\"", $validator, $file);
+            self::assertFileDoesNotExist($root . '/media/com_breezingformsng/font-awesome/' . $file, $file);
+        }
+
+        // No recursive deletion of the folder: only the exact files, then the
+        // folders they leave empty, so that a file a site added is kept.
+        self::assertStringNotContainsString("/media/com_breezingformsng/font-awesome',\n", $source);
+        self::assertStringContainsString("foreach (['css', 'fonts', ''] as \$subfolder) {", $source);
+        self::assertStringContainsString('count(scandir($directory)) === 2 && rmdir($directory)', $source);
+
+        // The protected assets of the package stay shipped.
+        self::assertFileExists($root . '/media/com_breezingformsng/images/bfng-easter-egg-2026.webp');
+    }
 }

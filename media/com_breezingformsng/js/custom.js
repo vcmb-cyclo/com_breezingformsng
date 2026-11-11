@@ -11,12 +11,12 @@ jQuery(document).ready(function () {
 
     var $formStateRow = jQuery('#bfFormPublishedToggle').closest('.d-flex.ms-auto');
     if ($formStateRow.length) {
-        $formStateRow.append('<a href="#" id="toggle_fullscreen"><i class="fa-solid fa-up-down-left-right fa-rotate-45 fa-lg" aria-hidden="true"></i></a>');
+        $formStateRow.append('<a href="#" id="toggle_fullscreen"><i class="fa-solid fa-up-down-left-right fa-rotate-by fa-lg" style="--fa-rotate-angle: 45deg" aria-hidden="true"></i></a>');
     } else {
-        jQuery('main').prepend('<div class="toggle_fullscreen"> <a href="#" id="toggle_fullscreen"><i class="fa-solid fa-up-down-left-right fa-rotate-45 fa-lg" aria-hidden="true"></i></a></div>');
+        jQuery('main').prepend('<div class="toggle_fullscreen"> <a href="#" id="toggle_fullscreen"><i class="fa-solid fa-up-down-left-right fa-rotate-by fa-lg" style="--fa-rotate-angle: 45deg" aria-hidden="true"></i></a></div>');
     }
 
-    jQuery('#bfRecordsTableContainer').parent('main').prepend('<div class="toggle_fullscreen_managerecords"> <a href="#" id="toggle_fullscreen_managerecords"><i class="fa-solid fa-up-down-left-right fa-rotate-45 fa-lg" aria-hidden="true"></i></a></div>');
+    jQuery('#bfRecordsTableContainer').parent('main').prepend('<div class="toggle_fullscreen_managerecords"> <a href="#" id="toggle_fullscreen_managerecords"><i class="fa-solid fa-up-down-left-right fa-rotate-by fa-lg" style="--fa-rotate-angle: 45deg" aria-hidden="true"></i></a></div>');
 
 
     jQuery('#bfRecordsTableContainer').prevAll('.toggle_fullscreen').remove();
@@ -50,9 +50,9 @@ jQuery(document).ready(function () {
      new page, section and element
      */
 
-    //jQuery('#newStuffBar button[id="bfNewPageButton"]').replaceWith('<button class="btn btn-warning" id="bfNewPageButton" value="New page" type="submit"><i class="fa fa-plus-square" aria-hidden="true"></i> Page</button>');
-    //jQuery('#newStuffBar button[id="bfNewSectionButton"]').replaceWith('<button class="btn btn-warning" id="bfNewSectionButton" value="New section" type="submit"><i class="fa fa-plus-square" aria-hidden="true"></i> Section</button>');
-    //jQuery('#newStuffBar button[id="bfNewElementButton"]').replaceWith('<button class="btn btn-warning" id="bfNewElementButton" value="New element" type="submit"><i class="fa fa-plus-square" aria-hidden="true"></i> Element</button>');
+    //jQuery('#newStuffBar button[id="bfNewPageButton"]').replaceWith('<button class="btn btn-warning" id="bfNewPageButton" value="New page" type="submit"><i class="fa-solid fa-square-plus" aria-hidden="true"></i> Page</button>');
+    //jQuery('#newStuffBar button[id="bfNewSectionButton"]').replaceWith('<button class="btn btn-warning" id="bfNewSectionButton" value="New section" type="submit"><i class="fa-solid fa-square-plus" aria-hidden="true"></i> Section</button>');
+    //jQuery('#newStuffBar button[id="bfNewElementButton"]').replaceWith('<button class="btn btn-warning" id="bfNewElementButton" value="New element" type="submit"><i class="fa-solid fa-square-plus" aria-hidden="true"></i> Element</button>');
 
 
 

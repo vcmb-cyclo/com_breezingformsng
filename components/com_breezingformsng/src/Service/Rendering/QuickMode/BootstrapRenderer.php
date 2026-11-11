@@ -686,9 +686,9 @@ class BootstrapRenderer
                         $icon = '';
                         if ($this->rootMdata['themebootstrapThemeEngine'] == 'bootstrap' && $this->rootMdata['themebootstrap'] == 'Azure') {
                             if (!isset($mdata['icon']) || $mdata['icon'] == '') {
-                                $icon = '<i class="fas fa-pencil iconf--fumi" aria-hidden="true"></i>';
+                                $icon = '<i class="fa-solid fa-pencil iconf--fumi" aria-hidden="true"></i>';
                             } else {
-                                $icon = '<i class="fas ' . htmlentities($mdata['icon'], ENT_QUOTES, 'UTF-8') . ' iconf--fumi" aria-hidden="true"></i>';
+                                $icon = '<i class="fa-solid ' . htmlentities($mdata['icon'], ENT_QUOTES, 'UTF-8') . ' iconf--fumi" aria-hidden="true"></i>';
                             }
                         }
 
@@ -1042,6 +1042,7 @@ class BootstrapRenderer
         }
 
         RuntimeAssetLoader::style($this->p->app, Uri::root(true) . '/media/com_breezingformsng/css/site/quickmode-runtime.css');
+        RuntimeAssetLoader::fontAwesome($this->p->app);
 
         $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
         $document->getWebAssetManager()->useScript('jquery');
