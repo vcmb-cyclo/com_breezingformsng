@@ -265,6 +265,7 @@ class OnePageRenderer
         }
 
         RuntimeAssetLoader::style($this->p->app, Uri::root(true) . '/media/com_breezingformsng/css/site/quickmode-runtime.css');
+        RuntimeAssetLoader::fontAwesome($this->p->app);
 
         $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
         $document->getWebAssetManager()->useScript('jquery');

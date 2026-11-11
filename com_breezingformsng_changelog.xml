@@ -19,6 +19,7 @@
             <item>Use the word element in the Stripe amount help and capitalize the QuickMode add buttons in all eight languages.</item>
             <item>Update the bundled Stripe and PDF libraries.</item>
             <item>Remove the last Adobe Flash file from the package. Updates delete it from existing sites.</item>
+            <item>Remove an unused copy of Font Awesome 4.7.0 (1.1 MB) from the package. Updates delete it from existing sites.</item>
         </change>
         <fix>
             <item>Fix the standard piece ff_databaseToSelect, whose code had a syntax error.</item>
@@ -32,6 +33,8 @@
             <item>Translate the captcha refresh button and the double opt-in email subject where they were wrong or still in English.</item>
             <item>Remove PHP 8.5 deprecation notices raised when resizing uploaded images.</item>
             <item>Report form errors and upload errors together when importing records, with clearer upload size and extension messages.</item>
+            <item>Load Joomla's own Font Awesome with QuickMode forms, so that field icons also appear on site templates that do not load it.</item>
+            <item>Fix two icons whose Font Awesome names did not exist: the image icon of QuickMode forms and the rotated fullscreen button of the administrator.</item>
         </fix>
         <security>
             <item>Generate upload tickets, stored upload names, payment cache files and export file names from a cryptographically secure random source. They were predictable, and payment cache files sit in the public media folder.</item>

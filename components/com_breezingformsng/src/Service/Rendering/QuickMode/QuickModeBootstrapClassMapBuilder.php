@@ -70,7 +70,7 @@ final class QuickModeBootstrapClassMapBuilder
             'icon-calendar' => 'fas fa-calendar',
             'icon-refresh' => 'fas fa-sync',
             'icon-play' => 'fas fa-play',
-            'icon-picture' => 'fas fa-picture',
+            'icon-picture' => 'fas fa-image',
             'img-thumbnail' => 'img-thumbnail',
             'icon-upload' => 'fas fa-upload',
             'nonform-control' => 'nonform-control',

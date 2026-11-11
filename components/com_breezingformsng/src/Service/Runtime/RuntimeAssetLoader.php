@@ -56,6 +56,17 @@ final class RuntimeAssetLoader
     }
 
     /**
+     * Joomla's own Font Awesome (the "fontawesome" web asset), for the icons
+     * written as <i class="fas fa-...">: a site template that does not load it
+     * would show them blank. Joomla loads an asset once.
+     */
+    public static function fontAwesome(CMSApplication $application): void
+    {
+        $document = $application->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $document->getWebAssetManager()->useStyle('fontawesome');
+    }
+
+    /**
      * @param array<string, mixed> $attributes
      */
     private static function name(string $type, string $uri, array $attributes): string
