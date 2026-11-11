@@ -23,7 +23,7 @@ final class StdlibDatabasePiecesTest extends TestCase
     /** Runs the actual code imported from XML without the bfcompat plugin. */
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
-    public function testDatabasePiecesWorkWithoutBfcompat(): void
+    public function testDatabasePiecesWorkWithoutBfcompatAndReportFailures(): void
     {
         eval('namespace Joomla\\Database; interface DatabaseInterface {}');
         eval('namespace Joomla\\CMS; final class Factory {
@@ -33,6 +33,15 @@ final class StdlibDatabasePiecesTest extends TestCase
             public static function getApplication(): object { return self::$application; }
         }');
         class_alias(\Joomla\CMS\Factory::class, 'Factory');
+        eval('namespace Joomla\\CMS\\Log; final class Log {
+            public const ERROR = 8;
+            public static array $entries = [];
+            public static function add(string $entry, int $priority, string $category): void { self::$entries[] = [$entry, $priority, $category]; }
+        }');
+        eval('namespace Joomla\\CMS\\Language; final class Text { public static function _(string $key): string { return $key; } }');
+        // The ff_die piece stops the form: here it only records why.
+        $GLOBALS['ff_died'] = [];
+        eval('function ff_die($message = "") { $GLOBALS["ff_died"][] = $message; }');
 
         $db = new class implements \Joomla\Database\DatabaseInterface {
             public string $query = '';
@@ -135,12 +144,27 @@ final class StdlibDatabasePiecesTest extends TestCase
         self::assertEquals([(object) ['selected' => 0, 'label' => 'One', 'value' => '1']], $field->selectList);
 
         $db->fail = true;
+        // FF_DIE, the default: a failed query stops the form through ff_die.
         self::assertSame([], \ff_select('SELECT broken'));
         self::assertSame('default', \ff_selectValue('SELECT broken', 'default'));
         self::assertSame(0, \ff_query('UPDATE broken'));
-        self::assertSame(37, \ff_query('INSERT broken', true));
+        self::assertSame(0, \ff_query('INSERT broken', true));
+        self::assertSame(array_fill(0, 4, 'database error'), $GLOBALS['ff_died']);
+
+        // FF_IGNOREDIE: the caller chose to go on.
+        $GLOBALS['ff_died'] = [];
+        self::assertSame([], \ff_select('SELECT broken', FF_IGNOREDIE));
+        self::assertSame('default', \ff_selectValue('SELECT broken', 'default', FF_IGNOREDIE));
+        self::assertSame(0, \ff_query('UPDATE broken', false, FF_IGNOREDIE));
+        self::assertSame([], $GLOBALS['ff_died']);
+
+        // A list that cannot be filled says so, and leaves the field as it was.
         \ff_databaseToSelect('choice', 'test', 'label', 'value', 'SELECT broken');
-        self::assertSame([], $field->selectList);
-        self::assertSame([], \Joomla\CMS\Factory::$application->messages);
+        self::assertSame("0;One;1\n", $field->data2);
+        self::assertSame([['JERROR_AN_ERROR_HAS_OCCURRED', 'error']], \Joomla\CMS\Factory::$application->messages);
+        self::assertCount(1, \Joomla\CMS\Log\Log::$entries);
+        self::assertStringContainsString('RuntimeException', \Joomla\CMS\Log\Log::$entries[0][0]);
+        // The text of the database error may quote data: it is not logged.
+        self::assertStringNotContainsString('database error', \Joomla\CMS\Log\Log::$entries[0][0]);
     }
 }

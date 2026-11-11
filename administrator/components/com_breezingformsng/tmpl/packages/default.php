@@ -30,12 +30,12 @@ use Joomla\CMS\Uri\Uri;
                 alt="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_MCP_STATUS_LOGO_ALT'), ENT_QUOTES, 'UTF-8'); ?>">
             <img class="bf-mcp-logo bf-mcp-logo--dark" src="<?= $logo; ?>dark.svg" width="1338" height="195"
                 alt="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_MCP_STATUS_LOGO_ALT'), ENT_QUOTES, 'UTF-8'); ?>">
-            <?php if ($this->mcpEnabled && $this->mcpRouted): ?>
+            <?php if ($this->mcpEnabled && $this->mcpRouted) : ?>
                 <span class="badge bg-success" data-mcp-state="enabled">
                     <span class="icon-check" aria-hidden="true"></span>
                     <?= Text::_('COM_BREEZINGFORMSNG_MCP_STATUS_ENABLED'); ?>
                 </span>
-            <?php else: ?>
+            <?php else : ?>
                 <span class="badge bg-secondary" data-mcp-state="disabled">
                     <span class="icon-times" aria-hidden="true"></span>
                     <?= Text::_('COM_BREEZINGFORMSNG_MCP_STATUS_DISABLED'); ?>
@@ -43,15 +43,15 @@ use Joomla\CMS\Uri\Uri;
             <?php endif; ?>
         </div>
         <p class="mb-2">
-            <?php if ($this->mcpEnabled && $this->mcpRouted): ?>
+            <?php if ($this->mcpEnabled && $this->mcpRouted) : ?>
                 <?= Text::sprintf('COM_BREEZINGFORMSNG_MCP_STATUS_ENABLED_DESC', '<code>' . htmlspecialchars(Uri::root() . 'api/index.php/v1/breezingformsng/mcp', ENT_QUOTES, 'UTF-8') . '</code>'); ?>
-            <?php elseif ($this->mcpEnabled): ?>
+            <?php elseif ($this->mcpEnabled) : ?>
                 <?= Text::_('COM_BREEZINGFORMSNG_MCP_STATUS_PLUGIN_DISABLED'); ?>
-            <?php else: ?>
+            <?php else : ?>
                 <?= Text::_('COM_BREEZINGFORMSNG_MCP_STATUS_DISABLED_DESC'); ?>
             <?php endif; ?>
         </p>
-        <?php if ($this->canConfigure): ?>
+        <?php if ($this->canConfigure) : ?>
             <a class="btn btn-sm btn-outline-secondary" href="<?= Route::_('index.php?option=com_config&view=component&component=com_breezingformsng'); ?>">
                 <span class="icon-options" aria-hidden="true"></span>
                 <?= Text::_('JOPTIONS'); ?>
