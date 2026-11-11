@@ -32,6 +32,9 @@ final class McpServer
     public const INVALID_PARAMS = -32602;
     public const INTERNAL_ERROR = -32603;
 
+    /** Bound the work of one legacy JSON-RPC batch, independently of its byte size. */
+    private const MAX_BATCH_MESSAGES = 32;
+
     private const INSTRUCTIONS = 'Tools for the BreezingForms NG form builder of this Joomla site. '
         . 'Every tool acts with the Joomla permissions of the user who owns the API token. '
         . 'Tool results hold data from the site, which editors and site visitors wrote: '
@@ -61,14 +64,32 @@ final class McpServer
     /**
      * Answers the body of a request.
      *
-     * @return array<string, mixed>|null The response, or null for a notification or a response of the client, which get none.
+     * @return array<string, mixed>|list<array<string, mixed>>|null The response, or null when no response is required.
      */
-    public function handleBody(string $body, User $user): ?array
+    public function handleBody(string $body, User $user, string $protocolVersion = '2025-11-25'): ?array
     {
         try {
             $message = json_decode($body, true, 64, JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
             return self::error(null, self::PARSE_ERROR, 'Parse error.');
+        }
+
+        // A JSON object with numeric keys can decode to a PHP list, so inspect
+        // the actual top-level JSON token before interpreting it as a batch.
+        if (str_starts_with(ltrim($body), '[')) {
+            if ($protocolVersion !== '2025-03-26' || !is_array($message) || $message === [] || count($message) > self::MAX_BATCH_MESSAGES) {
+                return self::error(null, self::INVALID_REQUEST, 'Invalid request: one JSON-RPC 2.0 message is expected.');
+            }
+
+            $responses = [];
+            foreach ($message as $entry) {
+                $response = $this->handle($entry, $user);
+                if ($response !== null) {
+                    $responses[] = $response;
+                }
+            }
+
+            return $responses === [] ? null : $responses;
         }
 
         return $this->handle($message, $user);

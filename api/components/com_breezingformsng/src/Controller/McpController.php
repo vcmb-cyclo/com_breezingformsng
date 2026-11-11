@@ -15,8 +15,10 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Database\DatabaseInterface;
+use Vcmb\Component\BreezingformsNG\Administrator\Mcp\McpAvailability;
 use Vcmb\Component\BreezingformsNG\Administrator\Mcp\McpServer;
 use Vcmb\Component\BreezingformsNG\Administrator\Mcp\McpServerFactory;
+use Vcmb\Component\BreezingformsNG\Administrator\Mcp\OriginValidator;
 
 /**
  * The MCP endpoint (Streamable HTTP transport, JSON responses, no session):
@@ -41,6 +43,13 @@ class McpController extends BaseController
         }
         $server = $this->input->server;
 
+        // The plugin routes no request while MCP is off: this one cannot come from it.
+        if (!McpAvailability::isEnabled()) {
+            $this->respond(404, McpServer::error(null, McpServer::INVALID_REQUEST, 'MCP is disabled on this site.'));
+
+            return;
+        }
+
         if (!$app->login(['username' => ''], ['silent' => true, 'action' => 'core.login.api'])) {
             $app->setHeader('WWW-Authenticate', 'Bearer', true);
             $this->respond(401, McpServer::error(null, McpServer::INVALID_REQUEST, 'A valid Joomla API token is required.'));
@@ -55,9 +64,10 @@ class McpController extends BaseController
             return;
         }
 
-        // Against DNS rebinding: a browser page of another site cannot use it.
+        // Compare the complete browser origin with Joomla's public site URL.
+        // The web server/proxy must also validate Host when live_site is unset.
         $origin = $server->getString('HTTP_ORIGIN', '');
-        if ($origin !== '' && strcasecmp((string) parse_url($origin, PHP_URL_HOST), Uri::getInstance()->getHost()) !== 0) {
+        if (!OriginValidator::isAllowed($origin, Uri::root())) {
             $this->respond(403, McpServer::error(null, McpServer::INVALID_REQUEST, 'This origin is not allowed.'));
 
             return;
@@ -85,12 +95,14 @@ class McpController extends BaseController
             return;
         }
 
-        $response = McpServerFactory::create(Factory::getContainer()->get(DatabaseInterface::class))->handleBody($body, $user);
+        // Without a version header, MCP clients use the 2025-03-26 transport.
+        $response = McpServerFactory::create(Factory::getContainer()->get(DatabaseInterface::class))
+            ->handleBody($body, $user, $protocol !== '' ? $protocol : '2025-03-26');
         $this->respond($response === null ? 202 : 200, $response);
     }
 
     /**
-     * @param array<string, mixed>|null $message
+     * @param array<string, mixed>|list<array<string, mixed>>|null $message
      */
     private function respond(int $status, ?array $message): void
     {

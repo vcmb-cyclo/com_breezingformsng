@@ -36,12 +36,19 @@ final class McpEndpointArchitectureTest extends TestCase
         }
     }
 
-    public function testTheInstallerLeavesTheWebServicesPluginDisabledOnFirstInstall(): void
+    public function testMcpIsOffUntilEnabledInTheOptionsAndThenRoutedAndAnswered(): void
     {
-        $script = self::read('script.php');
+        self::assertStringContainsString("\$plugins['webservices'] = ['breezingformsng'];", self::read('script.php'));
 
-        self::assertStringContainsString("\$plugins['webservices'] = ['breezingformsng'];", $script);
-        self::assertStringContainsString("?? (\$folder === 'webservices' ? 0 : 1)", $script);
+        $config = self::read('administrator/components/com_breezingformsng/config.xml');
+        self::assertMatchesRegularExpression('/name="mcp_enabled"[^>]*default="0"/s', $config);
+
+        $plugin = self::read('administrator/components/com_breezingformsng/plugins/webservices/src/Extension/Breezingformsng.php');
+        $hook = substr($plugin, (int) strpos($plugin, 'public function onBeforeApiRoute'));
+        self::assertLessThan(strpos($hook, 'addRoutes'), strpos($hook, 'if (!McpAvailability::isEnabled())'));
+
+        $controller = self::read('api/components/com_breezingformsng/src/Controller/McpController.php');
+        self::assertLessThan(strpos($controller, '$app->login('), strpos($controller, 'if (!McpAvailability::isEnabled())'));
     }
 
     public function testThePublicRouteIsAuthenticatedByTheControllerBeforeAnythingElse(): void

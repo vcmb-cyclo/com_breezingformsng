@@ -18,13 +18,15 @@ use Joomla\CMS\Event\Application\BeforeApiRouteEvent;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\Event\SubscriberInterface;
 use Joomla\Router\Route;
+use Vcmb\Component\BreezingformsNG\Administrator\Mcp\McpAvailability;
 
 \defined('_JEXEC') or die;
 
 /**
  * Web services of BreezingForms NG: the MCP endpoint, through which an AI
  * client (Claude Code, Codex...) uses the site with the Joomla API token of a
- * user, and that user's permissions.
+ * user, and that user's permissions. It is routed only when MCP is enabled in
+ * the options of BreezingForms NG.
  */
 final class Breezingformsng extends CMSPlugin implements SubscriberInterface
 {
@@ -40,6 +42,11 @@ final class Breezingformsng extends CMSPlugin implements SubscriberInterface
 
     public function onBeforeApiRoute(BeforeApiRouteEvent $event): void
     {
+        // With MCP off in the options of BreezingForms NG, the endpoint does not exist.
+        if (!McpAvailability::isEnabled()) {
+            return;
+        }
+
         // Public for the API application: the MCP controller authenticates each request itself.
         $defaults = ['component' => 'com_breezingformsng', 'format' => ['application/json'], 'public' => true];
 

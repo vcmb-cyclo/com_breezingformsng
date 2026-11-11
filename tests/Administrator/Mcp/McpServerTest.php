@@ -90,6 +90,50 @@ final class McpServerTest extends TestCase
         self::assertSame(McpServer::METHOD_NOT_FOUND, $server->handleBody('{"jsonrpc":"2.0","id":1,"method":"resources/list"}', $user)['error']['code']);
     }
 
+    public function testLegacyBatchReturnsOnlyResponsesAndStillChecksPermissions(): void
+    {
+        $server = $this->server();
+        $user = McpTestDoubles::user(['core.manage']);
+        $batch = [
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
+            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
+            ['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tools/call', 'params' => ['name' => 'code_echo']],
+            ['jsonrpc' => '2.0', 'id' => 3, 'method' => 'tools/call', 'params' => ['name' => 'echo']],
+            17,
+        ];
+
+        $response = $server->handleBody((string) json_encode($batch), $user, '2025-03-26');
+
+        self::assertCount(4, $response);
+        self::assertSame([1, 2, 3, null], array_column($response, 'id'));
+        self::assertSame(McpServer::INVALID_PARAMS, $response[1]['error']['code']);
+        self::assertSame(['echo' => 'none'], $response[2]['result']['structuredContent']);
+        self::assertSame(McpServer::INVALID_REQUEST, $response[3]['error']['code']);
+    }
+
+    public function testLegacyBatchOfNotificationsNeedsNoResponse(): void
+    {
+        $server = $this->server();
+        $user = McpTestDoubles::user(['core.manage']);
+        $batch = '[{"jsonrpc":"2.0","method":"notifications/initialized"},{"jsonrpc":"2.0","id":7,"result":{}}]';
+
+        self::assertNull($server->handleBody($batch, $user, '2025-03-26'));
+    }
+
+    public function testBatchIsRejectedForNewerProtocolAndWhenEmptyOrTooLarge(): void
+    {
+        $server = $this->server();
+        $user = McpTestDoubles::user(['core.manage']);
+        $one = '[{"jsonrpc":"2.0","id":1,"method":"ping"}]';
+
+        foreach (['2025-06-18', '2025-11-25'] as $version) {
+            self::assertSame(McpServer::INVALID_REQUEST, $server->handleBody($one, $user, $version)['error']['code']);
+        }
+        self::assertSame(McpServer::INVALID_REQUEST, $server->handleBody('[]', $user, '2025-03-26')['error']['code']);
+        $tooMany = array_fill(0, 33, ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping']);
+        self::assertSame(McpServer::INVALID_REQUEST, $server->handleBody((string) json_encode($tooMany), $user, '2025-03-26')['error']['code']);
+    }
+
     public function testToolsAreListedOnlyForTheUsersAllowedToUseThem(): void
     {
         $server = $this->server();

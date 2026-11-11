@@ -1,0 +1,19 @@
+/* MCP status of the Configuration page: the official logo, in the variant
+   made for the color scheme of the administrator template, never recolored. */
+.bf-mcp-logo {
+    height: 1.75rem;
+    max-width: 100%;
+    width: auto;
+}
+
+.bf-mcp-logo--dark {
+    display: none;
+}
+
+[data-color-scheme="dark"] .bf-mcp-logo--light {
+    display: none;
+}
+
+[data-color-scheme="dark"] .bf-mcp-logo--dark {
+    display: inline-block;
+}

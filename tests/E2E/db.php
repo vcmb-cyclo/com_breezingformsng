@@ -41,6 +41,18 @@ switch ($argv[1] ?? '') {
         }
         echo json_encode($db->query("SELECT enabled FROM {$config->dbprefix}extensions WHERE {$where}")->fetch_assoc());
         break;
+    case 'sample-form':
+        // sample-form <name>: a form with a text element, created once; prints its id.
+        $name = $db->real_escape_string($argv[2] ?? '');
+        $form = $db->query("SELECT id FROM {$forms} WHERE name = '{$name}'")->fetch_assoc();
+        if ($form === null) {
+            $db->query("INSERT INTO {$forms} (name, title, published, pages, emailadr, mailchimp_api_key) VALUES ('{$name}', 'Sample {$name}', 1, 1, 'owner@example.invalid', 'secret-key')");
+            $formId = $db->insert_id;
+            $db->query("INSERT INTO {$config->dbprefix}facileforms_elements (form, page, ordering, published, name, title, type, data1, data2, data3) VALUES ({$formId}, 1, 1, 1, 'email', 'Email', 'Text', '', '', '')");
+            $form = ['id' => $formId];
+        }
+        echo (int) $form['id'];
+        break;
     case 'api-token':
         // api-token <username>: gives the user a new Joomla API token, as the User - Joomla API Token plugin does.
         $user = $db->query("SELECT id FROM {$config->dbprefix}users WHERE username = '" . $db->real_escape_string($argv[2] ?? '') . "'")->fetch_assoc();

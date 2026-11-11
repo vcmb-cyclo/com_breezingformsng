@@ -310,6 +310,13 @@
     },
 
     {
+      "name": "com_breezingformsng.mcp-status",
+      "type": "style",
+      "uri": "media/com_breezingformsng/css/admin/mcp-status.css",
+      "version": "auto"
+    },
+
+    {
       "name": "com_breezingformsng.admin-style",
       "type": "style",
       "uri": "media/com_breezingformsng/css/admin.css",

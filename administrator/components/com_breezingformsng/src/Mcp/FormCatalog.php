@@ -10,6 +10,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Mcp;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Language\Text;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 
@@ -115,7 +116,14 @@ final class FormCatalog
         } else {
             $query->where($db->quoteName('name') . ' = :name')->bind(':name', $name);
         }
-        $row = $db->setQuery($query, 0, 1)->loadAssoc();
+        // Names are unique only within a package. Never return an arbitrary
+        // form if the same name identifies several forms on the site.
+        $query->setLimit($id === null ? 2 : 1);
+        $rows = $db->setQuery($query)->loadAssocList();
+        if ($id === null && count($rows) > 1) {
+            throw new ToolException(Text::_('COM_BREEZINGFORMSNG_MCP_FORM_NAME_AMBIGUOUS'));
+        }
+        $row = $rows[0] ?? null;
         if (!is_array($row)) {
             return null;
         }
