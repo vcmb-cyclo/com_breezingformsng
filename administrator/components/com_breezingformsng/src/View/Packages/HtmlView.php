@@ -9,11 +9,13 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Packages;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
+use Vcmb\Component\BreezingformsNG\Administrator\Controller\PackagesController;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
@@ -40,6 +42,13 @@ final class HtmlView extends BaseHtmlView
     public bool $mayTransferTemplates = false;
     /** Integrator rules hold PHP code: exporting them takes the code area, as the controller checks. */
     public bool $mayTransferIntegrator = false;
+
+    /**
+     * What the last import wrote, shown once after it.
+     *
+     * @var array{package?: string, items?: array<string, list<array<string, mixed>>>}
+     */
+    public array $importReport = [];
 
     public function display($tpl = null)
     {
@@ -73,6 +82,14 @@ final class HtmlView extends BaseHtmlView
                 $this->profiles = $model->getPackageProfiles();
                 $this->timezone = $this->getCurrentUser()->getTimezone();
             }
+        }
+
+        if ($this->getLayout() === 'import') {
+            /** @var CMSApplication $app */
+            $app = Factory::getApplication();
+            $report = $app->getUserState(PackagesController::REPORT_STATE, []);
+            $this->importReport = is_array($report) ? $report : [];
+            $app->setUserState(PackagesController::REPORT_STATE, null);
         }
 
         $this->addToolbar();
@@ -118,6 +135,20 @@ final class HtmlView extends BaseHtmlView
             Text::script('JNO');
             foreach (['FILE', 'CONTENT', 'REPLACE', 'TEMPLATES', 'INTEGRATOR', 'TEMPLATES_SKIPPED', 'INTEGRATOR_SKIPPED'] as $part) {
                 Text::script('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_' . $part);
+            }
+            // The tables of the items of the file, to choose what to import.
+            $selectionKeys = [
+                'COM_BREEZINGFORMSNG_MANAGEFORMS', 'COM_BREEZINGFORMSNG_MANAGESCRIPTS',
+                'COM_BREEZINGFORMSNG_MANAGEPIECES', 'COM_BREEZINGFORMSNG_MANAGEMENUS',
+                'JGLOBAL_TITLE', 'COM_BREEZINGFORMSNG_FORMS_NAME', 'COM_BREEZINGFORMSNG_ELEMENTS',
+                'COM_BREEZINGFORMSNG_INSTALLER_SELECTALL', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_NOTHING_SELECTED',
+                'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_STATUS', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_STATUS_NEW',
+                'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_STATUS_REPLACE', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_STATUS_IDENTICAL',
+                'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_STATUS_IDENTICAL_HINT', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_ALL_IDENTICAL',
+                'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_STATUS',
+            ];
+            foreach ($selectionKeys as $key) {
+                Text::script($key);
             }
         }
 

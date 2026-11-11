@@ -72,3 +72,63 @@ test('the import confirmation safely handles cancel and confirm', async ({ page 
         .toContainText(`The file '${filename}' does not contain valid JSON.`);
     expect(errors).toEqual([]);
 });
+
+test('only the checked items are imported, then listed with a link', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    const script = (name) => ({
+        source_id: name === 'e2e_keep' ? 1 : 2,
+        data: { published: 1, name, title: `Title <b>${name}</b>`, description: '', type: 'Untyped', code: '// e2e' },
+    });
+    const packageFile = {
+        name: 'selection.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(JSON.stringify({
+            format: 'breezingformsng-package',
+            version: 2,
+            package: 'e2e_selection',
+            scripts: [script('e2e_keep'), script('e2e_leave')],
+            pieces: [],
+            menus: [],
+            forms: [],
+        })),
+    };
+    await page.setInputFiles('#bf-package-file', packageFile);
+
+    const selection = page.locator('#bf-package-selection');
+    await expect(selection).toBeVisible();
+    await expect(selection.locator('tbody tr')).toHaveCount(2);
+    // Names from the file are text, not markup.
+    await expect(selection.locator('tbody b')).toHaveCount(0);
+    await selection.locator('input[name="import_select[scripts][]"][value="1"]').uncheck();
+
+    const dialog = page.locator('joomla-dialog.joomla-dialog-confirm dialog');
+    await page.locator('#bf-package-import').evaluate((form) => form.requestSubmit());
+    await expect(dialog).toContainText('0 form(s), 1 script(s)');
+    await Promise.all([
+        page.waitForNavigation(),
+        dialog.locator('[data-button-ok]').click(),
+    ]);
+
+    const report = page.locator('#bf-package-import-report');
+    await expect(report).toContainText('e2e_selection');
+    await expect(report.locator('tbody tr')).toHaveCount(1);
+    const link = report.locator('tbody a');
+    await expect(link).toHaveText('Title <b>e2e_keep</b>');
+    await expect(link).toHaveAttribute('href', /task=script\.edit&id=\d+/);
+    await expect(report).not.toContainText('e2e_leave');
+    // The report is shown once.
+    await page.reload();
+    await expect(page.locator('#bf-package-import-report')).toHaveCount(0);
+
+    // Chosen again, the script already imported is shown as identical and cannot be checked.
+    await page.setInputFiles('#bf-package-file', packageFile);
+    const kept = page.locator('#bf-import-scripts-0');
+    await expect(kept).toBeDisabled();
+    await expect(kept).not.toBeChecked();
+    await expect(page.locator('#bf-package-selection tbody tr').first()).toContainText('Identical');
+    await expect(page.locator('#bf-import-scripts-1')).toBeEnabled();
+    await expect(page.locator('#bf-import-scripts-1')).toBeChecked();
+    await expect(page.locator('#bf-package-selection tbody tr').nth(1)).toContainText('New');
+    expect(errors).toEqual([]);
+});

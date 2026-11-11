@@ -14,6 +14,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
 use Vcmb\Component\BreezingformsNG\Administrator\Exception\InvalidPackageException;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
@@ -22,6 +23,9 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 
 final class PackagesController extends BaseController
 {
+    /** User state holding the report of the last import, shown once by the import page. */
+    public const REPORT_STATE = 'com_breezingformsng.packages.import_report';
+
     /**
      * @param array<string, string> $urlparams
      */
@@ -129,10 +133,13 @@ final class PackagesController extends BaseController
                 $path,
                 $this->mayTransferTemplates(),
                 $sourceName,
-                AreaAccess::isAllowed($user, AreaAccess::CODE)
+                AreaAccess::isAllowed($user, AreaAccess::CODE),
+                $this->submittedSelection()
             );
             (new ActionLogger($app))->log(ActionLogger::IMPORTED, ActionLogger::PACKAGE);
             $summary = $model->getImportSummary();
+            // Shown once on the import page, as the tables of what was written.
+            $app->setUserState(self::REPORT_STATE, ['package' => $summary['package'], 'items' => $summary['items']]);
             $app->enqueueMessage(Text::sprintf(
                 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORTED_NAMED',
                 htmlspecialchars($summary['package'], ENT_QUOTES, 'UTF-8')
@@ -158,6 +165,13 @@ final class PackagesController extends BaseController
                 $app->enqueueMessage(Text::sprintf(
                     'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_TEMPLATES_SHARED',
                     htmlspecialchars(implode(', ', $summary['shared']), ENT_QUOTES, 'UTF-8')
+                ), 'warning');
+            }
+            if ($summary['conflicts'] !== []) {
+                // The paths come from names in the uploaded file.
+                $app->enqueueMessage(Text::sprintf(
+                    'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_TEMPLATE_CONFLICT',
+                    htmlspecialchars(implode(', ', $summary['conflicts']), ENT_QUOTES, 'UTF-8')
                 ), 'warning');
             }
             if ($summary['failed'] !== []) {
@@ -199,6 +213,48 @@ final class PackagesController extends BaseController
         $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=import', false));
     }
 
+    /**
+     * What importing each item of the chosen file would do, for the tables of
+     * the import page: create it, replace it, or nothing, as the site has it
+     * as it is. Nothing is written.
+     */
+    public function preview(): void
+    {
+        /** @var CMSApplication $app */
+        $app = $this->app;
+        $this->assertAuthorised();
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
+        $app->sendHeaders();
+
+        if (!$this->checkToken('post', false)) {
+            echo new JsonResponse(null, Text::_('JINVALID_TOKEN'), true);
+            $app->close();
+        }
+
+        $file = $app->getInput()->files->get('package_file', [], 'array');
+        $path = is_array($file) ? (string) ($file['tmp_name'] ?? '') : '';
+
+        try {
+            if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || $path === '' || !is_uploaded_file($path)) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPLOAD_FAILED'));
+            }
+            $user = $app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            echo new JsonResponse($this->model()->compareFile(
+                $path,
+                $this->mayTransferTemplates(),
+                AreaAccess::isAllowed($user, AreaAccess::CODE)
+            ));
+        } catch (\Throwable $exception) {
+            // The import itself tells what is wrong with the file.
+            echo new JsonResponse(null, $exception instanceof InvalidPackageException ? '' : $exception->getMessage(), true);
+        }
+        $app->close();
+    }
+
     public function delete(): void
     {
         /** @var CMSApplication $app */
@@ -219,6 +275,32 @@ final class PackagesController extends BaseController
             $app->enqueueMessage($exception->getMessage(), 'error');
             $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete', false));
         }
+    }
+
+    /**
+     * The items chosen in the tables of the import page, by part, or null
+     * when the page sent no choice (without JavaScript): the whole file.
+     *
+     * @return array<string, list<int>>|null
+     */
+    private function submittedSelection(): ?array
+    {
+        $input = Factory::getApplication()->getInput();
+        if ($input->getInt('import_selected', 0) !== 1) {
+            return null;
+        }
+
+        $submitted = $input->get('import_select', [], 'array');
+        $selection = [];
+        foreach (PackageTransferModel::SELECTABLE_PARTS as $part) {
+            $positions = is_array($submitted[$part] ?? null) ? $submitted[$part] : [];
+            $selection[$part] = array_values(array_unique(array_filter(
+                array_map('intval', $positions),
+                static fn (int $position): bool => $position >= 0
+            )));
+        }
+
+        return $selection;
     }
 
     private function submittedPackage(): string
