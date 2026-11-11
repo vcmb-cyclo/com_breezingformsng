@@ -163,6 +163,8 @@ final class ScriptingEngine
 
         if ($this->processor->dying)
             return '';
+        // The code columns of the elements can be NULL.
+        $code = (string) $code;
         $p1 = 0;
         $l = strlen($code);
         $c = '';

@@ -263,6 +263,11 @@ final class SubmissionEngine
 
                                 if (!in_array($ext, $allowedExtensions)) {
                                     $this->processor->status = _FF_STATUS_FILE_EXTENSION_NOT_ALLOWED;
+                                    $this->processor->message = Text::sprintf(
+                                        'COM_BREEZINGFORMSNG_UPLOAD_EXTENSION_NOT_ALLOWED_DETAIL',
+                                        basename(str_replace('\\', '/', $fileName)),
+                                        implode(', ', $allowedExtensions)
+                                    );
                                     return;
                                 }
                             }
@@ -510,6 +515,11 @@ final class SubmissionEngine
 
                                             if (!in_array($ext, $allowedExtensions)) {
                                                 $this->processor->status = _FF_STATUS_FILE_EXTENSION_NOT_ALLOWED;
+                                                $this->processor->message = Text::sprintf(
+                                                    'COM_BREEZINGFORMSNG_UPLOAD_EXTENSION_NOT_ALLOWED_DETAIL',
+                                                    basename(str_replace('\\', '/', $userfile_name)),
+                                                    implode(', ', $allowedExtensions)
+                                                );
                                             }
 
                                             if ($this->processor->status != _FF_STATUS_OK) {
@@ -1466,7 +1476,8 @@ final class SubmissionEngine
                 $message = Text::_('COM_BREEZINGFORMSNG_CAPTCHA_ENTRY_FAILED');
                 break;
             case _FF_STATUS_FILE_EXTENSION_NOT_ALLOWED:
-                $message = Text::_('COM_BREEZINGFORMSNG_FILE_EXTENSION_NOT_ALLOWED');
+                // The detailed message names the file and the allowed extensions.
+                $message = $this->processor->message !== '' ? '' : Text::_('COM_BREEZINGFORMSNG_FILE_EXTENSION_NOT_ALLOWED');
                 break;
             default:
                 $message = '';

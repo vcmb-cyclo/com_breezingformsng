@@ -20,8 +20,9 @@ final class FlashUploadSizeValidator
 {
     /**
      * @param array<string, mixed> $dataObject
+     * @return array{label: string, maxBytes: int}|null
      */
-    public function findOversizedLabel(array $dataObject, string $targetFile, string $itemName): ?string
+    public function findOversized(array $dataObject, string $targetFile, string $itemName): ?array
     {
         $metadata = $dataObject['properties'] ?? [];
 
@@ -34,7 +35,10 @@ final class FlashUploadSizeValidator
             && \is_file($targetFile)
             && (int) \filesize($targetFile) > (int) $metadata['flashUploaderBytes']
         ) {
-            return trim((string) ($metadata['label'] ?? ''));
+            return [
+                'label' => trim((string) ($metadata['label'] ?? '')),
+                'maxBytes' => (int) $metadata['flashUploaderBytes'],
+            ];
         }
 
         $children = $dataObject['children'] ?? [];
@@ -47,9 +51,9 @@ final class FlashUploadSizeValidator
                 continue;
             }
 
-            $label = $this->findOversizedLabel($child, $targetFile, $itemName);
-            if ($label !== null) {
-                return $label;
+            $oversized = $this->findOversized($child, $targetFile, $itemName);
+            if ($oversized !== null) {
+                return $oversized;
             }
         }
 

@@ -85,7 +85,7 @@ class FormController extends BaseController
                     $formId,
                     FormVersioning::resetMissingElementIds($version['structure'], $versioning->elementIds($formId))
                 );
-                $versioning->record($formId);
+                $versioning->record($formId, Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOTE_RESTORED_DATE', $version['saveDate']));
                 // As loadHistory(): the restored version is the current one.
                 $forms->markRestoredVersion($formId, $version['versionId']);
                 $db->transactionCommit();
@@ -96,7 +96,8 @@ class FormController extends BaseController
             }
 
             // The message of the Joomla Restore button (VersionableControllerTrait).
-            $this->setMessage(Text::sprintf('JLIB_APPLICATION_SUCCESS_LOAD_HISTORY', $version['saveDate'], $version['note']));
+            // A note can name an imported package or file: it is shown as text.
+            $this->setMessage(Text::sprintf('JLIB_APPLICATION_SUCCESS_LOAD_HISTORY', $version['saveDate'], htmlspecialchars($version['note'], ENT_QUOTES, 'UTF-8')));
         } catch (\Throwable $e) {
             $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_RESTORE_FAILED', $e->getMessage()), 'error');
             $this->setRedirect(Route::_($redirect, false));

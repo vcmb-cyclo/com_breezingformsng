@@ -24,6 +24,10 @@ $sections = [
     "menus" => "COM_BREEZINGFORMSNG_INSTALLER_MENUSEL",
 ];
 
+// Each field explains itself in the tooltip of its label.
+$labelTip = static fn (string $key): string => ' title="' . htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8') . '"';
+$mayTransferTemplates = $this->mayTransferTemplates;
+
 $metadataFields = [
     'name' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE') . ' ' . Text::_('COM_BREEZINGFORMSNG_INSTALLER_NAME'),
     'version' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE') . ' ' . Text::_('COM_BREEZINGFORMSNG_INSTALLER_VERS'),
@@ -55,7 +59,7 @@ $auditText = static fn (mixed $text): string => htmlspecialchars((string) ($text
                     <p class="alert alert-info"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_EXPORT_HINT'); ?></p>
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-md-6">
-                            <label class="form-label" for="bf-package-choice"><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE'); ?></label>
+                            <label class="form-label" for="bf-package-choice"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_CHOICE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE'); ?></label>
                             <select class="form-select" id="bf-package-choice" name="selected_package">
                                 <option value=""><?= Text::_('JGLOBAL_SELECT_AN_OPTION'); ?></option>
                                 <option value="" data-new><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE'); ?></option>
@@ -65,7 +69,7 @@ $auditText = static fn (mixed $text): string => htmlspecialchars((string) ($text
                             </select>
                         </div>
                         <div class="col-12 col-md-6 d-none" id="bf-package-new">
-                            <label class="form-label" for="bf-package"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_ID'); ?><span class="star" aria-hidden="true">&#160;*</span></label>
+                            <label class="form-label" for="bf-package"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_ID'); ?><span class="star" aria-hidden="true">&#160;*</span></label>
                             <input class="form-control" id="bf-package" name="package" maxlength="30" required value="<?= htmlspecialchars($this->selectedPackage, ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
                     </div>
@@ -73,7 +77,7 @@ $auditText = static fn (mixed $text): string => htmlspecialchars((string) ($text
                         <div class="row g-3 mb-4">
                             <?php foreach ($metadataFields as $field => $label) : ?>
                                 <div class="col-12 col-md-6">
-                                    <label class="form-label" for="bf-meta-<?= $field; ?>"><?= $label; ?></label>
+                                    <label class="form-label" for="bf-meta-<?= $field; ?>"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_META_' . strtoupper($field) . '_TIP'); ?>><?= $label; ?></label>
                                     <input class="form-control" id="bf-meta-<?= $field; ?>" name="metadata[<?= $field; ?>]" value="">
                                 </div>
                             <?php endforeach; ?>
@@ -81,7 +85,7 @@ $auditText = static fn (mixed $text): string => htmlspecialchars((string) ($text
                         <div class="row g-4" id="bf-selections">
                             <?php foreach ($sections as $section => $label) : ?>
                                 <div class="col-12 col-lg-6">
-                                    <label class="form-label" for="bf-<?= $section; ?>"><?= Text::_($label); ?></label>
+                                    <label class="form-label" for="bf-<?= $section; ?>"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_' . strtoupper($section) . '_TIP'); ?>><?= Text::_($label); ?></label>
                                     <select class="form-select" id="bf-<?= $section; ?>" name="<?= $section; ?>[]" multiple size="14">
                                         <?php foreach ($this->choices[$section] as $item) : ?>
                                             <?php $name = (string) ($item["title"] ?: $item["name"]); ?>
@@ -95,6 +99,19 @@ $auditText = static fn (mixed $text): string => htmlspecialchars((string) ($text
                                 </div>
                             <?php endforeach; ?>
                         </div>
+                        <fieldset class="mt-4" id="bf-package-options">
+                            <legend class="form-label fs-6"><?= Text::_('JOPTIONS'); ?></legend>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="bf-include-templates" name="include_templates" value="1"<?= $mayTransferTemplates ? '' : ' disabled'; ?>>
+                                <label class="form-check-label" for="bf-include-templates"<?= $mayTransferTemplates
+                                    ? $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_TEMPLATES_TIP')
+                                    : ' title="' . htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_TEMPLATES_DENIED', Text::_('JACTION_ADMIN')), ENT_QUOTES, 'UTF-8') . '"'; ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_TEMPLATES'); ?></label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="bf-include-integrator" name="include_integrator" value="1"<?= $this->mayTransferIntegrator ? '' : ' disabled'; ?>>
+                                <label class="form-check-label" for="bf-include-integrator"<?= $labelTip($this->mayTransferIntegrator ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR_TIP' : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR_DENIED'); ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR'); ?></label>
+                            </div>
+                        </fieldset>
                         <div class="card mt-4 d-none" id="bf-package-audit">
                             <table class="table mb-0">
                                 <thead>
@@ -167,6 +184,11 @@ const bfExportForm = document.getElementById('bf-package-export');
 const bfFormState = () => {
     const params = new URLSearchParams(new FormData(bfExportForm));
     params.delete('task');
+    // The package list already holds the new choice when its change event runs.
+    params.delete('selected_package');
+    // The options stay as they are when another package is chosen.
+    params.delete('include_templates');
+    params.delete('include_integrator');
     return params.toString();
 };
 const bfConfirmDiscard = () => import('joomla.dialog')

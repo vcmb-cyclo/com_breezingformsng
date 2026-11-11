@@ -65,7 +65,7 @@ final class FormVersioning
      *
      * @return int The new version number
      */
-    public function record(int $formId): int
+    public function record(int $formId, string $note = ''): int
     {
         $db = $this->db;
         // A savepoint inside the transaction of a restore, a transaction on
@@ -91,9 +91,28 @@ final class FormVersioning
 
             if (self::isEnabled()) {
                 $this->forms->setState($this->forms->getName() . '.id', $formId);
+                $itemId = self::TYPE_ALIAS . '.' . $formId;
+                $lastVersion = $this->lastHistoryId($itemId);
 
+                // Saved without its note: given a note, Joomla rewrites the note and
+                // the date of a version already holding the same content, such as the
+                // version a restore brings back or the origin kept before an import.
                 if (!$this->forms->saveHistory([], self::TYPE_ALIAS)) {
                     throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
+                }
+
+                $newVersion = $this->lastHistoryId($itemId);
+                if ($note !== '' && $newVersion > $lastVersion) {
+                    // The note column of the history holds 255 characters.
+                    $note = mb_substr($note, 0, 255);
+                    $db->setQuery(
+                        $db->createQuery()
+                            ->update($db->quoteName('#__history'))
+                            ->set($db->quoteName('version_note') . ' = :note')
+                            ->where($db->quoteName('version_id') . ' = :versionId')
+                            ->bind(':note', $note)
+                            ->bind(':versionId', $newVersion, ParameterType::INTEGER)
+                    )->execute();
                 }
             }
 
@@ -107,17 +126,29 @@ final class FormVersioning
         return $version;
     }
 
+    /** The latest history row of the item, 0 when it has none. */
+    private function lastHistoryId(string $itemId): int
+    {
+        return (int) $this->db->setQuery(
+            $this->db->createQuery()
+                ->select('MAX(' . $this->db->quoteName('version_id') . ')')
+                ->from($this->db->quoteName('#__history'))
+                ->where($this->db->quoteName('item_id') . ' = :itemId')
+                ->bind(':itemId', $itemId)
+        )->loadResult();
+    }
+
     /**
      * Stores the current state of the form as its version of origin, kept
      * forever, when it has no version yet: a form at version 0 goes to 1.
      */
-    public function keepOrigin(int $formId): void
+    public function keepOrigin(int $formId, string $note = ''): void
     {
         if (!self::isEnabled() || VersionOrigin::missing($this->db, self::TYPE_ALIAS, [$formId]) === []) {
             return;
         }
 
-        $this->record($formId);
+        $this->record($formId, $note !== '' ? $note : Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOTE_ORIGIN'));
         VersionOrigin::keepForever($this->db, self::TYPE_ALIAS . '.' . $formId);
     }
 

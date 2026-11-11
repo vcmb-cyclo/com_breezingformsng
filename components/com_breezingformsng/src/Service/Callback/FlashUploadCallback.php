@@ -44,6 +44,9 @@ final class FlashUploadCallback
     if (ob_get_level() > 0) {
         ob_end_clean();
     }
+        // Responses are displayed as plain text by the uploader, never as HTML.
+        $this->application->setHeader('Content-Type', 'text/plain; charset=utf-8', true);
+        $this->application->sendHeaders();
     $input = $this->application->getInput();
     $uploadedFile = $input->files->get('Filedata', [], 'array');
     if (is_numeric($input->getString('form', '')) && $uploadedFile !== [] && $input->getString('bfFlashUploadTicket', '') != '') {
@@ -83,16 +86,15 @@ final class FlashUploadCallback
 
                     $dataObject = json_decode(bf_b64dec($objectList[0]->template_code), true);
 
-                    $validationLabel = $this->uploadSizeValidator->findOversizedLabel(
-                        $dataObject,
-                        $finaltargetFile,
-                        $itemName
-                    );
+                    $oversized = $this->uploadSizeValidator->findOversized($dataObject, $finaltargetFile, $itemName);
 
-                    if ($validationLabel !== null) {
+                    if ($oversized !== null) {
                         File::delete($finaltargetFile);
-                        echo $validationLabel . ': '
-                            . Text::_('COM_BREEZINGFORMSNG_FLASH_UPLOADER_TOO_LARGE');
+                            echo $oversized['label'] . ': ' . Text::sprintf(
+                                'COM_BREEZINGFORMSNG_UPLOAD_FILE_TOO_LARGE_DETAIL',
+                                basename(str_replace('\\', '/', $input->getString('name', 'unknown'))),
+                                (string) $oversized['maxBytes']
+                            );
                         $this->application->close();
                     }
 

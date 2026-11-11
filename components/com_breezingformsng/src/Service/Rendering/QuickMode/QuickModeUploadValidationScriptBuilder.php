@@ -26,12 +26,13 @@ final class QuickModeUploadValidationScriptBuilder
         string $newline,
     ): string {
         $extensionsLiteral = self::buildJavaScriptStringLiteral(strtolower($extensions));
-        $tooLargeMessageLiteral = json_encode($tooLargeMessage, JSON_THROW_ON_ERROR);
-        $extensionMessageLiteral = json_encode($extensionMessage, JSON_THROW_ON_ERROR);
+        $jsonFlags = JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+        $tooLargeMessageLiteral = json_encode($tooLargeMessage, $jsonFlags);
+        $extensionMessageLiteral = json_encode($extensionMessage, $jsonFlags);
 
         return '                                                                                var thebytes = ' . $maxBytes . ";" . $newline .
             '                                                                                if(thebytes > 0 && typeof files[i].size != \'undefined\' && files[i].size > thebytes){' . $newline .
-            '                                                                                     alert(' . $tooLargeMessageLiteral . ');' . $newline .
+            '                                                                                     alert(' . $tooLargeMessageLiteral . '.replace(/%([12])\$s/g, function(_, n) { return n == "1" ? files[i].name.split(/[\\\\\/]/).pop() : String(thebytes); }));' . $newline .
             '                                                                                     error = true;' . $newline .
             '                                                                                }' . $newline .
             "                                                                                var ext = files[i].name.replace(/[/\\?%*:|\"<>]/g, '').split('.').pop().toLowerCase();" . $newline .
@@ -43,7 +44,7 @@ final class QuickModeUploadValidationScriptBuilder
             '                                                                                    }' . $newline .
             '                                                                                }' . $newline .
             '                                                                                if(found == 0){' . $newline .
-            '                                                                                    alert(' . $extensionMessageLiteral . ');' . $newline .
+            '                                                                                    alert(' . $extensionMessageLiteral . '.replace(/%([12])\$s/g, function(_, n) { return n == "1" ? files[i].name.split(/[\\\\\/]/).pop() : exts.join(", "); }));' . $newline .
             '                                                                                    error = true;' . $newline .
             '                                                                                }' . $newline .
             '                                                                                if(error){' . $newline .

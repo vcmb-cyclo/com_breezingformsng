@@ -526,8 +526,9 @@ final class RenderingEngine
             $this->processor->rows ?? [],
             $this->processor->rowcount ?? 0,
             json_encode(
-                Text::_('COM_BREEZINGFORMSNG_FILE_EXTENSION_NOT_ALLOWED'),
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR
+                Text::_('COM_BREEZINGFORMSNG_UPLOAD_EXTENSION_NOT_ALLOWED_DETAIL'),
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE
+                    | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR
             ),
             trim((string) $this->processor->formrow->template_code) != ''
         );

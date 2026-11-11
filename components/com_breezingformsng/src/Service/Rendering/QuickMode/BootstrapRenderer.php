@@ -795,8 +795,8 @@ class BootstrapRenderer
     (string) $multiSelection,
     (int) $uploadOptions['maxBytes'],
     (string) $exts,
-    ' ' . Text::_('COM_BREEZINGFORMSNG_FLASH_UPLOADER_TOO_LARGE'),
-    ' ' . Text::_('COM_BREEZINGFORMSNG_FILE_EXTENSION_NOT_ALLOWED')
+    Text::_('COM_BREEZINGFORMSNG_UPLOAD_FILE_TOO_LARGE_DETAIL'),
+    Text::_('COM_BREEZINGFORMSNG_UPLOAD_EXTENSION_NOT_ALLOWED_DETAIL')
 ) . "
                                                                         // disable the button if no multi upload
                                                                         if( " . $multiSelection . " == false ){
