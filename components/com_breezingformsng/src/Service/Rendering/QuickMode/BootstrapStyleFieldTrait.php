@@ -112,9 +112,9 @@ trait BootstrapStyleFieldTrait
             && $this->rootMdata['themebootstrap'] == 'Azure'
         ) {
             if (!isset($mdata['icon']) || $mdata['icon'] == '') {
-                $icon = '<i class="fas fa-calendar iconf--fumi" aria-hidden="true"></i>';
+                $icon = '<i class="fa-solid fa-calendar iconf--fumi" aria-hidden="true"></i>';
             } else {
-                $icon = '<i class="fas ' . htmlentities($mdata['icon'], ENT_QUOTES, 'UTF-8')
+                $icon = '<i class="fa-solid ' . htmlentities($mdata['icon'], ENT_QUOTES, 'UTF-8')
                     . ' iconf--fumi" aria-hidden="true"></i>';
             }
         }
@@ -191,9 +191,9 @@ trait BootstrapStyleFieldTrait
             && $this->rootMdata['themebootstrap'] == 'Azure'
         ) {
             if (!isset($mdata['icon']) || $mdata['icon'] == '') {
-                $icon = '<i class="fas fa-calendar iconf--fumi" aria-hidden="true"></i>';
+                $icon = '<i class="fa-solid fa-calendar iconf--fumi" aria-hidden="true"></i>';
             } else {
-                $icon = '<i class="fas ' . htmlentities($mdata['icon'], ENT_QUOTES, 'UTF-8')
+                $icon = '<i class="fa-solid ' . htmlentities($mdata['icon'], ENT_QUOTES, 'UTF-8')
                     . ' iconf--fumi" aria-hidden="true"></i>';
             }
         }
@@ -305,9 +305,9 @@ trait BootstrapStyleFieldTrait
             && $this->rootMdata['themebootstrap'] == 'Azure'
         ) {
             if (!isset($mdata['icon']) || $mdata['icon'] == '') {
-                $icon = '<i class="fas fa-pencil iconf--fumi" aria-hidden="true"></i>';
+                $icon = '<i class="fa-solid fa-pencil iconf--fumi" aria-hidden="true"></i>';
             } else {
-                $icon = '<i class="fas ' . htmlentities($mdata['icon'], ENT_QUOTES, 'UTF-8')
+                $icon = '<i class="fa-solid ' . htmlentities($mdata['icon'], ENT_QUOTES, 'UTF-8')
                     . ' iconf--fumi" aria-hidden="true"></i>';
             }
         }
@@ -349,9 +349,9 @@ trait BootstrapStyleFieldTrait
             && $this->rootMdata['themebootstrap'] == 'Azure'
         ) {
             if (!isset($mdata['icon']) || $mdata['icon'] == '') {
-                $icon = '<i class="fas fa-pencil iconf--fumi" aria-hidden="true"></i>';
+                $icon = '<i class="fa-solid fa-pencil iconf--fumi" aria-hidden="true"></i>';
             } else {
-                $icon = '<i class="fas ' . htmlentities($mdata['icon'], ENT_QUOTES, 'UTF-8')
+                $icon = '<i class="fa-solid ' . htmlentities($mdata['icon'], ENT_QUOTES, 'UTF-8')
                     . ' iconf--fumi" aria-hidden="true"></i>';
             }
         }

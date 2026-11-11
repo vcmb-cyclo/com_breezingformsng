@@ -57,7 +57,7 @@ final class RuntimeAssetLoader
 
     /**
      * Joomla's own Font Awesome (the "fontawesome" web asset), for the icons
-     * written as <i class="fas fa-...">: a site template that does not load it
+     * written as <i class="fa-solid fa-...">: a site template that does not load it
      * would show them blank. Joomla loads an asset once.
      */
     public static function fontAwesome(CMSApplication $application): void
