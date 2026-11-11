@@ -213,8 +213,10 @@ final class McpServer
             return self::result($id, self::toolError('The tool failed on the server.'));
         }
 
-        $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_INVALID_UTF8_SUBSTITUTE);
+        $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
 
+        // The text repeats the structured content for clients that read only text:
+        // compact, so that a large form does not cost its size twice in whitespace.
         return self::result($id, [
             'content' => [['type' => 'text', 'text' => self::UNTRUSTED_NOTICE . "\n" . $json]],
             'structuredContent' => $data,

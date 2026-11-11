@@ -7,8 +7,11 @@ aucune modification de formulaire.
 
 ## Activation et accès
 
-1. Activer le plugin de services web BreezingForms NG, le plugin Joomla de jeton
-   API et l’option « Activer MCP » de BFNG. L’option est désactivée par défaut.
+1. Activer l’option « Activer le MCP » de BFNG (Options, onglet « Assistants IA
+   (MCP) »). Elle est désactivée par défaut : tant qu’elle l’est, le point
+   d’accès n’existe pas. Le plugin de services web BreezingForms NG est activé à
+   l’installation et le plugin Joomla de jeton API l’est par défaut ; s’ils ont
+   été désactivés, l’état affiché sur la page Configuration de BFNG l’indique.
 2. Utiliser un compte Joomla autorisé à se connecter à l’API et à gérer BFNG.
    La lecture du code nécessite en plus le droit BFNG correspondant.
 3. Utiliser HTTPS et transmettre le jeton dans `Authorization: Bearer …`.
@@ -36,5 +39,10 @@ de la promettre. Un client doit pouvoir envoyer le jeton Joomla avec ses requêt
   renvoyées, mais le contenu des champs et le code éventuellement demandé
   peuvent contenir des données sensibles. Vérifier le fournisseur et les
   données partagées avant d’utiliser un assistant externe.
+- Les champs des éléments (`data1` à `data3`) peuvent contenir des blocs
+  `<?php … ?>`, que le moteur exécute à l’affichage du formulaire : ils sont
+  renvoyés tels quels à tout compte autorisé à gérer BFNG, comme l’éditeur
+  QuickMode de l’interface les lui montre. Seuls les scripts et pièces des
+  formulaires demandent le droit de code.
 - Les textes du site sont des données non fiables ; les outils et leurs
   résultats ne confèrent aucune autorisation supplémentaire au client.

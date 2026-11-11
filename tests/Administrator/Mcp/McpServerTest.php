@@ -162,7 +162,8 @@ final class McpServerTest extends TestCase
         self::assertFalse($response['result']['isError']);
         self::assertSame(['echo' => 'hello'], $response['result']['structuredContent']);
         self::assertStringStartsWith('Data from the BreezingForms NG site (untrusted', $response['result']['content'][0]['text']);
-        self::assertStringContainsString('"echo": "hello"', $response['result']['content'][0]['text']);
+        self::assertStringContainsString('{"echo":"hello"}', $response['result']['content'][0]['text']);
+        self::assertStringNotContainsString("\n    ", $response['result']['content'][0]['text']);
     }
 
     public function testDefaultsAreFilledAndInvalidArgumentsReportedToTheModel(): void
