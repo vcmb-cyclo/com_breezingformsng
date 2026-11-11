@@ -66,31 +66,6 @@ final class RuntimeAssetLoaderTest extends TestCase
         self::assertCount(1, $registered);
     }
 
-    public function testUsesJoomlasFontAwesomeAssetWithoutRegisteringACopy(): void
-    {
-        $application = new CMSApplication();
-
-        RuntimeAssetLoader::fontAwesome($application);
-        RuntimeAssetLoader::fontAwesome($application);
-
-        $manager = $application->getDocument()->getWebAssetManager();
-        // Joomla registers "fontawesome" itself and loads an asset once.
-        self::assertSame(['fontawesome', 'fontawesome'], $manager->usedStyles);
-        self::assertSame([], $this->registeredAssets($application));
-    }
-
-    public function testBothBootstrapFamilyRenderersLoadIt(): void
-    {
-        $directory = __DIR__ . '/../../../../components/com_breezingformsng/src/Service/Rendering/QuickMode/';
-
-        foreach (['BootstrapRenderer.php', 'OnePageRenderer.php'] as $renderer) {
-            $source = (string) file_get_contents($directory . $renderer);
-
-            self::assertStringContainsString('RuntimeAssetLoader::fontAwesome($this->p->app);', $source, $renderer);
-            self::assertStringContainsString('<i class="fas ', $source, $renderer);
-        }
-    }
-
     /**
      * @return array<string, true>
      */

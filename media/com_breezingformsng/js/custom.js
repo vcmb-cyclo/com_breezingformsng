@@ -50,9 +50,9 @@ jQuery(document).ready(function () {
      new page, section and element
      */
 
-    //jQuery('#newStuffBar button[id="bfNewPageButton"]').replaceWith('<button class="btn btn-warning" id="bfNewPageButton" value="New page" type="submit"><i class="fa fa-plus-square" aria-hidden="true"></i> Page</button>');
-    //jQuery('#newStuffBar button[id="bfNewSectionButton"]').replaceWith('<button class="btn btn-warning" id="bfNewSectionButton" value="New section" type="submit"><i class="fa fa-plus-square" aria-hidden="true"></i> Section</button>');
-    //jQuery('#newStuffBar button[id="bfNewElementButton"]').replaceWith('<button class="btn btn-warning" id="bfNewElementButton" value="New element" type="submit"><i class="fa fa-plus-square" aria-hidden="true"></i> Element</button>');
+    //jQuery('#newStuffBar button[id="bfNewPageButton"]').replaceWith('<button class="btn btn-warning" id="bfNewPageButton" value="New page" type="submit"><i class="fa-solid fa-square-plus" aria-hidden="true"></i> Page</button>');
+    //jQuery('#newStuffBar button[id="bfNewSectionButton"]').replaceWith('<button class="btn btn-warning" id="bfNewSectionButton" value="New section" type="submit"><i class="fa-solid fa-square-plus" aria-hidden="true"></i> Section</button>');
+    //jQuery('#newStuffBar button[id="bfNewElementButton"]').replaceWith('<button class="btn btn-warning" id="bfNewElementButton" value="New element" type="submit"><i class="fa-solid fa-square-plus" aria-hidden="true"></i> Element</button>');
 
 
 
