@@ -20,7 +20,7 @@
 - Update the bundled Stripe and PDF libraries.
 - Remove the last Adobe Flash file from the package. Updates delete it from existing sites.
 - Remove an unused copy of Font Awesome 4.7.0 (1.1 MB) from the package. Updates delete it from existing sites.
-
+- Write the icons of QuickMode forms with the Font Awesome 6 prefix fa-solid instead of fas. Custom CSS that targets .fas on a form must target .fa-solid.
 
 ### Fixed
 

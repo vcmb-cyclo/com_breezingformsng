@@ -363,16 +363,16 @@ final class OnePageRendererCharacterizationTest extends TestCase
      * generally: bfTextfield, bfTextarea and bfNumberInput each build a
      * field-label icon only when the "Azure" bootstrap theme is active, and
      * OnePageRenderer used the obsolete FontAwesome 4 'fa' prefix for it
-     * while BootstrapRenderer already used the correct FontAwesome 5+ 'fas'
-     * prefix - a real inconsistency (found comparing the two renderers'
-     * source directly), not a duplicate worth mutualizing. 'fa' alone
-     * renders no icon at all under FA5+, so this was a real visual bug on
-     * OnePage specifically. None of the other characterization tests here
+     * while BootstrapRenderer already used a FontAwesome 5+ prefix - a real
+     * inconsistency (found comparing the two renderers' source directly),
+     * not a duplicate worth mutualizing. 'fa' alone renders no icon at all
+     * under FA5+, so this was a real visual bug on OnePage specifically.
+     * Both now write the Font Awesome 6 prefix 'fa-solid'. None of the other characterization tests here
      * exercise this branch (they don't set themebootstrap to 'Azure'),
      * so it had no coverage before this test.
      */
     #[DataProvider('azureThemeIconFieldProvider')]
-    public function testAzureThemeIconUsesFontAwesome5Prefix(string $bfType, array $overrides): void
+    public function testAzureThemeIconUsesTheFontAwesome6SolidPrefix(string $bfType, array $overrides): void
     {
         $renderer = $this->makeRenderer();
         $this->setPrivate($renderer, 'rootMdata', [
@@ -415,7 +415,7 @@ final class OnePageRendererCharacterizationTest extends TestCase
             ob_end_clean();
         }
 
-        self::assertStringContainsString('fas fa-pencil', (string) $html);
+        self::assertStringContainsString('fa-solid fa-pencil', (string) $html);
         self::assertStringNotContainsString('"fa fa-pencil"', (string) $html);
     }
 
@@ -576,8 +576,8 @@ final class OnePageRendererCharacterizationTest extends TestCase
             'control-group' => 'mb-3',
             'control-label' => 'form-label',
             'form-control' => 'form-control',
-            'icon-asterisk' => 'fas fa-asterisk',
-            'icon-question-sign' => 'fas fa-circle-question',
+            'icon-asterisk' => 'fa-solid fa-asterisk',
+            'icon-question-sign' => 'fa-solid fa-circle-question',
             'nonform-control' => 'nonform-control',
             'radio-form-group' => 'radio-form-group',
             'inline' => 'form-check-inline',
@@ -587,15 +587,15 @@ final class OnePageRendererCharacterizationTest extends TestCase
             'other-form-group' => 'other-form-group',
             'btn' => 'btn',
             'btn-primary' => 'btn-primary',
-            'icon-upload' => 'fas fa-upload',
+            'icon-upload' => 'fa-solid fa-upload',
             'row' => 'row',
             'img-thumbnail' => 'img-thumbnail',
             'input-append' => 'input-group',
             'custom-form-control' => 'custom-form-control',
-            'icon-refresh' => 'fas fa-arrows-rotate',
+            'icon-refresh' => 'fa-solid fa-arrows-rotate',
             'well' => 'card',
             'well-small' => 'card-body',
-            'icon-calendar' => 'fas fa-calendar',
+            'icon-calendar' => 'fa-solid fa-calendar',
             'float-start' => 'float-start',
             'float-end' => 'float-end',
         ]]);

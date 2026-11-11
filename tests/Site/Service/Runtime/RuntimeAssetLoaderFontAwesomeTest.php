@@ -43,7 +43,7 @@ final class RuntimeAssetLoaderFontAwesomeTest extends TestCase
             $source = (string) file_get_contents($directory . $renderer);
 
             self::assertStringContainsString('RuntimeAssetLoader::fontAwesome($this->p->app);', $source, $renderer);
-            self::assertStringContainsString('<i class="fas ', $source, $renderer);
+            self::assertStringContainsString('<i class="fa-solid ', $source, $renderer);
         }
     }
 }
