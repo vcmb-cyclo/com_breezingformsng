@@ -44,6 +44,7 @@ while IFS= read -r -d '' path; do
 done < <(
     git -C "${root_dir}" ls-files --cached --others --exclude-standard -z \
         administrator \
+        api \
         components \
         media \
         breezingformsng.xml \

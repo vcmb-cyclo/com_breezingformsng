@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
@@ -25,6 +26,14 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\SqlDate;
  */
 class ImportModel extends BaseDatabaseModel
 {
+    /** SHA-256 of the last distributed source, after the XML import decoding. */
+    private const STANDARD_PIECE_ORIGINS = [
+        'ff_databaseToSelect' => '06f1ebfd9f73101fc9811d5e7ca04ec09ab59e82a08bf0e1e04c10e61c7fa823',
+        'ff_query' => 'f0bea1ddaf306c72a741eeb129fe037e160cd7bb56f4f3fdb0b3006e9673ef92',
+        'ff_select' => 'dd72b5709a74844225772bcfb78ce124e40987aba9e8377738021a8dff58646d',
+        'ff_selectValue' => '7209aea2e5a77c9455f1c61b7c2847455f1ff4fc95633793e874bd57df9789f0',
+    ];
+
     public bool $reinstallOnlyIfChanged = false;
 
     /** @var int[] Ids of scripts inserted or updated */
@@ -123,8 +132,7 @@ class ImportModel extends BaseDatabaseModel
         array &$touched,
         array &$created,
         array &$updated
-    ): void
-    {
+    ): void {
         $unknown = Text::_('COM_BREEZINGFORMSNG_INSTALLER_UNKNOWN');
 
         $item = [
@@ -140,6 +148,7 @@ class ImportModel extends BaseDatabaseModel
         if (isset($node->unit_tests)) {
             $item['unit_tests'] = $this->textValue($node->unit_tests);
         }
+        $itemName = $item['name'];
 
         $query = $this->db->createQuery()
             ->select('*')
@@ -150,6 +159,25 @@ class ImportModel extends BaseDatabaseModel
             ->bind(':name', $item['name'])
             ->bind(':package', $item['package']);
         $existing = $this->db->setQuery($query, 0, 1)->loadAssoc();
+
+        // Automatic upgrades must never overwrite a site's customised piece.
+        // Only the exact previously distributed source can be upgraded safely;
+        // leave its other fields untouched, including publication and metadata.
+        if (
+            $existing !== null && $this->reinstallOnlyIfChanged
+            && $table === '#__facileforms_pieces' && $item['package'] === 'FF'
+            && isset(self::STANDARD_PIECE_ORIGINS[$item['name']])
+        ) {
+            $existingCode = (string) ($existing['code'] ?? '');
+            if ($existingCode === $item['code']) {
+                return;
+            }
+            if (!hash_equals(self::STANDARD_PIECE_ORIGINS[$item['name']], hash('sha256', $existingCode))) {
+                $this->warnings[] = $item['name'];
+                return;
+            }
+            $item = ['code' => $item['code']];
+        }
 
         if ($existing !== null && $this->reinstallOnlyIfChanged && $this->isUnchanged($item, $existing)) {
             return;
@@ -170,8 +198,8 @@ class ImportModel extends BaseDatabaseModel
 
             $touched[] = (int) $existing['id'];
 
-            if (!\in_array($item['name'], $updated, true)) {
-                $updated[] = $item['name'];
+            if (!\in_array($itemName, $updated, true)) {
+                $updated[] = $itemName;
             }
 
             return;

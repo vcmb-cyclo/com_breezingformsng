@@ -862,6 +862,13 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             count($importer->pieces) . ' piece(s).'
         );
 
+        if ($importer->warnings !== []) {
+            $this->log(
+                'Custom standard pieces preserved without replacing their code: ' . implode(', ', $importer->warnings),
+                Log::WARNING
+            );
+        }
+
         $this->announceImportedLibraryChanges($importer);
     }
 
@@ -1353,7 +1360,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             foreach ($plugins as $plugin) {
                 $query = $standardDb->createQuery()
                     ->update('#__extensions')
-                    ->set('enabled = ' . ($existingPlugins[$folder][$plugin] ?? 1))
+                    // The web services plugin opens the site to API clients (the MCP
+                    // endpoint): it stays disabled until the administrator enables it.
+                    ->set('enabled = ' . ($existingPlugins[$folder][$plugin] ?? ($folder === 'webservices' ? 0 : 1)))
                     ->where('type = ' . $standardDb->quote('plugin'))
                     ->where('element = ' . $standardDb->quote($plugin))
                     ->where('folder = ' . $standardDb->quote($folder));
@@ -4349,6 +4358,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $plugins['system'][] = 'bfcompat';
         $plugins['content'] = ['breezingforms'];
         $plugins['privacy'] = ['breezingformsng'];
+        $plugins['webservices'] = ['breezingformsng'];
         return $plugins;
     }
 
