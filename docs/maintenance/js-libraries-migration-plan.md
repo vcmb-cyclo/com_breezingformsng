@@ -47,6 +47,16 @@ entre bump de version et remplacement complet.
 11. ✅ **Plugin jQuery MD5 supprimé (aujourd'hui)** — audit du dépôt entier : aucun appel (`.md5(...)`, `jQuery.md5`, etc.) nulle part dans le code first-party, uniquement chargé au constructeur QuickMode admin (`QuickmodeHtml.php`, `HtmlView.php` via l'asset `com_breezingformsng.md5`) sans jamais être utilisé — code mort pur, même schéma que wz_dragdrop/jTable. Entrée `joomla.asset.json`, dépendance dans `quickmode-app`, les 2 `useScript()` et le fichier vendorisé retirés.
 12. ✅ **Plugin jquery-json supprimé (aujourd'hui)** — contrairement à MD5, usage réel confirmé : 22 appels `JQuery.toJSON(...)` sérialisant l'attribut `mdata` du constructeur QuickMode admin (`quickmode-app.js`, `quickmode-elements.js`, `tmpl/quickmode/default.php`). Tous repointés vers `JSON.stringify()` natif — remplacement direct, tous les appels sérialisant des littéraux objet simples sans `Date`. Entrée `joomla.asset.json`, dépendance dans `quickmode-app`, les 2 `useScript()` et le fichier vendorisé retirés.
 
+## Suivi des versions par npm (jsTree, SweetAlert2)
+
+Deux librairies vendorisées sont identiques, octet par octet, aux paquets npm de même version : jsTree 3.3.17 et SweetAlert2 11.26.25 (bundle `sweetalert2.all.min.js`). Elles sont déclarées dans `dependencies` de `package.json` avec une version **exacte**, `package-lock.json` en fixe l'empreinte, et Dependabot (npm) comme `npm audit` les suivent.
+
+- Les copies restent à leurs chemins actuels : `joomla.asset.json`, les rendus et les sites installés ne changent pas.
+- `npm run vendor:sync` recopie les fichiers depuis `node_modules` ; `npm run vendor:check` échoue si une copie s'en écarte. La CI exécute ce contrôle (étape « Check the vendored libraries managed by npm »).
+- Mise à jour : une PR Dependabot change `package.json` et `package-lock.json` ; le contrôle échoue tant que `npm run vendor:sync` n'a pas été lancé et son résultat commité. Ne jamais modifier à la main un fichier géré.
+- Font Awesome 4.7.0 n'était chargé par rien : la copie de `media/com_breezingformsng/font-awesome` est supprimée (et retirée des sites par l'installateur). Le site s'appuie sur le Font Awesome 6 de Joomla (ressource web `fontawesome`), que les rendus QuickMode chargent eux-mêmes.
+- Hors du dispositif : pickadate (patch local du commit 837e95bd, à réappliquer après toute mise à jour), Plupload et moxie (identiques à l'étiquette GitHub `v3.1.5`, pas à npm, qui s'arrête à 2.3.9) et `LICENSE-MIT` de jsTree (mêmes lignes, fins de ligne différentes).
+
 ## Notes de vérification
 
 - Vérifications faites via le registre npm et les tags GitHub officiels (Remodal, pickadate, Plupload, Ladda) le 2026-07-24.
