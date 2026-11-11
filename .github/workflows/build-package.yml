@@ -138,9 +138,13 @@ jobs:
       - name: Check inline scripts of the PHP templates
         run: npm run lint:inline-scripts
 
+      - name: Check the vendored libraries managed by npm
+        run: npm run vendor:check
+
       - name: Run JavaScript tests
         run: |
           npm run test:tree-model
+          npm run test:vendor
           node --test tests/JavaScript/quickmode-form-dirty.test.mjs
           node --test tests/JavaScript/quickmode-debug-lifecycle.test.mjs
           node --test tests/JavaScript/quickmode-options-toggle.test.mjs
