@@ -122,6 +122,9 @@ namespace Joomla\CMS\Application {
             /** @var array<string, true> */
             private array $registered = [];
 
+            /** @var list<string> The styles asked for with useStyle(), in order. */
+            public array $usedStyles = [];
+
             public function assetExists(string $type, string $name): bool
             {
                 return isset($this->registered[$type . ':' . $name]);
@@ -148,6 +151,8 @@ namespace Joomla\CMS\Application {
 
             public function useStyle(string $name): static
             {
+                $this->usedStyles[] = $name;
+
                 return $this;
             }
 

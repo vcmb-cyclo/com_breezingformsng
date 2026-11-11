@@ -3482,6 +3482,15 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/system.ie.css',
             JPATH_SITE . '/components/com_breezingformsng/themes/quickmode/upload.png',
             // Media files no longer shipped.
+            // Font Awesome 4.7.0: nothing loaded it, Joomla provides Font Awesome 6.
+            JPATH_SITE . '/media/com_breezingformsng/font-awesome/css/font-awesome.css',
+            JPATH_SITE . '/media/com_breezingformsng/font-awesome/css/font-awesome.min.css',
+            JPATH_SITE . '/media/com_breezingformsng/font-awesome/fonts/FontAwesome.otf',
+            JPATH_SITE . '/media/com_breezingformsng/font-awesome/fonts/fontawesome-webfont.eot',
+            JPATH_SITE . '/media/com_breezingformsng/font-awesome/fonts/fontawesome-webfont.svg',
+            JPATH_SITE . '/media/com_breezingformsng/font-awesome/fonts/fontawesome-webfont.ttf',
+            JPATH_SITE . '/media/com_breezingformsng/font-awesome/fonts/fontawesome-webfont.woff',
+            JPATH_SITE . '/media/com_breezingformsng/font-awesome/fonts/fontawesome-webfont.woff2',
             JPATH_SITE . '/media/com_breezingformsng/images/site/captcha/AHGBold.ttf',
             JPATH_SITE . '/media/com_breezingformsng/images/site/captcha/LICENSE.txt',
             JPATH_SITE . '/media/com_breezingformsng/images/site/captcha/README.FONT.txt',
@@ -3500,6 +3509,15 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         foreach ($obsolete as $file) {
             if (File::exists($file) && File::delete($file)) {
                 $this->log('Obsolete file removed: ' . basename($file));
+            }
+        }
+
+        // Folders left empty by the files above: a folder holding anything else
+        // (a file a site added) is kept.
+        foreach (['css', 'fonts', ''] as $subfolder) {
+            $directory = JPATH_SITE . '/media/com_breezingformsng/font-awesome' . ($subfolder === '' ? '' : '/' . $subfolder);
+            if (is_dir($directory) && count(scandir($directory)) === 2 && rmdir($directory)) {
+                $this->log('Obsolete empty directory removed: ' . $directory);
             }
         }
 

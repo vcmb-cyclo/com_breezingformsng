@@ -11,12 +11,12 @@ jQuery(document).ready(function () {
 
     var $formStateRow = jQuery('#bfFormPublishedToggle').closest('.d-flex.ms-auto');
     if ($formStateRow.length) {
-        $formStateRow.append('<a href="#" id="toggle_fullscreen"><i class="fa-solid fa-up-down-left-right fa-rotate-45 fa-lg" aria-hidden="true"></i></a>');
+        $formStateRow.append('<a href="#" id="toggle_fullscreen"><i class="fa-solid fa-up-down-left-right fa-rotate-by fa-lg" style="--fa-rotate-angle: 45deg" aria-hidden="true"></i></a>');
     } else {
-        jQuery('main').prepend('<div class="toggle_fullscreen"> <a href="#" id="toggle_fullscreen"><i class="fa-solid fa-up-down-left-right fa-rotate-45 fa-lg" aria-hidden="true"></i></a></div>');
+        jQuery('main').prepend('<div class="toggle_fullscreen"> <a href="#" id="toggle_fullscreen"><i class="fa-solid fa-up-down-left-right fa-rotate-by fa-lg" style="--fa-rotate-angle: 45deg" aria-hidden="true"></i></a></div>');
     }
 
-    jQuery('#bfRecordsTableContainer').parent('main').prepend('<div class="toggle_fullscreen_managerecords"> <a href="#" id="toggle_fullscreen_managerecords"><i class="fa-solid fa-up-down-left-right fa-rotate-45 fa-lg" aria-hidden="true"></i></a></div>');
+    jQuery('#bfRecordsTableContainer').parent('main').prepend('<div class="toggle_fullscreen_managerecords"> <a href="#" id="toggle_fullscreen_managerecords"><i class="fa-solid fa-up-down-left-right fa-rotate-by fa-lg" style="--fa-rotate-angle: 45deg" aria-hidden="true"></i></a></div>');
 
 
     jQuery('#bfRecordsTableContainer').prevAll('.toggle_fullscreen').remove();
