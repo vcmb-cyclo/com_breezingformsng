@@ -37,7 +37,7 @@
 - Report form errors and upload errors together when importing records, with clearer upload size and extension messages.
 - Load Joomla's own Font Awesome with QuickMode forms, so that field icons also appear on site templates that do not load it.
 - Fix two icons whose Font Awesome names did not exist: the image icon of QuickMode forms and the rotated fullscreen button of the administrator.
-
+- Fix the help text of the element icon field in Hungarian and Turkish, which translated the example icon names (fa-pencil, fa-user) into names that do not exist.
 
 ### Security
 
