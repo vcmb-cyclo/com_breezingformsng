@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
 const CONTAINER = process.env.BFNG_E2E_CONTAINER;
@@ -75,6 +75,14 @@ test.describe('forms', () => {
         JoomlaEditor.get(editorId).setValue(text);
     }, [id, value]);
 
+    // The error output of the container: Apache's error log, which holds the PHP warnings.
+    // It only grows, so the lines of a step are the ones after the count taken before it.
+    const containerErrors = () => {
+        const run = spawnSync('docker', ['logs', CONTAINER], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+
+        return run.stderr.split('\n');
+    };
+
     test('a new form is created, with an element as old forms store it', async () => {
         await page.goto(`${ADMIN}?option=com_breezingformsng&task=quickmode.display&form=0`);
         await page.waitForFunction(() => window.BFQMApp && window.BFQMApp.selectedTreeElement);
@@ -109,7 +117,11 @@ test.describe('forms', () => {
             });
         });
 
+        const logged = containerErrors().length;
         await saveQuickMode();
+
+        // The save of such an element raises no PHP warning ("Undefined array key").
+        expect(containerErrors().slice(logged).filter((line) => /PHP (Warning|Notice|Deprecated)/.test(line))).toEqual([]);
 
         formId = Number(new URL(page.url()).searchParams.get('form'));
         expect(formId).toBeGreaterThan(0);
