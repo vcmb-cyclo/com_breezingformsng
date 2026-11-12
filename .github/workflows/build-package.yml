@@ -148,6 +148,7 @@ jobs:
           node --test tests/JavaScript/quickmode-form-dirty.test.mjs
           node --test tests/JavaScript/quickmode-debug-lifecycle.test.mjs
           node --test tests/JavaScript/quickmode-options-toggle.test.mjs
+          npm run test:container-log
           node --test tests/JavaScript/about-easter-egg.test.mjs
 
       - name: Install Playwright browser
