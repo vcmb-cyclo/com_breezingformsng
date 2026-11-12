@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
@@ -12,7 +13,9 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Callback;
 use Joomla\CMS\Application\CMSApplication;
 use Vcmb\Component\BreezingformsNG\Site\Service\Support\RedirectHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Uri\Uri;
+use Vcmb\Component\BreezingformsNG\Site\Service\Submission\PayPalPayment;
 use Joomla\Http\Http;
 
 /**
@@ -33,58 +36,75 @@ final class PayPalCallback
 
     public function confirmIpn(): void
     {
-    $input = $this->application->getInput();
-    $form = $this->paymentFormLoader->load($input->getInt('form_id', -1));
-    if ($form === null) {
-        $this->application->setHeader('status', '200', true);
-        $this->application->close();
+        $input = $this->application->getInput();
+        $form = $this->paymentFormLoader->load($input->getInt('form_id', -1));
+        if ($form === null) {
+            $this->application->setHeader('status', '200', true);
+            $this->application->close();
 
-        return;
-    }
+            return;
+        }
 
-    $areas = $this->paymentFormLoader->decodeAreas($form);
-    if ($areas === null) {
-        $this->application->setHeader('status', '200', true);
-        $this->application->close();
+        $areas = $this->paymentFormLoader->decodeAreas($form);
+        if ($areas === null) {
+            $this->application->setHeader('status', '200', true);
+            $this->application->close();
 
-        return;
-    }
+            return;
+        }
 
-    foreach ($areas as $area) {
+        foreach ($areas as $area) {
+            foreach ($area['elements'] as $element) {
+                if ($element['internalType'] == 'bfPayPal') {
+                    $options = $element['options'];
 
-        foreach ($area['elements'] as $element) {
-            if ($element['internalType'] == 'bfPayPal') {
-
-                $options = $element['options'];
-
-                $auth_token = $options['token'];
-                $paypal = 'https://www.paypal.com';
-                if ($options['testaccount']) {
-                    $paypal = 'https://www.sandbox.paypal.com';
-                    $auth_token = $options['testToken'];
-                }
-
-                $req = 'cmd=_notify-validate';
-
-                $tx_token = $input->getString('txn_id', '0');
-                foreach ($input->post->getArray() as $key => $value) {
-                    if (is_array($value)) {
-                        continue;
+                    $auth_token = $options['token'];
+                    $paypal = 'https://www.paypal.com';
+                    if ($options['testaccount']) {
+                        $paypal = 'https://www.sandbox.paypal.com';
+                        $auth_token = $options['testToken'];
                     }
 
-                    $value = urlencode(stripslashes($value));
-                    $req .= "&$key=$value";
-                }
+                    $req = 'cmd=_notify-validate';
 
-                $verification = $this->requestVerification($paypal, $req);
+                    $tx_token = $input->getString('txn_id', '0');
+                    foreach ($input->post->getArray() as $key => $value) {
+                        if (is_array($value)) {
+                            continue;
+                        }
 
-                if ($verification === 'VERIFIED') {
+                        $value = urlencode(stripslashes($value));
+                        $req .= "&$key=$value";
+                    }
+
+                    $verification = $this->requestVerification($paypal, $req);
 
                     $recordId = $input->getInt('record_id', -1);
-                    $record = $this->paymentRecordService->find($recordId);
 
-                    if ($record !== null && $record->paypal_tx_id === '') {
+                    if ($verification === 'VERIFIED') {
+                        $record = $this->paymentRecordService->find($recordId);
+                        $payment = new PayPalPayment();
+                        $expected = $payment->verify(
+                            (string) $input->post->getString('custom', ''),
+                            $recordId,
+                            (string) $this->application->get('secret')
+                        );
 
+                        // Only a completed payment for this record, of the amount the
+                        // server asked for, is recorded: PayPal also notifies pending
+                        // payments and refunds, and any genuine notification can be
+                        // sent again to another record.
+                        if (
+                            $record !== null
+                            && $record->paypal_tx_id === ''
+                            && $input->post->getString('payment_status', '') === 'Completed'
+                            && $expected !== null
+                            && $payment->matches(
+                                $expected,
+                                $input->post->getString('mc_gross', ''),
+                                $input->post->getString('mc_currency', '')
+                            )
+                        ) {
                             $paypalTxId = 'PayPal: ' . $tx_token . ' (VALID)';
                             $paymentDate = date('Y-m-d H:i:s');
                             $testaccount = $options['testaccount'] ? 1 : 0;
@@ -97,114 +117,108 @@ final class PayPalCallback
 
                             // trigger a script after succeeded payment?
                             if (file_exists(JPATH_SITE . '/bf_paypalipn_success.php')) {
-                                require_once (JPATH_SITE . '/bf_paypalipn_success.php');
+                                require_once(JPATH_SITE . '/bf_paypalipn_success.php');
                             }
 
                             // send mail after succeeded payment?
                             if (isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
-                                bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'admin');
-                                bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'mailback');
+                                bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $recordId, 'admin');
+                                bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $recordId, 'mailback');
                             }
+                        } elseif ($record !== null && $record->paypal_tx_id === '' && $input->post->getString('payment_status', '') === 'Completed') {
+                            Log::add(
+                                'PayPal notification for record ' . $recordId . ' ignored: its amount, currency or signature is not the expected one.',
+                                Log::WARNING,
+                                'com_breezingformsng'
+                            );
                         }
-
-                } else if ($verification === 'INVALID') {
-
-                    $recordId = $input->getInt('record_id', -1);
-                    if ($this->paymentRecordService->find($recordId) !== null) {
-
-                        $paypalTxId = 'PayPal: ' . $tx_token . ' (INVALID)';
-                        $paymentDate = date('Y-m-d H:i:s');
-                        $testaccount = $options['testaccount'] ? 1 : 0;
-                        $this->paymentRecordService->storeTransaction(
-                            $recordId,
-                            $paypalTxId,
-                            $paymentDate,
-                            $testaccount
+                    } elseif ($verification === 'INVALID') {
+                        // Anyone can post a notification that PayPal calls invalid: it
+                        // must not change a record, or block the real payment.
+                        Log::add(
+                            'PayPal notification for record ' . $recordId . ' refused: PayPal does not know it.',
+                            Log::WARNING,
+                            'com_breezingformsng'
                         );
                     }
 
+                    $this->application->setHeader('status', '200', true);
+
+                    break;
                 }
-
-                $this->application->setHeader('status', '200', true);
-
-                break;
             }
         }
-    }
-
     }
 
     public function confirm(): void
     {
-    $input = $this->application->getInput();
-    $form = $this->paymentFormLoader->load($input->getInt('form_id', -1));
-    if ($form === null) {
-        $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_FORM_DOES_NOT_EXIST'));
-        $this->application->close();
+        $input = $this->application->getInput();
+        $form = $this->paymentFormLoader->load($input->getInt('form_id', -1));
+        if ($form === null) {
+            $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_FORM_DOES_NOT_EXIST'));
+            $this->application->close();
 
-        return;
-    }
-
-    $areas = $this->paymentFormLoader->decodeAreas($form);
-    if ($areas === null) {
-        $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_COULD_NOT_FIND_PAYPAL_DATA'));
-        $this->application->close();
-
-        return;
-    }
-
-    foreach ($areas as $area) {
-        $checkPP = true;
-        foreach ($area['elements'] as $element) {
-            if ($element['name'] == 'PayPalSelect' || $element['name'] == 'BfPaymentSelect') {
-                $checkPP = false;
-                break;
-            }
+            return;
         }
-        foreach ($area['elements'] as $element) {
-            if ($element['internalType'] == 'bfPayPal') {
 
-                $options = $element['options'];
+        $areas = $this->paymentFormLoader->decodeAreas($form);
+        if ($areas === null) {
+            $this->redirectHelper->to(Uri::root(), Text::_('COM_BREEZINGFORMSNG_COULD_NOT_FIND_PAYPAL_DATA'));
+            $this->application->close();
 
-                $auth_token = $options['token'];
-                $paypal = 'https://www.paypal.com';
-                if ($options['testaccount']) {
-                    $paypal = 'https://www.sandbox.paypal.com';
-                    $auth_token = $options['testToken'];
-                }
+            return;
+        }
 
-                $req = 'cmd=_notify-synch';
+        foreach ($areas as $area) {
+            foreach ($area['elements'] as $element) {
+                if ($element['internalType'] == 'bfPayPal') {
+                    $options = $element['options'];
 
-                $tx_token = $input->getString('tx', '0');
-                $req .= "&tx=" . urlencode($tx_token) . "&at=" . urlencode($auth_token);
-
-                $lines = explode("\n", $this->requestVerification($paypal, $req));
-                $keyarray = array();
-
-                if (strcmp($lines[0], "SUCCESS") == 0) {
-                    for ($i = 1; $i < count($lines); $i++) {
-                        if ($lines[$i] != "") {
-                            list($key, $val) = explode("=", $lines[$i]);
-                            $keyarray[urldecode($key)] = urldecode($val);
-                        }
+                    $auth_token = $options['token'];
+                    $paypal = 'https://www.paypal.com';
+                    if ($options['testaccount']) {
+                        $paypal = 'https://www.sandbox.paypal.com';
+                        $auth_token = $options['testToken'];
                     }
 
-                    if ($checkPP && (($options['amount'] > 0 && $keyarray['mc_gross'] != (doubleval($options['amount']) + doubleval($options['tax']))) || $keyarray['mc_currency'] != strtoupper($options['currencyCode']))) {
+                    $req = 'cmd=_notify-synch';
 
-                        $success = false;
-                        $msg = Text::_('COM_BREEZINGFORMSNG_PAYMENT_AMOUNT_CURRENCY_INVALID');
-                        require_once (JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
-                    } else {
+                    $tx_token = $input->getString('tx', '0');
+                    $req .= "&tx=" . urlencode($tx_token) . "&at=" . urlencode($auth_token);
 
-                        $recordId = $input->getInt('record_id', -1);
-                        $record = $this->paymentRecordService->find($recordId);
+                    $lines = explode("\n", $this->requestVerification($paypal, $req));
+                    $keyarray = array();
 
-                        if ($record === null) {
+                    if (strcmp($lines[0], "SUCCESS") == 0) {
+                        for ($i = 1; $i < count($lines); $i++) {
+                            if ($lines[$i] != "") {
+                                [$key, $val] = array_pad(explode('=', $lines[$i], 2), 2, '');
+                                $keyarray[urldecode($key)] = urldecode($val);
+                            }
+                        }
+
+                        $payment = new PayPalPayment();
+                        $expected = $payment->verify(
+                            (string) ($keyarray['custom'] ?? ''),
+                            $input->getInt('record_id', -1),
+                            (string) $this->application->get('secret')
+                        );
+
+                        // The amount and currency are the ones the server signed for this
+                        // record, whatever the browser sent to PayPal.
+                        if ($expected === null || !$payment->matches($expected, (string) ($keyarray['mc_gross'] ?? ''), (string) ($keyarray['mc_currency'] ?? ''))) {
                             $success = false;
-                            $msg = Text::_('COM_BREEZINGFORMSNG_PAYMENT_RECORD_NOT_FOUND');
-                            require_once (JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
-                        } elseif ($record->paypal_tx_id === '') {
+                            $msg = Text::_('COM_BREEZINGFORMSNG_PAYMENT_AMOUNT_CURRENCY_INVALID');
+                            require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
+                        } else {
+                            $recordId = $input->getInt('record_id', -1);
+                            $record = $this->paymentRecordService->find($recordId);
 
+                            if ($record === null) {
+                                $success = false;
+                                $msg = Text::_('COM_BREEZINGFORMSNG_PAYMENT_RECORD_NOT_FOUND');
+                                require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
+                            } elseif ($record->paypal_tx_id === '') {
                                 $paypalTxId = 'PayPal: ' . $tx_token;
                                 $paymentDate = date('Y-m-d H:i:s', (int) strtotime($keyarray["payment_date"]));
                                 $testaccount = $options['testaccount'] ? 1 : 0;
@@ -217,7 +231,7 @@ final class PayPalCallback
 
                                 // trigger a script after succeeded payment?
                                 if (file_exists(JPATH_SITE . '/bf_paypal_success.php')) {
-                                    require_once (JPATH_SITE . '/bf_paypal_success.php');
+                                    require_once(JPATH_SITE . '/bf_paypal_success.php');
                                 }
 
                                 // send mail after succeeded payment?
@@ -227,13 +241,11 @@ final class PayPalCallback
                                 }
 
                                 if ($options['downloadableFile']) {
-
                                     $record_id = $input->getInt('record_id', -1);
                                     $tries = $options['downloadTries'];
                                     $form_id = $input->getInt('form_id', -1);
-                                    require_once (JPATH_SITE . '/components/com_breezingformsng/downloadtpl/download.php');
+                                    require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/download.php');
                                 } else {
-
                                     if ($options['thankYouPage'] != '') {
                                         $this->redirectHelper->to($options['thankYouPage']);
                                     } else {
@@ -244,11 +256,10 @@ final class PayPalCallback
                                 $success = true;
                             } else {
                                 if ($options['downloadableFile']) {
-
                                     $record_id = $input->getInt('record_id', -1);
                                     $tries = $options['downloadTries'];
                                     $form_id = $input->getInt('form_id', -1);
-                                    require_once (JPATH_SITE . '/components/com_breezingformsng/downloadtpl/download.php');
+                                    require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/download.php');
                                 } else {
                                     if ($options['useIpn']) {
                                         if ($options['thankYouPage'] != '') {
@@ -259,26 +270,25 @@ final class PayPalCallback
                                     } else {
                                         $success = false;
                                         $msg = Text::_('COM_BREEZINGFORMSNG_PAYMENT_TRANSACTION_ALREADY_PROCESSED');
-                                        require_once (JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
+                                        require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
                                     }
                                 }
                             }
                         }
-                } else if (strcmp($lines[0], "FAIL") == 0) {
-                    $success = false;
-                    $msg = Text::_('COM_BREEZINGFORMSNG_PAYMENT_VERIFICATION_FAILED');
-                    require_once (JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
-                } else {
-                    $success = false;
-                    $msg = Text::_('COM_BREEZINGFORMSNG_PAYMENT_VERIFICATION_EMPTY');
-                    require_once (JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
-                }
+                    } elseif (strcmp($lines[0], "FAIL") == 0) {
+                        $success = false;
+                        $msg = Text::_('COM_BREEZINGFORMSNG_PAYMENT_VERIFICATION_FAILED');
+                        require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
+                    } else {
+                        $success = false;
+                        $msg = Text::_('COM_BREEZINGFORMSNG_PAYMENT_VERIFICATION_EMPTY');
+                        require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
+                    }
 
-                break;
+                    break;
+                }
             }
         }
-    }
-
     }
 
     public function download(): void
