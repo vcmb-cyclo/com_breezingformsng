@@ -98,7 +98,10 @@ test.describe('MCP endpoint', () => {
         expect((await send({ method: 'notifications/initialized' })).status()).toBe(202);
 
         const tools = (await (await send({ id: 2, method: 'tools/list' })).json()).result.tools;
-        expect(tools.map((tool) => tool.name)).toEqual(['bfng_list_forms', 'bfng_get_form']);
+        expect(tools.map((tool) => tool.name)).toEqual([
+            'bfng_list_forms', 'bfng_get_form', 'bfng_check_form', 'bfng_audit_database',
+        ]);
+        expect(tools.every((tool) => tool.annotations.readOnlyHint === true)).toBe(true);
 
         const formId = Number(db('sample-form', 'e2e_mcp'));
         const list = (await (await send({
@@ -121,6 +124,51 @@ test.describe('MCP endpoint', () => {
         expect(form.structuredContent.settings.notification_address_set).toBe(true);
         // The integration key and the notification address stay on the site.
         expect(JSON.stringify(form)).not.toMatch(/secret-key|owner@example/);
+
+        // The check of a consistent form: no issue, and a proposal for the e-mail field.
+        const check = (await (await send({
+            id: 5,
+            method: 'tools/call',
+            params: { name: 'bfng_check_form', arguments: { name: 'e2e_mcp' } },
+        })).json()).result;
+        expect(check.isError).toBe(false);
+        expect(check.structuredContent.summary).toEqual({ elements: 1, errors: 0, warnings: 0, suggestions: 1 });
+        expect(check.structuredContent.suggestions).toEqual([expect.objectContaining({
+            element: 'email', validation: 'ff_validemail',
+        })]);
+        expect(JSON.stringify(check)).not.toMatch(/secret-key|owner@example/);
+
+        const unknown = (await (await send({
+            id: 6,
+            method: 'tools/call',
+            params: { name: 'bfng_check_form', arguments: { name: 'no_such_form' } },
+        })).json()).result;
+        expect(unknown.isError).toBe(true);
+
+        // The audit of the About screen, read only: its counts, no argument.
+        const audit = (await (await send({
+            id: 7,
+            method: 'tools/call',
+            params: { name: 'bfng_audit_database', arguments: {} },
+        })).json()).result;
+        expect(audit.isError).toBe(false);
+        expect(audit.structuredContent.summary.expected_tables).toBeGreaterThan(0);
+        expect(audit.structuredContent.summary.missing_tables).toBe(0);
+        // Each list is cut at 50 items; truncated names the cut ones, the counts stay complete.
+        const { truncated, summary, ...lists } = audit.structuredContent;
+        for (const [name, items] of Object.entries(lists)) {
+            if (Array.isArray(items)) {
+                expect(items.length, name).toBeLessThanOrEqual(50);
+            }
+        }
+        // A cut list is named by its path: "duplicate_forms[].drop" is a list inside the items of another one.
+        for (const name of truncated.filter((path) => !path.includes('['))) {
+            expect(lists[name], name).toHaveLength(50);
+        }
+        expect(summary.column_collation_issues).toBeGreaterThanOrEqual(lists.column_collation_issues.length);
+        expect(JSON.stringify(audit)).not.toMatch(/secret-key|owner@example/);
+        // The report gives identifiers and codes, not the place of the site on the server.
+        expect(JSON.stringify(audit)).not.toMatch(/\/var\/www|\/home\//);
     });
 
     test('legacy protocol batches are accepted but newer protocol batches are rejected', async () => {
