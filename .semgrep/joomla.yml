@@ -56,6 +56,11 @@ rules:
               - pattern: $Q->select($SQL, ...)
               - pattern: $Q->from($SQL, ...)
               - pattern: $Q->join($T, $SQL, ...)
+          # Input::set() writes the request, not an SQL SET clause.
+          - pattern-not: $input->set(...)
+          - pattern-not: $jinput->set(...)
+          - pattern-not: $APP->getInput()->set(...)
+          - pattern-not: $APP->input->set(...)
           - focus-metavariable: $SQL
 
   - id: bfng-input-to-output
@@ -113,6 +118,11 @@ rules:
       instead of PHP superglobals.
     metadata:
       category: security
+    # BFRequest is the JRequest port the legacy form scripts call: it reads the
+    # superglobals by design and filters them with InputFilter.
+    paths:
+      exclude:
+        - "*/plugins/bfcompat/src/Compat/BFRequest.php"
     pattern-either:
       - pattern: $_GET
       - pattern: $_POST

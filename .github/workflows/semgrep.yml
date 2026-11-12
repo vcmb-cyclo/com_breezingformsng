@@ -41,6 +41,9 @@ jobs:
           administrator/components/com_breezingformsng/libraries/crosstec
           administrator/components/com_breezingformsng/tmpl
           administrator/components/com_breezingformsng/layouts
+          administrator/components/com_breezingformsng/modules
+          administrator/components/com_breezingformsng/plugins
+          administrator/components/com_breezingformsng/services
           components/com_breezingformsng
           media/com_breezingformsng/js
           script.php

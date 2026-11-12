@@ -24,6 +24,14 @@ class ExampleModel
         $query->where('a.name = :name')->bind(':name', $name);
         // ok: bfng-input-to-sql
         $query->order($db->quoteName($id));
+
+        $input = $app->getInput();
+        // ok: bfng-input-to-sql
+        $input->set('ff_name', $name);
+        // ok: bfng-input-to-sql
+        $app->getInput()->set('ff_name', $name);
+        // ruleid: bfng-input-to-sql
+        $query->set('name = ' . $name);
     }
 
     public function output($app)
