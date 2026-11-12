@@ -353,14 +353,15 @@ $auditStaleInstallerTempDirs = (array) ($auditReport['stale_installer_temp_dirs'
 $auditCollationIssues = (array) ($auditReport['collation_issues'] ?? array());
 $auditColumnCollationIssues = (array) ($auditReport['column_collation_issues'] ?? array());
 // Orphan references: the stored name of a deleted form (or its id when no
-// name was kept) links to the records list filtered on it, all states.
+// name was kept) links to the records list filtered on it, all states. Atum
+// already marks a target="_blank" link with an icon.
 $orphanLink = static fn (bool $linked, array $group, string $text): string => $linked
     ? '<a href="' . Route::_(
         'index.php?option=com_breezingformsng&view=records&filter[form]='
         . (int) ($group['parent_id'] ?? 0) . '&filter[state]=*'
     ) . '" target="_blank" rel="noopener" title="'
         . htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SHOW_RECORDS'), ENT_QUOTES, 'UTF-8') . '">'
-        . $text . ' <span class="icon-new-tab" aria-hidden="true"></span><span class="visually-hidden">'
+        . $text . '<span class="visually-hidden">'
         . Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SHOW_RECORDS') . '</span></a>'
     : $text;
 $auditCollationHistogram = (array) ($auditReport['collation_histogram'] ?? array());
