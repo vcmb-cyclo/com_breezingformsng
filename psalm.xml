@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!--
+    Psalm taint analysis only (its taint-analysis option, see "composer
+    taint"); PHPStan already checks the types. It follows request data across
+    calls and files up to SQL, HTML, shell, file and eval sinks, which Semgrep
+    OSS does not do and CodeQL does not offer for PHP. Same code, stubs and
+    stubs as phpstan.neon.dist; psalm-bootstrap.php adds the Joomla autoloader.
+-->
+<psalm
+    errorLevel="8"
+    phpVersion="8.3"
+    autoloader="psalm-bootstrap.php"
+    findUnusedBaselineEntry="false"
+    findUnusedCode="false"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+>
+    <projectFiles>
+        <directory name="administrator/components/com_breezingformsng/mailtpl"/>
+        <directory name="administrator/components/com_breezingformsng/modules/mod_breezingforms"/>
+        <directory name="administrator/components/com_breezingformsng/pdftpl"/>
+        <directory name="administrator/components/com_breezingformsng/plugins"/>
+        <directory name="administrator/components/com_breezingformsng/src"/>
+        <directory name="administrator/components/com_breezingformsng/layouts"/>
+        <directory name="administrator/components/com_breezingformsng/tmpl"/>
+        <directory name="components/com_breezingformsng/src"/>
+        <directory name="components/com_breezingformsng/downloadtpl"/>
+        <directory name="components/com_breezingformsng/tmpl"/>
+        <directory name="api/components/com_breezingformsng/src"/>
+        <file name="administrator/components/com_breezingformsng/services/provider.php"/>
+        <file name="script.php"/>
+        <ignoreFiles>
+            <directory name="administrator/components/com_breezingformsng/vendor"/>
+            <directory name="administrator/components/com_breezingformsng/libraries"/>
+            <directory name="components/com_breezingformsng/libraries"/>
+            <directory name="administrator/components/com_breezingformsng/plugins/*/language"/>
+        </ignoreFiles>
+    </projectFiles>
+
+    <extraFiles>
+        <directory name="joomla-stubs/libraries"/>
+        <directory name="phpstan-stubs/contentbuilderng"/>
+        <directory name="phpstan-stubs/joomla"/>
+        <file name="administrator/components/com_breezingformsng/libraries/crosstec/functions/helpers.php"/>
+        <file name="components/com_breezingformsng/breezingformsng.php"/>
+    </extraFiles>
+
+    <stubs>
+        <file name="psalm-stubs/joomla-taint.phpstub"/>
+    </stubs>
+</psalm>
