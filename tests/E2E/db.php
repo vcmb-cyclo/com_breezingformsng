@@ -80,6 +80,11 @@ switch ($argv[1] ?? '') {
             : "id = {$id}";
         echo json_encode($db->query("SELECT id, form, state, paypal_tx_id FROM {$records} WHERE {$where}")->fetch_assoc());
         break;
+    case 'rules-count':
+        // rules-count <package>: the Integrator rules of the forms of a package.
+        $package = $db->real_escape_string($argv[2] ?? '');
+        echo (int) $db->query("SELECT COUNT(*) c FROM {$config->dbprefix}facileforms_integrator_rules r JOIN {$forms} f ON f.id = r.form_id WHERE f.package = '{$package}'")->fetch_assoc()['c'];
+        break;
     case 'records-count':
         // records-count <form id>
         echo (int) $db->query("SELECT COUNT(*) c FROM {$config->dbprefix}facileforms_records WHERE form = {$id}")->fetch_assoc()['c'];

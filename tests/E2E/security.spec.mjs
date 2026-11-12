@@ -374,88 +374,117 @@ test.describe('security, as the site really answers', () => {
     });
 
     test.describe('a package whose references do not hold together', () => {
-        const PACKAGE = 'e2e-integrity';
         const form = (sourceId, name) => ({
             source_id: sourceId,
             data: { name, title: name, published: 1, pages: 1 },
             elements: [],
         });
-        const base = { format: 'breezingformsng-package', version: 3, package: PACKAGE };
+        // The package column holds 30 characters.
+        const packageOf = (kind, parts) => {
+            const name = `e2e-${kind}-${String(Date.now()).slice(-7)}`;
 
-        const importPackage = async (payload) => {
+            return { format: 'breezingformsng-package', version: 3, package: name, ...parts(name) };
+        };
+        const written = (payload) => ({
+            forms: dbJson('forms-count', payload.package).package,
+            rules: Number(db('rules-count', payload.package)),
+        });
+        const DANGER = 'joomla-alert[type="danger"], .alert-danger';
+
+        // As a user sends it: the page reads the file and asks the server for a
+        // preview first, and answers Import once that is done. Its answer to the
+        // preview is part of what is sent, so the import waits for it.
+        const throughThePage = async (payload) => {
             await admin.goto(`${ADMIN}?option=com_breezingformsng&view=packages&layout=import`);
             await admin.setInputFiles('#bf-package-file', {
                 name: 'integrity.json',
                 mimeType: 'application/json',
                 buffer: Buffer.from(JSON.stringify(payload)),
             });
+            await expect(admin.locator('joomla-toolbar-button[task="packages.import"] button')).toBeEnabled({ timeout: 20000 });
             await Promise.all([
                 admin.waitForNavigation(),
                 admin.locator('#bf-package-file').evaluate((input) => input.form.submit()),
             ]);
+
+            return (await admin.locator('joomla-alert').first().innerText()).replace(/\s+/g, ' ');
         };
-        const rejected = async () => {
-            await expect(admin.locator('joomla-alert[type="danger"], .alert-danger')).toContainText('integrity.json');
+
+        // As a script sends it, without the page: the server alone decides.
+        const directly = async (payload) => {
+            await admin.goto(`${ADMIN}?option=com_breezingformsng&view=packages&layout=import`);
+
+            return admin.evaluate(async (json) => {
+                const form = document.getElementById('bf-package-import');
+                const data = new FormData(form);
+                data.set('package_file', new File([json], 'integrity.json', { type: 'application/json' }));
+                const html = await (await fetch(form.action, { method: 'POST', body: data, credentials: 'same-origin' })).text();
+
+                return html.match(/"joomla\.messages":(\[.*?\]),"system\.paths"/s)?.[1] ?? '';
+            }, JSON.stringify(payload));
         };
 
-        test('a consistent package is imported', async () => {
-            const before = dbJson('forms-count', PACKAGE);
-
-            await importPackage({ ...base, forms: [form(1, 'e2e_integrity_ok')] });
-
-            await expect(admin.locator('joomla-alert[type="danger"], .alert-danger')).toHaveCount(0);
-            expect(dbJson('forms-count', PACKAGE).package).toBe(before.package + 1);
-        });
-
-        test('two forms sharing a source id are rejected, and the first is not left behind', async () => {
-            const before = dbJson('forms-count');
-
-            await importPackage({ ...base, package: 'e2e-shared', forms: [form(1, 'e2e_shared_a'), form(1, 'e2e_shared_b')] });
-
-            await rejected();
-            expect(dbJson('forms-count', 'e2e-shared')).toEqual({ ...before, package: 0 });
-        });
-
-        test('Integrator rules of a form the file does not hold are rejected, and the forms are not left behind', async () => {
-            const before = dbJson('forms-count');
-
-            await importPackage({
-                ...base,
-                package: 'e2e-orphan-rules',
-                forms: [form(1, 'e2e_orphan_rules')],
-                integrator: [{ form_source_id: 99, rules: [] }],
-            });
-
-            await rejected();
-            expect(dbJson('forms-count', 'e2e-orphan-rules')).toEqual({ ...before, package: 0 });
-        });
-
-        test('two entries of Integrator rules for one form are rejected, and nothing is left behind', async () => {
-            const before = dbJson('forms-count');
-
-            await importPackage({
-                ...base,
-                package: 'e2e-twice-rules',
-                forms: [form(1, 'e2e_twice_rules')],
+        const inconsistent = {
+            'two forms sharing a source id': (name) => ({ forms: [form(1, `${name}_a`), form(1, `${name}_b`)] }),
+            'two entries of Integrator rules for one form': (name) => ({
+                forms: [form(1, name)],
                 integrator: [{ form_source_id: 1, rules: [] }, { form_source_id: 1, rules: [] }],
-            });
+            }),
+            'a rule that is no rule': (name) => ({ forms: [form(1, name)], integrator: [{ form_source_id: 1, rules: ['not a rule'] }] }),
+        };
 
-            await rejected();
-            expect(dbJson('forms-count', 'e2e-twice-rules')).toEqual({ ...before, package: 0 });
+        test('a consistent package is imported, by the page and by a script', async () => {
+            for (const send of [throughThePage, directly]) {
+                const payload = packageOf('ok', (name) => ({ forms: [form(1, name)] }));
+
+                await send(payload);
+
+                expect(written(payload)).toEqual({ forms: 1, rules: 0 });
+            }
         });
 
-        test('a rule that is no rule is rejected, and nothing is left behind', async () => {
-            const before = dbJson('forms-count');
+        for (const [problem, parts] of Object.entries(inconsistent)) {
+            test(`${problem}: rejected by the page, and nothing is left behind`, async () => {
+                const payload = packageOf('bad', parts);
+                const before = dbJson('forms-count').all;
 
-            await importPackage({
-                ...base,
-                package: 'e2e-bad-rule',
-                forms: [form(1, 'e2e_bad_rule')],
-                integrator: [{ form_source_id: 1, rules: ['not a rule'] }],
+                const message = await throughThePage(payload);
+
+                expect(message).toContain("The file 'integrity.json' is not a valid BFNG package.");
+                expect(written(payload)).toEqual({ forms: 0, rules: 0 });
+                expect(dbJson('forms-count').all).toBe(before);
             });
+        }
 
-            await rejected();
-            expect(dbJson('forms-count', 'e2e-bad-rule')).toEqual({ ...before, package: 0 });
+        for (const [problem, parts] of Object.entries({
+            ...inconsistent,
+            'Integrator rules of a form the file does not hold': (name) => ({
+                forms: [form(1, name)],
+                integrator: [{ form_source_id: 99, rules: [] }],
+            }),
+        })) {
+            test(`${problem}: rejected by the server alone, and nothing is left behind`, async () => {
+                const payload = packageOf('bad', parts);
+                const before = dbJson('forms-count').all;
+
+                const messages = await directly(payload);
+
+                expect(messages).toContain("The file 'integrity.json' is not a valid BFNG package.");
+                expect(written(payload)).toEqual({ forms: 0, rules: 0 });
+                expect(dbJson('forms-count').all).toBe(before);
+            });
+        }
+
+        // The page lets the user import part of a file: Integrator rules of a form that is
+        // not chosen are skipped. Rules of a form the file does not hold look the same, so
+        // through the page the form is imported and the rules, which cannot be used, are not.
+        test('through the page, Integrator rules of a form the file does not hold are skipped, not written', async () => {
+            const payload = packageOf('orp', (name) => ({ forms: [form(1, name)], integrator: [{ form_source_id: 99, rules: [] }] }));
+
+            const message = await throughThePage(payload);
+
+            expect(message).toContain('has been imported');
+            expect(written(payload)).toEqual({ forms: 1, rules: 0 });
         });
     });
 });
