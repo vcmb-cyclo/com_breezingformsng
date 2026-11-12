@@ -24,7 +24,7 @@ Reste à faire, par priorité :
   Au retour Stripe et dans le webhook, comparer ces valeurs à la session ou au paiement
   confirmé avant d'enregistrer la transaction, d'envoyer des notifications ou d'ouvrir
   les téléchargements. Appliquer la même vérification au retour PayPal, notamment quand
-  un élément de sélection désactive aujourd'hui le contrôle montant/devise.
+  un élément de sélection désactive le contrôle montant/devise.
 - Garder les clés secrètes Stripe et les secrets de webhook côté serveur, hors du JSON
   transmis à l'éditeur et des champs HTML. Migrer les formulaires existants sans perdre
   leurs clés ; adapter sauvegarde et import/export des packages. Définir le retour arrière
@@ -50,8 +50,6 @@ Reste à faire, par priorité :
 - Un test vérifie que chaque asset de `joomla.asset.json` pointe vers un fichier existant :
   sans `media/`, Joomla n'écrit aucune balise `<script>` et rien ne le signale.
 - Les erreurs Stripe affichent leur cause aux administrateurs.
-- Supprimer la source des avertissements PHP des anciens éléments dans `QuickmodeModel::save()`
-  (`password`, `mailback`, `mailbackAsSender`, `logging`), aujourd'hui seulement journalisés.
 
 ### 4. Unifier les écrans
 
@@ -99,7 +97,7 @@ La clôture du chantier dépend des vérifications et corrections suivantes :
 
 - [ ] Tester l’installation et les parcours principaux sur Joomla 6 avec le
   plugin **Joomla Backward Compatibility désactivé**. Le README ne revendique
-  actuellement qu’un essai avec ce plugin activé ; le plugin `bfcompat` fourni
+  qu’un essai avec ce plugin activé ; le plugin `bfcompat` fourni
   par BreezingForms NG est distinct.
   Depuis le 2026-10-29, `scripts/joomla-install-smoke.sh` désactive
   `plg_behaviour_compat6` avant l’installation : installation, mise à jour,
@@ -107,7 +105,7 @@ La clôture du chantier dépend des vérifications et corrections suivantes :
   rendu du site passent sans lui. Restent les écrans d’administration.
 - [ ] Tester une mise à niveau depuis une version antérieure avec des formulaires
   et enregistrements existants. `scripts/joomla-install-smoke.sh` réinstalle
-  actuellement la même archive et vérifie la conservation d’un enregistrement.
+  la même archive et vérifie la conservation d’un enregistrement.
 - [ ] Exécuter la recette ContentBuilder complète : matrice ACL et export d’un
   enregistrement. Le parcours ContentBuilder du smoke test est optionnel et
   n’est pas activé par le workflow CI courant.
