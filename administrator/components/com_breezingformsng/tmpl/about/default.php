@@ -527,7 +527,7 @@ HTMLHelper::_('bootstrap.collapse');
 
             <?php if ($this->auditError !== '') : ?>
                 <div class="alert alert-danger" role="alert">
-                    <?php echo htmlspecialchars($this->auditError, ENT_QUOTES, 'UTF-8'); ?>
+                    <?php echo $this->auditError; ?>
                 </div>
             <?php endif; ?>
 

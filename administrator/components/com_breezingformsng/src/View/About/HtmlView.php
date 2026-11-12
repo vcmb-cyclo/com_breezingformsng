@@ -30,7 +30,7 @@ class HtmlView extends BaseHtmlView
     /** @var array<mixed> */
     public array $auditReport = [];
 
-    /** Error of the last repair, shown in the audit section. */
+    /** Error of the last repair, shown in the audit section: HTML, escaped by the controller. */
     public string $auditError = '';
     public bool $canRepair = false;
 
