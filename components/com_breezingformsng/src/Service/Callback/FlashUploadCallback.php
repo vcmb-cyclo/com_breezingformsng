@@ -19,6 +19,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\Database\ParameterType;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Filesystem\File;
+use Joomla\Input\Input;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\TemporaryUploadDirectory;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FlashChunkAssembler;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FlashUploadSizeValidator;
@@ -49,7 +50,7 @@ final class FlashUploadCallback
         $this->application->sendHeaders();
     $input = $this->application->getInput();
     $uploadedFile = $input->files->get('Filedata', [], 'array');
-    if (is_numeric($input->getString('form', '')) && $uploadedFile !== [] && $input->getString('bfFlashUploadTicket', '') != '') {
+    if (is_numeric($input->getString('form', '')) && $uploadedFile !== [] && $this->isUploadTarget($input)) {
 
         $formId = $input->getInt('form', -1);
         $itemName = $input->getString('itemName', '');
@@ -110,6 +111,21 @@ final class FlashUploadCallback
         }
     }
     $this->application->close();
+    }
+
+    /**
+     * The ticket and the element name go into file names: the ticket must be
+     * one the form renderer issued to this session (32 hex digits), the
+     * element name must hold no path.
+     */
+    private function isUploadTarget(Input $input): bool
+    {
+        $ticket = $input->getString('bfFlashUploadTicket', '');
+        $tickets = (array) $this->application->getSession()->get('bfFlashUploadTickets', []);
+
+        return preg_match('/^[0-9a-f]{32}$/', $ticket) === 1
+            && array_key_exists($ticket, $tickets)
+            && preg_match('#[/\\\\\x00]|\.\.#', $input->getString('itemName', '')) !== 1;
     }
 
     private function chunkAssembler(): FlashChunkAssembler
