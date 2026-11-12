@@ -20,6 +20,8 @@ use Joomla\Database\DatabaseInterface;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\LegacyConversionModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\LegacyFormConversionException;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
@@ -321,6 +323,57 @@ class FormsController extends AdminController
             $this->setMessage(Text::_($this->text_prefix . '_NO_ITEM_SELECTED'), 'warning');
         } else {
             $this->setMessage(Text::plural('COM_BREEZINGFORMSNG_FORMS_N_COPIED', $this->getFormModel()->copy($ids)));
+        }
+
+        $this->setRedirect(Route::_(self::LIST_URL, false));
+    }
+
+    public function convertLegacy(): void
+    {
+        $this->checkToken();
+
+        $user = $this->app->getIdentity();
+        if (!$user || !$user->authorise('core.create', 'com_breezingformsng')
+            || !$user->authorise('core.edit', 'com_breezingformsng')) {
+            throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+        }
+
+        $ids = array_values(array_unique(array_filter(ArrayHelper::toInteger((array) $this->input->post->get('cid', [], 'array')))));
+
+        if (count($ids) !== 1 || $ids[0] <= 0) {
+            $this->setMessage(Text::_('COM_BREEZINGFORMSNG_FORMS_CONVERT_SELECT_ONE'), 'warning');
+            $this->setRedirect(Route::_(self::LIST_URL, false));
+            return;
+        }
+
+        try {
+            $model = $this->factory->createModel('LegacyConversion', 'Administrator', ['ignore_request' => true]);
+            if (!$model instanceof LegacyConversionModel) {
+                throw new \RuntimeException('Could not create conversion model');
+            }
+            $model->convert($ids[0]);
+            $this->setMessage(Text::_('COM_BREEZINGFORMSNG_FORMS_CONVERT_SUCCESS'));
+        } catch (\DomainException $exception) {
+            $key = match ($exception->getMessage()) {
+                'unsupported_type' => 'COM_BREEZINGFORMSNG_FORMS_CONVERT_UNSUPPORTED_TYPE',
+                'unsupported_scripts' => 'COM_BREEZINGFORMSNG_FORMS_CONVERT_UNSUPPORTED_SCRIPTS',
+                'invalid_element' => 'COM_BREEZINGFORMSNG_FORMS_CONVERT_INVALID_ELEMENT',
+                'invalid_form' => 'COM_BREEZINGFORMSNG_FORMS_CONVERT_INVALID_FORM',
+                'unsupported_templates' => 'COM_BREEZINGFORMSNG_FORMS_CONVERT_UNSUPPORTED_TEMPLATES',
+                default => 'COM_BREEZINGFORMSNG_FORMS_CONVERT_UNSUPPORTED_OPTIONS',
+            };
+            $message = Text::_($key);
+            if ($exception instanceof LegacyFormConversionException) {
+                $message .= ' ' . Text::sprintf(
+                    'COM_BREEZINGFORMSNG_FORMS_CONVERT_ELEMENT_DETAIL',
+                    htmlspecialchars($exception->elementName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                    htmlspecialchars($exception->elementType, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                    $exception->elementId
+                );
+            }
+            $this->setMessage($message, 'warning');
+        } catch (\Throwable) {
+            $this->setMessage(Text::_('COM_BREEZINGFORMSNG_FORMS_CONVERT_FAILED'), 'error');
         }
 
         $this->setRedirect(Route::_(self::LIST_URL, false));

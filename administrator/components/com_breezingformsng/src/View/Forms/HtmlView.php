@@ -160,6 +160,10 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
 
             ToolbarHelper::addNew('forms.edit');
             ToolbarHelper::custom('forms.copy', 'copy', '', 'JLIB_HTML_BATCH_COPY', true);
+            if ($this->getCurrentUser()->authorise('core.create', 'com_breezingformsng')
+                && $this->getCurrentUser()->authorise('core.edit', 'com_breezingformsng')) {
+                ToolbarHelper::custom('forms.convertLegacy', 'copy', '', 'COM_BREEZINGFORMSNG_FORMS_CONVERT_LEGACY', true);
+            }
             ToolbarHelper::publish('forms.publish', 'JTOOLBAR_PUBLISH', true);
             ToolbarHelper::unpublish('forms.unpublish', 'JTOOLBAR_UNPUBLISH', true);
             ToolbarHelper::checkin('forms.checkin');

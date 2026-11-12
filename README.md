@@ -101,8 +101,24 @@ BreezingForms NG installs over a legacy `com_breezingforms` site and keeps your 
   rewrites `option=com_breezingforms` in stored URLs and code;
 - the `bfcompat` system plugin keeps the legacy `BF*` classes available to PHP code stored in your forms.
 
-Before upgrading, back up the database. Only Joomla 6 is supported. Easy Mode and Classic Mode
-forms must be rebuilt in QuickMode. Afterwards, retest captchas, uploads, payments and exports.
+Before upgrading, back up the database and work on a copy of the site. Only Joomla 6 is supported.
+
+### Converting Easy Mode and Classic Mode forms
+
+In **Components → BreezingForms NG → Forms**, select one legacy form and choose
+**Convert to QuickMode**. The converter creates a separate, unpublished QuickMode form;
+it does not replace the original or move its submissions. The copy has a new form name,
+ID and element IDs, so existing links and integrations still refer to the original.
+
+The converter supports text fields, text areas, checkboxes, hidden inputs and simple select
+lists. Unsupported element types, scripts, integrations, form-specific mail or PDF templates,
+and ambiguous settings stop conversion with a warning identifying the affected element when
+available. Those cases need manual rebuilding. Conversion requires transactional InnoDB form
+and element tables, and permission to create and edit forms.
+
+Review the copy's content, layout, fields, notifications and behaviour before publishing it:
+legacy positioning and static content are not automatically reconstructed. Update links only
+after testing the copy. Retest captchas, uploads, payments and exports after migration.
 Developers can read [`MIGRATION.md`](MIGRATION.md) for the refactoring details.
 
 ---

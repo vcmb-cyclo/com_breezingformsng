@@ -13,6 +13,14 @@ Forms whose persisted marker is not `QuickMode` are not supported by this port.
 Frontend rendering now stops with a translated warning for those legacy form
 formats.
 
+The forms list offers an explicit conversion for a limited subset of legacy
+forms. It creates an unpublished QuickMode copy in `QuickModeForms`, with new
+element IDs; the original form and its submissions remain separate. Text,
+textarea, checkbox, hidden input and simple select-list elements are supported.
+Unsupported elements, scripts, integrations and form-specific mail/PDF files
+block conversion. Layout and static content require manual review. Conversion
+uses transactions and requires InnoDB form and element tables.
+
 ## Current Admin Routing
 
 Known QuickMode URLs:
