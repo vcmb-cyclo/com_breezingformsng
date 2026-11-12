@@ -19,13 +19,13 @@ use Joomla\Database\ParameterType;
 final class AuditUserNames
 {
     /**
-     * Usernames take precedence over numeric IDs. Deleted users and historical
-     * free text retain their stored value.
+     * Exact usernames take precedence. Numeric values are treated as user IDs
+     * only when the caller knows its field stores IDs.
      *
      * @param list<string> $values
      * @return array<string, string>
      */
-    public static function resolve(DatabaseInterface $db, array $values): array
+    public static function resolve(DatabaseInterface $db, array $values, bool $numericValuesAreIds = false): array
     {
         $values = array_values(array_unique(array_filter($values, static fn (string $value): bool => $value !== '')));
         $result = array_combine($values, $values);
@@ -44,6 +44,10 @@ final class AuditUserNames
         foreach ($values as $value) {
             if (isset($names[$value])) {
                 $result[$value] = (string) $names[$value]['name'];
+                continue;
+            }
+
+            if (!$numericValuesAreIds) {
                 continue;
             }
 

@@ -22,9 +22,23 @@ final class AuditUserNamesTest extends TestCase
         self::assertSame('Alice <Admin>', $names['admin']);
         // Numeric username takes precedence over a different account with ID 42.
         self::assertSame('Numeric login', $names['42']);
-        self::assertSame('By ID', $names['17']);
+        self::assertSame('17', $names['17']);
         self::assertSame('999', $names['999']);
         self::assertSame('ancien', $names['ancien']);
+        self::assertSame(1, $db->queries);
+    }
+
+    #[RunInSeparateProcess]
+    public function testResolvesNumericIdsOnlyWhenCallerDeclaresIdStorage(): void
+    {
+        class_alias(AuditDatabaseInterface::class, 'Joomla\\Database\\DatabaseInterface');
+        class_alias(AuditParameterType::class, 'Joomla\\Database\\ParameterType');
+        $db = new AuditDatabase();
+
+        $names = AuditUserNames::resolve($db, ['17', '999'], true);
+
+        self::assertSame('By ID', $names['17']);
+        self::assertSame('999', $names['999']);
         self::assertSame(2, $db->queries);
     }
 

@@ -83,8 +83,8 @@ $action = Route::_('index.php?option=com_breezingformsng&view=piece&layout=edit&
     </div>
   </fieldset>
 
-  <?php if ($saved): ?>
-    <?= LayoutHelper::render('audit.accordion', [
+  <?php if ($saved) : ?>
+        <?= LayoutHelper::render('audit.accordion', [
         'id' => 'bf-piece-audit',
         'created' => $this->item->created ?? null,
         'createdBy' => $this->auditCreatedBy,

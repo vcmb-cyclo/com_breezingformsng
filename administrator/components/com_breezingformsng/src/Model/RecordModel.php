@@ -69,7 +69,7 @@ class RecordModel extends AdminModel
         // name of the Joomla account while it exists.
         $modifiedBy = (string) $item->modified_by;
         $item->modified_by_name = $this->getUserName((int) $item->modified_user_id)
-            ?? (AuditUserNames::resolve($db, [$modifiedBy])[$modifiedBy] ?? $modifiedBy);
+            ?? (AuditUserNames::resolve($db, [$modifiedBy], true)[$modifiedBy] ?? $modifiedBy);
         $item->checked_out_name = $this->getUserName((int) $item->checked_out) ?? '';
         $item->{self::ELEMENT_GROUP} = [];
 

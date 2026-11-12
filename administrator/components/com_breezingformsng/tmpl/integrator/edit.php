@@ -412,13 +412,15 @@ $fakeName = static fn(string $n): bool => \in_array($n, ['bfFakeName', 'bfFakeNa
   </div>
 </div>
 
-<?= LayoutHelper::render('audit.accordion', [
-    'id' => 'bf-integrator-audit',
-    'created' => $rule->created ?? null,
-    'createdBy' => $this->auditCreatedBy,
-    'modified' => $rule->modified ?? null,
-    'modifiedBy' => $this->auditModifiedBy,
-    'timezone' => $this->timezone,
-], JPATH_ADMINISTRATOR . '/components/com_breezingformsng/layouts'); ?>
+    <?php
+    echo LayoutHelper::render('audit.accordion', [
+        'id' => 'bf-integrator-audit',
+        'created' => $rule->created ?? null,
+        'createdBy' => $this->auditCreatedBy,
+        'modified' => $rule->modified ?? null,
+        'modifiedBy' => $this->auditModifiedBy,
+        'timezone' => $this->timezone,
+    ], JPATH_ADMINISTRATOR . '/components/com_breezingformsng/layouts');
+    ?>
 
 <?php endif; /* rule !== null */ ?>

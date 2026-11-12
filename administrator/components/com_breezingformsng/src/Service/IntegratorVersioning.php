@@ -61,8 +61,47 @@ final class IntegratorVersioning
             return;
         }
 
-        if (!Versioning::store(self::TYPE_ALIAS, $ruleId, $data, mb_substr($note, 0, 255))) {
-            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
+        $itemId = self::TYPE_ALIAS . '.' . $ruleId;
+        $this->db->transactionStart(true);
+
+        try {
+            if (!Versioning::store(self::TYPE_ALIAS, $ruleId, $data, mb_substr($note, 0, 255))) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
+            }
+
+            $versionId = (int) $this->db->setQuery(
+                $this->db->createQuery()
+                    ->select('MAX(' . $this->db->quoteName('version_id') . ')')
+                    ->from($this->db->quoteName('#__history'))
+                    ->where($this->db->quoteName('item_id') . ' = :itemId')
+                    ->bind(':itemId', $itemId, ParameterType::STRING)
+            )->loadResult();
+
+            if ($versionId <= 0) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
+            }
+
+            $this->db->setQuery(
+                $this->db->createQuery()
+                    ->update($this->db->quoteName('#__history'))
+                    ->set($this->db->quoteName('is_current') . ' = 0')
+                    ->where($this->db->quoteName('item_id') . ' = :itemId')
+                    ->bind(':itemId', $itemId, ParameterType::STRING)
+            )->execute();
+
+            $this->db->setQuery(
+                $this->db->createQuery()
+                    ->update($this->db->quoteName('#__history'))
+                    ->set($this->db->quoteName('is_current') . ' = 1')
+                    ->where($this->db->quoteName('version_id') . ' = :versionId')
+                    ->bind(':versionId', $versionId, ParameterType::INTEGER)
+            )->execute();
+
+            $this->db->transactionCommit(true);
+        } catch (\Throwable $exception) {
+            $this->db->transactionRollback(true);
+
+            throw $exception;
         }
     }
 

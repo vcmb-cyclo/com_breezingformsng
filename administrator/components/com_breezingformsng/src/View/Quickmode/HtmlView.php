@@ -114,7 +114,7 @@ class HtmlView extends BaseHtmlView
             $this->auditModified = $options->modified !== null ? (string) $options->modified : null;
             $createdBy = (string) $options->created_by;
             $modifiedBy = (string) $options->modified_by;
-            $names = AuditUserNames::resolve(Factory::getContainer()->get(DatabaseInterface::class), [$createdBy, $modifiedBy]);
+            $names = AuditUserNames::resolve(Factory::getContainer()->get(DatabaseInterface::class), [$createdBy, $modifiedBy], true);
             $this->auditCreatedBy = $names[$createdBy] ?? $createdBy;
             $this->auditModifiedBy = $names[$modifiedBy] ?? $modifiedBy;
         }
