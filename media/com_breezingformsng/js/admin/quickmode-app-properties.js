@@ -775,6 +775,8 @@ import { JoomlaEditor } from 'editor-api';
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeCalendarResponsiveHintTrans').val();
 
             mdata.hideLabel = JQuery('#bfElementCalendarResponsiveAdvancedHideLabel').prop('checked');
+            mdata.logging = JQuery('#bfElementCalendarResponsiveAdvancedLogging').prop('checked');
+            mdata.orderNumber = JQuery('#bfElementCalendarResponsiveAdvancedOrderNumber').val();
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
 
@@ -804,6 +806,8 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeCalendarResponsiveHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementCalendarResponsiveAdvancedHideLabel').prop('checked', mdata.hideLabel);
+            JQuery('#bfElementCalendarResponsiveAdvancedLogging').prop('checked', mdata.logging);
+            JQuery('#bfElementCalendarResponsiveAdvancedOrderNumber').val(mdata.orderNumber);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
 
@@ -835,6 +839,8 @@ import { JoomlaEditor } from 'editor-api';
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeCalendarHintTrans').val();
 
             mdata.hideLabel = JQuery('#bfElementCalendarAdvancedHideLabel').prop('checked');
+            mdata.logging = JQuery('#bfElementCalendarAdvancedLogging').prop('checked');
+            mdata.orderNumber = JQuery('#bfElementCalendarAdvancedOrderNumber').val();
             // static properties
             mdata.bfName = JQuery('#bfElementName').val();
 
@@ -874,6 +880,8 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeCalendarHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
 
             JQuery('#bfElementCalendarAdvancedHideLabel').prop('checked', mdata.hideLabel);
+            JQuery('#bfElementCalendarAdvancedLogging').prop('checked', mdata.logging);
+            JQuery('#bfElementCalendarAdvancedOrderNumber').val(mdata.orderNumber);
             // static properties
             JQuery('#bfElementName').val(mdata.bfName);
 
