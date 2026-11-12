@@ -7,6 +7,14 @@ function bfSetToggleIcon(link, state, stateType) {
 		? (state ? 'fa-solid fa-bug' : 'fa-solid fa-bug text-muted')
 		: (state ? 'icon-publish' : 'icon-unpublish');
 	link.classList.toggle('active', Boolean(state));
+
+	if (stateType === 'debug') {
+		const audit = document.getElementById('bf-form-audit');
+
+		if (audit) {
+			audit.hidden = !state;
+		}
+	}
 	link.title = stateType === 'debug'
 		? Joomla.Text._(state ? 'COM_BREEZINGFORMSNG_DEBUG_MODE_ENABLED' : 'COM_BREEZINGFORMSNG_DEBUG_MODE_DISABLED')
 		: Joomla.Text._(state ? 'JPUBLISHED' : 'JUNPUBLISHED');

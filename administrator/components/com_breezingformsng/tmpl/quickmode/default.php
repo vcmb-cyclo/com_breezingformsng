@@ -8,6 +8,7 @@
 \defined('_JEXEC') or die;
 
 /** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Quickmode\HtmlView $this */
+use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Uri\Uri;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\QuickmodeHtml;
 
@@ -91,3 +92,16 @@ echo QuickmodeHtml::showApplication(
         'pieceEndSubmit' => $this->advancedOptionsPieceEndSubmit,
     ]
 );
+
+if ($this->formId > 0) {
+    // Shown for a form in debug mode; the debug toggle shows and hides it.
+    echo LayoutHelper::render('audit.accordion', [
+        'id' => 'bf-form-audit',
+        'created' => $this->auditCreated,
+        'createdBy' => $this->auditCreatedBy,
+        'modified' => $this->auditModified,
+        'modifiedBy' => $this->auditModifiedBy,
+        'timezone' => $this->timezone,
+        'hidden' => !$debugMode,
+    ], JPATH_ADMINISTRATOR . '/components/com_breezingformsng/layouts');
+}

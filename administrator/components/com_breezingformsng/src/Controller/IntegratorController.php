@@ -10,7 +10,11 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Table\ContentHistory;
+use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\IntegratorModel;
@@ -78,6 +82,29 @@ class IntegratorController extends BaseController
         $this->setRedirect($this->editUrl($id));
     }
 
+    /**
+     * Restores a version of the rule, its items and criteria included.
+     */
+    public function loadhistory(): void
+    {
+        $this->checkToken('get');
+
+        $versions = $this->getIntegratorModel()->versions();
+
+        try {
+            $versionId = $this->app->getInput()->getInt('version_id', 0);
+            $ruleId = $versions->restore($versionId);
+            $this->getIntegratorModel()->touchRule($ruleId);
+            $history = new ContentHistory(Factory::getContainer()->get(DatabaseInterface::class));
+            $history->load($versionId);
+            $this->setMessage(Text::sprintf('JLIB_APPLICATION_SUCCESS_LOAD_HISTORY', (string) $history->save_date));
+            $this->setRedirect(Route::_($this->editUrl($ruleId), false));
+        } catch (\Throwable $e) {
+            $this->setMessage($e->getMessage(), 'error');
+            $this->setRedirect(Route::_($this->listUrl(), false));
+        }
+    }
+
     public function remove(): void
     {
         $this->checkToken();
@@ -141,6 +168,7 @@ class IntegratorController extends BaseController
         $input  = $this->app->getInput();
         $ruleId = $input->getInt('id', 0);
         $this->getIntegratorModel()->removeItem($input->getInt('itemId', 0));
+        $this->getIntegratorModel()->touchRule($ruleId);
         $this->setRedirect($this->editUrl($ruleId));
     }
 
@@ -191,6 +219,7 @@ class IntegratorController extends BaseController
         $input  = $this->app->getInput();
         $ruleId = $input->getInt('id', 0);
         $this->getIntegratorModel()->removeCriteria($input->getInt('criteriaId', 0));
+        $this->getIntegratorModel()->touchRule($ruleId);
         $this->setRedirect($this->editUrl($ruleId));
     }
 
@@ -216,6 +245,7 @@ class IntegratorController extends BaseController
         $input  = $this->app->getInput();
         $ruleId = $input->getInt('id', 0);
         $this->getIntegratorModel()->removeCriteriaJoomla($input->getInt('criteriaId', 0));
+        $this->getIntegratorModel()->touchRule($ruleId);
         $this->setRedirect($this->editUrl($ruleId));
     }
 
@@ -241,6 +271,7 @@ class IntegratorController extends BaseController
         $input  = $this->app->getInput();
         $ruleId = $input->getInt('id', 0);
         $this->getIntegratorModel()->removeCriteriaFixed($input->getInt('criteriaId', 0));
+        $this->getIntegratorModel()->touchRule($ruleId);
         $this->setRedirect($this->editUrl($ruleId));
     }
 
@@ -250,6 +281,7 @@ class IntegratorController extends BaseController
         $input  = $this->app->getInput();
         $ruleId = $input->getInt('id', 0);
         $this->getIntegratorModel()->publishItem($input->getInt('publish_id', 0), 1);
+        $this->getIntegratorModel()->touchRule($ruleId);
         $this->setRedirect($this->editUrl($ruleId));
     }
 
@@ -259,6 +291,7 @@ class IntegratorController extends BaseController
         $input  = $this->app->getInput();
         $ruleId = $input->getInt('id', 0);
         $this->getIntegratorModel()->publishItem($input->getInt('publish_id', 0), 0);
+        $this->getIntegratorModel()->touchRule($ruleId);
         $this->setRedirect($this->editUrl($ruleId));
     }
 

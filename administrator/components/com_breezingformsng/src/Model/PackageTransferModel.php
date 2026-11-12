@@ -48,6 +48,9 @@ final class PackageTransferModel extends BaseDatabaseModel
         ],
     ];
 
+    /** Audit columns of an Integrator rule: stamped on import, never exported. */
+    private const RULE_AUDIT_COLUMNS = ['created', 'created_by', 'modified', 'modified_by'];
+
     /** Integrator tables holding the rows of a rule, with their column naming an element. */
     private const INTEGRATOR_CHILDREN = [
         'items' => ['#__facileforms_integrator_items', 'element_id'],
@@ -763,7 +766,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             if (!is_array($rule) || !is_array($rule['data'] ?? null)) {
                 return null;
             }
-            $entry = ['data' => $this->plainValues($this->only($rule['data'], $ruleColumns, ['id', 'form_id']))];
+            $entry = ['data' => $this->plainValues($this->only($rule['data'], $ruleColumns, ['id', 'form_id', ...self::RULE_AUDIT_COLUMNS]))];
             foreach (self::INTEGRATOR_CHILDREN as $key => [$table, $elementColumn]) {
                 $entry[$key] = [];
                 $columns = $this->tableColumns($table);
@@ -1690,7 +1693,7 @@ final class PackageTransferModel extends BaseDatabaseModel
 
         foreach ($ruleRows as $rule) {
             $ruleId = (int) $rule['id'];
-            $entry = ['data' => $this->without($rule, ['id', 'form_id'])];
+            $entry = ['data' => $this->without($rule, ['id', 'form_id', ...self::RULE_AUDIT_COLUMNS])];
             foreach (self::INTEGRATOR_CHILDREN as $key => [, $elementColumn]) {
                 $entry[$key] = [];
                 foreach ($children[$key][$ruleId] ?? [] as $row) {
@@ -1751,9 +1754,12 @@ final class PackageTransferModel extends BaseDatabaseModel
                 if (!is_array($rule) || !is_array($rule['data'] ?? null)) {
                     throw new InvalidPackageException();
                 }
-                $data = $this->only($rule['data'], $ruleColumns, ['id', 'form_id']);
+                $data = $this->only($rule['data'], $ruleColumns, ['id', 'form_id', ...self::RULE_AUDIT_COLUMNS]);
                 $data['form_id'] = $form['id'];
-                $object = (object) $data;
+                // The audit columns are stamped here, never taken from a file.
+                $data['created'] = $data['modified'] = (new Date())->toSql();
+                $data['created_by'] = $data['modified_by'] = (string) $this->getCurrentUser()->username;
+                $object = (object) $this->only($data, $ruleColumns);
                 $db->insertObject('#__facileforms_integrator_rules', $object, 'id');
                 $ruleId = (int) $db->insertid();
                 $this->importSummary['items']['rules'][] = ['id' => $ruleId, 'name' => (string) ($data['name'] ?? ''), 'form' => $form['name']];

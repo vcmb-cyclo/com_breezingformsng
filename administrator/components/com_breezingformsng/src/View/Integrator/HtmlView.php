@@ -14,16 +14,21 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Integrator;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Pagination\Pagination;
+use Joomla\Database\DatabaseInterface;
 use Joomla\Registry\Registry;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\IntegratorModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\IntegratorRulesModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AuditUserNames;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\IntegratorVersioning;
 
 class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView
 {
@@ -52,6 +57,9 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
     /** @var list<\stdClass> */
     public array $criteriaFixed    = [];
     public string $formFilter  = 'all';
+    public string $auditCreatedBy = '';
+    public string $auditModifiedBy = '';
+    public \DateTimeZone $timezone;
     public function display($tpl = null): void
     {
         AreaAccess::assert($this->getCurrentUser(), AreaAccess::CODE);
@@ -146,6 +154,15 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         $this->tableNames  = $model->getTableNames();
 
         if ($this->rule !== null) {
+            $model->versions()->keepOrigin($id);
+            $createdBy  = (string) ($this->rule->created_by ?? '');
+            $modifiedBy = (string) ($this->rule->modified_by ?? '');
+            $names      = AuditUserNames::resolve(Factory::getContainer()->get(DatabaseInterface::class), [$createdBy, $modifiedBy]);
+            $this->auditCreatedBy  = $names[$createdBy] ?? $createdBy;
+            $this->auditModifiedBy = $names[$modifiedBy] ?? $modifiedBy;
+            $this->timezone        = $this->getCurrentUser()->getTimezone();
+            HTMLHelper::_('bootstrap.collapse');
+            $this->getDocument()->getWebAssetManager()->useStyle('com_breezingformsng.admin-style');
             $this->items          = $model->getItems($id);
             $this->tableColumns   = $model->getTableColumns($this->rule->reference_table);
             $this->formElements   = $model->getFormElements((int) $this->rule->form_id);
@@ -164,6 +181,10 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             $document = $this->getDocument();
             $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
             $this->addItemPagination($toolbar, 'IntegratorRules', $id, 'integrator.navigate');
+
+            if (FormVersioning::isEnabled()) {
+                $toolbar->versions(IntegratorVersioning::TYPE_ALIAS, $id);
+            }
         }
     }
 
