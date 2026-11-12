@@ -1,0 +1,94 @@
+<?php
+
+// Taint annotations for Psalm on the Joomla APIs BreezingForms NG uses.
+// Psalm only knows the superglobals as sources and PDO/mysqli as SQL sinks:
+// without these, request data read through Joomla\Input reaching
+// DatabaseDriver::setQuery() would go unreported.
+
+namespace Joomla\Input {
+    class Input
+    {
+        /**
+         * The default filter is cmd, but a caller may ask for raw or string.
+         *
+         * @psalm-taint-source input
+         */
+        public function get($name, $default = null, $filter = 'cmd') {}
+
+        /** @psalm-taint-source input */
+        public function getString($name, $default = null) {}
+
+        /** @psalm-taint-source input */
+        public function getRaw($name, $default = null) {}
+
+        /** @psalm-taint-source input */
+        public function getHtml($name, $default = null) {}
+
+        /** @psalm-taint-source input */
+        public function getPath($name, $default = null) {}
+
+        /** @psalm-taint-source input */
+        public function getUsername($name, $default = null) {}
+
+        /** @psalm-taint-source input */
+        public function getTrim($name, $default = null) {}
+
+        /** @psalm-taint-source input */
+        public function getArray(array $vars = [], $datasource = null) {}
+    }
+}
+
+namespace Joomla\Database {
+    // The code gets the database and its queries through these interfaces:
+    // Psalm checks a call against the declared type.
+    interface DatabaseInterface
+    {
+        /** @psalm-taint-sink sql $query */
+        public function setQuery($query, $offset = 0, $limit = 0);
+
+        /** @psalm-taint-escape sql */
+        public function quote($text, $escape = true);
+
+        /** @psalm-taint-escape sql */
+        public function quoteName($name, $as = null);
+
+        /** @psalm-taint-escape sql */
+        public function escape($text, $extra = false);
+    }
+
+    interface QueryInterface
+    {
+        /** @psalm-taint-sink sql $conditions */
+        public function where($conditions, $glue = 'AND');
+
+        /** @psalm-taint-sink sql $conditions */
+        public function having($conditions, $glue = 'AND');
+
+        /** @psalm-taint-sink sql $conditions */
+        public function set($conditions, $glue = ',');
+
+        /** @psalm-taint-sink sql $columns */
+        public function order($columns);
+
+        /** @psalm-taint-sink sql $columns */
+        public function group($columns);
+
+        /** @psalm-taint-sink sql $columns */
+        public function select($columns);
+
+        /** @psalm-taint-sink sql $table */
+        public function from($table);
+
+        /** @psalm-taint-sink sql $condition */
+        public function join($type, $table, $condition = null);
+
+        /** @psalm-taint-sink sql $condition */
+        public function innerJoin($table, $condition = null);
+
+        /** @psalm-taint-sink sql $condition */
+        public function leftJoin($table, $condition = null);
+
+        /** @psalm-taint-sink sql $conditions */
+        public function extendWhere($outerGlue, $conditions, $innerGlue = 'AND');
+    }
+}
