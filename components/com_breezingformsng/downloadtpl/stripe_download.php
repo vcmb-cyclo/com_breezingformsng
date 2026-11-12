@@ -19,19 +19,24 @@ if (!isset($tx_token, $form_id, $record_id, $tries)) {
     throw new \LogicException('Stripe download template context is incomplete.');
 }
 
+// The token comes from the request: escaped as text, URL-encoded in the link.
+$downloadUrl = Uri::root() . 'index.php?raw=true&option=com_breezingformsng&stripeDownload=true'
+    . '&token=' . rawurlencode((string) $tx_token)
+    . '&form=' . (int) $form_id . '&record_id=' . (int) $record_id;
+
 ?>
 <?php echo Text::_('COM_BREEZINGFORMSNG_THANK_YOU_FOR_BUYING'); ?>
 <br />
 <br />
 <?php echo Text::_('COM_BREEZINGFORMSNG_YOUR_TRANSACTION_ID') ?>:
-<?php echo $tx_token; ?>
+<?php echo htmlspecialchars((string) $tx_token, ENT_QUOTES, 'UTF-8'); ?>
 <br />
 <?php echo Text::_('COM_BREEZINGFORMSNG_PAYMENT_METHOD_STRIPE') ?>
 <br />
 <br />
 <a
-    href="<?php echo Uri::root() ?>index.php?raw=true&option=com_breezingformsng&amp;stripeDownload=true&amp;token=<?php echo $tx_token ?>&amp;form=<?php echo $form_id ?>&amp;record_id=<?php echo $record_id ?>">
+    href="<?php echo htmlspecialchars($downloadUrl, ENT_QUOTES, 'UTF-8'); ?>">
     <?php echo Text::_('COM_BREEZINGFORMSNG_DOWNLOAD'); ?> (
     <?php echo Text::_('COM_BREEZINGFORMSNG_ALLOWED_TRIES'); ?>:
-    <?php echo $tries ?>)
+    <?php echo (int) $tries; ?>)
 </a>
