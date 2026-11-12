@@ -1606,6 +1606,11 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 'BreezingForms NG Piece', '#__facileforms_pieces', 'PieceTable',
                 ['formFile' => 'administrator/components/com_breezingformsng/forms/piece.xml'] + $codeItemHistory,
             ],
+            // The rows of the items and criteria are kept as JSON texts.
+            'com_breezingformsng.integrator' => [
+                'BreezingForms NG Integrator rule', '#__facileforms_integrator_rules', 'IntegratorTable',
+                ['formFile' => ''] + $codeItemHistory,
+            ],
         ];
 
         foreach ($types as $alias => [$title, $dbTable, $tableClass, $historyOptions]) {
@@ -1654,7 +1659,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $db->setQuery($query)->execute();
         }
 
-        $this->log('Form, script and piece content types registered for the version history.');
+        $this->log('Form, script, piece and Integrator rule content types registered for the version history.');
     }
 
     /**
@@ -1792,7 +1797,12 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     private function unregisterContentTypes(): void
     {
         $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $aliases = ['com_breezingformsng.form', 'com_breezingformsng.script', 'com_breezingformsng.piece'];
+        $aliases = [
+            'com_breezingformsng.form',
+            'com_breezingformsng.script',
+            'com_breezingformsng.piece',
+            'com_breezingformsng.integrator',
+        ];
 
         foreach ($aliases as $alias) {
             $db->setQuery(
@@ -3663,8 +3673,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $scriptsTable = $prefix . 'facileforms_scripts';
         $piecesTable  = $prefix . 'facileforms_pieces';
         $packagesTable = $prefix . 'facileforms_packages';
+        $rulesTable   = $prefix . 'facileforms_integrator_rules';
 
-        foreach ([$recordsTable, $formsTable, $scriptsTable, $piecesTable, $packagesTable] as $tableName) {
+        foreach ([$recordsTable, $formsTable, $scriptsTable, $piecesTable, $packagesTable, $rulesTable] as $tableName) {
             if (isset($tables[$tableName])) {
                 $tables[$tableName] = $db->setQuery(
                     'SHOW FULL COLUMNS FROM ' . $db->quoteName($tableName)
@@ -3937,6 +3948,24 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                     . " NOT NULL DEFAULT ''"
                 )->execute();
                 $this->log("Updated modified_by column definition in {$tableName}.");
+            }
+        }
+
+        // Integrator rules gained the same audit columns; existing rules keep
+        // them empty, the editor shows them as unknown.
+        if (isset($tables[$rulesTable])) {
+            $ruleAuditColumns = [
+                'created'     => "DATETIME NULL DEFAULT NULL AFTER `finalize_code`",
+                'created_by'  => "VARCHAR(255){$textCollationClause} NOT NULL DEFAULT '' AFTER `created`",
+                'modified'    => "DATETIME NULL DEFAULT NULL AFTER `created_by`",
+                'modified_by' => "VARCHAR(255){$textCollationClause} NOT NULL DEFAULT '' AFTER `modified`",
+            ];
+
+            foreach ($ruleAuditColumns as $col => $def) {
+                if (!isset($tables[$rulesTable][$col])) {
+                    $db->setQuery("ALTER TABLE `{$rulesTable}` ADD `{$col}` {$def}")->execute();
+                    $this->log("Added column {$col} to facileforms_integrator_rules.");
+                }
             }
         }
 

@@ -18,6 +18,9 @@ use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Editor\Editor;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\Database\DatabaseInterface;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AuditUserNames;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\BreadcrumbHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\FormsAdvancedOptionsHtml;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
@@ -34,6 +37,11 @@ class HtmlView extends BaseHtmlView
     public int    $emailntf   = 1;
     public int    $published  = 1;
     public int    $debugMode  = 0;
+    public ?string $auditCreated = null;
+    public ?string $auditModified = null;
+    public string $auditCreatedBy = '';
+    public string $auditModifiedBy = '';
+    public \DateTimeZone $timezone;
     public string $emailadr   = '';
     public string $templateCode = '';
     /** @var array<string, list<object>> */
@@ -102,6 +110,13 @@ class HtmlView extends BaseHtmlView
             $this->published = (int) $options->published;
             $this->debugMode = (int) $options->debug_mode;
             $this->version   = (int) $options->version;
+            $this->auditCreated = $options->created !== null ? (string) $options->created : null;
+            $this->auditModified = $options->modified !== null ? (string) $options->modified : null;
+            $createdBy = (string) $options->created_by;
+            $modifiedBy = (string) $options->modified_by;
+            $names = AuditUserNames::resolve(Factory::getContainer()->get(DatabaseInterface::class), [$createdBy, $modifiedBy], true);
+            $this->auditCreatedBy = $names[$createdBy] ?? $createdBy;
+            $this->auditModifiedBy = $names[$modifiedBy] ?? $modifiedBy;
         }
 
         $this->formId          = $formId;
@@ -163,6 +178,8 @@ class HtmlView extends BaseHtmlView
         $wa->useScript('com_breezingformsng.jquery-alias');
         $wa->useScript('com_breezingformsng.jstree3');
         $wa->useScript('bootstrap.tab');
+        HTMLHelper::_('bootstrap.collapse');
+        $this->timezone = $this->getCurrentUser()->getTimezone();
         $wa->useScript('com_breezingformsng.base64');
         $wa->useScript('com_breezingformsng.center');
         $wa->useScript('com_breezingformsng.scroll');

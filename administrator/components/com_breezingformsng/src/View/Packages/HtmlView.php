@@ -79,6 +79,7 @@ final class HtmlView extends BaseHtmlView
             $this->packages = $model->getPackages();
             $this->selectedPackage = $app->getInput()->getString('package', '');
             $this->profiles = $model->getPackageProfiles();
+            $this->profiles = $model->resolveProfileAuditNames($this->profiles);
             $this->timezone = $this->getCurrentUser()->getTimezone();
 
             if ($this->getLayout() === 'delete') {

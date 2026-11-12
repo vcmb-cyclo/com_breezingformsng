@@ -18,6 +18,7 @@ use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
@@ -63,6 +64,9 @@ class HtmlView extends BaseHtmlView
     public bool $canEdit = false;
     // A saved item is published from its icon, by Ajax, as a form in QuickMode.
     public bool $canEditState = false;
+    public string $auditCreatedBy = '';
+    public string $auditModifiedBy = '';
+    public \DateTimeZone $timezone;
 
     // test layout
     public string $functionName = '';
@@ -91,6 +95,17 @@ class HtmlView extends BaseHtmlView
         $this->item = $item;
         $this->canEdit = AreaAccess::isAllowed($this->getCurrentUser(), AreaAccess::CODE);
         $app->getInput()->set('hidemainmenu', true);
+
+        if ((int) $item->id > 0) {
+            $createdBy = (string) ($item->created_by ?? '');
+            $modifiedBy = (string) ($item->modified_by ?? '');
+            $names = $model->resolveAuditNames([$createdBy, $modifiedBy]);
+            $this->auditCreatedBy = $names[$createdBy] ?? $createdBy;
+            $this->auditModifiedBy = $names[$modifiedBy] ?? $modifiedBy;
+            $this->timezone = $this->getCurrentUser()->getTimezone();
+            HTMLHelper::_('bootstrap.collapse');
+            $this->getDocument()->getWebAssetManager()->useStyle('com_breezingformsng.admin-style');
+        }
 
         if ($this->getLayout() === 'test') {
             if ((int) $item->id < 1) {

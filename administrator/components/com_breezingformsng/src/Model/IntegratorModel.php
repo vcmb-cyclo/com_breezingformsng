@@ -11,9 +11,11 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Date\Date;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\IntegratorVersioning;
 
 class IntegratorModel extends BaseDatabaseModel
 {
@@ -126,17 +128,55 @@ class IntegratorModel extends BaseDatabaseModel
             ? substr($referenceTable, \strlen($pfx))
             : $referenceTable;
         $type = \in_array($type, ['insert', 'update'], true) ? $type : 'insert';
+        $now = (new Date())->toSql();
+        $username = (string) $this->getCurrentUser()->username;
 
         $query = $db->createQuery()
             ->insert($db->quoteName('#__facileforms_integrator_rules'))
-            ->columns($db->quoteName(['name', 'form_id', 'reference_table', 'type']))
-            ->values(':name, :formId, :referenceTable, :type')
+            ->columns($db->quoteName(['name', 'form_id', 'reference_table', 'type', 'created', 'created_by', 'modified', 'modified_by']))
+            ->values(':name, :formId, :referenceTable, :type, :now, :username, :now2, :username2')
+            ->bind(':now', $now, ParameterType::STRING)
+            ->bind(':now2', $now, ParameterType::STRING)
+            ->bind(':username', $username, ParameterType::STRING)
+            ->bind(':username2', $username, ParameterType::STRING)
             ->bind(':name', $name, ParameterType::STRING)
             ->bind(':formId', $formId, ParameterType::INTEGER)
             ->bind(':referenceTable', $tbl, ParameterType::STRING)
             ->bind(':type', $type, ParameterType::STRING);
         $db->setQuery($query)->execute();
-        return (int) $db->insertid();
+        $id = (int) $db->insertid();
+        $this->versions()->record($id);
+
+        return $id;
+    }
+
+    public function versions(): IntegratorVersioning
+    {
+        return new IntegratorVersioning($this->db());
+    }
+
+    /**
+     * Stamps the date and the author of the last change of a rule.
+     */
+    public function touchRule(int $ruleId): void
+    {
+        if ($ruleId <= 0) {
+            return;
+        }
+
+        $db       = $this->db();
+        $now      = (new Date())->toSql();
+        $username = (string) $this->getCurrentUser()->username;
+        $query    = $db->createQuery()
+            ->update($db->quoteName('#__facileforms_integrator_rules'))
+            ->set($db->quoteName('modified') . ' = :now')
+            ->set($db->quoteName('modified_by') . ' = :username')
+            ->where($db->quoteName('id') . ' = :id')
+            ->bind(':now', $now, ParameterType::STRING)
+            ->bind(':username', $username, ParameterType::STRING)
+            ->bind(':id', $ruleId, ParameterType::INTEGER);
+        $db->setQuery($query)->execute();
+        $this->versions()->record($ruleId);
     }
 
     /**
@@ -149,6 +189,9 @@ class IntegratorModel extends BaseDatabaseModel
             return;
         }
         $db = $this->db();
+        foreach ($ids as $id) {
+            $this->versions()->deleteHistory($id);
+        }
         foreach ([
             ['#__facileforms_integrator_rules', 'id'],
             ['#__facileforms_integrator_items', 'rule_id'],
@@ -165,6 +208,7 @@ class IntegratorModel extends BaseDatabaseModel
 
     public function publishRule(int $id, int $state): void
     {
+        $this->versions()->keepOrigin($id);
         $db    = $this->db();
         $query = $db->createQuery()
             ->update($db->quoteName('#__facileforms_integrator_rules'))
@@ -173,6 +217,7 @@ class IntegratorModel extends BaseDatabaseModel
             ->bind(':state', $state, ParameterType::INTEGER)
             ->bind(':id', $id, ParameterType::INTEGER);
         $db->setQuery($query)->execute();
+        $this->touchRule($id);
     }
 
     /**
@@ -210,6 +255,7 @@ class IntegratorModel extends BaseDatabaseModel
             ->bind(':elementId', $elementId, ParameterType::INTEGER)
             ->bind(':andor', $andor, ParameterType::STRING);
         $db->setQuery($query)->execute();
+        $this->touchRule($ruleId);
     }
 
     public function removeCriteria(int $id): void
@@ -258,6 +304,7 @@ class IntegratorModel extends BaseDatabaseModel
             ->bind(':joomlaObject', $joomlaObject, ParameterType::STRING)
             ->bind(':andor', $andor, ParameterType::STRING);
         $db->setQuery($query)->execute();
+        $this->touchRule($ruleId);
     }
 
     public function removeCriteriaJoomla(int $id): void
@@ -304,6 +351,7 @@ class IntegratorModel extends BaseDatabaseModel
             ->bind(':fixedValue', $fixedValue, ParameterType::STRING)
             ->bind(':andor', $andor, ParameterType::STRING);
         $db->setQuery($query)->execute();
+        $this->touchRule($ruleId);
     }
 
     public function removeCriteriaFixed(int $id): void
@@ -327,6 +375,7 @@ class IntegratorModel extends BaseDatabaseModel
             ->bind(':elementId', $elementId, ParameterType::INTEGER)
             ->bind(':referenceColumn', $referenceColumn, ParameterType::STRING);
         $db->setQuery($query)->execute();
+        $this->touchRule($ruleId);
     }
 
     public function removeItem(int $id): void
@@ -351,6 +400,7 @@ class IntegratorModel extends BaseDatabaseModel
             ->bind(':itemId', $itemId, ParameterType::INTEGER)
             ->bind(':ruleId', $ruleId, ParameterType::INTEGER);
         $db->setQuery($query)->execute();
+        $this->touchRule($ruleId);
     }
 
     public function saveFinalizeCode(int $ruleId, string $code): void
@@ -363,6 +413,7 @@ class IntegratorModel extends BaseDatabaseModel
             ->bind(':code', $code, ParameterType::STRING)
             ->bind(':ruleId', $ruleId, ParameterType::INTEGER);
         $db->setQuery($query)->execute();
+        $this->touchRule($ruleId);
     }
 
     public function publishItem(int $id, int $state): void

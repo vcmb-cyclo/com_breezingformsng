@@ -36,6 +36,21 @@ $position = $this->recordPosition !== null
     ? Text::sprintf('COM_BREEZINGFORMSNG_RECORD_POSITION', $this->recordPosition, $this->recordTotal)
     : '';
 $value = static fn(mixed $field): string => htmlspecialchars((string) ($field ?? ''), ENT_QUOTES, 'UTF-8');
+$modifiedDate = $optionalDate($record->modified);
+$modifiedBy = $value($record->modified_by_name);
+$modifiedBy = $modifiedBy === '' ? '' : sprintf(
+    '<span title="%s">%s</span>',
+    htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_RECORDS_MODIFIED_BY_DESC'), ENT_QUOTES, 'UTF-8'),
+    $modifiedBy
+);
+$modifiedAudit = $modifiedDate !== '' && $modifiedBy !== ''
+    ? Text::sprintf('COM_BREEZINGFORMSNG_AUDIT_DATE_BY', $modifiedDate, $modifiedBy)
+    : $modifiedDate . $modifiedBy;
+$checkedOutDate = $optionalDate($record->checked_out_time);
+$checkedOutBy = $value($record->checked_out_name);
+$checkedOutAudit = $checkedOutDate !== '' && $checkedOutBy !== ''
+    ? Text::sprintf('COM_BREEZINGFORMSNG_AUDIT_DATE_BY', $checkedOutDate, $checkedOutBy)
+    : $checkedOutDate . $checkedOutBy;
 $yesNo = static fn(mixed $field): string => Text::_((bool) $field ? 'JYES' : 'JNO');
 // Viewed/exported flags and the active/archived state switch by Ajax for the
 // users allowed to change states (record-flags.js), and are only shown otherwise.
@@ -226,11 +241,9 @@ $paginationNav = static function (string $spacing) use ($pages, $pageLink, $posi
               </td>
             </tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_NAME', 'COM_BREEZINGFORMSNG_RECORDS_NAME_DESC'); ?></th><td><?= $value($record->form_name); ?></td></tr>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT', 'COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT_DESC'); ?></th><td><?= $value($record->checked_out_name); ?></td></tr>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT_TIME', 'COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT_TIME_DESC'); ?></th><td><?= $optionalDate($record->checked_out_time); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT_TIME', 'COM_BREEZINGFORMSNG_RECORDS_CHECKED_OUT_TIME_DESC'); ?></th><td><?= $checkedOutAudit; ?></td></tr>
             <?= $sectionHeader('record-section-auditinfo', 'COM_BREEZINGFORMSNG_RECORDS_AUDITINFO'); ?>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_FORMS_MODIFIED', 'COM_BREEZINGFORMSNG_MODIFIED_DESC'); ?></th><td><?= $optionalDate($record->modified); ?></td></tr>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_MODIFIED_BY', 'COM_BREEZINGFORMSNG_RECORDS_MODIFIED_BY_DESC'); ?></th><td><?= $value($record->modified_by_name); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_FORMS_MODIFIED', 'COM_BREEZINGFORMSNG_MODIFIED_DESC'); ?></th><td><?= $modifiedAudit; ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPT_IP', 'COM_BREEZINGFORMSNG_RECORDS_OPT_IP_DESC'); ?></th><td><?= $value($record->opt_ip); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPT_DATE', 'COM_BREEZINGFORMSNG_RECORDS_OPT_DATE_DESC'); ?></th><td><?= $optionalDate($record->opt_date); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_OPT_TOKEN', 'COM_BREEZINGFORMSNG_RECORDS_OPT_TOKEN_DESC'); ?></th><td><?= $value($record->opt_token); ?></td></tr>

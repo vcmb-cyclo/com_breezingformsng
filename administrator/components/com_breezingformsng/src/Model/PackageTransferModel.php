@@ -16,6 +16,7 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\ParameterType;
 use Joomla\Filesystem\File;
 use Vcmb\Component\BreezingformsNG\Administrator\Exception\InvalidPackageException;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AuditUserNames;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\LegacyXmlPackage;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PackageTemplateCode;
@@ -46,6 +47,9 @@ final class PackageTransferModel extends BaseDatabaseModel
             '_export_footer_pdf.php',
         ],
     ];
+
+    /** Audit columns of an Integrator rule: stamped on import, never exported. */
+    private const RULE_AUDIT_COLUMNS = ['created', 'created_by', 'modified', 'modified_by'];
 
     /** Integrator tables holding the rows of a rule, with their column naming an element. */
     private const INTEGRATOR_CHILDREN = [
@@ -160,6 +164,33 @@ final class PackageTransferModel extends BaseDatabaseModel
         }
 
         ksort($profiles, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $profiles;
+    }
+
+    /**
+     * Resolve stored audit user identifiers for display without changing the saved profiles.
+     *
+     * @param array<array<string, mixed>> $profiles
+     * @return array<array<string, mixed>>
+     */
+    public function resolveProfileAuditNames(array $profiles): array
+    {
+        $users = [];
+        foreach ($profiles as $profile) {
+            foreach (['created_by', 'modified_by'] as $field) {
+                $users[] = (string) ($profile[$field] ?? '');
+            }
+        }
+
+        $names = AuditUserNames::resolve($this->getDatabase(), $users);
+        foreach ($profiles as &$profile) {
+            foreach (['created_by', 'modified_by'] as $field) {
+                $value = (string) ($profile[$field] ?? '');
+                $profile[$field] = $names[$value] ?? $value;
+            }
+        }
+        unset($profile);
 
         return $profiles;
     }
@@ -735,7 +766,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             if (!is_array($rule) || !is_array($rule['data'] ?? null)) {
                 return null;
             }
-            $entry = ['data' => $this->plainValues($this->only($rule['data'], $ruleColumns, ['id', 'form_id']))];
+            $entry = ['data' => $this->plainValues($this->only($rule['data'], $ruleColumns, ['id', 'form_id', ...self::RULE_AUDIT_COLUMNS]))];
             foreach (self::INTEGRATOR_CHILDREN as $key => [$table, $elementColumn]) {
                 $entry[$key] = [];
                 $columns = $this->tableColumns($table);
@@ -1662,7 +1693,7 @@ final class PackageTransferModel extends BaseDatabaseModel
 
         foreach ($ruleRows as $rule) {
             $ruleId = (int) $rule['id'];
-            $entry = ['data' => $this->without($rule, ['id', 'form_id'])];
+            $entry = ['data' => $this->without($rule, ['id', 'form_id', ...self::RULE_AUDIT_COLUMNS])];
             foreach (self::INTEGRATOR_CHILDREN as $key => [, $elementColumn]) {
                 $entry[$key] = [];
                 foreach ($children[$key][$ruleId] ?? [] as $row) {
@@ -1723,9 +1754,12 @@ final class PackageTransferModel extends BaseDatabaseModel
                 if (!is_array($rule) || !is_array($rule['data'] ?? null)) {
                     throw new InvalidPackageException();
                 }
-                $data = $this->only($rule['data'], $ruleColumns, ['id', 'form_id']);
+                $data = $this->only($rule['data'], $ruleColumns, ['id', 'form_id', ...self::RULE_AUDIT_COLUMNS]);
                 $data['form_id'] = $form['id'];
-                $object = (object) $data;
+                // The audit columns are stamped here, never taken from a file.
+                $data['created'] = $data['modified'] = (new Date())->toSql();
+                $data['created_by'] = $data['modified_by'] = (string) $this->getCurrentUser()->username;
+                $object = (object) $this->only($data, $ruleColumns);
                 $db->insertObject('#__facileforms_integrator_rules', $object, 'id');
                 $ruleId = (int) $db->insertid();
                 $this->importSummary['items']['rules'][] = ['id' => $ruleId, 'name' => (string) ($data['name'] ?? ''), 'form' => $form['name']];

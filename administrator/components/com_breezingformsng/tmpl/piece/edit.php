@@ -16,6 +16,7 @@
 
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
 
 $saved = (int) $this->item->id > 0;
@@ -81,6 +82,17 @@ $action = Route::_('index.php?option=com_breezingformsng&view=piece&layout=edit&
       </div>
     </div>
   </fieldset>
+
+  <?php if ($saved) : ?>
+        <?= LayoutHelper::render('audit.accordion', [
+        'id' => 'bf-piece-audit',
+        'created' => $this->item->created ?? null,
+        'createdBy' => $this->auditCreatedBy,
+        'modified' => $this->item->modified ?? null,
+        'modifiedBy' => $this->auditModifiedBy,
+        'timezone' => $this->timezone,
+    ], JPATH_ADMINISTRATOR . '/components/com_breezingformsng/layouts'); ?>
+  <?php endif; ?>
 
   <input type="hidden" name="task" value="">
   <input type="hidden" name="test_mode" value="">

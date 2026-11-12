@@ -18,6 +18,7 @@ use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AuditUserNames;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderRecordCleanup;
 
 class RecordModel extends AdminModel
@@ -66,7 +67,9 @@ class RecordModel extends AdminModel
 
         // modified_by keeps the editor as stored at the time; show the current
         // name of the Joomla account while it exists.
-        $item->modified_by_name = $this->getUserName((int) $item->modified_user_id) ?? (string) $item->modified_by;
+        $modifiedBy = (string) $item->modified_by;
+        $item->modified_by_name = $this->getUserName((int) $item->modified_user_id)
+            ?? (AuditUserNames::resolve($db, [$modifiedBy], true)[$modifiedBy] ?? $modifiedBy);
         $item->checked_out_name = $this->getUserName((int) $item->checked_out) ?? '';
         $item->{self::ELEMENT_GROUP} = [];
 
