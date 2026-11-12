@@ -352,6 +352,17 @@ $auditStaleLanguageFiles = (array) ($auditReport['stale_language_files'] ?? arra
 $auditStaleInstallerTempDirs = (array) ($auditReport['stale_installer_temp_dirs'] ?? array());
 $auditCollationIssues = (array) ($auditReport['collation_issues'] ?? array());
 $auditColumnCollationIssues = (array) ($auditReport['column_collation_issues'] ?? array());
+// Orphan references: the stored name of a deleted form (or its id when no
+// name was kept) links to the records list filtered on it, all states.
+$orphanLink = static fn (bool $linked, array $group, string $text): string => $linked
+    ? '<a href="' . Route::_(
+        'index.php?option=com_breezingformsng&view=records&filter[form]='
+        . (int) ($group['parent_id'] ?? 0) . '&filter[state]=*'
+    ) . '" target="_blank" rel="noopener" title="'
+        . htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SHOW_RECORDS'), ENT_QUOTES, 'UTF-8') . '">'
+        . $text . ' <span class="icon-new-tab" aria-hidden="true"></span><span class="visually-hidden">'
+        . Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SHOW_RECORDS') . '</span></a>'
+    : $text;
 $auditCollationHistogram = (array) ($auditReport['collation_histogram'] ?? array());
 $auditDuplicateIndexes = (array) ($auditReport['duplicate_indexes'] ?? array());
 $auditMenuIssues = (array) ($auditReport['menu_issues'] ?? array());
@@ -1022,15 +1033,11 @@ HTMLHelper::_('bootstrap.collapse');
                                         <tbody>
                                             <?php foreach ($orphanGroups as $orphanGroup) : ?>
                                                 <tr>
-                                                    <td>
-                                                        <?php if ($orphanRecordsLink) : ?>
-                                                            <a href="<?php echo Route::_('index.php?option=com_breezingformsng&view=records&filter[form]=' . (int) ($orphanGroup['parent_id'] ?? 0) . '&filter[state]=*'); ?>" target="_blank" rel="noopener" title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SHOW_RECORDS'), ENT_QUOTES, 'UTF-8'); ?>">#<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?> <span class="icon-new-tab" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SHOW_RECORDS'); ?></span></a>
-                                                        <?php else : ?>
-                                                            #<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>
-                                                        <?php endif; ?>
-                                                    </td>
+                                                    <?php $orphanLabel = htmlspecialchars((string) ($orphanGroup['label'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>
+                                                    <?php $orphanId = '#' . (int) ($orphanGroup['parent_id'] ?? 0); ?>
+                                                    <td><?php echo $orphanLabel === '' ? $orphanLink($orphanRecordsLink, $orphanGroup, $orphanId) : $orphanId; ?></td>
                                                     <?php if ($orphanHasLabel) : ?>
-                                                        <td><?php echo htmlspecialchars((string) ($orphanGroup['label'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                                        <td><?php echo $orphanLabel === '' ? '' : $orphanLink($orphanRecordsLink, $orphanGroup, $orphanLabel); ?></td>
                                                     <?php endif; ?>
                                                     <td class="text-end"><?php echo (int) ($orphanGroup['count'] ?? 0); ?></td>
                                                     <?php if ($orphanHasPeriod) : ?>
