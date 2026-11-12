@@ -61,8 +61,9 @@ class RecordModel extends AdminModel
             ->bind(':formId', $formId, ParameterType::INTEGER);
         $form = $db->setQuery($query)->loadObject();
 
-        $item->form_title = (string) ($form->title ?? '');
-        $item->form_name = (string) ($form->name ?? '');
+        // A deleted form keeps the title and name the record stored.
+        $item->form_title = (string) ($form->title ?? $item->title);
+        $item->form_name = (string) ($form->name ?? $item->name);
 
         // modified_by keeps the editor as stored at the time; show the current
         // name of the Joomla account while it exists.

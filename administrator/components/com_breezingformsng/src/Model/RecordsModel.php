@@ -64,11 +64,14 @@ class RecordsModel extends ListModel
                 'records.user_id', 'records.username', 'records.user_full_name',
                 'records.viewed', 'records.exported', 'records.state', 'records.paypal_tx_id',
                 'records.checked_out', 'records.checked_out_time',
-                'forms.title AS form_title', 'forms.name AS form_name', 'forms.id AS form_id',
+                // A deleted form keeps the title and name its records stored.
+                'COALESCE(forms.title, records.title) AS form_title',
+                'COALESCE(forms.name, records.name) AS form_name',
+                'forms.id AS form_id',
             ])
             ->select($db->quoteName('editor.name', 'editor'))
             ->from($db->quoteName('#__facileforms_records', 'records'))
-            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form')
+            ->join('LEFT', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form')
             ->join(
                 'LEFT',
                 $db->quoteName('#__users', 'editor'),
@@ -130,7 +133,7 @@ class RecordsModel extends ListModel
         $query = $db->createQuery()
             ->select($db->quoteName('records.id'))
             ->from($db->quoteName('#__facileforms_records', 'records'))
-            ->join('INNER', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form');
+            ->join('LEFT', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form');
 
         $this->applyFilters($query);
 
@@ -185,6 +188,8 @@ class RecordsModel extends ListModel
             $db->quoteName('forms.title') . ' LIKE :searchLike4',
             $db->quoteName('forms.name') . ' LIKE :searchLike5',
             $db->quoteName('records.paypal_tx_id') . ' LIKE :searchLike6',
+            $db->quoteName('records.title') . ' LIKE :searchLike7',
+            $db->quoteName('records.name') . ' LIKE :searchLike8',
         ];
 
         if (ctype_digit($searchTerm)) {
@@ -204,6 +209,8 @@ class RecordsModel extends ListModel
             ->bind(':searchLike3', $like, ParameterType::STRING)
             ->bind(':searchLike4', $like, ParameterType::STRING)
             ->bind(':searchLike5', $like, ParameterType::STRING)
-            ->bind(':searchLike6', $like, ParameterType::STRING);
+            ->bind(':searchLike6', $like, ParameterType::STRING)
+            ->bind(':searchLike7', $like, ParameterType::STRING)
+            ->bind(':searchLike8', $like, ParameterType::STRING);
     }
 }

@@ -14,6 +14,7 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Language\Text;
@@ -999,6 +1000,8 @@ HTMLHelper::_('bootstrap.collapse');
                             $orphanHidden = (int) ($check['parents'] ?? 0) - count($orphanGroups);
                             $orphanHasLabel = array_filter(array_column($orphanGroups, 'label')) !== array();
                             $orphanHasPeriod = array_filter(array_column($orphanGroups, 'first')) !== array();
+                            // Records of a deleted form: link to the records list filtered on it, all states.
+                            $orphanRecordsLink = ($check['id'] ?? '') === 'records_without_form';
                             ?>
                             <details class="bf-audit-orphans mb-1">
                                 <summary><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_' . strtoupper((string) ($check['id'] ?? ''))); ?>: <strong><?php echo (int) ($check['count'] ?? 0); ?></strong></summary>
@@ -1019,7 +1022,13 @@ HTMLHelper::_('bootstrap.collapse');
                                         <tbody>
                                             <?php foreach ($orphanGroups as $orphanGroup) : ?>
                                                 <tr>
-                                                    <td>#<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?></td>
+                                                    <td>
+                                                        <?php if ($orphanRecordsLink) : ?>
+                                                            <a href="<?php echo Route::_('index.php?option=com_breezingformsng&view=records&filter[form]=' . (int) ($orphanGroup['parent_id'] ?? 0) . '&filter[state]=*'); ?>" target="_blank" rel="noopener" title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SHOW_RECORDS'), ENT_QUOTES, 'UTF-8'); ?>">#<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?> <span class="icon-new-tab" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SHOW_RECORDS'); ?></span></a>
+                                                        <?php else : ?>
+                                                            #<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>
+                                                        <?php endif; ?>
+                                                    </td>
                                                     <?php if ($orphanHasLabel) : ?>
                                                         <td><?php echo htmlspecialchars((string) ($orphanGroup['label'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                                                     <?php endif; ?>
