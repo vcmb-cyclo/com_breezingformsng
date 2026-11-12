@@ -19,7 +19,8 @@ The supported versions require Joomla 6 and PHP 8.3 or later.
 
 Do not report a vulnerability in a public issue, pull request or discussion.
 
-Open an issue, with:
+Report it privately through GitHub: on the repository, open the **Security** tab and choose
+**Report a vulnerability**. Include:
 
 - the affected version, and your Joomla and PHP versions;
 - the affected screen, URL or file;

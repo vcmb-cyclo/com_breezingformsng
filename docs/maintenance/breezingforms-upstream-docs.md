@@ -57,9 +57,9 @@ creation. The documented workflow includes:
 
 Maintenance mapping in this codebase:
 
-- QuickMode admin entry: `administrator/components/com_breezingformsng/admin/quickmode.php`
-- QuickMode UI assets: `administrator/components/com_breezingformsng/admin/quickmode-app.js`
-- Runtime renderers: `administrator/components/com_breezingformsng/libraries/crosstec/classes/BFQuickMode*.php`
+- QuickMode admin entry: `administrator/components/com_breezingformsng/src/Controller/QuickmodeController.php` and `administrator/components/com_breezingformsng/tmpl/quickmode/`
+- QuickMode UI assets: `media/com_breezingformsng/js/admin/quickmode-app.js`
+- Runtime renderers: `components/com_breezingformsng/src/Service/Rendering/QuickMode/`
 - Persisted marker: `#__facileforms_forms.template_code_processed = 'QuickMode'`
 
 ## Themes And Styling
@@ -91,8 +91,8 @@ its rendered CSS box width.
 
 Relevant local areas:
 
-- `administrator/components/com_breezingformsng/admin/quickmode.html.php`
-- `administrator/components/com_breezingformsng/admin/quickmode-app.js`
+- `administrator/components/com_breezingformsng/tmpl/quickmode/editor.php`
+- `media/com_breezingformsng/js/admin/quickmode-app.js`
 - `administrator/components/com_breezingformsng/libraries/jquery/themes/quickmode/`
 - `components/com_breezingformsng/themes/quickmode/`
 - `media/com_breezingformsng/css/custom.css`
@@ -117,7 +117,7 @@ asset registration.
 Relevant local areas:
 
 - `components/com_breezingformsng/facileforms.process.php`
-- `administrator/components/com_breezingformsng/libraries/crosstec/classes/BFQuickModeMobile.php`
+- `components/com_breezingformsng/src/Service/Rendering/QuickMode/`
 - `components/com_breezingformsng/themes/quickmode/`
 - `script.php` quickmode icon/path migration logic
 

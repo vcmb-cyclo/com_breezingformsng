@@ -21,3 +21,8 @@ Ne jamais prétendre avoir exécuté une commande non exécutée. Ne pas introdu
 
 ## Livraison
 - MUST lister fichiers changés, comportement, effet DB, tests passés/échoués/non lancés, risques ouverts.
+
+## Tests de bout en bout et sécurité
+
+- `tests/E2E/security.spec.mjs` vérifie sur un Joomla jetable (`scripts/joomla-e2e.sh`) les droits, les jetons CSRF et l'import de paquets ; chaque protection doit être cassée une fois pour prouver que le test échoue pour la bonne raison.
+- `tests/E2E/container-log.mjs` échoue si un parcours ajoute un avertissement ou une erreur PHP au journal du conteneur ; il est couvert par `npm run test:container-log`.
