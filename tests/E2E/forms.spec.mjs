@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { addedWarnings, containerErrors } from './container-log.mjs';
 
 const CONTAINER = process.env.BFNG_E2E_CONTAINER;
 const ADMIN = 'administrator/index.php';
@@ -109,7 +110,11 @@ test.describe('forms', () => {
             });
         });
 
+        const logged = containerErrors(CONTAINER);
         await saveQuickMode();
+
+        // The save of such an element raises no PHP warning ("Undefined array key").
+        expect(addedWarnings(logged, containerErrors(CONTAINER))).toEqual([]);
 
         formId = Number(new URL(page.url()).searchParams.get('form'));
         expect(formId).toBeGreaterThan(0);

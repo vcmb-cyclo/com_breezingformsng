@@ -261,12 +261,13 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['options']['value']    = $mdata['value'];
                         $element['options']['placeholder'] = $mdata['placeholder'] ?? '';
                         $element['data1']              = $mdata['value'];
-                        $element['options']['password'] = $mdata['password'];
-                        $element['flag1']              = $mdata['password'] ? 1 : 0;
-                        $element['options']['mailback'] = $mdata['mailback'];
-                        $element['mailback']           = $mdata['mailback'] ? 1 : 0;
-                        $element['mailbackAsSender']   = $mdata['mailbackAsSender'] ? 1 : 0;
-                        $element['mailbackfile']       = $mdata['mailbackfile'];
+                        // Forms saved by earlier versions hold none of these keys.
+                        $element['options']['password'] = $mdata['password'] ?? false;
+                        $element['flag1']              = !empty($mdata['password']) ? 1 : 0;
+                        $element['options']['mailback'] = $mdata['mailback'] ?? false;
+                        $element['mailback']           = !empty($mdata['mailback']) ? 1 : 0;
+                        $element['mailbackAsSender']   = !empty($mdata['mailbackAsSender']) ? 1 : 0;
+                        $element['mailbackfile']       = $mdata['mailbackfile'] ?? '';
                         break;
                     case 'bfTextarea':
                         $element['bfType']             = 'Textarea';
