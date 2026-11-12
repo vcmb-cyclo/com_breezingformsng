@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form>
+<form addfieldprefix="Vcmb\Component\BreezingformsNG\Administrator\Field">
 	<fields name="filter">
 		<field
 			name="search"
@@ -10,13 +10,8 @@
 		/>
 		<field
 			name="form"
-			type="sql"
+			type="recordform"
 			label="COM_BREEZINGFORMSNG_FORM"
-			sql_select="id, title"
-			sql_from="#__facileforms_forms"
-			sql_order="title ASC"
-			key_field="id"
-			value_field="title"
 			class="js-select-submit-on-change"
 			>
 			<option value="">COM_BREEZINGFORMSNG_ALL_FORMS</option>

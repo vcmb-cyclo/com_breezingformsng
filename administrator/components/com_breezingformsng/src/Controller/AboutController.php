@@ -177,9 +177,11 @@ class AboutController extends BaseController
                 $failedColumns
             ), $failedColumns > 0 ? 'warning' : 'message');
         } catch (\Throwable $exception) {
-            $this->setMessage(
-                Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATION_REPAIR_FAILED', $exception->getMessage()),
-                'error'
+            $this->keepAuditWithError(
+                Text::sprintf(
+                    'COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATION_REPAIR_FAILED',
+                    htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8')
+                )
             );
         }
 
@@ -223,9 +225,11 @@ class AboutController extends BaseController
                 $failedTables
             ), $failedTables > 0 ? 'warning' : 'message');
         } catch (\Throwable $exception) {
-            $this->setMessage(
-                Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_COLLATION_REPAIR_FAILED', $exception->getMessage()),
-                'error'
+            $this->keepAuditWithError(
+                Text::sprintf(
+                    'COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_COLLATION_REPAIR_FAILED',
+                    htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8')
+                )
             );
         }
 
@@ -448,6 +452,24 @@ class AboutController extends BaseController
         AreaAccess::assert($user, AreaAccess::CONFIGURATION);
         $this->setMessage(Text::_('COM_BREEZINGFORMSNG_ABOUT_IMPORT_CONFIGURATION_PREPARE'), 'warning');
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false));
+    }
+
+    /**
+     * Shows a failed repair inside the audit section, next to the report it
+     * applies to: the report is run again, as the view reads it only once.
+     *
+     * @param string $message HTML, as a Joomla message: the translations hold
+     *                        entities such as &#8239;, untrusted parts are escaped.
+     */
+    private function keepAuditWithError(string $message): void
+    {
+        try {
+            $this->app->setUserState('com_breezingformsng.about.audit', $this->getAuditService()->run());
+        } catch (\Throwable $exception) {
+            $message .= ' ' . htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8');
+        }
+
+        $this->app->setUserState('com_breezingformsng.about.audit_error', $message);
     }
 
     private function getAuthorizedApplication(): CMSApplication

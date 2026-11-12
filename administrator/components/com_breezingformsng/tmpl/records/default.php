@@ -37,6 +37,12 @@ $stateIcons = [
 $stateIcons[0] = $stateIcons[RecordState::PUBLISHED];
 
 $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8');
+// A record of a deleted form shows the form title it stored, after a warning icon.
+$deletedFormMark = static fn (\stdClass $rec): string => $rec->form_id === null
+    ? '<span class="icon-warning text-warning me-1" title="' . $headerTitle('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_PARENT_FORM')
+        . '" aria-hidden="true"></span><span class="visually-hidden">'
+        . $headerTitle('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_PARENT_FORM') . ' </span>'
+    : '';
 
 // Viewed and Exported start hidden: d-none also covers small screens, where
 // table-columns.js does not run. records-columns.js makes it the default of
@@ -84,10 +90,10 @@ $headerTitle = static fn (string $key): string => htmlspecialchars(Text::_($key)
                 <?php endif; ?>
                 <?php if ($this->canOpen): ?>
                   <a href="index.php?option=com_breezingformsng&amp;task=record.edit&amp;id=<?= $recId; ?>" title="<?= $headerTitle('JACTION_EDIT'); ?>">
-                    <?= $this->escape((string) $rec->form_title); ?>
+                    <?= $deletedFormMark($rec); ?><?= $this->escape((string) $rec->form_title); ?>
                   </a>
                 <?php else: ?>
-                  <?= $this->escape((string) $rec->form_title); ?>
+                  <?= $deletedFormMark($rec); ?><?= $this->escape((string) $rec->form_title); ?>
                 <?php endif; ?>
               </th>
               <td><?= $this->escape((string) $rec->ip); ?></td>

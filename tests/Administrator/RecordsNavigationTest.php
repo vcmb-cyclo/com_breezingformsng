@@ -62,6 +62,8 @@ final class RecordsNavigationTest extends TestCase
                 'forms.title LIKE :searchLike4',
                 'forms.name LIKE :searchLike5',
                 'records.paypal_tx_id LIKE :searchLike6',
+                'records.title LIKE :searchLike7',
+                'records.name LIKE :searchLike8',
             ],
             $database->query->where
         );
@@ -74,6 +76,8 @@ final class RecordsNavigationTest extends TestCase
                 [':searchLike4', '%alice%', 2],
                 [':searchLike5', '%alice%', 2],
                 [':searchLike6', '%alice%', 2],
+                [':searchLike7', '%alice%', 2],
+                [':searchLike8', '%alice%', 2],
             ],
             $database->query->bindings
         );
