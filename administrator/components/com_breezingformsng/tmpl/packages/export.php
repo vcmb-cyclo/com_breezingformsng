@@ -131,7 +131,7 @@ $auditModified = static function (mixed $date, mixed $author) use ($auditDate, $
                                                         'pieces' => 'index.php?option=com_breezingformsng&task=piece.edit&id=' . (int) $item['id'],
                                                         'menus' => 'index.php?option=com_breezingformsng&task=menu.edit&id=' . (int) $item['id'],
                                                     };
-                                                    ?>
+    ?>
                                                     <tr class="d-none" data-bf-package="<?= htmlspecialchars((string) $item['package'], ENT_QUOTES, 'UTF-8'); ?>">
                                                         <td><a href="<?= htmlspecialchars($editUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener"
                                                             aria-label="<?= htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_OPEN_EXISTING_LABEL', $title), ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></a></td>
