@@ -999,7 +999,7 @@ use Joomla\CMS\Language\Text;
                                                     <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_TURNOFF')); ?>"
                                                         for="bfElementAdvancedTurnOff">
-                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_TURN_OFF_INITIALLY'); ?>
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_TURN_OFF_ELEMENT_INITIALLY'); ?>
                                                     </label>
                                                     <input type="checkbox" value="" id="bfElementAdvancedTurnOff" />
                                                 </div>
