@@ -29,6 +29,9 @@ class HtmlView extends BaseHtmlView
     public array $logReport = [];
     /** @var array<mixed> */
     public array $auditReport = [];
+
+    /** Error of the last repair, shown in the audit section. */
+    public string $auditError = '';
     public bool $canRepair = false;
 
     public function display($tpl = null)
@@ -109,6 +112,8 @@ class HtmlView extends BaseHtmlView
             $auditReport = $app->getUserState('com_breezingformsng.about.audit', []);
             $this->auditReport = is_array($auditReport) ? $auditReport : [];
             $app->setUserState('com_breezingformsng.about.audit', []);
+            $this->auditError = (string) $app->getUserState('com_breezingformsng.about.audit_error', '');
+            $app->setUserState('com_breezingformsng.about.audit_error', '');
             $logReport = $app->getUserState('com_breezingformsng.about.log', []);
             $this->logReport = is_array($logReport) ? $logReport : [];
             $app->setUserState('com_breezingformsng.about.log', []);

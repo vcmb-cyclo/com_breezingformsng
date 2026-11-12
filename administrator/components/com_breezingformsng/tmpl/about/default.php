@@ -524,6 +524,12 @@ HTMLHelper::_('bootstrap.collapse');
                 <?php endif; ?>
             </div>
 
+            <?php if ($this->auditError !== '') : ?>
+                <div class="alert alert-danger" role="alert">
+                    <?php echo htmlspecialchars($this->auditError, ENT_QUOTES, 'UTF-8'); ?>
+                </div>
+            <?php endif; ?>
+
             <?php if ($auditReport === array()) : ?>
                 <div class="alert alert-info mb-0">
                     <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EMPTY'); ?>
