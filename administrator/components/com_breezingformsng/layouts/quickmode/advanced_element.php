@@ -506,6 +506,23 @@ use Joomla\CMS\Language\Text;
                                                     <input checked="checked" type="checkbox" value=""
                                                         id="bfElementCalendarResponsiveAdvancedHideLabel" />
                                                 </div>
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_LOGGING')); ?>"
+                                                        for="bfElementCalendarResponsiveAdvancedLogging">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_LOGGING'); ?>
+                                                    </label>
+                                                    <input checked="checked" type="checkbox" value=""
+                                                        id="bfElementCalendarResponsiveAdvancedLogging" />
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_ORDER_NUMBER')); ?>"
+                                                        for="bfElementCalendarResponsiveAdvancedOrderNumber">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ORDER_NUMBER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementCalendarResponsiveAdvancedOrderNumber" />
+                                                </div>
                                             </div>
                                             <!-- CALENDAR RESPONSIVE END -->
                                             <!-- CALENDAR BEGIN -->
@@ -519,6 +536,23 @@ use Joomla\CMS\Language\Text;
                                                     </label>
                                                     <input checked="checked" type="checkbox" value=""
                                                         id="bfElementCalendarAdvancedHideLabel" />
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_LOGGING')); ?>"
+                                                        for="bfElementCalendarAdvancedLogging">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_LOGGING'); ?>
+                                                    </label>
+                                                    <input checked="checked" type="checkbox" value=""
+                                                        id="bfElementCalendarAdvancedLogging" />
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_ORDER_NUMBER')); ?>"
+                                                        for="bfElementCalendarAdvancedOrderNumber">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ORDER_NUMBER'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementCalendarAdvancedOrderNumber" />
                                                 </div>
                                                     <div class="bfPropertyWrap bfng-field">
                                                         <label class="bfPropertyLabel bfng-field__label"
