@@ -1,6 +1,6 @@
 # BreezingForms NG Form Mode
 
-This Joomla 6 / PHP 8.1+ codebase keeps only one form creation mode:
+This Joomla 6 / PHP 8.3+ codebase keeps only one form creation mode:
 QuickMode.
 
 ## Supported Mode
@@ -41,18 +41,27 @@ The forms list and post-save redirects should point to QuickMode.
 
 ## Important Files
 
-- `administrator/components/com_breezingformsng/admin/quickmode.php`
-- `administrator/components/com_breezingformsng/admin/quickmode.html.php`
-- `administrator/components/com_breezingformsng/admin/quickmode.class.php`
-- `administrator/components/com_breezingformsng/admin/quickmode-app.js`
-- `administrator/components/com_breezingformsng/admin/quickmode-elements.js`
-- `administrator/components/com_breezingformsng/admin/quickmode-editor.php`
-- `administrator/components/com_breezingformsng/libraries/crosstec/classes/BFQuickMode.php`
-- `administrator/components/com_breezingformsng/libraries/crosstec/classes/BFQuickModeBootstrap.php`
-- `administrator/components/com_breezingformsng/libraries/crosstec/classes/BFQuickModeOnePage.php`
-- `administrator/components/com_breezingformsng/libraries/crosstec/classes/BFQuickModeMobile.php`
-- `components/com_breezingformsng/facileforms.process.php`
-- `components/com_breezingformsng/breezingformsng.php`
+Administration, under `administrator/components/com_breezingformsng/`:
+
+- `src/Controller/QuickmodeController.php`: the display, save and inline editor tasks.
+- `src/Model/QuickmodeModel.php`: turns the editor tree into the form and its elements.
+- `src/View/Quickmode/HtmlView.php`, `src/Helper/QuickmodeHtml.php`,
+  `tmpl/quickmode/default.php` and `tmpl/quickmode/editor.php`: the screen and its inline editor.
+- `layouts/quickmode/`: the form, page, section and element property panels.
+- `libraries/crosstec/classes/BFQuickMode.php`, `BFQuickModeBootstrap.php` and
+  `BFQuickModeOnePage.php`: the QuickMode classes of the original library.
+
+Editor scripts, under `media/com_breezingformsng/js/admin/`:
+`quickmode-app.js`, `quickmode-app-properties.js`, `quickmode-elements.js`,
+`quickmode-editor.js` and `quickmode-tree-model.js`.
+
+Site rendering, under `components/com_breezingformsng/`:
+
+- `src/Service/Rendering/QuickMode/`: `ClassicRenderer.php`, `BootstrapRenderer.php`,
+  `OnePageRenderer.php` and the builders they share.
+- `src/Service/Rendering/QuickModeRendererFactory.php`: picks the renderer of a form.
+- `src/Support/processor_facade.php`: the form processor.
+- `breezingformsng.php`: the entry point of the site.
 
 ## Maintenance Rules
 
@@ -62,7 +71,7 @@ The forms list and post-save redirects should point to QuickMode.
 - Preserve the QuickMode-specific copy/import ID reset path.
 - If unsupported persisted form data must be migrated, create an explicit
   migration into QuickMode.
-- Keep new maintenance work aligned with Joomla 6 APIs and PHP 8.1+ only.
+- Keep new maintenance work aligned with Joomla 6 APIs and PHP 8.3+ only.
 
 ## Useful Searches
 
