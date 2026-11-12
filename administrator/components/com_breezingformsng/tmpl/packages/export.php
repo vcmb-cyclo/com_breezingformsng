@@ -74,14 +74,25 @@ $auditText = static fn (mixed $text): string => htmlspecialchars((string) ($text
                         </div>
                     </div>
                     <div<?= $this->selectedPackage === '' ? ' class="d-none"' : ''; ?> id="bf-package-details">
-                        <div class="row g-3 mb-4">
+                        <table class="table table-striped mb-4" id="bf-package-info">
+                            <tbody><tr class="table-primary"><th>
+                                <a href="#" class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"
+                                    data-bs-toggle="collapse" data-bs-target="#bf-package-info-content"
+                                    aria-expanded="false" aria-controls="bf-package-info-content">
+                                    <span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> <?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_REPORT_PACKAGEINFO'); ?>
+                                </a>
+                            </th></tr></tbody>
+                            <tbody id="bf-package-info-content" class="collapse"><tr><td>
+                            <div class="row g-3">
                             <?php foreach ($metadataFields as $field => $label) : ?>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label" for="bf-meta-<?= $field; ?>"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_META_' . strtoupper($field) . '_TIP'); ?>><?= $label; ?></label>
                                     <input class="form-control" id="bf-meta-<?= $field; ?>" name="metadata[<?= $field; ?>]" value="">
                                 </div>
                             <?php endforeach; ?>
-                        </div>
+                            </div>
+                            </td></tr></tbody>
+                        </table>
                         <div class="row g-4" id="bf-selections">
                             <?php foreach ($sections as $section => $label) : ?>
                                 <div class="col-12 col-lg-6">
@@ -112,21 +123,23 @@ $auditText = static fn (mixed $text): string => htmlspecialchars((string) ($text
                                 <label class="form-check-label" for="bf-include-integrator"<?= $labelTip($this->mayTransferIntegrator ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR_TIP' : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR_DENIED'); ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR'); ?></label>
                             </div>
                         </fieldset>
-                        <div class="card mt-4 d-none" id="bf-package-audit">
-                            <table class="table mb-0">
-                                <thead>
-                                    <tr class="table-primary"><th colspan="2"><?= Text::_('COM_BREEZINGFORMSNG_RECORDS_AUDITINFO'); ?></th></tr>
-                                </thead>
+                        <table class="table table-striped mt-4 d-none" id="bf-package-audit">
+                            <tbody><tr class="table-primary"><th colspan="2">
+                                <a href="#" class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"
+                                    data-bs-toggle="collapse" data-bs-target="#bf-package-audit-content"
+                                    aria-expanded="false" aria-controls="bf-package-audit-content">
+                                    <span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> <?= Text::_('COM_BREEZINGFORMSNG_RECORDS_AUDITINFO'); ?>
+                                </a>
+                            </th></tr></tbody>
+                            <tbody id="bf-package-audit-content" class="collapse">
                                 <?php foreach ($this->profiles as $id => $profile) : ?>
-                                    <tbody class="d-none" data-bf-audit="<?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?>">
-                                        <tr><th class="w-25"><?= Text::_('JGLOBAL_FIELD_CREATED_LABEL'); ?></th><td><?= $auditDate($profile['created'] ?? null); ?></td></tr>
-                                        <tr><th><?= Text::_('JGLOBAL_FIELD_CREATED_BY_LABEL'); ?></th><td><?= $auditText($profile['created_by'] ?? ''); ?></td></tr>
-                                        <tr><th><?= Text::_('JGLOBAL_FIELD_MODIFIED_LABEL'); ?></th><td><?= $auditDate($profile['modified'] ?? null); ?></td></tr>
-                                        <tr><th><?= Text::_('JGLOBAL_FIELD_MODIFIED_BY_LABEL'); ?></th><td><?= $auditText($profile['modified_by'] ?? ''); ?></td></tr>
-                                    </tbody>
+                                    <tr class="d-none" data-bf-audit="<?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?>"><th class="w-25"><?= Text::_('JGLOBAL_FIELD_CREATED_LABEL'); ?></th><td><?= $auditDate($profile['created'] ?? null); ?></td></tr>
+                                    <tr class="d-none" data-bf-audit="<?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?>"><th><?= Text::_('JGLOBAL_FIELD_CREATED_BY_LABEL'); ?></th><td><?= $auditText($profile['created_by'] ?? ''); ?></td></tr>
+                                    <tr class="d-none" data-bf-audit="<?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?>"><th><?= Text::_('JGLOBAL_FIELD_MODIFIED_LABEL'); ?></th><td><?= $auditDate($profile['modified'] ?? null); ?></td></tr>
+                                    <tr class="d-none" data-bf-audit="<?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?>"><th><?= Text::_('JGLOBAL_FIELD_MODIFIED_BY_LABEL'); ?></th><td><?= $auditText($profile['modified_by'] ?? ''); ?></td></tr>
                                 <?php endforeach; ?>
-                            </table>
-                        </div>
+                            </tbody>
+                        </table>
                     </div>
                     <input type="hidden" name="task" value="packages.export">
                     <?= HTMLHelper::_("form.token"); ?>
@@ -160,9 +173,9 @@ const bfShowProfile = () => {
 
     // The audit trail of an existing package, as on the record screen.
     let hasAudit = false;
-    for (const body of document.querySelectorAll('#bf-package-audit tbody')) {
-        const shown = !isNew && body.dataset.bfAudit === id;
-        body.classList.toggle('d-none', !shown);
+    for (const row of document.querySelectorAll('#bf-package-audit [data-bf-audit]')) {
+        const shown = !isNew && row.dataset.bfAudit === id;
+        row.classList.toggle('d-none', !shown);
         hasAudit = hasAudit || shown;
     }
     document.getElementById('bf-package-audit').classList.toggle('d-none', !hasAudit);

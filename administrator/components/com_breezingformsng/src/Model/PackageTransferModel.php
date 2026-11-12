@@ -181,9 +181,13 @@ final class PackageTransferModel extends BaseDatabaseModel
     }
 
     /**
-     * Removes a package while keeping its forms, scripts, pieces and menus.
+     * Dissolves selected assignments, retaining the items themselves.
+     * An already empty package can also be dissolved.
+     *
+     * @param array<string, list<int>> $selection
+     * @return bool True if at least one assignment or an empty package was dissolved.
      */
-    public function deletePackage(string $package): void
+    public function deletePackage(string $package, array $selection): bool
     {
         $package = trim($package);
 
@@ -195,21 +199,47 @@ final class PackageTransferModel extends BaseDatabaseModel
         $db->transactionStart();
 
         try {
-            foreach (['#__facileforms_forms', '#__facileforms_scripts', '#__facileforms_pieces', '#__facileforms_compmenus'] as $table) {
+            $tables = [
+                'forms' => '#__facileforms_forms',
+                'scripts' => '#__facileforms_scripts',
+                'pieces' => '#__facileforms_pieces',
+                'menus' => '#__facileforms_compmenus',
+            ];
+            $hadContents = array_filter($this->getPackageContents($package)) !== [];
+            $changed = false;
+
+            foreach ($tables as $part => $table) {
+                $ids = array_values(array_unique(array_filter(
+                    $selection[$part] ?? [],
+                    static fn (mixed $id): bool => is_int($id) && $id > 0
+                )));
+
+                if ($ids === []) {
+                    continue;
+                }
+
                 $query = $db->createQuery()
                     ->update($db->quoteName($table))
                     ->set($db->quoteName('package') . ' = ' . $db->quote(''))
                     ->where($db->quoteName('package') . ' = :package')
+                    ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER)
                     ->bind(':package', $package);
                 $db->setQuery($query)->execute();
+                $changed = $db->getAffectedRows() > 0 || $changed;
             }
 
-            $query = $db->createQuery()
-                ->delete($db->quoteName('#__facileforms_packages'))
-                ->where($db->quoteName('id') . ' = :package')
-                ->bind(':package', $package);
-            $db->setQuery($query)->execute();
+            if ((!$hadContents || $changed) && array_filter($this->getPackageContents($package)) === []) {
+                $query = $db->createQuery()
+                    ->delete($db->quoteName('#__facileforms_packages'))
+                    ->where($db->quoteName('id') . ' = :package')
+                    ->bind(':package', $package);
+                $db->setQuery($query)->execute();
+                $changed = true;
+            }
+
             $db->transactionCommit();
+
+            return $changed;
         } catch (\Throwable $exception) {
             $db->transactionRollback();
             throw $exception;

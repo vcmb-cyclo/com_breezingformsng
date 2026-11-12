@@ -271,10 +271,45 @@ final class PackagesController extends BaseController
         $package = $this->submittedPackage();
 
         try {
-            $this->model()->deletePackage($package);
-            (new ActionLogger($app))->log(ActionLogger::DELETED, ActionLogger::PACKAGE, [], $package);
+            $submitted = $app->getInput()->get('delete_select', [], 'array');
+            $selection = [];
+
+            foreach (['forms', 'scripts', 'pieces', 'menus'] as $part) {
+                $selection[$part] = [];
+                $values = is_array($submitted[$part] ?? null) ? $submitted[$part] : [];
+
+                foreach ($values as $value) {
+                    if (!is_string($value) && !is_int($value)) {
+                        continue;
+                    }
+
+                    $id = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+                    if ($id !== false) {
+                        $selection[$part][] = $id;
+                    }
+                }
+            }
+
+            $model = $this->model();
+
+            if (!$model->deletePackage($package, $selection)) {
+                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE_NOTHING_SELECTED'), 'warning');
+                $app->redirect(Route::_(
+                    'index.php?option=com_breezingformsng&view=packages&layout=delete&package=' . rawurlencode($package),
+                    false
+                ));
+
+                return;
+            }
+
+            $packageExists = in_array($package, $model->getPackages(), true);
+            $action = $packageExists ? ActionLogger::SAVED : ActionLogger::DELETED;
+            (new ActionLogger($app))->log($action, ActionLogger::PACKAGE, [], $package);
             $app->enqueueMessage(Text::sprintf(
-                'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETED_NAMED',
+                $packageExists
+                    ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETED_NAMED'
+                    : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DISSOLVED_NAMED',
                 htmlspecialchars($package, ENT_QUOTES, 'UTF-8')
             ), 'message');
             $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages', false));

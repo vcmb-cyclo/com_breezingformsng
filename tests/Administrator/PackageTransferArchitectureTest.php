@@ -18,6 +18,27 @@ use PHPUnit\Framework\TestCase;
 
 final class PackageTransferArchitectureTest extends TestCase
 {
+    public function testPackageAuditIsCollapsedOnExportAndDissolve(): void
+    {
+        $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $view = (string) file_get_contents($component . '/src/View/Packages/HtmlView.php');
+
+        self::assertStringContainsString('$this->profiles = $model->getPackageProfiles();', $view);
+        self::assertStringContainsString('$this->timezone = $this->getCurrentUser()->getTimezone();', $view);
+
+        foreach (['export', 'delete'] as $layout) {
+            $template = (string) file_get_contents($component . '/tmpl/packages/' . $layout . '.php');
+            self::assertStringContainsString('class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"', $template);
+            self::assertStringContainsString('id="bf-package-audit-content" class="collapse"', $template);
+            self::assertStringContainsString('id="bf-package-info-content" class="collapse"', $template);
+            self::assertStringContainsString('class="table-primary"', $template);
+            self::assertStringContainsString('COM_BREEZINGFORMSNG_RECORDS_AUDITINFO', $template);
+            foreach (['created', 'created_by', 'modified', 'modified_by'] as $field) {
+                self::assertStringContainsString("\$profile['" . $field . "']", $template);
+            }
+        }
+    }
+
     public function testTransferUsesTheVersionedBfngFormat(): void
     {
         $source = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Model/PackageTransferModel.php');

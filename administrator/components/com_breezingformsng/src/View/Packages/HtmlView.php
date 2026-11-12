@@ -12,6 +12,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Packages;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
@@ -64,6 +65,8 @@ final class HtmlView extends BaseHtmlView
         $this->mayTransferIntegrator = AreaAccess::isAllowed($this->getCurrentUser(), AreaAccess::CODE);
 
         if (in_array($this->getLayout(), ['export', 'delete'], true)) {
+            HTMLHelper::_('bootstrap.collapse');
+            $this->getDocument()->getWebAssetManager()->useStyle('com_breezingformsng.admin-style');
             $app = Factory::getApplication();
             $component = $app->bootComponent('com_breezingformsng');
             if (!$component instanceof MVCFactoryServiceInterface) {
@@ -75,6 +78,8 @@ final class HtmlView extends BaseHtmlView
             }
             $this->packages = $model->getPackages();
             $this->selectedPackage = $app->getInput()->getString('package', '');
+            $this->profiles = $model->getPackageProfiles();
+            $this->timezone = $this->getCurrentUser()->getTimezone();
 
             if ($this->getLayout() === 'delete') {
                 if ($this->selectedPackage !== '') {
@@ -85,8 +90,6 @@ final class HtmlView extends BaseHtmlView
                 }
             } else {
                 $this->choices = $model->getExportChoices();
-                $this->profiles = $model->getPackageProfiles();
-                $this->timezone = $this->getCurrentUser()->getTimezone();
             }
         }
 
