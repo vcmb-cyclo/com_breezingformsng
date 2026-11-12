@@ -25,11 +25,17 @@ final class FormChecker
     /** Issues returned at most: a broken form could list one per element. */
     public const MAX_ISSUES = 200;
 
-    /** Element types holding a submitted value: they need a name, and a label but the hidden one. */
-    private const INPUT_TYPES = [
-        'Text', 'Textarea', 'Select List', 'Radio Group', 'Radio Button', 'Checkbox', 'Checkbox Group',
-        'File Upload', 'Calendar', 'Hidden Input',
+    /**
+     * Element types whose value the submission stores: they need a name, and a
+     * label but the hidden one. The list of SubmissionEngine, with the file upload it handles apart.
+     */
+    public const INPUT_TYPES = [
+        'Text', 'Textarea', 'Checkbox', 'Radio Button', 'Select List', 'Query List', 'Radio Group',
+        'Checkbox Group', 'Number Input', 'Calendar', 'Hidden Input', 'Signature', 'File Upload',
     ];
+
+    /** The type whose elements of a group share one name, as the radio buttons of a classic form do. */
+    private const GROUP_TYPE = 'Radio Button';
 
     /** Script slot of an element, with the library type its script must have. */
     private const SCRIPT_SLOTS = [
@@ -107,10 +113,11 @@ final class FormChecker
         $suggestions = [];
         $names = [];
 
+        // Only an element whose value is stored can collide with another one.
         foreach ($elements as $element) {
             $name = trim((string) ($element['name'] ?? ''));
-            if ($name !== '') {
-                $names[$name][] = (int) $element['id'];
+            if ($name !== '' && \in_array((string) ($element['type'] ?? ''), self::INPUT_TYPES, true)) {
+                $names[$name][] = ['id' => (int) $element['id'], 'type' => (string) $element['type']];
             }
         }
 
@@ -126,9 +133,13 @@ final class FormChecker
                 $issues[] = ['severity' => 'error', 'code' => 'missing_name'] + $about
                     + ['message' => 'The element has no name: its value is not stored with the record.'];
             }
-            if ($name !== '' && \count($names[$name]) > 1 && $names[$name][0] === (int) $element['id']) {
+            if ($name !== '' && self::collides($names[$name] ?? []) && $names[$name][0]['id'] === (int) $element['id']) {
                 $issues[] = ['severity' => 'error', 'code' => 'duplicate_name'] + $about
-                    + ['element_ids' => $names[$name], 'message' => 'Several elements have this name: one value overwrites the other in the record.'];
+                    + [
+                        'element_ids' => array_column($names[$name], 'id'),
+                        'types' => array_values(array_unique(array_column($names[$name], 'type'))),
+                        'message' => 'Several elements have this name, and they are not the radio buttons of one group: the record keeps a single value for them.',
+                    ];
             }
             if ($isInput && $type !== 'Hidden Input' && $title === '') {
                 $issues[] = ['severity' => 'warning', 'code' => 'missing_label'] + $about
@@ -189,6 +200,19 @@ final class FormChecker
             'issues_truncated' => \count($issues) > self::MAX_ISSUES,
             'suggestions' => \array_slice($suggestions, 0, self::MAX_ISSUES),
         ];
+    }
+
+    /**
+     * Whether the elements sharing a name collide. The radio buttons of a
+     * classic form share the name of their group on purpose; any other element
+     * with the name of another one, or among them, is a collision.
+     *
+     * @param list<array{id: int, type: string}> $sharing
+     */
+    private static function collides(array $sharing): bool
+    {
+        return \count($sharing) > 1
+            && \count(array_filter($sharing, static fn (array $element): bool => $element['type'] !== self::GROUP_TYPE)) > 0;
     }
 
     /**

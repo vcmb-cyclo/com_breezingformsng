@@ -35,6 +35,7 @@ final class McpReadToolsTest extends TestCase
 
         self::assertStringContainsString('new CheckFormTool(new FormChecker($db, $catalog))', $factory);
         self::assertStringContainsString('new AuditDatabaseTool(', $factory);
+        self::assertStringContainsString('JPATH_ROOT', $factory);
     }
 
     public function testBothToolsOnlyRead(): void

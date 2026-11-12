@@ -161,11 +161,14 @@ test.describe('MCP endpoint', () => {
                 expect(items.length, name).toBeLessThanOrEqual(50);
             }
         }
-        for (const name of truncated) {
+        // A cut list is named by its path: "duplicate_forms[].drop" is a list inside the items of another one.
+        for (const name of truncated.filter((path) => !path.includes('['))) {
             expect(lists[name], name).toHaveLength(50);
         }
         expect(summary.column_collation_issues).toBeGreaterThanOrEqual(lists.column_collation_issues.length);
         expect(JSON.stringify(audit)).not.toMatch(/secret-key|owner@example/);
+        // The report gives identifiers and codes, not the place of the site on the server.
+        expect(JSON.stringify(audit)).not.toMatch(/\/var\/www|\/home\//);
     });
 
     test('legacy protocol batches are accepted but newer protocol batches are rejected', async () => {

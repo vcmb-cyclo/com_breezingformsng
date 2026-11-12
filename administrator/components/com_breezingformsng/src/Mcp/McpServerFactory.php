@@ -31,10 +31,13 @@ final class McpServerFactory
                 new ListFormsTool($catalog),
                 new GetFormTool($catalog),
                 new CheckFormTool(new FormChecker($db, $catalog)),
-                new AuditDatabaseTool(static fn (): DatabaseAuditService => new DatabaseAuditService(
-                    $db,
-                    (string) Factory::getApplication()->get('tmp_path', JPATH_ROOT . '/tmp')
-                )),
+                new AuditDatabaseTool(
+                    static fn (): array => (new DatabaseAuditService(
+                        $db,
+                        (string) Factory::getApplication()->get('tmp_path', JPATH_ROOT . '/tmp')
+                    ))->run(),
+                    JPATH_ROOT
+                ),
             ],
             self::version($db),
             // The class and place of the failure only: its message may quote form data.

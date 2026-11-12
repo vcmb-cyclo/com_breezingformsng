@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Vcmb\Component\BreezingformsNG\Tests\Administrator\Mcp;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Vcmb\Component\BreezingformsNG\Administrator\Mcp\FormChecker;
 
@@ -86,6 +87,80 @@ final class FormCheckerTest extends TestCase
         self::assertSame('duplicate_name', $report['issues'][0]['code']);
         self::assertSame([1, 2, 3], $report['issues'][0]['element_ids']);
         self::assertSame(1, $report['summary']['errors']);
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function inputTypes(): array
+    {
+        return array_combine(FormChecker::INPUT_TYPES, array_map(static fn (string $type): array => [$type], FormChecker::INPUT_TYPES));
+    }
+
+    #[DataProvider('inputTypes')]
+    public function testEveryInputTypeNeedsAName(string $type): void
+    {
+        self::assertSame(['missing_name:1'], self::codes([self::element(1, ['type' => $type, 'name' => ''])]));
+    }
+
+    #[DataProvider('inputTypes')]
+    public function testEveryInputTypeButTheHiddenOneNeedsALabel(string $type): void
+    {
+        self::assertSame(
+            $type === 'Hidden Input' ? [] : ['missing_label:1'],
+            self::codes([self::element(1, ['type' => $type, 'title' => ''])])
+        );
+    }
+
+    public function testTheInputTypesAreThoseTheSubmissionStoresTheValueOf(): void
+    {
+        $source = (string) file_get_contents(__DIR__ . '/../../../components/com_breezingformsng/src/Service/Submission/SubmissionEngine.php');
+        // The run of cases that handle the value of a submitted element.
+        self::assertSame(1, preg_match("/((?:\\s*case '[A-Za-z ]+':\\n){6,})/", $source, $run, 0));
+        preg_match_all("/case '([A-Za-z ]+)':/", $run[1], $handled);
+
+        self::assertContains('Number Input', $handled[1]);
+        self::assertContains('Signature', $handled[1]);
+        self::assertContains('Query List', $handled[1]);
+        self::assertSame([], array_values(array_diff($handled[1], FormChecker::INPUT_TYPES)), 'a type the engine stores is missing from the check');
+    }
+
+    public function testTheRadioButtonsOfAClassicGroupShareTheirNameOnPurpose(): void
+    {
+        self::assertSame([], self::codes([
+            self::element(1, ['type' => 'Radio Button', 'name' => 'colour', 'title' => 'Red']),
+            self::element(2, ['type' => 'Radio Button', 'name' => 'colour', 'title' => 'Green']),
+            self::element(3, ['type' => 'Radio Button', 'name' => 'colour', 'title' => 'Blue']),
+        ]));
+    }
+
+    public function testAnotherElementWithTheNameOfARadioGroupIsACollision(): void
+    {
+        $report = FormChecker::analyse(self::FORM, [
+            self::element(1, ['type' => 'Radio Button', 'name' => 'colour']),
+            self::element(2, ['type' => 'Radio Button', 'name' => 'colour']),
+            self::element(3, ['type' => 'Text', 'name' => 'colour']),
+        ], self::SCRIPTS);
+
+        self::assertSame(['duplicate_name'], array_column($report['issues'], 'code'));
+        self::assertSame([1, 2, 3], $report['issues'][0]['element_ids']);
+        self::assertSame(['Radio Button', 'Text'], $report['issues'][0]['types']);
+    }
+
+    public function testTwoNumberInputsWithOneNameAreACollision(): void
+    {
+        self::assertSame(['duplicate_name:1'], self::codes([
+            self::element(1, ['type' => 'Number Input', 'name' => 'quantity']),
+            self::element(2, ['type' => 'Number Input', 'name' => 'quantity']),
+        ]));
+    }
+
+    public function testAnElementThatStoresNoValueCollidesWithNothing(): void
+    {
+        self::assertSame([], self::codes([
+            self::element(1, ['type' => 'Text', 'name' => 'send']),
+            self::element(2, ['type' => 'Regular Button', 'name' => 'send']),
+        ]));
     }
 
     public function testAnElementOutsideThePagesOfTheFormIsReported(): void
