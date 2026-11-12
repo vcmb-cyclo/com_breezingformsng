@@ -12,7 +12,9 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Callback;
 use Joomla\CMS\Application\CMSApplication;
 use Vcmb\Component\BreezingformsNG\Site\Service\Support\RedirectHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Uri\Uri;
+use Vcmb\Component\BreezingformsNG\Site\Service\Submission\PayPalPayment;
 use Joomla\Http\Http;
 
 /**
@@ -78,41 +80,33 @@ final class PayPalCallback
 
                 $verification = $this->requestVerification($paypal, $req);
 
+                $recordId = $input->getInt('record_id', -1);
+
                 if ($verification === 'VERIFIED') {
-
-                    $recordId = $input->getInt('record_id', -1);
                     $record = $this->paymentRecordService->find($recordId);
+                    $payment = new PayPalPayment();
+                    $expected = $payment->verify(
+                        (string) $input->post->getString('custom', ''),
+                        $recordId,
+                        (string) $this->application->get('secret')
+                    );
 
-                    if ($record !== null && $record->paypal_tx_id === '') {
-
-                            $paypalTxId = 'PayPal: ' . $tx_token . ' (VALID)';
-                            $paymentDate = date('Y-m-d H:i:s');
-                            $testaccount = $options['testaccount'] ? 1 : 0;
-                            $this->paymentRecordService->storeTransaction(
-                                $recordId,
-                                $paypalTxId,
-                                $paymentDate,
-                                $testaccount
-                            );
-
-                            // trigger a script after succeeded payment?
-                            if (file_exists(JPATH_SITE . '/bf_paypalipn_success.php')) {
-                                require_once (JPATH_SITE . '/bf_paypalipn_success.php');
-                            }
-
-                            // send mail after succeeded payment?
-                            if (isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
-                                bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'admin');
-                                bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'mailback');
-                            }
-                        }
-
-                } else if ($verification === 'INVALID') {
-
-                    $recordId = $input->getInt('record_id', -1);
-                    if ($this->paymentRecordService->find($recordId) !== null) {
-
-                        $paypalTxId = 'PayPal: ' . $tx_token . ' (INVALID)';
+                    // Only a completed payment for this record, of the amount the
+                    // server asked for, is recorded: PayPal also notifies pending
+                    // payments and refunds, and any genuine notification can be
+                    // sent again to another record.
+                    if (
+                        $record !== null
+                        && $record->paypal_tx_id === ''
+                        && $input->post->getString('payment_status', '') === 'Completed'
+                        && $expected !== null
+                        && $payment->matches(
+                            $expected,
+                            $input->post->getString('mc_gross', ''),
+                            $input->post->getString('mc_currency', '')
+                        )
+                    ) {
+                        $paypalTxId = 'PayPal: ' . $tx_token . ' (VALID)';
                         $paymentDate = date('Y-m-d H:i:s');
                         $testaccount = $options['testaccount'] ? 1 : 0;
                         $this->paymentRecordService->storeTransaction(
@@ -121,8 +115,32 @@ final class PayPalCallback
                             $paymentDate,
                             $testaccount
                         );
-                    }
 
+                        // trigger a script after succeeded payment?
+                        if (file_exists(JPATH_SITE . '/bf_paypalipn_success.php')) {
+                            require_once (JPATH_SITE . '/bf_paypalipn_success.php');
+                        }
+
+                        // send mail after succeeded payment?
+                        if (isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
+                            bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $recordId, 'admin');
+                            bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $recordId, 'mailback');
+                        }
+                    } elseif ($record !== null && $record->paypal_tx_id === '' && $input->post->getString('payment_status', '') === 'Completed') {
+                        Log::add(
+                            'PayPal notification for record ' . $recordId . ' ignored: its amount, currency or signature is not the expected one.',
+                            Log::WARNING,
+                            'com_breezingformsng'
+                        );
+                    }
+                } elseif ($verification === 'INVALID') {
+                    // Anyone can post a notification that PayPal calls invalid: it
+                    // must not change a record, or block the real payment.
+                    Log::add(
+                        'PayPal notification for record ' . $recordId . ' refused: PayPal does not know it.',
+                        Log::WARNING,
+                        'com_breezingformsng'
+                    );
                 }
 
                 $this->application->setHeader('status', '200', true);
@@ -154,13 +172,6 @@ final class PayPalCallback
     }
 
     foreach ($areas as $area) {
-        $checkPP = true;
-        foreach ($area['elements'] as $element) {
-            if ($element['name'] == 'PayPalSelect' || $element['name'] == 'BfPaymentSelect') {
-                $checkPP = false;
-                break;
-            }
-        }
         foreach ($area['elements'] as $element) {
             if ($element['internalType'] == 'bfPayPal') {
 
@@ -184,12 +195,21 @@ final class PayPalCallback
                 if (strcmp($lines[0], "SUCCESS") == 0) {
                     for ($i = 1; $i < count($lines); $i++) {
                         if ($lines[$i] != "") {
-                            list($key, $val) = explode("=", $lines[$i]);
+                            [$key, $val] = array_pad(explode('=', $lines[$i], 2), 2, '');
                             $keyarray[urldecode($key)] = urldecode($val);
                         }
                     }
 
-                    if ($checkPP && (($options['amount'] > 0 && $keyarray['mc_gross'] != (doubleval($options['amount']) + doubleval($options['tax']))) || $keyarray['mc_currency'] != strtoupper($options['currencyCode']))) {
+                    $payment = new PayPalPayment();
+                    $expected = $payment->verify(
+                        (string) ($keyarray['custom'] ?? ''),
+                        $input->getInt('record_id', -1),
+                        (string) $this->application->get('secret')
+                    );
+
+                    // The amount and currency are the ones the server signed for this
+                    // record, whatever the browser sent to PayPal.
+                    if ($expected === null || !$payment->matches($expected, (string) ($keyarray['mc_gross'] ?? ''), (string) ($keyarray['mc_currency'] ?? ''))) {
 
                         $success = false;
                         $msg = Text::_('COM_BREEZINGFORMSNG_PAYMENT_AMOUNT_CURRENCY_INVALID');

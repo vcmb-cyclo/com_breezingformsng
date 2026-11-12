@@ -1213,6 +1213,18 @@ final class SubmissionEngine
 
         // After the Begin Submit piece, which can compute the amount, and before
         // anything is stored or sent: a refused amount leaves no record.
+        if ($this->payPalSelectionIsRefused()) {
+            Log::add(
+                'Form ' . (int) $this->processor->form . ' was not submitted: the PayPal choice is not one the form offers.',
+                Log::WARNING,
+                'com_breezingformsng'
+            );
+            echo '<div class="alert alert-warning">'
+                . Text::_('COM_BREEZINGFORMSNG_STRIPE_AMOUNT_INVALID')
+                . '</div>';
+            return;
+        }
+
         if ($this->stripeFieldAmountIsRefused()) {
             Log::add(
                 'Form ' . (int) $this->processor->form . ' was not submitted: the Stripe amount is empty, invalid or not offered by the form.',
@@ -1803,83 +1815,40 @@ final class SubmissionEngine
 
                                     HTMLHelper::_('bootstrap.modal');
 
-                                    $ppselect = $this->processor->app->getInput()->get(
-                                        'ff_nm_bfPaymentSelect',
-                                        [],
-                                        'string'
-                                    );
-                                    if (count($ppselect) != 0) {
-                                        $ppselected = explode('|', $ppselect[0]);
-                                        if (count($ppselected) == 4) {
-                                            $options['itemname'] = htmlentities($ppselected[0], ENT_QUOTES, 'UTF-8');
-                                            $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
-                                            $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
-                                            $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                        } elseif (count($ppselected) == 5) {
-                                            $options['itemname'] = htmlentities($ppselected[0], ENT_QUOTES, 'UTF-8');
-                                            $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
-                                            $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
-                                            $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                            $options['shipping'] = ($ppselected[4] == 1 ? '1' : '0');
-                                        } elseif (count($ppselected) == 6) {
-                                            $options['itemname'] = htmlentities($ppselected[0], ENT_QUOTES, 'UTF-8');
-                                            $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
-                                            $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
-                                            $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                            $options['shipping'] = ($ppselected[4] == 1 ? '1' : '0');
-                                            $options['currencyCode'] = htmlentities(
-                                                $ppselected[5] == '' ? 'USD' : $ppselected[5],
-                                                ENT_QUOTES,
-                                                'UTF-8'
-                                            );
-                                        }
+                                    $payPal = new PayPalPayment();
+                                    $selection = $this->payPalSelection($payPal);
+                                    $fixed = $payPal->fromOptions($options);
+                                    // The server decides what is paid: a choice the form
+                                    // offers, or the amount the element is set to.
+                                    if ($selection !== null) {
+                                        $options['itemname'] = $selection['itemname'];
+                                        $options['itemnumber'] = $selection['itemnumber'];
+                                        $options['shipping'] = $selection['shipping'] ?? ($options['shipping'] ?? '0');
                                     }
-
-                                    // keeping this for compat reasons
-                                    $ppselect = $this->processor->app->getInput()->get(
-                                        'ff_nm_PayPalSelect',
-                                        [],
-                                        'string'
+                                    $options['amount'] = $selection['amount'] ?? $fixed['amount'];
+                                    $options['tax'] = $selection['tax'] ?? $fixed['tax'];
+                                    $options['currencyCode'] = $selection['currencyCode'] ?? $fixed['currencyCode'];
+                                    $custom = $payPal->sign(
+                                        (int) $this->processor->record_id,
+                                        $options['amount'],
+                                        $options['tax'],
+                                        $options['currencyCode'],
+                                        (string) $this->processor->app->get('secret')
                                     );
-                                    if (count($ppselect) != 0) {
-                                        $ppselected = explode('|', $ppselect[0]);
-                                        if (count($ppselected) == 4) {
-                                            $options['itemname'] = htmlentities($ppselected[0], ENT_QUOTES, 'UTF-8');
-                                            $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
-                                            $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
-                                            $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                        } elseif (count($ppselected) == 5) {
-                                            $options['itemname'] = htmlentities($ppselected[0], ENT_QUOTES, 'UTF-8');
-                                            $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
-                                            $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
-                                            $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                            $options['shipping'] = ($ppselected[4] == 1 ? '1' : '0');
-                                        } elseif (count($ppselected) == 6) {
-                                            $options['itemname'] = htmlentities($ppselected[0], ENT_QUOTES, 'UTF-8');
-                                            $options['itemnumber'] = htmlentities($ppselected[1], ENT_QUOTES, 'UTF-8');
-                                            $options['amount'] = htmlentities($ppselected[2], ENT_QUOTES, 'UTF-8');
-                                            $options['tax'] = htmlentities($ppselected[3], ENT_QUOTES, 'UTF-8');
-                                            $options['shipping'] = ($ppselected[4] == 1 ? '1' : '0');
-                                            $options['currencyCode'] = htmlentities(
-                                                $ppselected[5] == '' ? 'USD' : $ppselected[5],
-                                                ENT_QUOTES,
-                                                'UTF-8'
-                                            );
-                                        }
-                                    }
-                                    // compat end
 
                                     $html .= "<form name=\"ff_submitform\" action=\""
                                         . $paypal . "/cgi-bin/webscr\" method=\"post\" accept-charset=\"UTF-8\">";
                                     $html .= "<input type=\"hidden\" name=\"cmd\" value=\"_xclick\"/>";
                                     $html .= "<input type=\"hidden\" name=\"business\" value=\"" . $business . "\"/>";
                                     $html .= "<input type=\"hidden\" name=\"item_name\" value=\""
-                                        . $options['itemname'] . "\"/>";
+                                        . htmlspecialchars((string) $options['itemname'], ENT_QUOTES, 'UTF-8') . "\"/>";
                                     $html .= "<input type=\"hidden\" name=\"item_number\" value=\""
-                                        . $options['itemnumber'] . "\"/>";
+                                        . htmlspecialchars((string) $options['itemnumber'], ENT_QUOTES, 'UTF-8') . "\"/>";
                                     $html .= "<input type=\"hidden\" name=\"amount\" value=\""
                                         . $options['amount'] . "\"/>";
                                     $html .= "<input type=\"hidden\" name=\"tax\" value=\"" . $options['tax'] . "\"/>";
+                                    $html .= "<input type=\"hidden\" name=\"custom\" value=\""
+                                        . htmlspecialchars($custom, ENT_QUOTES, 'UTF-8') . "\"/>";
                                     $html .= "<input type=\"hidden\" name=\"no_shipping\" value=\""
                                         . ($options['shipping'] == 1 ? 0 : 1) . "\"/>";
                                     $html .= "<input type=\"hidden\" name=\"no_note\" value=\"1\"/>";
@@ -2196,6 +2165,64 @@ final class SubmissionEngine
         }
 
         return $this->stripeAmount()->toMinorUnits($this->stripeFieldValue($field), $this->stripeAmount()->currency($options));
+    }
+
+    /**
+     * The PayPal choice the payer made, null when the form has none. The choice
+     * must be one the list field offers: the browser cannot set its own price.
+     *
+     * @return array<string, ?string>|null
+     */
+    private function payPalSelection(PayPalPayment $payPal): ?array
+    {
+        foreach (PayPalPayment::SELECT_FIELDS as $field) {
+            $posted = $this->stripeFieldValue($field);
+
+            if ($posted === []) {
+                continue;
+            }
+
+            $value = (string) reset($posted);
+
+            return $this->payPalChoiceIsOffered($field, $posted) ? $payPal->fromSelection($value) : null;
+        }
+
+        return null;
+    }
+
+    /** @param mixed $posted */
+    private function payPalChoiceIsOffered(string $field, $posted): bool
+    {
+        foreach ($this->formElements() as $element) {
+            if (
+                ($element['name'] ?? '') === $field
+                && in_array($element['internalType'] ?? '', ['bfSelect', 'bfRadioGroup'], true)
+            ) {
+                return $this->stripeAmount()->isListed($posted, (string) ($element['data2'] ?? ''));
+            }
+        }
+
+        return false;
+    }
+
+    /** A PayPal payment whose choice is not valid, or not one the form offers. */
+    private function payPalSelectionIsRefused(): bool
+    {
+        if ($this->processor->app->getInput()->getString('ff_payment_method', '') !== 'PayPal') {
+            return false;
+        }
+
+        $payPal = new PayPalPayment();
+
+        foreach (PayPalPayment::SELECT_FIELDS as $field) {
+            $posted = $this->stripeFieldValue($field);
+
+            if ($posted !== []) {
+                return !$this->payPalChoiceIsOffered($field, $posted) || $payPal->fromSelection((string) reset($posted)) === null;
+            }
+        }
+
+        return false;
     }
 
     /** A Stripe payment whose amount is not valid, or not one the form offers. */
