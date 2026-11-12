@@ -63,6 +63,7 @@ final class LegacyFormConverter
         usort($elements, static fn (array $a, array $b): int =>
             [(int) ($a['page'] ?? 0), (int) ($a['ordering'] ?? 0), (int) ($a['id'] ?? 0)]
             <=> [(int) ($b['page'] ?? 0), (int) ($b['ordering'] ?? 0), (int) ($b['id'] ?? 0)]);
+        $elements = $this->groupClassicRadios($form, $elements);
         $names = [];
         foreach ($elements as $index => $element) {
             $page = (int) ($element['page'] ?? 0);
@@ -102,8 +103,8 @@ final class LegacyFormConverter
      */
     private function convertElement(array $element, int $number): array
     {
-        $types = ['Text' => 'bfTextfield', 'Textarea' => 'bfTextarea',
-            'Hidden Input' => 'bfHidden', 'Checkbox' => 'bfCheckbox', 'Select List' => 'bfSelect'];
+        $types = ['Text' => 'bfTextfield', 'Textarea' => 'bfTextarea', 'Hidden Input' => 'bfHidden',
+            'Checkbox' => 'bfCheckbox', 'Select List' => 'bfSelect', '__classic_radio_group' => 'bfRadioGroup'];
         $type = (string) ($element['type'] ?? '');
         if (!isset($types[$type])) {
             throw new \DomainException('unsupported_type');
@@ -124,7 +125,10 @@ final class LegacyFormConverter
                 throw new \DomainException('unsupported_options');
             }
         }
-        if ($type !== 'Select List' && isset($element['data2']) && (string) $element['data2'] !== '') {
+        if (
+            !in_array($type, ['Select List', '__classic_radio_group'], true)
+            && isset($element['data2']) && (string) $element['data2'] !== ''
+        ) {
             throw new \DomainException('unsupported_options');
         }
         if ($type !== 'Text' && !empty($element['mailbackfile'])) {
@@ -180,11 +184,108 @@ final class LegacyFormConverter
             $properties += ['list' => $this->convertSelectOptions((string) ($element['data2'] ?? '')),
                 'multiple' => (bool) ($element['flag1'] ?? false),
                 'mailback' => (bool) ($element['mailback'] ?? false), 'width' => '', 'height' => ''];
+        } elseif ($type === '__classic_radio_group') {
+            $properties['hideLabel'] = true;
+            $properties['group'] = (string) $element['data2'];
+            $properties['wrap'] = false;
         }
 
         return ['attributes' => ['class' => 'bfQuickModeElementClass', 'id' => $id,
             'mdata' => '{"deletable":true,"type":"element"}'],
             'data' => ['title' => $label], 'properties' => $properties];
+    }
+
+    /**
+     * The Classic renderer uses an empty processed template; Easy Mode stores
+     * its captions in HTML, so its radios cannot be reconstructed from rows.
+     *
+     * @param array<string, mixed> $form
+     * @param list<array<string, mixed>> $elements
+     * @return list<array<string, mixed>>
+     */
+    private function groupClassicRadios(array $form, array $elements): array
+    {
+        $result = [];
+        for ($i = 0, $count = count($elements); $i < $count; $i++) {
+            $first = $elements[$i];
+            if (($first['type'] ?? '') === '__classic_radio_group') {
+                throw new LegacyFormConversionException(
+                    'unsupported_type',
+                    (int) ($first['id'] ?? 0),
+                    (string) ($first['name'] ?? ''),
+                    (string) $first['type'],
+                );
+            }
+            if (($first['type'] ?? '') !== 'Radio Button') {
+                $result[] = $first;
+                continue;
+            }
+            $name = (string) ($first['name'] ?? '');
+            $page = (int) ($first['page'] ?? 0);
+            $reason = 'unsupported_options';
+            $current = $first;
+            try {
+                if (
+                    trim((string) ($form['template_code_processed'] ?? '')) !== ''
+                    || trim((string) ($form['template_code'] ?? '')) !== ''
+                    || !in_array(trim((string) ($form['template_areas'] ?? '')), ['', '[]', 'null'], true)
+                ) {
+                    throw new \DomainException($reason);
+                }
+                $options = [];
+                $values = [];
+                $checkedCount = 0;
+                $logging = (int) ($first['logging'] ?? 1);
+                do {
+                    $current = $elements[$i];
+                    if ((int) ($current['published'] ?? 0) !== 1 || (int) ($current['logging'] ?? 1) !== $logging) {
+                        throw new \DomainException($reason);
+                    }
+                    $value = (string) ($current['data1'] ?? '');
+                    $caption = (string) ($current['data2'] ?? '');
+                    $checked = (string) ($current['flag1'] ?? '0');
+                    if (
+                        $value === '' || $value !== trim($value) || $caption === '' || $caption !== trim($caption)
+                        || strpbrk($value . $caption, ";\r\n<>") !== false
+                        || !in_array($checked, ['0', '1'], true) || isset($values[$value])
+                    ) {
+                        throw new \DomainException($reason);
+                    }
+                    $values[$value] = true;
+                    $checkedCount += (int) $checked;
+                    if ($checkedCount > 1) {
+                        throw new \DomainException($reason);
+                    }
+                    // Reuse the common field checks for scripts, flags and classes.
+                    $check = $current;
+                    $check['type'] = 'Checkbox';
+                    $check['data2'] = '';
+                    $this->convertElement($check, $i + 1);
+                    $options[] = $checked . ';' . $caption . ';' . $value;
+                    $next = $elements[$i + 1] ?? null;
+                    if (
+                        $next === null || ($next['type'] ?? '') !== 'Radio Button'
+                        || (string) ($next['name'] ?? '') !== $name || (int) ($next['page'] ?? 0) !== $page
+                    ) {
+                        break;
+                    }
+                    $i++;
+                } while (true);
+                $first['type'] = '__classic_radio_group';
+                $first['data1'] = '';
+                $first['data2'] = implode("\n", $options);
+                $first['flag1'] = 0;
+                $result[] = $first;
+            } catch (\DomainException $exception) {
+                throw new LegacyFormConversionException(
+                    $exception->getMessage(),
+                    (int) ($current['id'] ?? 0),
+                    (string) ($current['name'] ?? ''),
+                    'Radio Button',
+                );
+            }
+        }
+        return $result;
     }
 
     private function convertSelectOptions(string $source): string

@@ -56,7 +56,7 @@ switch ($argv[1] ?? '') {
     case 'legacy-fixture':
         // legacy-fixture <mode>: isolated test data, including an old submission.
         $mode = $argv[2] ?? '';
-        if (!in_array($mode, ['easy', 'classic', 'unsupported', 'select', 'notifications'], true)) {
+        if (!in_array($mode, ['easy', 'classic', 'unsupported', 'select', 'notifications', 'radio', 'radio-ambiguous'], true)) {
             throw new InvalidArgumentException('Invalid fixture mode');
         }
         $name = 'e2e_legacy_' . bin2hex(random_bytes(6));
@@ -66,16 +66,35 @@ switch ($argv[1] ?? '') {
         $db->query("INSERT INTO {$forms} (name, title, package, template_code, template_code_processed, template_areas, published, pages, emailntf, emailadr) VALUES ('{$name}', '{$name}', '{$package}', '{$template}', '{$template}', '[]', 1, 1, 0, '')");
         $formId = (int) $db->insert_id;
         $type = match ($mode) {
-            'unsupported' => 'Radio Button',
+            'unsupported' => 'Query List',
             'select' => 'Select List',
+            'radio', 'radio-ambiguous' => 'Radio Button',
             default => 'Text',
         };
-        $elementName = $mode === 'unsupported' ? '<img src=x onerror=alert(1)>' : 'first_name';
+        $elementName = match ($mode) {
+            'unsupported' => '<img src=x onerror=alert(1)>',
+            'radio', 'radio-ambiguous' => 'contact_method',
+            default => 'first_name',
+        };
         $elementName = $db->real_escape_string($elementName);
-        $data1 = $mode === 'select' ? '1' : 'initial';
-        $data2 = $mode === 'select' ? "0;One;one\n1;Two;two" : '';
+        $data1 = match ($mode) {
+            'select' => '1',
+            'radio', 'radio-ambiguous' => 'email',
+            default => 'initial',
+        };
+        $data2 = match ($mode) {
+            'select' => "0;One;one\n1;Two;two",
+            'radio', 'radio-ambiguous' => 'Email',
+            default => '',
+        };
         $data2 = $db->real_escape_string($data2);
-        $db->query("INSERT INTO {$config->dbprefix}facileforms_elements (form, page, ordering, published, name, title, type, data1, data2, data3) VALUES ({$formId}, 1, 1, 1, '{$elementName}', 'First name', '{$type}', '{$data1}', '{$data2}', '')");
+        $checked = in_array($mode, ['radio', 'radio-ambiguous'], true) ? 1 : 0;
+        $db->query("INSERT INTO {$config->dbprefix}facileforms_elements (form, page, ordering, published, name, title, type, data1, data2, data3, flag1) VALUES ({$formId}, 1, 1, 1, '{$elementName}', 'First name', '{$type}', '{$data1}', '{$data2}', '', {$checked})");
+        if (in_array($mode, ['radio', 'radio-ambiguous'], true)) {
+            // More than one selected row makes the legacy choice ambiguous.
+            $checkedSecond = $mode === 'radio-ambiguous' ? 1 : 0;
+            $db->query("INSERT INTO {$config->dbprefix}facileforms_elements (form, page, ordering, published, name, title, type, data1, data2, data3, flag1) VALUES ({$formId}, 1, 2, 1, 'contact_method', 'First name', 'Radio Button', 'phone', 'Phone', '', {$checkedSecond})");
+        }
         if ($mode === 'notifications') {
             // Legacy mode 1 sends to the site address, incompatible with an explicit address.
             $db->query("UPDATE {$forms} SET emailntf = 1, emailadr = 'owner@example.invalid' WHERE id = {$formId}");

@@ -110,15 +110,17 @@ In **Components → BreezingForms NG → Forms**, select one legacy form and cho
 it does not replace the original or move its submissions. The copy has a new form name,
 ID and element IDs, so existing links and integrations still refer to the original.
 
-The converter supports text fields, text areas, checkboxes, hidden inputs and simple select
-lists. Unsupported element types, scripts, integrations, form-specific mail or PDF templates,
-and ambiguous settings stop conversion with a warning identifying the affected element when
-available. Those cases need manual rebuilding. Conversion requires transactional InnoDB form
-and element tables, and permission to create and edit forms.
+The converter supports text fields, text areas, checkboxes, hidden inputs, simple select
+lists and unambiguous Classic Mode radio groups. Unsupported element types, scripts,
+integrations, form-specific mail or PDF templates, and ambiguous settings stop conversion
+with a warning identifying the affected element when available. Those cases need manual
+rebuilding. Conversion requires transactional InnoDB form and element tables, and permission
+to create and edit forms.
 
 Review the copy's content, layout, fields, notifications and behaviour before publishing it:
 legacy positioning and static content are not automatically reconstructed. Update links only
 after testing the copy. Retest captchas, uploads, payments and exports after migration.
+Easy Mode radio groups and ambiguous Classic Mode radio groups require manual rebuilding.
 Developers can read [`MIGRATION.md`](MIGRATION.md) for the refactoring details.
 
 ---

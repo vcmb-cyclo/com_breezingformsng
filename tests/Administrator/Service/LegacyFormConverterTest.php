@@ -43,7 +43,7 @@ final class LegacyFormConverterTest extends TestCase
         $this->expectException(\DomainException::class);
         $this->expectExceptionMessage('unsupported_type');
         (new LegacyFormConverter())->convert(['pages' => 1], [
-            ['id' => 1, 'page' => 1, 'published' => 1, 'type' => 'Radio Button', 'name' => 'choice'],
+            ['id' => 1, 'page' => 1, 'published' => 1, 'type' => 'Graphic Button', 'name' => 'choice'],
         ]);
     }
 
@@ -144,5 +144,61 @@ final class LegacyFormConverterTest extends TestCase
             'id' => 5, 'page' => 1, 'published' => 1, 'type' => 'Text', 'name' => 'dynamic',
             'data1' => '<?php return "value"; ?>',
         ]]);
+    }
+
+    public function testClassicRadioButtonsBecomeAQuickmodeGroup(): void
+    {
+        $elements = [
+            ['id' => 1, 'page' => 1, 'ordering' => 1, 'published' => 1, 'name' => 'choice',
+                'type' => 'Radio Button', 'title' => 'unused', 'data1' => 'yes', 'data2' => 'Yes', 'flag1' => 1],
+            ['id' => 2, 'page' => 1, 'ordering' => 2, 'published' => 1, 'name' => 'choice',
+                'type' => 'Radio Button', 'title' => 'unused', 'data1' => 'no', 'data2' => 'No', 'flag1' => 0],
+        ];
+        $tree = (new LegacyFormConverter())->convert(['pages' => 1], $elements);
+        $children = $tree['children'][0]['children'];
+        self::assertCount(1, $children);
+        self::assertSame('bfRadioGroup', $children[0]['properties']['bfType']);
+        self::assertSame("1;Yes;yes\n0;No;no", $children[0]['properties']['group']);
+        self::assertTrue($children[0]['properties']['hideLabel']);
+        self::assertSame(0, $children[0]['properties']['dbId']);
+        $model = (new \ReflectionClass(QuickmodeModel::class))->newInstanceWithoutConstructor();
+        $areas = new \stdClass();
+        $areas->container = [['elements' => [], 'elementCount' => 0]];
+        (new \ReflectionMethod($model, 'createAreasFromTree'))->invoke($model, $tree, $areas);
+        self::assertSame('Radio Group', $areas->container[0]['elements'][0]['bfType']);
+        self::assertSame("1;Yes;yes\n0;No;no", $areas->container[0]['elements'][0]['data2']);
+    }
+
+    public function testAmbiguousRadioGroupsAreRejected(): void
+    {
+        $first = ['id' => 1, 'page' => 1, 'ordering' => 1, 'published' => 1, 'name' => 'choice',
+            'type' => 'Radio Button', 'data1' => 'yes', 'data2' => 'Yes', 'flag1' => 1];
+        $second = ['id' => 2, 'page' => 1, 'ordering' => 2, 'published' => 1, 'name' => 'choice',
+            'type' => 'Radio Button', 'data1' => 'no', 'data2' => 'No', 'flag1' => 0];
+        $cases = [
+            [['pages' => 1, 'template_code_processed' => '<div>Easy</div>'], [$first, $second]],
+            [['pages' => 1], [$first, array_replace($second, ['data2' => ''])]],
+            [['pages' => 1], [$first, array_replace($second, ['data2' => '<b>No</b>'])]],
+            [['pages' => 1], [$first, array_replace($second, ['data1' => 'a;b'])]],
+            [['pages' => 1], [$first, array_replace($second, ['data1' => 'yes'])]],
+            [['pages' => 1], [$first, array_replace($second, ['flag1' => 1])]],
+            [['pages' => 1], [$first, array_replace($second, ['flag2' => 1])]],
+            [['pages' => 1], [$first, array_replace($second, ['script2id' => 12])]],
+            [['pages' => 1], [$first, array_replace($second, ['logging' => 0])]],
+            [['pages' => 1], [array_replace($first, ['type' => '__classic_radio_group'])]],
+            [['pages' => 1], [array_replace($first, ['type' => 'Radio Group'])]],
+            [['pages' => 2], [$first, array_replace($second, ['page' => 2])]],
+            [['pages' => 1], [$first, array_replace($second, ['name' => 'Choice'])]],
+            [['pages' => 1], [$first, ['page' => 1, 'ordering' => 2, 'published' => 1, 'type' => 'Text',
+                'name' => 'other'], array_replace($second, ['ordering' => 3])]],
+        ];
+        foreach ($cases as [$form, $elements]) {
+            try {
+                (new LegacyFormConverter())->convert($form, $elements);
+                self::fail('Ambiguous group must be rejected');
+            } catch (LegacyFormConversionException) {
+                self::assertTrue(true);
+            }
+        }
     }
 }

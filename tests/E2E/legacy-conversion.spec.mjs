@@ -182,6 +182,54 @@ test.describe('legacy form conversion', () => {
         await expect(select.locator('option')).toHaveText(['One', 'Two']);
     });
 
+    test('groups Classic radio buttons and keeps the selected value through a save', async () => {
+        const form = fixture('radio');
+        const before = snapshot(form.id);
+        expect(before.elements).toHaveLength(2);
+        await convert(form);
+        await expect(page.locator('joomla-alert[type="success"], .alert-success'))
+            .toContainText('An unpublished QuickMode copy was created');
+        const after = snapshot(form.id);
+        expect(after.form).toEqual(before.form);
+        expect(after.elements).toEqual(before.elements);
+        expect(after.records).toEqual(before.records);
+        expect(after.copies).toHaveLength(1);
+        const copy = after.copies[0];
+        expect(copy.published).toBe('0');
+        expect(copy.records).toBe(0);
+        const groups = copy.elements.filter((element) => element.name === 'contact_method');
+        expect(groups).toHaveLength(1);
+        expect(groups[0]).toMatchObject({ type: 'Radio Group', data2: '1;Email;email\n0;Phone;phone' });
+
+        await page.goto(`${admin}?option=com_breezingformsng&task=quickmode.display&form=${copy.id}`);
+        await page.waitForFunction(() => window.BFQMApp && window.BFQMApp.selectedTreeElement);
+        const reload = page.waitForEvent('load', { timeout: 45000 });
+        await page.locator('#toolbar-apply').click();
+        await reload;
+        await page.waitForFunction(() => window.BFQMApp && window.BFQMApp.selectedTreeElement);
+        const saved = snapshot(form.id);
+        expect(saved.form).toEqual(before.form);
+        expect(saved.elements).toEqual(before.elements);
+        expect(saved.records).toEqual(before.records);
+        expect(saved.copies[0].elements.filter((element) => element.name === 'contact_method'))
+            .toMatchObject([{ type: 'Radio Group', data2: '1;Email;email\n0;Phone;phone' }]);
+
+        db('set', String(copy.id), 'published', '1');
+        await page.goto(`index.php?option=com_breezingformsng&ff_form=${copy.id}`);
+        const choices = page.locator('input[type="radio"][name="ff_nm_contact_method[]"]');
+        await expect(choices).toHaveCount(2);
+        await expect(page.locator('input[type="radio"][name="ff_nm_contact_method[]"][value="email"]')).toBeChecked();
+        await expect(page.locator('input[type="radio"][name="ff_nm_contact_method[]"][value="phone"]')).not.toBeChecked();
+    });
+
+    test('refuses an ambiguous Classic radio group with multiple checked choices', async () => {
+        const form = fixture('radio-ambiguous');
+        const before = snapshot(form.id);
+        await convert(form);
+        await expect(page.locator('joomla-alert[type="warning"], .alert-warning')).toBeVisible();
+        expect(snapshot(form.id)).toEqual(before);
+    });
+
     test('rejects a conversion request without a CSRF token', async () => {
         const form = fixture('classic');
         const before = snapshot(form.id);

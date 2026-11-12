@@ -16,7 +16,9 @@ formats.
 The forms list offers an explicit conversion for a limited subset of legacy
 forms. It creates an unpublished QuickMode copy in `QuickModeForms`, with new
 element IDs; the original form and its submissions remain separate. Text,
-textarea, checkbox, hidden input and simple select-list elements are supported.
+textarea, checkbox, hidden input, simple select-list elements and unambiguous
+Classic Mode radio groups are supported. Easy Mode radio groups require manual
+rebuilding because their captions may be stored separately in HTML.
 Unsupported elements, scripts, integrations and form-specific mail/PDF files
 block conversion. Layout and static content require manual review. Conversion
 uses transactions and requires InnoDB form and element tables.
