@@ -24,6 +24,7 @@ use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Versioning\VersionableModelInterface;
 use Joomla\CMS\Versioning\VersionableModelTrait;
 use Joomla\Utilities\ArrayHelper;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AuditUserNames;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\VersionOrigin;
 
@@ -38,6 +39,15 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\VersionOrigin;
 abstract class PackageItemModel extends AdminModel implements VersionableModelInterface
 {
     use VersionableModelTrait;
+
+    /**
+     * @param list<string> $values
+     * @return array<string, string>
+     */
+    public function resolveAuditNames(array $values): array
+    {
+        return AuditUserNames::resolve($this->getDatabase(), $values);
+    }
 
     /**
      * @param array<string, mixed> $config

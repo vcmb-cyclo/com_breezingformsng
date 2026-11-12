@@ -32,6 +32,14 @@ $auditDate = static fn (mixed $utc): string => $utc === null || $utc === '' ? ''
     HTMLHelper::_('date', (string) $utc, Text::_('DATE_FORMAT_LC6')),
 );
 $auditText = static fn (mixed $text): string => htmlspecialchars((string) ($text ?? ''), ENT_QUOTES, 'UTF-8');
+$auditModified = static function (mixed $date, mixed $author) use ($auditDate, $auditText): string {
+    $dateText = $auditDate($date);
+    $authorText = $auditText($author);
+
+    return $dateText !== '' && $authorText !== ''
+        ? Text::sprintf('COM_BREEZINGFORMSNG_AUDIT_DATE_BY', $dateText, $authorText)
+        : $dateText . $authorText;
+};
 $metadataFields = [
     'name' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE') . ' ' . Text::_('COM_BREEZINGFORMSNG_INSTALLER_NAME'),
     'version' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE') . ' ' . Text::_('COM_BREEZINGFORMSNG_INSTALLER_VERS'),
@@ -56,7 +64,7 @@ $metadataFields = [
                         <div class="col-12 col-md-6">
                             <label class="form-label" for="bf-package-delete-select"><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE'); ?></label>
                             <select class="form-select" id="bf-package-delete-select" name="package" onchange="this.form.submit()">
-                                <option value=""><?= Text::_('JGLOBAL_SELECT_AN_OPTION'); ?></option>
+                                <option value=""><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SELECT_PACKAGE'); ?></option>
                                 <?php foreach ($this->packages as $package) : ?>
                                     <option value="<?= htmlspecialchars($package, ENT_QUOTES, 'UTF-8'); ?>"<?= $package === $this->selectedPackage ? ' selected' : ''; ?>><?= htmlspecialchars($package, ENT_QUOTES, 'UTF-8'); ?></option>
                                 <?php endforeach; ?>
@@ -136,7 +144,7 @@ $metadataFields = [
                     </form>
                     <table class="table table-striped mt-4" id="bf-package-info">
                         <tbody><tr class="table-primary"><th colspan="2">
-                            <a href="#" class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"
+                            <a href="#" id="bf-package-info-toggle" class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"
                                 data-bs-toggle="collapse" data-bs-target="#bf-package-info-content"
                                 aria-expanded="false" aria-controls="bf-package-info-content">
                                 <span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> <?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_REPORT_PACKAGEINFO'); ?>
@@ -150,17 +158,15 @@ $metadataFields = [
                     </table>
                     <table class="table table-striped mt-4" id="bf-package-audit">
                         <tbody><tr class="table-primary"><th colspan="2">
-                            <a href="#" class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"
+                            <a href="#" id="bf-package-audit-toggle" class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"
                                 data-bs-toggle="collapse" data-bs-target="#bf-package-audit-content"
                                 aria-expanded="false" aria-controls="bf-package-audit-content">
                                 <span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> <?= Text::_('COM_BREEZINGFORMSNG_RECORDS_AUDITINFO'); ?>
                             </a>
                         </th></tr></tbody>
                             <tbody id="bf-package-audit-content" class="collapse">
-                                <tr><th class="w-25"><?= Text::_('JGLOBAL_FIELD_CREATED_LABEL'); ?></th><td><?= $auditDate($profile['created'] ?? null); ?></td></tr>
-                                <tr><th><?= Text::_('JGLOBAL_FIELD_CREATED_BY_LABEL'); ?></th><td><?= $auditText($profile['created_by'] ?? ''); ?></td></tr>
-                                <tr><th><?= Text::_('JGLOBAL_FIELD_MODIFIED_LABEL'); ?></th><td><?= $auditDate($profile['modified'] ?? null); ?></td></tr>
-                                <tr><th><?= Text::_('JGLOBAL_FIELD_MODIFIED_BY_LABEL'); ?></th><td><?= $auditText($profile['modified_by'] ?? ''); ?></td></tr>
+                                <tr><th class="w-25"><?= Text::_('COM_BREEZINGFORMSNG_TEST_CREATED'); ?></th><td><?= $auditModified($profile['created'] ?? null, $profile['created_by'] ?? ''); ?></td></tr>
+                                <tr><th><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MODIFIED'); ?></th><td><?= $auditModified($profile['modified'] ?? null, $profile['modified_by'] ?? ''); ?></td></tr>
                             </tbody>
                     </table>
                 <?php endif; ?>

@@ -16,6 +16,7 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\ParameterType;
 use Joomla\Filesystem\File;
 use Vcmb\Component\BreezingformsNG\Administrator\Exception\InvalidPackageException;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AuditUserNames;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\LegacyXmlPackage;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PackageTemplateCode;
@@ -160,6 +161,33 @@ final class PackageTransferModel extends BaseDatabaseModel
         }
 
         ksort($profiles, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $profiles;
+    }
+
+    /**
+     * Resolve stored audit user identifiers for display without changing the saved profiles.
+     *
+     * @param array<array<string, mixed>> $profiles
+     * @return array<array<string, mixed>>
+     */
+    public function resolveProfileAuditNames(array $profiles): array
+    {
+        $users = [];
+        foreach ($profiles as $profile) {
+            foreach (['created_by', 'modified_by'] as $field) {
+                $users[] = (string) ($profile[$field] ?? '');
+            }
+        }
+
+        $names = AuditUserNames::resolve($this->getDatabase(), $users);
+        foreach ($profiles as &$profile) {
+            foreach (['created_by', 'modified_by'] as $field) {
+                $value = (string) ($profile[$field] ?? '');
+                $profile[$field] = $names[$value] ?? $value;
+            }
+        }
+        unset($profile);
 
         return $profiles;
     }

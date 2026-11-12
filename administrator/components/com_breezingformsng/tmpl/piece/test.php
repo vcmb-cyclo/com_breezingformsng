@@ -38,6 +38,14 @@ $autoOpenUnitWarningText = $unitTestFailures > 0
     ? Text::plural('COM_BREEZINGFORMSNG_TEST_UNIT_FAILURES', $unitTestFailures)
     : Text::_('COM_BREEZINGFORMSNG_TEST_UNIT_FAILURES_ON_OPEN');
 $action = Route::_('index.php?option=com_breezingformsng&view=piece&layout=test&id=' . (int) $row->id);
+$createdDate = $row->created ? HTMLHelper::date($row->created, 'Y-m-d H:i', true) : '-';
+$createdBy = htmlspecialchars($this->auditCreatedBy, ENT_QUOTES, 'UTF-8');
+$createdAudit = $createdBy !== '' ? Text::sprintf('COM_BREEZINGFORMSNG_AUDIT_DATE_BY', $createdDate, $createdBy) : $createdDate;
+$modifiedDate = $row->modified ? HTMLHelper::date($row->modified, 'Y-m-d H:i', true) : '-';
+$modifiedBy = htmlspecialchars($this->auditModifiedBy, ENT_QUOTES, 'UTF-8');
+$modifiedAudit = $modifiedBy !== ''
+    ? Text::sprintf('COM_BREEZINGFORMSNG_AUDIT_DATE_BY', $modifiedDate, $modifiedBy)
+    : $modifiedDate;
 ?>
 <form action="<?= $action; ?>" method="post" name="adminForm" id="adminForm">
   <?php if ($showAutoOpenUnitWarning) { ?>
@@ -72,17 +80,11 @@ $action = Route::_('index.php?option=com_breezingformsng&view=piece&layout=test&
   <div class="card mb-3 bg-light">
     <div class="card-body">
       <div class="row">
-        <div class="col-sm-6 col-md-3">
-          <strong><?php echo Text::_('COM_BREEZINGFORMSNG_TEST_CREATED'); ?>:</strong> <?php echo $row->created ? HTMLHelper::date($row->created, 'Y-m-d H:i', true) : '-'; ?>
+        <div class="col-sm-12 col-md-6">
+          <strong><?php echo Text::_('COM_BREEZINGFORMSNG_TEST_CREATED'); ?>:</strong> <?php echo $createdAudit; ?>
         </div>
-        <div class="col-sm-6 col-md-3">
-          <strong><?php echo Text::_('COM_BREEZINGFORMSNG_TEST_CREATED_BY'); ?>:</strong> <?php echo htmlspecialchars((string) $row->created_by, ENT_QUOTES); ?>
-        </div>
-        <div class="col-sm-6 col-md-3">
-          <strong><?php echo Text::_('COM_BREEZINGFORMSNG_TEST_MODIFIED'); ?>:</strong> <?php echo $row->modified ? HTMLHelper::date($row->modified, 'Y-m-d H:i', true) : '-'; ?>
-        </div>
-        <div class="col-sm-6 col-md-3">
-          <strong><?php echo Text::_('COM_BREEZINGFORMSNG_TEST_MODIFIED_BY'); ?>:</strong> <?php echo htmlspecialchars((string) $row->modified_by, ENT_QUOTES); ?>
+        <div class="col-sm-12 col-md-6">
+          <strong><?php echo Text::_('COM_BREEZINGFORMSNG_TEST_MODIFIED'); ?>:</strong> <?php echo $modifiedAudit; ?>
         </div>
       </div>
     </div>

@@ -50,6 +50,8 @@ class HtmlView extends BaseHtmlView
     public bool $canEdit = false;
     // A saved item is published from its icon, by Ajax, as a form in QuickMode.
     public bool $canEditState = false;
+    public string $auditCreatedBy = '';
+    public string $auditModifiedBy = '';
 
     // test layout
     public string $functionName = '';
@@ -130,6 +132,12 @@ class HtmlView extends BaseHtmlView
             if ((int) $item->id < 1) {
                 throw new \Exception(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'), 404);
             }
+
+            $createdBy = (string) ($item->created_by ?? '');
+            $modifiedBy = (string) ($item->modified_by ?? '');
+            $names = $model->resolveAuditNames([$createdBy, $modifiedBy]);
+            $this->auditCreatedBy = $names[$createdBy] ?? $createdBy;
+            $this->auditModifiedBy = $names[$modifiedBy] ?? $modifiedBy;
 
             $this->prepareTest($app);
         } else {
