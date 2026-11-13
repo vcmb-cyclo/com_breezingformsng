@@ -3,6 +3,7 @@ export default {
   rules: {
     'alpha-value-notation': null,
     'at-rule-empty-line-before': null,
+    'at-charset-rule-no-invalid': null,
     'color-function-alias-notation': null,
     'color-function-notation': null,
     'color-hex-length': null,
@@ -11,7 +12,6 @@ export default {
     'declaration-block-no-duplicate-properties': null,
     'declaration-block-no-redundant-longhand-properties': null,
     'declaration-block-no-shorthand-property-overrides': null,
-    'declaration-block-single-line-max-declarations': null,
     'declaration-empty-line-before': null,
     'declaration-property-value-no-unknown': null,
     'declaration-property-value-keyword-no-deprecated': null,
@@ -26,6 +26,7 @@ export default {
     'property-no-vendor-prefix': null,
     'rule-empty-line-before': null,
     'selector-class-pattern': null,
+    'selector-no-deprecated': null,
     'selector-id-pattern': null,
     'selector-not-notation': null,
     'selector-pseudo-class-no-unknown': null,
