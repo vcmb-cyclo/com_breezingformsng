@@ -513,7 +513,9 @@ final class DatabaseAuditService
      */
     private function addFormOfOrphanValues(array $groups): array
     {
-        $ids = array_values(array_filter(array_map(static fn (array $group): int => (int) $group['parent_id'], $groups)));
+        $ids = array_values(array_filter(
+            array_map(static fn (array $group): int => (int) $group['parent_id'], $groups)
+        ));
 
         if ($ids === []) {
             return $groups;
