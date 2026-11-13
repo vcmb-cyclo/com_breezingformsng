@@ -388,7 +388,9 @@ class AboutController extends BaseController
 
     public function deleteOrphanValues(): void
     {
-        $elementId = $this->input->post->getInt('orphan_element_id', 0);
+        $all = $this->input->post->getBool('orphan_all', false);
+        $rawId = $this->input->post->get('orphan_element_id', null, 'raw');
+        $elementId = $all ? null : (is_string($rawId) && preg_match('/\A[0-9]+\z/', $rawId) ? (int) $rawId : -1);
 
         $this->repairOrphans(
             fn (DatabaseRepairService $repair): int => $repair->deleteOrphanValues($elementId),

@@ -300,25 +300,34 @@ final class DatabaseRepairService
     }
 
     /**
-     * Deletes the values (subrecords) whose element no longer exists, never those
-     * of an element that still does, whatever id is asked for.
+     * Deletes only values whose element and record no longer exist. Values of
+     * existing records remain available even after their form was deleted.
      *
-     * @param int $elementId One missing element, or 0 for all of them.
+     * @param ?int $elementId One missing element, or null for all of them.
      *
      * @return int The number of values deleted.
      */
-    public function deleteOrphanValues(int $elementId = 0): int
+    public function deleteOrphanValues(?int $elementId = null): int
     {
+        if ($elementId !== null && $elementId < 0) {
+            throw new \InvalidArgumentException('Invalid element ID.');
+        }
+
         $db = $this->db;
         $elements = $db->createQuery()
             ->select('1')
             ->from($db->quoteName('#__facileforms_elements', 'elements'))
             ->where($db->quoteName('elements.id') . ' = ' . $db->quoteName('#__facileforms_subrecords.element'));
+        $records = $db->createQuery()
+            ->select('1')
+            ->from($db->quoteName('#__facileforms_records', 'records'))
+            ->where($db->quoteName('records.id') . ' = ' . $db->quoteName('#__facileforms_subrecords.record'));
         $query = $db->createQuery()
             ->delete($db->quoteName('#__facileforms_subrecords'))
-            ->where('NOT EXISTS (' . $elements . ')');
+            ->where('NOT EXISTS (' . $elements . ')')
+            ->where('NOT EXISTS (' . $records . ')');
 
-        if ($elementId > 0) {
+        if ($elementId !== null) {
             $query->where($db->quoteName('element') . ' = :elementId')
                 ->bind(':elementId', $elementId, ParameterType::INTEGER);
         }

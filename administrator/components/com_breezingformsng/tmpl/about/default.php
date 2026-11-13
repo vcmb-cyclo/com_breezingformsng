@@ -1062,6 +1062,7 @@ HTMLHelper::_('bootstrap.collapse');
                                                     <td class="text-end"><?php echo (int) ($orphanGroup['count'] ?? 0); ?></td>
                                                     <?php if ($orphanValues) : ?>
                                                         <td>
+                                                            <?php if ((int) ($orphanGroup['deletable'] ?? 0) === (int) ($orphanGroup['count'] ?? 0)) : ?>
                                                             <button
                                                                 type="button"
                                                                 class="btn btn-sm btn-outline-danger"
@@ -1070,6 +1071,7 @@ HTMLHelper::_('bootstrap.collapse');
                                                                 data-bf-orphan-element="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
                                                                 data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
                                                             ><span class="icon-trash" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></button>
+                                                            <?php endif; ?>
                                                         </td>
                                                     <?php endif; ?>
                                                     <?php if ($orphanHasPeriod) : ?>
@@ -1082,13 +1084,14 @@ HTMLHelper::_('bootstrap.collapse');
                                     <?php if ($orphanHidden > 0) : ?>
                                         <p class="small text-muted mb-0 mt-1"><?php echo Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_MORE', $orphanHidden); ?></p>
                                     <?php endif; ?>
-                                    <?php if ($orphanValues) : ?>
+                                    <?php if ($orphanValues && (int) ($check['deletable'] ?? 0) === (int) ($check['count'] ?? 0)) : ?>
                                         <button
                                             id="bf-audit-delete-all-orphan-values"
                                             type="button"
                                             class="btn btn-sm btn-outline-danger mt-2"
                                             data-bf-orphan-task="about.deleteOrphanValues"
                                             data-bf-orphan-element="0"
+                                            data-bf-orphan-all="1"
                                             data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_ALL_CONFIRM', (int) ($check['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
                                         ><span class="icon-trash" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_ALL'); ?></button>
                                     <?php endif; ?>

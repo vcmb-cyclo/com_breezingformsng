@@ -187,6 +187,10 @@
 
         var params = new URLSearchParams({ orphan_element_id: button.dataset.bfOrphanElement || '0' });
 
+        if (button.dataset.bfOrphanAll === '1') {
+            params.set('orphan_all', '1');
+        }
+
         params.append(Joomla.getOptions('csrf.token'), '1');
         button.disabled = true;
 

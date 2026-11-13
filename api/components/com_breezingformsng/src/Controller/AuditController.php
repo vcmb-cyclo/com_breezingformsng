@@ -66,7 +66,15 @@ class AuditController extends BaseController
             return;
         }
 
-        $elementId = $this->input->getInt('element', 0);
+        $rawId = $this->input->get('element', null, 'raw');
+
+        if ($rawId !== null && (!is_scalar($rawId) || !preg_match('/\A[0-9]+\z/', (string) $rawId))) {
+            $this->respond(400, null, 'Invalid element ID.');
+
+            return;
+        }
+
+        $elementId = $rawId === null ? null : (int) $rawId;
 
         $this->respond(200, [
             'element' => $elementId,
