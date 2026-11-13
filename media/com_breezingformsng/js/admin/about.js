@@ -131,40 +131,45 @@
 
     // Repairs of the orphan rows of the audit: confirmed, sent without reloading
     // the page, which is updated with the answer.
-    function removeOrphanCheck(details) {
-        var block = details.closest('.bf-audit-section-block');
+    // The list shows the first missing parents only: after a repair, the block is read
+    // again from the page (whose report the repair has just refreshed), so the next
+    // ones take the place of the one deleted. The checks left open stay open.
+    function refreshOrphans() {
+        var block = document.getElementById('bf-audit-orphan-references');
 
-        details.remove();
-
-        if (block && !block.querySelector('details.bf-audit-orphans')) {
-            block.remove();
-        }
-    }
-
-    function updateOrphans(button, data) {
-        var details = button.closest('details.bf-audit-orphans');
-
-        if (!details) {
-            return;
+        if (!block) {
+            return Promise.resolve();
         }
 
-        var row = button.closest('tr');
+        var open = Array.prototype.map.call(
+            block.querySelectorAll('details[open][data-bf-orphan-check]'),
+            function (details) {
+                return details.dataset.bfOrphanCheck;
+            }
+        );
 
-        if (row && Number(data.remaining) > 0) {
-            row.remove();
-        }
+        return fetch('index.php?option=com_breezingformsng&task=about.display&view=about', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(function (response) {
+            return response.text();
+        }).then(function (html) {
+            var fresh = new DOMParser().parseFromString(html, 'text/html').getElementById('bf-audit-orphan-references');
 
-        if (Number(data.remaining) > 0) {
-            var count = details.querySelector('.bf-orphan-count');
+            if (!fresh) {
+                block.remove();
 
-            if (count) {
-                count.textContent = String(data.remaining);
+                return;
             }
 
-            return;
-        }
+            open.forEach(function (check) {
+                var details = fresh.querySelector('details[data-bf-orphan-check="' + check + '"]');
 
-        removeOrphanCheck(details);
+                if (details) {
+                    details.open = true;
+                }
+            });
+            block.replaceWith(fresh);
+        });
     }
 
     document.addEventListener('click', function (event) {
@@ -202,7 +207,7 @@
             }
 
             Joomla.renderMessages({ message: [result.json.message] });
-            updateOrphans(button, result.json.data || {});
+            return refreshOrphans();
         }).catch(function () {
             button.disabled = false;
             Joomla.renderMessages({ error: [Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] });

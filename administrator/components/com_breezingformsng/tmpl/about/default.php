@@ -1003,7 +1003,7 @@ HTMLHelper::_('bootstrap.collapse');
                 <?php endif; ?>
 
                 <?php if ($auditOrphanChecks !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
+                    <div class="bf-audit-section-block mb-3" id="bf-audit-orphan-references">
                         <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES'); ?></h4>
                         <?php foreach ($auditOrphanChecks as $check) : ?>
                             <?php
