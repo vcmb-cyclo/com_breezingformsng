@@ -229,7 +229,7 @@ final class RecordTransfer
             throw new \InvalidArgumentException('The target form does not exist.');
         }
 
-        $sources = $db->setQuery(
+        $loadSources = fn (): array => $db->setQuery(
             $db->createQuery()
                 ->select('*')
                 ->from($db->quoteName('#__facileforms_records'))
@@ -238,6 +238,7 @@ final class RecordTransfer
                 ->order($db->quoteName('id'))
                 ->bind(':formId', $sourceFormId, ParameterType::INTEGER)
         )->loadObjectList('id');
+        $sources = $loadSources();
 
         // A record that left the source form meanwhile must not be copied under
         // the mapping chosen for another form.
@@ -252,6 +253,19 @@ final class RecordTransfer
         $db->transactionStart();
 
         try {
+            // The source records are locked, then read again: a record deleted, moved to another
+            // form or changed since the check above cannot be copied as it was found. The ids are
+            // integers, cast above.
+            $db->setQuery(
+                'SELECT ' . $db->quoteName('id') . ' FROM ' . $db->quoteName('#__facileforms_records')
+                . ' WHERE ' . $db->quoteName('id') . ' IN (' . implode(',', $recordIds) . ') FOR UPDATE'
+            )->execute();
+            $sources = $loadSources();
+
+            if (count($sources) !== count($recordIds)) {
+                throw new \RuntimeException('Some records are not in the source form.');
+            }
+
             // A unique operation is committed atomically with its copies. Concurrent
             // requests with stale session data cannot claim it a second time.
             $claim = $db->createQuery()
