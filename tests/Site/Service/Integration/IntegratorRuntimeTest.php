@@ -36,6 +36,18 @@ if (!class_exists('Joomla\\CMS\\Language\\Text')) {
     );
 }
 
+if (!class_exists('Joomla\\CMS\\Log\\Log')) {
+    eval(
+        'namespace Joomla\\CMS\\Log;'
+        . ' final class Log {'
+        . ' public const WARNING = 16;'
+        . ' public static array $entries = [];'
+        . ' public static function add(string $message, int $priority, string $category): void'
+        . ' { self::$entries[] = [$message, $priority, $category]; }'
+        . ' }'
+    );
+}
+
 final class IntegratorRuntimeTest extends TestCase
 {
     public function testGetCriteriaReturnsAnEmptyListAndGenericMessageWhenTheQueryFails(): void
@@ -128,6 +140,17 @@ final class IntegratorRuntimeTest extends TestCase
     {
         // The connector of the first criterion joins nothing: only the second one is read.
         $this->assertCriteriaRejected('=', 'OR 1=1 --', true);
+    }
+
+    public function testASkippedRuleIsLogged(): void
+    {
+        $source = file_get_contents(
+            __DIR__ . '/../../../../components/com_breezingformsng/src/Service/Integration/IntegratorRuntime.php'
+        );
+
+        self::assertIsString($source);
+        self::assertStringContainsString("' skipped: a stored criterion has an invalid operator or connector.'", $source);
+        self::assertStringContainsString("Log::WARNING,\n                'com_breezingformsng'", $source);
     }
 
     public function testTheConnectorOfTheFirstCriterionIsNotRead(): void

@@ -34,9 +34,10 @@ final class CsvCellSanitizer
             return $value;
         }
 
-        // A phone number or a reference ("+33 6 12 34 56 78", "-12/34"): signs, digits, spaces, dots,
-        // slashes, hyphens and parentheses only. No letter, so no function, no reference, no command.
-        if (preg_match('/^[+-][\d\s.\/()-]*\d[\d\s.\/()-]*$/D', $candidate) === 1) {
+        // An international phone number ("+33 6 12 34 56 78", "+33 (0)6.12.34.56.78"): a plus, digits,
+        // spaces, dots and at most one parenthesised group of digits. No operator, no letter: nothing
+        // a spreadsheet could evaluate. A number written with hyphens or slashes is neutralised.
+        if (preg_match('/^\+\d[\d\s.]*(?:\(\d+\)[\d\s.]*)?$/D', $candidate) === 1) {
             return $value;
         }
 

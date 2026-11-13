@@ -35,6 +35,12 @@ final class PayPalPayment
         return $status === 'Completed';
     }
 
+    /** A held payment (an eCheck for instance): neither accepted nor failed yet. */
+    public function isPending(string $status): bool
+    {
+        return $status === 'Pending';
+    }
+
     /**
      * The payment a "TEXT1|TEXT2|AMOUNT|TAX[|SHIPPING[|CURRENCY]]" choice stands
      * for, or null when it is not a valid one.

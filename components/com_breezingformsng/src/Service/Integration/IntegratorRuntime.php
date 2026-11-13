@@ -8,6 +8,7 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\User\User;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
@@ -348,6 +349,12 @@ class IntegratorRuntime
             $whereBindIndex = 0;
             $whereString = $this->buildCriteriaClauses($criteria, $query, $whereBindIndex);
         } catch (\UnexpectedValueException) {
+            Log::add(
+                'Integrator rule ' . (int) $rule['rule']->id . ' skipped: a stored criterion has an invalid operator or connector.',
+                Log::WARNING,
+                'com_breezingformsng'
+            );
+
             return;
         }
 

@@ -41,6 +41,32 @@ final class PayPalPaymentTest extends TestCase
         self::assertSame($accepted, (new PayPalPayment())->isCompleted($status));
     }
 
+    public function testOnlyAHeldPaymentIsPending(): void
+    {
+        $payment = new PayPalPayment();
+
+        self::assertTrue($payment->isPending('Pending'));
+        self::assertFalse($payment->isPending('Completed'));
+        self::assertFalse($payment->isPending('Failed'));
+        self::assertFalse($payment->isPending(''));
+    }
+
+    public function testAPendingPaymentGetsItsOwnMessageAndIsNotAccepted(): void
+    {
+        $callback = file_get_contents(
+            __DIR__ . '/../../../../components/com_breezingformsng/src/Service/Callback/PayPalCallback.php'
+        );
+
+        self::assertIsString($callback);
+        self::assertStringContainsString("? 'COM_BREEZINGFORMSNG_PAYMENT_PENDING'", $callback);
+        // The message belongs to the branch that refuses a payment which is not completed,
+        // before the amount check and before the transaction of the confirmation is stored.
+        self::assertLessThan(
+            (int) strrpos($callback, '->storeTransaction('),
+            (int) strpos($callback, "? 'COM_BREEZINGFORMSNG_PAYMENT_PENDING'")
+        );
+    }
+
     /** @return array<string, array{string, bool}> */
     public static function selections(): array
     {

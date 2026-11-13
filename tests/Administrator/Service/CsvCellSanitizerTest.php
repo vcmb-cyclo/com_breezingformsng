@@ -36,11 +36,15 @@ final class CsvCellSanitizerTest extends TestCase
             'zero remains unchanged' => ['0', '0'],
             'international phone number' => ['+33 6 12 34 56 78', '+33 6 12 34 56 78'],
             'phone number with parentheses' => ['+33 (0)6.12.34.56.78', '+33 (0)6.12.34.56.78'],
-            'dashed reference' => ['-12/34', '-12/34'],
+            'dashed reference' => ['-12/34', "'-12/34"],
+            'hyphenated phone number' => ['+33-6-12-34-56-78', "'+33-6-12-34-56-78"],
+            'division' => ['+1/0', "'+1/0"],
+            'difference' => ['-2-3', "'-2-3"],
+            'parenthesised plus' => ['+(1)', "'+(1)"],
+            'sum of numbers' => ['+1+1', "'+1+1"],
             'plus with a function' => ['+SUM(1;2)', "'+SUM(1;2)"],
             'plus with a command' => ['+cmd|calc', "'+cmd|calc"],
             'minus with a reference' => ['-A1+B2', "'-A1+B2"],
-            'sign with a sum of digits' => ['+1+1', "'+1+1"],
             'equals with digits only' => ['=12', "'=12"],
         ];
     }

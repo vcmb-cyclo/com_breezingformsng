@@ -433,7 +433,14 @@ class AboutController extends BaseController
             $message = Text::sprintf($failedKey, $exception->getMessage());
 
             if ($json) {
-                $this->sendJson($exception instanceof NotAllowed ? 403 : 500, $message);
+                $this->sendJson(
+                    match (true) {
+                        $exception instanceof NotAllowed => 403,
+                        $exception instanceof \InvalidArgumentException => 400,
+                        default => 500,
+                    },
+                    $message
+                );
 
                 return;
             }
