@@ -36,6 +36,7 @@ class HtmlView extends BaseHtmlView
 
     public function display($tpl = null)
     {
+        $this->getDocument()->getWebAssetManager()->useStyle('com_breezingformsng.list-filters');
         $model = $this->getModel();
 
         if (!$model instanceof MenusModel) {

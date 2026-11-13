@@ -27,7 +27,7 @@ $user = Factory::getApplication()->getIdentity() ?? throw new \RuntimeException(
 $userId = (int) $user->id;
 $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 ?>
-<form action="<?= Route::_('index.php?option=com_breezingformsng&view=pieces'); ?>" method="post" name="adminForm" id="adminForm">
+<form action="<?= Route::_('index.php?option=com_breezingformsng&view=pieces'); ?>" method="post" name="adminForm" id="adminForm" class="bf-list-filters">
   <div id="j-main-container" class="j-main-container">
     <?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this, 'options' => ['selectorFieldName' => 'package']]); ?>
 

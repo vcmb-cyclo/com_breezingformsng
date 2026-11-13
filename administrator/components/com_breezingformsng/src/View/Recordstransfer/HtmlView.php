@@ -89,7 +89,7 @@ class HtmlView extends BaseHtmlView
         if (
             !isset($transfer['all'], $transfer['ids'], $transfer['source'])
             || ($needsTarget && (int) ($transfer['target'] ?? 0) < 1)
-            || ($layout === 'report' && !is_array($transfer['report'] ?? null))
+            || ($layout === 'report') !== is_array($transfer['report'] ?? null)
         ) {
             $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TRANSFER_ERROR_EXPIRED'), 'warning');
             $app->redirect(Route::_('index.php?option=com_breezingformsng&view=records', false));
@@ -271,24 +271,23 @@ class HtmlView extends BaseHtmlView
     public function sourceFormLink(): string
     {
         // A deleted form has no editor to open.
-        return $this->sourceDeleted ? $this->escape($this->sourceTitle) : $this->formLink($this->sourceId, $this->sourceTitle);
+        return $this->sourceDeleted ? $this->escape($this->sourceTitle) : $this->formLink($this->sourceId, $this->sourceTitle, 'bf-transfer-source-form');
     }
 
     public function targetFormLink(): string
     {
-        return $this->formLink($this->targetId, $this->targetTitle);
+        return $this->formLink($this->targetId, $this->targetTitle, 'bf-transfer-target-form');
     }
 
     /**
      * The name of a form, linked to its editor in a new tab.
      */
-    private function formLink(int $formId, string $title): string
+    private function formLink(int $formId, string $title, string $id): string
     {
         $url = Route::_('index.php?option=com_breezingformsng&task=quickmode.display&form=' . $formId);
 
-        return '<a href="' . $this->escape($url) . '" target="_blank" rel="noopener noreferrer">'
+        return '<a id="' . $id . '" href="' . $this->escape($url) . '" target="_blank" rel="noopener noreferrer">'
             . $this->escape($title)
-            . ' <span class="icon-out-2 small" aria-hidden="true"></span>'
             . '<span class="visually-hidden">' . Text::_('JBROWSERTARGET_NEW') . '</span></a>';
     }
 }

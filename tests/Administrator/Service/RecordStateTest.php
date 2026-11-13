@@ -148,15 +148,17 @@ final class RecordStateTest extends TestCase
 
         self::assertIsString($model);
 
-        $start = strpos($model, '$db->transactionStart();');
+        $deleteMethod = strpos($model, 'public function delete(');
+        self::assertNotFalse($deleteMethod);
+        $start = strpos($model, '$db->transactionStart();', $deleteMethod);
         $lock = strpos($model, '$this->lockRecords($ids);');
         $read = strpos($model, '$records = $this->getFormsAndStates($ids);');
         $refusal = strpos($model, 'RecordState::deletionRefusal(');
         $delete = strpos($model, 'parent::delete($ids)');
         $leftover = strpos($model, 'if ($this->getFormsAndStates($ids) !== []) {');
         $cleanup = strpos($model, '$cleanup->remove($formId, $recordIds);');
-        $commit = strpos($model, '$db->transactionCommit();');
-        $rollback = strpos($model, '$db->transactionRollback();');
+        $commit = strpos($model, '$db->transactionCommit();', $deleteMethod);
+        $rollback = strpos($model, '$db->transactionRollback();', $deleteMethod);
 
         foreach ([$start, $lock, $read, $refusal, $delete, $leftover, $cleanup, $commit, $rollback] as $position) {
             self::assertNotFalse($position);

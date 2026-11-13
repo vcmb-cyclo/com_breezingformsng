@@ -1,0 +1,43 @@
+/* The list screens: the search, the filters, Clear and the page size on one line,
+ * with no "Filter Options" button. The native search tools keep their markup and
+ * their script; only their layout changes. */
+.bf-list-filters .js-stools {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .5rem;
+}
+
+.bf-list-filters .js-stools-container-bar,
+.bf-list-filters .js-stools-container-bar .btn-toolbar {
+	display: contents;
+}
+
+.bf-list-filters .filter-search-bar {
+	order: 1;
+}
+
+.bf-list-filters .js-stools-container-filters {
+	order: 2;
+	display: flex !important;
+	flex-wrap: wrap;
+	width: auto;
+	gap: .5rem;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+}
+
+.bf-list-filters .filter-search-actions {
+	order: 3;
+}
+
+.bf-list-filters .js-stools-btn-filter {
+	display: none;
+}
+
+.bf-list-filters .js-stools-container-bar .btn-toolbar > :last-child {
+	order: 4;
+	margin-inline-start: auto;
+}

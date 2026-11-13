@@ -208,7 +208,12 @@ final class PayPalCallback
                         // record, whatever the browser sent to PayPal.
                         if (!$payment->isCompleted((string) ($keyarray['payment_status'] ?? ''))) {
                             $success = false;
-                            $msg = Text::_('JERROR_AN_ERROR_HAS_OCCURRED');
+                            // Nothing is stored and nothing is granted until PayPal reports it completed.
+                            $msg = Text::_(
+                                $payment->isPending((string) ($keyarray['payment_status'] ?? ''))
+                                    ? 'COM_BREEZINGFORMSNG_PAYMENT_PENDING'
+                                    : 'JERROR_AN_ERROR_HAS_OCCURRED'
+                            );
                             require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
                         } elseif ($expected === null || !$payment->matches($expected, (string) ($keyarray['mc_gross'] ?? ''), (string) ($keyarray['mc_currency'] ?? ''))) {
                             $success = false;

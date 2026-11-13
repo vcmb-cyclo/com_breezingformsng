@@ -11,6 +11,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 \defined('_JEXEC') or die;
 
 use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 use Joomla\Filesystem\Folder;
 
 final class DatabaseRepairService
@@ -275,6 +276,65 @@ final class DatabaseRepairService
             'failed_indexes' => $failedIndexes,
             'errors' => $errors,
         ];
+    }
+
+    /**
+     * Deletes the elements whose form no longer exists. Their records keep the
+     * id, name, title and type of each field in their own rows.
+     *
+     * @return int The number of elements deleted.
+     */
+    public function deleteOrphanElements(): int
+    {
+        $db = $this->db;
+        $forms = $db->createQuery()
+            ->select('1')
+            ->from($db->quoteName('#__facileforms_forms', 'forms'))
+            ->where($db->quoteName('forms.id') . ' = ' . $db->quoteName('#__facileforms_elements.form'));
+        $query = $db->createQuery()
+            ->delete($db->quoteName('#__facileforms_elements'))
+            ->where('NOT EXISTS (' . $forms . ')');
+        $db->setQuery($query)->execute();
+
+        return $db->getAffectedRows();
+    }
+
+    /**
+     * Deletes only values whose element and record no longer exist. Values of
+     * existing records remain available even after their form was deleted.
+     *
+     * @param ?int $elementId One missing element, or null for all of them.
+     *
+     * @return int The number of values deleted.
+     */
+    public function deleteOrphanValues(?int $elementId = null): int
+    {
+        if ($elementId !== null && $elementId < 0) {
+            throw new \InvalidArgumentException('Invalid element ID.');
+        }
+
+        $db = $this->db;
+        $elements = $db->createQuery()
+            ->select('1')
+            ->from($db->quoteName('#__facileforms_elements', 'elements'))
+            ->where($db->quoteName('elements.id') . ' = ' . $db->quoteName('#__facileforms_subrecords.element'));
+        $records = $db->createQuery()
+            ->select('1')
+            ->from($db->quoteName('#__facileforms_records', 'records'))
+            ->where($db->quoteName('records.id') . ' = ' . $db->quoteName('#__facileforms_subrecords.record'));
+        $query = $db->createQuery()
+            ->delete($db->quoteName('#__facileforms_subrecords'))
+            ->where('NOT EXISTS (' . $elements . ')')
+            ->where('NOT EXISTS (' . $records . ')');
+
+        if ($elementId !== null) {
+            $query->where($db->quoteName('element') . ' = :elementId')
+                ->bind(':elementId', $elementId, ParameterType::INTEGER);
+        }
+
+        $db->setQuery($query)->execute();
+
+        return $db->getAffectedRows();
     }
 
     /**

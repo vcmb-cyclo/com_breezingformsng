@@ -37,6 +37,22 @@ final class AreaAccess
         return $user->authorise('core.manage') || $user->authorise('core.admin', 'com_breezingformsng');
     }
 
+    /**
+     * Permanent deletion of orphan rows from the audit: the right to repair, and the right
+     * to delete of the component, the one needed to delete a record.
+     */
+    public static function canDeleteOrphans(User $user): bool
+    {
+        return self::canRepair($user) && $user->authorise('core.delete', 'com_breezingformsng');
+    }
+
+    public static function assertDeleteOrphans(User $user): void
+    {
+        if (!self::canDeleteOrphans($user)) {
+            throw new NotAllowed(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+        }
+    }
+
     public static function assertRepair(User $user): void
     {
         if (!self::canRepair($user)) {

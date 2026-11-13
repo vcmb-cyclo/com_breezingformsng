@@ -10,9 +10,12 @@
 - Dissolve a package selectively, and see packages and their audit in clearer views.
 - Show an Audit information section in the script, piece, Integrator rule and QuickMode editors, and keep the version history of Integrator rules, with restore. Existing rules show their audit data as unknown.
 - List and filter the records of deleted forms, with the form title they stored and a warning icon. The audit links each deleted form to its records.
+- Delete the orphan elements and the values of missing elements from the audit of the About screen, one at a time or all at once, with a confirmation and without reloading the page. The audit shows the form each missing element belonged to.
+- Read the database audit and delete the orphan elements and values through the Joomla API (/api/index.php/v1/breezingformsng/audit), with an API token and the same rights as the About screen.
 
 ### Changed
 
+- Show the search, the filters, Clear and the page size on one line in the Records, Forms, Integrator, Menus, Pieces and Scripts lists, without the Filter Options button.
 - Say courriel instead of email in French, use the typographic apostrophe and non-breaking spaces before punctuation, and translate the Integrator, ContentBuilder and PayPal tooltip labels that were still in English.
 - Use one generic turn-off label for sections and elements, translated in Hungarian and Turkish.
 - Name the Advanced options of an element clearly in every language.

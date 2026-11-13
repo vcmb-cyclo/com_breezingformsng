@@ -8,6 +8,7 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\User\User;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
@@ -342,8 +343,20 @@ class IntegratorRuntime
             $query->bind($placeholder, $collected['values'][$index]);
         }
 
-        $whereBindIndex = 0;
-        $whereString = $this->buildCriteriaClauses($criteria, $query, $whereBindIndex);
+        // A stored criterion that is no longer valid skips this rule: it must not
+        // break the submission of the form.
+        try {
+            $whereBindIndex = 0;
+            $whereString = $this->buildCriteriaClauses($criteria, $query, $whereBindIndex);
+        } catch (\UnexpectedValueException) {
+            Log::add(
+                'Integrator rule ' . (int) $rule['rule']->id . ' skipped: a stored criterion has an invalid operator or connector.',
+                Log::WARNING,
+                'com_breezingformsng'
+            );
+
+            return;
+        }
 
         if ($whereString !== '') {
             $query->where($whereString);
@@ -383,9 +396,10 @@ class IntegratorRuntime
         $clauses = '';
 
         $appendClause = function (string $andor, string $column, string $operator, $value) use ($db, $query, &$bindIndex, &$clauses) {
+            // The connector of the first criterion joins nothing: it is not read.
             if (
                 !IntegratorCriteriaPolicy::allowsOperator($operator)
-                || !IntegratorCriteriaPolicy::allowsConnector($andor)
+                || ($clauses !== '' && !IntegratorCriteriaPolicy::allowsConnector($andor))
             ) {
                 throw new \UnexpectedValueException('Invalid Integrator criteria.');
             }

@@ -27,6 +27,7 @@ final class DatabaseAuditService
         'facileforms_scripts',
         'facileforms_pieces',
         'facileforms_records',
+        'facileforms_transfer_operations',
         'facileforms_subrecords',
         'facileforms_integrator_criteria_fixed',
         'facileforms_integrator_criteria_form',
@@ -416,8 +417,14 @@ final class DatabaseAuditService
             }
 
             try {
-                $result[] = ['id' => $id, 'parent' => $parentKind]
-                    + $this->summarizeOrphans($child, $parent, $foreignKey, $labelColumn, $dateColumn);
+                $summary = $this->summarizeOrphans($child, $parent, $foreignKey, $labelColumn, $dateColumn);
+
+                if ($id === 'subrecords_without_element') {
+                    $summary['groups'] = $this->addFormOfOrphanValues($summary['groups']);
+                    $summary = $this->addDeletableOrphanValues($summary);
+                }
+
+                $result[] = ['id' => $id, 'parent' => $parentKind] + $summary;
             } catch (\Throwable $exception) {
                 $this->addError('Unable to inspect orphan references for ' . $id . ': ' . $exception->getMessage());
             }
@@ -495,6 +502,101 @@ final class DatabaseAuditService
         }
 
         return ['count' => $count, 'parents' => (int) ($totals['parents'] ?? 0), 'groups' => $groups];
+    }
+
+    /**
+     * The values of a missing element belong to records, which know their form:
+     * adds the form (id and title) to each group of missing elements.
+     *
+     * @param list<array<string, mixed>> $groups
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function addFormOfOrphanValues(array $groups): array
+    {
+        $ids = array_values(array_map(static fn (array $group): int => (int) $group['parent_id'], $groups));
+
+        if ($ids === []) {
+            return $groups;
+        }
+
+        $db = $this->db;
+        $element = $db->quoteName('child.element');
+        $query = $db->createQuery()
+            ->select([
+                $element . ' AS ' . $db->quoteName('element_id'),
+                $db->quoteName('records.form') . ' AS ' . $db->quoteName('form_id'),
+                'COALESCE(MAX(' . $db->quoteName('forms.title') . '), MAX(' . $db->quoteName('records.title') . ')) AS '
+                    . $db->quoteName('form_title'),
+            ])
+            ->from($db->quoteName('#__facileforms_subrecords', 'child'))
+            ->join('INNER', $db->quoteName('#__facileforms_records', 'records') . ' ON records.id = child.record')
+            ->join('LEFT', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form')
+            ->whereIn($element, $ids)
+            ->group([$element, $db->quoteName('records.form')])
+            ->order($element . ' ASC, ' . $db->quoteName('records.form') . ' ASC');
+        $forms = [];
+
+        foreach ($db->setQuery($query)->loadAssocList() as $row) {
+            $id = (int) $row['element_id'];
+            if (!isset($forms[$id])) {
+                $row['forms'] = 0;
+                $forms[$id] = $row;
+            }
+            $forms[$id]['forms']++;
+        }
+
+        foreach ($groups as &$group) {
+            $row = $forms[(int) $group['parent_id']] ?? null;
+
+            if ($row !== null) {
+                $group['form_id'] = (int) $row['form_id'];
+                $group['form_title'] = (string) $row['form_title'];
+                $group['forms'] = (int) $row['forms'];
+            }
+        }
+        unset($group);
+
+        return $groups;
+    }
+
+    /**
+     * Count only values whose record and element are both missing.
+     *
+     * @param array{count: int, parents: int, groups: list<array<string, mixed>>} $summary
+     * @return array{count: int, parents: int, groups: list<array<string, mixed>>, deletable: int}
+     */
+    private function addDeletableOrphanValues(array $summary): array
+    {
+        $db = $this->db;
+        $orphans = fn () => $db->createQuery()
+            ->from($db->quoteName('#__facileforms_subrecords', 'child'))
+            ->join('LEFT', $db->quoteName('#__facileforms_elements', 'elements') . ' ON elements.id = child.element')
+            ->join('LEFT', $db->quoteName('#__facileforms_records', 'records') . ' ON records.id = child.record')
+            ->where('elements.id IS NULL')
+            ->where('records.id IS NULL');
+
+        $summary['deletable'] = (int) $db->setQuery($orphans()->select('COUNT(*)'))->loadResult();
+        $ids = array_map(static fn (array $group): int => (int) $group['parent_id'], $summary['groups']);
+        $counts = [];
+
+        if ($ids !== []) {
+            $query = $orphans()
+                ->select([$db->quoteName('child.element', 'element_id'), 'COUNT(*) AS ' . $db->quoteName('total')])
+                ->whereIn($db->quoteName('child.element'), $ids)
+                ->group($db->quoteName('child.element'));
+
+            foreach ($db->setQuery($query)->loadAssocList() as $row) {
+                $counts[(int) $row['element_id']] = (int) $row['total'];
+            }
+        }
+
+        foreach ($summary['groups'] as &$group) {
+            $group['deletable'] = $counts[(int) $group['parent_id']] ?? 0;
+        }
+        unset($group);
+
+        return $summary;
     }
 
     /**

@@ -16,7 +16,7 @@ use Joomla\CMS\Layout\LayoutHelper;
 $listOrder = $this->escape((string) $this->state->get('list.ordering'));
 $listDirn  = $this->escape((string) $this->state->get('list.direction'));
 ?>
-<form action="index.php?option=com_breezingformsng&amp;view=integrator" method="post" name="adminForm" id="adminForm">
+<form action="index.php?option=com_breezingformsng&amp;view=integrator" method="post" name="adminForm" id="adminForm" class="bf-list-filters">
   <div id="j-main-container" class="j-main-container">
   <?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this]); ?>
 

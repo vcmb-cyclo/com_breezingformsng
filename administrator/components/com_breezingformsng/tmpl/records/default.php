@@ -48,7 +48,7 @@ $deletedFormMark = static fn (\stdClass $rec): string => $rec->form_id === null
 // table-columns.js does not run. records-columns.js makes it the default of
 // the Columns menu, which removes d-none and applies the choice of the user.
 ?>
-<form action="index.php?option=com_breezingformsng&amp;view=records" method="post" name="adminForm" id="adminForm">
+<form action="index.php?option=com_breezingformsng&amp;view=records" method="post" name="adminForm" id="adminForm" class="bf-list-filters">
   <div id="j-main-container" class="j-main-container">
     <?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this]); ?>
 

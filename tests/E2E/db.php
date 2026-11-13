@@ -251,6 +251,23 @@ switch ($argv[1] ?? '') {
         $db->query("UPDATE {$config->dbprefix}assets SET rules = '" . $db->real_escape_string($argv[2] ?? '{}') . "' WHERE name = 'com_breezingformsng'");
         echo $db->affected_rows >= 0 ? 'ok' : 'failed';
         break;
+    case 'audit-orphan-fixture':
+        // Only used on a disposable site: two existing records and two missing records.
+        $other = (int) ($argv[3] ?? 0);
+        $subrecords = $config->dbprefix . 'facileforms_subrecords';
+        $rows = [[$id, 0], [$id, 1999999990], [$other, 1999999990], [1999999999, 0], [1999999999, 1999999990]];
+        $ids = [];
+        foreach ($rows as [$record, $element]) {
+            $db->query("INSERT INTO {$subrecords} (record, element, title, name, type, value) VALUES ({$record}, {$element}, 'Audit fixture', 'audit_fixture', 'Text', 'kept')");
+            $ids[] = (int) $db->insert_id;
+        }
+        echo json_encode($ids);
+        break;
+    case 'audit-orphan-fixture-rows':
+        $subrecords = $config->dbprefix . 'facileforms_subrecords';
+        $rows = $db->query("SELECT id FROM {$subrecords} WHERE name = 'audit_fixture' ORDER BY id")->fetch_all(MYSQLI_ASSOC);
+        echo json_encode(array_map(static fn (array $row): int => (int) $row['id'], $rows));
+        break;
     case 'pay-twice':
         // pay-twice <record id>: the payment storage of the Stripe return and webhook, run twice on a real database.
         // Joomla's framework reuses the name $config: the table prefix is kept first.

@@ -129,6 +129,101 @@
         });
     });
 
+    // Repairs of the orphan rows of the audit: confirmed, sent without reloading
+    // the page, which is updated with the answer.
+    // The list shows the first missing parents only: after a repair, the block is read
+    // again from the page (whose report the repair has just refreshed), so the next
+    // ones take the place of the one deleted. The checks left open stay open.
+    function refreshOrphans() {
+        var block = document.getElementById('bf-audit-orphan-references');
+
+        if (!block) {
+            return Promise.resolve();
+        }
+
+        var open = Array.prototype.map.call(
+            block.querySelectorAll('details[open][data-bf-orphan-check]'),
+            function (details) {
+                return details.dataset.bfOrphanCheck;
+            }
+        );
+
+        return fetch('index.php?option=com_breezingformsng&task=about.display&view=about', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(function (response) {
+            return response.ok ? response.text() : '';
+        }).then(function (html) {
+            var page = new DOMParser().parseFromString(html, 'text/html');
+            var fresh = page.getElementById('bf-audit-orphan-references');
+
+            // Not the About page (an expired session, an error): the block is left as it is.
+            if (!page.getElementById('adminForm')) {
+                return;
+            }
+
+            if (!fresh) {
+                block.remove();
+
+                return;
+            }
+
+            open.forEach(function (check) {
+                var details = fresh.querySelector('details[data-bf-orphan-check="' + check + '"]');
+
+                if (details) {
+                    details.open = true;
+                }
+            });
+            block.replaceWith(fresh);
+        });
+    }
+
+    document.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-bf-orphan-task]');
+
+        if (!button || button.disabled) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (!window.confirm(button.dataset.bfConfirm || '')) {
+            return;
+        }
+
+        var params = new URLSearchParams({ orphan_element_id: button.dataset.bfOrphanElement || '0' });
+
+        if (button.dataset.bfOrphanAll === '1') {
+            params.set('orphan_all', '1');
+        }
+
+        params.append(Joomla.getOptions('csrf.token'), '1');
+        button.disabled = true;
+
+        fetch('index.php?option=com_breezingformsng&task=' + button.dataset.bfOrphanTask + '&format=json', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+            body: params.toString()
+        }).then(function (response) {
+            return response.json().then(function (json) {
+                return { ok: response.ok && json.success, json: json };
+            });
+        }).then(function (result) {
+            if (!result.ok) {
+                button.disabled = false;
+                Joomla.renderMessages({ error: [result.json.message || Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] });
+
+                return;
+            }
+
+            Joomla.renderMessages({ message: [result.json.message] });
+            return refreshOrphans();
+        }).catch(function () {
+            button.disabled = false;
+            Joomla.renderMessages({ error: [Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] });
+        });
+    });
+
     function initialiseAbout() {
         initialiseTableInventorySorting();
         initializeEasterEgg();

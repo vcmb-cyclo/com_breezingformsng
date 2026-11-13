@@ -72,6 +72,23 @@ docker cp "${archive}" "${web_container}:/tmp/com_breezingformsng.zip" >/dev/nul
 docker exec -e HTTP_HOST=localhost "${web_container}" php /var/www/html/cli/joomla.php extension:install \
     --path=/tmp/com_breezingformsng.zip --live-site="http://localhost:${port}" --no-interaction
 
+# Exercise the component without the legacy compatibility plugins.
+table_prefix="$(docker exec "${web_container}" php -r 'require "/var/www/html/configuration.php"; echo (new JConfig())->dbprefix;')"
+[[ "${table_prefix}" =~ ^[a-zA-Z0-9_]+$ ]]
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -ujoomla joomla -e \
+    "UPDATE \`${table_prefix}extensions\` SET enabled = 0 WHERE type = 'plugin' AND ((folder = 'behaviour' AND element = 'compat6') OR (folder = 'system' AND element = 'bfcompat'));"
+
+# Exercise the new migration against an absent table, then rerun it without
+# losing an existing operation. This uses a separate prefix on the disposable DB.
+migration_sql="$(sed 's/#__/bfngmigrationtest_/g' administrator/components/com_breezingformsng/sql/updates/mysql/6.1.3.sql)"
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -ujoomla joomla -e "${migration_sql}"
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -ujoomla joomla -e \
+    "INSERT INTO bfngmigrationtest_facileforms_transfer_operations (operation) VALUES ('0123456789abcdef0123456789abcdef')"
+docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -ujoomla joomla -e "${migration_sql}"
+claim_count="$(docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e \
+    "SELECT COUNT(*) FROM bfngmigrationtest_facileforms_transfer_operations WHERE operation = '0123456789abcdef0123456789abcdef'")"
+[[ "${claim_count}" == '1' ]]
+
 # PHP notices shown on the page, like on a site in development: a save must survive them.
 docker exec "${web_container}" sed -i \
     -e "s/public \$error_reporting = '[^']*'/public \$error_reporting = 'maximum'/" \
@@ -86,4 +103,4 @@ fi
 
 BFNG_E2E_URL="http://localhost:${port}/" BFNG_E2E_CONTAINER="${web_container}" \
 BFNG_E2E_USER=journeyadmin BFNG_E2E_PASSWORD="${admin_password}" \
-    npx playwright test --config=playwright.e2e.config.mjs
+    npx playwright test --config=playwright.e2e.config.mjs "${@:2}"

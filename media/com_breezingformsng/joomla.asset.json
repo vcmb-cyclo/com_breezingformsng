@@ -310,6 +310,13 @@
     },
 
     {
+      "name": "com_breezingformsng.list-filters",
+      "type": "style",
+      "uri": "media/com_breezingformsng/css/admin/list-filters.css",
+      "version": "auto"
+    },
+
+    {
       "name": "com_breezingformsng.records-transfer",
       "type": "style",
       "uri": "media/com_breezingformsng/css/admin/records-transfer.css",

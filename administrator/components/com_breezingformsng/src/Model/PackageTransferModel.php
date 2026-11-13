@@ -1773,13 +1773,17 @@ final class PackageTransferModel extends BaseDatabaseModel
                         $childData = $this->only($child['data'], $childColumns[$key], array_values(array_filter(['id', 'rule_id', $elementColumn])));
                         if (str_starts_with($key, 'criteria_')) {
                             $operator = $childData['operator'] ?? null;
-                            $connector = $childData['andor'] ?? null;
+                            // The column defaults to AND: a package without a connector (an older
+                            // export, the first criterion) gets the default instead of being refused.
+                            $connector = $childData['andor'] ?? '';
+                            $connector = $connector === '' ? 'AND' : $connector;
                             if (
                                 !is_string($operator) || !IntegratorCriteriaPolicy::allowsOperator($operator)
                                 || !is_string($connector) || !IntegratorCriteriaPolicy::allowsConnector($connector)
                             ) {
                                 throw new InvalidPackageException();
                             }
+                            $childData['andor'] = $connector;
                         }
                         $childData['rule_id'] = $ruleId;
                         if ($elementColumn !== null) {

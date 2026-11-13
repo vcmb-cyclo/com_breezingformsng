@@ -9,12 +9,14 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Access\Exception\NotAllowed;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
@@ -372,6 +374,120 @@ class AboutController extends BaseController
         }
 
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+    }
+
+    public function deleteOrphanElements(): void
+    {
+        $this->repairOrphans(
+            fn (DatabaseRepairService $repair): int => $repair->deleteOrphanElements(),
+            'elements_without_form',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETE_FAILED'
+        );
+    }
+
+    public function deleteOrphanValues(): void
+    {
+        $all = $this->input->post->getBool('orphan_all', false);
+        $rawId = $this->input->post->get('orphan_element_id', null, 'raw');
+        $elementId = $all ? null : (is_string($rawId) && preg_match('/\A[0-9]+\z/', $rawId) ? (int) $rawId : -1);
+
+        $this->repairOrphans(
+            fn (DatabaseRepairService $repair): int => $repair->deleteOrphanValues($elementId),
+            'subrecords_without_element',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_FAILED'
+        );
+    }
+
+    /**
+     * Repairs orphan rows. With format=json (the About screen, from its script) the
+     * answer is JSON and the page is updated in place; without, the page is reloaded
+     * with a message.
+     *
+     * @param \Closure(DatabaseRepairService): int $repair
+     */
+    private function repairOrphans(\Closure $repair, string $checkId, string $doneKey, string $failedKey): void
+    {
+        $json = $this->input->getCmd('format') === 'json';
+
+        if ($json && !$this->checkToken('post', false)) {
+            $this->sendJson(403, Text::_('JINVALID_TOKEN'));
+
+            return;
+        }
+
+        if (!$json) {
+            $this->checkToken();
+        }
+
+        try {
+            $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertDeleteOrphans($user);
+
+            $deleted = $repair($this->getRepairService());
+            $report = $this->getAuditService()->run();
+            $this->app->setUserState('com_breezingformsng.about.audit', $report);
+            $message = Text::sprintf($doneKey, $deleted);
+        } catch (\Throwable $exception) {
+            $message = Text::sprintf($failedKey, $exception->getMessage());
+
+            if ($json) {
+                $this->sendJson(
+                    match (true) {
+                        $exception instanceof NotAllowed => 403,
+                        $exception instanceof \InvalidArgumentException => 400,
+                        default => 500,
+                    },
+                    $message
+                );
+
+                return;
+            }
+
+            $this->setMessage($message, 'error');
+            $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+
+            return;
+        }
+
+        if ($json) {
+            $remaining = 0;
+
+            foreach ((array) ($report['orphan_checks'] ?? []) as $check) {
+                if (($check['id'] ?? '') === $checkId) {
+                    $remaining = (int) ($check['count'] ?? 0);
+                }
+            }
+
+            $this->sendJson(200, $message, ['deleted' => $deleted, 'remaining' => $remaining]);
+
+            return;
+        }
+
+        $this->setMessage($message, 'message');
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+    }
+
+    /**
+     * @param array<string, mixed>|null $data
+     */
+    private function sendJson(int $status, string $message, ?array $data = null): void
+    {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        $this->app->mimeType = 'application/json';
+        $this->app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
+
+        if ($status !== 200) {
+            $this->app->setHeader('status', (string) $status, true);
+        }
+
+        $this->app->sendHeaders();
+        echo $status === 200 ? new JsonResponse($data, $message) : new JsonResponse(null, $message, true);
+        $this->app->close();
     }
 
     public function showLog(): void

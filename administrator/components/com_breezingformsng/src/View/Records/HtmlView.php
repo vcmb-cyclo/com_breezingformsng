@@ -38,7 +38,7 @@ class HtmlView extends BaseHtmlView
 
     public function display($tpl = null)
     {
-        $this->getDocument()->getWebAssetManager()->useScript('keepalive');
+        $this->getDocument()->getWebAssetManager()->useScript('keepalive')->useStyle('com_breezingformsng.list-filters');
 
         $user = $this->getCurrentUser();
         $this->canEditState = $user->authorise('core.edit.state', 'com_breezingformsng');

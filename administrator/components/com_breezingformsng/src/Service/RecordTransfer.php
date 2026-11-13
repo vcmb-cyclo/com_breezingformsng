@@ -25,6 +25,9 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
  */
 final class RecordTransfer
 {
+    /** Days a transfer claim is kept: far longer than a session lasts. */
+    private const CLAIM_KEPT_DAYS = 90;
+
     public function __construct(
         private readonly DatabaseInterface $db,
         private readonly RecordModel $model,
@@ -204,12 +207,16 @@ final class RecordTransfer
         array $recordIds,
         array $map,
         array $defaults,
-        bool $preservePayment = false
+        bool $preservePayment = false,
+        string $operation = ''
     ): array {
         $db = $this->db;
         $recordIds = array_values(array_unique(array_filter(array_map('intval', $recordIds))));
 
-        if ($recordIds === [] || $sourceFormId < 0 || $targetFormId < 1 || $sourceFormId === $targetFormId) {
+        if (
+            $recordIds === [] || $sourceFormId < 0 || $targetFormId < 1 || $sourceFormId === $targetFormId
+            || !preg_match('/\A[0-9a-f]{32}\z/', $operation)
+        ) {
             throw new \InvalidArgumentException('Invalid transfer.');
         }
 
@@ -225,7 +232,7 @@ final class RecordTransfer
             throw new \InvalidArgumentException('The target form does not exist.');
         }
 
-        $sources = $db->setQuery(
+        $loadSources = fn (): array => $db->setQuery(
             $db->createQuery()
                 ->select('*')
                 ->from($db->quoteName('#__facileforms_records'))
@@ -234,6 +241,7 @@ final class RecordTransfer
                 ->order($db->quoteName('id'))
                 ->bind(':formId', $sourceFormId, ParameterType::INTEGER)
         )->loadObjectList('id');
+        $sources = $loadSources();
 
         // A record that left the source form meanwhile must not be copied under
         // the mapping chosen for another form.
@@ -245,9 +253,46 @@ final class RecordTransfer
         $targetElements = $this->model->getEditableElements($targetFormId);
         $created = [];
 
+        // The claims of past transfers are only kept as long as a session can replay one.
+        // Best effort: a failure here, the column not yet added by an update for instance,
+        // must not stop the transfer.
+        try {
+            $cutoff = (new \DateTimeImmutable('-' . self::CLAIM_KEPT_DAYS . ' days', new \DateTimeZone('UTC')))
+                ->format('Y-m-d H:i:s');
+            $db->setQuery(
+                $db->createQuery()
+                    ->delete($db->quoteName('#__facileforms_transfer_operations'))
+                    ->where($db->quoteName('created') . ' < :cutoff')
+                    ->bind(':cutoff', $cutoff)
+            )->execute();
+        } catch (\Throwable) {
+        }
+
         $db->transactionStart();
 
         try {
+            // The source records are locked, then read again: a record deleted, moved to another
+            // form or changed since the check above cannot be copied as it was found. The ids are
+            // integers, cast above.
+            $db->setQuery(
+                'SELECT ' . $db->quoteName('id') . ' FROM ' . $db->quoteName('#__facileforms_records')
+                . ' WHERE ' . $db->quoteName('id') . ' IN (' . implode(',', $recordIds) . ') FOR UPDATE'
+            )->execute();
+            $sources = $loadSources();
+
+            if (count($sources) !== count($recordIds)) {
+                throw new \RuntimeException('Some records are not in the source form.');
+            }
+
+            // A unique operation is committed atomically with its copies. Concurrent
+            // requests with stale session data cannot claim it a second time.
+            $claim = $db->createQuery()
+                ->insert((string) $db->quoteName('#__facileforms_transfer_operations'))
+                ->columns((string) $db->quoteName('operation'))
+                ->values(':operation')
+                ->bind(':operation', $operation);
+            $db->setQuery($claim)->execute();
+
             foreach ($sources as $sourceId => $source) {
                 $copy = new \stdClass();
                 foreach (

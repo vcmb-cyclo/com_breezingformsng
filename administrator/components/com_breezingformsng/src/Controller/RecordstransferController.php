@@ -15,11 +15,10 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Router\Route;
-use Joomla\Database\DatabaseInterface;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordstransferModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
@@ -89,6 +88,7 @@ class RecordstransferController extends BaseController
             'defaults' => [],
             'trash' => false,
             'report' => null,
+            'operation' => bin2hex(random_bytes(16)),
         ]);
 
         $this->back(self::VIEW_URL . 'select');
@@ -189,12 +189,71 @@ class RecordstransferController extends BaseController
         $this->checkToken();
 
         $model = $this->getTransferModel();
+        if (is_array($model->getTransfer()['report'] ?? null)) {
+            $this->back(self::VIEW_URL . 'report');
+
+            return;
+        }
+
         $transfer = $this->requireTransfer($model, true);
 
         if ($transfer === null) {
             return;
         }
 
+        $db = $model->getConnection();
+        $session = $this->app->getSession();
+        $lockName = 'bfngt_' . substr(hash('sha256', $db->getPrefix() . ':' . $transfer['operation']), 0, 48);
+        $locked = (int) $db->setQuery('SELECT GET_LOCK(' . $db->quote($lockName) . ', 30)')->loadResult() === 1;
+
+        if (!$locked) {
+            // This request may have read an old session while another is writing it: it must not
+            // write it back. The answer is an error page, which needs no session, rather than a
+            // redirect whose message would be lost.
+            $session->abort();
+
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_TRANSFER_BUSY'), 409);
+        }
+
+        try {
+            $operation = $transfer['operation'];
+            $claim = $db->createQuery()
+                ->select('1')
+                ->from($db->quoteName('#__facileforms_transfer_operations'))
+                ->where($db->quoteName('operation') . ' = :operation')
+                ->bind(':operation', $operation);
+
+            if ($db->setQuery($claim)->loadResult() !== null) {
+                // Discard the stale session snapshot; the first request has already
+                // saved its report before releasing this operation's lock.
+                $session->abort();
+                $this->back(self::VIEW_URL . 'report');
+
+                return;
+            }
+
+            $this->performTransfer($model, $transfer);
+        } finally {
+            try {
+                if ($session->isActive()) {
+                    $session->close();
+                }
+            } finally {
+                try {
+                    $db->setQuery('SELECT RELEASE_LOCK(' . $db->quote($lockName) . ')')->execute();
+                } catch (\Throwable $exception) {
+                    // The DB connection also releases the lock when it closes.
+                    Log::add('Transfer lock release failed: ' . $exception::class, Log::ERROR, 'com_breezingformsng');
+                }
+            }
+        }
+    }
+
+    /**
+     * @param array{all: int[], ids: int[], source: int, target: int, map: array<int, int>, defaults: array<int, string>, trash: bool, report: ?array<string, mixed>, operation: string} $transfer
+     */
+    private function performTransfer(RecordstransferModel $model, array $transfer): void
+    {
         if ($this->refuseMissingRequired($model, $transfer)) {
             return;
         }
@@ -204,7 +263,8 @@ class RecordstransferController extends BaseController
         $transfer['trash'] = $trash;
 
         $recordModel = $model->getRecordModel();
-        $transferer = new RecordTransfer(Factory::getContainer()->get(DatabaseInterface::class), $recordModel);
+        $db = $model->getConnection();
+        $transferer = new RecordTransfer($db, $recordModel);
 
         try {
             $created = $transferer->transfer(
@@ -214,10 +274,12 @@ class RecordstransferController extends BaseController
                 $transfer['map'],
                 $transfer['defaults'],
                 $this->input->post->getBool('preserve_payment', false)
-                    && $this->input->post->getBool('confirm_payment', false)
+                    && $this->input->post->getBool('confirm_payment', false),
+                $transfer['operation']
             );
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
             // Nothing was copied: the transaction was rolled back.
+            Log::add('Records transfer failed: ' . $e::class . ' (' . (int) $e->getCode() . ')', Log::ERROR, 'com_breezingformsng');
             $model->setTransfer($transfer);
             $this->back(self::VIEW_URL . 'confirm', Text::_('COM_BREEZINGFORMSNG_TRANSFER_FAILED'), 'error');
 
@@ -316,7 +378,7 @@ class RecordstransferController extends BaseController
     /**
      * The transfer in progress, or null after sending the user back to the list.
      *
-     * @return array{all: int[], ids: int[], source: int, target: int, map: array<int, int>, defaults: array<int, string>, trash: bool, report: ?array<string, mixed>}|null
+     * @return array{all: int[], ids: int[], source: int, target: int, map: array<int, int>, defaults: array<int, string>, trash: bool, report: ?array<string, mixed>, operation: string}|null
      */
     private function requireTransfer(RecordstransferModel $model, bool $needsTarget = false): ?array
     {
@@ -325,6 +387,8 @@ class RecordstransferController extends BaseController
         if (
             !isset($transfer['all'], $transfer['ids'], $transfer['source'])
             || is_array($transfer['report'] ?? null)
+            || !is_string($transfer['operation'] ?? null)
+            || !preg_match('/\A[0-9a-f]{32}\z/', $transfer['operation'])
             || ($needsTarget && (int) ($transfer['target'] ?? 0) < 1)
             || ($needsTarget && (array) $transfer['ids'] === [])
         ) {
@@ -342,6 +406,7 @@ class RecordstransferController extends BaseController
             'defaults' => array_map('strval', (array) ($transfer['defaults'] ?? [])),
             'trash' => (bool) ($transfer['trash'] ?? false),
             'report' => null,
+            'operation' => $transfer['operation'],
         ];
     }
 

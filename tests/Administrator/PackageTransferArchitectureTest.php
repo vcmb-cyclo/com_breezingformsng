@@ -179,4 +179,18 @@ final class PackageTransferArchitectureTest extends TestCase
             }
         }
     }
+
+    public function testAPackageWithoutAConnectorGetsTheDefaultOneOnImport(): void
+    {
+        $model = (string) file_get_contents(
+            __DIR__ . '/../../administrator/components/com_breezingformsng/src/Model/PackageTransferModel.php'
+        );
+
+        // The column defaults to AND: a missing or empty connector is completed, a listed one kept,
+        // and any other value still refuses the package.
+        self::assertStringContainsString("\$connector = \$childData['andor'] ?? '';", $model);
+        self::assertStringContainsString("\$connector = \$connector === '' ? 'AND' : \$connector;", $model);
+        self::assertStringContainsString("\$childData['andor'] = \$connector;", $model);
+        self::assertStringContainsString('IntegratorCriteriaPolicy::allowsConnector($connector)', $model);
+    }
 }

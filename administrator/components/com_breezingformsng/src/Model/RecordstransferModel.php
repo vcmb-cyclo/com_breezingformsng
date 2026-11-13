@@ -18,6 +18,7 @@ use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordTransfer;
 
@@ -169,6 +170,11 @@ class RecordstransferModel extends BaseDatabaseModel
             ->order($db->quoteName('element'));
 
         return array_values($db->setQuery($query)->loadAssocList() ?: []);
+    }
+
+    public function getConnection(): DatabaseInterface
+    {
+        return $this->getDatabase();
     }
 
     public function getRecordModel(): RecordModel
