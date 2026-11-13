@@ -1082,6 +1082,16 @@ HTMLHelper::_('bootstrap.collapse');
                                     <?php if ($orphanHidden > 0) : ?>
                                         <p class="small text-muted mb-0 mt-1"><?php echo Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_MORE', $orphanHidden); ?></p>
                                     <?php endif; ?>
+                                    <?php if ($orphanValues) : ?>
+                                        <button
+                                            id="bf-audit-delete-all-orphan-values"
+                                            type="button"
+                                            class="btn btn-sm btn-outline-danger mt-2"
+                                            data-bf-orphan-task="about.deleteOrphanValues"
+                                            data-bf-orphan-element="0"
+                                            data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_ALL_CONFIRM', (int) ($check['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
+                                        ><span class="icon-trash" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_ALL'); ?></button>
+                                    <?php endif; ?>
                                     <?php if (($check['id'] ?? '') === 'elements_without_form') : ?>
                                         <button
                                             id="bf-audit-delete-orphan-elements"
