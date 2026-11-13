@@ -3737,6 +3737,17 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             }
         }
 
+        // The date of a transfer claim, which lets the old ones be pruned. Rows that exist
+        // when the column is added take the date of the update. Replayable.
+        $transferTable = $prefix . 'facileforms_transfer_operations';
+
+        if (isset($tables[$transferTable]) && !isset($tables[$transferTable]['created'])) {
+            $db->setQuery(
+                "ALTER TABLE `{$transferTable}` ADD `created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
+            )->execute();
+            $this->log('Added column created to facileforms_transfer_operations.');
+        }
+
         if (isset($tables[$recordsTable])) {
             $columns = $tables[$recordsTable];
 

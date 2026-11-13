@@ -25,6 +25,9 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
  */
 final class RecordTransfer
 {
+    /** Days a transfer claim is kept: far longer than a session lasts. */
+    private const CLAIM_KEPT_DAYS = 90;
+
     public function __construct(
         private readonly DatabaseInterface $db,
         private readonly RecordModel $model,
@@ -249,6 +252,21 @@ final class RecordTransfer
         $sourceExists = $this->formExists($sourceFormId);
         $targetElements = $this->model->getEditableElements($targetFormId);
         $created = [];
+
+        // The claims of past transfers are only kept as long as a session can replay one.
+        // Best effort: a failure here, the column not yet added by an update for instance,
+        // must not stop the transfer.
+        try {
+            $cutoff = (new \DateTimeImmutable('-' . self::CLAIM_KEPT_DAYS . ' days', new \DateTimeZone('UTC')))
+                ->format('Y-m-d H:i:s');
+            $db->setQuery(
+                $db->createQuery()
+                    ->delete($db->quoteName('#__facileforms_transfer_operations'))
+                    ->where($db->quoteName('created') . ' < :cutoff')
+                    ->bind(':cutoff', $cutoff)
+            )->execute();
+        } catch (\Throwable) {
+        }
 
         $db->transactionStart();
 

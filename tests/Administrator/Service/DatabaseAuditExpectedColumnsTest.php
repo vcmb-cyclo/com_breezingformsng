@@ -28,7 +28,7 @@ final class DatabaseAuditExpectedColumnsTest extends TestCase
         $expected = DatabaseAuditService::parseExpectedColumns($sql);
 
         self::assertCount(15, $expected);
-        self::assertSame(['operation'], $expected['facileforms_transfer_operations']);
+        self::assertSame(['operation', 'created'], $expected['facileforms_transfer_operations']);
         self::assertSame(['id', 'value'], $expected['facileforms_config']);
         self::assertContains('debug_mode', $expected['facileforms_forms']);
         self::assertContains('modified', $expected['facileforms_forms']);

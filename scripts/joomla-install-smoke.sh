@@ -428,6 +428,8 @@ docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "
     ALTER TABLE \`${table_prefix}facileforms_forms\` DROP \`debug_mode\`, DROP \`version\`;
     ALTER TABLE \`${table_prefix}facileforms_scripts\` DROP \`unit_tests\`;
     ALTER TABLE \`${table_prefix}facileforms_pieces\` DROP \`unit_tests\`;
+    ALTER TABLE \`${table_prefix}facileforms_transfer_operations\` DROP \`created\`;
+    INSERT INTO \`${table_prefix}facileforms_transfer_operations\` (operation) VALUES ('00000000000000000000000000000001');
     UPDATE \`${table_prefix}facileforms_forms\` SET script1code = 'index.php?option=com_breezingforms&view=form' WHERE id = ${fixture_form_id};
     UPDATE \`${table_prefix}schemas\` AS s
         INNER JOIN \`${table_prefix}extensions\` AS e ON e.extension_id = s.extension_id
@@ -458,15 +460,16 @@ migrated_column_count="$(
             ('${table_prefix}facileforms_forms', 'debug_mode'),
             ('${table_prefix}facileforms_forms', 'version'),
             ('${table_prefix}facileforms_scripts', 'unit_tests'),
-            ('${table_prefix}facileforms_pieces', 'unit_tests'));"
+            ('${table_prefix}facileforms_pieces', 'unit_tests'),
+            ('${table_prefix}facileforms_transfer_operations', 'created'));"
 )"
 legacy_column_count="$(
     docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
         -e "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '${table_prefix}facileforms_records' AND COLUMN_NAME = 'archived';"
 )"
 
-if [[ "${migrated_column_count}" -ne 7 || "${legacy_column_count}" -ne 0 ]]; then
-    echo "Legacy schema migration failed during the update test: ${migrated_column_count}/7 columns restored, ${legacy_column_count} legacy column left." >&2
+if [[ "${migrated_column_count}" -ne 8 || "${legacy_column_count}" -ne 0 ]]; then
+    echo "Legacy schema migration failed during the update test: ${migrated_column_count}/8 columns restored, ${legacy_column_count} legacy column left." >&2
     exit 1
 fi
 
@@ -479,6 +482,16 @@ migrated_data_count="$(
 
 if [[ "${migrated_data_count}" -ne 2 ]]; then
     echo "Legacy data migration failed during the update test (archived record state or com_breezingforms option)." >&2
+    exit 1
+fi
+
+claim_kept="$(
+    docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
+        -e "SELECT COUNT(*) FROM \`${table_prefix}facileforms_transfer_operations\` WHERE operation = '00000000000000000000000000000001' AND created IS NOT NULL;"
+)"
+
+if [[ "${claim_kept}" -ne 1 ]]; then
+    echo "A transfer claim did not survive the update with a creation date." >&2
     exit 1
 fi
 
