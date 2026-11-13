@@ -59,6 +59,9 @@ class FormsModel extends ListModel
                 'id', 'title', 'name', 'pages', 'published', 'ordering', 'modified', 'checked_out', 'checked_out_time',
             ]))
             ->select('(' . $editor . ') AS ' . $db->quoteName('editor'))
+            // Only a flag: the processed template of a legacy form can be large.
+            ->select('CASE WHEN TRIM(' . $db->quoteName('template_code_processed') . ") = 'QuickMode' THEN 1 ELSE 0 END AS "
+                . $db->quoteName('is_quickmode'))
             ->from($db->quoteName('#__facileforms_forms'));
 
         $package = (string) $this->getState('filter.package');

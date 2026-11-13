@@ -28,4 +28,15 @@ final class MenuModelArchitectureTest extends TestCase
         self::assertStringContainsString("\$this->setError(\$table->getError() ?: Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));", $model);
         self::assertStringContainsString("throw new \\Exception(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'), 404);", $view);
     }
+
+    public function testMenuCopyRequiresCreatePermission(): void
+    {
+        $controller = file_get_contents(
+            __DIR__ . '/../../administrator/components/com_breezingformsng/src/Controller/MenusController.php'
+        );
+
+        self::assertIsString($controller);
+        self::assertStringContainsString("authorise('core.create', 'com_breezingformsng')", $controller);
+        self::assertStringContainsString("Text::_('JERROR_ALERTNOAUTHOR'), 403", $controller);
+    }
 }

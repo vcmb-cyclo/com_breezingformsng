@@ -21,6 +21,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\LegacyXmlPackage;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PackageTemplateCode;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\SqlDate;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\IntegratorCriteriaPolicy;
 
 final class PackageTransferModel extends BaseDatabaseModel
 {
@@ -1770,6 +1771,16 @@ final class PackageTransferModel extends BaseDatabaseModel
                             throw new InvalidPackageException();
                         }
                         $childData = $this->only($child['data'], $childColumns[$key], array_values(array_filter(['id', 'rule_id', $elementColumn])));
+                        if (str_starts_with($key, 'criteria_')) {
+                            $operator = $childData['operator'] ?? null;
+                            $connector = $childData['andor'] ?? null;
+                            if (
+                                !is_string($operator) || !IntegratorCriteriaPolicy::allowsOperator($operator)
+                                || !is_string($connector) || !IntegratorCriteriaPolicy::allowsConnector($connector)
+                            ) {
+                                throw new InvalidPackageException();
+                            }
+                        }
                         $childData['rule_id'] = $ruleId;
                         if ($elementColumn !== null) {
                             $elementId = $form['elements'][(int) ($child['element_source_id'] ?? 0)] ?? null;

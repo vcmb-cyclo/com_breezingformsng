@@ -128,6 +128,11 @@ class HtmlView extends BaseHtmlView
             $toolbar->linkButton('import', 'COM_BREEZINGFORMSNG_BTN_IMPORT_CSV')
                 ->url(Route::_('index.php?option=com_breezingformsng&view=recordsimport'))
                 ->icon('icon-upload');
+
+            $toolbar->standardButton('transfer', 'COM_BREEZINGFORMSNG_TOOLBAR_TRANSFER', 'recordstransfer.start')
+                ->icon('icon-copy')
+                ->attributes(['title' => Text::_('COM_BREEZINGFORMSNG_TOOLBAR_TRANSFER_DESC')])
+                ->listCheck(true);
         }
 
         if ($this->canEditState) {

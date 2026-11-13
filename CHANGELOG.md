@@ -1,5 +1,37 @@
 # Changelog
 
+## 6.1.0-RC18
+
+### Added
+
+- Transfer records to another form from the Records toolbar. Choose the records (any can be unchecked) and the target form, match each target field to a source field (fields with the same name are already matched, and a default value fills a field that has no source field), then confirm with an example of what the first record gives each field. A target field that is required in its form is marked and must be filled. The records of a deleted form can be transferred. Records are copied, not moved, and the originals can be sent to the trash. Payment information is copied only if you ask for it and confirm it.
+- Convert a legacy form to QuickMode from the Forms list. It creates an unpublished copy and leaves the original form and its records untouched; settings that cannot be converted safely are refused and the unsupported element is named. Classic radio buttons that form an unambiguous group are converted to a radio group. The Convert to QuickMode button only shows when the list holds a form that is not in QuickMode format.
+- Let AI assistants check a form for inconsistencies (missing names, duplicate element names, missing scripts, suggested validations) and audit the database, through two more read-only tools of the MCP endpoint.
+- Dissolve a package selectively, and see packages and their audit in clearer views.
+- Show an Audit information section in the script, piece, Integrator rule and QuickMode editors, and keep the version history of Integrator rules, with restore. Existing rules show their audit data as unknown.
+- List and filter the records of deleted forms, with the form title they stored and a warning icon. The audit links each deleted form to its records.
+
+### Changed
+
+- Say courriel instead of email in French, use the typographic apostrophe and non-breaking spaces before punctuation, and translate the Integrator, ContentBuilder and PayPal tooltip labels that were still in English.
+- Use one generic turn-off label for sections and elements, translated in Hungarian and Turkish.
+- Name the Advanced options of an element clearly in every language.
+
+### Fixed
+
+- Stop logging six PHP warnings each time a form saved by an earlier version is saved in QuickMode.
+- Let the date elements be left out of the log and given an order number, which the page never saved.
+- Show a failed collation repair in the audit section of the About screen, next to the report it applies to, and fix the deleted-form records link and the orphan column label.
+
+### Security
+
+- Escape the page shown after a Stripe payment, which reflected the request token, and accept upload tickets only when the form issued them to the session, with element names that hold no path.
+- Decide the PayPal price on the server and check what PayPal reports. A payment is accepted only once it is completed, and an invalid notification no longer overwrites a record.
+- Neutralize spreadsheet formulas in CSV exports, so a spreadsheet application does not evaluate submitted text.
+- Accept only known operators and connectors in Integrator criteria, including in imported packages, and no longer show the error message of a failed criteria query.
+- Require the create right to copy a menu.
+- Mask link parameter values, hosts, credentials, absolute paths and repair tokens in what the MCP audit tool returns.
+
 ## 6.1.0-RC17
 
 ### Added

@@ -29,6 +29,12 @@ final class PayPalPayment
 
     private const MONEY = '/^\d{1,9}(?:\.\d{1,2})?$/';
 
+    /** PayPal payments are accepted only after settlement is reported. */
+    public function isCompleted(string $status): bool
+    {
+        return $status === 'Completed';
+    }
+
     /**
      * The payment a "TEXT1|TEXT2|AMOUNT|TAX[|SHIPPING[|CURRENCY]]" choice stands
      * for, or null when it is not a valid one.

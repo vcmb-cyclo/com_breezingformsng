@@ -1,0 +1,76 @@
+/* The field icons of the transfer screens: those of the QuickMode tree. A native
+ * option cannot hold an image, so the icon is its background. */
+.bf-transfer-source option[class*="bf-icon-"] {
+	padding-inline-start: 30px;
+	background-repeat: no-repeat;
+	background-position: 5px center;
+	background-size: 20px 20px;
+}
+
+.bf-transfer-source option.bf-icon-calendar {
+	background-image: url('../../images/quickmode/icon_calendar.png');
+}
+
+.bf-transfer-source option.bf-icon-captcha {
+	background-image: url('../../images/quickmode/icon_captcha.png');
+}
+
+.bf-transfer-source option.bf-icon-check-box {
+	background-image: url('../../images/quickmode/icon_check-box.png');
+}
+
+.bf-transfer-source option.bf-icon-file {
+	background-image: url('../../images/quickmode/icon_file.png');
+}
+
+.bf-transfer-source option.bf-icon-hidden-input {
+	background-image: url('../../images/quickmode/icon_hidden-input.png');
+}
+
+.bf-transfer-source option.bf-icon-paypal {
+	background-image: url('../../images/quickmode/icon_paypal.png');
+}
+
+.bf-transfer-source option.bf-icon-radio {
+	background-image: url('../../images/quickmode/icon_radio.png');
+}
+
+.bf-transfer-source option.bf-icon-select {
+	background-image: url('../../images/quickmode/icon_select.png');
+}
+
+.bf-transfer-source option.bf-icon-sign {
+	background-image: url('../../images/quickmode/icon_sign.png');
+}
+
+.bf-transfer-source option.bf-icon-stripe {
+	background-image: url('../../images/quickmode/icon_stripe.png');
+}
+
+.bf-transfer-source option.bf-icon-submit-button {
+	background-image: url('../../images/quickmode/icon_submit-button.png');
+}
+
+.bf-transfer-source option.bf-icon-summarize {
+	background-image: url('../../images/quickmode/icon_summarize.png');
+}
+
+.bf-transfer-source option.bf-icon-text-area {
+	background-image: url('../../images/quickmode/icon_text-area.png');
+}
+
+.bf-transfer-source option.bf-icon-text-field {
+	background-image: url('../../images/quickmode/icon_text-field.png');
+}
+
+/* The mark of a required field: smaller than the text it follows. */
+.bf-transfer-required {
+	font-size: 0.55em;
+	vertical-align: top;
+}
+
+/* A target field that has a source field: a translucent green, readable on the
+ * light and the dark theme alike. */
+.table > tbody > tr.bf-transfer-assigned > * {
+	box-shadow: inset 0 0 0 9999px rgba(25, 135, 84, 0.22);
+}

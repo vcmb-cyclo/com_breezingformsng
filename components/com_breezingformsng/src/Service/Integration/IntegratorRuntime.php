@@ -7,6 +7,7 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Integration;
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\User\User;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
@@ -140,9 +141,9 @@ class IntegratorRuntime
 
         try {
             $ret = $db->setQuery($query)->loadObjectList();
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             $ret = [];
-            echo $e->getMessage();
+            echo Text::_('JERROR_AN_ERROR_HAS_OCCURRED');
         } // try
 
         return $ret;
@@ -382,6 +383,13 @@ class IntegratorRuntime
         $clauses = '';
 
         $appendClause = function (string $andor, string $column, string $operator, $value) use ($db, $query, &$bindIndex, &$clauses) {
+            if (
+                !IntegratorCriteriaPolicy::allowsOperator($operator)
+                || !IntegratorCriteriaPolicy::allowsConnector($andor)
+            ) {
+                throw new \UnexpectedValueException('Invalid Integrator criteria.');
+            }
+
             if ($clauses !== '') {
                 $clauses .= ' ' . $andor . ' ';
             }
