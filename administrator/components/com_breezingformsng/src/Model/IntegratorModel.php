@@ -16,11 +16,10 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\IntegratorVersioning;
+use Vcmb\Component\BreezingformsNG\Site\Service\Integration\IntegratorCriteriaPolicy;
 
 class IntegratorModel extends BaseDatabaseModel
 {
-    private const ALLOWED_OPERATORS = ['=', '<>', '>', '<', '>=', '<=', '%...%', '%...', '...%'];
-
     private function db(): DatabaseInterface
     {
         return $this->getDatabase();
@@ -240,10 +239,10 @@ class IntegratorModel extends BaseDatabaseModel
 
     public function addCriteria(int $ruleId, string $operator, string $referenceColumn, int $elementId, string $andor): void
     {
-        if (!\in_array($operator, self::ALLOWED_OPERATORS, true)) {
+        if (!IntegratorCriteriaPolicy::allowsOperator($operator)) {
             return;
         }
-        $andor = \in_array($andor, ['AND', 'OR'], true) ? $andor : 'AND';
+        $andor = IntegratorCriteriaPolicy::allowsConnector($andor) ? $andor : 'AND';
         $db    = $this->db();
         $query = $db->createQuery()
             ->insert($db->quoteName('#__facileforms_integrator_criteria_form'))
@@ -287,12 +286,12 @@ class IntegratorModel extends BaseDatabaseModel
 
     public function addCriteriaJoomla(int $ruleId, string $operator, string $referenceColumn, string $joomlaObject, string $andor): void
     {
-        if (!\in_array($operator, self::ALLOWED_OPERATORS, true)) {
+        if (!IntegratorCriteriaPolicy::allowsOperator($operator)) {
             return;
         }
         $allowed = ['Userid', 'Username', 'Language', 'Date'];
         $joomlaObject = \in_array($joomlaObject, $allowed, true) ? $joomlaObject : 'Userid';
-        $andor = \in_array($andor, ['AND', 'OR'], true) ? $andor : 'AND';
+        $andor = IntegratorCriteriaPolicy::allowsConnector($andor) ? $andor : 'AND';
         $db      = $this->db();
         $query   = $db->createQuery()
             ->insert($db->quoteName('#__facileforms_integrator_criteria_joomla'))
@@ -336,10 +335,10 @@ class IntegratorModel extends BaseDatabaseModel
 
     public function addCriteriaFixed(int $ruleId, string $operator, string $referenceColumn, string $fixedValue, string $andor): void
     {
-        if (!\in_array($operator, self::ALLOWED_OPERATORS, true)) {
+        if (!IntegratorCriteriaPolicy::allowsOperator($operator)) {
             return;
         }
-        $andor = \in_array($andor, ['AND', 'OR'], true) ? $andor : 'AND';
+        $andor = IntegratorCriteriaPolicy::allowsConnector($andor) ? $andor : 'AND';
         $db    = $this->db();
         $query = $db->createQuery()
             ->insert($db->quoteName('#__facileforms_integrator_criteria_fixed'))
