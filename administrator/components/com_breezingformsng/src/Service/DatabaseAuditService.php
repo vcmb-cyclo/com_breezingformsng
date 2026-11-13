@@ -417,8 +417,13 @@ final class DatabaseAuditService
             }
 
             try {
-                $result[] = ['id' => $id, 'parent' => $parentKind]
-                    + $this->summarizeOrphans($child, $parent, $foreignKey, $labelColumn, $dateColumn);
+                $summary = $this->summarizeOrphans($child, $parent, $foreignKey, $labelColumn, $dateColumn);
+
+                if ($id === 'subrecords_without_element') {
+                    $summary['groups'] = $this->addFormOfOrphanValues($summary['groups']);
+                }
+
+                $result[] = ['id' => $id, 'parent' => $parentKind] + $summary;
             } catch (\Throwable $exception) {
                 $this->addError('Unable to inspect orphan references for ' . $id . ': ' . $exception->getMessage());
             }
@@ -496,6 +501,57 @@ final class DatabaseAuditService
         }
 
         return ['count' => $count, 'parents' => (int) ($totals['parents'] ?? 0), 'groups' => $groups];
+    }
+
+    /**
+     * The values of a missing element belong to records, which know their form:
+     * adds the form (id and title) to each group of missing elements.
+     *
+     * @param list<array<string, mixed>> $groups
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function addFormOfOrphanValues(array $groups): array
+    {
+        $ids = array_values(array_filter(array_map(static fn (array $group): int => (int) $group['parent_id'], $groups)));
+
+        if ($ids === []) {
+            return $groups;
+        }
+
+        $db = $this->db;
+        $element = $db->quoteName('child.element');
+        $query = $db->createQuery()
+            ->select([
+                $element . ' AS ' . $db->quoteName('element_id'),
+                'MIN(' . $db->quoteName('records.form') . ') AS ' . $db->quoteName('form_id'),
+                'COUNT(DISTINCT ' . $db->quoteName('records.form') . ') AS ' . $db->quoteName('forms'),
+                'COALESCE(MAX(' . $db->quoteName('forms.title') . '), MAX(' . $db->quoteName('records.title') . ')) AS '
+                    . $db->quoteName('form_title'),
+            ])
+            ->from($db->quoteName('#__facileforms_subrecords', 'child'))
+            ->join('INNER', $db->quoteName('#__facileforms_records', 'records') . ' ON records.id = child.record')
+            ->join('LEFT', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form')
+            ->whereIn($element, $ids)
+            ->group($element);
+        $forms = [];
+
+        foreach ($db->setQuery($query)->loadAssocList() as $row) {
+            $forms[(int) $row['element_id']] = $row;
+        }
+
+        foreach ($groups as &$group) {
+            $row = $forms[(int) $group['parent_id']] ?? null;
+
+            if ($row !== null) {
+                $group['form_id'] = (int) $row['form_id'];
+                $group['form_title'] = (string) $row['form_title'];
+                $group['forms'] = (int) $row['forms'];
+            }
+        }
+        unset($group);
+
+        return $groups;
     }
 
     /**

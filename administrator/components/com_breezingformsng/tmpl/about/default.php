@@ -1011,6 +1011,8 @@ HTMLHelper::_('bootstrap.collapse');
                             $orphanParent = strtoupper((string) ($check['parent'] ?? ''));
                             $orphanHidden = (int) ($check['parents'] ?? 0) - count($orphanGroups);
                             $orphanHasLabel = array_filter(array_column($orphanGroups, 'label')) !== array();
+                            $orphanValues = ($check['id'] ?? '') === 'subrecords_without_element';
+                            $orphanHasForm = array_filter(array_column($orphanGroups, 'form_id')) !== array();
                             $orphanHasPeriod = array_filter(array_column($orphanGroups, 'first')) !== array();
                             // Records of a deleted form: link to the records list filtered on it, all states.
                             $orphanRecordsLink = ($check['id'] ?? '') === 'records_without_form';
@@ -1025,7 +1027,13 @@ HTMLHelper::_('bootstrap.collapse');
                                                 <?php if ($orphanHasLabel) : ?>
                                                     <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_LABEL'); ?></th>
                                                 <?php endif; ?>
+                                                <?php if ($orphanHasForm) : ?>
+                                                    <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_FORM'); ?></th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="text-end"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ROWS'); ?></th>
+                                                <?php if ($orphanValues) : ?>
+                                                    <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></th>
+                                                <?php endif; ?>
                                                 <?php if ($orphanHasPeriod) : ?>
                                                     <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_PERIOD'); ?></th>
                                                 <?php endif; ?>
@@ -1040,7 +1048,28 @@ HTMLHelper::_('bootstrap.collapse');
                                                     <?php if ($orphanHasLabel) : ?>
                                                         <td><?php echo $orphanLabel === '' ? '' : $orphanLink($orphanRecordsLink, $orphanGroup, $orphanLabel); ?></td>
                                                     <?php endif; ?>
+                                                    <?php if ($orphanHasForm) : ?>
+                                                        <?php $orphanFormId = (int) ($orphanGroup['form_id'] ?? 0); ?>
+                                                        <td>
+                                                            <?php if ($orphanFormId > 0) : ?>
+                                                                <?php echo $orphanLink(true, array('parent_id' => $orphanFormId), htmlspecialchars(trim((string) ($orphanGroup['form_title'] ?? '') . ' #' . $orphanFormId), ENT_QUOTES, 'UTF-8')); ?>
+                                                                <?php if ((int) ($orphanGroup['forms'] ?? 1) > 1) : ?>
+                                                                    <span class="text-muted">+<?php echo (int) $orphanGroup['forms'] - 1; ?></span>
+                                                                <?php endif; ?>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                    <?php endif; ?>
                                                     <td class="text-end"><?php echo (int) ($orphanGroup['count'] ?? 0); ?></td>
+                                                    <?php if ($orphanValues) : ?>
+                                                        <td>
+                                                            <button
+                                                                type="button"
+                                                                class="btn btn-sm btn-outline-danger"
+                                                                title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'), ENT_QUOTES, 'UTF-8'); ?>"
+                                                                onclick="if (window.confirm('<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>')) { document.getElementById('bf-orphan-element-id').value = '<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>'; Joomla.submitform('about.deleteOrphanValues'); }"
+                                                            ><span class="icon-trash" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></button>
+                                                        </td>
+                                                    <?php endif; ?>
                                                     <?php if ($orphanHasPeriod) : ?>
                                                         <td class="text-nowrap"><?php echo htmlspecialchars(substr((string) ($orphanGroup['first'] ?? ''), 0, 10) . ' → ' . substr((string) ($orphanGroup['last'] ?? ''), 0, 10), ENT_QUOTES, 'UTF-8'); ?></td>
                                                     <?php endif; ?>
@@ -1050,6 +1079,14 @@ HTMLHelper::_('bootstrap.collapse');
                                     </table>
                                     <?php if ($orphanHidden > 0) : ?>
                                         <p class="small text-muted mb-0 mt-1"><?php echo Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_MORE', $orphanHidden); ?></p>
+                                    <?php endif; ?>
+                                    <?php if (($check['id'] ?? '') === 'elements_without_form') : ?>
+                                        <button
+                                            id="bf-audit-delete-orphan-elements"
+                                            type="button"
+                                            class="btn btn-sm btn-outline-danger mt-2"
+                                            onclick="if (window.confirm('<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETE_CONFIRM', (int) ($check['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>')) { Joomla.submitform('about.deleteOrphanElements'); }"
+                                        ><span class="icon-trash" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETE'); ?></button>
                                     <?php endif; ?>
                                 </div>
                             </details>
@@ -1255,6 +1292,7 @@ HTMLHelper::_('bootstrap.collapse');
     <input type="hidden" name="task" id="bf-about-task" value="about.display" />
     <input type="hidden" name="view" value="about" />
     <input type="hidden" name="duplicate_form_id" id="bf-duplicate-form-id" value="" />
+    <input type="hidden" name="orphan_element_id" id="bf-orphan-element-id" value="0" />
     <input type="hidden" name="duplicate_index_group" id="bf-duplicate-index-group" value="" />
     <input type="hidden" name="column_collation_issue" id="bf-column-collation-issue" value="" />
     <input type="hidden" name="table_collation_issue" id="bf-table-collation-issue" value="" />

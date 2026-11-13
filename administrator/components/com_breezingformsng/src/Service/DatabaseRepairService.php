@@ -11,6 +11,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 \defined('_JEXEC') or die;
 
 use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 use Joomla\Filesystem\Folder;
 
 final class DatabaseRepairService
@@ -275,6 +276,56 @@ final class DatabaseRepairService
             'failed_indexes' => $failedIndexes,
             'errors' => $errors,
         ];
+    }
+
+    /**
+     * Deletes the elements whose form no longer exists. Their records keep the
+     * id, name, title and type of each field in their own rows.
+     *
+     * @return int The number of elements deleted.
+     */
+    public function deleteOrphanElements(): int
+    {
+        $db = $this->db;
+        $forms = $db->createQuery()
+            ->select('1')
+            ->from($db->quoteName('#__facileforms_forms', 'forms'))
+            ->where($db->quoteName('forms.id') . ' = ' . $db->quoteName('#__facileforms_elements.form'));
+        $query = $db->createQuery()
+            ->delete($db->quoteName('#__facileforms_elements'))
+            ->where('NOT EXISTS (' . $forms . ')');
+        $db->setQuery($query)->execute();
+
+        return $db->getAffectedRows();
+    }
+
+    /**
+     * Deletes the values (subrecords) whose element no longer exists, never those
+     * of an element that still does, whatever id is asked for.
+     *
+     * @param int $elementId One missing element, or 0 for all of them.
+     *
+     * @return int The number of values deleted.
+     */
+    public function deleteOrphanValues(int $elementId = 0): int
+    {
+        $db = $this->db;
+        $elements = $db->createQuery()
+            ->select('1')
+            ->from($db->quoteName('#__facileforms_elements', 'elements'))
+            ->where($db->quoteName('elements.id') . ' = ' . $db->quoteName('#__facileforms_subrecords.element'));
+        $query = $db->createQuery()
+            ->delete($db->quoteName('#__facileforms_subrecords'))
+            ->where('NOT EXISTS (' . $elements . ')');
+
+        if ($elementId > 0) {
+            $query->where($db->quoteName('element') . ' = :elementId')
+                ->bind(':elementId', $elementId, ParameterType::INTEGER);
+        }
+
+        $db->setQuery($query)->execute();
+
+        return $db->getAffectedRows();
     }
 
     /**

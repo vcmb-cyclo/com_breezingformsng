@@ -32,6 +32,8 @@ final class Breezingformsng extends CMSPlugin implements SubscriberInterface
 {
     public const MCP_ROUTE = 'v1/breezingformsng/mcp';
 
+    public const AUDIT_ROUTE = 'v1/breezingformsng/audit';
+
     /**
      * @return array<string, string>
      */
@@ -42,6 +44,8 @@ final class Breezingformsng extends CMSPlugin implements SubscriberInterface
 
     public function onBeforeApiRoute(BeforeApiRouteEvent $event): void
     {
+        $this->addAuditRoutes($event);
+
         // With MCP off in the options of BreezingForms NG, the endpoint does not exist.
         if (!McpAvailability::isEnabled()) {
             return;
@@ -54,6 +58,29 @@ final class Breezingformsng extends CMSPlugin implements SubscriberInterface
             new Route(['POST'], self::MCP_ROUTE, 'mcp.handle', [], $defaults),
             // A client may ask for a stream of server messages: it is told there is none.
             new Route(['GET', 'DELETE'], self::MCP_ROUTE, 'mcp.handle', [], ['format' => ['application/json', 'text/event-stream']] + $defaults),
+        ]);
+    }
+
+    /**
+     * The audit and its repairs: not public, the API application authenticates the
+     * Joomla API token and the "API login" permission; the controller then asks for
+     * the right of each action.
+     */
+    private function addAuditRoutes(BeforeApiRouteEvent $event): void
+    {
+        $audit = ['component' => 'com_breezingformsng', 'format' => ['application/json']];
+
+        $event->getRouter()->addRoutes([
+            new Route(['GET'], self::AUDIT_ROUTE, 'audit.report', [], $audit),
+            new Route(['DELETE'], self::AUDIT_ROUTE . '/orphan-elements', 'audit.deleteOrphanElements', [], $audit),
+            new Route(['DELETE'], self::AUDIT_ROUTE . '/orphan-values', 'audit.deleteOrphanValues', [], $audit),
+            new Route(
+                ['DELETE'],
+                self::AUDIT_ROUTE . '/orphan-values/:element',
+                'audit.deleteOrphanValues',
+                ['element' => '(\d+)'],
+                $audit
+            ),
         ]);
     }
 }

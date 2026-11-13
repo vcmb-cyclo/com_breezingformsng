@@ -374,6 +374,44 @@ class AboutController extends BaseController
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
     }
 
+    public function deleteOrphanElements(): void
+    {
+        $this->checkToken();
+
+        try {
+            $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertRepair($user);
+
+            $deleted = $this->getRepairService()->deleteOrphanElements();
+
+            $this->app->setUserState('com_breezingformsng.about.audit', $this->getAuditService()->run());
+            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETED', $deleted), 'message');
+        } catch (\Throwable $exception) {
+            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETE_FAILED', $exception->getMessage()), 'error');
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+    }
+
+    public function deleteOrphanValues(): void
+    {
+        $this->checkToken();
+
+        try {
+            $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertRepair($user);
+
+            $deleted = $this->getRepairService()->deleteOrphanValues($this->input->post->getInt('orphan_element_id', 0));
+
+            $this->app->setUserState('com_breezingformsng.about.audit', $this->getAuditService()->run());
+            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETED', $deleted), 'message');
+        } catch (\Throwable $exception) {
+            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_FAILED', $exception->getMessage()), 'error');
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+    }
+
     public function showLog(): void
     {
         $this->checkToken();
