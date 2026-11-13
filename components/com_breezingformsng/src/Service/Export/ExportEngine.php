@@ -50,6 +50,7 @@ use CB\Component\Contentbuilderng\Administrator\Service\ListSupportService;
 use CB\Component\Contentbuilderng\Administrator\Service\PermissionService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfDocument;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PdfFontDirectoryScanner;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\CsvCellSanitizer;
 use Vcmb\Component\BreezingformsNG\Site\Service\Notification\MailSender;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\SubmissionTimestampFormatter;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
@@ -1000,7 +1001,8 @@ final class ExportEngine
         $lineLength = count($lines);
         foreach ($fields as $fieldName => $null) {
             if ($inverted == false) {
-                $head .= $csvquote . $fieldName . $csvquote . $csvdelimiter;
+                $head .= $csvquote . CsvCellSanitizer::neutralizeFormula((string) $fieldName)
+                    . $csvquote . $csvdelimiter;
             }
         }
 
@@ -1017,7 +1019,11 @@ final class ExportEngine
                         . str_replace(
                             $csvquote,
                             $csvquote . $csvquote,
-                            str_replace("\n", $cellnewline, str_replace("\r", "", $fieldName))
+                            str_replace(
+                                "\n",
+                                $cellnewline,
+                                str_replace("\r", "", CsvCellSanitizer::neutralizeFormula((string) $fieldName))
+                            )
                         )
                         . $csvquote . $csvdelimiter;
                 }
@@ -1025,7 +1031,11 @@ final class ExportEngine
                     . str_replace(
                         $csvquote,
                         $csvquote . $csvquote,
-                        str_replace("\n", $cellnewline, str_replace("\r", "", implode('|', $line)))
+                        str_replace(
+                            "\n",
+                            $cellnewline,
+                            str_replace("\r", "", CsvCellSanitizer::neutralizeFormula(implode('|', $line)))
+                        )
                     )
                     . $csvquote . $csvdelimiter;
 

@@ -177,7 +177,11 @@ final class RecordExporter
             . str_replace(
                 $quote,
                 $quote . $quote,
-                str_replace("\n", $cellNewline, str_replace("\r", '', (string) $val))
+                str_replace(
+                    "\n",
+                    $cellNewline,
+                    str_replace("\r", '', CsvCellSanitizer::neutralizeFormula((string) $val))
+                )
             )
             . $quote;
 
