@@ -210,8 +210,10 @@ final class RecordTransfer
         $db = $this->db;
         $recordIds = array_values(array_unique(array_filter(array_map('intval', $recordIds))));
 
-        if ($recordIds === [] || $sourceFormId < 0 || $targetFormId < 1 || $sourceFormId === $targetFormId
-            || !preg_match('/\A[0-9a-f]{32}\z/', $operation)) {
+        if (
+            $recordIds === [] || $sourceFormId < 0 || $targetFormId < 1 || $sourceFormId === $targetFormId
+            || !preg_match('/\A[0-9a-f]{32}\z/', $operation)
+        ) {
             throw new \InvalidArgumentException('Invalid transfer.');
         }
 

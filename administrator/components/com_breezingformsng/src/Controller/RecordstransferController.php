@@ -319,7 +319,7 @@ class RecordstransferController extends BaseController
     /**
      * The transfer in progress, or null after sending the user back to the list.
      *
-     * @return array{all: int[], ids: int[], source: int, target: int, map: array<int, int>, defaults: array<int, string>, trash: bool, report: ?array<string, mixed>}|null
+     * @return array{all: int[], ids: int[], source: int, target: int, map: array<int, int>, defaults: array<int, string>, trash: bool, report: ?array<string, mixed>, operation: string}|null
      */
     private function requireTransfer(RecordstransferModel $model, bool $needsTarget = false): ?array
     {
