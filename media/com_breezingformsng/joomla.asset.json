@@ -174,7 +174,7 @@
     },
 
     {
-      "name": "com_breezingformsng.records-list",
+      "name": "com_breezingformsng.list-filters",
       "type": "script",
       "uri": "com_breezingformsng/js/admin/records-list.js",
       "dependencies": ["core", "com_breezingformsng.record-flags"],
@@ -306,6 +306,13 @@
       "type": "style",
       "uri": "media/com_breezingformsng/css/bfng-admin.css",
       "dependencies": ["com_breezingformsng.tokens"],
+      "version": "auto"
+    },
+
+    {
+      "name": "com_breezingformsng.list-filters",
+      "type": "style",
+      "uri": "media/com_breezingformsng/css/admin/list-filters.css",
       "version": "auto"
     },
 

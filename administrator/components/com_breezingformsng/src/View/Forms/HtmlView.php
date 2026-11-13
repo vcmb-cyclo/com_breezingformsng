@@ -48,6 +48,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
 
     public function display($tpl = null): void
     {
+        $this->getDocument()->getWebAssetManager()->useStyle('com_breezingformsng.list-filters');
         /** @var CMSApplication $app */
         $app     = Factory::getApplication();
         $input   = $app->getInput();

@@ -63,6 +63,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
     public function display($tpl = null): void
     {
         AreaAccess::assert($this->getCurrentUser(), AreaAccess::CODE);
+        $this->getDocument()->getWebAssetManager()->useStyle('com_breezingformsng.list-filters');
 
         $input  = Factory::getApplication()->getInput();
         $layout = $input->getCmd('layout', 'default');
