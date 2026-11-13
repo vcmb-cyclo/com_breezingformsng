@@ -206,7 +206,11 @@ final class PayPalCallback
 
                         // The amount and currency are the ones the server signed for this
                         // record, whatever the browser sent to PayPal.
-                        if ($expected === null || !$payment->matches($expected, (string) ($keyarray['mc_gross'] ?? ''), (string) ($keyarray['mc_currency'] ?? ''))) {
+                        if (!$payment->isCompleted((string) ($keyarray['payment_status'] ?? ''))) {
+                            $success = false;
+                            $msg = Text::_('JERROR_AN_ERROR_HAS_OCCURRED');
+                            require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');
+                        } elseif ($expected === null || !$payment->matches($expected, (string) ($keyarray['mc_gross'] ?? ''), (string) ($keyarray['mc_currency'] ?? ''))) {
                             $success = false;
                             $msg = Text::_('COM_BREEZINGFORMSNG_PAYMENT_AMOUNT_CURRENCY_INVALID');
                             require_once(JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php');

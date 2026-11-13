@@ -23,6 +23,25 @@ final class PayPalPaymentTest extends TestCase
     private const SECRET = 'server-secret';
 
     /** @return array<string, array{string, bool}> */
+    public static function paymentStatuses(): array
+    {
+        return [
+            'settled' => ['Completed', true],
+            'pending' => ['Pending', false],
+            'refunded' => ['Refunded', false],
+            'reversed' => ['Reversed', false],
+            'case mismatch' => ['completed', false],
+            'empty' => ['', false],
+        ];
+    }
+
+    #[DataProvider('paymentStatuses')]
+    public function testOnlyCompletedPaymentStatusIsAccepted(string $status, bool $accepted): void
+    {
+        self::assertSame($accepted, (new PayPalPayment())->isCompleted($status));
+    }
+
+    /** @return array<string, array{string, bool}> */
     public static function selections(): array
     {
         return [
