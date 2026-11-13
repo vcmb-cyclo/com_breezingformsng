@@ -84,14 +84,15 @@ class AuditController extends BaseController
 
     private function canRepair(): bool
     {
-        // The right to repair, and the right to use the component the report is read with.
+        // The right to repair, the right to delete of the component (the one needed to delete a
+        // record), and the right to use the component the report is read with.
         $user = $this->requireUser();
 
-        if (AreaAccess::canRepair($user) && $user->authorise('core.manage', 'com_breezingformsng')) {
+        if (AreaAccess::canDeleteOrphans($user) && $user->authorise('core.manage', 'com_breezingformsng')) {
             return true;
         }
 
-        $this->respond(403, null, 'You are not allowed to repair the BreezingForms NG database.');
+        $this->respond(403, null, 'You are not allowed to delete the orphan rows of the BreezingForms NG database.');
 
         return false;
     }

@@ -423,7 +423,7 @@ class AboutController extends BaseController
 
         try {
             $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
-            AreaAccess::assertRepair($user);
+            AreaAccess::assertDeleteOrphans($user);
 
             $deleted = $repair($this->getRepairService());
             $report = $this->getAuditService()->run();

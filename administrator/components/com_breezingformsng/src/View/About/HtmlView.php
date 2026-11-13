@@ -34,6 +34,8 @@ class HtmlView extends BaseHtmlView
     public string $auditError = '';
     public bool $canRepair = false;
 
+    public bool $canDeleteOrphans = false;
+
     public function display($tpl = null)
     {
         if ($this->getLayout() === 'help') {
@@ -45,6 +47,7 @@ class HtmlView extends BaseHtmlView
         $app = Factory::getApplication();
         $user = $this->getCurrentUser();
         $this->canRepair = AreaAccess::canRepair($user);
+        $this->canDeleteOrphans = AreaAccess::canDeleteOrphans($user);
         /** @var HtmlDocument $document */
         $document = $app->getDocument();
         $wa = $document->getWebAssetManager();

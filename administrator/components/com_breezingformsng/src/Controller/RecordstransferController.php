@@ -207,11 +207,12 @@ class RecordstransferController extends BaseController
         $locked = (int) $db->setQuery('SELECT GET_LOCK(' . $db->quote($lockName) . ', 30)')->loadResult() === 1;
 
         if (!$locked) {
-            // This request may have read an old session while another is writing it.
+            // This request may have read an old session while another is writing it: it must not
+            // write it back. The answer is an error page, which needs no session, rather than a
+            // redirect whose message would be lost.
             $session->abort();
-            $this->back(self::LIST_URL);
 
-            return;
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_TRANSFER_BUSY'), 409);
         }
 
         try {

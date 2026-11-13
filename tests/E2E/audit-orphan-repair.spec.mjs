@@ -63,7 +63,8 @@ test('orphan repairs preserve existing records and distinguish element zero from
         const denied = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.deleteOrphanValues&format=json`, {
             form: { [csrf]: '1', orphan_element_id: '-1' },
         });
-        expect(denied.status()).toBe(500);
+        expect(denied.status()).toBe(400);
+        expect((await denied.json()).success).toBe(false);
         expect(rows()).toEqual([ids[0], ids[1], ids[2], ids[4]]);
 
         const all = await api.delete(`${AUDIT}/orphan-values`);

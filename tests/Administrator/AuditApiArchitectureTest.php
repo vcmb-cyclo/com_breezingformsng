@@ -44,7 +44,7 @@ final class AuditApiArchitectureTest extends TestCase
         self::assertStringContainsString("authorise('core.manage', 'com_breezingformsng')", $controller);
         // Both deletions: the right to repair, checked before anything is deleted.
         self::assertSame(2, substr_count($controller, 'if (!$this->canRepair()) {'));
-        self::assertStringContainsString('AreaAccess::canRepair(', $controller);
+        self::assertStringContainsString('AreaAccess::canDeleteOrphans(', $controller);
         // The report never leaves the filter used for an AI client.
         self::assertStringContainsString('AuditReportFilter::filter(', $controller);
     }
