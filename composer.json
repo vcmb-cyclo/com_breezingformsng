@@ -17,7 +17,7 @@
     },
     "config": {
         "platform": {
-            "php": "8.3"
+            "php": "8.3.16"
         },
         "preferred-install": "dist",
         "sort-packages": true
