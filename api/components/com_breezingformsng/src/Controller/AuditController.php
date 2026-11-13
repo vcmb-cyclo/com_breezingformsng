@@ -84,7 +84,10 @@ class AuditController extends BaseController
 
     private function canRepair(): bool
     {
-        if (AreaAccess::canRepair($this->requireUser())) {
+        // The right to repair, and the right to use the component the report is read with.
+        $user = $this->requireUser();
+
+        if (AreaAccess::canRepair($user) && $user->authorise('core.manage', 'com_breezingformsng')) {
             return true;
         }
 

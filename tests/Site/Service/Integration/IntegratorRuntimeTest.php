@@ -126,15 +126,52 @@ final class IntegratorRuntimeTest extends TestCase
 
     public function testCriteriaBuilderRejectsAnUnlistedBooleanConnector(): void
     {
-        $this->assertCriteriaRejected('=', 'OR 1=1 --');
+        // The connector of the first criterion joins nothing: only the second one is read.
+        $this->assertCriteriaRejected('=', 'OR 1=1 --', true);
     }
 
-    private function assertCriteriaRejected(string $operator, string $connector): void
+    public function testTheConnectorOfTheFirstCriterionIsNotRead(): void
+    {
+        $runtime = $this->runtimeWithQuotingDatabase();
+        $query = $this->bindingQuery();
+        $bindIndex = 0;
+        $method = (new ReflectionClass($runtime))->getMethod('buildCriteriaClauses');
+        $criteria = ['form' => [], 'joomla' => [], 'fixed' => [
+            (object) ['andor' => '', 'reference_column' => 'name', 'operator' => '=', 'fixed_value' => 'a'],
+            (object) ['andor' => 'OR', 'reference_column' => 'city', 'operator' => '=', 'fixed_value' => 'b'],
+        ]];
+
+        self::assertSame(
+            '`name` = :criteriaValue0 OR `city` = :criteriaValue1',
+            $method->invokeArgs($runtime, [$criteria, $query, &$bindIndex])
+        );
+    }
+
+    private function runtimeWithQuotingDatabase(): IntegratorRuntime
     {
         $runtime = (new ReflectionClass(IntegratorRuntime::class))->newInstanceWithoutConstructor();
-        $property = (new ReflectionClass($runtime))->getProperty('db');
-        $property->setValue($runtime, new class implements DatabaseInterface {
+        (new ReflectionClass($runtime))->getProperty('db')->setValue($runtime, new class implements DatabaseInterface {
+            public function quoteName(string $name): string
+            {
+                return '`' . $name . '`';
+            }
         });
+
+        return $runtime;
+    }
+
+    private function bindingQuery(): object
+    {
+        return new class {
+            public function bind(string $key, mixed $value): void
+            {
+            }
+        };
+    }
+
+    private function assertCriteriaRejected(string $operator, string $connector, bool $second = false): void
+    {
+        $runtime = $this->runtimeWithQuotingDatabase();
 
         $criteria = [
             'form' => [],
@@ -146,11 +183,20 @@ final class IntegratorRuntimeTest extends TestCase
                 'fixed_value' => 'value',
             ]],
         ];
+
+        if ($second) {
+            array_unshift($criteria['fixed'], (object) [
+                'andor' => 'AND',
+                'reference_column' => 'id',
+                'operator' => '=',
+                'fixed_value' => '1',
+            ]);
+        }
         $bindIndex = 0;
         $method = (new ReflectionClass($runtime))->getMethod('buildCriteriaClauses');
 
         try {
-            $method->invokeArgs($runtime, [$criteria, new \stdClass(), &$bindIndex]);
+            $method->invokeArgs($runtime, [$criteria, $this->bindingQuery(), &$bindIndex]);
             self::fail('Invalid SQL syntax must be rejected before query construction.');
         } catch (\UnexpectedValueException $exception) {
             self::assertSame('Invalid Integrator criteria.', $exception->getMessage());

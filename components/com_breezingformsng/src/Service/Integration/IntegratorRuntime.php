@@ -389,9 +389,10 @@ class IntegratorRuntime
         $clauses = '';
 
         $appendClause = function (string $andor, string $column, string $operator, $value) use ($db, $query, &$bindIndex, &$clauses) {
+            // The connector of the first criterion joins nothing: it is not read.
             if (
                 !IntegratorCriteriaPolicy::allowsOperator($operator)
-                || !IntegratorCriteriaPolicy::allowsConnector($andor)
+                || ($clauses !== '' && !IntegratorCriteriaPolicy::allowsConnector($andor))
             ) {
                 throw new \UnexpectedValueException('Invalid Integrator criteria.');
             }

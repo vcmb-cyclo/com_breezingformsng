@@ -151,9 +151,15 @@
         return fetch('index.php?option=com_breezingformsng&task=about.display&view=about', {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         }).then(function (response) {
-            return response.text();
+            return response.ok ? response.text() : '';
         }).then(function (html) {
-            var fresh = new DOMParser().parseFromString(html, 'text/html').getElementById('bf-audit-orphan-references');
+            var page = new DOMParser().parseFromString(html, 'text/html');
+            var fresh = page.getElementById('bf-audit-orphan-references');
+
+            // Not the About page (an expired session, an error): the block is left as it is.
+            if (!page.getElementById('adminForm')) {
+                return;
+            }
 
             if (!fresh) {
                 block.remove();
