@@ -1017,8 +1017,8 @@ HTMLHelper::_('bootstrap.collapse');
                             // Records of a deleted form: link to the records list filtered on it, all states.
                             $orphanRecordsLink = ($check['id'] ?? '') === 'records_without_form';
                             ?>
-                            <details class="bf-audit-orphans mb-1">
-                                <summary><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_' . strtoupper((string) ($check['id'] ?? ''))); ?>: <strong><?php echo (int) ($check['count'] ?? 0); ?></strong></summary>
+                            <details class="bf-audit-orphans mb-1" data-bf-orphan-check="<?php echo htmlspecialchars((string) ($check['id'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
+                                <summary><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_' . strtoupper((string) ($check['id'] ?? ''))); ?>: <strong class="bf-orphan-count"><?php echo (int) ($check['count'] ?? 0); ?></strong></summary>
                                 <div class="table-responsive mt-2 mb-3">
                                     <table class="table table-sm table-striped align-middle mb-0 w-auto">
                                         <thead>
@@ -1066,7 +1066,9 @@ HTMLHelper::_('bootstrap.collapse');
                                                                 type="button"
                                                                 class="btn btn-sm btn-outline-danger"
                                                                 title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'), ENT_QUOTES, 'UTF-8'); ?>"
-                                                                onclick="if (window.confirm('<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>')) { document.getElementById('bf-orphan-element-id').value = '<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>'; Joomla.submitform('about.deleteOrphanValues'); }"
+                                                                data-bf-orphan-task="about.deleteOrphanValues"
+                                                                data-bf-orphan-element="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
+                                                                data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
                                                             ><span class="icon-trash" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></button>
                                                         </td>
                                                     <?php endif; ?>
@@ -1085,7 +1087,8 @@ HTMLHelper::_('bootstrap.collapse');
                                             id="bf-audit-delete-orphan-elements"
                                             type="button"
                                             class="btn btn-sm btn-outline-danger mt-2"
-                                            onclick="if (window.confirm('<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETE_CONFIRM', (int) ($check['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>')) { Joomla.submitform('about.deleteOrphanElements'); }"
+                                            data-bf-orphan-task="about.deleteOrphanElements"
+                                            data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETE_CONFIRM', (int) ($check['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
                                         ><span class="icon-trash" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETE'); ?></button>
                                     <?php endif; ?>
                                 </div>

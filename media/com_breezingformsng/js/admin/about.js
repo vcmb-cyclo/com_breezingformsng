@@ -129,6 +129,86 @@
         });
     });
 
+    // Repairs of the orphan rows of the audit: confirmed, sent without reloading
+    // the page, which is updated with the answer.
+    function removeOrphanCheck(details) {
+        var block = details.closest('.bf-audit-section-block');
+
+        details.remove();
+
+        if (block && !block.querySelector('details.bf-audit-orphans')) {
+            block.remove();
+        }
+    }
+
+    function updateOrphans(button, data) {
+        var details = button.closest('details.bf-audit-orphans');
+
+        if (!details) {
+            return;
+        }
+
+        var row = button.closest('tr');
+
+        if (row && Number(data.remaining) > 0) {
+            row.remove();
+        }
+
+        if (Number(data.remaining) > 0) {
+            var count = details.querySelector('.bf-orphan-count');
+
+            if (count) {
+                count.textContent = String(data.remaining);
+            }
+
+            return;
+        }
+
+        removeOrphanCheck(details);
+    }
+
+    document.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-bf-orphan-task]');
+
+        if (!button || button.disabled) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (!window.confirm(button.dataset.bfConfirm || '')) {
+            return;
+        }
+
+        var params = new URLSearchParams({ orphan_element_id: button.dataset.bfOrphanElement || '0' });
+
+        params.append(Joomla.getOptions('csrf.token'), '1');
+        button.disabled = true;
+
+        fetch('index.php?option=com_breezingformsng&task=' + button.dataset.bfOrphanTask + '&format=json', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+            body: params.toString()
+        }).then(function (response) {
+            return response.json().then(function (json) {
+                return { ok: response.ok && json.success, json: json };
+            });
+        }).then(function (result) {
+            if (!result.ok) {
+                button.disabled = false;
+                Joomla.renderMessages({ error: [result.json.message || Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] });
+
+                return;
+            }
+
+            Joomla.renderMessages({ message: [result.json.message] });
+            updateOrphans(button, result.json.data || {});
+        }).catch(function () {
+            button.disabled = false;
+            Joomla.renderMessages({ error: [Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] });
+        });
+    });
+
     function initialiseAbout() {
         initialiseTableInventorySorting();
         initializeEasterEgg();
