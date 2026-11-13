@@ -189,12 +189,70 @@ class RecordstransferController extends BaseController
         $this->checkToken();
 
         $model = $this->getTransferModel();
+        if (is_array($model->getTransfer()['report'] ?? null)) {
+            $this->back(self::VIEW_URL . 'report');
+
+            return;
+        }
+
         $transfer = $this->requireTransfer($model, true);
 
         if ($transfer === null) {
             return;
         }
 
+        $db = $model->getConnection();
+        $session = $this->app->getSession();
+        $lockName = 'bfngt_' . substr(hash('sha256', $db->getPrefix() . ':' . $transfer['operation']), 0, 48);
+        $locked = (int) $db->setQuery('SELECT GET_LOCK(' . $db->quote($lockName) . ', 30)')->loadResult() === 1;
+
+        if (!$locked) {
+            // This request may have read an old session while another is writing it.
+            $session->abort();
+            $this->back(self::LIST_URL);
+
+            return;
+        }
+
+        try {
+            $operation = $transfer['operation'];
+            $claim = $db->createQuery()
+                ->select('1')
+                ->from($db->quoteName('#__facileforms_transfer_operations'))
+                ->where($db->quoteName('operation') . ' = :operation')
+                ->bind(':operation', $operation);
+
+            if ($db->setQuery($claim)->loadResult() !== null) {
+                // Discard the stale session snapshot; the first request has already
+                // saved its report before releasing this operation's lock.
+                $session->abort();
+                $this->back(self::VIEW_URL . 'report');
+
+                return;
+            }
+
+            $this->performTransfer($model, $transfer);
+        } finally {
+            try {
+                if ($session->isActive()) {
+                    $session->close();
+                }
+            } finally {
+                try {
+                    $db->setQuery('SELECT RELEASE_LOCK(' . $db->quote($lockName) . ')')->execute();
+                } catch (\Throwable $exception) {
+                    // The DB connection also releases the lock when it closes.
+                    Log::add('Transfer lock release failed: ' . $exception::class, Log::ERROR, 'com_breezingformsng');
+                }
+            }
+        }
+    }
+
+    /**
+     * @param array{all: int[], ids: int[], source: int, target: int, map: array<int, int>, defaults: array<int, string>, trash: bool, report: ?array<string, mixed>, operation: string} $transfer
+     */
+    private function performTransfer(RecordstransferModel $model, array $transfer): void
+    {
         if ($this->refuseMissingRequired($model, $transfer)) {
             return;
         }

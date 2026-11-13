@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
 // The transfer of records to another form, through its four screens, and what
@@ -13,6 +13,26 @@ const db = (...args) => execFileSync('docker', ['exec', '-i', CONTAINER, 'php', 
     input: readFileSync(new URL('./db.php', import.meta.url)),
 }).toString();
 const dbJson = (...args) => JSON.parse(db(...args));
+
+// Hold the source row in a separate DB connection so both requests reliably overlap.
+async function holdRecord(id) {
+    const code = `require '/var/www/html/configuration.php';
+        $c = new JConfig(); $db = new mysqli($c->host, $c->user, $c->password, $c->db);
+        $db->begin_transaction();
+        $db->query('SELECT id FROM ' . $c->dbprefix . 'facileforms_records WHERE id = ' . (int) $argv[1] . ' FOR UPDATE');
+        echo "locked\\n"; flush(); sleep(4); $db->commit();`;
+    const child = spawn('docker', ['exec', CONTAINER, 'php', '-r', code, String(id)]);
+    const finished = new Promise((resolve, reject) => {
+        child.once('error', reject);
+        child.once('exit', (status) => status === 0 ? resolve() : reject(new Error(`DB lock exited ${status}`)));
+    });
+    await new Promise((resolve, reject) => {
+        child.stdout.once('data', resolve);
+        child.once('error', reject);
+        child.once('exit', () => reject(new Error('DB lock ended before it was acquired')));
+    });
+    return { finished };
+}
 
 test.describe.configure({ mode: 'serial' });
 
@@ -148,11 +168,12 @@ test.describe('records transfer', () => {
 
         // Replaying the valid confirmation must not copy the records again.
         const csrf = await page.evaluate(() => Joomla.getOptions('csrf.token'));
-        await page.request.post(`${ADMIN}?option=com_breezingformsng&task=recordstransfer.transfer`, {
+        const replay = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=recordstransfer.transfer`, {
             form: { [csrf]: '1', trash: '1' },
             maxRedirects: 0,
         });
         expect(Number(db('records-count', String(target)))).toBe(2);
+        expect(replay.headers().location).toContain('layout=report');
     });
 
     test('closing the report ends the transfer', async () => {
@@ -192,8 +213,50 @@ test('simultaneous confirmations copy each source record only once', async ({ br
             form: { [csrf]: '1' },
             maxRedirects: 0,
         });
-        await Promise.all([confirm(), confirm()]);
+        const lock = await holdRecord(record);
+        const answers = await Promise.all([confirm(), confirm()]);
+        await lock.finished;
         expect(Number(db('records-count', String(target)))).toBe(1);
+        for (const answer of answers) {
+            expect(answer.headers().location).toContain('layout=report');
+        }
+        await page.goto(`${ADMIN}?option=com_breezingformsng&view=recordstransfer&layout=report`);
+        await expect(page).toHaveURL(/layout=report/);
+        await expect(page.locator('.alert-success')).toContainText('1');
+    } finally {
+        await page.close();
+    }
+});
+
+test('editing waits for the source record lock before changing any field', async ({ browser }) => {
+    const form = Number(db('sample-form', 'xfer_edit_lock'));
+    db('add-element', String(form), 'city', 'City');
+    const record = Number(db('sample-record', String(form), 'email', 'before@example.invalid'));
+    const page = await browser.newPage();
+
+    try {
+        await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
+        await page.goto(ADMIN);
+        await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
+        await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
+        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await page.goto(`${ADMIN}?option=com_breezingformsng&task=record.edit&id=${record}`);
+        const fields = page.locator('#record-section-values textarea');
+        await expect(fields).toHaveCount(2);
+        await fields.nth(0).fill('after@example.invalid');
+        await fields.nth(1).fill('Paris');
+        const formData = await page.locator('#adminForm').evaluate((node) => Object.fromEntries(new FormData(node)));
+        formData.task = 'record.apply';
+        const lock = await holdRecord(record);
+        const save = page.request.post(`${ADMIN}?option=com_breezingformsng&task=record.apply&id=${record}`, {
+            form: formData,
+            maxRedirects: 0,
+        });
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        expect(dbJson('subrecords', String(record))).toEqual({ email: 'before@example.invalid' });
+        await lock.finished;
+        expect((await save).status()).toBeLessThan(400);
+        expect(dbJson('subrecords', String(record))).toEqual({ email: 'after@example.invalid', city: 'Paris' });
     } finally {
         await page.close();
     }

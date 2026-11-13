@@ -378,17 +378,29 @@ class RecordModel extends AdminModel
     {
         $recordId = (int) ($data['id'] ?? 0);
 
-        if ($recordId < 1 || !isset($this->getFormIds([$recordId])[$recordId])) {
-            throw new \OutOfBoundsException(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
-        }
-
         $values = [];
 
         foreach ((array) ($data[self::ELEMENT_GROUP] ?? []) as $name => $value) {
             $values[(int) substr((string) $name, strlen(self::ELEMENT_PREFIX))] = (string) $value;
         }
 
-        $this->saveRecord($recordId, $values);
+        $db = $this->getDatabase();
+        $db->transactionStart();
+
+        try {
+            $this->lockRecords([$recordId]);
+
+            if ($recordId < 1 || !isset($this->getFormIds([$recordId])[$recordId])) {
+                throw new \OutOfBoundsException(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'));
+            }
+
+            $this->saveRecord($recordId, $values);
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+            throw $exception;
+        }
+
         unset($this->items[$recordId]);
         $this->setState($this->getName() . '.id', $recordId);
 
