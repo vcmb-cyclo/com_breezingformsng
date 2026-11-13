@@ -40,6 +40,11 @@ class MenusController extends AdminController
     {
         $this->checkToken();
 
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+        if (!$user->authorise('core.create', 'com_breezingformsng')) {
+            throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+        }
+
         $ids = ArrayHelper::toInteger((array) $this->input->get('cid', [], 'array'));
 
         if ($ids === []) {
