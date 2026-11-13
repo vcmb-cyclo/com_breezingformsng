@@ -160,7 +160,11 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
 
             ToolbarHelper::addNew('forms.edit');
             ToolbarHelper::custom('forms.copy', 'copy', '', 'JLIB_HTML_BATCH_COPY', true);
-            if ($this->getCurrentUser()->authorise('core.create', 'com_breezingformsng')
+            // Only a form that is not in QuickMode format can be converted.
+            $hasLegacyForms = array_filter($this->items, static fn (\stdClass $item): bool => !(int) ($item->is_quickmode ?? 0)) !== [];
+
+            if ($hasLegacyForms
+                && $this->getCurrentUser()->authorise('core.create', 'com_breezingformsng')
                 && $this->getCurrentUser()->authorise('core.edit', 'com_breezingformsng')) {
                 ToolbarHelper::custom('forms.convertLegacy', 'copy', '', 'COM_BREEZINGFORMSNG_FORMS_CONVERT_LEGACY', true);
             }
