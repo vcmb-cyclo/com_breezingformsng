@@ -15,11 +15,10 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Router\Route;
-use Joomla\Database\DatabaseInterface;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordstransferModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
@@ -204,7 +203,19 @@ class RecordstransferController extends BaseController
         $transfer['trash'] = $trash;
 
         $recordModel = $model->getRecordModel();
-        $transferer = new RecordTransfer(Factory::getContainer()->get(DatabaseInterface::class), $recordModel);
+        $db = $model->getConnection();
+        $transferer = new RecordTransfer($db, $recordModel);
+
+        // Two simultaneous confirmations (double click) cannot both pass the session
+        // check, which is only written afterwards: a database lock lets a single one copy.
+        $lockName = 'bfng_transfer_' . $user->id;
+        $locked = (int) $db->setQuery('SELECT GET_LOCK(' . $db->quote($lockName) . ', 0)')->loadResult() === 1;
+
+        if (!$locked) {
+            $this->back(self::VIEW_URL . 'confirm', Text::_('COM_BREEZINGFORMSNG_TRANSFER_FAILED'), 'error');
+
+            return;
+        }
 
         try {
             $created = $transferer->transfer(
@@ -216,12 +227,15 @@ class RecordstransferController extends BaseController
                 $this->input->post->getBool('preserve_payment', false)
                     && $this->input->post->getBool('confirm_payment', false)
             );
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
             // Nothing was copied: the transaction was rolled back.
+            Log::add('Records transfer failed: ' . $e->getMessage(), Log::ERROR, 'com_breezingformsng');
             $model->setTransfer($transfer);
             $this->back(self::VIEW_URL . 'confirm', Text::_('COM_BREEZINGFORMSNG_TRANSFER_FAILED'), 'error');
 
             return;
+        } finally {
+            $db->setQuery('SELECT RELEASE_LOCK(' . $db->quote($lockName) . ')')->execute();
         }
 
         // Consume the operation before any subsequent side effects, so a repeated

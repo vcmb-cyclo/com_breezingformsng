@@ -342,8 +342,14 @@ class IntegratorRuntime
             $query->bind($placeholder, $collected['values'][$index]);
         }
 
-        $whereBindIndex = 0;
-        $whereString = $this->buildCriteriaClauses($criteria, $query, $whereBindIndex);
+        // A stored criterion that is no longer valid skips this rule: it must not
+        // break the submission of the form.
+        try {
+            $whereBindIndex = 0;
+            $whereString = $this->buildCriteriaClauses($criteria, $query, $whereBindIndex);
+        } catch (\UnexpectedValueException) {
+            return;
+        }
 
         if ($whereString !== '') {
             $query->where($whereString);

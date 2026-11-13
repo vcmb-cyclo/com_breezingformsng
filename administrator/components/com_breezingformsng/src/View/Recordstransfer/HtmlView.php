@@ -89,7 +89,7 @@ class HtmlView extends BaseHtmlView
         if (
             !isset($transfer['all'], $transfer['ids'], $transfer['source'])
             || ($needsTarget && (int) ($transfer['target'] ?? 0) < 1)
-            || ($layout === 'report' && !is_array($transfer['report'] ?? null))
+            || ($layout === 'report') !== is_array($transfer['report'] ?? null)
         ) {
             $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TRANSFER_ERROR_EXPIRED'), 'warning');
             $app->redirect(Route::_('index.php?option=com_breezingformsng&view=records', false));
