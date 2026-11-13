@@ -36,9 +36,9 @@ $dateFormat = Text::_('DATE_FORMAT_LC6');
           <select name="target" id="transfer-target" class="form-select" required>
             <option value=""><?= Text::_('COM_BREEZINGFORMSNG_TRANSFER_SELECT_FORM'); ?></option>
             <?php foreach ($this->forms as $form) : ?>
-              <?php if ((int) $form->id !== $this->sourceId) : ?>
+                <?php if ((int) $form->id !== $this->sourceId) : ?>
                 <option value="<?= (int) $form->id; ?>"<?= (int) $form->id === $this->targetId ? ' selected' : ''; ?>><?= $this->escape((string) $form->title); ?></option>
-              <?php endif; ?>
+                <?php endif; ?>
             <?php endforeach; ?>
           </select>
         </div>
@@ -63,7 +63,7 @@ $dateFormat = Text::_('DATE_FORMAT_LC6');
       </thead>
       <tbody>
         <?php foreach ($this->records as $i => $record) : ?>
-          <?php $recordId = (int) $record->id; ?>
+            <?php $recordId = (int) $record->id; ?>
           <tr>
             <td class="text-center">
               <input type="checkbox" id="cb<?= $i; ?>" name="cid[]" value="<?= $recordId; ?>" class="form-check-input"

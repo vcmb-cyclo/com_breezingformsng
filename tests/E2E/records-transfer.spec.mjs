@@ -29,6 +29,7 @@ test.describe('records transfer', () => {
         db('add-element', String(target), 'city', 'City');
         records = ['a@example.invalid', 'b@example.invalid', 'c@example.invalid']
             .map((email) => Number(db('sample-record', String(source), 'email', email)));
+        db('set-payment', String(records[1]));
 
         page = await browser.newPage();
         await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
@@ -142,7 +143,16 @@ test.describe('records transfer', () => {
 
         const copy = dbJson('record', 'last', String(target));
         expect(Number(copy.form)).toBe(target);
+        expect(copy.paypal_tx_id).toBe('');
         expect(dbJson('subrecords', String(copy.id))).toEqual({ email: 'b@example.invalid', city: 'Paris' });
+
+        // Replaying the valid confirmation must not copy the records again.
+        const csrf = await page.evaluate(() => Joomla.getOptions('csrf.token'));
+        await page.request.post(`${ADMIN}?option=com_breezingformsng&task=recordstransfer.transfer`, {
+            form: { [csrf]: '1', trash: '1' },
+            maxRedirects: 0,
+        });
+        expect(Number(db('records-count', String(target)))).toBe(2);
     });
 
     test('closing the report ends the transfer', async () => {
@@ -152,6 +162,46 @@ test.describe('records transfer', () => {
         await page.goto(`${ADMIN}?option=com_breezingformsng&view=recordstransfer&layout=report`);
         await expect(page).toHaveURL(/view=records/);
     });
+});
+
+test.describe('payment preservation during transfer', () => {
+    for (const confirmed of [false, true]) {
+        test(`payment is ${confirmed ? 'preserved with both confirmations' : 'cleared without the second confirmation'}`, async ({ browser }) => {
+            const suffix = confirmed ? 'confirmed' : 'unconfirmed';
+            const source = Number(db('sample-form', `xfer_pay_source_${suffix}`));
+            const target = Number(db('sample-form', `xfer_pay_target_${suffix}`));
+            const record = Number(db('sample-record', String(source), 'email', 'paid@example.invalid'));
+            db('set-payment', String(record));
+
+            const page = await browser.newPage();
+            await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
+            await page.goto(ADMIN);
+            await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
+            await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
+            await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+            await page.goto(`${ADMIN}?option=com_breezingformsng&view=records&filter[form]=${source}`);
+            await page.locator(`input[name="cid[]"][value="${record}"]`).check();
+            await Promise.all([page.waitForNavigation(), page.click('#toolbar-transfer button')]);
+            await page.selectOption('#transfer-target', String(target));
+            await Promise.all([page.waitForNavigation(), page.click('#toolbar-next button')]);
+            await Promise.all([page.waitForNavigation(), page.click('#toolbar-next button')]);
+
+            if (confirmed) {
+                await page.check('#transfer-preserve-payment');
+                await page.check('#transfer-confirm-payment');
+                await Promise.all([page.waitForNavigation(), page.click('#toolbar-transfer button')]);
+            } else {
+                const csrf = await page.evaluate(() => Joomla.getOptions('csrf.token'));
+                await page.request.post(`${ADMIN}?option=com_breezingformsng&task=recordstransfer.transfer`, {
+                    form: { [csrf]: '1', preserve_payment: '1' },
+                });
+            }
+
+            const copy = dbJson('record', 'last', String(target));
+            expect(copy.paypal_tx_id).toBe(confirmed ? 'PayPal: e2e-transfer' : '');
+            await page.close();
+        });
+    }
 });
 
 test.describe('records transfer, from a deleted form', () => {

@@ -436,8 +436,10 @@ final class RecordTransferTest extends TestCase
 
     public function testEveryIconIsAFileOfTheMedia(): void
     {
-        foreach (['Text', 'Textarea', 'Radio Group', 'Signature', 'Checkbox', 'Select List', 'File Upload',
-            'Regular Button', 'Hidden Input', 'Captcha', 'Calendar', 'PayPal', 'Summarize', 'Stripe'] as $type) {
+        foreach (
+            ['Text', 'Textarea', 'Radio Group', 'Signature', 'Checkbox', 'Select List', 'File Upload',
+            'Regular Button', 'Hidden Input', 'Captcha', 'Calendar', 'PayPal', 'Summarize', 'Stripe'] as $type
+        ) {
             $icon = RecordTransfer::iconFor($type);
 
             self::assertNotNull($icon, $type);
@@ -455,4 +457,3 @@ final class RecordTransferTest extends TestCase
         self::assertSame([11 => '', 12 => 'kept'], $result['defaults']);
     }
 }
-

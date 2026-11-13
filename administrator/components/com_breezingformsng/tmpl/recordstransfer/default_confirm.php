@@ -51,9 +51,9 @@ $unused = array_filter($this->sourceElements, static fn (array $source): bool =>
       </thead>
       <tbody>
         <?php foreach ($this->targetElements as $element) : ?>
-          <?php $targetId = (int) $element['id']; ?>
-          <?php $source = $sourceById[$this->map[$targetId] ?? 0] ?? null; ?>
-          <?php $default = $this->defaults[$targetId] ?? ''; ?>
+            <?php $targetId = (int) $element['id']; ?>
+            <?php $source = $sourceById[$this->map[$targetId] ?? 0] ?? null; ?>
+            <?php $default = $this->defaults[$targetId] ?? ''; ?>
           <tr>
             <th scope="row"><?= $source !== null ? $this->elementIcon($source) . $this->elementLabel($source) : '<span class="text-muted">' . Text::_('COM_BREEZINGFORMSNG_TRANSFER_NO_SOURCE') . '</span>'; ?></th>
             <td><?= $this->elementIcon($element); ?><?= $this->elementLabel($element); ?></td>
@@ -72,6 +72,15 @@ $unused = array_filter($this->sourceElements, static fn (array $source): bool =>
         <?= implode(', ', array_map(fn (array $source): string => $this->elementIcon($source) . $this->elementLabel($source), $unused)); ?>
       </div>
     <?php endif; ?>
+
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="preserve_payment" id="transfer-preserve-payment" value="1">
+      <label class="form-check-label" for="transfer-preserve-payment"><?= Text::_('COM_BREEZINGFORMSNG_TRANSFER_PRESERVE_PAYMENT'); ?></label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="confirm_payment" id="transfer-confirm-payment" value="1">
+      <label class="form-check-label" for="transfer-confirm-payment"><?= Text::_('COM_BREEZINGFORMSNG_TRANSFER_CONFIRM_PAYMENT'); ?></label>
+    </div>
 
     <?php if ($this->canTrash) : ?>
       <div class="form-check">

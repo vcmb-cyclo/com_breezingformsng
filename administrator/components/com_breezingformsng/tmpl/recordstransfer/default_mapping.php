@@ -46,7 +46,7 @@ foreach ($this->sourceElements as $source) {
       </thead>
       <tbody>
         <?php foreach ($this->targetElements as $element) : ?>
-          <?php $targetId = (int) $element['id']; ?>
+            <?php $targetId = (int) $element['id']; ?>
           <tr<?= ($this->map[$targetId] ?? 0) > 0 ? ' class="bf-transfer-assigned"' : ''; ?>>
             <td>
               <label class="visually-hidden" for="map-<?= $targetId; ?>"><?= Text::_('COM_BREEZINGFORMSNG_TRANSFER_SOURCE_FIELD'); ?> — <?= $this->elementLabel($element); ?></label>

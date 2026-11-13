@@ -198,8 +198,14 @@ final class RecordTransfer
      *
      * @return array<int, int> The id of the copy by id of the source record.
      */
-    public function transfer(int $sourceFormId, int $targetFormId, array $recordIds, array $map, array $defaults): array
-    {
+    public function transfer(
+        int $sourceFormId,
+        int $targetFormId,
+        array $recordIds,
+        array $map,
+        array $defaults,
+        bool $preservePayment = false
+    ): array {
         $db = $this->db;
         $recordIds = array_values(array_unique(array_filter(array_map('intval', $recordIds))));
 
@@ -244,7 +250,8 @@ final class RecordTransfer
         try {
             foreach ($sources as $sourceId => $source) {
                 $copy = new \stdClass();
-                foreach ([
+                foreach (
+                    [
                     'submitted' => $source->submitted,
                     'form' => $targetFormId,
                     'title' => (string) $targetForm->title,
@@ -259,16 +266,21 @@ final class RecordTransfer
                     'user_id' => $source->user_id,
                     'username' => $source->username,
                     'user_full_name' => $source->user_full_name,
-                    'paypal_tx_id' => $source->paypal_tx_id,
-                    'paypal_payment_date' => $source->paypal_payment_date,
-                    'paypal_testaccount' => $source->paypal_testaccount,
-                    'paypal_download_tries' => $source->paypal_download_tries,
                     'opted' => $source->opted,
                     'opt_ip' => $source->opt_ip,
                     'opt_date' => $source->opt_date,
-                ] as $column => $value) {
+                    ] as $column => $value
+                ) {
                     $copy->$column = $value;
                 }
+
+                if ($preservePayment) {
+                    $copy->paypal_tx_id = $source->paypal_tx_id;
+                    $copy->paypal_payment_date = $source->paypal_payment_date;
+                    $copy->paypal_testaccount = $source->paypal_testaccount;
+                    $copy->paypal_download_tries = $source->paypal_download_tries;
+                }
+
                 $db->insertObject('#__facileforms_records', $copy, 'id');
                 $copyId = $copy instanceof \stdClass ? (int) $copy->id : 0;
 

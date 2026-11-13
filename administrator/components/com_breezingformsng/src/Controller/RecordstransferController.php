@@ -212,7 +212,9 @@ class RecordstransferController extends BaseController
                 $transfer['target'],
                 $transfer['ids'],
                 $transfer['map'],
-                $transfer['defaults']
+                $transfer['defaults'],
+                $this->input->post->getBool('preserve_payment', false)
+                    && $this->input->post->getBool('confirm_payment', false)
             );
         } catch (\Throwable) {
             // Nothing was copied: the transaction was rolled back.
@@ -221,6 +223,15 @@ class RecordstransferController extends BaseController
 
             return;
         }
+
+        // Consume the operation before any subsequent side effects, so a repeated
+        // confirmation cannot create another set of records.
+        $transfer['report'] = [
+            'copied' => count($created),
+            'trashed' => 0,
+            'trashFailed' => false,
+        ];
+        $model->setTransfer($transfer);
 
         (new ActionLogger($this->app))->log(ActionLogger::COPIED, ActionLogger::RECORD, array_values($created));
 
@@ -313,6 +324,7 @@ class RecordstransferController extends BaseController
 
         if (
             !isset($transfer['all'], $transfer['ids'], $transfer['source'])
+            || is_array($transfer['report'] ?? null)
             || ($needsTarget && (int) ($transfer['target'] ?? 0) < 1)
             || ($needsTarget && (array) $transfer['ids'] === [])
         ) {

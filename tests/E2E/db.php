@@ -200,6 +200,11 @@ switch ($argv[1] ?? '') {
         // records-count <form id>
         echo (int) $db->query("SELECT COUNT(*) c FROM {$config->dbprefix}facileforms_records WHERE form = {$id}")->fetch_assoc()['c'];
         break;
+    case 'set-payment':
+        // set-payment <record id>: a known payment on a disposable test record.
+        $records = $config->dbprefix . 'facileforms_records';
+        $db->query("UPDATE {$records} SET paypal_tx_id = 'PayPal: e2e-transfer', paypal_payment_date = '2026-01-01 10:00:00', paypal_testaccount = 1, paypal_download_tries = 2 WHERE id = {$id}");
+        break;
     case 'add-element':
         // add-element <form id> <name> <title>: a text element at the end of the form; prints its id.
         $elements = $config->dbprefix . 'facileforms_elements';
