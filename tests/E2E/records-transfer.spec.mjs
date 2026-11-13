@@ -171,13 +171,18 @@ test('simultaneous confirmations copy each source record only once', async ({ br
     const page = await browser.newPage();
 
     try {
+        await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
         await page.goto(ADMIN);
         await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
         await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
         await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
         await page.goto(`${ADMIN}?option=com_breezingformsng&view=records&filter[form]=${source}`);
-        await page.locator(`input[name="cid[]"][value="${record}"]`).check();
-        await Promise.all([page.waitForNavigation(), page.click('#toolbar-transfer button')]);
+        const token = await page.evaluate(() => Joomla.getOptions('csrf.token'));
+        await page.request.post(`${ADMIN}?option=com_breezingformsng&task=recordstransfer.start`, {
+            form: { [token]: '1', 'cid[]': String(record) },
+            maxRedirects: 0,
+        });
+        await page.goto(`${ADMIN}?option=com_breezingformsng&view=recordstransfer&layout=select`);
         await page.selectOption('#transfer-target', String(target));
         await Promise.all([page.waitForNavigation(), page.click('#toolbar-next button')]);
         await Promise.all([page.waitForNavigation(), page.click('#toolbar-next button')]);
