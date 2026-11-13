@@ -204,12 +204,14 @@ final class RecordTransfer
         array $recordIds,
         array $map,
         array $defaults,
-        bool $preservePayment = false
+        bool $preservePayment = false,
+        string $operation = ''
     ): array {
         $db = $this->db;
         $recordIds = array_values(array_unique(array_filter(array_map('intval', $recordIds))));
 
-        if ($recordIds === [] || $sourceFormId < 0 || $targetFormId < 1 || $sourceFormId === $targetFormId) {
+        if ($recordIds === [] || $sourceFormId < 0 || $targetFormId < 1 || $sourceFormId === $targetFormId
+            || !preg_match('/\A[0-9a-f]{32}\z/', $operation)) {
             throw new \InvalidArgumentException('Invalid transfer.');
         }
 
@@ -248,6 +250,15 @@ final class RecordTransfer
         $db->transactionStart();
 
         try {
+            // A unique operation is committed atomically with its copies. Concurrent
+            // requests with stale session data cannot claim it a second time.
+            $claim = $db->createQuery()
+                ->insert($db->quoteName('#__facileforms_transfer_operations'))
+                ->columns($db->quoteName('operation'))
+                ->values(':operation')
+                ->bind(':operation', $operation);
+            $db->setQuery($claim)->execute();
+
             foreach ($sources as $sourceId => $source) {
                 $copy = new \stdClass();
                 foreach (

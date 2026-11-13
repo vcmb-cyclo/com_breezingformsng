@@ -27,6 +27,7 @@ final class DatabaseAuditService
         'facileforms_scripts',
         'facileforms_pieces',
         'facileforms_records',
+        'facileforms_transfer_operations',
         'facileforms_subrecords',
         'facileforms_integrator_criteria_fixed',
         'facileforms_integrator_criteria_form',

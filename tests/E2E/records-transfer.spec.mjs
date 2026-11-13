@@ -164,6 +164,36 @@ test.describe('records transfer', () => {
     });
 });
 
+test('simultaneous confirmations copy each source record only once', async ({ browser }) => {
+    const source = Number(db('sample-form', 'xfer_concurrent_source'));
+    const target = Number(db('sample-form', 'xfer_concurrent_target'));
+    const record = Number(db('sample-record', String(source), 'email', 'concurrent@example.invalid'));
+    const page = await browser.newPage();
+
+    try {
+        await page.goto(ADMIN);
+        await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
+        await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
+        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await page.goto(`${ADMIN}?option=com_breezingformsng&view=records&filter[form]=${source}`);
+        await page.locator(`input[name="cid[]"][value="${record}"]`).check();
+        await Promise.all([page.waitForNavigation(), page.click('#toolbar-transfer button')]);
+        await page.selectOption('#transfer-target', String(target));
+        await Promise.all([page.waitForNavigation(), page.click('#toolbar-next button')]);
+        await Promise.all([page.waitForNavigation(), page.click('#toolbar-next button')]);
+
+        const csrf = await page.evaluate(() => Joomla.getOptions('csrf.token'));
+        const confirm = () => page.request.post(`${ADMIN}?option=com_breezingformsng&task=recordstransfer.transfer`, {
+            form: { [csrf]: '1' },
+            maxRedirects: 0,
+        });
+        await Promise.all([confirm(), confirm()]);
+        expect(Number(db('records-count', String(target)))).toBe(1);
+    } finally {
+        await page.close();
+    }
+});
+
 test.describe('payment preservation during transfer', () => {
     for (const confirmed of [false, true]) {
         test(`payment is ${confirmed ? 'preserved with both confirmations' : 'cleared without the second confirmation'}`, async ({ browser }) => {

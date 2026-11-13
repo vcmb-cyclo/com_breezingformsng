@@ -88,6 +88,7 @@ class RecordstransferController extends BaseController
             'defaults' => [],
             'trash' => false,
             'report' => null,
+            'operation' => bin2hex(random_bytes(16)),
         ]);
 
         $this->back(self::VIEW_URL . 'select');
@@ -206,17 +207,6 @@ class RecordstransferController extends BaseController
         $db = $model->getConnection();
         $transferer = new RecordTransfer($db, $recordModel);
 
-        // Two simultaneous confirmations (double click) cannot both pass the session
-        // check, which is only written afterwards: a database lock lets a single one copy.
-        $lockName = 'bfng_transfer_' . $user->id;
-        $locked = (int) $db->setQuery('SELECT GET_LOCK(' . $db->quote($lockName) . ', 0)')->loadResult() === 1;
-
-        if (!$locked) {
-            $this->back(self::VIEW_URL . 'confirm', Text::_('COM_BREEZINGFORMSNG_TRANSFER_FAILED'), 'error');
-
-            return;
-        }
-
         try {
             $created = $transferer->transfer(
                 $transfer['source'],
@@ -225,17 +215,16 @@ class RecordstransferController extends BaseController
                 $transfer['map'],
                 $transfer['defaults'],
                 $this->input->post->getBool('preserve_payment', false)
-                    && $this->input->post->getBool('confirm_payment', false)
+                    && $this->input->post->getBool('confirm_payment', false),
+                $transfer['operation']
             );
         } catch (\Throwable $e) {
             // Nothing was copied: the transaction was rolled back.
-            Log::add('Records transfer failed: ' . $e->getMessage(), Log::ERROR, 'com_breezingformsng');
+            Log::add('Records transfer failed: ' . $e::class . ' (' . (int) $e->getCode() . ')', Log::ERROR, 'com_breezingformsng');
             $model->setTransfer($transfer);
             $this->back(self::VIEW_URL . 'confirm', Text::_('COM_BREEZINGFORMSNG_TRANSFER_FAILED'), 'error');
 
             return;
-        } finally {
-            $db->setQuery('SELECT RELEASE_LOCK(' . $db->quote($lockName) . ')')->execute();
         }
 
         // Consume the operation before any subsequent side effects, so a repeated
@@ -339,6 +328,8 @@ class RecordstransferController extends BaseController
         if (
             !isset($transfer['all'], $transfer['ids'], $transfer['source'])
             || is_array($transfer['report'] ?? null)
+            || !is_string($transfer['operation'] ?? null)
+            || !preg_match('/\A[0-9a-f]{32}\z/', $transfer['operation'])
             || ($needsTarget && (int) ($transfer['target'] ?? 0) < 1)
             || ($needsTarget && (array) $transfer['ids'] === [])
         ) {
@@ -356,6 +347,7 @@ class RecordstransferController extends BaseController
             'defaults' => array_map('strval', (array) ($transfer['defaults'] ?? [])),
             'trash' => (bool) ($transfer['trash'] ?? false),
             'report' => null,
+            'operation' => $transfer['operation'],
         ];
     }
 
