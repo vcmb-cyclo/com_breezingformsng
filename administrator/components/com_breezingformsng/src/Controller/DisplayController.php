@@ -63,7 +63,7 @@ class DisplayController extends BaseController
             return parent::display($cachable, $urlparams);
         }
 
-        if ($task === '' && $view === 'recordsimport') {
+        if ($task === '' && in_array($view, ['recordsimport', 'recordstransfer'], true)) {
             return parent::display($cachable, $urlparams);
         }
 

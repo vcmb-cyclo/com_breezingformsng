@@ -200,6 +200,34 @@ switch ($argv[1] ?? '') {
         // records-count <form id>
         echo (int) $db->query("SELECT COUNT(*) c FROM {$config->dbprefix}facileforms_records WHERE form = {$id}")->fetch_assoc()['c'];
         break;
+    case 'add-element':
+        // add-element <form id> <name> <title>: a text element at the end of the form; prints its id.
+        $elements = $config->dbprefix . 'facileforms_elements';
+        $name = $db->real_escape_string($argv[3] ?? '');
+        $title = $db->real_escape_string($argv[4] ?? '');
+        $db->query("INSERT INTO {$elements} (form, page, ordering, published, name, title, type, data1, data2, data3) VALUES ({$id}, 1, 9, 1, '{$name}', '{$title}', 'Text', '', '', '')");
+        echo $db->insert_id;
+        break;
+    case 'sample-record':
+        // sample-record <form id> <element name> <value>: a record with one submitted value; prints its id.
+        $name = $db->real_escape_string($argv[3] ?? '');
+        $value = $db->real_escape_string($argv[4] ?? '');
+        $element = $db->query("SELECT id, title, type FROM {$config->dbprefix}facileforms_elements WHERE form = {$id} AND name = '{$name}'")->fetch_assoc();
+        $db->query("INSERT INTO {$config->dbprefix}facileforms_records (submitted, form, title, name, ip, browser, state) VALUES ('2026-01-02 03:04:05', {$id}, 'Sample', 'sample', '127.0.0.1', '', 1)");
+        $recordId = $db->insert_id;
+        $db->query("INSERT INTO {$config->dbprefix}facileforms_subrecords (record, element, title, name, type, value) VALUES ({$recordId}, {$element['id']}, '{$db->real_escape_string($element['title'])}', '{$name}', '{$element['type']}', '{$value}')");
+        echo $recordId;
+        break;
+    case 'delete-form':
+        // delete-form <id>: the form and its elements are gone, its records and their values stay.
+        $db->query("DELETE FROM {$config->dbprefix}facileforms_elements WHERE form = {$id}");
+        $db->query("DELETE FROM {$forms} WHERE id = {$id}");
+        break;
+    case 'subrecords':
+        // subrecords <record id>: the submitted values of a record, as name => value.
+        $rows = $db->query("SELECT name, value FROM {$config->dbprefix}facileforms_subrecords WHERE record = {$id} ORDER BY id")->fetch_all(MYSQLI_ASSOC);
+        echo json_encode(array_column($rows, 'value', 'name'));
+        break;
     case 'create-user':
         // create-user <username> <password> <group id>: a user of that group only, created again each time.
         $username = $db->real_escape_string($argv[2] ?? '');
