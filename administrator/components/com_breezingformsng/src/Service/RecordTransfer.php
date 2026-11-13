@@ -255,8 +255,8 @@ final class RecordTransfer
             // A unique operation is committed atomically with its copies. Concurrent
             // requests with stale session data cannot claim it a second time.
             $claim = $db->createQuery()
-                ->insert($db->quoteName('#__facileforms_transfer_operations'))
-                ->columns($db->quoteName('operation'))
+                ->insert((string) $db->quoteName('#__facileforms_transfer_operations'))
+                ->columns((string) $db->quoteName('operation'))
                 ->values(':operation')
                 ->bind(':operation', $operation);
             $db->setQuery($claim)->execute();
