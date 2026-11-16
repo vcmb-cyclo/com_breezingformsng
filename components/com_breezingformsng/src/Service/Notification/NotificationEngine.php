@@ -1294,21 +1294,15 @@ final class NotificationEngine
                 }
             }
 
-            $recordId = (new SalesforceClient())->createRecord(
+            (new SalesforceClient())->createRecord(
                 trim((string) $this->processor->formrow->salesforce_username),
                 (string) $this->processor->formrow->salesforce_password . (string) $this->processor->formrow->salesforce_token,
                 trim((string) $this->processor->formrow->salesforce_type),
                 $fields
             );
-            $c = date('Y-m-d H:i:s') . ': Salesforce record created: ' . $recordId . "\r\n";
-
-            file_put_contents(JPATH_SITE . '/sf.log', $c, FILE_APPEND);
         } catch (\Throwable $e) {
-
-            $c = date('Y-m-d H:i:s') . ': ' . $e->getMessage() . "\r\n";
-            file_put_contents(JPATH_SITE . '/sf.log', $c, FILE_APPEND);
-
-            echo 'Salesforce Exception: ' . $e->getMessage();
+            Log::add('Salesforce notification failed.', Log::ERROR, 'com_breezingformsng');
+            echo Text::_('JERROR_AN_ERROR_HAS_OCCURRED');
             session_write_close();
             exit;
         }

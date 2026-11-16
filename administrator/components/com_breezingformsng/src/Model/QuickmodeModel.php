@@ -508,6 +508,10 @@ class QuickmodeModel extends BaseDatabaseModel
         $this->db->setQuery($existsQuery);
 
         if (count($this->db->loadObjectList()) === 0) {
+            if ($form > 0) {
+                throw new \RuntimeException('The form to update does not exist.');
+            }
+
             // INSERT new form
             $hasScriptCond = ($mdata['submittedScriptCondidtion'] ?? -1) != -1;
             $templateAreas = (string) json_encode($areas);

@@ -89,6 +89,15 @@ class QuickmodeController extends BaseController
 
         $chunksLength = $input->getInt('chunksLength', 0);
         $form         = $input->getInt('form', 0);
+        $user         = $app->getIdentity();
+        $action       = $form > 0 ? 'core.edit' : 'core.create';
+
+        if ($user === null || !$user->authorise($action, 'com_breezingformsng')) {
+            $app->setHeader('status', '403', true);
+            $app->close();
+            return;
+        }
+
         $chunkIdx     = $input->getInt('chunkIdx', 0);
         $rndAdd       = $input->getAlnum('rndAdd', '');
         $chunk        = $input->getString('chunk', '');
