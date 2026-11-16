@@ -600,15 +600,7 @@ final class DatabaseRepairService
     private function deleteExtensionRow(int $extensionId, array $entry): void
     {
         if ((string) ($entry['type'] ?? '') === 'template') {
-            $template = (string) ($entry['element'] ?? '');
-            $client = (int) ($entry['client_id'] ?? 0);
-            $query = $this->db->createQuery()
-                ->delete($this->db->quoteName('#__template_styles'))
-                ->where($this->db->quoteName('template') . ' = :template')
-                ->where($this->db->quoteName('client_id') . ' = :client')
-                ->bind(':template', $template)
-                ->bind(':client', $client, ParameterType::INTEGER);
-            $this->db->setQuery($query)->execute();
+            $this->deleteTemplateStyles((string) ($entry['element'] ?? ''), (int) ($entry['client_id'] ?? 0));
         }
 
         $query = $this->db->createQuery()
@@ -616,5 +608,89 @@ final class DatabaseRepairService
             ->where($this->db->quoteName('extension_id') . ' = :id')
             ->bind(':id', $extensionId, ParameterType::INTEGER);
         $this->db->setQuery($query)->execute();
+    }
+
+    /**
+     * Removes the styles of a template that can no longer be uninstalled
+     * normally. Like the Joomla installer, it never leaves a client without a
+     * default style: the default of the removed template passes to a core
+     * style (Atum / Cassiopeia), or the removal is refused.
+     */
+    private function deleteTemplateStyles(string $template, int $client): void
+    {
+        $db = $this->db;
+        $styles = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName(['id', 'home']))
+                ->from($db->quoteName('#__template_styles'))
+                ->where($db->quoteName('template') . ' = :template')
+                ->where($db->quoteName('client_id') . ' = :client')
+                ->bind(':template', $template)
+                ->bind(':client', $client, ParameterType::INTEGER)
+        )->loadAssocList();
+
+        if ($styles === []) {
+            return;
+        }
+
+        $styleIds = array_map(static fn (array $style): int => (int) $style['id'], $styles);
+        $homes = array_values(array_unique(array_filter(
+            array_map(static fn (array $style): string => (string) $style['home'], $styles),
+            static fn (string $home): bool => $home !== '0' && $home !== ''
+        )));
+
+        if (count($homes) > 1) {
+            throw new \RuntimeException('The styles of this template are the default of several languages.');
+        }
+
+        $db->transactionStart();
+
+        try {
+            if ($homes !== []) {
+                $coreTemplate = $client === 1 ? 'atum' : 'cassiopeia';
+                $heir = (int) $db->setQuery(
+                    $db->createQuery()
+                        ->select('MIN(' . $db->quoteName('id') . ')')
+                        ->from($db->quoteName('#__template_styles'))
+                        ->where($db->quoteName('template') . ' = :core')
+                        ->where($db->quoteName('client_id') . ' = :client')
+                        ->where($db->quoteName('home') . ' = ' . $db->quote('0'))
+                        ->bind(':core', $coreTemplate)
+                        ->bind(':client', $client, ParameterType::INTEGER)
+                )->loadResult();
+
+                if ($heir < 1) {
+                    throw new \RuntimeException('No ' . $coreTemplate . ' style is available to become the default.');
+                }
+
+                $home = $homes[0];
+                $db->setQuery(
+                    $db->createQuery()
+                        ->update($db->quoteName('#__template_styles'))
+                        ->set($db->quoteName('home') . ' = :home')
+                        ->where($db->quoteName('id') . ' = :id')
+                        ->bind(':home', $home)
+                        ->bind(':id', $heir, ParameterType::INTEGER)
+                )->execute();
+            }
+
+            // Menu items pointing at the removed styles fall back to the default style.
+            $db->setQuery(
+                $db->createQuery()
+                    ->update($db->quoteName('#__menu'))
+                    ->set($db->quoteName('template_style_id') . ' = 0')
+                    ->whereIn($db->quoteName('template_style_id'), $styleIds)
+            )->execute();
+            $db->setQuery(
+                $db->createQuery()
+                    ->delete($db->quoteName('#__template_styles'))
+                    ->whereIn($db->quoteName('id'), $styleIds)
+            )->execute();
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+
+            throw $exception;
+        }
     }
 }

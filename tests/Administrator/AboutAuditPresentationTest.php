@@ -102,4 +102,15 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringContainsString("quoteName('s.type') . ' = :type'", $repair);
         self::assertStringContainsString('e.type = s.type', $matcher);
     }
+
+    public function testRemovingALegacyTemplateNeverLeavesAClientWithoutDefaultStyle(): void
+    {
+        $repair = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Service/DatabaseRepairService.php');
+
+        self::assertIsString($repair);
+        self::assertStringContainsString('function deleteTemplateStyles(', $repair);
+        self::assertStringContainsString("'atum' : 'cassiopeia'", $repair);
+        self::assertStringContainsString("quoteName('template_style_id') . ' = 0'", $repair);
+        self::assertStringContainsString('No \' . $coreTemplate', $repair);
+    }
 }
