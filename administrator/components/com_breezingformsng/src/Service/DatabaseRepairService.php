@@ -10,6 +10,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Installer\Installer;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\Filesystem\Folder;
@@ -379,5 +380,102 @@ final class DatabaseRepairService
             'failed_dirs' => count($errors),
             'errors' => $errors,
         ];
+    }
+
+    /**
+     * Uninstall leftover pre-NG extensions selected from a fresh audit.
+     *
+     * Only ids currently reported as legacy are accepted. The Joomla installer
+     * is used first; when its files and manifest are already gone and it
+     * cannot uninstall, the orphan registration (and template styles) is removed.
+     *
+     * @param array<mixed> $selectedIds
+     * @return array{selected:int, removed:int, failed:int, errors:array<int,string>}
+     */
+    public function removeLegacyExtensions(array $selectedIds): array
+    {
+        $selectedIds = array_values(array_unique(array_filter(
+            array_map('intval', $selectedIds),
+            static fn(int $id): bool => $id > 0
+        )));
+        $report = (new DatabaseAuditService($this->db, $this->temporaryPath))->run();
+        $legacy = [];
+
+        foreach ((array) ($report['extension_legacy'] ?? []) as $entry) {
+            $legacy[(int) ($entry['extension_id'] ?? 0)] = (array) $entry;
+        }
+
+        $errors = [];
+        $removed = 0;
+        $selected = array_values(array_intersect($selectedIds, array_keys($legacy)));
+
+        foreach ($selected as $extensionId) {
+            $entry = $legacy[$extensionId];
+            $label = $entry['type'] . '/' . $entry['element'] . ' (#' . $extensionId . ')';
+
+            try {
+                $uninstalled = false;
+
+                try {
+                    $uninstalled = (bool) Installer::getInstance()->uninstall((string) $entry['type'], $extensionId);
+                } catch (\Throwable) {
+                    $uninstalled = false;
+                }
+
+                if (!$uninstalled && $this->extensionRowExists($extensionId)) {
+                    $this->deleteExtensionRow($extensionId, $entry);
+                }
+
+                if ($this->extensionRowExists($extensionId)) {
+                    throw new \RuntimeException('The extension is still registered.');
+                }
+
+                $removed++;
+            } catch (\Throwable $exception) {
+                $errors[] = $label . ': ' . $exception->getMessage();
+            }
+        }
+
+        return [
+            'selected' => count($selected),
+            'removed' => $removed,
+            'failed' => count($errors),
+            'errors' => $errors,
+        ];
+    }
+
+    private function extensionRowExists(int $extensionId): bool
+    {
+        $query = $this->db->createQuery()
+            ->select('COUNT(*)')
+            ->from($this->db->quoteName('#__extensions'))
+            ->where($this->db->quoteName('extension_id') . ' = :id')
+            ->bind(':id', $extensionId, ParameterType::INTEGER);
+
+        return (int) $this->db->setQuery($query)->loadResult() > 0;
+    }
+
+    /**
+     * @param array<string, mixed> $entry
+     */
+    private function deleteExtensionRow(int $extensionId, array $entry): void
+    {
+        if ((string) ($entry['type'] ?? '') === 'template') {
+            $template = (string) ($entry['element'] ?? '');
+            $client = (int) ($entry['client_id'] ?? 0);
+            $query = $this->db->createQuery()
+                ->delete($this->db->quoteName('#__template_styles'))
+                ->where($this->db->quoteName('template') . ' = :template')
+                ->where($this->db->quoteName('client_id') . ' = :client')
+                ->bind(':template', $template)
+                ->bind(':client', $client, ParameterType::INTEGER);
+            $this->db->setQuery($query)->execute();
+        }
+
+        $query = $this->db->createQuery()
+            ->delete($this->db->quoteName('#__extensions'))
+            ->where($this->db->quoteName('extension_id') . ' = :id')
+            ->bind(':id', $extensionId, ParameterType::INTEGER);
+        $this->db->setQuery($query)->execute();
     }
 }

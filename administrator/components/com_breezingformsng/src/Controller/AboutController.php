@@ -284,6 +284,50 @@ class AboutController extends BaseController
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
     }
 
+    public function removeLegacyExtensions(): void
+    {
+        $this->checkToken();
+
+        try {
+            $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertRepair($user);
+            $single = $this->input->post->getInt('legacy_extension', 0);
+            $selectedIds = $single > 0
+                ? [$single]
+                : array_map('intval', (array) $this->input->post->get('legacy_extensions', [], 'array'));
+
+            if (array_filter($selectedIds) === []) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_NO_SELECTION'));
+            }
+
+            $summary = $this->getRepairService()->removeLegacyExtensions($selectedIds);
+
+            if ((int) ($summary['selected'] ?? 0) === 0) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_NO_SELECTION'));
+            }
+
+            $this->app->setUserState('com_breezingformsng.about.audit', $this->getAuditService()->run());
+            $failed = (int) ($summary['failed'] ?? 0);
+            $this->setMessage(Text::sprintf(
+                'COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_REPAIR_SUMMARY',
+                (int) ($summary['selected'] ?? 0),
+                (int) ($summary['removed'] ?? 0),
+                $failed
+            ), $failed > 0 ? 'warning' : 'message');
+
+            foreach ((array) ($summary['errors'] ?? []) as $error) {
+                $this->app->enqueueMessage(htmlspecialchars((string) $error, ENT_QUOTES, 'UTF-8'), 'warning');
+            }
+        } catch (\Throwable $exception) {
+            $this->setMessage(
+                Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_REPAIR_FAILED', $exception->getMessage()),
+                'error'
+            );
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+    }
+
     public function deleteDuplicateForm(): void
     {
         $this->checkToken();

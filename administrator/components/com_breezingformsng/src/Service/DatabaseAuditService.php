@@ -880,6 +880,7 @@ final class DatabaseAuditService
                 'type' => (string) ($row['type'] ?? ''),
                 'element' => (string) ($row['element'] ?? ''),
                 'folder' => (string) ($row['folder'] ?? ''),
+                'client_id' => (int) ($row['client_id'] ?? 0),
                 'enabled' => (int) ($row['enabled'] ?? 0),
             ];
 
