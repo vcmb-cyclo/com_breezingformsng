@@ -644,7 +644,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditMissingTables !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_TABLES_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_TABLES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_TABLES_HELP'); ?></h4>
                         <ul class="mb-0">
                             <?php foreach ($auditMissingTables as $table) : ?>
                                 <li><code><?php echo htmlspecialchars((string) $table, ENT_QUOTES, 'UTF-8'); ?></code></li>
@@ -655,7 +655,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditMissingColumns !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_COLUMNS_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_COLUMNS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_COLUMNS_HELP'); ?></h4>
                         <p class="text-muted small mb-2"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_COLUMNS_DESC'); ?></p>
                         <ul class="mb-0">
                             <?php foreach ($auditMissingColumns as $entry) : ?>
@@ -673,7 +673,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditDebugForms !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS_HELP'); ?></h4>
                         <p class="text-muted small mb-2"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS_DESC'); ?></p>
                         <ul class="mb-0">
                             <?php foreach ($auditDebugForms as $form) : ?>
@@ -693,7 +693,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditUnexpectedTables !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_UNEXPECTED_TABLES_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_UNEXPECTED_TABLES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_UNEXPECTED_TABLES_HELP'); ?></h4>
                         <ul class="mb-0">
                             <?php foreach ($auditUnexpectedTables as $table) : ?>
                                 <li><code><?php echo htmlspecialchars((string) $table, ENT_QUOTES, 'UTF-8'); ?></code></li>
@@ -704,7 +704,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditStaleLanguageFiles !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_LANGUAGE_FILES_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_LANGUAGE_FILES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_LANGUAGE_FILES_HELP'); ?></h4>
                         <ul class="mb-0">
                             <?php foreach ($auditStaleLanguageFiles as $file) : ?>
                                 <li><code><?php echo htmlspecialchars((string) $file, ENT_QUOTES, 'UTF-8'); ?></code></li>
@@ -715,7 +715,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditStaleInstallerTempDirs !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_INSTALLER_TEMP_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_INSTALLER_TEMP'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_INSTALLER_TEMP_HELP'); ?></h4>
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                             <label class="form-check mb-0">
                                 <input
@@ -764,7 +764,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditMenuIssues !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_ISSUES_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_ISSUES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_ISSUES_HELP'); ?></h4>
                         <div class="table-responsive">
                             <table class="table table-sm align-middle mb-0">
                                 <thead><tr><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_FORM'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ISSUE'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ACTIONS'); ?></th></tr></thead>
@@ -808,7 +808,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditDuplicateForms !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_FORMS_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_FORMS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_FORMS_HELP'); ?></h4>
                         <p class="text-muted small mb-2"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_FORMS_DESC'); ?></p>
                         <ul class="mb-0">
                             <?php foreach ($auditDuplicateForms as $group) : ?>
@@ -845,7 +845,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditExtensionDuplicates !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_DUPLICATES_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_DUPLICATES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_DUPLICATES_HELP'); ?></h4>
                         <ul class="mb-0">
                             <?php foreach ($auditExtensionDuplicates as $group) : ?>
                                 <li>
@@ -867,7 +867,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditExtensionLegacy !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_HELP'); ?></h4>
                         <p class="small text-muted mb-2"><?php echo Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_EXPLAIN', '<a href="' . htmlspecialchars(Route::_('index.php?option=com_installer&view=manage&filter[search]=breezingforms', false), ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_LINK_LABEL'), ENT_QUOTES, 'UTF-8') . '</a>'); ?></p>
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                             <label class="form-check mb-0">
@@ -904,7 +904,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditCollationIssues !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLLATIONS_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLLATIONS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLLATIONS_HELP'); ?></h4>
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                             <label class="form-check mb-0">
                                 <input type="checkbox" class="form-check-input" data-bf-select-all="table-collations" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEX_SELECT_ALL'), ENT_QUOTES, 'UTF-8'); ?>">
@@ -928,7 +928,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditColumnCollationIssues !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATIONS_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATIONS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATIONS_HELP'); ?></h4>
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                             <label class="form-check mb-0">
                                 <input
@@ -964,7 +964,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if (count($auditCollationHistogram) > 1) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS_HELP'); ?></h4>
                         <ul class="mb-0">
                             <?php foreach ($auditCollationHistogram as $collationName => $count) : ?>
                                 <li><code><?php echo htmlspecialchars((string) $collationName, ENT_QUOTES, 'UTF-8'); ?></code>: <?php echo (int) $count; ?></li>
@@ -975,7 +975,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditDuplicateIndexes !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEXES_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEXES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEXES_HELP'); ?></h4>
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                             <label class="form-check mb-0">
                                 <input
@@ -1032,7 +1032,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditOrphanChecks !== array()) : ?>
                     <div class="bf-audit-section-block mb-3" id="bf-audit-orphan-references">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES_HELP'); ?></h4>
                         <?php foreach ($auditOrphanChecks as $check) : ?>
                             <?php
                             $orphanGroups = (array) ($check['groups'] ?? array());
@@ -1143,7 +1143,7 @@ HTMLHelper::_('bootstrap.collapse');
 
                 <?php if ($auditTrashedRecords !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_RECORDS_HELP'); ?></h4>
+                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_RECORDS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_RECORDS_HELP'); ?></h4>
                         <p class="text-muted small mb-2"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_RECORDS_DESC'); ?></p>
                         <ul class="mb-2">
                             <?php foreach ($auditTrashedRecords as $entry) : ?>
@@ -1169,7 +1169,7 @@ HTMLHelper::_('bootstrap.collapse');
                 <?php endif; ?>
 
                 <div class="bf-audit-section-block">
-                    <h4 class="h6"><?php echo Text::_(''); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_INVENTORY_HELP'); ?></h4>
+                    <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_INVENTORY'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_INVENTORY_HELP'); ?></h4>
                     <div class="table-responsive">
                         <table class="table table-sm table-striped align-middle mb-0" data-bf-sortable-table>
                             <thead><tr><th aria-sort="none"><button type="button" class="btn btn-link p-0 text-reset text-decoration-none" data-bf-table-sort="text"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE'); ?></button></th><th aria-sort="none"><button type="button" class="btn btn-link p-0 text-reset text-decoration-none" data-bf-table-sort="number"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ROWS'); ?></button></th><th aria-sort="none"><button type="button" class="btn btn-link p-0 text-reset text-decoration-none" data-bf-table-sort="text"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ENGINE'); ?></button></th><th aria-sort="none"><button type="button" class="btn btn-link p-0 text-reset text-decoration-none" data-bf-table-sort="text"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLLATION'); ?></button></th><th aria-sort="none"><button type="button" class="btn btn-link p-0 text-reset text-decoration-none" data-bf-table-sort="number"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_SIZE'); ?></button></th></tr></thead>
