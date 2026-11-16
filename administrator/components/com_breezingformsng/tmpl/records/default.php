@@ -12,6 +12,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
+use Joomla\CMS\Router\Route;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
 $listOrder = $this->escape($this->state->get('list.ordering'));
@@ -51,6 +52,15 @@ $deletedFormMark = static fn (\stdClass $rec): string => $rec->form_id === null
 <form action="index.php?option=com_breezingformsng&amp;view=records" method="post" name="adminForm" id="adminForm" class="bf-list-filters">
   <div id="j-main-container" class="j-main-container">
     <?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this]); ?>
+
+    <?php $orphanElement = (int) $this->state->get('filter.orphan_element'); ?>
+    <?php if ($orphanElement > 0) : ?>
+        <div class="alert alert-info d-flex flex-wrap align-items-center gap-2">
+            <span><?= Text::sprintf('COM_BREEZINGFORMSNG_RECORDS_ORPHAN_FILTER', $orphanElement); ?></span>
+            <a class="btn btn-sm btn-outline-secondary" href="<?= Route::_('index.php?option=com_breezingformsng&view=records&filter[orphan_element]=&filter[state]=*'); ?>"><?= Text::_('JCLEAR'); ?></a>
+            <input type="hidden" name="filter[orphan_element]" value="<?= $orphanElement; ?>">
+        </div>
+    <?php endif; ?>
 
     <?php if ($this->items === []): ?>
       <div class="alert alert-info">

@@ -16,6 +16,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
@@ -393,6 +394,75 @@ class AboutController extends BaseController
         }
 
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false));
+    }
+
+    /**
+     * Sends a site menu item reported by the audit to the trash, from the About
+     * screen, under the Joomla rights of the user. It is not deleted for good.
+     */
+    public function deleteMenuItem(): void
+    {
+        $this->checkToken();
+
+        $menuId = $this->input->getInt('menu_item_id', 0);
+
+        try {
+            $application = $this->getAuthorizedApplication();
+            $user = $application->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertRepair($user);
+
+            if (!$user->authorise('core.edit.state', 'com_menus')) {
+                throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'));
+            }
+
+            $auditService = $this->getAuditService();
+            $candidate = false;
+
+            foreach ((array) ($auditService->run()['menu_issues'] ?? []) as $issue) {
+                if ((int) ($issue['menu_id'] ?? 0) === $menuId) {
+                    $candidate = true;
+                    break;
+                }
+            }
+
+            if ($menuId < 1 || !$candidate) {
+                throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_NOT_CANDIDATE', $menuId));
+            }
+
+            $menus = $application->bootComponent('com_menus');
+
+            if (!$menus instanceof MVCFactoryServiceInterface) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            $model = $menus->getMVCFactory()->createModel('Item', 'Administrator', ['ignore_request' => true]);
+
+            if (!$model instanceof AdminModel) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            // Like the trash button of the Joomla menu screen: the item goes to the
+            // trash, where it can be restored or emptied.
+            $pks = [$menuId];
+
+            if (!$model->publish($pks, -2)) {
+                throw new \RuntimeException($this->menuError($model, 'JLIB_APPLICATION_ERROR_UNPUBLISH_FAILED'));
+            }
+
+            $application->setUserState('com_breezingformsng.about.audit', $auditService->run());
+            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETED', $menuId), 'message');
+        } catch (\Throwable $exception) {
+            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE_FAILED', $exception->getMessage()), 'error');
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+    }
+
+    private function menuError(AdminModel $model, string $fallbackKey): string
+    {
+        $error = trim((string) $model->getError());
+
+        return $error !== '' ? $error : Text::_($fallbackKey);
     }
 
     public function emptyRecordsTrash(): void

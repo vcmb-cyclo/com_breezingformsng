@@ -38,4 +38,25 @@ final class LegacyExtensionRepairGuardsTest extends TestCase
 
         self::assertStringContainsString('e.name = s.name AND e.type = s.type', $source);
     }
+
+    public function testMenuItemDeletionIsGuardedAndNotNestedInAForm(): void
+    {
+        $controller = (string) file_get_contents(self::ADMIN . '/src/Controller/AboutController.php');
+        $method = substr($controller, (int) strpos($controller, 'function deleteMenuItem'));
+        $method = substr($method, 0, (int) strpos($method, 'private function menuError'));
+
+        self::assertStringContainsString('AreaAccess::assertRepair', $method);
+        self::assertStringContainsString("authorise('core.edit.state', 'com_menus')", $method);
+        self::assertStringContainsString("['menu_issues']", $method);
+        self::assertStringContainsString('publish($pks, -2)', $method);
+        self::assertStringNotContainsString('->delete(', $method);
+
+        // The About screen is one form: a nested form is dropped by the browser.
+        $template = (string) file_get_contents(self::ADMIN . '/tmpl/about/default.php');
+        $menuBlock = substr($template, (int) strpos($template, 'AUDIT_MENU_ISSUES\''));
+        $menuBlock = substr($menuBlock, 0, (int) strpos($menuBlock, 'auditDuplicateForms !== array()'));
+
+        self::assertStringContainsString("Joomla.submitform('about.deleteMenuItem')", $menuBlock);
+        self::assertStringNotContainsString('<form', $menuBlock);
+    }
 }

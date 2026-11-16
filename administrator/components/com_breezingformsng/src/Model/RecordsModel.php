@@ -36,7 +36,7 @@ class RecordsModel extends ListModel
      */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
-        $config['filter_fields'] ??= [...self::SORTS, 'form', 'state'];
+        $config['filter_fields'] ??= [...self::SORTS, 'form', 'state', 'orphan_element'];
 
         parent::__construct($config, $factory);
     }
@@ -51,6 +51,7 @@ class RecordsModel extends ListModel
         $id .= ':' . $this->getState('filter.search');
         $id .= ':' . $this->getState('filter.form');
         $id .= ':' . $this->getState('filter.state');
+        $id .= ':' . $this->getState('filter.orphan_element');
 
         return parent::getStoreId($id);
     }
@@ -158,6 +159,25 @@ class RecordsModel extends ListModel
         if ($formId > 0) {
             $query->where('records.form = :formId')
                 ->bind(':formId', $formId, ParameterType::INTEGER);
+        }
+
+        // Records holding values of an element that no longer exists (About audit).
+        $orphanElementId = (int) $this->getState('filter.orphan_element');
+
+        if ($orphanElementId > 0) {
+            $values = $db->createQuery()
+                ->select('1')
+                ->from($db->quoteName('#__facileforms_subrecords', 'orphan_values'))
+                ->join(
+                    'LEFT',
+                    $db->quoteName('#__facileforms_elements', 'orphan_elements')
+                        . ' ON ' . $db->quoteName('orphan_elements.id') . ' = ' . $db->quoteName('orphan_values.element')
+                )
+                ->where($db->quoteName('orphan_values.record') . ' = ' . $db->quoteName('records.id'))
+                ->where($db->quoteName('orphan_values.element') . ' = :orphanElementId')
+                ->where($db->quoteName('orphan_elements.id') . ' IS NULL');
+            $query->where('EXISTS (' . $values . ')')
+                ->bind(':orphanElementId', $orphanElementId, ParameterType::INTEGER);
         }
 
         $states = RecordState::filterStates((string) $this->getState('filter.state'));

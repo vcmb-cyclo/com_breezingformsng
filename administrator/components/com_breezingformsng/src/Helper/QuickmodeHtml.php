@@ -55,7 +55,8 @@ final class QuickmodeHtml
         string $formEmailadr,
         int $formEmailntf,
         array $elementScripts,
-        string $dataObjectString
+        string $dataObjectString,
+        bool $debugMode = false
     ): string {
         $labelKeys = [
             'COM_BREEZINGFORMSNG_CHOOSE_ONE',
@@ -93,6 +94,7 @@ final class QuickmodeHtml
             'siteRootPath' => Uri::root(true),
             'lang' => $languageCode,
             'formId' => $formId,
+            'debugMode' => $debugMode,
             'formName' => $formName,
             'formTitle' => $formTitle,
             'formDesc' => str_replace(["\n", "\r"], '', $formDesc),
@@ -213,7 +215,8 @@ final class QuickmodeHtml
             $formEmailadr,
             $formEmailntf,
             $elementScripts,
-            $dataObjectString
+            $dataObjectString,
+            $debugMode === 1
         ));
         ?>
 

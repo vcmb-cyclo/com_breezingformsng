@@ -79,7 +79,10 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringContainsString('function getOrphanRows(', $model);
         self::assertStringContainsString('$item->orphan_values', $model);
         self::assertStringContainsString('record-orphan-values', $template);
-        self::assertStringContainsString("\$value(\$orphan['value'])", $template);
+        // Same layout as the fields of the record, with a read-only value.
+        self::assertStringContainsString("'joomla.form.renderfield'", $template);
+        self::assertStringContainsString('readonly', $template);
+        self::assertStringContainsString("\$value(\$orphanText)", $template);
     }
 
     public function testOrphanValuesCanBeMovedToAFieldOfTheSameType(): void

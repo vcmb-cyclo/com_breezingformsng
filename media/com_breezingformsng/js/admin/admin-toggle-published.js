@@ -49,6 +49,17 @@ function bfRequestFormState(id, task, state, stateType, link) {
 
 		bfSetToggleIcon(link, Number(data.State), stateType);
 		if (stateType === 'debug') {
+			// The editor shows the numbers of the form and elements in debug mode.
+			if (window.BFQMConfig) {
+				window.BFQMConfig.debugMode = Number(data.State) === 1;
+				window.dispatchEvent(new CustomEvent('bfqm:debug'));
+			}
+
+			var badge = document.getElementById('bfFormIdBadge');
+			if (badge) {
+				badge.hidden = Number(data.State) !== 1;
+			}
+
 			var search = document.querySelector('.bfng-form-search');
 			if (search) {
 				search.hidden = Number(data.State) !== 1;

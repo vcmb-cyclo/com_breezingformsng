@@ -227,8 +227,9 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                         : null;
                 }
 
-                function toJsTreeNode(node) {
-                    var type = appScope.treeModel.getNodeType(node) || 'default';
+                // Display label of a tree node. In debug mode the number of the form or of
+                // the element is shown before its name ("125 - Name").
+                function nodeLabel(node, type) {
                     // data.title (the tree's own display label) only gets kept in
                     // sync by saveFormProperties(), itself only triggered by
                     // switching tree selection away from the node - a freshly
@@ -238,16 +239,65 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                     var title = (node.data && node.data.title)
                         || (node.properties && node.properties.title)
                         || node.attributes.id;
+                    var debugId = 0;
+
+                    if (BFQMConfig.debugMode) {
+                        debugId = type === 'root'
+                            ? parseInt(BFQMConfig.formId, 10) || 0
+                            : (type === 'element' ? parseInt(node.properties && node.properties.dbId, 10) || 0 : 0);
+                    }
+
+                    return debugId > 0 ? debugId + ' - ' + title : title;
+                }
+
+                function toJsTreeNode(node) {
+                    var type = appScope.treeModel.getNodeType(node) || 'default';
 
                     return {
                         id: node.attributes.id,
-                        text: title,
+                        text: nodeLabel(node, type),
                         icon: elementTypeIcon(node) || (node.data && node.data.icon) || true,
                         type: type,
                         state: { opened: node.state !== 'close' },
                         children: appScope.treeModel.getChildren(node).map(toJsTreeNode)
                     };
                 }
+
+                // The debug switch of the form acts without reloading the page: the
+                // labels of the tree follow it, without losing the selected node.
+                // Debug mode: the number of the selected element in a badge of its properties.
+                appScope.updateElementIdBadge = function () {
+                    var badge = document.getElementById('bfElementIdBadge');
+                    var selected = appScope.selectedTreeElement;
+                    var dbId = selected && selected.properties ? parseInt(selected.properties.dbId, 10) || 0 : 0;
+
+                    if (!badge) {
+                        return;
+                    }
+
+                    badge.textContent = '#' + dbId;
+                    badge.hidden = !BFQMConfig.debugMode || dbId < 1;
+                };
+
+                window.addEventListener('bfqm:debug', function () {
+                    appScope.updateElementIdBadge();
+
+                    var instance = JQuery('#bfElementExplorer').jstree(true);
+
+                    if (!instance) {
+                        return;
+                    }
+
+                    (function relabel(node) {
+                        var id = node.attributes.id;
+
+                        if (instance.get_node(id)) {
+                            instance.set_text(id, nodeLabel(node, appScope.treeModel.getNodeType(node) || 'default'));
+                        }
+
+                        appScope.treeModel.getChildren(node).forEach(relabel);
+                    }(appScope.dataObject));
+                });
 
                 appScope.refreshTree = function (onComplete) {
                     var instance = JQuery('#bfElementExplorer').jstree(true);
@@ -486,6 +536,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                                 appScope.toggleProperties('bfElementProperties');
                                 appScope.toggleAdvanced('bfElementAdvanced');
                                 appScope.populateSelectedElementProperties();
+                                appScope.updateElementIdBadge();
                                 break;
                             case 'bfQuickModePageClass':
                                 appScope.toggleProperties('bfPageProperties');
