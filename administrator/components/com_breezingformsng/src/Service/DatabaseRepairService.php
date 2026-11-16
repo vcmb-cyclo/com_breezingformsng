@@ -10,6 +10,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Installer\Installer;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\Filesystem\Folder;
@@ -338,6 +339,145 @@ final class DatabaseRepairService
     }
 
     /**
+     * Reassigns the values of missing elements to the current element of the
+     * same form that has the same (unique) name, unless that element already
+     * holds a value for the same record.
+     *
+     * @param ?int $elementId One missing element, or null for all of them.
+     *
+     * @return int The number of values reassigned.
+     */
+    public function reassignOrphanValues(?int $elementId = null): int
+    {
+        if ($elementId !== null && $elementId < 1) {
+            throw new \InvalidArgumentException('Invalid element ID.');
+        }
+
+        $db = $this->db;
+        $query = OrphanValueMatcher::query($db, $elementId === null ? null : [$elementId])
+            ->select([
+                $db->quoteName('s.id', 'sub_id'),
+                $db->quoteName('s.record', 'record_id'),
+                $db->quoteName('s.element', 'old_id'),
+                $db->quoteName('e.id', 'target_id'),
+            ])
+            ->where('x.id IS NULL')
+            ->order($db->quoteName('s.id') . ' ASC');
+        $byTarget = [];
+        $taken = [];
+
+        foreach ($db->setQuery($query)->loadAssocList() as $row) {
+            $slot = (int) $row['record_id'] . ':' . (int) $row['target_id'];
+
+            // A multi-valued field has several rows per record and element: they move together.
+            // Two different missing elements may carry the same name: the first one wins the target.
+            if (($taken[$slot] ?? (int) $row['old_id']) !== (int) $row['old_id']) {
+                continue;
+            }
+
+            $taken[$slot] = (int) $row['old_id'];
+            $byTarget[(int) $row['target_id']][] = (int) $row['sub_id'];
+        }
+
+        $reassigned = 0;
+        $db->transactionStart();
+
+        try {
+            foreach ($byTarget as $targetId => $subIds) {
+                foreach (array_chunk($subIds, 500) as $chunk) {
+                    $update = $db->createQuery()
+                        ->update($db->quoteName('#__facileforms_subrecords'))
+                        ->set($db->quoteName('element') . ' = :target')
+                        ->bind(':target', $targetId, ParameterType::INTEGER)
+                        ->whereIn($db->quoteName('id'), $chunk);
+                    $db->setQuery($update)->execute();
+                    $reassigned += $db->getAffectedRows();
+                }
+            }
+
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+
+            throw $exception;
+        }
+
+        return $reassigned;
+    }
+
+    /**
+     * Reassigns the values of one missing element to a field chosen by the
+     * administrator. The field must belong to the form of the records and have
+     * the same type as the stored values; records that already hold a value
+     * for it are left unchanged.
+     *
+     * @return int The number of values reassigned.
+     */
+    public function reassignOrphanValuesToElement(int $oldElementId, int $targetElementId): int
+    {
+        if ($oldElementId < 1 || $targetElementId < 1) {
+            throw new \InvalidArgumentException('Invalid element ID.');
+        }
+
+        $db = $this->db;
+        $target = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName(['id', 'form', 'type']))
+                ->from($db->quoteName('#__facileforms_elements'))
+                ->where($db->quoteName('id') . ' = :id')
+                ->bind(':id', $targetElementId, ParameterType::INTEGER)
+        )->loadAssoc();
+
+        if (!is_array($target)) {
+            throw new \InvalidArgumentException('The target field does not exist.');
+        }
+
+        $targetForm = (int) $target['form'];
+        $targetType = (string) $target['type'];
+        $query = $db->createQuery()
+            ->select($db->quoteName('s.id'))
+            ->from($db->quoteName('#__facileforms_subrecords', 's'))
+            ->join('INNER', $db->quoteName('#__facileforms_records', 'r') . ' ON r.id = s.record')
+            ->join('LEFT', $db->quoteName('#__facileforms_elements', 'o') . ' ON o.id = s.element')
+            ->join(
+                'LEFT',
+                $db->quoteName('#__facileforms_subrecords', 'x') . ' ON x.record = s.record AND x.element = :target'
+            )
+            ->where('o.id IS NULL')
+            ->where('x.id IS NULL')
+            ->where($db->quoteName('s.element') . ' = :old')
+            ->where($db->quoteName('r.form') . ' = :form')
+            ->where($db->quoteName('s.type') . ' = :type')
+            ->bind(':target', $targetElementId, ParameterType::INTEGER)
+            ->bind(':old', $oldElementId, ParameterType::INTEGER)
+            ->bind(':form', $targetForm, ParameterType::INTEGER)
+            ->bind(':type', $targetType);
+        $subIds = array_map('intval', $db->setQuery($query)->loadColumn() ?: []);
+        $reassigned = 0;
+        $db->transactionStart();
+
+        try {
+            foreach (array_chunk($subIds, 500) as $chunk) {
+                $update = $db->createQuery()
+                    ->update($db->quoteName('#__facileforms_subrecords'))
+                    ->set($db->quoteName('element') . ' = :newElement')
+                    ->bind(':newElement', $targetElementId, ParameterType::INTEGER)
+                    ->whereIn($db->quoteName('id'), $chunk);
+                $db->setQuery($update)->execute();
+                $reassigned += $db->getAffectedRows();
+            }
+
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+
+            throw $exception;
+        }
+
+        return $reassigned;
+    }
+
+    /**
      * Delete only stale installer directories selected from a fresh audit.
      *
      * @param array<mixed> $selectedPaths
@@ -379,5 +519,223 @@ final class DatabaseRepairService
             'failed_dirs' => count($errors),
             'errors' => $errors,
         ];
+    }
+
+    /**
+     * Uninstall leftover pre-NG extensions selected from a fresh audit.
+     *
+     * Only ids currently reported as legacy are accepted. The Joomla installer
+     * is used first; when its files and manifest are already gone and it
+     * cannot uninstall, the orphan registration (and template styles) is removed.
+     *
+     * @param array<mixed> $selectedIds
+     * @return array{selected:int, removed:int, failed:int, errors:array<int,string>}
+     */
+    public function removeLegacyExtensions(array $selectedIds): array
+    {
+        $selectedIds = array_values(array_unique(array_filter(
+            array_map('intval', $selectedIds),
+            static fn(int $id): bool => $id > 0
+        )));
+        $report = (new DatabaseAuditService($this->db, $this->temporaryPath))->run();
+        $legacy = [];
+
+        foreach ((array) ($report['extension_legacy'] ?? []) as $entry) {
+            $legacy[(int) ($entry['extension_id'] ?? 0)] = (array) $entry;
+        }
+
+        $errors = [];
+        $removed = 0;
+        $selected = array_values(array_intersect($selectedIds, array_keys($legacy)));
+
+        foreach ($selected as $extensionId) {
+            $entry = $legacy[$extensionId];
+            $label = $entry['type'] . '/' . $entry['element'] . ' (#' . $extensionId . ')';
+
+            try {
+                $uninstalled = false;
+
+                try {
+                    $uninstalled = (bool) Installer::getInstance()->uninstall((string) $entry['type'], $extensionId);
+                } catch (\Throwable) {
+                    $uninstalled = false;
+                }
+
+                if (!$uninstalled && $this->extensionRowExists($extensionId)) {
+                    // Only a registration whose files are really gone may be dropped;
+                    // any other installer failure is reported and the extension is kept.
+                    if (!$this->isOrphanRegistration($entry)) {
+                        throw new \RuntimeException('The installer failed and the extension files still exist; nothing was removed.');
+                    }
+
+                    $this->deleteExtensionRow($extensionId, $entry);
+                }
+
+                if ($this->extensionRowExists($extensionId)) {
+                    throw new \RuntimeException('The extension is still registered.');
+                }
+
+                $removed++;
+            } catch (\Throwable $exception) {
+                $errors[] = $label . ': ' . $exception->getMessage();
+            }
+        }
+
+        return [
+            'selected' => count($selected),
+            'removed' => $removed,
+            'failed' => count($errors),
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * True when no file of the registered extension exists any more. Types
+     * whose location cannot be determined are never considered orphan.
+     *
+     * @param array<string, mixed> $entry
+     */
+    private function isOrphanRegistration(array $entry): bool
+    {
+        $type = (string) ($entry['type'] ?? '');
+        $element = (string) ($entry['element'] ?? '');
+        $folder = (string) ($entry['folder'] ?? '');
+        $base = (int) ($entry['client_id'] ?? 0) === 1 ? JPATH_ADMINISTRATOR : JPATH_SITE;
+
+        if ($element === '' || preg_match('/^[A-Za-z0-9_.-]+$/', $element) !== 1 || preg_match('/^[A-Za-z0-9_.-]*$/', $folder) !== 1) {
+            return false;
+        }
+
+        $paths = match ($type) {
+            'component' => [JPATH_ADMINISTRATOR . '/components/' . $element, JPATH_SITE . '/components/' . $element],
+            'plugin' => [JPATH_PLUGINS . '/' . $folder . '/' . $element],
+            'module' => [$base . '/modules/' . $element],
+            'template' => [$base . '/templates/' . $element],
+            'library' => [JPATH_LIBRARIES . '/' . $element],
+            default => null,
+        };
+
+        if ($paths === null) {
+            return false;
+        }
+
+        foreach ($paths as $path) {
+            if (file_exists($path)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function extensionRowExists(int $extensionId): bool
+    {
+        $query = $this->db->createQuery()
+            ->select('COUNT(*)')
+            ->from($this->db->quoteName('#__extensions'))
+            ->where($this->db->quoteName('extension_id') . ' = :id')
+            ->bind(':id', $extensionId, ParameterType::INTEGER);
+
+        return (int) $this->db->setQuery($query)->loadResult() > 0;
+    }
+
+    /**
+     * @param array<string, mixed> $entry
+     */
+    private function deleteExtensionRow(int $extensionId, array $entry): void
+    {
+        if ((string) ($entry['type'] ?? '') === 'template') {
+            $this->deleteTemplateStyles((string) ($entry['element'] ?? ''), (int) ($entry['client_id'] ?? 0));
+        }
+
+        $query = $this->db->createQuery()
+            ->delete($this->db->quoteName('#__extensions'))
+            ->where($this->db->quoteName('extension_id') . ' = :id')
+            ->bind(':id', $extensionId, ParameterType::INTEGER);
+        $this->db->setQuery($query)->execute();
+    }
+
+    /**
+     * Removes the styles of a template that can no longer be uninstalled
+     * normally. Like the Joomla installer, it never leaves a client without a
+     * default style: the default of the removed template passes to a core
+     * style (Atum / Cassiopeia), or the removal is refused.
+     */
+    private function deleteTemplateStyles(string $template, int $client): void
+    {
+        $db = $this->db;
+        $styles = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName(['id', 'home']))
+                ->from($db->quoteName('#__template_styles'))
+                ->where($db->quoteName('template') . ' = :template')
+                ->where($db->quoteName('client_id') . ' = :client')
+                ->bind(':template', $template)
+                ->bind(':client', $client, ParameterType::INTEGER)
+        )->loadAssocList();
+
+        if ($styles === []) {
+            return;
+        }
+
+        $styleIds = array_map(static fn (array $style): int => (int) $style['id'], $styles);
+        $homes = array_values(array_unique(array_filter(
+            array_map(static fn (array $style): string => (string) $style['home'], $styles),
+            static fn (string $home): bool => $home !== '0' && $home !== ''
+        )));
+
+        if (count($homes) > 1) {
+            throw new \RuntimeException('The styles of this template are the default of several languages.');
+        }
+
+        $db->transactionStart();
+
+        try {
+            if ($homes !== []) {
+                $coreTemplate = $client === 1 ? 'atum' : 'cassiopeia';
+                $heir = (int) $db->setQuery(
+                    $db->createQuery()
+                        ->select('MIN(' . $db->quoteName('id') . ')')
+                        ->from($db->quoteName('#__template_styles'))
+                        ->where($db->quoteName('template') . ' = :core')
+                        ->where($db->quoteName('client_id') . ' = :client')
+                        ->where($db->quoteName('home') . ' = ' . $db->quote('0'))
+                        ->bind(':core', $coreTemplate)
+                        ->bind(':client', $client, ParameterType::INTEGER)
+                )->loadResult();
+
+                if ($heir < 1) {
+                    throw new \RuntimeException('No ' . $coreTemplate . ' style is available to become the default.');
+                }
+
+                $home = $homes[0];
+                $db->setQuery(
+                    $db->createQuery()
+                        ->update($db->quoteName('#__template_styles'))
+                        ->set($db->quoteName('home') . ' = :home')
+                        ->where($db->quoteName('id') . ' = :id')
+                        ->bind(':home', $home)
+                        ->bind(':id', $heir, ParameterType::INTEGER)
+                )->execute();
+            }
+
+            // Menu items pointing at the removed styles fall back to the default style.
+            $db->setQuery(
+                $db->createQuery()
+                    ->update($db->quoteName('#__menu'))
+                    ->set($db->quoteName('template_style_id') . ' = 0')
+                    ->whereIn($db->quoteName('template_style_id'), $styleIds)
+            )->execute();
+            $db->setQuery(
+                $db->createQuery()
+                    ->delete($db->quoteName('#__template_styles'))
+                    ->whereIn($db->quoteName('id'), $styleIds)
+            )->execute();
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+
+            throw $exception;
+        }
     }
 }

@@ -284,6 +284,56 @@ class AboutController extends BaseController
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
     }
 
+    public function removeLegacyExtensions(): void
+    {
+        $this->checkToken();
+
+        try {
+            $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertRepair($user);
+
+            // Uninstalling extensions is a Joomla Installer right, like in its own model.
+            if (!$user->authorise('core.delete', 'com_installer')) {
+                throw new NotAllowed(Text::_('JERROR_CORE_DELETE_NOT_PERMITTED'), 403);
+            }
+
+            $single = $this->input->post->getInt('legacy_extension', 0);
+            $selectedIds = $single > 0
+                ? [$single]
+                : array_map('intval', (array) $this->input->post->get('legacy_extensions', [], 'array'));
+
+            if (array_filter($selectedIds) === []) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_NO_SELECTION'));
+            }
+
+            $summary = $this->getRepairService()->removeLegacyExtensions($selectedIds);
+
+            if ((int) ($summary['selected'] ?? 0) === 0) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_NO_SELECTION'));
+            }
+
+            $this->app->setUserState('com_breezingformsng.about.audit', $this->getAuditService()->run());
+            $failed = (int) ($summary['failed'] ?? 0);
+            $this->setMessage(Text::sprintf(
+                'COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_REPAIR_SUMMARY',
+                (int) ($summary['selected'] ?? 0),
+                (int) ($summary['removed'] ?? 0),
+                $failed
+            ), $failed > 0 ? 'warning' : 'message');
+
+            foreach ((array) ($summary['errors'] ?? []) as $error) {
+                $this->app->enqueueMessage(htmlspecialchars((string) $error, ENT_QUOTES, 'UTF-8'), 'warning');
+            }
+        } catch (\Throwable $exception) {
+            $this->setMessage(
+                Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_REPAIR_FAILED', $exception->getMessage()),
+                'error'
+            );
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+    }
+
     public function deleteDuplicateForm(): void
     {
         $this->checkToken();
@@ -383,6 +433,35 @@ class AboutController extends BaseController
             'elements_without_form',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETED',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETE_FAILED'
+        );
+    }
+
+    public function reassignOrphanValues(): void
+    {
+        $all = $this->input->post->getBool('orphan_all', false);
+        $rawId = $this->input->post->get('orphan_element_id', null, 'raw');
+        $elementId = $all ? null : (is_string($rawId) && preg_match('/\A[0-9]+\z/', $rawId) ? (int) $rawId : -1);
+
+        $this->repairOrphans(
+            fn (DatabaseRepairService $repair): int => $repair->reassignOrphanValues($elementId),
+            'subrecords_without_element',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGNED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_FAILED'
+        );
+    }
+
+    public function reassignOrphanValuesToElement(): void
+    {
+        $rawOld = $this->input->post->get('orphan_element_id', null, 'raw');
+        $rawTarget = $this->input->post->get('orphan_target_id', null, 'raw');
+        $old = is_string($rawOld) && preg_match('/\A[0-9]+\z/', $rawOld) ? (int) $rawOld : -1;
+        $target = is_string($rawTarget) && preg_match('/\A[0-9]+\z/', $rawTarget) ? (int) $rawTarget : -1;
+
+        $this->repairOrphans(
+            fn (DatabaseRepairService $repair): int => $repair->reassignOrphanValuesToElement($old, $target),
+            'subrecords_without_element',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGNED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_FAILED'
         );
     }
 

@@ -187,11 +187,26 @@
 
         event.preventDefault();
 
+        var targetSelect = button.dataset.bfOrphanTargetSelect
+            ? document.getElementById(button.dataset.bfOrphanTargetSelect)
+            : null;
+
+        // Repair towards a chosen field: nothing to do until one is selected.
+        if (targetSelect && (!targetSelect.value || targetSelect.value === '0')) {
+            targetSelect.focus();
+
+            return;
+        }
+
         if (!window.confirm(button.dataset.bfConfirm || '')) {
             return;
         }
 
         var params = new URLSearchParams({ orphan_element_id: button.dataset.bfOrphanElement || '0' });
+
+        if (targetSelect) {
+            params.set('orphan_target_id', targetSelect.value);
+        }
 
         if (button.dataset.bfOrphanAll === '1') {
             params.set('orphan_all', '1');
