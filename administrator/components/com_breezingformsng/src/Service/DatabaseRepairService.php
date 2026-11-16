@@ -562,6 +562,12 @@ final class DatabaseRepairService
                 }
 
                 if (!$uninstalled && $this->extensionRowExists($extensionId)) {
+                    // Only a registration whose files are really gone may be dropped;
+                    // any other installer failure is reported and the extension is kept.
+                    if (!$this->isOrphanRegistration($entry)) {
+                        throw new \RuntimeException('The installer failed and the extension files still exist; nothing was removed.');
+                    }
+
                     $this->deleteExtensionRow($extensionId, $entry);
                 }
 
@@ -581,6 +587,45 @@ final class DatabaseRepairService
             'failed' => count($errors),
             'errors' => $errors,
         ];
+    }
+
+    /**
+     * True when no file of the registered extension exists any more. Types
+     * whose location cannot be determined are never considered orphan.
+     *
+     * @param array<string, mixed> $entry
+     */
+    private function isOrphanRegistration(array $entry): bool
+    {
+        $type = (string) ($entry['type'] ?? '');
+        $element = (string) ($entry['element'] ?? '');
+        $folder = (string) ($entry['folder'] ?? '');
+        $base = (int) ($entry['client_id'] ?? 0) === 1 ? JPATH_ADMINISTRATOR : JPATH_SITE;
+
+        if ($element === '' || preg_match('/^[A-Za-z0-9_.-]+$/', $element) !== 1 || preg_match('/^[A-Za-z0-9_.-]*$/', $folder) !== 1) {
+            return false;
+        }
+
+        $paths = match ($type) {
+            'component' => [JPATH_ADMINISTRATOR . '/components/' . $element, JPATH_SITE . '/components/' . $element],
+            'plugin' => [JPATH_PLUGINS . '/' . $folder . '/' . $element],
+            'module' => [$base . '/modules/' . $element],
+            'template' => [$base . '/templates/' . $element],
+            'library' => [JPATH_LIBRARIES . '/' . $element],
+            default => null,
+        };
+
+        if ($paths === null) {
+            return false;
+        }
+
+        foreach ($paths as $path) {
+            if (file_exists($path)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function extensionRowExists(int $extensionId): bool

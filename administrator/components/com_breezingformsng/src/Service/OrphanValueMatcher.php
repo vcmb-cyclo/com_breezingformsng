@@ -19,7 +19,8 @@ use Joomla\Database\QueryInterface;
  * same form that carries the same name, so the values can be reassigned to it.
  *
  * A target is only proposed when its name is unique within its form, so that
- * the match is never ambiguous.
+ * the match is never ambiguous, and when its type equals the type of the stored
+ * values (a multi-valued field is never moved to a single-valued one).
  */
 final class OrphanValueMatcher
 {
@@ -36,7 +37,7 @@ final class OrphanValueMatcher
             ->from($db->quoteName('#__facileforms_subrecords', 's'))
             ->join('INNER', $db->quoteName('#__facileforms_records', 'r') . ' ON r.id = s.record')
             ->join('LEFT', $db->quoteName('#__facileforms_elements', 'o') . ' ON o.id = s.element')
-            ->join('INNER', $db->quoteName('#__facileforms_elements', 'e') . ' ON e.form = r.form AND e.name = s.name')
+            ->join('INNER', $db->quoteName('#__facileforms_elements', 'e') . ' ON e.form = r.form AND e.name = s.name AND e.type = s.type')
             ->join(
                 'INNER',
                 '(SELECT form, name FROM ' . $db->quoteName('#__facileforms_elements')
