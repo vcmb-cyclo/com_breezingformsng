@@ -422,6 +422,7 @@ final class DatabaseAuditService
                 if ($id === 'subrecords_without_element') {
                     $summary['groups'] = $this->addFormOfOrphanValues($summary['groups']);
                     $summary = $this->addDeletableOrphanValues($summary);
+                    $summary = $this->addOrphanValueRecordCounts($summary);
                     $summary = $this->addReassignableOrphanValues($summary);
                 }
 
@@ -594,6 +595,44 @@ final class DatabaseAuditService
 
         foreach ($summary['groups'] as &$group) {
             $group['deletable'] = $counts[(int) $group['parent_id']] ?? 0;
+        }
+        unset($group);
+
+        return $summary;
+    }
+
+    /**
+     * Counts, for each missing element, the distinct records holding its values
+     * (a multi-valued element stores several values per record).
+     *
+     * @param array{count: int, parents: int, groups: list<array<string, mixed>>, deletable: int} $summary
+     * @return array{count: int, parents: int, groups: list<array<string, mixed>>, deletable: int}
+     */
+    private function addOrphanValueRecordCounts(array $summary): array
+    {
+        $db = $this->db;
+        $ids = array_map(static fn (array $group): int => (int) $group['parent_id'], $summary['groups']);
+        $counts = [];
+
+        if ($ids !== []) {
+            $query = $db->createQuery()
+                ->select([
+                    $db->quoteName('child.element', 'element_id'),
+                    'COUNT(DISTINCT ' . $db->quoteName('child.record') . ') AS ' . $db->quoteName('total'),
+                ])
+                ->from($db->quoteName('#__facileforms_subrecords', 'child'))
+                ->join('LEFT', $db->quoteName('#__facileforms_elements', 'elements') . ' ON elements.id = child.element')
+                ->where('elements.id IS NULL')
+                ->whereIn($db->quoteName('child.element'), $ids)
+                ->group($db->quoteName('child.element'));
+
+            foreach ($db->setQuery($query)->loadAssocList() as $row) {
+                $counts[(int) $row['element_id']] = (int) $row['total'];
+            }
+        }
+
+        foreach ($summary['groups'] as &$group) {
+            $group['records'] = $counts[(int) $group['parent_id']] ?? 0;
         }
         unset($group);
 
@@ -827,6 +866,7 @@ final class DatabaseAuditService
                 ->select($this->db->quoteName(['id', 'title', 'link', 'published', 'params']))
                 ->from($this->db->quoteName('#__menu'))
                 ->where($this->db->quoteName('client_id') . ' = 0')
+                ->where($this->db->quoteName('published') . ' != -2')
                 ->where($this->db->quoteName('type') . ' = ' . $this->db->quote('component'))
                 ->where($this->db->quoteName('link') . ' LIKE ' . $this->db->quote('%option=com_breezingforms%'))
                 ->order($this->db->quoteName('id') . ' ASC');

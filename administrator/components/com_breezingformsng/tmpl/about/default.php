@@ -20,7 +20,9 @@ use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Language\Text;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseRepairService;
 
-Text::script('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE_ACK_REQUIRED');
+Text::script('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_TRANSFER_SELECT_FIRST');
+Text::script('JCLOSE');
+
 
 if (!function_exists('bf_about_read_json_file')) {
     /**
@@ -787,7 +789,16 @@ HTMLHelper::_('bootstrap.collapse');
                                 <?php foreach ($auditMenuIssues as $issue) : ?>
                                     <?php $menuId = (int) ($issue['menu_id'] ?? 0); ?>
                                     <tr class="table-warning">
-                                        <td><?php echo htmlspecialchars((string) ($issue['title'] ?? ''), ENT_QUOTES, 'UTF-8'); ?> <span class="text-muted">(#<?php echo $menuId; ?>)</span></td>
+                                        <td>
+                                            <?php $menuTitle = htmlspecialchars((string) ($issue['title'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>
+                                            <?php if ($menuId > 0) : ?>
+                                                <a href="index.php?option=com_menus&amp;task=item.edit&amp;id=<?php echo $menuId; ?>" target="_blank" rel="noopener"
+                                                    title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_EDIT'), ENT_QUOTES, 'UTF-8'); ?>"><?php echo $menuTitle; ?> <span class="icon-external-link small" aria-hidden="true"></span></a>
+                                            <?php else : ?>
+                                                <?php echo $menuTitle; ?>
+                                            <?php endif; ?>
+                                            <span class="text-muted">(#<?php echo $menuId; ?>)</span>
+                                        </td>
                                         <td><code><?php echo htmlspecialchars((string) ($issue['form_name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code></td>
                                         <td>
                                             <?php foreach ((array) ($issue['issues'] ?? array()) as $code) : ?>
@@ -796,21 +807,12 @@ HTMLHelper::_('bootstrap.collapse');
                                         </td>
                                         <td class="text-nowrap">
                                             <?php if ($menuId > 0) : ?>
-                                                <a class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener"
-                                                    href="index.php?option=com_menus&amp;task=item.edit&amp;id=<?php echo $menuId; ?>">
-                                                    <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_EDIT'); ?>
-                                                </a>
-                                                <form method="post" action="index.php?option=com_menus" target="_blank" class="d-inline"
-                                                    onsubmit="return window.confirm('<?php echo htmlspecialchars(Text::_('JGLOBAL_CONFIRM_DELETE'), ENT_QUOTES, 'UTF-8'); ?>');">
-                                                    <input type="hidden" name="task" value="items.delete">
-                                                    <input type="hidden" name="cid[]" value="<?php echo $menuId; ?>">
-                                                    <?php echo HTMLHelper::_('form.token'); ?>
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger ms-1"
-                                                        title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE'), ENT_QUOTES, 'UTF-8'); ?>">
-                                                        <span class="icon-trash" aria-hidden="true"></span>
-                                                        <span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE'); ?></span>
-                                                    </button>
-                                                </form>
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE'), ENT_QUOTES, 'UTF-8'); ?>"
+                                                    onclick="if (window.confirm('<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE_CONFIRM', $menuId), ENT_QUOTES, 'UTF-8'); ?>')) { document.getElementById('bf-menu-item-id').value = '<?php echo $menuId; ?>'; Joomla.submitform('about.deleteMenuItem'); }">
+                                                    <span class="icon-trash" aria-hidden="true"></span>
+                                                    <span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE'); ?></span>
+                                                </button>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -1036,6 +1038,7 @@ HTMLHelper::_('bootstrap.collapse');
                 <?php endif; ?>
 
                 <?php if ($auditOrphanChecks !== array()) : ?>
+                    <div id="bf-audit-orphan-messages" class="mb-2" role="status" aria-live="polite"></div>
                     <div class="bf-audit-section-block mb-3" id="bf-audit-orphan-references">
                         <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES_HELP'); ?></h4>
                         <?php foreach ($auditOrphanChecks as $check) : ?>
@@ -1057,13 +1060,13 @@ HTMLHelper::_('bootstrap.collapse');
                                         <thead>
                                             <tr>
                                                 <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_PARENT_' . $orphanParent); ?></th>
-                                                <?php if ($orphanHasLabel) : ?>
+                                                <?php if ($orphanHasLabel && !$orphanValues) : ?>
                                                     <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_LABEL'); ?></th>
                                                 <?php endif; ?>
                                                 <?php if ($orphanHasForm) : ?>
                                                     <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_FORM'); ?></th>
                                                 <?php endif; ?>
-                                                <th scope="col" class="text-end"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ROWS'); ?></th>
+                                                <th scope="col" class="text-end"><?php echo Text::_($orphanValues ? 'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORDS' : 'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ROWS'); ?></th>
                                                 <?php if ($orphanValues) : ?>
                                                     <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_TARGET'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_HELP'); ?></th>
                                                     <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></th>
@@ -1078,26 +1081,45 @@ HTMLHelper::_('bootstrap.collapse');
                                                 <tr>
                                                     <?php $orphanLabel = htmlspecialchars((string) ($orphanGroup['label'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>
                                                     <?php $orphanId = '#' . (int) ($orphanGroup['parent_id'] ?? 0); ?>
-                                                    <td><?php echo $orphanLabel === '' ? $orphanLink($orphanRecordsLink, $orphanGroup, $orphanId) : $orphanId; ?></td>
-                                                    <?php if ($orphanHasLabel) : ?>
-                                                        <td><?php echo $orphanLabel === '' ? '' : $orphanLink($orphanRecordsLink, $orphanGroup, $orphanLabel); ?></td>
+                                                    <?php if ($orphanValues) : ?>
+                                                        <td>
+                                                            <?php if ($orphanLabel !== '') : ?><div><?php echo $orphanLabel; ?></div><?php endif; ?>
+                                                            <div class="small text-muted"><?php echo $orphanId; ?></div>
+                                                        </td>
+                                                    <?php else : ?>
+                                                        <td><?php echo $orphanLabel === '' ? $orphanLink($orphanRecordsLink, $orphanGroup, $orphanId) : $orphanId; ?></td>
+                                                        <?php if ($orphanHasLabel) : ?>
+                                                            <td><?php echo $orphanLabel === '' ? '' : $orphanLink($orphanRecordsLink, $orphanGroup, $orphanLabel); ?></td>
+                                                        <?php endif; ?>
                                                     <?php endif; ?>
                                                     <?php if ($orphanHasForm) : ?>
                                                         <?php $orphanFormId = (int) ($orphanGroup['form_id'] ?? 0); ?>
                                                         <td>
                                                             <?php if ($orphanFormId > 0) : ?>
-                                                                <?php echo $orphanLink(true, array('parent_id' => $orphanFormId), htmlspecialchars(trim((string) ($orphanGroup['form_title'] ?? '') . ' #' . $orphanFormId), ENT_QUOTES, 'UTF-8')); ?>
+                                                                <?php if ($orphanValues) : ?>
+                                                                    <a href="<?php echo Route::_('index.php?option=com_breezingformsng&task=quickmode.display&form=' . $orphanFormId); ?>" target="_blank" rel="noopener"
+                                                                        title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_OPEN_EDITOR'), ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars(trim((string) ($orphanGroup['form_title'] ?? '')) !== '' ? trim((string) $orphanGroup['form_title']) : '#' . $orphanFormId, ENT_QUOTES, 'UTF-8'); ?></a>
+                                                                <?php else : ?>
+                                                                    <?php echo $orphanLink(true, array('parent_id' => $orphanFormId), htmlspecialchars(trim((string) ($orphanGroup['form_title'] ?? '') . ' #' . $orphanFormId), ENT_QUOTES, 'UTF-8')); ?>
+                                                                <?php endif; ?>
                                                                 <?php if ((int) ($orphanGroup['forms'] ?? 1) > 1) : ?>
                                                                     <span class="text-muted">+<?php echo (int) $orphanGroup['forms'] - 1; ?></span>
                                                                 <?php endif; ?>
                                                             <?php endif; ?>
                                                         </td>
                                                     <?php endif; ?>
-                                                    <td class="text-end"><?php echo (int) ($orphanGroup['count'] ?? 0); ?></td>
+                                                    <td class="text-end">
+                                                        <?php if ($orphanValues && (int) ($orphanGroup['parent_id'] ?? 0) > 0) : ?>
+                                                            <a href="<?php echo Route::_('index.php?option=com_breezingformsng&view=records&filter[orphan_element]=' . (int) $orphanGroup['parent_id'] . '&filter[state]=*'); ?>" target="_blank" rel="noopener"
+                                                                title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SHOW_RECORDS'), ENT_QUOTES, 'UTF-8'); ?>"><?php echo (int) ($orphanGroup['records'] ?? 0); ?></a>
+                                                        <?php else : ?>
+                                                            <?php echo (int) ($orphanGroup['count'] ?? 0); ?>
+                                                        <?php endif; ?>
+                                                    </td>
                                                     <?php if ($orphanValues) : ?>
                                                         <td>
                                                             <?php if ((int) ($orphanGroup['target_id'] ?? 0) > 0) : ?>
-                                                                <span class="text-success">&rarr; #<?php echo (int) $orphanGroup['target_id']; ?></span>
+                                                                <span class="text-success"><span class="fa-solid fa-arrow-right-long" aria-hidden="true"></span> #<?php echo (int) $orphanGroup['target_id']; ?></span>
                                                                 <span class="small text-muted"><?php echo Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGNABLE_COUNT', (int) ($orphanGroup['reassignable'] ?? 0), (int) ($orphanGroup['matched'] ?? 0)); ?></span>
                                                                 <?php if ((int) ($orphanGroup['reassignable'] ?? 0) > 0) : ?>
                                                                     <button
@@ -1115,7 +1137,9 @@ HTMLHelper::_('bootstrap.collapse');
                                                                 <?php $orphanCandidates = (array) ($orphanGroup['candidates'] ?? array()); ?>
                                                                 <?php if ($orphanCandidates !== array()) : ?>
                                                                     <?php $orphanSelectId = 'bf-orphan-target-' . (int) ($orphanGroup['parent_id'] ?? 0); ?>
-                                                                    <div class="input-group input-group-sm mt-1">
+                                                                    <div class="d-flex align-items-center gap-2 mt-1">
+                                                                    <span class="fa-solid fa-arrow-right-long text-primary" aria-hidden="true"></span>
+                                                                    <div class="input-group input-group-sm">
                                                                         <select class="form-select form-select-sm" id="<?php echo $orphanSelectId; ?>" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR_TARGET'), ENT_QUOTES, 'UTF-8'); ?>"<?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>>
                                                                             <option value="0"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR_SELECT'); ?></option>
                                                                             <?php
@@ -1143,6 +1167,7 @@ HTMLHelper::_('bootstrap.collapse');
                                                                             data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
                                                                         ><span class="icon-wrench" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR'); ?></button>
                                                                     </div>
+                                                                    </div>
                                                                 <?php endif; ?>
                                                             <?php endif; ?>
                                                         </td>
@@ -1157,19 +1182,13 @@ HTMLHelper::_('bootstrap.collapse');
                                                                 data-bf-orphan-element="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
                                                                 data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
                                                             ><span class="icon-trash" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></button>
-                                                            <?php endif; ?>
-                                                            <?php if ((int) ($orphanGroup['deletable'] ?? 0) !== (int) ($orphanGroup['count'] ?? 0) && (int) ($orphanGroup['parent_id'] ?? 0) > 0) : ?>
-                                                            <?php $orphanAckId = 'bf-orphan-ack-' . (int) $orphanGroup['parent_id']; ?>
-                                                            <div class="form-check small mb-1">
-                                                                <input class="form-check-input" type="checkbox" id="<?php echo $orphanAckId; ?>"<?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>>
-                                                                <label class="form-check-label text-danger" for="<?php echo $orphanAckId; ?>"><?php echo Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE_ACK', (int) ($orphanGroup['count'] ?? 0)); ?></label>
-                                                            </div>
+                                                            <?php elseif ((int) ($orphanGroup['parent_id'] ?? 0) > 0) : ?>
                                                             <button
                                                                 type="button"
                                                                 class="btn btn-sm btn-danger"
                                                                 title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE'), ENT_QUOTES, 'UTF-8'); ?>"
                                                                 data-bf-orphan-task="about.deleteOrphanValuesWithRecords"
-                                                                data-bf-orphan-ack="<?php echo $orphanAckId; ?>"
+                                                                data-bf-orphan-acknowledge="1"
                                                                 <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
                                                                 data-bf-orphan-element="<?php echo (int) $orphanGroup['parent_id']; ?>"
                                                                 data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
@@ -1425,6 +1444,7 @@ HTMLHelper::_('bootstrap.collapse');
     <input type="hidden" name="task" id="bf-about-task" value="about.display" />
     <input type="hidden" name="view" value="about" />
     <input type="hidden" name="duplicate_form_id" id="bf-duplicate-form-id" value="" />
+    <input type="hidden" name="menu_item_id" id="bf-menu-item-id" value="" />
     <input type="hidden" name="orphan_element_id" id="bf-orphan-element-id" value="0" />
     <input type="hidden" name="duplicate_index_group" id="bf-duplicate-index-group" value="" />
     <input type="hidden" name="column_collation_issue" id="bf-column-collation-issue" value="" />

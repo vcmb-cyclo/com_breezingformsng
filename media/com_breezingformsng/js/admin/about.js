@@ -178,19 +178,36 @@
         });
     }
 
-    // The messages are rendered at the top of the page: bring them into view,
-    // the audit being far below.
+    // The result is shown right above the orphan references (not at the top of
+    // the page, far from the clicked button), and brought into view.
     function showOrphanMessage(type, text) {
-        var messages = {};
+        var container = document.getElementById('bf-audit-orphan-messages');
 
-        messages[type] = [text];
-        Joomla.renderMessages(messages);
+        if (!container) {
+            var messages = {};
 
-        var container = document.getElementById('system-message-container');
+            messages[type] = [text];
+            Joomla.renderMessages(messages);
 
-        if (container) {
-            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
         }
+
+        var alert = document.createElement('div');
+
+        alert.className = 'alert alert-' + (type === 'message' ? 'success' : (type === 'error' ? 'danger' : type))
+            + ' alert-dismissible fade show mb-0';
+        alert.setAttribute('role', 'alert');
+        alert.appendChild(document.createTextNode(text));
+
+        var close = document.createElement('button');
+
+        close.type = 'button';
+        close.className = 'btn-close';
+        close.setAttribute('data-bs-dismiss', 'alert');
+        close.setAttribute('aria-label', Joomla.Text._('JCLOSE'));
+        alert.appendChild(close);
+        container.replaceChildren(alert);
+        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     document.addEventListener('click', function (event) {
@@ -206,24 +223,10 @@
             ? document.getElementById(button.dataset.bfOrphanTargetSelect)
             : null;
 
-        // Repair towards a chosen field: nothing to do until one is selected.
+        // Transfer towards a chosen field: nothing to do until one is selected.
         if (targetSelect && (!targetSelect.value || targetSelect.value === '0')) {
             targetSelect.focus();
-
-            return;
-        }
-
-        // Irreversible deletion of values of existing records: the box must be ticked first.
-        var acknowledge = button.dataset.bfOrphanAck
-            ? document.getElementById(button.dataset.bfOrphanAck)
-            : null;
-
-        if (button.dataset.bfOrphanAck && (!acknowledge || !acknowledge.checked)) {
-            if (acknowledge) {
-                acknowledge.focus();
-            }
-
-            showOrphanMessage('warning', Joomla.Text._('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE_ACK_REQUIRED'));
+            showOrphanMessage('warning', Joomla.Text._('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_TRANSFER_SELECT_FIRST'));
 
             return;
         }
@@ -238,7 +241,8 @@
             params.set('orphan_target_id', targetSelect.value);
         }
 
-        if (acknowledge) {
+        // The confirmation above is the explicit acknowledgement of an irreversible deletion.
+        if (button.dataset.bfOrphanAcknowledge === '1') {
             params.set('orphan_acknowledged', '1');
         }
 
@@ -265,8 +269,9 @@
                 return;
             }
 
-            showOrphanMessage(result.json.deleted === 0 ? 'warning' : 'message', result.json.message);
-            return refreshOrphans();
+            return refreshOrphans().then(function () {
+                showOrphanMessage(result.json.deleted === 0 ? 'warning' : 'message', result.json.message);
+            });
         }).catch(function () {
             button.disabled = false;
             showOrphanMessage('error', Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED'));

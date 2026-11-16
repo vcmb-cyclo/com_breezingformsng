@@ -38,11 +38,14 @@ final class OrphanValuesLiveDeletionGuardsTest extends TestCase
         self::assertStringContainsString('NOT EXISTS (', $method);
     }
 
-    public function testButtonNeedsTheCheckbox(): void
+    public function testButtonAsksForConfirmationInsteadOfShowingACheckbox(): void
     {
         $js = (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/js/admin/about.js');
+        $template = (string) file_get_contents(self::ADMIN . '/tmpl/about/default.php');
 
-        self::assertStringContainsString('bfOrphanAck', $js);
-        self::assertStringContainsString('acknowledge.checked', $js);
+        self::assertStringContainsString('bfOrphanAcknowledge', $js);
+        self::assertStringContainsString("params.set('orphan_acknowledged', '1')", $js);
+        self::assertStringNotContainsString('bf-orphan-ack-', $template);
+        self::assertStringContainsString('id="bf-audit-orphan-messages"', $template);
     }
 }

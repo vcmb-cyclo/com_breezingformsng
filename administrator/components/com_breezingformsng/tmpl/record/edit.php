@@ -12,6 +12,7 @@
 
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Layout\LayoutHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
 $record = $this->item;
@@ -217,26 +218,26 @@ $paginationNav = static function (string $spacing) use ($pages, $pageLink, $posi
       </div>
       <div class="card-body">
         <p class="small text-muted"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_ORPHAN_VALUES_DESC'); ?></p>
-        <div class="table-responsive">
-          <table class="table table-sm table-warning align-middle mb-0">
-            <thead>
-              <tr>
-                <th scope="col"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_ORPHAN_VALUE_NAME'); ?></th>
-                <th scope="col"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_ORPHAN_VALUE_ELEMENT'); ?></th>
-                <th scope="col"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_ORPHAN_VALUE'); ?></th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($orphanValues as $orphan) : ?>
-                <tr>
-                  <td><code><?= $value($orphan['name']); ?></code><?= (string) $orphan['title'] !== '' ? ' <span class="text-muted">' . $value($orphan['title']) . '</span>' : ''; ?></td>
-                  <td>#<?= (int) $orphan['element_id']; ?></td>
-                  <td class="text-break"><?= nl2br($value($orphan['value'])); ?></td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div>
+        <?php foreach ($orphanValues as $index => $orphan) : ?>
+          <?php
+          $orphanFieldId = 'orphan_value_' . (int) $index;
+          $orphanText = (string) ($orphan['value'] ?? '');
+          $orphanLabel = (string) ($orphan['title'] ?? '') !== '' ? (string) $orphan['title'] : (string) $orphan['name'];
+          // Same layout as the fields of the record: label on the left, the value in a
+          // read-only field, the code of the element under it.
+          $orphanInput = str_contains($orphanText, "\n") || mb_strlen($orphanText) > 120
+              ? '<textarea id="' . $orphanFieldId . '" class="form-control" rows="3" readonly>' . $value($orphanText) . '</textarea>'
+              : '<input type="text" id="' . $orphanFieldId . '" class="form-control" value="' . $value($orphanText) . '" readonly>';
+          ?>
+          <?= LayoutHelper::render('joomla.form.renderfield', [
+              'id' => $orphanFieldId,
+              'name' => $orphanFieldId,
+              'label' => '<label id="' . $orphanFieldId . '-lbl" for="' . $orphanFieldId . '">' . $value($orphanLabel) . '</label>',
+              'input' => $orphanInput,
+              'description' => $value($orphan['name']) . ' &middot; #' . (int) $orphan['element_id'],
+              'options' => [],
+          ]); ?>
+        <?php endforeach; ?>
       </div>
     </div>
   <?php endif; ?>

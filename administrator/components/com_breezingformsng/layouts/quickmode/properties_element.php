@@ -13,6 +13,7 @@ use Joomla\CMS\Language\Text;
 ?>
                                     <div class="bfProperties" id="bfElementProperties" style="display:none">
                                         <br />
+                                        <span class="badge bg-secondary mb-2" id="bfElementIdBadge" hidden title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ELEMENT_ID_BADGE'), ENT_QUOTES, 'UTF-8'); ?>"></span>
                                         <fieldset>
                                             <div class="bfPropertyWrap bfng-field">
                                                 <label class="bfPropertyLabel bfng-field__label"

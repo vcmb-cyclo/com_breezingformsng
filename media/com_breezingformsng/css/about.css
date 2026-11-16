@@ -414,8 +414,17 @@
     font-weight: 600;
 }
 
+/* An orphan check is listed because something is wrong: warning colours, not the blue of a link. */
+.bf-audit-orphans {
+    border-color: var(--bs-warning-border-subtle);
+    background-color: var(--bs-warning-bg-subtle);
+}
 .bf-audit-orphans > summary {
     cursor: pointer;
+    color: var(--bs-warning-text-emphasis);
+}
+.bf-audit-orphans > summary .bf-orphan-count {
+    color: inherit;
 }
 
     .bf-about-easter-egg {
