@@ -661,15 +661,16 @@ final class DatabaseAuditService
                 ->select([
                     $db->quoteName('s.element', 'old_id'),
                     $db->quoteName('e.id', 'target_id'),
+                    $db->quoteName('e.name', 'target_name'),
                     'COUNT(*) AS ' . $db->quoteName('total'),
                     'SUM(CASE WHEN x.id IS NULL THEN 1 ELSE 0 END) AS ' . $db->quoteName('free'),
                 ])
-                ->group([$db->quoteName('s.element'), $db->quoteName('e.id')])
+                ->group([$db->quoteName('s.element'), $db->quoteName('e.id'), $db->quoteName('e.name')])
                 ->order($db->quoteName('free') . ' DESC, ' . $db->quoteName('e.id') . ' ASC');
 
             foreach ($db->setQuery($query)->loadAssocList() as $row) {
                 $old = (int) $row['old_id'];
-                $matches[$old] ??= ['target_id' => (int) $row['target_id'], 'matched' => 0, 'free' => 0];
+                $matches[$old] ??= ['target_id' => (int) $row['target_id'], 'target_name' => (string) $row['target_name'], 'matched' => 0, 'free' => 0];
                 $matches[$old]['matched'] += (int) $row['total'];
                 $matches[$old]['free'] += (int) $row['free'];
             }
@@ -681,6 +682,7 @@ final class DatabaseAuditService
             $group['candidates'] = array_slice($candidates[(int) $group['parent_id']] ?? [], 0, 200);
             $match = $matches[(int) $group['parent_id']] ?? null;
             $group['target_id'] = $match['target_id'] ?? 0;
+            $group['target_name'] = $match['target_name'] ?? '';
             $group['matched'] = $match['matched'] ?? 0;
             $group['reassignable'] = $match['free'] ?? 0;
         }

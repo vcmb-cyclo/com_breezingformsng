@@ -74,8 +74,14 @@ class RecordModel extends AdminModel
         $item->checked_out_name = $this->getUserName((int) $item->checked_out) ?? '';
         $item->{self::ELEMENT_GROUP} = [];
 
+        $item->name_matched = [];
+
         foreach ($this->getEditableRows($pk, $formId, (string) $item->name) as $row) {
             $item->{self::ELEMENT_GROUP}[self::ELEMENT_PREFIX . $row['element_id']] = $row['value'];
+
+            if ($row['matched_from'] !== []) {
+                $item->name_matched[$row['element_id']] = $row['matched_from'];
+            }
         }
 
         $item->orphan_values = $this->getOrphanRows($pk, $formId);
@@ -102,9 +108,16 @@ class RecordModel extends AdminModel
     }
 
     /**
-     * @return list<array{element_id: int, title: string, name: string, type: string, value: string}>
+     * Matches the stored values of a record with the editable elements of its form.
+     *
+     * A value belongs to an element by its element id. Failing that, a value whose
+     * element no longer exists is attached by name, under the same rules as the About
+     * audit: the name is unique in the form and the type is the same. Anything else
+     * stays unmatched (listed as a value without an element).
+     *
+     * @return array{matches: list<array{element: array<string, mixed>, subs: list<array<string, mixed>>, byName: bool}>, subrecords: list<array<string, mixed>>, shown: array<int, true>}
      */
-    public function getEditableRows(int $recordId, int $formId, string $recordName): array
+    private function matchSubrecords(int $recordId, int $formId): array
     {
         $elements = $this->getEditableElements($formId);
         $db = $this->getDatabase();
@@ -114,33 +127,95 @@ class RecordModel extends AdminModel
             ->where($db->quoteName('record') . ' = :recordId')
             ->order($db->quoteName('id'))
             ->bind(':recordId', $recordId, ParameterType::INTEGER);
-        $db->setQuery($query);
-        $subrecords = $db->loadAssocList();
+        $subrecords = $db->setQuery($query)->loadAssocList();
 
-        $byElement = [];
-        $byName = [];
-        foreach ($subrecords as $sub) {
-            $byElement[(int) $sub['element']][] = $sub;
-            $byName[(string) $sub['name']][] = $sub;
+        $elementIds = array_values(array_unique(array_map(static fn (array $sub): int => (int) $sub['element'], $subrecords)));
+        $existing = [];
+
+        if ($elementIds !== []) {
+            $existing = array_flip(array_map('intval', $db->setQuery(
+                $db->createQuery()
+                    ->select($db->quoteName('id'))
+                    ->from($db->quoteName('#__facileforms_elements'))
+                    ->whereIn($db->quoteName('id'), $elementIds)
+            )->loadColumn()));
         }
 
-        $rows = [];
-        foreach ($elements as $element) {
-            $elementId = (int) $element['id'];
-            $name = (string) $element['name'];
-            $matches = $byElement[$elementId] ?? $byName[$name] ?? [];
-            $values = array_map(fn($m) => (string) $m['value'], $matches);
+        $nameCounts = [];
 
-            if (!count($values) && $name === 'Formulaire') {
+        foreach ($db->setQuery(
+            $db->createQuery()
+                ->select([$db->quoteName('name'), 'COUNT(*) AS ' . $db->quoteName('total')])
+                ->from($db->quoteName('#__facileforms_elements'))
+                ->where($db->quoteName('form') . ' = :formId')
+                ->group($db->quoteName('name'))
+                ->bind(':formId', $formId, ParameterType::INTEGER)
+        )->loadAssocList() as $row) {
+            $nameCounts[(string) $row['name']] = (int) $row['total'];
+        }
+
+        $byElement = [];
+        $missingByName = [];
+
+        foreach ($subrecords as $sub) {
+            $byElement[(int) $sub['element']][] = $sub;
+
+            if (!isset($existing[(int) $sub['element']])) {
+                $missingByName[(string) $sub['name']][] = $sub;
+            }
+        }
+
+        $matches = [];
+        $shown = [];
+
+        foreach ($elements as $element) {
+            $subs = $byElement[(int) $element['id']] ?? [];
+            $byName = false;
+
+            if ($subs === [] && ($nameCounts[(string) $element['name']] ?? 0) === 1) {
+                $subs = array_values(array_filter(
+                    $missingByName[(string) $element['name']] ?? [],
+                    static fn (array $sub): bool => (string) $sub['type'] === (string) $element['type']
+                ));
+                $byName = $subs !== [];
+            }
+
+            foreach ($subs as $sub) {
+                $shown[(int) $sub['id']] = true;
+            }
+
+            $matches[] = ['element' => $element, 'subs' => $subs, 'byName' => $byName];
+        }
+
+        return ['matches' => $matches, 'subrecords' => $subrecords, 'shown' => $shown];
+    }
+
+    /**
+     * @return list<array{element_id: int, title: string, name: string, type: string, value: string, matched_from: list<int>}>
+     */
+    public function getEditableRows(int $recordId, int $formId, string $recordName): array
+    {
+        $rows = [];
+
+        foreach ($this->matchSubrecords($recordId, $formId)['matches'] as $match) {
+            $element = $match['element'];
+            $name = (string) $element['name'];
+            $values = array_map(static fn (array $sub): string => (string) $sub['value'], $match['subs']);
+
+            if ($values === [] && $name === 'Formulaire') {
                 $values[] = $recordName;
             }
 
             $rows[] = [
-                'element_id' => $elementId,
-                'title'      => (string) $element['title'],
-                'name'       => $name,
-                'type'       => (string) $element['type'],
-                'value'      => implode("\n", $values),
+                'element_id'   => (int) $element['id'],
+                'title'        => (string) $element['title'],
+                'name'         => $name,
+                'type'         => (string) $element['type'],
+                'value'        => implode("\n", $values),
+                // Deleted elements whose values are attached to this one by name.
+                'matched_from' => $match['byName']
+                    ? array_values(array_unique(array_map(static fn (array $sub): int => (int) $sub['element'], $match['subs'])))
+                    : [],
             ];
         }
 
@@ -149,42 +224,19 @@ class RecordModel extends AdminModel
 
     /**
      * Stored values that no field of the edit form shows: their element was
-     * deleted (or is not editable) and no current field carries their name.
-     * They stay in the database but cannot be seen in the edit form.
+     * deleted (or is not editable) and no current element of the same name and
+     * type, unique in the form, takes them over. They stay in the database and
+     * are not changed when the record is saved.
      *
      * @return list<array{element_id: int, name: string, title: string, value: string}>
      */
     public function getOrphanRows(int $recordId, int $formId): array
     {
-        $db = $this->getDatabase();
-        $query = $db->createQuery()
-            ->select(['id', 'element', 'title', 'name', 'value'])
-            ->from($db->quoteName('#__facileforms_subrecords'))
-            ->where($db->quoteName('record') . ' = :recordId')
-            ->order($db->quoteName('id'))
-            ->bind(':recordId', $recordId, ParameterType::INTEGER);
-        $subrecords = $db->setQuery($query)->loadAssocList();
-        $byElement = [];
-        $byName = [];
-
-        foreach ($subrecords as $sub) {
-            $byElement[(int) $sub['element']][] = (int) $sub['id'];
-            $byName[(string) $sub['name']][] = (int) $sub['id'];
-        }
-
-        // Same matching as getEditableRows(): by element id, else by name.
-        $shown = [];
-
-        foreach ($this->getEditableElements($formId) as $element) {
-            foreach ($byElement[(int) $element['id']] ?? $byName[(string) $element['name']] ?? [] as $subId) {
-                $shown[$subId] = true;
-            }
-        }
-
+        $matched = $this->matchSubrecords($recordId, $formId);
         $orphans = [];
 
-        foreach ($subrecords as $sub) {
-            if (!isset($shown[(int) $sub['id']])) {
+        foreach ($matched['subrecords'] as $sub) {
+            if (!isset($matched['shown'][(int) $sub['id']])) {
                 $orphans[] = [
                     'element_id' => (int) $sub['element'],
                     'name' => (string) $sub['name'],
@@ -258,16 +310,16 @@ class RecordModel extends AdminModel
             ->select($db->quoteName('id'))
             ->from($db->quoteName('#__facileforms_subrecords'))
             ->where($db->quoteName('record') . ' = :recordId')
-            ->extendWhere('AND', [
-                $db->quoteName('element') . ' = :elementId',
-                $db->quoteName('name') . ' = :name',
-            ], 'OR')
+            ->where($db->quoteName('element') . ' = :elementId')
             ->order($db->quoteName('id'))
             ->bind(':recordId', $recordId, ParameterType::INTEGER)
-            ->bind(':elementId', $elementId, ParameterType::INTEGER)
-            ->bind(':name', $name, ParameterType::STRING);
-        $db->setQuery($query);
-        $subrecordIds = array_map('intval', $db->loadColumn());
+            ->bind(':elementId', $elementId, ParameterType::INTEGER);
+        $subrecordIds = array_map('intval', $db->setQuery($query)->loadColumn());
+
+        if ($subrecordIds === []) {
+            $subrecordIds = $this->getNameMatchedSubrecordIds($recordId, $elementId, $name, $type);
+        }
+
         $values = $this->splitValue($value, $type) ?: [''];
 
         foreach ($subrecordIds as $index => $subrecordId) {
@@ -311,6 +363,61 @@ class RecordModel extends AdminModel
                 ->bind(':value', $rowValue, ParameterType::STRING);
             $db->setQuery($insertQuery)->execute();
         }
+    }
+
+    /**
+     * Values of a record attached by name to an element, when their own element no
+     * longer exists: the name is unique in the form of the element and the type is the
+     * same (the rules of the About audit). Saving the record then attaches them to it.
+     *
+     * @return list<int>
+     */
+    private function getNameMatchedSubrecordIds(int $recordId, int $elementId, string $name, string $type): array
+    {
+        $db = $this->getDatabase();
+        $formId = (int) $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName('form'))
+                ->from($db->quoteName('#__facileforms_elements'))
+                ->where($db->quoteName('id') . ' = :elementId')
+                ->bind(':elementId', $elementId, ParameterType::INTEGER)
+        )->loadResult();
+
+        if ($formId < 1) {
+            return [];
+        }
+
+        $sameName = (int) $db->setQuery(
+            $db->createQuery()
+                ->select('COUNT(*)')
+                ->from($db->quoteName('#__facileforms_elements'))
+                ->where($db->quoteName('form') . ' = :formId')
+                ->where($db->quoteName('name') . ' = :name')
+                ->bind(':formId', $formId, ParameterType::INTEGER)
+                ->bind(':name', $name, ParameterType::STRING)
+        )->loadResult();
+
+        if ($sameName !== 1) {
+            return [];
+        }
+
+        $elements = $db->createQuery()
+            ->select('1')
+            ->from($db->quoteName('#__facileforms_elements', 'elements'))
+            ->where($db->quoteName('elements.id') . ' = ' . $db->quoteName('#__facileforms_subrecords.element'));
+        $query = $db->createQuery()
+            ->select($db->quoteName('id'))
+            ->from($db->quoteName('#__facileforms_subrecords'))
+            ->where($db->quoteName('record') . ' = :recordId')
+            ->where($db->quoteName('name') . ' = :name')
+            ->where($db->quoteName('type') . ' = :type')
+            ->where('NOT EXISTS (' . $elements . ')')
+            ->order($db->quoteName('id'))
+            ->bind(':recordId', $recordId, ParameterType::INTEGER)
+            ->bind(':name', $name, ParameterType::STRING)
+            ->bind(':type', $type, ParameterType::STRING);
+
+        return array_values(array_map('intval', $db->setQuery($query)->loadColumn()));
     }
 
     /**
@@ -406,12 +513,20 @@ class RecordModel extends AdminModel
             $field = $fieldset->addChild('field');
             $field->addAttribute('name', $name);
             $field->addAttribute('type', 'textarea');
-            // Joomla prints labels and descriptions as HTML, like its own
-            // language strings: escape the titles and names of the elements.
-            $field->addAttribute('label', htmlspecialchars((string) $element['title'], ENT_QUOTES, 'UTF-8'));
-            $field->addAttribute('description', htmlspecialchars((string) $element['name'], ENT_QUOTES, 'UTF-8'));
+            // Joomla prints labels as HTML, like its own language strings: escape the
+            // titles and names of the elements. The code of the element is shown under
+            // the title, in the label.
+            $from = array_map('intval', (array) (((array) ($record['name_matched'] ?? []))[(int) $element['id']] ?? []));
+            $note = $from === [] ? '' : '<small class="d-block form-text text-warning-emphasis">'
+                . htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_RECORD_NAME_MATCHED', '#' . implode(', #', $from)), ENT_QUOTES, 'UTF-8')
+                . '</small>';
+            $field->addAttribute(
+                'label',
+                htmlspecialchars((string) $element['title'], ENT_QUOTES, 'UTF-8')
+                . '<small class="d-block form-text">' . htmlspecialchars((string) $element['name'], ENT_QUOTES, 'UTF-8') . '</small>'
+                . $note
+            );
             $field->addAttribute('translateLabel', 'false');
-            $field->addAttribute('translateDescription', 'false');
             $field->addAttribute('rows', (string) ($lines > 0 ? min(10, $lines + 2) : 1));
             $field->addAttribute('filter', 'raw');
         }
