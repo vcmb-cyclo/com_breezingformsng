@@ -159,6 +159,61 @@ final class UploadPathResolverTest extends TestCase
         self::assertSame('/uploads/A_B_photo.pdf', $result['path']);
     }
 
+    public function testFilemaskCannotTurnProfileValuesIntoPathSegments(): void
+    {
+        $resolver = new UploadPathResolver(new Input());
+        $result = $resolver->resolve(
+            '/uploads/{filemask:_username}_{filemask:_name}',
+            'photo.pdf',
+            [],
+            [],
+            [],
+            '2024-01-02 03:04:05',
+            'UTC',
+            ['username' => '../outside', 'name' => '..\\other']
+        );
+
+        self::assertSame('/uploads', $result['directory']);
+        self::assertStringNotContainsString('/', $result['filename']);
+        self::assertStringNotContainsString('\\', $result['filename']);
+        self::assertSame('/uploads/' . $result['filename'], $result['path']);
+        self::assertStringEndsWith('.pdf', $result['filename']);
+    }
+
+    public function testFilemaskCannotOverwriteFileOutsideUploadDirectory(): void
+    {
+        $root = sys_get_temp_dir() . '/bfng-mask-' . bin2hex(random_bytes(8));
+        $directory = $root . '/uploads';
+        mkdir($directory, 0700, true);
+        file_put_contents($root . '/sentinel.pdf', 'original');
+        $storedPath = null;
+
+        try {
+            $result = (new UploadPathResolver(new Input()))->resolve(
+                $directory . '/{filemask:_username}',
+                'upload.pdf',
+                [],
+                [],
+                [],
+                '2024-01-02 03:04:05',
+                'UTC',
+                ['username' => '../sentinel']
+            );
+            $storedPath = $result['path'];
+            file_put_contents($storedPath, 'synthetic upload');
+
+            self::assertSame('original', file_get_contents($root . '/sentinel.pdf'));
+            self::assertSame($directory, dirname($storedPath));
+        } finally {
+            if ($storedPath !== null && is_file($storedPath) && dirname($storedPath) === $directory) {
+                unlink($storedPath);
+            }
+            unlink($root . '/sentinel.pdf');
+            rmdir($directory);
+            rmdir($root);
+        }
+    }
+
     public function testResolvesTokenizedDirectoryAndCreatesIt(): void
     {
         $baseDirectory = sys_get_temp_dir() . '/bfng-tokenized-' . bin2hex(random_bytes(4));

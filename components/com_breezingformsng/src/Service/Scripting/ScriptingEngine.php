@@ -438,15 +438,7 @@ final class ScriptingEngine
         $code .= "];";
         $library[] = array('ff_elements', $code);
 
-        $code = "var ff_param = new Object();";
-        // reset($ff_request);
-        foreach ($ff_request as $prop => $val) {
-            if (substr($prop, 0, 9) == 'ff_param_')
-                $code .= nl() . "ff_param." . substr($prop, 9) . " = '" . $val . "';";
-        }
-        // while (list($prop, $val) = each($ff_request))
-
-        $library[] = array('ff_param', $code);
+        $library[] = array('ff_param', RequestParameterJavascript::build($ff_request));
 
         $library[] = array(
             'ff_getElementByIndex',

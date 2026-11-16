@@ -78,12 +78,14 @@ final class ClassicQueryListCellBuilder
             $attributes .= ' style="' . $style . '"';
         }
 
+        $escapedValue = htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
         if ($columnIndex === 0 && $selectionMode > 0) {
             $controlType = $selectionMode === 1 ? 'checkbox' : 'radio';
             $cell = '<td' . $attributes . '><input type="' . $controlType . '" id="ff_cb' . $rowId . '_' . $rowIndex
-                . '" value="' . $value . '"  name="ff_nm_' . $rowName . '[]"/></td>';
+                . '" value="' . $escapedValue . '"  name="ff_nm_' . $rowName . '[]"/></td>';
         } else {
-            $cell = '<td' . $attributes . '>' . $value . '</td>';
+            $cell = '<td' . $attributes . '>' . $escapedValue . '</td>';
         }
 
         return $indent . $cell . $newline;

@@ -19,6 +19,24 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Rendering\ClassicQueryListCellBu
 
 final class ClassicQueryListCellBuilderTest extends TestCase
 {
+    public function testTreatsQueryValuesAsTextAndEscapesSelectionAttributes(): void
+    {
+        $column = (object) [
+            'thspan' => 1, 'align' => 0, 'valign' => 0, 'wrap' => 0,
+            'class2' => '', 'class3' => '', 'width' => 0, 'widthmd' => false,
+        ];
+        $value = '"><img src=x onerror=alert(1)>&';
+        $skip = 0;
+        $builder = new ClassicQueryListCellBuilder();
+        $resolve = static fn (string $class): string => $class;
+        $text = $builder->build($column, $value, 1, 0, 70, 'items', 0, true, $skip, $resolve);
+        $selection = $builder->build($column, $value, 0, 0, 70, 'items', 1, true, $skip, $resolve);
+
+        self::assertStringContainsString('&quot;&gt;&lt;img src=x onerror=alert(1)&gt;&amp;', $text);
+        self::assertStringContainsString('value="&quot;&gt;&lt;img src=x onerror=alert(1)&gt;&amp;"', $selection);
+        self::assertStringNotContainsString('<img', $text . $selection);
+    }
+
     public function testBuildsSelectableCellWithAttributesAndWidth(): void
     {
         $column = (object) [

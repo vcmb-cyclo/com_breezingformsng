@@ -70,7 +70,7 @@ final class QueryListPageScriptBuilderTest extends TestCase
 
         self::assertStringContainsString('var qrows = ff_queryRows[id];', $script);
         self::assertStringContainsString('var lastpage = 1;', $script);
-        self::assertStringContainsString('row.cells[cc++].innerHTML = qrow[c];', $script);
+        self::assertStringContainsString('row.cells[cc++].textContent = qrow[c];', $script);
         self::assertStringContainsString("row.style.display = '';", $script);
         self::assertStringContainsString("row.style.display = 'none';", $script);
     }

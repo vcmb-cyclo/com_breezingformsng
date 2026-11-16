@@ -32,7 +32,7 @@ final class QueryListPageScriptBuilder
             '{' . $newline .
             '    var forced = false;' . $newline .
             '    if (arguments.length>2) forced = arguments[2];' . $newline .
-            self::rowsRefresh($newline) .
+            self::rowsRefresh($newline) . $newline .
             '    if (pagenav > 0 && pagesize > 0) {' . $newline .
             '        var navi = \'\';' . $newline .
             self::navigation($labels, $newline) . $newline .
@@ -76,7 +76,7 @@ final class QueryListPageScriptBuilder
             '                    document.getElementById(\'ff_cb\'+id+\'_\'+p).value = qrow[c];' . $newline .
             '                    cc++;' . $newline .
             '                } else' . $newline .
-            '                    row.cells[cc++].innerHTML = qrow[c];' . $newline .
+            '                    row.cells[cc++].textContent = qrow[c];' . $newline .
             '            } // if' . $newline .
             '        row.style.display = \'\';' . $newline .
             '    } // for' . $newline .

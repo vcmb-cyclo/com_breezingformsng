@@ -1,5 +1,29 @@
 # Changelog
 
+## 6.1.0-RC19
+
+### Added
+
+- Uninstall leftover pre-NG extensions from the audit of the About screen, one at a time or selected, with a link to the matching Joomla screen, and read a help tooltip on every audit title.
+- Reassign stored values whose field was deleted to the current field of the same name, per field or all at once, or move them to a field you choose from the same-type fields of the form. Records that already hold a value for that field are skipped.
+- Show on the record edit screen the stored values that no current field displays.
+
+### Changed
+
+- Move every row of a multi-valued field when values are reassigned, not only one per record.
+
+### Fixed
+
+- Restore the titles of the audit sections of the About screen and use proper non-breaking spaces in the French audit texts.
+
+### Security
+
+- Check the rights before saving a QuickMode form and refuse updates of a form that does not exist.
+- Keep Salesforce responses and record IDs out of the public logs.
+- Encode request parameters placed in inline JavaScript and display query list values as text.
+- Restrict the files a theme can write and sanitize the names of uploaded files; the upload folders keep their access rules.
+- Ignore invalid PayPal payment notifications.
+
 ## 6.1.0-RC18
 
 ### Added
