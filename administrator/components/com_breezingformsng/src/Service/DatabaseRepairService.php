@@ -358,6 +358,7 @@ final class DatabaseRepairService
             ->select([
                 $db->quoteName('s.id', 'sub_id'),
                 $db->quoteName('s.record', 'record_id'),
+                $db->quoteName('s.element', 'old_id'),
                 $db->quoteName('e.id', 'target_id'),
             ])
             ->where('x.id IS NULL')
@@ -368,12 +369,13 @@ final class DatabaseRepairService
         foreach ($db->setQuery($query)->loadAssocList() as $row) {
             $slot = (int) $row['record_id'] . ':' . (int) $row['target_id'];
 
-            // Two missing elements may carry the same name: only one value per record and target.
-            if (isset($taken[$slot])) {
+            // A multi-valued field has several rows per record and element: they move together.
+            // Two different missing elements may carry the same name: the first one wins the target.
+            if (($taken[$slot] ?? (int) $row['old_id']) !== (int) $row['old_id']) {
                 continue;
             }
 
-            $taken[$slot] = true;
+            $taken[$slot] = (int) $row['old_id'];
             $byTarget[(int) $row['target_id']][] = (int) $row['sub_id'];
         }
 
@@ -391,6 +393,78 @@ final class DatabaseRepairService
                     $db->setQuery($update)->execute();
                     $reassigned += $db->getAffectedRows();
                 }
+            }
+
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+
+            throw $exception;
+        }
+
+        return $reassigned;
+    }
+
+    /**
+     * Reassigns the values of one missing element to a field chosen by the
+     * administrator. The field must belong to the form of the records and have
+     * the same type as the stored values; records that already hold a value
+     * for it are left unchanged.
+     *
+     * @return int The number of values reassigned.
+     */
+    public function reassignOrphanValuesToElement(int $oldElementId, int $targetElementId): int
+    {
+        if ($oldElementId < 1 || $targetElementId < 1) {
+            throw new \InvalidArgumentException('Invalid element ID.');
+        }
+
+        $db = $this->db;
+        $target = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName(['id', 'form', 'type']))
+                ->from($db->quoteName('#__facileforms_elements'))
+                ->where($db->quoteName('id') . ' = :id')
+                ->bind(':id', $targetElementId, ParameterType::INTEGER)
+        )->loadAssoc();
+
+        if (!is_array($target)) {
+            throw new \InvalidArgumentException('The target field does not exist.');
+        }
+
+        $targetForm = (int) $target['form'];
+        $targetType = (string) $target['type'];
+        $query = $db->createQuery()
+            ->select($db->quoteName('s.id'))
+            ->from($db->quoteName('#__facileforms_subrecords', 's'))
+            ->join('INNER', $db->quoteName('#__facileforms_records', 'r') . ' ON r.id = s.record')
+            ->join('LEFT', $db->quoteName('#__facileforms_elements', 'o') . ' ON o.id = s.element')
+            ->join(
+                'LEFT',
+                $db->quoteName('#__facileforms_subrecords', 'x') . ' ON x.record = s.record AND x.element = :target'
+            )
+            ->where('o.id IS NULL')
+            ->where('x.id IS NULL')
+            ->where($db->quoteName('s.element') . ' = :old')
+            ->where($db->quoteName('r.form') . ' = :form')
+            ->where($db->quoteName('s.type') . ' = :type')
+            ->bind(':target', $targetElementId, ParameterType::INTEGER)
+            ->bind(':old', $oldElementId, ParameterType::INTEGER)
+            ->bind(':form', $targetForm, ParameterType::INTEGER)
+            ->bind(':type', $targetType);
+        $subIds = array_map('intval', $db->setQuery($query)->loadColumn() ?: []);
+        $reassigned = 0;
+        $db->transactionStart();
+
+        try {
+            foreach (array_chunk($subIds, 500) as $chunk) {
+                $update = $db->createQuery()
+                    ->update($db->quoteName('#__facileforms_subrecords'))
+                    ->set($db->quoteName('element') . ' = :newElement')
+                    ->bind(':newElement', $targetElementId, ParameterType::INTEGER)
+                    ->whereIn($db->quoteName('id'), $chunk);
+                $db->setQuery($update)->execute();
+                $reassigned += $db->getAffectedRows();
             }
 
             $db->transactionCommit();

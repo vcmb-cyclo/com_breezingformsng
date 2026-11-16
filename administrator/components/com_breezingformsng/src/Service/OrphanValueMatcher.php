@@ -11,6 +11,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 \defined('_JEXEC') or die;
 
 use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 use Joomla\Database\QueryInterface;
 
 /**
@@ -50,5 +51,59 @@ final class OrphanValueMatcher
         }
 
         return $query;
+    }
+
+    /**
+     * Fields the values of missing elements could be moved to: published fields
+     * of the form of the records that have the same type as the stored values.
+     *
+     * @param list<int> $elementIds Missing elements.
+     *
+     * @return array<int, list<array{id: int, name: string, title: string, form: int, form_title: string}>>
+     */
+    public static function candidates(DatabaseInterface $db, array $elementIds): array
+    {
+        if ($elementIds === []) {
+            return [];
+        }
+
+        $query = $db->createQuery()
+            ->select([
+                'DISTINCT ' . $db->quoteName('s.element', 'old_id'),
+                $db->quoteName('e.id', 'id'),
+                $db->quoteName('e.name', 'name'),
+                $db->quoteName('e.title', 'title'),
+                $db->quoteName('e.form', 'form'),
+                $db->quoteName('f.title', 'form_title'),
+                $db->quoteName('e.ordering', 'ordering'),
+            ])
+            ->from($db->quoteName('#__facileforms_subrecords', 's'))
+            ->join('INNER', $db->quoteName('#__facileforms_records', 'r') . ' ON r.id = s.record')
+            ->join('LEFT', $db->quoteName('#__facileforms_elements', 'o') . ' ON o.id = s.element')
+            ->join('INNER', $db->quoteName('#__facileforms_elements', 'e') . ' ON e.form = r.form AND e.type = s.type')
+            ->join('LEFT', $db->quoteName('#__facileforms_forms', 'f') . ' ON f.id = e.form')
+            ->where('o.id IS NULL')
+            ->where($db->quoteName('e.published') . ' = 1')
+            ->where($db->quoteName('s.type') . ' <> ' . $db->quote(''))
+            ->whereIn($db->quoteName('s.element'), array_map('intval', $elementIds))
+            ->whereNotIn(
+                $db->quoteName('e.name'),
+                ['bfFakeName', 'bfFakeName2', 'bfFakeName3', 'bfFakeName4', 'bfFakeName5'],
+                ParameterType::STRING
+            )
+            ->order($db->quoteName('e.form') . ' ASC, ' . $db->quoteName('e.ordering') . ' ASC');
+        $result = [];
+
+        foreach ($db->setQuery($query)->loadAssocList() as $row) {
+            $result[(int) $row['old_id']][] = [
+                'id' => (int) $row['id'],
+                'name' => (string) $row['name'],
+                'title' => (string) $row['title'],
+                'form' => (int) $row['form'],
+                'form_title' => (string) $row['form_title'],
+            ];
+        }
+
+        return $result;
     }
 }

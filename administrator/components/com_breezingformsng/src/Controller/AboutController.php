@@ -444,6 +444,21 @@ class AboutController extends BaseController
         );
     }
 
+    public function reassignOrphanValuesToElement(): void
+    {
+        $rawOld = $this->input->post->get('orphan_element_id', null, 'raw');
+        $rawTarget = $this->input->post->get('orphan_target_id', null, 'raw');
+        $old = is_string($rawOld) && preg_match('/\A[0-9]+\z/', $rawOld) ? (int) $rawOld : -1;
+        $target = is_string($rawTarget) && preg_match('/\A[0-9]+\z/', $rawTarget) ? (int) $rawTarget : -1;
+
+        $this->repairOrphans(
+            fn (DatabaseRepairService $repair): int => $repair->reassignOrphanValuesToElement($old, $target),
+            'subrecords_without_element',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGNED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_FAILED'
+        );
+    }
+
     public function deleteOrphanValues(): void
     {
         $all = $this->input->post->getBool('orphan_all', false);

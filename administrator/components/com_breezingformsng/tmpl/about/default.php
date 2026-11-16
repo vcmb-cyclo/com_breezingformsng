@@ -1107,6 +1107,38 @@ HTMLHelper::_('bootstrap.collapse');
                                                                 <?php endif; ?>
                                                             <?php else : ?>
                                                                 <span class="text-muted"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_TARGET_NONE'); ?></span>
+                                                                <?php $orphanCandidates = (array) ($orphanGroup['candidates'] ?? array()); ?>
+                                                                <?php if ($orphanCandidates !== array()) : ?>
+                                                                    <?php $orphanSelectId = 'bf-orphan-target-' . (int) ($orphanGroup['parent_id'] ?? 0); ?>
+                                                                    <div class="input-group input-group-sm mt-1">
+                                                                        <select class="form-select form-select-sm" id="<?php echo $orphanSelectId; ?>" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR_TARGET'), ENT_QUOTES, 'UTF-8'); ?>"<?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>>
+                                                                            <option value="0"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR_SELECT'); ?></option>
+                                                                            <?php
+                                                                            $orphanOptions = array();
+                                                                            foreach ($orphanCandidates as $candidate) {
+                                                                                $orphanOptions[(int) $candidate['form']]['title'] = (string) $candidate['form_title'];
+                                                                                $orphanOptions[(int) $candidate['form']]['items'][] = $candidate;
+                                                                            }
+                                                                            ?>
+                                                                            <?php foreach ($orphanOptions as $optionForm => $optionGroup) : ?>
+                                                                                <optgroup label="<?php echo htmlspecialchars(trim($optionGroup['title'] . ' #' . $optionForm), ENT_QUOTES, 'UTF-8'); ?>">
+                                                                                    <?php foreach ($optionGroup['items'] as $candidate) : ?>
+                                                                                        <option value="<?php echo (int) $candidate['id']; ?>"><?php echo htmlspecialchars(trim((string) $candidate['name'] . ' ' . ((string) $candidate['title'] !== '' ? '(' . $candidate['title'] . ')' : '') . ' #' . (int) $candidate['id']), ENT_QUOTES, 'UTF-8'); ?></option>
+                                                                                    <?php endforeach; ?>
+                                                                                </optgroup>
+                                                                            <?php endforeach; ?>
+                                                                        </select>
+                                                                        <button
+                                                                            type="button"
+                                                                            class="btn btn-outline-primary"
+                                                                            data-bf-orphan-task="about.reassignOrphanValuesToElement"
+                                                                            data-bf-orphan-target-select="<?php echo $orphanSelectId; ?>"
+                                                                            <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
+                                                                            data-bf-orphan-element="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
+                                                                            data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        ><span class="icon-wrench" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR'); ?></button>
+                                                                    </div>
+                                                                <?php endif; ?>
                                                             <?php endif; ?>
                                                         </td>
                                                         <td>

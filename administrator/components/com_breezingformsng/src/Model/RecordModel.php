@@ -78,6 +78,8 @@ class RecordModel extends AdminModel
             $item->{self::ELEMENT_GROUP}[self::ELEMENT_PREFIX . $row['element_id']] = $row['value'];
         }
 
+        $item->orphan_values = $this->getOrphanRows($pk, $formId);
+
         return $this->items[$pk] = $item;
     }
 
@@ -143,6 +145,56 @@ class RecordModel extends AdminModel
         }
 
         return $rows;
+    }
+
+    /**
+     * Stored values that no field of the edit form shows: their element was
+     * deleted (or is not editable) and no current field carries their name.
+     * They stay in the database but cannot be seen in the edit form.
+     *
+     * @return list<array{element_id: int, name: string, title: string, value: string}>
+     */
+    public function getOrphanRows(int $recordId, int $formId): array
+    {
+        $db = $this->getDatabase();
+        $query = $db->createQuery()
+            ->select(['id', 'element', 'title', 'name', 'value'])
+            ->from($db->quoteName('#__facileforms_subrecords'))
+            ->where($db->quoteName('record') . ' = :recordId')
+            ->order($db->quoteName('id'))
+            ->bind(':recordId', $recordId, ParameterType::INTEGER);
+        $subrecords = $db->setQuery($query)->loadAssocList();
+        $byElement = [];
+        $byName = [];
+
+        foreach ($subrecords as $sub) {
+            $byElement[(int) $sub['element']][] = (int) $sub['id'];
+            $byName[(string) $sub['name']][] = (int) $sub['id'];
+        }
+
+        // Same matching as getEditableRows(): by element id, else by name.
+        $shown = [];
+
+        foreach ($this->getEditableElements($formId) as $element) {
+            foreach ($byElement[(int) $element['id']] ?? $byName[(string) $element['name']] ?? [] as $subId) {
+                $shown[$subId] = true;
+            }
+        }
+
+        $orphans = [];
+
+        foreach ($subrecords as $sub) {
+            if (!isset($shown[(int) $sub['id']])) {
+                $orphans[] = [
+                    'element_id' => (int) $sub['element'],
+                    'name' => (string) $sub['name'],
+                    'title' => (string) $sub['title'],
+                    'value' => (string) $sub['value'],
+                ];
+            }
+        }
+
+        return $orphans;
     }
 
     /**

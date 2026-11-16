@@ -636,7 +636,10 @@ final class DatabaseAuditService
             }
         }
 
+        $candidates = OrphanValueMatcher::candidates($db, $ids);
+
         foreach ($summary['groups'] as &$group) {
+            $group['candidates'] = array_slice($candidates[(int) $group['parent_id']] ?? [], 0, 200);
             $match = $matches[(int) $group['parent_id']] ?? null;
             $group['target_id'] = $match['target_id'] ?? 0;
             $group['matched'] = $match['matched'] ?? 0;
