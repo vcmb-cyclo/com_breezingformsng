@@ -16,6 +16,7 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\Filesystem\File;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\QuickmodeThemePath;
 use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
 
 class QuickmodeModel extends BaseDatabaseModel
@@ -239,13 +240,17 @@ class QuickmodeModel extends BaseDatabaseModel
             $mdata = $dataObject['properties'];
 
             if ($mdata['type'] === 'root') {
-                if (!empty($mdata['themebootstrap']) && !empty($mdata['themebootstrapvars'])
+                if (!empty($mdata['themebootstrap']) && is_string($mdata['themebootstrap'])
+                    && !empty($mdata['themebootstrapvars'])
                     && isset($mdata['themebootstrapbefore'])
                     && $mdata['themebootstrapbefore'] === $mdata['themebootstrap']
+                    && in_array($mdata['themebootstrap'], $this->getThemesBootstrap(), true)
                 ) {
-                    $folder   = 'themes-bootstrap5';
-                    $varspath = JPATH_SITE . '/media/breezingforms/' . $folder . '/' . $mdata['themebootstrap'] . '/vars.txt';
-                    if (file_exists($varspath)) {
+                    $varspath = QuickmodeThemePath::resolve(
+                        JPATH_SITE . '/media/breezingforms/themes-bootstrap5',
+                        $mdata['themebootstrap']
+                    );
+                    if ($varspath !== null) {
                         File::write($varspath, $mdata['themebootstrapvars']);
                     }
                 }

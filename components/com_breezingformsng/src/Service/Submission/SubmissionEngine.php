@@ -47,7 +47,9 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\SubmissionTimestampForma
 use Vcmb\Component\BreezingformsNG\Site\Service\Scripting\ScriptingEngine;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\TemporaryUploadDirectory;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FlashUploadFileMatcher;
+use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FilemaskFilename;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadError;
+use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadDirectoryProtection;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadRuntime;
 use Vcmb\Component\BreezingformsNG\Site\Service\Security\HtmlSanitizer;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper;
@@ -198,15 +200,10 @@ final class SubmissionEngine
                                     $this->processor->replacetags ?? [],
                                     $row->data1
                                 ));
-                                if ($cbResult['data']['protect_upload_directory']) {
-                                    if (is_dir($rowdata1) && !file_exists($rowdata1 . '/' . '.htaccess')) {
-                                        File::write($rowdata1 . '/' . '.htaccess', $def = 'deny from all');
-                                    }
-                                } else {
-                                    if (is_dir($rowdata1) && file_exists($rowdata1 . '/' . '.htaccess')) {
-                                        File::delete($rowdata1 . '/' . '.htaccess');
-                                    }
-                                }
+                                UploadDirectoryProtection::ensure(
+                                    $rowdata1,
+                                    (bool) $cbResult['data']['protect_upload_directory']
+                                );
                             }
 
                             $areas = json_decode((string) $this->processor->formrow->template_areas, true);
@@ -470,10 +467,10 @@ final class SubmissionEngine
                                                     trim(basename($userfile_name, '.' . File::getExt($userfile_name))),
                                                     $fm
                                                 );
-                                                if ($fm == '') {
-                                                    $fm = '__empty__';
-                                                }
-                                                $userfile_name = $fm . '.' . File::getExt($userfile_name);
+                                                $userfile_name = FilemaskFilename::make(
+                                                    $fm,
+                                                    File::getExt($userfile_name)
+                                                );
                                             }
 
                                             //if ($row->flag1)

@@ -110,7 +110,7 @@ final class UploadPathResolver
         ];
         $filemask = str_replace(array_keys($replacements), array_values($replacements), $filemask);
 
-        return ($filemask === '' ? '__empty__' : $filemask) . '.' . $extension;
+        return FilemaskFilename::make($filemask, $extension);
     }
 
     /**
