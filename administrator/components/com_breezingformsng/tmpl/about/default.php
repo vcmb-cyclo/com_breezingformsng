@@ -1060,6 +1060,7 @@ HTMLHelper::_('bootstrap.collapse');
                                                 <?php endif; ?>
                                                 <th scope="col" class="text-end"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ROWS'); ?></th>
                                                 <?php if ($orphanValues) : ?>
+                                                    <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_TARGET'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_HELP'); ?></th>
                                                     <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></th>
                                                 <?php endif; ?>
                                                 <?php if ($orphanHasPeriod) : ?>
@@ -1090,6 +1091,25 @@ HTMLHelper::_('bootstrap.collapse');
                                                     <td class="text-end"><?php echo (int) ($orphanGroup['count'] ?? 0); ?></td>
                                                     <?php if ($orphanValues) : ?>
                                                         <td>
+                                                            <?php if ((int) ($orphanGroup['target_id'] ?? 0) > 0) : ?>
+                                                                <span class="text-success">&rarr; #<?php echo (int) $orphanGroup['target_id']; ?></span>
+                                                                <span class="small text-muted"><?php echo Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGNABLE_COUNT', (int) ($orphanGroup['reassignable'] ?? 0), (int) ($orphanGroup['matched'] ?? 0)); ?></span>
+                                                                <?php if ((int) ($orphanGroup['reassignable'] ?? 0) > 0) : ?>
+                                                                    <button
+                                                                        type="button"
+                                                                        class="btn btn-sm btn-outline-primary ms-1"
+                                                                        title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN'), ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        data-bf-orphan-task="about.reassignOrphanValues"
+                                                                        <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
+                                                                        data-bf-orphan-element="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
+                                                                        data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_CONFIRM', (int) ($orphanGroup['reassignable'] ?? 0), (int) $orphanGroup['target_id']), ENT_QUOTES, 'UTF-8'); ?>"
+                                                                    ><span class="icon-shuffle" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN'); ?></span></button>
+                                                                <?php endif; ?>
+                                                            <?php else : ?>
+                                                                <span class="text-muted"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_TARGET_NONE'); ?></span>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                        <td>
                                                             <?php if ((int) ($orphanGroup['deletable'] ?? 0) === (int) ($orphanGroup['count'] ?? 0)) : ?>
                                                             <button
                                                                 type="button"
@@ -1112,6 +1132,18 @@ HTMLHelper::_('bootstrap.collapse');
                                     </table>
                                     <?php if ($orphanHidden > 0) : ?>
                                         <p class="small text-muted mb-0 mt-1"><?php echo Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_MORE', $orphanHidden); ?></p>
+                                    <?php endif; ?>
+                                    <?php if ($orphanValues && (int) ($check['reassignable'] ?? 0) > 0) : ?>
+                                        <button
+                                            id="bf-audit-reassign-all-orphan-values"
+                                            type="button"
+                                            class="btn btn-sm btn-outline-primary mt-2 me-1"
+                                            data-bf-orphan-task="about.reassignOrphanValues"
+                                            <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
+                                            data-bf-orphan-element="0"
+                                            data-bf-orphan-all="1"
+                                            data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_ALL_CONFIRM', (int) ($check['reassignable'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
+                                        ><span class="icon-shuffle" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_ALL'); ?></button>
                                     <?php endif; ?>
                                     <?php if ($orphanValues && (int) ($check['deletable'] ?? 0) === (int) ($check['count'] ?? 0)) : ?>
                                         <button

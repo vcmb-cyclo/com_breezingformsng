@@ -430,6 +430,20 @@ class AboutController extends BaseController
         );
     }
 
+    public function reassignOrphanValues(): void
+    {
+        $all = $this->input->post->getBool('orphan_all', false);
+        $rawId = $this->input->post->get('orphan_element_id', null, 'raw');
+        $elementId = $all ? null : (is_string($rawId) && preg_match('/\A[0-9]+\z/', $rawId) ? (int) $rawId : -1);
+
+        $this->repairOrphans(
+            fn (DatabaseRepairService $repair): int => $repair->reassignOrphanValues($elementId),
+            'subrecords_without_element',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGNED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_FAILED'
+        );
+    }
+
     public function deleteOrphanValues(): void
     {
         $all = $this->input->post->getBool('orphan_all', false);
