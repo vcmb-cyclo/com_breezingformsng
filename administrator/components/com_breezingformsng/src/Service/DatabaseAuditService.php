@@ -422,6 +422,7 @@ final class DatabaseAuditService
                 if ($id === 'subrecords_without_element') {
                     $summary['groups'] = $this->addFormOfOrphanValues($summary['groups']);
                     $summary = $this->addDeletableOrphanValues($summary);
+                    $summary = $this->addReassignableOrphanValues($summary);
                 }
 
                 $result[] = ['id' => $id, 'parent' => $parentKind] + $summary;
@@ -593,6 +594,53 @@ final class DatabaseAuditService
 
         foreach ($summary['groups'] as &$group) {
             $group['deletable'] = $counts[(int) $group['parent_id']] ?? 0;
+        }
+        unset($group);
+
+        return $summary;
+    }
+
+    /**
+     * Looks for the current element carrying the stored name of each missing
+     * element, within the form of the records, and counts the values that can
+     * be reassigned to it (the target holds no value yet for that record).
+     *
+     * @param array{count: int, parents: int, groups: list<array<string, mixed>>, deletable: int} $summary
+     * @return array<string, mixed>
+     */
+    private function addReassignableOrphanValues(array $summary): array
+    {
+        $db = $this->db;
+        $summary['reassignable'] = (int) $db->setQuery(
+            OrphanValueMatcher::query($db)->select('COUNT(*)')->where('x.id IS NULL')
+        )->loadResult();
+        $ids = array_map(static fn (array $group): int => (int) $group['parent_id'], $summary['groups']);
+        $matches = [];
+
+        if ($ids !== []) {
+            $query = OrphanValueMatcher::query($db, $ids)
+                ->select([
+                    $db->quoteName('s.element', 'old_id'),
+                    $db->quoteName('e.id', 'target_id'),
+                    'COUNT(*) AS ' . $db->quoteName('total'),
+                    'SUM(CASE WHEN x.id IS NULL THEN 1 ELSE 0 END) AS ' . $db->quoteName('free'),
+                ])
+                ->group([$db->quoteName('s.element'), $db->quoteName('e.id')])
+                ->order($db->quoteName('free') . ' DESC, ' . $db->quoteName('e.id') . ' ASC');
+
+            foreach ($db->setQuery($query)->loadAssocList() as $row) {
+                $old = (int) $row['old_id'];
+                $matches[$old] ??= ['target_id' => (int) $row['target_id'], 'matched' => 0, 'free' => 0];
+                $matches[$old]['matched'] += (int) $row['total'];
+                $matches[$old]['free'] += (int) $row['free'];
+            }
+        }
+
+        foreach ($summary['groups'] as &$group) {
+            $match = $matches[(int) $group['parent_id']] ?? null;
+            $group['target_id'] = $match['target_id'] ?? 0;
+            $group['matched'] = $match['matched'] ?? 0;
+            $group['reassignable'] = $match['free'] ?? 0;
         }
         unset($group);
 

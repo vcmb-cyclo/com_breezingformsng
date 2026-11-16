@@ -45,4 +45,26 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringContainsString("'facileforms_records'", $auditService);
         self::assertStringContainsString("'facileforms_subrecords'", $auditService);
     }
+
+    public function testAuditTitlesAreNeverEmptyAndOrphanValuesCanBeReassigned(): void
+    {
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $template = file_get_contents($base . '/tmpl/about/default.php');
+        $controller = file_get_contents($base . '/src/Controller/AboutController.php');
+        $repair = file_get_contents($base . '/src/Service/DatabaseRepairService.php');
+        $matcher = file_get_contents($base . '/src/Service/OrphanValueMatcher.php');
+
+        self::assertIsString($template);
+        self::assertIsString($controller);
+        self::assertIsString($repair);
+        self::assertIsString($matcher);
+        self::assertStringNotContainsString("Text::_('')", $template);
+        self::assertStringContainsString('about.reassignOrphanValues', $template);
+        self::assertStringContainsString('function reassignOrphanValues()', $controller);
+        self::assertStringContainsString('function reassignOrphanValues(', $repair);
+        // Only unambiguous targets, free for the record, for values whose element is missing.
+        self::assertStringContainsString('HAVING COUNT(*) = 1', $matcher);
+        self::assertStringContainsString('x.id IS NULL', $repair);
+        self::assertStringContainsString('o.id IS NULL', $matcher);
+    }
 }

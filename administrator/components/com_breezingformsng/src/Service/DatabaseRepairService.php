@@ -339,6 +339,71 @@ final class DatabaseRepairService
     }
 
     /**
+     * Reassigns the values of missing elements to the current element of the
+     * same form that has the same (unique) name, unless that element already
+     * holds a value for the same record.
+     *
+     * @param ?int $elementId One missing element, or null for all of them.
+     *
+     * @return int The number of values reassigned.
+     */
+    public function reassignOrphanValues(?int $elementId = null): int
+    {
+        if ($elementId !== null && $elementId < 1) {
+            throw new \InvalidArgumentException('Invalid element ID.');
+        }
+
+        $db = $this->db;
+        $query = OrphanValueMatcher::query($db, $elementId === null ? null : [$elementId])
+            ->select([
+                $db->quoteName('s.id', 'sub_id'),
+                $db->quoteName('s.record', 'record_id'),
+                $db->quoteName('e.id', 'target_id'),
+            ])
+            ->where('x.id IS NULL')
+            ->order($db->quoteName('s.id') . ' ASC');
+        $byTarget = [];
+        $taken = [];
+
+        foreach ($db->setQuery($query)->loadAssocList() as $row) {
+            $slot = (int) $row['record_id'] . ':' . (int) $row['target_id'];
+
+            // Two missing elements may carry the same name: only one value per record and target.
+            if (isset($taken[$slot])) {
+                continue;
+            }
+
+            $taken[$slot] = true;
+            $byTarget[(int) $row['target_id']][] = (int) $row['sub_id'];
+        }
+
+        $reassigned = 0;
+        $db->transactionStart();
+
+        try {
+            foreach ($byTarget as $targetId => $subIds) {
+                foreach (array_chunk($subIds, 500) as $chunk) {
+                    $update = $db->createQuery()
+                        ->update($db->quoteName('#__facileforms_subrecords'))
+                        ->set($db->quoteName('element') . ' = :target')
+                        ->bind(':target', $targetId, ParameterType::INTEGER)
+                        ->whereIn($db->quoteName('id'), $chunk);
+                    $db->setQuery($update)->execute();
+                    $reassigned += $db->getAffectedRows();
+                }
+            }
+
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+
+            throw $exception;
+        }
+
+        return $reassigned;
+    }
+
+    /**
      * Delete only stale installer directories selected from a fresh audit.
      *
      * @param array<mixed> $selectedPaths
