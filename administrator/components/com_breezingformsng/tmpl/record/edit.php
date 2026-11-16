@@ -207,6 +207,40 @@ $paginationNav = static function (string $spacing) use ($pages, $pageLink, $posi
     </div>
   </div>
 
+  <?php $orphanValues = (array) ($record->orphan_values ?? []); ?>
+  <?php if ($orphanValues !== []) : ?>
+    <div class="card border-warning mb-3" id="record-orphan-values">
+      <div class="card-header text-warning-emphasis bg-warning-subtle">
+        <span class="icon-warning" aria-hidden="true"></span>
+        <?= Text::_('COM_BREEZINGFORMSNG_RECORD_ORPHAN_VALUES'); ?>
+        <span class="badge bg-warning text-dark ms-1"><?= count($orphanValues); ?></span>
+      </div>
+      <div class="card-body">
+        <p class="small text-muted"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_ORPHAN_VALUES_DESC'); ?></p>
+        <div class="table-responsive">
+          <table class="table table-sm table-warning align-middle mb-0">
+            <thead>
+              <tr>
+                <th scope="col"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_ORPHAN_VALUE_NAME'); ?></th>
+                <th scope="col"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_ORPHAN_VALUE_ELEMENT'); ?></th>
+                <th scope="col"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_ORPHAN_VALUE'); ?></th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($orphanValues as $orphan) : ?>
+                <tr>
+                  <td><code><?= $value($orphan['name']); ?></code><?= (string) $orphan['title'] !== '' ? ' <span class="text-muted">' . $value($orphan['title']) . '</span>' : ''; ?></td>
+                  <td>#<?= (int) $orphan['element_id']; ?></td>
+                  <td class="text-break"><?= nl2br($value($orphan['value'])); ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
+
   <div class="card">
     <div class="card-body p-0">
       <div class="table-responsive">
