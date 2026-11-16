@@ -339,6 +339,35 @@ final class DatabaseRepairService
     }
 
     /**
+     * Permanently deletes every stored value of ONE missing element, including
+     * the values of records that still exist. Irreversible; the caller must have
+     * obtained an explicit acknowledgement. Never applies to an element that
+     * still exists, and never to all missing elements at once.
+     *
+     * @return int The number of values deleted.
+     */
+    public function deleteOrphanValuesOfRecords(int $elementId): int
+    {
+        if ($elementId < 1) {
+            throw new \InvalidArgumentException('Invalid element ID.');
+        }
+
+        $db = $this->db;
+        $elements = $db->createQuery()
+            ->select('1')
+            ->from($db->quoteName('#__facileforms_elements', 'elements'))
+            ->where($db->quoteName('elements.id') . ' = ' . $db->quoteName('#__facileforms_subrecords.element'));
+        $query = $db->createQuery()
+            ->delete($db->quoteName('#__facileforms_subrecords'))
+            ->where($db->quoteName('element') . ' = :elementId')
+            ->where('NOT EXISTS (' . $elements . ')')
+            ->bind(':elementId', $elementId, ParameterType::INTEGER);
+        $db->setQuery($query)->execute();
+
+        return $db->getAffectedRows();
+    }
+
+    /**
      * Reassigns the values of missing elements to the current element of the
      * same form that has the same (unique) name, unless that element already
      * holds a value for the same record.
@@ -409,11 +438,14 @@ final class DatabaseRepairService
      * Reassigns the values of one missing element to a field chosen by the
      * administrator. The field must belong to the form of the records and have
      * the same type as the stored values; records that already hold a value
-     * for it are left unchanged.
+     * for it are left unchanged, except that an orphan value strictly identical
+     * to one the record already holds for it is a duplicate and is deleted.
+     *
+     * @param int $identicalRemoved Receives the number of identical duplicates deleted.
      *
      * @return int The number of values reassigned.
      */
-    public function reassignOrphanValuesToElement(int $oldElementId, int $targetElementId): int
+    public function reassignOrphanValuesToElement(int $oldElementId, int $targetElementId, int &$identicalRemoved = 0): int
     {
         if ($oldElementId < 1 || $targetElementId < 1) {
             throw new \InvalidArgumentException('Invalid element ID.');
@@ -453,10 +485,42 @@ final class DatabaseRepairService
             ->bind(':form', $targetForm, ParameterType::INTEGER)
             ->bind(':type', $targetType);
         $subIds = array_map('intval', $db->setQuery($query)->loadColumn() ?: []);
+
+        // Orphan values the target already holds, byte for byte (a different
+        // value is never touched): they are duplicates, nothing is lost.
+        $duplicateQuery = $db->createQuery()
+            ->select($db->quoteName('s.id'))
+            ->from($db->quoteName('#__facileforms_subrecords', 's'))
+            ->join('INNER', $db->quoteName('#__facileforms_records', 'r') . ' ON r.id = s.record')
+            ->join('LEFT', $db->quoteName('#__facileforms_elements', 'o') . ' ON o.id = s.element')
+            ->join(
+                'INNER',
+                $db->quoteName('#__facileforms_subrecords', 'x')
+                    . ' ON x.record = s.record AND x.element = :target AND BINARY x.value = BINARY s.value'
+            )
+            ->where('o.id IS NULL')
+            ->where($db->quoteName('s.element') . ' = :old')
+            ->where($db->quoteName('r.form') . ' = :form')
+            ->where($db->quoteName('s.type') . ' = :type')
+            ->group($db->quoteName('s.id'))
+            ->bind(':target', $targetElementId, ParameterType::INTEGER)
+            ->bind(':old', $oldElementId, ParameterType::INTEGER)
+            ->bind(':form', $targetForm, ParameterType::INTEGER)
+            ->bind(':type', $targetType);
+        $duplicateIds = array_map('intval', $db->setQuery($duplicateQuery)->loadColumn() ?: []);
         $reassigned = 0;
+        $identicalRemoved = 0;
         $db->transactionStart();
 
         try {
+            foreach (array_chunk($duplicateIds, 500) as $chunk) {
+                $delete = $db->createQuery()
+                    ->delete($db->quoteName('#__facileforms_subrecords'))
+                    ->whereIn($db->quoteName('id'), $chunk);
+                $db->setQuery($delete)->execute();
+                $identicalRemoved += $db->getAffectedRows();
+            }
+
             foreach (array_chunk($subIds, 500) as $chunk) {
                 $update = $db->createQuery()
                     ->update($db->quoteName('#__facileforms_subrecords'))

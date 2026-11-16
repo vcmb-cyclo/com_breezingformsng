@@ -178,6 +178,21 @@
         });
     }
 
+    // The messages are rendered at the top of the page: bring them into view,
+    // the audit being far below.
+    function showOrphanMessage(type, text) {
+        var messages = {};
+
+        messages[type] = [text];
+        Joomla.renderMessages(messages);
+
+        var container = document.getElementById('system-message-container');
+
+        if (container) {
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
     document.addEventListener('click', function (event) {
         var button = event.target.closest('[data-bf-orphan-task]');
 
@@ -198,6 +213,21 @@
             return;
         }
 
+        // Irreversible deletion of values of existing records: the box must be ticked first.
+        var acknowledge = button.dataset.bfOrphanAck
+            ? document.getElementById(button.dataset.bfOrphanAck)
+            : null;
+
+        if (button.dataset.bfOrphanAck && (!acknowledge || !acknowledge.checked)) {
+            if (acknowledge) {
+                acknowledge.focus();
+            }
+
+            showOrphanMessage('warning', Joomla.Text._('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE_ACK_REQUIRED'));
+
+            return;
+        }
+
         if (!window.confirm(button.dataset.bfConfirm || '')) {
             return;
         }
@@ -206,6 +236,10 @@
 
         if (targetSelect) {
             params.set('orphan_target_id', targetSelect.value);
+        }
+
+        if (acknowledge) {
+            params.set('orphan_acknowledged', '1');
         }
 
         if (button.dataset.bfOrphanAll === '1') {
@@ -226,16 +260,16 @@
         }).then(function (result) {
             if (!result.ok) {
                 button.disabled = false;
-                Joomla.renderMessages({ error: [result.json.message || Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] });
+                showOrphanMessage('error', result.json.message || Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED'));
 
                 return;
             }
 
-            Joomla.renderMessages({ message: [result.json.message] });
+            showOrphanMessage(result.json.deleted === 0 ? 'warning' : 'message', result.json.message);
             return refreshOrphans();
         }).catch(function () {
             button.disabled = false;
-            Joomla.renderMessages({ error: [Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] });
+            showOrphanMessage('error', Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED'));
         });
     });
 

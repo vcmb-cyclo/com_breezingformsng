@@ -446,7 +446,8 @@ class AboutController extends BaseController
             fn (DatabaseRepairService $repair): int => $repair->reassignOrphanValues($elementId),
             'subrecords_without_element',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGNED',
-            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_FAILED'
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_FAILED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_NONE'
         );
     }
 
@@ -457,11 +458,24 @@ class AboutController extends BaseController
         $old = is_string($rawOld) && preg_match('/\A[0-9]+\z/', $rawOld) ? (int) $rawOld : -1;
         $target = is_string($rawTarget) && preg_match('/\A[0-9]+\z/', $rawTarget) ? (int) $rawTarget : -1;
 
+        $outcome = new \ArrayObject(['moved' => 0, 'identical' => 0]);
+
         $this->repairOrphans(
-            fn (DatabaseRepairService $repair): int => $repair->reassignOrphanValuesToElement($old, $target),
+            function (DatabaseRepairService $repair) use ($old, $target, $outcome): int {
+                $identical = 0;
+                $moved = $repair->reassignOrphanValuesToElement($old, $target, $identical);
+                $outcome['moved'] = $moved;
+                $outcome['identical'] = $identical;
+
+                return $moved + $identical;
+            },
             'subrecords_without_element',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGNED',
-            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_FAILED'
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_FAILED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_NONE',
+            static fn (): ?string => $outcome['identical'] > 0
+                ? Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGNED_DUPLICATES', $outcome['moved'], $outcome['identical'])
+                : null
         );
     }
 
@@ -479,14 +493,35 @@ class AboutController extends BaseController
         );
     }
 
+    public function deleteOrphanValuesWithRecords(): void
+    {
+        $rawId = $this->input->post->get('orphan_element_id', null, 'raw');
+        $elementId = is_string($rawId) && preg_match('/\A[0-9]+\z/', $rawId) ? (int) $rawId : -1;
+        $acknowledged = $this->input->post->getBool('orphan_acknowledged', false);
+
+        $this->repairOrphans(
+            function (DatabaseRepairService $repair) use ($elementId, $acknowledged): int {
+                if (!$acknowledged) {
+                    throw new \InvalidArgumentException(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE_ACK_REQUIRED'));
+                }
+
+                return $repair->deleteOrphanValuesOfRecords($elementId);
+            },
+            'subrecords_without_element',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_FAILED'
+        );
+    }
+
     /**
      * Repairs orphan rows. With format=json (the About screen, from its script) the
      * answer is JSON and the page is updated in place; without, the page is reloaded
      * with a message.
      *
      * @param \Closure(DatabaseRepairService): int $repair
+     * @param ?\Closure(): ?string $describe Optional message overriding the default one.
      */
-    private function repairOrphans(\Closure $repair, string $checkId, string $doneKey, string $failedKey): void
+    private function repairOrphans(\Closure $repair, string $checkId, string $doneKey, string $failedKey, ?string $noneKey = null, ?\Closure $describe = null): void
     {
         $json = $this->input->getCmd('format') === 'json';
 
@@ -507,7 +542,8 @@ class AboutController extends BaseController
             $deleted = $repair($this->getRepairService());
             $report = $this->getAuditService()->run();
             $this->app->setUserState('com_breezingformsng.about.audit', $report);
-            $message = Text::sprintf($doneKey, $deleted);
+            $message = ($describe !== null ? $describe() : null)
+                ?? ($deleted === 0 && $noneKey !== null ? Text::_($noneKey) : Text::sprintf($doneKey, $deleted));
         } catch (\Throwable $exception) {
             $message = Text::sprintf($failedKey, $exception->getMessage());
 

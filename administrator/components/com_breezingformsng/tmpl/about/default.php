@@ -20,6 +20,8 @@ use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Language\Text;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseRepairService;
 
+Text::script('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE_ACK_REQUIRED');
+
 if (!function_exists('bf_about_read_json_file')) {
     /**
      * @param string $path
@@ -1155,6 +1157,23 @@ HTMLHelper::_('bootstrap.collapse');
                                                                 data-bf-orphan-element="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
                                                                 data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
                                                             ><span class="icon-trash" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></button>
+                                                            <?php endif; ?>
+                                                            <?php if ((int) ($orphanGroup['deletable'] ?? 0) !== (int) ($orphanGroup['count'] ?? 0) && (int) ($orphanGroup['parent_id'] ?? 0) > 0) : ?>
+                                                            <?php $orphanAckId = 'bf-orphan-ack-' . (int) $orphanGroup['parent_id']; ?>
+                                                            <div class="form-check small mb-1">
+                                                                <input class="form-check-input" type="checkbox" id="<?php echo $orphanAckId; ?>"<?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>>
+                                                                <label class="form-check-label text-danger" for="<?php echo $orphanAckId; ?>"><?php echo Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE_ACK', (int) ($orphanGroup['count'] ?? 0)); ?></label>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                class="btn btn-sm btn-danger"
+                                                                title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE'), ENT_QUOTES, 'UTF-8'); ?>"
+                                                                data-bf-orphan-task="about.deleteOrphanValuesWithRecords"
+                                                                data-bf-orphan-ack="<?php echo $orphanAckId; ?>"
+                                                                <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
+                                                                data-bf-orphan-element="<?php echo (int) $orphanGroup['parent_id']; ?>"
+                                                                data-bf-confirm="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
+                                                            ><span class="icon-trash" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE'); ?></span></button>
                                                             <?php endif; ?>
                                                         </td>
                                                     <?php endif; ?>
