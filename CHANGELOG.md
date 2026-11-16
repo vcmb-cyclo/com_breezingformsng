@@ -1,5 +1,24 @@
 # Changelog
 
+## 6.1.0-RC20
+
+### Added
+
+- Move the values of a deleted element to another element of the same type from the About audit with the Transfer button. A clear message tells when nothing could be moved, and a value identical to the one the target already holds is removed as a duplicate.
+- Delete the values of a deleted element for good, including those of records that still exist, from the About audit, after a confirmation that warns it cannot be undone.
+- Open the records that hold the values of a deleted element from the audit: the Records list is filtered on them and says so.
+- Show the number of the form and of its elements in the QuickMode editor when the debug mode is on, in the tree ("125 - Name") and in a badge of the properties. They follow the debug switch without reloading the page.
+- Send a site menu item reported by the audit to the Joomla trash from the audit screen, with a message saying whether it worked and why not. The title of the item opens it in a new tab.
+
+### Changed
+
+- Rework the table of the values without an element in the audit: one Deleted element column, a link to the form editor, the number of records, the target element with its code, results shown right above the list, warning colours and correct singular and plural messages in every language.
+- Show the code of each element under its label on the Record screen, and attach a value whose element was deleted to the current element of the same name only when that name is unique in the form and the type is the same, as the audit does, on display and on saving. A note under the label says so. The other values stay in the values without an element and are not changed when the record is saved.
+
+### Fixed
+
+- Make the trash button of the menu items of the audit work. It did nothing and closed the audit, because it sat in a form nested in the page form.
+
 ## 6.1.0-RC19
 
 ### Added
