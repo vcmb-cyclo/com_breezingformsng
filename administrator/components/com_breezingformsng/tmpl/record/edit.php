@@ -223,8 +223,8 @@ $paginationNav = static function (string $spacing) use ($pages, $pageLink, $posi
           $orphanFieldId = 'orphan_value_' . (int) $index;
           $orphanText = (string) ($orphan['value'] ?? '');
           $orphanLabel = (string) ($orphan['title'] ?? '') !== '' ? (string) $orphan['title'] : (string) $orphan['name'];
-          // Same layout as the fields of the record: label on the left, the value in a
-          // read-only field, the code of the element under it.
+          // Same layout as the fields of the record: the label on the left with the code of
+          // the element under it, the value in a read-only field.
           $orphanInput = str_contains($orphanText, "\n") || mb_strlen($orphanText) > 120
               ? '<textarea id="' . $orphanFieldId . '" class="form-control" rows="3" readonly>' . $value($orphanText) . '</textarea>'
               : '<input type="text" id="' . $orphanFieldId . '" class="form-control" value="' . $value($orphanText) . '" readonly>';
@@ -232,9 +232,10 @@ $paginationNav = static function (string $spacing) use ($pages, $pageLink, $posi
           <?= LayoutHelper::render('joomla.form.renderfield', [
               'id' => $orphanFieldId,
               'name' => $orphanFieldId,
-              'label' => '<label id="' . $orphanFieldId . '-lbl" for="' . $orphanFieldId . '">' . $value($orphanLabel) . '</label>',
+              'label' => '<label id="' . $orphanFieldId . '-lbl" for="' . $orphanFieldId . '">' . $value($orphanLabel)
+                  . '<small class="d-block form-text">' . $value($orphan['name']) . ' &middot; #' . (int) $orphan['element_id'] . '</small></label>',
               'input' => $orphanInput,
-              'description' => $value($orphan['name']) . ' &middot; #' . (int) $orphan['element_id'],
+              'description' => '',
               'options' => [],
           ]); ?>
         <?php endforeach; ?>

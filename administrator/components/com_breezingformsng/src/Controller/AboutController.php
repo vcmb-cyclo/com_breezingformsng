@@ -544,7 +544,8 @@ class AboutController extends BaseController
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_FAILED',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_NONE',
             static fn (): ?string => $outcome['identical'] > 0
-                ? Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGNED_DUPLICATES', $outcome['moved'], $outcome['identical'])
+                ? Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGNED', (int) $outcome['moved'])
+                    . ' ' . Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_IDENTICAL_REMOVED', (int) $outcome['identical'])
                 : null
         );
     }
@@ -613,7 +614,7 @@ class AboutController extends BaseController
             $report = $this->getAuditService()->run();
             $this->app->setUserState('com_breezingformsng.about.audit', $report);
             $message = ($describe !== null ? $describe() : null)
-                ?? ($deleted === 0 && $noneKey !== null ? Text::_($noneKey) : Text::sprintf($doneKey, $deleted));
+                ?? ($deleted === 0 && $noneKey !== null ? Text::_($noneKey) : Text::plural($doneKey, $deleted));
         } catch (\Throwable $exception) {
             $message = Text::sprintf($failedKey, $exception->getMessage());
 

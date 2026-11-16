@@ -416,12 +416,12 @@
 
 /* An orphan check is listed because something is wrong: warning colours, not the blue of a link. */
 .bf-audit-orphans {
-    border-color: var(--bs-warning-border-subtle);
-    background-color: var(--bs-warning-bg-subtle);
+    border-color: var(--warning-border-subtle, var(--bs-warning-border-subtle, #f9deb8));
+    background-color: var(--warning-bg-subtle, var(--bs-warning-bg-subtle, #fcefdc));
 }
 .bf-audit-orphans > summary {
     cursor: pointer;
-    color: var(--bs-warning-text-emphasis);
+    color: var(--warning-text-emphasis, var(--bs-warning-text-emphasis, #60451f));
 }
 .bf-audit-orphans > summary .bf-orphan-count {
     color: inherit;
