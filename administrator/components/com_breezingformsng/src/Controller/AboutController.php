@@ -291,6 +291,12 @@ class AboutController extends BaseController
         try {
             $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
             AreaAccess::assertRepair($user);
+
+            // Uninstalling extensions is a Joomla Installer right, like in its own model.
+            if (!$user->authorise('core.delete', 'com_installer')) {
+                throw new NotAllowed(Text::_('JERROR_CORE_DELETE_NOT_PERMITTED'), 403);
+            }
+
             $single = $this->input->post->getInt('legacy_extension', 0);
             $selectedIds = $single > 0
                 ? [$single]

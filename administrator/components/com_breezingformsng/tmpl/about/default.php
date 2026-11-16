@@ -374,6 +374,19 @@ $auditHelp = static function (string $key): string {
 
     return ' <span class="icon-info-circle text-muted ms-1" tabindex="0" role="img" title="' . $text . '" aria-label="' . $text . '"></span>';
 };
+$auditLegacyUrl = static function (array $entry): string {
+    $type = (string) ($entry['type'] ?? '');
+    $client = (int) ($entry['client_id'] ?? 0);
+    $id = (int) ($entry['extension_id'] ?? 0);
+    $element = rawurlencode((string) ($entry['element'] ?? ''));
+
+    return match ($type) {
+        'template' => 'index.php?option=com_templates&view=styles&client_id=' . $client . '&filter[search]=' . $element,
+        'plugin' => 'index.php?option=com_plugins&view=plugins&filter[search]=id:' . $id,
+        'module' => 'index.php?option=com_modules&view=modules&client_id=' . $client . '&filter[search]=id:' . $id,
+        default => 'index.php?option=com_installer&view=manage&filter[search]=' . $element,
+    };
+};
 $auditExtensionLegacy = (array) ($auditReport['extension_legacy'] ?? array());
 $auditErrors = (array) ($auditReport['errors'] ?? array());
 $auditOrphanChecks = array_values(array_filter(
@@ -879,17 +892,7 @@ HTMLHelper::_('bootstrap.collapse');
                         <ul class="list-unstyled mb-0">
                             <?php foreach ($auditExtensionLegacy as $index => $entry) : ?>
                                 <?php $legacyId = (int) ($entry['extension_id'] ?? 0); ?>
-                                <?php
-                                $legacyType = (string) ($entry['type'] ?? '');
-                                $legacyClient = (int) ($entry['client_id'] ?? 0);
-                                $legacyElement = rawurlencode((string) ($entry['element'] ?? ''));
-                                $legacyUrl = match ($legacyType) {
-                                    'template' => 'index.php?option=com_templates&view=styles&client_id=' . $legacyClient . '&filter[search]=' . $legacyElement,
-                                    'plugin' => 'index.php?option=com_plugins&view=plugins&filter[search]=id:' . $legacyId,
-                                    'module' => 'index.php?option=com_modules&view=modules&client_id=' . $legacyClient . '&filter[search]=id:' . $legacyId,
-                                    default => 'index.php?option=com_installer&view=manage&filter[search]=' . $legacyElement,
-                                };
-                                ?>
+                                <?php $legacyUrl = $auditLegacyUrl($entry); ?>
                                 <li class="d-flex align-items-center gap-2 mb-1">
                                     <input type="checkbox" class="form-check-input mt-0" data-bf-select-item="legacy-extensions" name="legacy_extensions[]" value="<?php echo $legacyId; ?>" aria-label="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_SELECT_ONE', (int) $index + 1), ENT_QUOTES, 'UTF-8'); ?>">
                                     <code><?php echo htmlspecialchars((string) ($entry['type'] ?? '') . '/' . ((string) ($entry['folder'] ?? '') !== '' ? (string) $entry['folder'] . '/' : '') . (string) ($entry['element'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code>

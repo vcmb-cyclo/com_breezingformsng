@@ -57,7 +57,8 @@ test('orphan repairs preserve existing records and distinguish element zero from
         await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about`);
         const audit = page.locator('[data-bf-orphan-check="subrecords_without_element"]');
         await expect(audit).toBeAttached();
-        await expect(audit.locator('[data-bf-orphan-element="1999999990"]')).toHaveCount(0);
+        // Only the deletion must be withheld: reassignment buttons use the same data attribute.
+        await expect(audit.locator('[data-bf-orphan-task="about.deleteOrphanValues"][data-bf-orphan-element="1999999990"]')).toHaveCount(0);
         await expect(audit.locator('#bf-audit-delete-all-orphan-values')).toHaveCount(0);
 
         const denied = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.deleteOrphanValues&format=json`, {
