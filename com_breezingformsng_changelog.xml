@@ -3,6 +3,29 @@
     <changelog>
         <element>com_breezingformsng</element>
         <type>component</type>
+        <version>6.1.0-RC19</version>
+        <addition>
+            <item>Uninstall leftover pre-NG extensions from the audit of the About screen, one at a time or selected, with a link to the matching Joomla screen, and read a help tooltip on every audit title.</item>
+            <item>Reassign stored values whose field was deleted to the current field of the same name, per field or all at once, or move them to a field you choose from the same-type fields of the form. Records that already hold a value for that field are skipped.</item>
+            <item>Show on the record edit screen the stored values that no current field displays.</item>
+        </addition>
+        <change>
+            <item>Move every row of a multi-valued field when values are reassigned, not only one per record.</item>
+        </change>
+        <fix>
+            <item>Restore the titles of the audit sections of the About screen and use proper non-breaking spaces in the French audit texts.</item>
+        </fix>
+        <security>
+            <item>Check the rights before saving a QuickMode form and refuse updates of a form that does not exist.</item>
+            <item>Keep Salesforce responses and record IDs out of the public logs.</item>
+            <item>Encode request parameters placed in inline JavaScript and display query list values as text.</item>
+            <item>Restrict the files a theme can write and sanitize the names of uploaded files; the upload folders keep their access rules.</item>
+            <item>Ignore invalid PayPal payment notifications.</item>
+        </security>
+    </changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
         <version>6.1.0-RC18</version>
         <addition>
             <item>Transfer records to another form from the Records toolbar. Choose the records (any can be unchecked) and the target form, match each target field to a source field (fields with the same name are already matched, and a default value fills a field that has no source field), then confirm with an example of what the first record gives each field. A target field that is required in its form is marked and must be filled. The records of a deleted form can be transferred. Records are copied, not moved, and the originals can be sent to the trash. Payment information is copied only if you ask for it and confirm it.</item>
