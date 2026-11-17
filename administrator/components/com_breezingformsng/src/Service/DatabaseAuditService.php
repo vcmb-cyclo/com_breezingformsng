@@ -619,7 +619,10 @@ final class DatabaseAuditService
                     'COUNT(DISTINCT ' . $db->quoteName('child.record') . ') AS ' . $db->quoteName('total'),
                 ])
                 ->from($db->quoteName('#__facileforms_subrecords', 'child'))
-                ->join('LEFT', $db->quoteName('#__facileforms_elements', 'elements') . ' ON elements.id = child.element')
+                ->join(
+                    'LEFT',
+                    $db->quoteName('#__facileforms_elements', 'elements') . ' ON elements.id = child.element'
+                )
                 ->where('elements.id IS NULL')
                 ->whereIn($db->quoteName('child.element'), $ids)
                 ->group($db->quoteName('child.element'));
@@ -668,7 +671,12 @@ final class DatabaseAuditService
 
             foreach ($db->setQuery($query)->loadAssocList() as $row) {
                 $old = (int) $row['old_id'];
-                $matches[$old] ??= ['target_id' => (int) $row['target_id'], 'target_name' => (string) $row['target_name'], 'matched' => 0, 'free' => 0];
+                $matches[$old] ??= [
+                    'target_id' => (int) $row['target_id'],
+                    'target_name' => (string) $row['target_name'],
+                    'matched' => 0,
+                    'free' => 0,
+                ];
                 $matches[$old]['matched'] += (int) $row['total'];
                 $matches[$old]['free'] += (int) $row['free'];
             }

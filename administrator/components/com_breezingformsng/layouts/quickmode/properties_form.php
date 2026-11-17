@@ -13,9 +13,11 @@ defined('_JEXEC') or die;
 /** @var int $formEmailntf */
 /** @var string $formName */
 /** @var string $formTitle */
-/** @var int $formId */
-/** @var int $debugMode */
 use Joomla\CMS\Language\Text;
+
+// Passed by the section renderer; initialised so the layout can also be analysed on its own.
+$formId = (int) ($formId ?? 0);
+$debugMode = (bool) ($debugMode ?? false);
 ?>
                                     <!-- FORM PROPERTIES BEGIN -->
                                     <div class="bfProperties" id="bfFormProperties" style="display:none">
