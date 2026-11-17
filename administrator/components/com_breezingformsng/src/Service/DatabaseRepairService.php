@@ -451,8 +451,7 @@ final class DatabaseRepairService
         int $targetElementId,
         int &$identicalRemoved = 0,
         ?array $selectedValueIds = null
-    ): int
-    {
+    ): int {
         if ($oldElementId < 1 || $targetElementId < 1) {
             throw new \InvalidArgumentException('Invalid element ID.');
         }

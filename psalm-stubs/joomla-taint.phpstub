@@ -49,7 +49,15 @@ namespace Joomla\Database {
         /** @psalm-taint-escape sql */
         public function quote($text, $escape = true);
 
-        /** @psalm-taint-escape sql */
+        /**
+         * A name given as a string comes back as a string (Joomla documents array|string, which
+         * makes every concatenation of the result a "possibly invalid operand").
+         *
+         * @psalm-taint-escape sql
+         * @param array<array-key, string>|string $name
+         * @param array<array-key, string>|string|null $as
+         * @psalm-return ($name is string ? string : array<array-key, string>)
+         */
         public function quoteName($name, $as = null);
 
         /** @psalm-taint-escape sql */
@@ -58,6 +66,14 @@ namespace Joomla\Database {
 
     interface QueryInterface
     {
+        /**
+         * @psalm-taint-escape sql
+         * @param array<array-key, string>|string $name
+         * @param array<array-key, string>|string|null $as
+         * @psalm-return ($name is string ? string : array<array-key, string>)
+         */
+        public function quoteName($name, $as = null);
+
         /** @psalm-taint-sink sql $conditions */
         public function where($conditions, $glue = 'AND');
 

@@ -460,7 +460,9 @@ class AboutController extends BaseController
 
     private function menuError(AdminModel $model, string $fallbackKey): string
     {
-        $error = trim((string) $model->getError());
+        // getError() is the only way an AdminModel reports why a menu item could not be trashed.
+        /** @psalm-suppress DeprecatedMethod */
+        $error = trim($model->getError());
 
         return $error !== '' ? $error : Text::_($fallbackKey);
     }
@@ -533,7 +535,11 @@ class AboutController extends BaseController
             ? array_values(array_filter(array_map('intval', $rawSelection), static fn (int $id): bool => $id > 0))
             : null;
 
-        $outcome = new \ArrayObject(['moved' => 0, 'identical' => 0]);
+        // Filled by the repair, read by the message: a shared object, not references.
+        $outcome = new class {
+            public int $moved = 0;
+            public int $identical = 0;
+        };
 
         $this->repairOrphans(
             function (DatabaseRepairService $repair) use ($old, $target, $selection, $outcome): int {
@@ -542,19 +548,18 @@ class AboutController extends BaseController
                 }
 
                 $identical = 0;
-                $moved = $repair->reassignOrphanValuesToElement($old, $target, $identical, $selection);
-                $outcome['moved'] = $moved;
-                $outcome['identical'] = $identical;
+                $outcome->moved = $repair->reassignOrphanValuesToElement($old, $target, $identical, $selection);
+                $outcome->identical = $identical;
 
-                return $moved + $identical;
+                return $outcome->moved + $identical;
             },
             'subrecords_without_element',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGNED',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_FAILED',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_NONE',
-            static fn (): ?string => $outcome['identical'] > 0
-                ? Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGNED', (int) $outcome['moved'])
-                    . ' ' . Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_IDENTICAL_REMOVED', (int) $outcome['identical'])
+            static fn (): ?string => $outcome->identical > 0
+                ? Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGNED', $outcome->moved)
+                    . ' ' . Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_IDENTICAL_REMOVED', $outcome->identical)
                 : null
         );
     }

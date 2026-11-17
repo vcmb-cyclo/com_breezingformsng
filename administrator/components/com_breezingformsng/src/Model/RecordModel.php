@@ -172,10 +172,10 @@ class RecordModel extends AdminModel
             $subs = $byElement[(int) $element['id']] ?? [];
             $byName = false;
 
-            if ($subs === [] && ($nameCounts[(string) $element['name']] ?? 0) === 1) {
+            if ($subs === [] && ($nameCounts[$element['name']] ?? 0) === 1) {
                 $subs = array_values(array_filter(
-                    $missingByName[(string) $element['name']] ?? [],
-                    static fn (array $sub): bool => (string) $sub['type'] === (string) $element['type']
+                    $missingByName[$element['name']] ?? [],
+                    static fn (array $sub): bool => (string) $sub['type'] === $element['type']
                 ));
                 $byName = $subs !== [];
             }
@@ -411,7 +411,7 @@ class RecordModel extends AdminModel
             ->where($db->quoteName('record') . ' = :recordId')
             ->where($db->quoteName('name') . ' = :name')
             ->where($db->quoteName('type') . ' = :type')
-            ->where('NOT EXISTS (' . $elements . ')')
+            ->where('NOT EXISTS (' . (string) $elements . ')')
             ->order($db->quoteName('id'))
             ->bind(':recordId', $recordId, ParameterType::INTEGER)
             ->bind(':name', $name, ParameterType::STRING)
@@ -522,8 +522,8 @@ class RecordModel extends AdminModel
                 . '</small>';
             $field->addAttribute(
                 'label',
-                htmlspecialchars((string) $element['title'], ENT_QUOTES, 'UTF-8')
-                . '<small class="d-block form-text">' . htmlspecialchars((string) $element['name'], ENT_QUOTES, 'UTF-8') . '</small>'
+                htmlspecialchars($element['title'], ENT_QUOTES, 'UTF-8')
+                . '<small class="d-block form-text">' . htmlspecialchars($element['name'], ENT_QUOTES, 'UTF-8') . '</small>'
                 . $note
             );
             $field->addAttribute('translateLabel', 'false');

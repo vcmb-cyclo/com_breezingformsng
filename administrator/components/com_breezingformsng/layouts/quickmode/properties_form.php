@@ -21,7 +21,7 @@ use Joomla\CMS\Language\Text;
                                     <div class="bfProperties" id="bfFormProperties" style="display:none">
                                         <br />
                                         <?php if ($formId > 0) : ?>
-                                            <span class="badge bg-secondary mb-2" id="bfFormIdBadge"<?php echo $debugMode ? '' : ' hidden'; ?> title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORM_ID_BADGE'), ENT_QUOTES, 'UTF-8'); ?>">#<?php echo (int) $formId; ?></span>
+                                            <span class="badge bg-secondary mb-2" id="bfFormIdBadge"<?php echo $debugMode ? '' : ' hidden'; ?> title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORM_ID_BADGE'), ENT_QUOTES, 'UTF-8'); ?>">#<?php echo $formId; ?></span>
                                         <?php endif; ?>
                                         <fieldset>
 
