@@ -176,7 +176,7 @@ class RecordsModel extends ListModel
                 ->where($db->quoteName('orphan_values.record') . ' = ' . $db->quoteName('records.id'))
                 ->where($db->quoteName('orphan_values.element') . ' = :orphanElementId')
                 ->where($db->quoteName('orphan_elements.id') . ' IS NULL');
-            $query->where('EXISTS (' . $values . ')')
+            $query->where('EXISTS (' . (string) $values . ')')
                 ->bind(':orphanElementId', $orphanElementId, ParameterType::INTEGER);
         }
 
