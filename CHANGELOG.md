@@ -4,7 +4,7 @@
 
 ### Added
 
-- Move the values of a deleted element to another element of the same type from the About audit with the Transfer button. A clear message tells when nothing could be moved, and a value identical to the one the target already holds is removed as a duplicate.
+- Move the values of a deleted element to another element from the About audit with one icon per element. A dropdown lists the compatible elements of the form alphabetically, the one with the same name already selected, and the icon opens a preview of each value with the value the target already holds: only the values you check are moved, a record that already holds another value is marked "Already assigned" and left alone, and a value identical to the one the target already holds is removed as a duplicate. Text, hidden, text area, calendar and number elements are interchangeable, so a value can go to a hidden element such as StripeId; every other type only matches itself. Long lists are previewed 500 values at a time.
 - Delete the values of a deleted element for good, including those of records that still exist, from the About audit, after a confirmation that warns it cannot be undone.
 - Open the records that hold the values of a deleted element from the audit: the Records list is filtered on them and says so.
 - Show the number of the form and of its elements in the QuickMode editor when the debug mode is on, in the tree ("125 - Name") and in a badge of the properties. They follow the debug switch without reloading the page.
@@ -14,6 +14,7 @@
 
 - Rework the table of the values without an element in the audit: one Deleted element column, a link to the form editor, the number of records, the target element with its code, results shown right above the list, warning colours and correct singular and plural messages in every language.
 - Show the code of each element under its label on the Record screen, and attach a value whose element was deleted to the current element of the same name only when that name is unique in the form and the type is the same, as the audit does, on display and on saving. A note under the label says so. The other values stay in the values without an element and are not changed when the record is saved.
+- List every deleted element of the audit instead of the first ten, and open its sections by default.
 
 ### Fixed
 
