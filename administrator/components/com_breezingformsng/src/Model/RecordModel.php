@@ -143,14 +143,14 @@ class RecordModel extends AdminModel
 
         $nameCounts = [];
 
-        foreach ($db->setQuery(
-            $db->createQuery()
-                ->select([$db->quoteName('name'), 'COUNT(*) AS ' . $db->quoteName('total')])
-                ->from($db->quoteName('#__facileforms_elements'))
-                ->where($db->quoteName('form') . ' = :formId')
-                ->group($db->quoteName('name'))
-                ->bind(':formId', $formId, ParameterType::INTEGER)
-        )->loadAssocList() as $row) {
+        $countQuery = $db->createQuery()
+            ->select([$db->quoteName('name'), 'COUNT(*) AS ' . $db->quoteName('total')])
+            ->from($db->quoteName('#__facileforms_elements'))
+            ->where($db->quoteName('form') . ' = :formId')
+            ->group($db->quoteName('name'))
+            ->bind(':formId', $formId, ParameterType::INTEGER);
+
+        foreach ($db->setQuery($countQuery)->loadAssocList() as $row) {
             $nameCounts[(string) $row['name']] = (int) $row['total'];
         }
 

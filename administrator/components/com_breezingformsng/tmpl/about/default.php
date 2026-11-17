@@ -1083,7 +1083,7 @@ HTMLHelper::_('bootstrap.collapse');
                                                     <?php $orphanId = '#' . (int) ($orphanGroup['parent_id'] ?? 0); ?>
                                                     <?php if ($orphanValues) : ?>
                                                         <td>
-                                                            <?php if ($orphanLabel !== '') : ?><div><?php echo $orphanLabel; ?></div><?php endif; ?>
+                                                            <?php echo $orphanLabel !== '' ? '<div>' . $orphanLabel . '</div>' : ''; ?>
                                                             <div class="small text-muted"><?php echo $orphanId; ?></div>
                                                         </td>
                                                     <?php else : ?>
