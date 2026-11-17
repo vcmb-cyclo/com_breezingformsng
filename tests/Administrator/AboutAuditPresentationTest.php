@@ -104,6 +104,9 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringContainsString('function previewOrphanReassignment()', $controller);
         self::assertStringContainsString('function previewOrphanReassignment(', $repair);
         self::assertStringContainsString('ORPHAN_REASSIGN_COL_CURRENT', $template);
+        // The checked values are posted one by one: the preview stays well under PHP's default max_input_vars (1000).
+        self::assertStringContainsString('int $limit = 500', $repair);
+        self::assertStringContainsString('data-bf-reassign-cancel aria-label', $template);
         // The elements offered as target are listed alphabetically, not in the order of the form.
         self::assertStringContainsString("quoteName('e.name') . ' ASC", (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Service/OrphanValueMatcher.php'));
         self::assertStringContainsString("'current' =>", $repair);
