@@ -1451,6 +1451,7 @@ HTMLHelper::_('bootstrap.collapse');
             <div><strong id="bf-orphan-reassign-title"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_TITLE'); ?></strong></div>
             <div data-bf-reassign-summary></div>
         </div>
+        <button type="button" class="btn-close ms-auto" data-bf-reassign-cancel aria-label="<?php echo htmlspecialchars(Text::_('JCLOSE'), ENT_QUOTES, 'UTF-8'); ?>"></button>
     </div>
     <div class="card-body">
         <p class="small text-muted"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_INTRO'); ?></p>

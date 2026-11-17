@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 
 const script = readFileSync('media/com_breezingformsng/js/admin/about.js', 'utf8');
+const css = readFileSync('media/com_breezingformsng/css/about.css', 'utf8');
 const template = readFileSync('administrator/components/com_breezingformsng/tmpl/about/default.php', 'utf8');
 // The real dialog of the template, its PHP echoes replaced by labels.
 const dialog = template.slice(template.indexOf('<dialog id="bf-orphan-reassign-dialog"'), template.indexOf('</dialog>') + 9)
@@ -26,7 +27,8 @@ const preview = {
 // Joomla loads the script in the page head, before the dialog exists: the page
 // below does the same, so a lookup at load time would silently disable the icon.
 const page = (html) => `<!doctype html><html><head><meta charset="utf-8">
-    <style>.card { position: relative; display: flex; flex-direction: column; } .card-body { flex: 1 1 auto; }</style>
+    <style>${css}</style>
+    <style>.card { position: relative; display: flex; flex-direction: column; } .card-body { flex: 1 1 auto; } .btn-close { display: inline-block; width: 16px; height: 16px; }</style>
     <script>window.Joomla = { getOptions: () => 'token', Text: { _: (key) => key }, renderMessages() {} };</script>
     <script>${script}</script></head><body><form id="adminForm">
     <div id="bf-audit-orphan-messages"></div>
@@ -98,8 +100,36 @@ test('cancelling the dialog changes nothing', async ({ page: browserPage }) => {
     await browserPage.goto('http://bf.test/administrator/page');
     await browserPage.locator('#preview').click();
     await expect(browserPage.locator('#bf-orphan-reassign-dialog')).toBeVisible();
-    await browserPage.locator('[data-bf-reassign-cancel]').click();
+    await browserPage.locator('.btn-secondary[data-bf-reassign-cancel]').click();
     await expect(browserPage.locator('#bf-orphan-reassign-dialog')).toBeHidden();
     await expect(browserPage.locator('#bf-orphan-reassign-dialog')).not.toHaveAttribute('open', '');
     expect(posts).toHaveLength(1);
+});
+
+test('the cross closes the dialog, and a long list is flagged and scrolls', async ({ page: browserPage }) => {
+    const many = {
+        success: true,
+        message: '',
+        data: {
+            from: 'Prenom',
+            to: 'Prenom',
+            truncated: true,
+            rows: Array.from({ length: 500 }, (_, index) => ({ id: index + 1, record: index + 1, value: `Value ${index + 1}`, current: '', action: 'move' })),
+        },
+    };
+
+    await browserPage.route('http://bf.test/administrator/page', (route) => route.fulfill({ contentType: 'text/html', body: page(dialog) }));
+    await browserPage.route('http://bf.test/administrator/index.php?**', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(many) }));
+    await browserPage.goto('http://bf.test/administrator/page');
+    await browserPage.locator('#preview').click();
+    const modal = browserPage.locator('#bf-orphan-reassign-dialog');
+    await expect(modal).toBeVisible();
+    await expect(modal.locator('[data-bf-reassign-rows] tr')).toHaveCount(500);
+    await expect(modal.locator('[data-bf-reassign-note]')).not.toBeEmpty();
+    // The list scrolls inside the dialog, which stays within the window.
+    const box = await modal.boundingBox();
+    expect(box.height).toBeLessThanOrEqual(browserPage.viewportSize().height);
+    expect(await modal.locator('.bf-orphan-reassign-list').evaluate((element) => getComputedStyle(element).overflowY)).toBe('auto');
+    await modal.locator('.btn-close').click();
+    await expect(modal).toBeHidden();
 });

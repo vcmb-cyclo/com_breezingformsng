@@ -507,3 +507,11 @@
     max-height: 50vh;
     overflow: auto;
 }
+
+/* A long list scrolls while its header (select all) stays in view. */
+.bf-orphan-reassign .bf-orphan-reassign-list thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--bs-body-bg, Canvas);
+}
