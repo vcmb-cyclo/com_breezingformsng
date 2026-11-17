@@ -476,3 +476,34 @@
         color: #fff;
         background: rgba(0, 0, 0, .62);
     }
+
+/* The dialog itself carries no Bootstrap class (.card would override its display and position); the card is inside. */
+.bf-orphan-reassign {
+    width: min(1100px, 94vw);
+    max-height: 90vh;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--bs-body-color);
+    overflow: visible;
+}
+
+.bf-orphan-reassign::backdrop {
+    background: rgb(0 0 0 / 50%);
+}
+
+.bf-orphan-reassign .card {
+    max-height: 90vh;
+    overflow: hidden;
+    background-color: var(--bs-body-bg, Canvas);
+}
+
+.bf-orphan-reassign .card-header,
+.bf-orphan-reassign .card-footer {
+    background-color: var(--bs-tertiary-bg, var(--bs-body-bg, Canvas));
+}
+
+.bf-orphan-reassign .bf-orphan-reassign-list {
+    max-height: 50vh;
+    overflow: auto;
+}

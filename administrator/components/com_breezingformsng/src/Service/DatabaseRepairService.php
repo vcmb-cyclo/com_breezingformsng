@@ -437,15 +437,21 @@ final class DatabaseRepairService
     /**
      * Reassigns the values of one missing element to a field chosen by the
      * administrator. The field must belong to the form of the records and have
-     * the same type as the stored values; records that already hold a value
+     * a type compatible with the stored values (OrphanValueMatcher); records that already hold a value
      * for it are left unchanged, except that an orphan value strictly identical
      * to one the record already holds for it is a duplicate and is deleted.
      *
      * @param int $identicalRemoved Receives the number of identical duplicates deleted.
+     * @param ?list<int> $selectedValueIds Only these values (those the administrator checked); null for all.
      *
      * @return int The number of values reassigned.
      */
-    public function reassignOrphanValuesToElement(int $oldElementId, int $targetElementId, int &$identicalRemoved = 0): int
+    public function reassignOrphanValuesToElement(
+        int $oldElementId,
+        int $targetElementId,
+        int &$identicalRemoved = 0,
+        ?array $selectedValueIds = null
+    ): int
     {
         if ($oldElementId < 1 || $targetElementId < 1) {
             throw new \InvalidArgumentException('Invalid element ID.');
@@ -465,7 +471,7 @@ final class DatabaseRepairService
         }
 
         $targetForm = (int) $target['form'];
-        $targetType = (string) $target['type'];
+        $targetClass = OrphanValueMatcher::typeClass((string) $target['type']);
         $query = $db->createQuery()
             ->select($db->quoteName('s.id'))
             ->from($db->quoteName('#__facileforms_subrecords', 's'))
@@ -479,11 +485,11 @@ final class DatabaseRepairService
             ->where('x.id IS NULL')
             ->where($db->quoteName('s.element') . ' = :old')
             ->where($db->quoteName('r.form') . ' = :form')
-            ->where($db->quoteName('s.type') . ' = :type')
+            ->where(OrphanValueMatcher::typeClassSql($db, 's.type') . ' = :class')
             ->bind(':target', $targetElementId, ParameterType::INTEGER)
             ->bind(':old', $oldElementId, ParameterType::INTEGER)
             ->bind(':form', $targetForm, ParameterType::INTEGER)
-            ->bind(':type', $targetType);
+            ->bind(':class', $targetClass);
         $subIds = array_map('intval', $db->setQuery($query)->loadColumn() ?: []);
 
         // Orphan values the target already holds, byte for byte (a different
@@ -501,13 +507,20 @@ final class DatabaseRepairService
             ->where('o.id IS NULL')
             ->where($db->quoteName('s.element') . ' = :old')
             ->where($db->quoteName('r.form') . ' = :form')
-            ->where($db->quoteName('s.type') . ' = :type')
+            ->where(OrphanValueMatcher::typeClassSql($db, 's.type') . ' = :class')
             ->group($db->quoteName('s.id'))
             ->bind(':target', $targetElementId, ParameterType::INTEGER)
             ->bind(':old', $oldElementId, ParameterType::INTEGER)
             ->bind(':form', $targetForm, ParameterType::INTEGER)
-            ->bind(':type', $targetType);
+            ->bind(':class', $targetClass);
         $duplicateIds = array_map('intval', $db->setQuery($duplicateQuery)->loadColumn() ?: []);
+
+        if ($selectedValueIds !== null) {
+            $selectedValueIds = array_map('intval', $selectedValueIds);
+            $subIds = array_values(array_intersect($subIds, $selectedValueIds));
+            $duplicateIds = array_values(array_intersect($duplicateIds, $selectedValueIds));
+        }
+
         $reassigned = 0;
         $identicalRemoved = 0;
         $db->transactionStart();
@@ -539,6 +552,95 @@ final class DatabaseRepairService
         }
 
         return $reassigned;
+    }
+
+    /**
+     * What reassigning the values of a missing element to a chosen element would
+     * do, value by value, so the administrator can check them before confirming.
+     * The same rules as reassignOrphanValuesToElement(): same form and type; a
+     * value is moved when the record holds nothing for the target, deleted as a
+     * duplicate when it is strictly identical to one the record holds, and left
+     * alone otherwise.
+     *
+     * @return array{from: string, to: string, truncated: bool, rows: list<array{id: int, record: int, value: string, current: string, action: string}>}
+     */
+    public function previewOrphanReassignment(int $oldElementId, int $targetElementId, int $limit = 500): array
+    {
+        if ($oldElementId < 1 || $targetElementId < 1) {
+            throw new \InvalidArgumentException('Invalid element ID.');
+        }
+
+        $db = $this->db;
+        $target = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName(['id', 'form', 'type', 'name']))
+                ->from($db->quoteName('#__facileforms_elements'))
+                ->where($db->quoteName('id') . ' = :id')
+                ->bind(':id', $targetElementId, ParameterType::INTEGER)
+        )->loadAssoc();
+
+        if (!is_array($target)) {
+            throw new \InvalidArgumentException('The target field does not exist.');
+        }
+
+        $targetForm = (int) $target['form'];
+        $targetClass = OrphanValueMatcher::typeClass((string) $target['type']);
+        $query = $db->createQuery()
+            ->select($db->quoteName(['s.id', 's.record', 's.name', 's.value']))
+            ->from($db->quoteName('#__facileforms_subrecords', 's'))
+            ->join('INNER', $db->quoteName('#__facileforms_records', 'r') . ' ON r.id = s.record')
+            ->join('LEFT', $db->quoteName('#__facileforms_elements', 'o') . ' ON o.id = s.element')
+            ->where('o.id IS NULL')
+            ->where($db->quoteName('s.element') . ' = :old')
+            ->where($db->quoteName('r.form') . ' = :form')
+            ->where(OrphanValueMatcher::typeClassSql($db, 's.type') . ' = :class')
+            ->order($db->quoteName('s.record') . ' ASC, ' . $db->quoteName('s.id') . ' ASC')
+            ->bind(':old', $oldElementId, ParameterType::INTEGER)
+            ->bind(':form', $targetForm, ParameterType::INTEGER)
+            ->bind(':class', $targetClass);
+        $values = $db->setQuery($query, 0, $limit + 1)->loadAssocList();
+        $truncated = count($values) > $limit;
+        $values = array_slice($values, 0, $limit);
+        $records = array_values(array_unique(array_map(static fn (array $row): int => (int) $row['record'], $values)));
+        $held = [];
+
+        if ($records !== []) {
+            $heldQuery = $db->createQuery()
+                ->select($db->quoteName(['record', 'value']))
+                ->from($db->quoteName('#__facileforms_subrecords'))
+                ->where($db->quoteName('element') . ' = :target')
+                ->whereIn($db->quoteName('record'), $records)
+                ->bind(':target', $targetElementId, ParameterType::INTEGER);
+
+            foreach ($db->setQuery($heldQuery)->loadAssocList() as $row) {
+                $held[(int) $row['record']][] = (string) $row['value'];
+            }
+        }
+
+        $rows = [];
+        $from = '';
+
+        foreach ($values as $row) {
+            $from = $from !== '' ? $from : (string) $row['name'];
+            $record = (int) $row['record'];
+            $value = (string) $row['value'];
+            $action = match (true) {
+                !isset($held[$record]) => 'move',
+                in_array($value, $held[$record], true) => 'duplicate',
+                default => 'taken',
+            };
+            $current = implode("\n", $held[$record] ?? []);
+            $rows[] = [
+                'id' => (int) $row['id'],
+                'record' => $record,
+                'value' => mb_strlen($value) > 160 ? mb_substr($value, 0, 160) . '…' : $value,
+                // What the target element already holds for this record, if anything.
+                'current' => mb_strlen($current) > 160 ? mb_substr($current, 0, 160) . '…' : $current,
+                'action' => $action,
+            ];
+        }
+
+        return ['from' => $from, 'to' => (string) $target['name'], 'truncated' => $truncated, 'rows' => $rows];
     }
 
     /**

@@ -19,11 +19,36 @@ use Joomla\Database\QueryInterface;
  * same form that carries the same name, so the values can be reassigned to it.
  *
  * A target is only proposed when its name is unique within its form, so that
- * the match is never ambiguous, and when its type equals the type of the stored
- * values (a multi-valued field is never moved to a single-valued one).
+ * the match is never ambiguous, and when its type is compatible with the type of
+ * the stored values: the types holding one plain value (text, hidden input, text
+ * area, calendar, number) are interchangeable, every other type only matches
+ * itself, so a multi-valued field is never moved to a single-valued one.
  */
 final class OrphanValueMatcher
 {
+    /** Types holding one plain value: a value of one can be moved to a field of another. */
+    private const SCALAR_TYPES = ['Text', 'Hidden Input', 'Textarea', 'Calendar', 'Number Input'];
+
+    /**
+     * The compatibility class of a field type.
+     */
+    public static function typeClass(string $type): string
+    {
+        return in_array($type, self::SCALAR_TYPES, true) ? 'scalar' : $type;
+    }
+
+    /**
+     * SQL expression of the compatibility class of a type column, to compare two
+     * columns (or one column with typeClass() of a known type).
+     */
+    public static function typeClassSql(DatabaseInterface $db, string $column): string
+    {
+        $scalar = implode(', ', array_map([$db, 'quote'], self::SCALAR_TYPES));
+
+        return 'CASE WHEN ' . $db->quoteName($column) . ' IN (' . $scalar . ') THEN ' . $db->quote('scalar')
+            . ' ELSE ' . $db->quoteName($column) . ' END';
+    }
+
     /**
      * Base query, aliases: s = orphan value, r = its record, e = target
      * element, x = a value already stored for the target on the same record
@@ -37,7 +62,8 @@ final class OrphanValueMatcher
             ->from($db->quoteName('#__facileforms_subrecords', 's'))
             ->join('INNER', $db->quoteName('#__facileforms_records', 'r') . ' ON r.id = s.record')
             ->join('LEFT', $db->quoteName('#__facileforms_elements', 'o') . ' ON o.id = s.element')
-            ->join('INNER', $db->quoteName('#__facileforms_elements', 'e') . ' ON e.form = r.form AND e.name = s.name AND e.type = s.type')
+            ->join('INNER', $db->quoteName('#__facileforms_elements', 'e') . ' ON e.form = r.form AND e.name = s.name AND '
+                    . self::typeClassSql($db, 'e.type') . ' = ' . self::typeClassSql($db, 's.type'))
             ->join(
                 'INNER',
                 '(SELECT form, name FROM ' . $db->quoteName('#__facileforms_elements')
@@ -56,7 +82,7 @@ final class OrphanValueMatcher
 
     /**
      * Fields the values of missing elements could be moved to: published fields
-     * of the form of the records that have the same type as the stored values.
+     * of the form of the records whose type is compatible with the stored values.
      *
      * @param list<int> $elementIds Missing elements.
      *
@@ -81,7 +107,8 @@ final class OrphanValueMatcher
             ->from($db->quoteName('#__facileforms_subrecords', 's'))
             ->join('INNER', $db->quoteName('#__facileforms_records', 'r') . ' ON r.id = s.record')
             ->join('LEFT', $db->quoteName('#__facileforms_elements', 'o') . ' ON o.id = s.element')
-            ->join('INNER', $db->quoteName('#__facileforms_elements', 'e') . ' ON e.form = r.form AND e.type = s.type')
+            ->join('INNER', $db->quoteName('#__facileforms_elements', 'e') . ' ON e.form = r.form AND '
+                    . self::typeClassSql($db, 'e.type') . ' = ' . self::typeClassSql($db, 's.type'))
             ->join('LEFT', $db->quoteName('#__facileforms_forms', 'f') . ' ON f.id = e.form')
             ->where('o.id IS NULL')
             ->where($db->quoteName('e.published') . ' = 1')
@@ -92,7 +119,11 @@ final class OrphanValueMatcher
                 ['bfFakeName', 'bfFakeName2', 'bfFakeName3', 'bfFakeName4', 'bfFakeName5'],
                 ParameterType::STRING
             )
-            ->order($db->quoteName('e.form') . ' ASC, ' . $db->quoteName('e.ordering') . ' ASC');
+            // Alphabetical (the collation ignores case and accents): by form title, then by element name.
+            ->order(
+                $db->quoteName('f.title') . ' ASC, ' . $db->quoteName('e.form') . ' ASC, '
+                . $db->quoteName('e.name') . ' ASC, ' . $db->quoteName('e.id') . ' ASC'
+            );
         $result = [];
 
         foreach ($db->setQuery($query)->loadAssocList() as $row) {

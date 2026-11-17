@@ -39,7 +39,6 @@ final class DatabaseAuditService
     private const FALLBACK_COLLATION = 'utf8mb4_unicode_ci';
 
     /** Missing parents listed per orphan relation; the rest is only counted. */
-    private const ORPHAN_GROUP_LIMIT = 10;
 
     private const INSTALL_SQL = '/components/com_breezingformsng/sql/install.mysql.utf8.sql';
 
@@ -474,8 +473,7 @@ final class DatabaseAuditService
                 'COUNT(*) AS ' . $this->db->quoteName('total'),
             ])
             ->group($key)
-            ->order($this->db->quoteName('total') . ' DESC, ' . $key . ' ASC')
-            ->setLimit(self::ORPHAN_GROUP_LIMIT);
+            ->order($this->db->quoteName('total') . ' DESC, ' . $key . ' ASC');
 
         if ($labelColumn !== null) {
             $query->select(
@@ -679,7 +677,7 @@ final class DatabaseAuditService
         $candidates = OrphanValueMatcher::candidates($db, $ids);
 
         foreach ($summary['groups'] as &$group) {
-            $group['candidates'] = array_slice($candidates[(int) $group['parent_id']] ?? [], 0, 200);
+            $group['candidates'] = $candidates[(int) $group['parent_id']] ?? [];
             $match = $matches[(int) $group['parent_id']] ?? null;
             $group['target_id'] = $match['target_id'] ?? 0;
             $group['target_name'] = $match['target_name'] ?? '';
