@@ -82,7 +82,8 @@ final class AboutAuditPresentationTest extends TestCase
         // Same layout as the fields of the record, with a read-only value.
         self::assertStringContainsString("'joomla.form.renderfield'", $template);
         self::assertStringContainsString('readonly', $template);
-        self::assertStringContainsString("\$value(\$orphanText)", $template);
+        // The value is escaped before it reaches the field.
+        self::assertStringContainsString("\$value(\$text)", $template);
     }
 
     public function testOrphanValuesCanBeMovedToAFieldOfTheSameType(): void

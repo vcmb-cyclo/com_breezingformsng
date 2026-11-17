@@ -37,6 +37,27 @@ $position = $this->recordPosition !== null
     ? Text::sprintf('COM_BREEZINGFORMSNG_RECORD_POSITION', $this->recordPosition, $this->recordTotal)
     : '';
 $value = static fn(mixed $field): string => htmlspecialchars((string) ($field ?? ''), ENT_QUOTES, 'UTF-8');
+// A value stored under a deleted element, shown like the fields of the record: the label on the left
+// with the code of the element under it, the value in a read-only field.
+$orphanField = static function (int $index, array $orphan) use ($value): array {
+    $id = 'orphan_value_' . $index;
+    $text = (string) ($orphan['value'] ?? '');
+    $label = (string) ($orphan['title'] ?? '') !== '' ? (string) $orphan['title'] : (string) $orphan['name'];
+    $input = str_contains($text, "\n") || mb_strlen($text) > 120
+        ? '<textarea id="' . $id . '" class="form-control" rows="3" readonly>' . $value($text) . '</textarea>'
+        : '<input type="text" id="' . $id . '" class="form-control" value="' . $value($text) . '" readonly>';
+
+    return [
+        'id' => $id,
+        'name' => $id,
+        'label' => '<label id="' . $id . '-lbl" for="' . $id . '">' . $value($label)
+            . '<small class="d-block form-text">' . $value($orphan['name']) . ' &middot; #'
+            . (int) $orphan['element_id'] . '</small></label>',
+        'input' => $input,
+        'description' => '',
+        'options' => [],
+    ];
+};
 $modifiedDate = $optionalDate($record->modified);
 $modifiedBy = $value($record->modified_by_name);
 $modifiedBy = $modifiedBy === '' ? '' : sprintf(
@@ -148,7 +169,7 @@ $paginationNav = static function (string $spacing) use ($pages, $pageLink, $posi
       <ul class="pagination m-0">
         <?= $pageLink($pages['start'], 'icon-angle-double-left', 'JLIB_HTML_GOTO_POSITION_START'); ?>
         <?= $pageLink($pages['previous'], 'icon-angle-left', 'JLIB_HTML_GOTO_POSITION_PREVIOUS'); ?>
-        <?php foreach ($pages['pages'] as $page): ?>
+        <?php foreach ($pages['pages'] as $page) : ?>
           <?= $pageLink($page); ?>
         <?php endforeach; ?>
         <?= $pageLink($pages['next'], 'icon-angle-right', 'JLIB_HTML_GOTO_POSITION_NEXT'); ?>
@@ -219,25 +240,7 @@ $paginationNav = static function (string $spacing) use ($pages, $pageLink, $posi
       <div class="card-body">
         <p class="small text-muted"><?= Text::_('COM_BREEZINGFORMSNG_RECORD_ORPHAN_VALUES_DESC'); ?></p>
         <?php foreach ($orphanValues as $index => $orphan) : ?>
-          <?php
-          $orphanFieldId = 'orphan_value_' . (int) $index;
-          $orphanText = (string) ($orphan['value'] ?? '');
-          $orphanLabel = (string) ($orphan['title'] ?? '') !== '' ? (string) $orphan['title'] : (string) $orphan['name'];
-          // Same layout as the fields of the record: the label on the left with the code of
-          // the element under it, the value in a read-only field.
-          $orphanInput = str_contains($orphanText, "\n") || mb_strlen($orphanText) > 120
-              ? '<textarea id="' . $orphanFieldId . '" class="form-control" rows="3" readonly>' . $value($orphanText) . '</textarea>'
-              : '<input type="text" id="' . $orphanFieldId . '" class="form-control" value="' . $value($orphanText) . '" readonly>';
-          ?>
-          <?= LayoutHelper::render('joomla.form.renderfield', [
-              'id' => $orphanFieldId,
-              'name' => $orphanFieldId,
-              'label' => '<label id="' . $orphanFieldId . '-lbl" for="' . $orphanFieldId . '">' . $value($orphanLabel)
-                  . '<small class="d-block form-text">' . $value($orphan['name']) . ' &middot; #' . (int) $orphan['element_id'] . '</small></label>',
-              'input' => $orphanInput,
-              'description' => '',
-              'options' => [],
-          ]); ?>
+          <?= LayoutHelper::render('joomla.form.renderfield', $orphanField((int) $index, $orphan)); ?>
         <?php endforeach; ?>
       </div>
     </div>
