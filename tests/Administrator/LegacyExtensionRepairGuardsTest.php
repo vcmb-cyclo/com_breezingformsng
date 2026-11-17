@@ -32,11 +32,16 @@ final class LegacyExtensionRepairGuardsTest extends TestCase
         self::assertMatchesRegularExpression('/isOrphanRegistration\(\$entry\)\)\s*\{\s*throw/', $source);
     }
 
-    public function testAutomaticReassignmentRequiresTheSameType(): void
+    public function testAutomaticReassignmentRequiresACompatibleType(): void
     {
         $source = (string) file_get_contents(self::ADMIN . '/src/Service/OrphanValueMatcher.php');
 
-        self::assertStringContainsString('e.name = s.name AND e.type = s.type', $source);
+        // Same name and a compatible type: plain-value types (text, hidden input...) are
+        // interchangeable, a multi-valued type (checkbox group...) only matches itself.
+        self::assertStringContainsString("e.name = s.name AND '", $source);
+        self::assertStringContainsString("self::typeClassSql(\$db, 'e.type') . ' = ' . self::typeClassSql(\$db, 's.type')", $source);
+        self::assertMatchesRegularExpression("/SCALAR_TYPES = \\[[^\\]]*'Hidden Input'/", $source);
+        self::assertDoesNotMatchRegularExpression("/SCALAR_TYPES = \\[[^\\]]*Checkbox/", $source);
     }
 
     public function testMenuItemDeletionIsGuardedAndNotNestedInAForm(): void

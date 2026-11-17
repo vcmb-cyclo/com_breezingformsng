@@ -97,13 +97,38 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertIsString($controller);
         self::assertIsString($repair);
         self::assertIsString($matcher);
-        self::assertStringContainsString('about.reassignOrphanValuesToElement', $template);
+        // One icon per element: the preview lists the values, with a checkbox each, before anything is moved.
+        self::assertStringContainsString('data-bf-orphan-preview', $template);
         self::assertStringContainsString('data-bf-orphan-target-select', $template);
+        self::assertStringContainsString('bf-orphan-reassign-dialog', $template);
+        self::assertStringContainsString('function previewOrphanReassignment()', $controller);
+        self::assertStringContainsString('function previewOrphanReassignment(', $repair);
+        self::assertStringContainsString('ORPHAN_REASSIGN_COL_CURRENT', $template);
+        // The elements offered as target are listed alphabetically, not in the order of the form.
+        self::assertStringContainsString("quoteName('e.name') . ' ASC", (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Service/OrphanValueMatcher.php'));
+        self::assertStringContainsString("'current' =>", $repair);
+        self::assertStringContainsString('?array $selectedValueIds', $repair);
         self::assertStringContainsString('function reassignOrphanValuesToElement()', $controller);
         // The target must be in the form of the records and of the same type as the values.
         self::assertStringContainsString("quoteName('r.form') . ' = :form'", $repair);
-        self::assertStringContainsString("quoteName('s.type') . ' = :type'", $repair);
-        self::assertStringContainsString('e.type = s.type', $matcher);
+        self::assertStringContainsString("typeClassSql(\$db, 's.type') . ' = :class'", $repair);
+        self::assertStringContainsString("typeClassSql(\$db, 'e.type') . ' = ' . self::typeClassSql(\$db, 's.type')", $matcher);
+        // Types holding one plain value are interchangeable (StripeId is a hidden input); the others only match themselves.
+        self::assertStringContainsString("'Hidden Input'", $matcher);
+        self::assertStringNotContainsString("'Checkbox Group'", $matcher);
+    }
+
+    public function testAuditListsEveryMissingElementAndOpensItsAccordions(): void
+    {
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $audit = file_get_contents($base . '/src/Service/DatabaseAuditService.php');
+        $template = file_get_contents($base . '/tmpl/about/default.php');
+
+        self::assertIsString($audit);
+        self::assertIsString($template);
+        self::assertStringNotContainsString('ORPHAN_GROUP_LIMIT', $audit);
+        self::assertStringNotContainsString('array_slice($candidates', $audit);
+        self::assertStringContainsString('class="bf-audit-orphans mb-1" open', $template);
     }
 
     public function testRemovingALegacyTemplateNeverLeavesAClientWithoutDefaultStyle(): void

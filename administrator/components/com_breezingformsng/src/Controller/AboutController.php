@@ -527,13 +527,22 @@ class AboutController extends BaseController
         $rawTarget = $this->input->post->get('orphan_target_id', null, 'raw');
         $old = is_string($rawOld) && preg_match('/\A[0-9]+\z/', $rawOld) ? (int) $rawOld : -1;
         $target = is_string($rawTarget) && preg_match('/\A[0-9]+\z/', $rawTarget) ? (int) $rawTarget : -1;
+        // The values checked in the preview; absent (no preview, e.g. no script): all of them.
+        $rawSelection = $this->input->post->get('orphan_values', null, 'array');
+        $selection = is_array($rawSelection)
+            ? array_values(array_filter(array_map('intval', $rawSelection), static fn (int $id): bool => $id > 0))
+            : null;
 
         $outcome = new \ArrayObject(['moved' => 0, 'identical' => 0]);
 
         $this->repairOrphans(
-            function (DatabaseRepairService $repair) use ($old, $target, $outcome): int {
+            function (DatabaseRepairService $repair) use ($old, $target, $selection, $outcome): int {
+                if ($selection === []) {
+                    throw new \InvalidArgumentException(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_NO_SELECTION'));
+                }
+
                 $identical = 0;
-                $moved = $repair->reassignOrphanValuesToElement($old, $target, $identical);
+                $moved = $repair->reassignOrphanValuesToElement($old, $target, $identical, $selection);
                 $outcome['moved'] = $moved;
                 $outcome['identical'] = $identical;
 
@@ -548,6 +557,39 @@ class AboutController extends BaseController
                     . ' ' . Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_IDENTICAL_REMOVED', (int) $outcome['identical'])
                 : null
         );
+    }
+
+    public function previewOrphanReassignment(): void
+    {
+        if (!$this->checkToken('post', false)) {
+            $this->sendJson(403, Text::_('JINVALID_TOKEN'));
+
+            return;
+        }
+
+        $rawOld = $this->input->post->get('orphan_element_id', null, 'raw');
+        $rawTarget = $this->input->post->get('orphan_target_id', null, 'raw');
+        $old = is_string($rawOld) && preg_match('/\A[0-9]+\z/', $rawOld) ? (int) $rawOld : -1;
+        $target = is_string($rawTarget) && preg_match('/\A[0-9]+\z/', $rawTarget) ? (int) $rawTarget : -1;
+
+        try {
+            $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertDeleteOrphans($user);
+            $preview = $this->getRepairService()->previewOrphanReassignment($old, $target);
+        } catch (\Throwable $exception) {
+            $this->sendJson(
+                match (true) {
+                    $exception instanceof NotAllowed => 403,
+                    $exception instanceof \InvalidArgumentException => 400,
+                    default => 500,
+                },
+                Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_FAILED', $exception->getMessage())
+            );
+
+            return;
+        }
+
+        $this->sendJson(200, '', $preview);
     }
 
     public function deleteOrphanValues(): void

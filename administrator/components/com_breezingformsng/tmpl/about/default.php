@@ -1053,7 +1053,7 @@ HTMLHelper::_('bootstrap.collapse');
                             // Records of a deleted form: link to the records list filtered on it, all states.
                             $orphanRecordsLink = ($check['id'] ?? '') === 'records_without_form';
                             ?>
-                            <details class="bf-audit-orphans mb-1" data-bf-orphan-check="<?php echo htmlspecialchars((string) ($check['id'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
+                            <details class="bf-audit-orphans mb-1" open data-bf-orphan-check="<?php echo htmlspecialchars((string) ($check['id'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
                                 <summary><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_' . strtoupper((string) ($check['id'] ?? ''))); ?>: <strong class="bf-orphan-count"><?php echo (int) ($check['count'] ?? 0); ?></strong></summary>
                                 <div class="table-responsive mt-2 mb-3">
                                     <table class="table table-sm table-striped align-middle mb-0 w-auto">
@@ -1118,56 +1118,40 @@ HTMLHelper::_('bootstrap.collapse');
                                                     </td>
                                                     <?php if ($orphanValues) : ?>
                                                         <td class="text-nowrap">
-                                                            <?php if ((int) ($orphanGroup['target_id'] ?? 0) > 0) : ?>
-                                                                <div class="d-inline-block align-middle" title="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGNABLE_COUNT', (int) ($orphanGroup['reassignable'] ?? 0), (int) ($orphanGroup['matched'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>">
-                                                                    <div class="text-success"><span class="fa-solid fa-arrow-right-long me-1" aria-hidden="true"></span><?php echo htmlspecialchars((string) ($orphanGroup['target_name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
-                                                                    <div class="small text-muted ms-4">#<?php echo (int) $orphanGroup['target_id']; ?></div>
-                                                                </div>
-                                                                <?php if ((int) ($orphanGroup['reassignable'] ?? 0) > 0) : ?>
+                                                            <?php $orphanCandidates = (array) ($orphanGroup['candidates'] ?? array()); ?>
+                                                            <?php if ($orphanCandidates === array()) : ?>
+                                                                <span class="text-muted"><span class="fa-solid fa-arrow-right-long me-1" aria-hidden="true"></span><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_TARGET_NONE'); ?></span>
+                                                            <?php else : ?>
+                                                                <?php
+                                                                $orphanSelectId = 'bf-orphan-target-' . (int) ($orphanGroup['parent_id'] ?? 0);
+                                                                $orphanPreselected = (int) ($orphanGroup['target_id'] ?? 0);
+                                                                $orphanOptions = array();
+                                                                foreach ($orphanCandidates as $candidate) {
+                                                                    $orphanOptions[(int) $candidate['form']]['title'] = (string) $candidate['form_title'];
+                                                                    $orphanOptions[(int) $candidate['form']]['items'][] = $candidate;
+                                                                }
+                                                                ?>
+                                                                <div class="input-group input-group-sm">
+                                                                    <select class="form-select form-select-sm" id="<?php echo $orphanSelectId; ?>" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR_TARGET'), ENT_QUOTES, 'UTF-8'); ?>"<?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>>
+                                                                        <option value="0"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR_SELECT'); ?></option>
+                                                                        <?php foreach ($orphanOptions as $optionForm => $optionGroup) : ?>
+                                                                            <optgroup label="<?php echo htmlspecialchars(trim($optionGroup['title'] . ' #' . $optionForm), ENT_QUOTES, 'UTF-8'); ?>">
+                                                                                <?php foreach ($optionGroup['items'] as $candidate) : ?>
+                                                                                    <option value="<?php echo (int) $candidate['id']; ?>"<?php echo (int) $candidate['id'] === $orphanPreselected ? ' selected' : ''; ?>><?php echo htmlspecialchars(trim((string) $candidate['name'] . ' ' . ((string) $candidate['title'] !== '' ? '(' . $candidate['title'] . ')' : '') . ' #' . (int) $candidate['id']), ENT_QUOTES, 'UTF-8'); ?></option>
+                                                                                <?php endforeach; ?>
+                                                                            </optgroup>
+                                                                        <?php endforeach; ?>
+                                                                    </select>
                                                                     <button
                                                                         type="button"
-                                                                        class="btn btn-sm btn-outline-primary ms-1"
+                                                                        class="btn btn-outline-primary"
                                                                         title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN'), ENT_QUOTES, 'UTF-8'); ?>"
-                                                                        data-bf-orphan-task="about.reassignOrphanValues"
+                                                                        data-bf-orphan-preview
+                                                                        data-bf-orphan-target-select="<?php echo $orphanSelectId; ?>"
                                                                         <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
                                                                         data-bf-orphan-element="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
-                                                                        data-bf-confirm="<?php echo htmlspecialchars(Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_CONFIRM', (int) ($orphanGroup['reassignable'] ?? 0), (int) $orphanGroup['target_id']), ENT_QUOTES, 'UTF-8'); ?>"
                                                                     ><span class="icon-shuffle" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN'); ?></span></button>
-                                                                <?php endif; ?>
-                                                            <?php else : ?>
-                                                                <span class="text-muted"><span class="fa-solid fa-arrow-right-long me-1" aria-hidden="true"></span><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_TARGET_NONE'); ?></span>
-                                                                <?php $orphanCandidates = (array) ($orphanGroup['candidates'] ?? array()); ?>
-                                                                <?php if ($orphanCandidates !== array()) : ?>
-                                                                    <?php $orphanSelectId = 'bf-orphan-target-' . (int) ($orphanGroup['parent_id'] ?? 0); ?>
-                                                                    <div class="input-group input-group-sm mt-1">
-                                                                        <select class="form-select form-select-sm" id="<?php echo $orphanSelectId; ?>" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR_TARGET'), ENT_QUOTES, 'UTF-8'); ?>"<?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>>
-                                                                            <option value="0"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR_SELECT'); ?></option>
-                                                                            <?php
-                                                                            $orphanOptions = array();
-                                                                            foreach ($orphanCandidates as $candidate) {
-                                                                                $orphanOptions[(int) $candidate['form']]['title'] = (string) $candidate['form_title'];
-                                                                                $orphanOptions[(int) $candidate['form']]['items'][] = $candidate;
-                                                                            }
-                                                                            ?>
-                                                                            <?php foreach ($orphanOptions as $optionForm => $optionGroup) : ?>
-                                                                                <optgroup label="<?php echo htmlspecialchars(trim($optionGroup['title'] . ' #' . $optionForm), ENT_QUOTES, 'UTF-8'); ?>">
-                                                                                    <?php foreach ($optionGroup['items'] as $candidate) : ?>
-                                                                                        <option value="<?php echo (int) $candidate['id']; ?>"><?php echo htmlspecialchars(trim((string) $candidate['name'] . ' ' . ((string) $candidate['title'] !== '' ? '(' . $candidate['title'] . ')' : '') . ' #' . (int) $candidate['id']), ENT_QUOTES, 'UTF-8'); ?></option>
-                                                                                    <?php endforeach; ?>
-                                                                                </optgroup>
-                                                                            <?php endforeach; ?>
-                                                                        </select>
-                                                                        <button
-                                                                            type="button"
-                                                                            class="btn btn-outline-primary"
-                                                                            data-bf-orphan-task="about.reassignOrphanValuesToElement"
-                                                                            data-bf-orphan-target-select="<?php echo $orphanSelectId; ?>"
-                                                                            <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
-                                                                            data-bf-orphan-element="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
-                                                                            data-bf-confirm="<?php echo htmlspecialchars(Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
-                                                                        ><span class="icon-wrench" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REPAIR'); ?></button>
-                                                                    </div>
-                                                                <?php endif; ?>
+                                                                </div>
                                                             <?php endif; ?>
                                                         </td>
                                                         <td>
@@ -1451,6 +1435,47 @@ HTMLHelper::_('bootstrap.collapse');
     <input type="hidden" name="legacy_extension" id="bf-legacy-extension" value="" />
     <?php echo HTMLHelper::_('form.token'); ?>
 </form>
+
+<dialog id="bf-orphan-reassign-dialog" class="bf-orphan-reassign" aria-labelledby="bf-orphan-reassign-title"
+    data-bf-label-move="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_ACTION_MOVE'), ENT_QUOTES, 'UTF-8'); ?>"
+    data-bf-label-duplicate="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_ACTION_DUPLICATE'), ENT_QUOTES, 'UTF-8'); ?>"
+    data-bf-label-taken="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_ACTION_TAKEN'), ENT_QUOTES, 'UTF-8'); ?>"
+    data-bf-label-empty="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_EMPTY'), ENT_QUOTES, 'UTF-8'); ?>"
+    data-bf-label-truncated="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_TRUNCATED'), ENT_QUOTES, 'UTF-8'); ?>"
+    data-bf-label-none-selected="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_NO_SELECTION'), ENT_QUOTES, 'UTF-8'); ?>"
+    data-bf-record-url="<?php echo htmlspecialchars(Route::_('index.php?option=com_breezingformsng&task=record.edit&id=', false), ENT_QUOTES, 'UTF-8'); ?>">
+    <div class="card border-primary">
+    <div class="card-header d-flex align-items-start gap-2">
+        <span class="icon-shuffle mt-1" aria-hidden="true"></span>
+        <div>
+            <div><strong id="bf-orphan-reassign-title"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_TITLE'); ?></strong></div>
+            <div data-bf-reassign-summary></div>
+        </div>
+    </div>
+    <div class="card-body">
+        <p class="small text-muted"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_INTRO'); ?></p>
+        <div class="table-responsive bf-orphan-reassign-list">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col"><input type="checkbox" class="form-check-input" data-bf-reassign-all aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEX_SELECT_ALL'), ENT_QUOTES, 'UTF-8'); ?>"></th>
+                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_COL_RECORD'); ?></th>
+                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_COL_VALUE'); ?></th>
+                        <th scope="col" class="text-nowrap"><span class="fa-solid fa-arrow-right-long me-1" aria-hidden="true"></span><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_COL_CURRENT'); ?></th>
+                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_COL_ACTION'); ?></th>
+                    </tr>
+                </thead>
+                <tbody data-bf-reassign-rows></tbody>
+            </table>
+        </div>
+        <p class="small text-muted mt-2 mb-0" data-bf-reassign-note></p>
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary" data-bf-reassign-cancel><span class="icon-times" aria-hidden="true"></span> <?php echo Text::_('JCANCEL'); ?></button>
+        <button type="button" class="btn btn-primary" data-bf-reassign-apply><span class="icon-shuffle" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_APPLY'); ?></button>
+    </div>
+    </div>
+</dialog>
 
 <div class="bf-about-easter-egg" data-bf-easter-egg hidden aria-hidden="true">
     <div class="bf-about-easter-egg-dialog" role="dialog" aria-modal="true" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT'), ENT_QUOTES, 'UTF-8'); ?>">
