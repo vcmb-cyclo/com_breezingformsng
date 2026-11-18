@@ -166,48 +166,55 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
             <div class="card-header">
                 <h2 class="h5 mb-0" id="bf-tools-sample-title"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_TITLE'); ?></h2>
             </div>
-            <div class="card-body d-flex flex-wrap justify-content-between align-items-start gap-3">
-                <div class="flex-grow-1">
-                    <h3 class="h6 mb-1">
-                        <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ITEM'); ?>
-                        <?php if ($this->sampleFormId > 0) : ?>
-                            <span class="badge bg-success ms-2" data-tools-state="installed">
-                                <span class="icon-check" aria-hidden="true"></span>
-                                <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_INSTALLED'); ?>
-                            </span>
-                        <?php endif; ?>
-                    </h3>
-                    <p class="text-muted small mb-0"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_DESC'); ?></p>
-                    <?php if ($this->sampleNameTaken) : ?>
-                        <p class="text-muted small mb-0" data-tools-state="name-taken"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'); ?></p>
-                    <?php endif; ?>
-                </div>
-                <div class="d-flex gap-2">
-                    <?php if ($this->sampleFormId === 0 && $this->canInstallSample && !$this->sampleNameTaken) : ?>
-                        <form action="<?= Route::_('index.php?option=com_breezingformsng&task=packages.installSample'); ?>" method="post"
-                            onsubmit="return window.confirm(<?= htmlspecialchars(json_encode(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_CONFIRM'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8'); ?>);">
-                            <?= HTMLHelper::_('form.token'); ?>
-                            <button type="submit" class="btn btn-primary btn-sm" id="bf-tools-sample-install">
-                                <span class="icon-upload" aria-hidden="true"></span>
-                                <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_INSTALL'); ?>
-                            </button>
-                        </form>
-                    <?php else : ?>
-                        <button type="button" class="btn btn-primary btn-sm" disabled>
-                            <span class="icon-upload" aria-hidden="true"></span>
-                            <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_INSTALL'); ?>
-                        </button>
-                    <?php endif; ?>
-                    <?php if ($this->sampleManageId > 0) : ?>
-                        <a class="btn btn-primary btn-sm" id="bf-tools-sample-manage"
-                            href="<?= Route::_('index.php?option=com_breezingformsng&task=quickmode.display&form=' . $this->sampleManageId); ?>">
-                            <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_MANAGE'); ?>
-                        </a>
-                    <?php else : ?>
-                        <button type="button" class="btn btn-primary btn-sm" disabled><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_MANAGE'); ?></button>
-                    <?php endif; ?>
-                </div>
-            </div>
+            <form class="card-body" id="bf-tools-sample-form" method="post"
+                action="<?= Route::_('index.php?option=com_breezingformsng&task=packages.installSample'); ?>"
+                data-confirm="<?= $this->escape(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_CONFIRM')); ?>">
+                <p class="text-muted small"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_DESC'); ?></p>
+                <?php foreach ($this->sampleGroups as $category => $slugs) : ?>
+                    <fieldset class="mb-3" data-sample-group="<?= $this->escape($category); ?>">
+                        <legend class="h6 text-uppercase text-body-secondary fs-6 mb-2"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_GROUP_' . strtoupper($category)); ?></legend>
+                        <?php foreach ($slugs as $slug) : ?>
+                            <?php
+                            $sample = $this->samples[$slug];
+                            $key = 'COM_BREEZINGFORMSNG_TOOLS_SAMPLE_' . strtoupper($slug);
+                            $label = Text::_($key . '_ITEM');
+                            $installed = $sample['installedId'] > 0;
+                            $selectable = !$installed && $this->canInstallSample && !$sample['nameTaken'];
+                            $inputId = 'bf-tools-sample-' . $slug;
+                            ?>
+                            <div class="form-check d-flex align-items-start gap-2 ps-0 py-1" data-sample="<?= $this->escape($slug); ?>">
+                                <input class="form-check-input mt-1 ms-0 flex-shrink-0" type="checkbox" name="samples[]"
+                                    id="<?= $this->escape($inputId); ?>" value="<?= $this->escape($slug); ?>"
+                                    data-label="<?= $this->escape($label); ?>"
+                                    <?= $installed ? 'checked' : ''; ?> <?= $selectable ? '' : 'disabled'; ?>>
+                                <label class="form-check-label flex-grow-1" for="<?= $this->escape($inputId); ?>">
+                                    <strong><?= $this->escape($label); ?></strong>
+                                    <?php if ($installed) : ?>
+                                        <span class="badge bg-success ms-1" data-tools-state="installed"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_INSTALLED'); ?></span>
+                                    <?php endif; ?>
+                                    <span class="d-block text-muted small"><?= Text::_($key . '_DESC'); ?></span>
+                                    <?php if ($sample['nameTaken']) : ?>
+                                        <span class="d-block text-muted small" data-tools-state="name-taken"><?= Text::sprintf('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY', $this->escape($label)); ?></span>
+                                    <?php endif; ?>
+                                </label>
+                                <?php if ($sample['manageId'] > 0) : ?>
+                                    <a class="btn btn-link btn-sm flex-shrink-0" id="bf-tools-sample-manage-<?= $this->escape($slug); ?>"
+                                        href="<?= Route::_('index.php?option=com_breezingformsng&task=quickmode.display&form=' . $sample['manageId']); ?>">
+                                        <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_MANAGE'); ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </fieldset>
+                <?php endforeach; ?>
+                <?php if ($this->canInstallSample) : ?>
+                    <?= HTMLHelper::_('form.token'); ?>
+                    <button type="submit" class="btn btn-primary btn-sm" id="bf-tools-sample-install">
+                        <span class="icon-upload" aria-hidden="true"></span>
+                        <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_INSTALL'); ?>
+                    </button>
+                <?php endif; ?>
+            </form>
         </section>
     </div>
 </div>

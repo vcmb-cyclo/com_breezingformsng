@@ -62,12 +62,21 @@ final class HtmlView extends BaseHtmlView
     public bool $canConfigure = false;
     /** Submitted records in the trash, shown on the Trash card. */
     public int $trashedTotal = 0;
-    /** Id of the installed sample form, 0 when it is not installed. */
-    public int $sampleFormId = 0;
-    /** Another form already uses the sample's name: it cannot be installed, and is left as it is. */
-    public bool $sampleNameTaken = false;
-    /** Form the Manage button opens: the installed sample, else the form already using its name. */
-    public int $sampleManageId = 0;
+    /**
+     * The sample forms, by slug: the id of the installed one (0 when it is not installed), whether another
+     * form already uses its name (it cannot be installed, and is left as it is), and the form the Manage
+     * button opens: the installed sample, else the form already using its name.
+     *
+     * @var array<string, array{installedId: int, nameTaken: bool, manageId: int}>
+     */
+    public array $samples = [];
+    /**
+     * The sample slugs by category, the business templates before the technical examples; a category
+     * without any sample is left out.
+     *
+     * @var array<string, list<string>>
+     */
+    public array $sampleGroups = [];
     /** Installing the sample writes a form layout: it takes the Configure permission. */
     public bool $canInstallSample = false;
 
@@ -122,17 +131,33 @@ final class HtmlView extends BaseHtmlView
             $database = Factory::getContainer()->get(DatabaseInterface::class);
             $this->trashedTotal = array_sum(array_column((new RecordInventoryService($database))->getInventory(), 'trashed'))
                 + array_sum(array_column((new TrashInventoryService($database))->getTrashedItems(), 'count'));
-            $sampleService = new SampleFormService($database);
-            $this->sampleFormId = $sampleService->getInstalledFormId();
-            $this->sampleNameTaken = $this->sampleFormId === 0 && $sampleService->getFormNameCount() > 0;
-            $this->sampleManageId = $this->sampleFormId > 0
-                ? $this->sampleFormId
-                : ($this->sampleNameTaken ? $sampleService->getFormIdByName() : 0);
+            foreach (SampleFormService::slugs() as $slug) {
+                $sampleService = new SampleFormService($database, $slug);
+                $installedId = $sampleService->getInstalledFormId();
+                $nameTaken = $installedId === 0 && $sampleService->getFormNameCount() > 0;
+                $this->samples[$slug] = [
+                    'installedId' => $installedId,
+                    'nameTaken' => $nameTaken,
+                    'manageId' => $installedId > 0
+                        ? $installedId
+                        : ($nameTaken ? $sampleService->getFormIdByName() : 0),
+                ];
+            }
+            foreach (SampleFormService::CATEGORIES as $category) {
+                $slugs = array_values(array_filter(
+                    SampleFormService::slugs(),
+                    static fn (string $slug): bool => SampleFormService::category($slug) === $category
+                ));
+                if ($slugs !== []) {
+                    $this->sampleGroups[$category] = $slugs;
+                }
+            }
             $this->canInstallSample = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
             $this->canConfigure = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
             $this->getDocument()->getWebAssetManager()
                 ->useStyle('com_breezingformsng.mcp-status')
-                ->useScript('com_breezingformsng.tools-audit');
+                ->useScript('com_breezingformsng.tools-audit')
+                ->useScript('com_breezingformsng.tools-samples');
             foreach (['TOOLS_AUDIT_ISSUES', 'TOOLS_AUDIT_ISSUES_1', 'TOOLS_AUDIT_CLEAN', 'TOOLS_AUDIT_UNAVAILABLE'] as $key) {
                 Text::script('COM_BREEZINGFORMSNG_' . $key);
             }

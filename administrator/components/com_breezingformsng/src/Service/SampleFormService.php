@@ -19,8 +19,8 @@ use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 
 /**
- * The sample form shipped with the component: where its package file is, whether
- * it is installed, and its entry in the site menu ("Tests" > the form).
+ * The sample forms shipped with the component: where their package file is, whether
+ * one is installed, and its entry in the site menu ("Tests" > the form).
  */
 final class SampleFormService
 {
@@ -28,22 +28,82 @@ final class SampleFormService
     public const FORM_PACKAGE_NAME = 'QuickModeForms';
     public const FORM_TITLE = 'Sample contact form';
     public const MENU_PARENT_TITLE = 'Tests';
+    public const DEFAULT_SAMPLE = 'contact';
+
+    /**
+     * The shipped samples by slug: the name of the form (it is the menu route), the title shown in the
+     * site menu, the alias of the menu item, the package file under packages/samples, and the category:
+     * "business" for a ready-to-use template (contact, registration, quote, survey), "technical" for an
+     * example of one feature (conditional fields, calculations, validation, repeatable fields...).
+     */
+    public const SAMPLES = [
+        'contact' => [
+            'name' => self::FORM_NAME, 'title' => self::FORM_TITLE,
+            'alias' => 'bf-sample-contact', 'file' => 'bfng-sample-contact.json', 'category' => 'business',
+        ],
+        'event' => [
+            'name' => 'Sample_Event', 'title' => 'Sample event registration',
+            'alias' => 'bf-sample-event', 'file' => 'bfng-sample-event.json', 'category' => 'business',
+        ],
+        'quote' => [
+            'name' => 'Sample_Quote', 'title' => 'Sample quote request',
+            'alias' => 'bf-sample-quote', 'file' => 'bfng-sample-quote.json', 'category' => 'business',
+        ],
+        'survey' => [
+            'name' => 'Sample_Survey', 'title' => 'Sample satisfaction survey',
+            'alias' => 'bf-sample-survey', 'file' => 'bfng-sample-survey.json', 'category' => 'business',
+        ],
+    ];
 
     private const FORM_LINK = 'index.php?option=com_breezingformsng&view=form';
 
-    public function __construct(private readonly DatabaseInterface $db)
-    {
+    public function __construct(
+        private readonly DatabaseInterface $db,
+        private readonly string $sample = self::DEFAULT_SAMPLE
+    ) {
+        if (!self::isSample($sample)) {
+            throw new \InvalidArgumentException('Unknown sample form.');
+        }
     }
 
-    public static function packagePath(): string
+    public static function isSample(string $sample): bool
     {
-        return JPATH_ADMINISTRATOR . '/components/com_breezingformsng/packages/samples/bfng-sample-contact.json';
+        return isset(self::SAMPLES[$sample]);
+    }
+
+    /** The categories, in the order the Tools screen lists them. */
+    public const CATEGORIES = ['business', 'technical'];
+
+    /** @return list<string> */
+    public static function slugs(): array
+    {
+        return array_keys(self::SAMPLES);
+    }
+
+    public static function category(string $sample): string
+    {
+        return self::SAMPLES[$sample]['category'] ?? 'business';
+    }
+
+    public static function packagePath(string $sample = self::DEFAULT_SAMPLE): string
+    {
+        if (!self::isSample($sample)) {
+            throw new \InvalidArgumentException('Unknown sample form.');
+        }
+
+        return JPATH_ADMINISTRATOR . '/components/com_breezingformsng/packages/samples/'
+            . self::SAMPLES[$sample]['file'];
+    }
+
+    public function formName(): string
+    {
+        return self::SAMPLES[$this->sample]['name'];
     }
 
     /** Id of the installed sample form, 0 when it is not installed. */
     public function getInstalledFormId(): int
     {
-        $name = self::FORM_NAME;
+        $name = $this->formName();
         $package = self::FORM_PACKAGE_NAME;
         $query = $this->db->createQuery()
             ->select($this->db->quoteName('id'))
@@ -59,7 +119,7 @@ final class SampleFormService
     /** Id of the oldest form using the sample's name, whatever its package; 0 when there is none. */
     public function getFormIdByName(): int
     {
-        $name = self::FORM_NAME;
+        $name = $this->formName();
         $query = $this->db->createQuery()
             ->select($this->db->quoteName('id'))
             ->from($this->db->quoteName('#__facileforms_forms'))
@@ -74,7 +134,7 @@ final class SampleFormService
     /** Number of forms whose name would be used by the sample's name-based menu route. */
     public function getFormNameCount(): int
     {
-        $name = self::FORM_NAME;
+        $name = $this->formName();
         $query = $this->db->createQuery()
             ->select('COUNT(*)')
             ->from($this->db->quoteName('#__facileforms_forms'))
@@ -101,7 +161,7 @@ final class SampleFormService
         $parentId = $this->ensureParent($menutype);
         $componentId = $this->componentId();
         $params = [
-            'ff_com_name' => self::FORM_NAME, 'ff_com_page' => '1', 'ff_com_editable' => '0',
+            'ff_com_name' => $this->formName(), 'ff_com_page' => '1', 'ff_com_editable' => '0',
             'ff_com_editable_override' => '0', 'ff_com_frame' => '0', 'ff_com_border' => '0', 'ff_com_align' => '1',
             'ff_com_left' => '0', 'ff_com_top' => '0', 'ff_com_parprv' => '', 'ff_com_parpub' => '',
             'ff_com_suffix' => '', 'menu-anchor_title' => '', 'menu-anchor_css' => '', 'menu_icon_css' => '',
@@ -112,9 +172,9 @@ final class SampleFormService
 
         return $this->storeItem([
             'menutype' => $menutype,
-            'title' => '(BF) ' . self::FORM_TITLE,
-            'alias' => 'bf-sample-contact',
-            'path' => 'tests/bf-sample-contact',
+            'title' => '(BF) ' . self::SAMPLES[$this->sample]['title'],
+            'alias' => self::SAMPLES[$this->sample]['alias'],
+            'path' => 'tests/' . self::SAMPLES[$this->sample]['alias'],
             'link' => self::FORM_LINK,
             'type' => 'component',
             'parent_id' => $parentId,
@@ -127,7 +187,7 @@ final class SampleFormService
     private function findFormMenuItem(): int
     {
         $link = self::FORM_LINK;
-        $like = '%"ff_com_name":"' . self::FORM_NAME . '"%';
+        $like = '%"ff_com_name":"' . $this->formName() . '"%';
         $query = $this->db->createQuery()
             ->select($this->db->quoteName('id'))
             ->from($this->db->quoteName('#__menu'))
