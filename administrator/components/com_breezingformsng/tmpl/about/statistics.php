@@ -1,8 +1,6 @@
 <?php
 
 /**
- * @psalm-suppress InvalidScope
- *
  * BreezingForms NG - A Joomla Forms Application
  *
  * @package BreezingFormsNG
@@ -14,16 +12,19 @@
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
-/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\About\HtmlView $this */
-
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 
+/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\About\HtmlView $this */
+
+/** @psalm-suppress InvalidScope */
 $auditTables = (array) ($this->auditReport['tables'] ?? array());
+/** @psalm-suppress InvalidScope */
+$columnIssues = (array) ($this->auditReport['column_collation_issues'] ?? array());
 $columnMismatches = array_count_values(array_map(
     static fn (array $issue): string => (string) ($issue['table'] ?? ''),
-    (array) ($this->auditReport['column_collation_issues'] ?? array())
+    $columnIssues
 ));
 $auditHelp = static function (string $key): string {
     $text = htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8');
@@ -39,7 +40,7 @@ $auditHelp = static function (string $key): string {
 <div class="card mt-3" id="bf-records-inventory">
     <div class="card-body p-3 p-lg-4">
         <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_TOOLS_RECORDS_INVENTORY'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_TOOLS_RECORDS_INVENTORY_HELP'); ?></h4>
-        <?php if ($this->recordInventory === []) : ?>
+        <?php /** @psalm-suppress InvalidScope */ if ($this->recordInventory === []) : ?>
             <div class="alert alert-info mb-0"><?php echo Text::_('COM_BREEZINGFORMSNG_TOOLS_RECORDS_EMPTY'); ?></div>
         <?php else : ?>
             <?php
@@ -63,7 +64,7 @@ $auditHelp = static function (string $key): string {
                         </tr>
                     </thead>
                     <tbody>
-                    <?php foreach ($this->recordInventory as $entry) : ?>
+                    <?php /** @psalm-suppress InvalidScope */ foreach ($this->recordInventory as $entry) : ?>
                         <?php
                         $formId = (int) $entry['form'];
                         $formName = $entry['name'] !== ''

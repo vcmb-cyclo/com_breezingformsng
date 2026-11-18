@@ -1,8 +1,6 @@
 <?php
 
 /**
- * @psalm-suppress InvalidScope
- *
  * BreezingForms NG - A Joomla Forms Application
  *
  * @package BreezingFormsNG
@@ -14,13 +12,14 @@
 
 defined("_JEXEC") or die;
 
-/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Packages\HtmlView $this */
-
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 
+/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Packages\HtmlView $this */
+
+/** @psalm-suppress InvalidScope */
 $mcpActive = $this->mcpEnabled && $this->mcpRouted;
 $mcpEndpoint = Uri::root() . 'api/index.php/v1/breezingformsng/mcp';
 $logo = Uri::root(true) . '/media/com_breezingformsng/images/mcp/';

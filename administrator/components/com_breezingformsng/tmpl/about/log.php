@@ -1,8 +1,6 @@
 <?php
 
 /**
- * @psalm-suppress InvalidScope
- *
  * BreezingForms NG - A Joomla Forms Application
  *
  * @package BreezingFormsNG
@@ -14,11 +12,12 @@
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
-/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\About\HtmlView $this */
-
 use Joomla\CMS\Language\Text;
 
+/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\About\HtmlView $this */
+
 $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
+/** @psalm-suppress InvalidScope */
 $logReport = $this->logReport;
 $logFileName = (string) ($logReport['file'] ?? $notAvailable);
 $logSize = (int) ($logReport['size'] ?? 0);

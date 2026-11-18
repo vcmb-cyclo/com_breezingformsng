@@ -63,6 +63,7 @@ if (!empty($quickMode)) {
         ],
     ]);
 }
+/** @psalm-suppress UndefinedGlobalVariable */
 $mailFieldNames = FormsAdvancedOptionsHtml::mailFieldNames((int) ($f->id ?? 0), (int) ($f->emaillog ?? 1));
 $mbCustomEmail = (int) ($f->mb_email_type ?? 0) === 1;
 $mbDefaultBody = FormsAdvancedOptionsHtml::mailbackDefaultBody($f);
@@ -71,6 +72,7 @@ $customEmail = (int) ($f->email_type ?? 0) === 1;
 $defaultBody = FormsAdvancedOptionsHtml::notificationDefaultBody($f);
 $emailHtml = FormsAdvancedOptionsHtml::notificationHtmlSelection($f);
 
+/** @psalm-suppress UndefinedGlobalVariable */
 $missingPieces = FormsAdvancedOptionsHtml::missingPieces(
     $f,
     [1 => $pieceBefore, 2 => $pieceAfter, 3 => $pieceBeginSubmit, 4 => $pieceEndSubmit]

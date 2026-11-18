@@ -17,8 +17,13 @@ defined('_JEXEC') or die;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 
-$id = preg_replace('/[^a-z0-9_-]/i', '', (string) $displayData['id']);
-$timezone = $displayData['timezone'];
+/**
+ * @var array{id: string, created: ?string, createdBy: string, modified: ?string, modifiedBy: string, timezone: \DateTimeZone, hidden?: bool} $layoutData
+ * @psalm-suppress UndefinedGlobalVariable
+ */
+$layoutData = $displayData;
+$id = preg_replace('/[^a-z0-9_-]/i', '', (string) $layoutData['id']);
+$timezone = $layoutData['timezone'];
 $text = static fn (mixed $value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
 $date = static fn (mixed $utc): string => $utc === null || $utc === '' || str_starts_with((string) $utc, '0000') ? '' : sprintf(
     '<span title="%s">%s</span>',
@@ -34,7 +39,7 @@ $line = static function (mixed $utc, mixed $author) use ($date, $text): string {
         : ($dateText . $authorText !== '' ? $dateText . $authorText : '-');
 };
 ?>
-<table class="table table-striped mt-4" id="<?= $id; ?>"<?= !empty($displayData['hidden']) ? ' hidden' : ''; ?>>
+<table class="table table-striped mt-4" id="<?= $id; ?>"<?= !empty($layoutData['hidden']) ? ' hidden' : ''; ?>>
     <tbody><tr class="table-primary"><th colspan="2">
         <a href="#" id="<?= $id; ?>-toggle" class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"
             data-bs-toggle="collapse" data-bs-target="#<?= $id; ?>-content"
@@ -43,7 +48,7 @@ $line = static function (mixed $utc, mixed $author) use ($date, $text): string {
         </a>
     </th></tr></tbody>
     <tbody id="<?= $id; ?>-content" class="collapse">
-        <tr><th class="w-25"><?= Text::_('COM_BREEZINGFORMSNG_TEST_CREATED'); ?></th><td><?= $line($displayData['created'], $displayData['createdBy']); ?></td></tr>
-        <tr><th><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MODIFIED'); ?></th><td><?= $line($displayData['modified'], $displayData['modifiedBy']); ?></td></tr>
+        <tr><th class="w-25"><?= Text::_('COM_BREEZINGFORMSNG_TEST_CREATED'); ?></th><td><?= $line($layoutData['created'], $layoutData['createdBy']); ?></td></tr>
+        <tr><th><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MODIFIED'); ?></th><td><?= $line($layoutData['modified'], $layoutData['modifiedBy']); ?></td></tr>
     </tbody>
 </table>

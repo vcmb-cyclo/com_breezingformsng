@@ -1,8 +1,6 @@
 <?php
 
 /**
- * @psalm-suppress InvalidScope
- *
  * BreezingForms NG - A Joomla Forms Application
  *
  * @package BreezingFormsNG
@@ -14,12 +12,13 @@
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
-/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\About\HtmlView $this */
-
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 
+/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\About\HtmlView $this */
+
+/** @psalm-suppress InvalidScope */
 $trashed = array_values(array_filter(
     $this->recordInventory,
     static fn (array $entry): bool => $entry['trashed'] > 0
@@ -30,11 +29,11 @@ $trashedTotal = array_sum(array_column($trashed, 'trashed'));
 <form action="<?php echo Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=trash'); ?>" method="post" name="adminForm" id="adminForm">
     <div class="card mt-3" id="bf-trash-section">
         <div class="card-body p-3 p-lg-4">
-            <?php if (!$this->canRepair) : ?>
+            <?php /** @psalm-suppress InvalidScope */ if (!$this->canRepair) : ?>
                 <div class="alert alert-info"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_READ_ONLY_NOTICE'); ?></div>
             <?php endif; ?>
             <h3 class="h5"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_RECORDS'); ?></h3>
-            <?php if ($trashed === [] && $this->trashedItems === []) : ?>
+            <?php /** @psalm-suppress InvalidScope */ if ($trashed === [] && $this->trashedItems === []) : ?>
                 <div class="alert alert-info mb-0"><?php echo Text::_('COM_BREEZINGFORMSNG_TOOLS_TRASH_EMPTY'); ?></div>
             <?php elseif ($trashed !== []) : ?>
                 <p class="text-muted small"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_RECORDS_DESC'); ?></p>
@@ -87,14 +86,14 @@ $trashedTotal = array_sum(array_column($trashed, 'trashed'));
                 <button
                     type="button"
                     class="btn btn-danger"
-                    <?php echo $this->canRepair ? '' : ' disabled'; ?>
+                    <?php /** @psalm-suppress InvalidScope */ echo $this->canRepair ? '' : ' disabled'; ?>
                     onclick="if (window.confirm('<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASH_EMPTY_CONFIRM', $trashedTotal), ENT_QUOTES, 'UTF-8'); ?>')) { Joomla.submitform('about.emptyRecordsTrash'); }"
                 ><span class="icon-trash" aria-hidden="true"></span> <?php echo Text::_('JTOOLBAR_EMPTY_TRASH'); ?></button>
             <?php endif; ?>
         </div>
     </div>
 
-    <?php foreach ($this->trashedItems as $type) : ?>
+    <?php /** @psalm-suppress InvalidScope */ foreach ($this->trashedItems as $type) : ?>
         <?php $isRule = $type['view'] === 'integrator'; ?>
         <div class="card mt-3" id="bf-trash-<?php echo $type['view']; ?>">
             <div class="card-body p-3 p-lg-4">
@@ -126,7 +125,7 @@ $trashedTotal = array_sum(array_column($trashed, 'trashed'));
                     <button
                         type="button"
                         class="btn btn-danger"
-                        <?php echo !empty($this->canEmpty[$type['view']]) ? '' : ' disabled'; ?>
+                        <?php /** @psalm-suppress InvalidScope */ echo !empty($this->canEmpty[$type['view']]) ? '' : ' disabled'; ?>
                         onclick="if (window.confirm(<?php echo htmlspecialchars(json_encode(Text::_('JGLOBAL_CONFIRM_DELETE'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8'); ?>)) { document.getElementById('bf-trash-type').value = '<?php echo $type['view']; ?>'; Joomla.submitform('about.emptyItemsTrash'); }"
                     ><span class="icon-trash" aria-hidden="true"></span> <?php echo Text::_('JTOOLBAR_EMPTY_TRASH'); ?></button>
                     <a class="btn btn-outline-secondary"

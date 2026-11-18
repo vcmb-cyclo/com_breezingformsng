@@ -1,8 +1,6 @@
 <?php
 
 /**
- * @psalm-suppress InvalidScope
- *
  * BreezingForms NG - A Joomla Forms Application
  *
  * @package BreezingFormsNG
@@ -14,17 +12,18 @@
 
 defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 
-/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\About\HtmlView $this */
-
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseRepairService;
 
+/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\About\HtmlView $this */
+
 Text::script('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_TRANSFER_SELECT_FIRST');
 Text::script('JCLOSE');
 
 HTMLHelper::_('bootstrap.collapse');
+/** @psalm-suppress InvalidScope */
 $auditReport = $this->auditReport;
 $auditSummary = (array) ($auditReport['summary'] ?? array());
 $auditMissingTables = (array) ($auditReport['missing_tables'] ?? array());
@@ -83,7 +82,7 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
 <form action="<?php echo Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit'); ?>" method="post" name="adminForm" id="adminForm">
     <div class="card mt-3" id="bf-audit-section">
         <div class="card-body p-3 p-lg-4">
-        <?php if (!$this->canRepair) : ?>
+        <?php /** @psalm-suppress InvalidScope */ if (!$this->canRepair) : ?>
             <div class="alert alert-info"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_READ_ONLY_NOTICE'); ?></div>
         <?php endif; ?>
         <fieldset class="border-0 p-0 m-0"<?php echo $this->canRepair ? '' : ' disabled'; ?>>
