@@ -30,6 +30,10 @@ use Joomla\CMS\Language\Text;
                                                     $elementTypeFamilies = array(
                                                         'COM_BREEZINGFORMSNG_ELEMENT_FAMILY_INPUT' => array(
                                                             'bfElementTypeText' => Text::_('COM_BREEZINGFORMSNG_TEXTFIELD'),
+                                                            'bfElementTypePhone' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_PHONE'),
+                                                            'bfElementTypeDateTime' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_DATETIME'),
+                                                            'bfElementTypeCountry' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_COUNTRY'),
+                                                            'bfElementTypeAddress' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_ADDRESS'),
                                                             'bfElementTypeTextarea' => Text::_('COM_BREEZINGFORMSNG_TEXTAREA'),
                                                             'bfElementTypeNumberInput' => Text::_('COM_BREEZINGFORMSNG_NUMBER_INPUT'),
                                                             'bfElementTypeCalendar' => Text::_('COM_BREEZINGFORMSNG_CALENDAR'),
@@ -353,6 +357,133 @@ use Joomla\CMS\Language\Text;
                                                     </label>
                                                     <textarea id="bfElementTypeTextHintTrans"></textarea>
                                                 </div>
+
+                                                <!-- WIDGET OPTIONS BEGIN -->
+                                                <fieldset class="bfng-widget-options" id="bfElementTypeTextWidgetOptions" style="display:none">
+                                                    <legend><?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_OPTIONS'); ?></legend>
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="phone country">
+                                                        <label class="bfPropertyLabel bfng-field__label"
+                                                            title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_DEFAULT_COUNTRY_DESC')); ?>"
+                                                            for="bfElementTypeTextWidgetDefaultCountry">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_DEFAULT_COUNTRY'); ?>
+                                                        </label>
+                                                        <input type="text" value="" id="bfElementTypeTextWidgetDefaultCountry" maxlength="2" />
+                                                    </div>
+
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="phone country address">
+                                                        <label class="bfPropertyLabel bfng-field__label"
+                                                            title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_COUNTRIES_DESC')); ?>"
+                                                            for="bfElementTypeTextWidgetCountries">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_COUNTRIES'); ?>
+                                                        </label>
+                                                        <input type="text" value="" id="bfElementTypeTextWidgetCountries" />
+                                                    </div>
+
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="phone country">
+                                                        <label class="bfPropertyLabel bfng-field__label"
+                                                            title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_SHOW_FLAGS_DESC')); ?>"
+                                                            for="bfElementTypeTextWidgetShowFlags">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_SHOW_FLAGS'); ?>
+                                                        </label>
+                                                        <input type="checkbox" value="" id="bfElementTypeTextWidgetShowFlags" />
+                                                    </div>
+
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="phone">
+                                                        <label class="bfPropertyLabel bfng-field__label"
+                                                            title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_SHOW_DIAL_CODE_DESC')); ?>"
+                                                            for="bfElementTypeTextWidgetShowDialCode">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_SHOW_DIAL_CODE'); ?>
+                                                        </label>
+                                                        <input type="checkbox" value="" id="bfElementTypeTextWidgetShowDialCode" />
+                                                    </div>
+
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="phone">
+                                                        <label class="bfPropertyLabel bfng-field__label"
+                                                            title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_VALIDATE_DESC')); ?>"
+                                                            for="bfElementTypeTextWidgetValidate">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_VALIDATE'); ?>
+                                                        </label>
+                                                        <input type="checkbox" value="" id="bfElementTypeTextWidgetValidate" />
+                                                    </div>
+
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="datetime">
+                                                        <label class="bfPropertyLabel bfng-field__label"
+                                                            title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_MODE_DESC')); ?>"
+                                                            for="bfElementTypeTextWidgetMode">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_MODE'); ?>
+                                                        </label>
+                                                        <select id="bfElementTypeTextWidgetMode">
+                                                            <option value="datetime"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_MODE_DATETIME'); ?></option>
+                                                            <option value="date"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_MODE_DATE'); ?></option>
+                                                            <option value="time"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_MODE_TIME'); ?></option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="datetime">
+                                                        <label class="bfPropertyLabel bfng-field__label"
+                                                            title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_MIN_DESC')); ?>"
+                                                            for="bfElementTypeTextWidgetMin">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_MIN'); ?>
+                                                        </label>
+                                                        <input type="text" value="" id="bfElementTypeTextWidgetMin" placeholder="now" />
+                                                    </div>
+
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="datetime">
+                                                        <label class="bfPropertyLabel bfng-field__label"
+                                                            title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_MAX_DESC')); ?>"
+                                                            for="bfElementTypeTextWidgetMax">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_MAX'); ?>
+                                                        </label>
+                                                        <input type="text" value="" id="bfElementTypeTextWidgetMax" />
+                                                    </div>
+
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="datetime">
+                                                        <label class="bfPropertyLabel bfng-field__label"
+                                                            title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_STEP_DESC')); ?>"
+                                                            for="bfElementTypeTextWidgetStep">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_STEP'); ?>
+                                                        </label>
+                                                        <input type="number" min="0" step="1" value="" id="bfElementTypeTextWidgetStep" />
+                                                    </div>
+
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="address">
+                                                        <label class="bfPropertyLabel bfng-field__label"
+                                                            title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_PROVIDER_DESC')); ?>"
+                                                            for="bfElementTypeTextWidgetProvider">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_PROVIDER'); ?>
+                                                        </label>
+                                                        <select id="bfElementTypeTextWidgetProvider">
+                                                            <option value=""><?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_PROVIDER_NONE'); ?></option>
+                                                            <option value="ban"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_PROVIDER_BAN'); ?></option>
+                                                            <option value="photon"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_PROVIDER_PHOTON'); ?></option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="address">
+                                                        <div class="alert alert-warning" role="note" id="bfElementTypeTextWidgetPrivacyNotice">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_PRIVACY_NOTICE'); ?>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="address">
+                                                        <label class="bfPropertyLabel bfng-field__label"
+                                                            title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_MIN_CHARS_DESC')); ?>"
+                                                            for="bfElementTypeTextWidgetMinChars">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_MIN_CHARS'); ?>
+                                                        </label>
+                                                        <input type="number" min="1" step="1" value="" id="bfElementTypeTextWidgetMinChars" />
+                                                    </div>
+
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="address">
+                                                        <label class="bfPropertyLabel bfng-field__label"
+                                                            title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_FILL_DESC')); ?>"
+                                                            for="bfElementTypeTextWidgetFill">
+                                                            <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_FILL'); ?>
+                                                        </label>
+                                                        <textarea id="bfElementTypeTextWidgetFill" rows="4" placeholder="street=Street&#10;postcode=Zip&#10;city=City&#10;country=Country"></textarea>
+                                                    </div>
+                                                </fieldset>
+                                                <!-- WIDGET OPTIONS END -->
                                             </div>
                                             <!-- TEXTFIELD END -->
                                             <!-- TEXTAREA BEGIN -->
@@ -1375,6 +1506,14 @@ use Joomla\CMS\Language\Text;
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_READONLY'); ?>
                                                     </label>
                                                     <input type="checkbox" value="" id="bfElementTypeFileReadonly" />
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_DROPZONE_DESC')); ?>"
+                                                        for="bfElementTypeFileDropZone">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_DROPZONE'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeFileDropZone" />
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"

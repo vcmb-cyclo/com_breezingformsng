@@ -36,7 +36,65 @@ import { JoomlaEditor } from 'editor-api';
             mdata.size = JQuery('#bfElementTypeTextSize').val();
             mdata.orderNumber = JQuery('#bfElementOrderNumber').val();
             mdata.required = JQuery('#bfElementValidationRequired').prop('checked');
+            appScope.saveWidgetProperties(mdata);
             item.properties = mdata;
+        };
+
+        // Widget presets of the Textfield (phone, datetime, country, address).
+        appScope.saveWidgetProperties = function (mdata) {
+            var widget = appScope.treeModel.getWidgetFromOption(JQuery('#bfElementType').val());
+
+            appScope.treeModel.applyWidgetPreset(mdata, widget);
+
+            if (!widget) {
+                return;
+            }
+
+            mdata.widgetDefaultCountry = JQuery('#bfElementTypeTextWidgetDefaultCountry').val().trim();
+            mdata.widgetCountries = JQuery('#bfElementTypeTextWidgetCountries').val().trim();
+            mdata.widgetShowFlags = JQuery('#bfElementTypeTextWidgetShowFlags').prop('checked');
+            mdata.widgetShowDialCode = JQuery('#bfElementTypeTextWidgetShowDialCode').prop('checked');
+            mdata.widgetValidate = JQuery('#bfElementTypeTextWidgetValidate').prop('checked');
+            mdata.widgetMode = JQuery('#bfElementTypeTextWidgetMode').val();
+            mdata.widgetMin = JQuery('#bfElementTypeTextWidgetMin').val().trim();
+            mdata.widgetMax = JQuery('#bfElementTypeTextWidgetMax').val().trim();
+            mdata.widgetStep = Math.max(0, parseInt(JQuery('#bfElementTypeTextWidgetStep').val(), 10) || 0);
+            mdata.widgetProvider = JQuery('#bfElementTypeTextWidgetProvider').val();
+            mdata.widgetMinChars = Math.max(1, parseInt(JQuery('#bfElementTypeTextWidgetMinChars').val(), 10) || 3);
+            mdata.widgetFill = JQuery('#bfElementTypeTextWidgetFill').val();
+        };
+
+        appScope.populateWidgetProperties = function (mdata) {
+            var defaults = appScope.treeModel.applyWidgetPreset({}, 'phone');
+            var read = function (key) {
+                return typeof mdata[key] === 'undefined' ? defaults[key] : mdata[key];
+            };
+
+            JQuery('#bfElementTypeTextWidgetDefaultCountry').val(read('widgetDefaultCountry'));
+            JQuery('#bfElementTypeTextWidgetCountries').val(read('widgetCountries'));
+            JQuery('#bfElementTypeTextWidgetShowFlags').prop('checked', !!read('widgetShowFlags'));
+            JQuery('#bfElementTypeTextWidgetShowDialCode').prop('checked', !!read('widgetShowDialCode'));
+            JQuery('#bfElementTypeTextWidgetValidate').prop('checked', !!read('widgetValidate'));
+            JQuery('#bfElementTypeTextWidgetMode').val(read('widgetMode'));
+            JQuery('#bfElementTypeTextWidgetMin').val(read('widgetMin'));
+            JQuery('#bfElementTypeTextWidgetMax').val(read('widgetMax'));
+            JQuery('#bfElementTypeTextWidgetStep').val(read('widgetStep'));
+            JQuery('#bfElementTypeTextWidgetProvider').val(read('widgetProvider'));
+            JQuery('#bfElementTypeTextWidgetMinChars').val(read('widgetMinChars'));
+            JQuery('#bfElementTypeTextWidgetFill').val(read('widgetFill'));
+            appScope.refreshWidgetRows();
+        };
+
+        // Shows the widget options of the selected preset only.
+        appScope.refreshWidgetRows = function () {
+            var widget = appScope.treeModel.getWidgetFromOption(JQuery('#bfElementType').val());
+
+            JQuery('#bfElementTypeTextWidgetOptions').css('display', widget ? '' : 'none');
+            JQuery('#bfElementTypeTextWidgetOptions .bfngWidgetRow').each(function () {
+                var widgets = (JQuery(this).attr('data-widgets') || '').split(' ');
+
+                JQuery(this).css('display', widgets.indexOf(widget) !== -1 ? '' : 'none');
+            });
         };
 
         appScope.populateTextProperties = function (mdata) {
@@ -74,6 +132,7 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementValidationRequired').prop('checked', mdata.required);
 
             JQuery('#bfElementTypeTextIcon').val(mdata.icon);
+            appScope.populateWidgetProperties(mdata);
         };
 
         // TEXTAREA
@@ -526,6 +585,7 @@ import { JoomlaEditor } from 'editor-api';
             mdata.html5 = JQuery('#bfElementFileAdvancedHtml5Uploader').prop('checked');
 
             mdata.readonly = JQuery('#bfElementTypeFileReadonly').prop('checked');
+            mdata.dropZone = JQuery('#bfElementTypeFileDropZone').prop('checked');
 
             mdata.hint = JQuery('#bfElementTypeFileHint').val();
             mdata['hint_translation'+BFQMConfig.lang] = JQuery('#bfElementTypeFileHintTrans').val();
@@ -573,6 +633,7 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementFileAdvancedHtml5Uploader').prop('checked', mdata.html5);
 
             JQuery('#bfElementTypeFileReadonly').prop('checked', mdata.readonly);
+            JQuery('#bfElementTypeFileDropZone').prop('checked', !!mdata.dropZone);
 
             JQuery('#bfElementTypeFileHint').val(mdata.hint);
             JQuery('#bfElementTypeFileHintTrans').val(typeof mdata['hint_translation'+BFQMConfig.lang] != "undefined" ? mdata['hint_translation'+BFQMConfig.lang] : "");
@@ -1664,7 +1725,7 @@ JQuery(document).on('change', 'input[name="bfStripeReturnMode"]', function () {
                                 appScope.populateElementInitScript();
                                 break;
                             case 'bfTextfield':
-                                JQuery('#bfElementType').val('bfElementTypeText');
+                                JQuery('#bfElementType').val(appScope.treeModel.getWidgetOption(mdata.widget) || 'bfElementTypeText');
                                 appScope.populateTextProperties(mdata);
                                 appScope.populateElementValidationScript();
                                 appScope.populateElementInitScript();
@@ -1762,6 +1823,9 @@ JQuery(document).on('change', 'input[name="bfStripeReturnMode"]', function () {
                         if (elementTypeValue) {
                             var selectedElementType = elementTypeValue;
                             var mappedElementType = selectedElementType === 'bfElementTypeSlider' ? 'bfElementTypeNumberInput' : selectedElementType;
+                            if (appScope.treeModel.getWidgetFromOption(selectedElementType)) {
+                                mappedElementType = 'bfElementTypeText';
+                            }
                             JQuery('#bfElementTypeClass').css('display', 'none');
                             JQuery('#' + mappedElementType).css('display', '');
                             JQuery('#' + mappedElementType + "Advanced").css('display', '');

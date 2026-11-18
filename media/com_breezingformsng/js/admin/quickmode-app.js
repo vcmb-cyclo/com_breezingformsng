@@ -716,7 +716,25 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                         var selected = JQuery('#bfElementType').val();
                         switch (selected) {
                             case 'bfElementTypeText':
+                            case 'bfElementTypePhone':
+                            case 'bfElementTypeDateTime':
+                            case 'bfElementTypeCountry':
+                            case 'bfElementTypeAddress':
+                                var currentNode = appScope.selectedTreeElement
+                                    ? appScope.findDataObjectItem(appScope.selectedTreeElement.attributes.id)
+                                    : null;
+
+                                if (currentNode && currentNode.properties && currentNode.properties.bfType === 'bfTextfield') {
+                                    // Text and its presets are one element: keep it and its properties.
+                                    appScope.treeModel.applyWidgetPreset(currentNode.properties, appScope.treeModel.getWidgetFromOption(selected));
+                                    appScope.refreshTree(function () {
+                                        appScope.selectTreeBranch(currentNode.attributes.id);
+                                    });
+                                    break;
+                                }
+
                                 obj = appScope.createTextfield(id);
+                                appScope.treeModel.applyWidgetPreset(obj.properties, appScope.treeModel.getWidgetFromOption(selected));
                                 break;
                             case 'bfElementTypeRadioGroup':
                                 obj = appScope.createRadioGroup(id);

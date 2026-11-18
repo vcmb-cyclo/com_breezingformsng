@@ -22,6 +22,8 @@ use HTML_facileFormsProcessor;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Uri\Uri;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\RuntimeAssetLoader;
+use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetAssets;
+use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetFieldBuilder;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Editor\Editor;
@@ -616,6 +618,10 @@ float:left;
                 }
 
                 $mdata = QuickModeSubmittedValueHydrator::hydrate($this->p, $mdata, $this->language_tag);
+
+                if (WidgetFieldBuilder::hasWidget($mdata)) {
+                    WidgetAssets::register($this->p->app);
+                }
 
                 $flashUploader = '';
 
@@ -1359,14 +1365,16 @@ float:left;
                 $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . $readonly,
                 'hidden',
                 (string) $mdata['bfName'],
-                (int) $mdata['dbId']
+                (int) $mdata['dbId'],
+                WidgetFieldBuilder::fileAttributes($mdata)
             );
         } else {
             echo QuickModeFileInputBuilder::build(
                 $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . $readonly,
                 'file',
                 (string) $mdata['bfName'],
-                (int) $mdata['dbId']
+                (int) $mdata['dbId'],
+                WidgetFieldBuilder::fileAttributes($mdata)
             );
         }
         if ($mdata['attachToAdminMail']) {

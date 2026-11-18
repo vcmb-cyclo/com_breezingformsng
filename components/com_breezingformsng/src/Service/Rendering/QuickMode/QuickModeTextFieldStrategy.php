@@ -14,6 +14,9 @@ declare(strict_types=1);
 
 namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering\QuickMode;
 
+use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetFieldBuilder;
+use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions;
+
 /**
  * Applies the shared QuickMode semantics for text and number controls.
  *
@@ -34,6 +37,10 @@ final class QuickModeTextFieldStrategy
         string $attributesAfterLength = ''
     ): string {
         $field = $this->translatedField($field, $languageTag, ['value', 'placeholder']);
+        if (WidgetOptions::widget($field) !== '') {
+            return WidgetFieldBuilder::textControl($field, $class, $attributesBeforeLength . $attributesAfterLength);
+        }
+
         $maxlength = is_numeric($field['maxLength'] ?? null)
             ? 'maxlength="' . intval($field['maxLength']) . '" '
             : '';

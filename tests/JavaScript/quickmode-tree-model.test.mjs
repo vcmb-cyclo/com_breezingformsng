@@ -120,3 +120,45 @@ test('maps element nodes to their element type option', () => {
     assert.equal(model.getElementTypeOption(model.find('bfQuickModePage1')), null);
     assert.equal(model.getElementTypeOption(section('section2')), null);
 });
+
+test('Textfield widget presets map to their own type option', () => {
+    const root = { attributes: { class: 'bfQuickModeRootClass', id: 'root' }, properties: { type: 'root' }, children: [] };
+    const model = new QuickmodeTreeModel(root);
+    const typed = (properties) => ({ ...element('typed'), properties: { type: 'element', ...properties } });
+
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfTextfield', widget: 'phone' })), 'bfElementTypePhone');
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfTextfield', widget: 'datetime' })), 'bfElementTypeDateTime');
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfTextfield', widget: 'country' })), 'bfElementTypeCountry');
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfTextfield', widget: 'address' })), 'bfElementTypeAddress');
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfTextfield', widget: '' })), 'bfElementTypeText');
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfTextfield', widget: 'toString' })), 'bfElementTypeText');
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfTextfield' })), 'bfElementTypeText');
+
+    assert.equal(model.getWidgetFromOption('bfElementTypeCountry'), 'country');
+    assert.equal(model.getWidgetFromOption('bfElementTypeText'), '');
+    assert.equal(model.getWidgetFromOption('bfElementTypeSlider'), '');
+});
+
+test('applying a widget preset keeps the properties and only fills missing defaults', () => {
+    const model = new QuickmodeTreeModel({ attributes: { class: 'bfQuickModeRootClass', id: 'root' }, properties: { type: 'root' }, children: [] });
+    const properties = { bfType: 'bfTextfield', label: 'Phone', required: true, widgetDefaultCountry: 'be' };
+
+    model.applyWidgetPreset(properties, 'phone');
+    assert.equal(properties.widget, 'phone');
+    assert.equal(properties.label, 'Phone');
+    assert.equal(properties.required, true);
+    assert.equal(properties.widgetDefaultCountry, 'be');
+    assert.equal(properties.widgetShowFlags, true);
+    assert.equal(properties.widgetMode, 'datetime');
+    assert.equal(properties.widgetStep, 15);
+    assert.equal(properties.widgetProvider, '');
+    assert.equal(properties.widgetMinChars, 3);
+
+    model.applyWidgetPreset(properties, '');
+    assert.equal(properties.widget, '');
+    assert.equal(properties.label, 'Phone');
+
+    const plain = { bfType: 'bfTextfield' };
+    model.applyWidgetPreset(plain, 'unknown');
+    assert.deepEqual(plain, { bfType: 'bfTextfield', widget: '' });
+});

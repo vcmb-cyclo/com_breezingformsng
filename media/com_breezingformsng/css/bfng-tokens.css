@@ -62,6 +62,10 @@
   --bfng-type-stripe: #635bff;
   --bfng-type-submitbutton: #e11d48;
   --bfng-type-summarize: #0369a1;
+  --bfng-type-phone: #0ea5e9;
+  --bfng-type-datetime: #a21caf;
+  --bfng-type-country: #4d7c0f;
+  --bfng-type-address: #d97706;
 
   /* geometry */
   --bfng-space-1: 2px;   --bfng-space-2: 4px;   --bfng-space-3: 6px;   --bfng-space-4: 8px;
@@ -118,6 +122,10 @@
   --bfng-type-stripe: #a5a0ff;
   --bfng-type-submitbutton: #fb7185;
   --bfng-type-summarize: #38bdf8;
+  --bfng-type-phone: #67e8f9;
+  --bfng-type-datetime: #e879f9;
+  --bfng-type-country: #a3e635;
+  --bfng-type-address: #fcd34d;
   --bfng-shadow-1: 0 1px 2px rgb(0 0 0 / 40%);
   --bfng-shadow-2: 0 6px 16px rgb(0 0 0 / 48%);
   --bfng-shadow-3: 0 16px 40px rgb(0 0 0 / 56%);
