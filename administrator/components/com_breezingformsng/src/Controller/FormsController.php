@@ -504,14 +504,13 @@ class FormsController extends AdminController
         if ($property === 'debug') {
             try {
                 $this->assertFormEditPermission($id);
+                $this->getOptionsModel()->setDebugMode($id, $state);
             } catch (NotAllowed $exception) {
                 $app->setHeader('status', (string) ($exception->getCode() ?: 403), true);
                 $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
                 echo new JsonResponse(AjaxStateService::error($exception->getMessage()));
                 $app->close();
             }
-
-            $this->getOptionsModel()->setDebugMode($id, $state);
         } else {
             $model = $this->getFormModel();
             $pks = [$id];
