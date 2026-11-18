@@ -98,3 +98,25 @@ test('field and summary errors render untrusted validator text as text', async (
     await expect(page.locator('.bf-field-error img')).toHaveCount(0);
     await expect(page.locator('.bfErrorSummaryList img')).toHaveCount(0);
 });
+
+test('the Bootstrap theme follows system dark mode unless the form explicitly opts into light mode', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.setContent(`
+        <div class="bfFormDiv">
+            <form class="bfQuickMode">
+                <input class="form-control" id="dark-input">
+                <select class="form-select" id="dark-select"><option>Dark select</option></select>
+            </form>
+        </div>
+        <div class="bfFormDiv" data-bs-theme="light">
+            <form class="bfQuickMode"><input class="form-control" id="light-input"></form>
+        </div>
+    `);
+    await page.addStyleTag({ path: 'media/com_breezingformsng/css/theme-carte.css' });
+
+    await expect(page.locator('.bfFormDiv').first().locator('.bfQuickMode')).toHaveCSS('background-color', 'rgb(29, 35, 43)');
+    await expect(page.locator('#dark-input')).toHaveCSS('background-color', 'rgb(38, 45, 54)');
+    await expect.poll(() => page.locator('#dark-select').evaluate((element) => getComputedStyle(element.closest('.bfFormDiv'))
+        .getPropertyValue('--bf-select-arrow').trim())).toBe('#f2f2f0');
+    await expect(page.locator('#light-input')).toHaveCSS('background-color', 'rgb(243, 242, 242)');
+});
