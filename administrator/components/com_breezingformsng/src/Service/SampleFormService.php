@@ -25,6 +25,7 @@ use Joomla\Database\ParameterType;
 final class SampleFormService
 {
     public const FORM_NAME = 'Sample_Contact';
+    public const FORM_PACKAGE_NAME = 'QuickModeForms';
     public const FORM_TITLE = 'Sample contact form';
     public const MENU_PARENT_TITLE = 'Tests';
 
@@ -45,6 +46,21 @@ final class SampleFormService
         $name = self::FORM_NAME;
         $query = $this->db->createQuery()
             ->select($this->db->quoteName('id'))
+            ->from($this->db->quoteName('#__facileforms_forms'))
+            ->where($this->db->quoteName('name') . ' = :name')
+            ->where($this->db->quoteName('package') . ' = :package')
+            ->bind(':name', $name, ParameterType::STRING)
+            ->bind(':package', self::FORM_PACKAGE_NAME, ParameterType::STRING);
+
+        return (int) $this->db->setQuery($query)->loadResult();
+    }
+
+    /** Number of forms whose name would be used by the sample's name-based menu route. */
+    public function getFormNameCount(): int
+    {
+        $name = self::FORM_NAME;
+        $query = $this->db->createQuery()
+            ->select('COUNT(*)')
             ->from($this->db->quoteName('#__facileforms_forms'))
             ->where($this->db->quoteName('name') . ' = :name')
             ->bind(':name', $name, ParameterType::STRING);

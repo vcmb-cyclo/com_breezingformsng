@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 const script = readFileSync('media/com_breezingformsng/js/admin/about.js', 'utf8');
 const css = readFileSync('media/com_breezingformsng/css/about.css', 'utf8');
-const template = readFileSync('administrator/components/com_breezingformsng/tmpl/about/default.php', 'utf8');
+const template = readFileSync('administrator/components/com_breezingformsng/tmpl/about/audit.php', 'utf8');
 // The real dialog of the template, its PHP echoes replaced by labels.
 const dialog = template.slice(template.indexOf('<dialog id="bf-orphan-reassign-dialog"'), template.indexOf('</dialog>') + 9)
     .replace(/<\?php echo htmlspecialchars\(Text::_\('([A-Z_]+)'\), ENT_QUOTES, 'UTF-8'\); \?>/g, '$1')

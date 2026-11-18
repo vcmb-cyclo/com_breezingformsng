@@ -244,6 +244,7 @@ class HtmlView extends BaseHtmlView
         };
     }
 
+    #[\Override]
     protected function getDetailLabel(): ?string
     {
         return match ($this->getLayout()) {
