@@ -3,6 +3,30 @@
     <changelog>
         <element>com_breezingformsng</element>
         <type>component</type>
+        <version>6.1.0-RC21</version>
+        <addition>
+            <item>Replace the Configuration screen by Tools, laid out like the Joomla control panel: Maintenance tiles (Audit with the number of issues counted in the background, Statistics, Trash with the number of items it holds, Log), Package tiles (Install, Create / edit, Dissolve), the AI assistants (MCP) status with its address, and the sample data card.</item>
+            <item>Give the Audit, the Statistics, the Trash and the Log their own screens under Tools, with a Back button. The Statistics list the records of each form by state (published, archived, trashed) with links that open the form and its records in a new tab, and the tables with their rows and size, with a hint on the tables whose columns use another collation than the table.</item>
+            <item>Add a trash to the lists of forms, scripts, pieces and Integrator rules: Trash instead of Delete, restore with Publish or Unpublish from the Trashed filter, and Empty trash to delete for good after a confirmation. A trashed form is no longer shown on the site, copied or exported, a trashed script or piece no longer runs and a trashed rule no longer fires.</item>
+            <item>Show on the Trash screen one table per kind of object, with the id, title and name of each trashed form, script, piece and rule, its own Empty trash button and a link to its trashed list. The number of trashed records of a form opens them.</item>
+            <item>Install a sample contact form from the Sample data card of the Tools screen, after a confirmation. It is also added to the site menu under Tests, is never replaced if it is already installed, and needs administrator rights.</item>
+            <item>Add the carte theme for the forms in Bootstrap mode, chosen from the Bootstrap theme list of the form properties: a white card, soft fields, pill-shaped choices and an outlined main button, as one stylesheet. The sample contact form uses it.</item>
+            <item>Add a Privacy and history tab to the options and describe each tab.</item>
+        </addition>
+        <change>
+            <item>Move the audit report and the installation log out of the About screen: the Actions menu and the Show log button are gone, and the Extensions screen gets its Back and Manage plugins buttons in the toolbar.</item>
+            <item>Keep the open or closed sections of the Record screen when going from one record to the next.</item>
+            <item>Tell at once that a configuration export is not a package when it is chosen in the package import, instead of asking to confirm a package of 0 forms.</item>
+            <item>Remove the Export and Import configuration actions: the import never worked and the packages cover the transfers.</item>
+        </change>
+        <security>
+            <item>Count the issues of the Audit tile with a read-only request that needs a valid token and the right to manage the component.</item>
+            <item>Open a form in QuickMode without locking it: the lock is taken when the form is saved, with a token, and saving a form needs the right to edit or create it and refuses a form that is in the trash.</item>
+        </security>
+    </changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
         <version>6.1.0-RC20</version>
         <addition>
             <item>Move the values of a deleted element to another element from the About audit with one icon per element. A dropdown lists the compatible elements of the form alphabetically, the one with the same name already selected, and the icon opens a preview of each value with the value the target already holds: only the values you check are moved, a record that already holds another value is marked "Already assigned" and left alone, and a value identical to the one the target already holds is removed as a duplicate. Text, hidden, text area, calendar and number elements are interchangeable, so a value can go to a hidden element such as StripeId; every other type only matches itself. Long lists are previewed 500 values at a time.</item>
