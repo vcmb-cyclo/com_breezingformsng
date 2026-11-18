@@ -333,6 +333,12 @@ final class McpFormWriter
                 }
                 $this->assertPlainText($change['default_value']);
             }
+            if (array_key_exists('max_length', $change)) {
+                if (!in_array($current[$key]['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)
+                    || !is_int($change['max_length']) || $change['max_length'] < 0 || $change['max_length'] > 10000) {
+                    throw new ToolException('Maximum length must be from 0 to 10000 and can only be set on text or textarea fields.');
+                }
+            }
             if (array_key_exists('checked', $change) || array_key_exists('value', $change)) {
                 if (($current[$key]['bfType'] ?? '') !== 'bfCheckbox') {
                     throw new ToolException('Only checkbox fields support checked and value settings.');
@@ -455,6 +461,19 @@ final class McpFormWriter
                     }
                     if (array_key_exists('default_value', $change)) {
                         $node['properties']['value'] = $change['default_value'];
+                    }
+                    if (array_key_exists('max_length', $change) || isset($change['type'])) {
+                        $oldType = $current[$key]['bfType'];
+                        $newType = $change['type'] ?? ($oldType === 'bfTextfield' ? 'text' : 'textarea');
+                        $length = $change['max_length'] ?? (int) ($node['properties'][$oldType === 'bfTextfield' ? 'maxLength' : 'maxlength'] ?? 0);
+                        if ($newType === 'text') {
+                            $node['properties']['maxLength'] = $length > 0 ? $length : '';
+                            unset($node['properties']['maxlength']);
+                        } else {
+                            $node['properties']['maxlength'] = $length;
+                            $node['properties']['showMaxlengthCounter'] = (bool) ($node['properties']['showMaxlengthCounter'] ?? true);
+                            unset($node['properties']['maxLength']);
+                        }
                     }
                     if (array_key_exists('options', $change)) {
                         $choiceProperty = $node['properties']['bfType'] === 'bfSelect' ? 'list' : 'group';
@@ -662,7 +681,7 @@ final class McpFormWriter
     }
 
     /**
-     * @return list<array{type: string, name: string, label: string, placeholder: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}>
+     * @return list<array{type: string, name: string, label: string, placeholder: string, default_value: string, max_length: int, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}>
      * @throws ToolException
      */
     private function normalizeFields(mixed $fields): array
@@ -683,6 +702,7 @@ final class McpFormWriter
             $label = trim((string) ($field['label'] ?? ''));
             $placeholder = trim((string) ($field['placeholder'] ?? ''));
             $defaultValue = $field['default_value'] ?? '';
+            $maxLength = $field['max_length'] ?? 0;
             if (!in_array($type, ['text', 'textarea', 'select', 'radio', 'checkbox_group', 'checkbox'], true)) {
                 throw new ToolException('Supported field types are text, textarea, select, radio, checkbox_group and checkbox.');
             }
@@ -691,6 +711,10 @@ final class McpFormWriter
                 throw new ToolException('Default values are limited to 4000 characters and are only supported on text or textarea fields.');
             }
             $this->assertPlainText($defaultValue);
+            if (!is_int($maxLength) || $maxLength < 0 || $maxLength > 10000
+                || (array_key_exists('max_length', $field) && !in_array($type, ['text', 'textarea'], true))) {
+                throw new ToolException('Maximum length must be from 0 to 10000 and can only be set on text or textarea fields.');
+            }
             if (!preg_match('/^[A-Za-z][A-Za-z0-9_]{0,99}$/D', $name)) {
                 throw new ToolException('Field names must start with a letter and contain only letters, numbers and underscores.');
             }
@@ -755,6 +779,7 @@ final class McpFormWriter
                 'label' => $label,
                 'placeholder' => $placeholder,
                 'default_value' => $defaultValue,
+                'max_length' => $maxLength,
                 'options' => $choices,
                 'multiple' => $multiple,
                 'checked' => $checked,
@@ -768,7 +793,7 @@ final class McpFormWriter
         return $normalized;
     }
 
-    /** @param list<array{type: string, name: string, label: string, placeholder: string, default_value: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
+    /** @param list<array{type: string, name: string, label: string, placeholder: string, default_value: string, max_length: int, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
     private function quickmodeTree(string $name, string $title, string $description, array $fields): array
     {
         $children = [];
@@ -796,7 +821,7 @@ final class McpFormWriter
         ];
     }
 
-    /** @param array{type: string, name: string, label: string, placeholder: string, default_value: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field */
+    /** @param array{type: string, name: string, label: string, placeholder: string, default_value: string, max_length: int, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field */
     private function elementNode(array $field, int $order): array
     {
         $type = match ($field['type']) {
@@ -832,6 +857,12 @@ final class McpFormWriter
             'actionCondition' => 0,
             'dbId' => 0,
         ];
+        if ($type === 'bfTextfield') {
+            $properties['maxLength'] = $field['max_length'] > 0 ? $field['max_length'] : '';
+        } elseif ($type === 'bfTextarea') {
+            $properties['maxlength'] = $field['max_length'];
+            $properties['showMaxlengthCounter'] = true;
+        }
         if ($type === 'bfSelect') {
             $properties['multiple'] = $field['multiple'];
             $properties['list'] = $this->serializeChoices($field['options']);
