@@ -59,6 +59,7 @@ final class FlashUploadCallback
             ->from($db->quoteName('#__facileforms_forms', 'form'))
             ->from($db->quoteName('#__facileforms_elements', 'element'))
             ->where('form.id = :formId')
+            ->where('form.published = 1')
             ->where('element.name = :itemName')
             ->where('element.form = :formId2')
             ->bind(':formId', $formId, ParameterType::INTEGER)

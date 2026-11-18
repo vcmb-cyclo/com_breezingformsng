@@ -26,7 +26,7 @@
 			name="published"
 			type="status"
 			label="JSTATUS"
-			optionsFilter="*,0,1"
+			optionsFilter="*,-2,0,1"
 			class="js-select-submit-on-change"
 			>
 			<option value="">JOPTION_SELECT_PUBLISHED</option>

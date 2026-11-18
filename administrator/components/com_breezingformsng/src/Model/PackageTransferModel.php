@@ -321,8 +321,8 @@ final class PackageTransferModel extends BaseDatabaseModel
         return $this->buildPayload(
             $package,
             $this->loadPackageRows('#__facileforms_forms', $package),
-            $this->loadPackageRows('#__facileforms_scripts', $package),
-            $this->loadPackageRows('#__facileforms_pieces', $package),
+            $this->loadPackageRows('#__facileforms_scripts', $package, true),
+            $this->loadPackageRows('#__facileforms_pieces', $package, true),
             $this->includeMenuAncestors($this->loadPackageRows('#__facileforms_compmenus', $package)),
             $metadata,
             $withTemplates,
@@ -938,9 +938,9 @@ final class PackageTransferModel extends BaseDatabaseModel
     public function getExportChoices(): array
     {
         return [
-            "forms" => $this->loadChoices("#__facileforms_forms"),
-            "scripts" => $this->loadChoices("#__facileforms_scripts"),
-            "pieces" => $this->loadChoices("#__facileforms_pieces"),
+            "forms" => $this->loadChoices("#__facileforms_forms", true),
+            "scripts" => $this->loadChoices("#__facileforms_scripts", true),
+            "pieces" => $this->loadChoices("#__facileforms_pieces", true),
             "menus" => $this->loadChoices("#__facileforms_compmenus"),
         ];
     }
@@ -1248,13 +1248,17 @@ final class PackageTransferModel extends BaseDatabaseModel
     /**
      * @return list<array<string, mixed>>
      */
-    private function loadChoices(string $table): array
+    private function loadChoices(string $table, bool $withoutTrashed = false): array
     {
         $db = $this->getDatabase();
         $query = $db->createQuery()
             ->select($db->quoteName(["id", "package", "name", "title"]))
             ->from($db->quoteName($table))
             ->order([$db->quoteName("package"), $db->quoteName("name"), $db->quoteName("id")]);
+
+        if ($withoutTrashed) {
+            $query->where($db->quoteName("published") . " >= 0");
+        }
 
         return $db->setQuery($query)->loadAssocList() ?: [];
     }
@@ -1586,11 +1590,16 @@ final class PackageTransferModel extends BaseDatabaseModel
     /**
      * @return list<array<string, mixed>>
      */
-    private function loadPackageRows(string $table, string $package): array
+    private function loadPackageRows(string $table, string $package, bool $withoutTrashed = false): array
     {
         $db = $this->getDatabase();
         $query = $db->createQuery()->select('*')->from($db->quoteName($table))->where($db->quoteName('package') . ' = :package')->order($db->quoteName('id'));
         $query->bind(':package', $package);
+
+        if ($withoutTrashed) {
+            $query->where($db->quoteName('published') . ' >= 0');
+        }
+
         return $db->setQuery($query)->loadAssocList() ?: [];
     }
 
@@ -1675,7 +1684,9 @@ final class PackageTransferModel extends BaseDatabaseModel
     {
         $db = $this->getDatabase();
         $query = $db->createQuery()->select('*')->from($db->quoteName('#__facileforms_integrator_rules'))
-            ->where($db->quoteName('form_id') . ' = :formId')->order($db->quoteName('id'))
+            ->where($db->quoteName('form_id') . ' = :formId')
+            ->where($db->quoteName('published') . ' > -2')
+            ->order($db->quoteName('id'))
             ->bind(':formId', $formId, ParameterType::INTEGER);
         $rules = [];
         $ruleRows = $db->setQuery($query)->loadAssocList() ?: [];

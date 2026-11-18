@@ -22,6 +22,7 @@ use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PiecesModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
@@ -77,12 +78,20 @@ class HtmlView extends BaseHtmlView
                 $toolbar->publish('pieces.publish')->listCheck(true);
                 $toolbar->unpublish('pieces.unpublish')->listCheck(true);
                 $toolbar->checkin('pieces.checkin')->listCheck(true);
+
+                if ($this->state->get('filter.published') !== (string) PackageItemModel::TRASHED) {
+                    $toolbar->trash('pieces.trash')->listCheck(true);
+                }
             } else {
                 $this->canEdit = false;
             }
 
-            if ($user->authorise('core.delete', 'com_breezingformsng')) {
-                $toolbar->delete('pieces.delete')->message('COM_BREEZINGFORMSNG_PIECES_ASKDELETE')->listCheck(true);
+            // As in Joomla, only the trash filter offers to delete for good.
+            if (
+                $this->state->get('filter.published') === (string) PackageItemModel::TRASHED
+                && $user->authorise('core.delete', 'com_breezingformsng')
+            ) {
+                $toolbar->delete('pieces.delete', 'JTOOLBAR_EMPTY_TRASH')->message('JGLOBAL_CONFIRM_DELETE')->listCheck(true);
             }
         }
 

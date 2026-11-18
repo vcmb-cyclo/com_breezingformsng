@@ -172,7 +172,14 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             ToolbarHelper::publish('forms.publish', 'JTOOLBAR_PUBLISH', true);
             ToolbarHelper::unpublish('forms.unpublish', 'JTOOLBAR_UNPUBLISH', true);
             ToolbarHelper::checkin('forms.checkin');
-            ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'forms.delete');
+
+            if ((string) $this->state->get('filter.published') === '-2') {
+                // In the trash, Publish and Unpublish restore.
+                ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'forms.delete', 'JTOOLBAR_EMPTY_TRASH');
+            } else {
+                ToolbarHelper::trash('forms.trash');
+            }
+
             $user = $this->getCurrentUser();
 
             if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {

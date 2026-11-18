@@ -107,8 +107,19 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         $this->filterForm = $list->getFilterForm();
         $this->activeFilters = $list->getActiveFilters();
 
+        $toolbar = $this->getDocument()->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
         ToolbarHelper::addNew('integrator.edit');
-        ToolbarHelper::deleteList('', 'integrator.remove');
+        $toolbar->publish('integrator.publish')->listCheck(true);
+        $toolbar->unpublish('integrator.unpublish')->listCheck(true);
+
+        if ((string) $this->state->get('filter.published') === (string) IntegratorModel::TRASHED) {
+            // Emptying the trash deletes the checked rules for good; admin-form.js
+            // asks JGLOBAL_CONFIRM_DELETE before the task is sent.
+            $toolbar->delete('integrator.remove', 'JTOOLBAR_EMPTY_TRASH')->listCheck(true);
+        } else {
+            $toolbar->trash('integrator.trash')->listCheck(true);
+        }
+
         $user = $this->getCurrentUser();
 
         if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {

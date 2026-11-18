@@ -105,11 +105,32 @@ class IntegratorController extends BaseController
         }
     }
 
+    /**
+     * Permanently deletes rules: only the ones already in the trash.
+     */
     public function remove(): void
     {
         $this->checkToken();
         $ids = (array) $this->app->getInput()->get('cid', [], 'ARRAY');
-        $this->getIntegratorModel()->deleteRules($ids);
+        $result = $this->getIntegratorModel()->deleteRules($ids);
+
+        if ($result['refused'] !== []) {
+            $this->setMessage(Text::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'), 'error');
+        } elseif ($result['deleted'] !== []) {
+            $this->setMessage(Text::plural('COM_BREEZINGFORMSNG_N_ITEMS_DELETED', count($result['deleted'])));
+        }
+
+        $this->setRedirect($this->listUrl());
+    }
+
+    /**
+     * Moves the selected rules to the trash, where they no longer run.
+     */
+    public function trash(): void
+    {
+        $this->checkToken();
+        $ids = (array) $this->app->getInput()->get('cid', [], 'ARRAY');
+        $this->getIntegratorModel()->trashRules($ids);
         $this->setRedirect($this->listUrl());
     }
 
@@ -123,7 +144,7 @@ class IntegratorController extends BaseController
         $input = $this->app->getInput();
         $id    = $input->getInt('id', 0);
         $state = $input->getInt('state', 0);
-        if ($id > 0) {
+        if ($id > 0 && in_array($state, [0, 1], true)) {
             $this->getIntegratorModel()->publishRule($id, $state);
         }
         $this->app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
@@ -131,20 +152,39 @@ class IntegratorController extends BaseController
         $this->app->close();
     }
 
+    /**
+     * Publishes the selected rules; applied to trashed rules, it restores them.
+     */
     public function publish(): void
     {
         $this->checkToken();
-        $id = $this->app->getInput()->getInt('publish_id', 0);
-        $this->getIntegratorModel()->publishRule($id, 1);
+        $this->changeState(1);
         $this->setRedirect($this->listUrl());
     }
 
     public function unpublish(): void
     {
         $this->checkToken();
-        $id = $this->app->getInput()->getInt('publish_id', 0);
-        $this->getIntegratorModel()->publishRule($id, 0);
+        $this->changeState(0);
         $this->setRedirect($this->listUrl());
+    }
+
+    private function changeState(int $state): void
+    {
+        $input = $this->app->getInput();
+        $ids   = array_map('intval', (array) $input->get('cid', [], 'ARRAY'));
+        $ids[] = $input->getInt('publish_id', 0);
+        $ids   = array_unique(array_filter($ids));
+        $model = $this->getIntegratorModel();
+
+        foreach ($ids as $id) {
+            $model->publishRule($id, $state);
+        }
+
+        if ($ids !== []) {
+            $key = $state === 1 ? 'COM_BREEZINGFORMSNG_N_ITEMS_PUBLISHED' : 'COM_BREEZINGFORMSNG_N_ITEMS_UNPUBLISHED';
+            $this->setMessage(Text::plural($key, count($ids)));
+        }
     }
 
     public function addItem(): void

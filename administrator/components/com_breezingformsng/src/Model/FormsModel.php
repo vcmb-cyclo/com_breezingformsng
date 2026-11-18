@@ -77,6 +77,9 @@ class FormsModel extends ListModel
             $published = (int) $published;
             $query->where($db->quoteName('published') . ' = :published')
                 ->bind(':published', $published, ParameterType::INTEGER);
+        } elseif ($published !== '*') {
+            // Trashed forms show only in the trash filter or with "All".
+            $query->where($db->quoteName('published') . ' >= 0');
         }
 
         $search = trim((string) $this->getState('filter.search'));

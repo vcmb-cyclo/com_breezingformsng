@@ -64,7 +64,7 @@ final class FormsListActionsArchitectureTest extends TestCase
     {
         $view = $this->read('/src/View/Forms/HtmlView.php');
 
-        self::assertStringContainsString("ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'forms.delete')", $view);
+        self::assertStringContainsString("ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'forms.delete', 'JTOOLBAR_EMPTY_TRASH')", $view);
         self::assertStringNotContainsString('forms.remove', $view);
         // The toolbar button asks for the confirmation itself.
         self::assertStringNotContainsString('confirmDeleteTask', $view);

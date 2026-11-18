@@ -210,6 +210,7 @@ class FormModel extends AdminModel implements VersionableModelInterface
                 ->select('*')
                 ->from($db->quoteName('#__facileforms_forms'))
                 ->where($db->quoteName('id') . ' = :id')
+                ->where($db->quoteName('published') . ' >= 0')
                 ->bind(':id', $id, ParameterType::INTEGER);
             $source = $db->setQuery($query)->loadObject();
 

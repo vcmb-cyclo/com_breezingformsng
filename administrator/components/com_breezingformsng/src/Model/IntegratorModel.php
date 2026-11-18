@@ -25,6 +25,9 @@ class IntegratorModel extends BaseDatabaseModel
         return $this->getDatabase();
     }
 
+    /** The trashed state of a rule (the Joomla value). */
+    public const TRASHED = -2;
+
     public function getRule(int $id): ?\stdClass
     {
         $db = $this->db();
@@ -181,13 +184,36 @@ class IntegratorModel extends BaseDatabaseModel
     /**
      * @param array<mixed> $ids
      */
-    public function deleteRules(array $ids): void
+    /**
+     * Permanently deletes the trashed rules among the ids, with their items
+     * and criteria. A rule that is not in the trash is never deleted.
+     *
+     * @param array<int|string, mixed> $ids
+     *
+     * @return array{deleted: list<int>, refused: list<int>}
+     */
+    public function deleteRules(array $ids): array
     {
-        $ids = array_values(array_filter(array_map('intval', $ids)));
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
         if (empty($ids)) {
-            return;
+            return ['deleted' => [], 'refused' => []];
         }
         $db = $this->db();
+        $trashed = self::TRASHED;
+        $query = $db->createQuery()
+            ->select($db->quoteName('id'))
+            ->from($db->quoteName('#__facileforms_integrator_rules'))
+            ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER)
+            ->where($db->quoteName('published') . ' = :trashed')
+            ->bind(':trashed', $trashed, ParameterType::INTEGER);
+        $trashedIds = array_map('intval', $db->setQuery($query)->loadColumn() ?: []);
+        $refused = array_values(array_diff($ids, $trashedIds));
+        $ids = $trashedIds;
+
+        if (empty($ids)) {
+            return ['deleted' => [], 'refused' => $refused];
+        }
+
         foreach ($ids as $id) {
             $this->versions()->deleteHistory($id);
         }
@@ -203,6 +229,26 @@ class IntegratorModel extends BaseDatabaseModel
                 ->whereIn($db->quoteName($col), $ids, ParameterType::INTEGER);
             $db->setQuery($query)->execute();
         }
+
+        return ['deleted' => $ids, 'refused' => $refused];
+    }
+
+    /**
+     * Moves the rules to the trash: a trashed rule never runs.
+     *
+     * @param array<int|string, mixed> $ids
+     */
+    public function trashRules(array $ids): int
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        $count = 0;
+
+        foreach ($ids as $id) {
+            $this->publishRule($id, self::TRASHED);
+            $count++;
+        }
+
+        return $count;
     }
 
     public function publishRule(int $id, int $state): void

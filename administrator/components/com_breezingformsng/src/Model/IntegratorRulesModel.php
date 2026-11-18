@@ -75,6 +75,11 @@ class IntegratorRulesModel extends ListModel implements ListPositionInterface
             $published = (int) $published;
             $query->where($db->quoteName('rules.published') . ' = :published')
                 ->bind(':published', $published, ParameterType::INTEGER);
+        } elseif ($published !== '*') {
+            // As in Joomla, the trash is hidden unless it is asked for.
+            $trashed = IntegratorModel::TRASHED;
+            $query->where($db->quoteName('rules.published') . ' > :trashed')
+                ->bind(':trashed', $trashed, ParameterType::INTEGER);
         }
 
         $search = trim((string) $this->getState('filter.search'));

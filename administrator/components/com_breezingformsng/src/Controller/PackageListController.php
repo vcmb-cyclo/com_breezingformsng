@@ -72,6 +72,13 @@ abstract class PackageListController extends AdminController
         return parent::getModel($name ?: ucfirst(Inflector::singularize($this->view_list)), $prefix, $config);
     }
 
+    /**
+     * Publishes, unpublishes or trashes the selection: AdminController maps
+     * the tasks publish, unpublish and trash to this method, which checks the
+     * token, and the model checks the permission and the checkout of each
+     * item. Publishing or unpublishing a trashed item restores it. Deleting
+     * for good is the delete task, which the model limits to the trash.
+     */
     public function publish()
     {
         $ids = ArrayHelper::toInteger((array) $this->input->get('cid', [], 'array'));
@@ -104,6 +111,7 @@ abstract class PackageListController extends AdminController
             !$this->checkToken('post', false) => Text::_('JINVALID_TOKEN'),
             !$user->authorise('core.edit.state', 'com_breezingformsng') => Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'),
             $id <= 0 || !$model instanceof PackageItemModel => Text::_('JERROR_AN_ERROR_HAS_OCCURRED'),
+            $model->isTrashed($id) => Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'),
             !$model->publish($pks, $state) => (string) $model->getError(),
             default => null,
         };
