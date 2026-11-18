@@ -91,9 +91,10 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   zone de texte, liste, radio, groupe de cases à cocher et cases à cocher sur
   les formulaires QuickMode compatibles. La modification peut changer entre
   texte et zone de texte, régler le libellé, l’espace réservé, le caractère
-  obligatoire, la valeur d’une case, la sélection multiple d’une liste et ses
-  choix. Le renommage est refusé si des soumissions, scripts, validations,
-  modèles de courriel ou intégrations peuvent référencer le nom du champ. Les
+  obligatoire, la valeur initiale d’un champ texte, la valeur d’une case, la
+  sélection multiple d’une liste et ses choix. Le renommage est refusé si des
+  soumissions, scripts, validations, modèles de courriel ou intégrations peuvent
+  référencer le nom du champ. Les
   nouveaux champs peuvent être placés sur une page QuickMode existante ;
   `add_pages` ajoute jusqu’à 10 pages vierges,
   que les nouveaux champs peuvent cibler au même appel. `remove_pages` retire

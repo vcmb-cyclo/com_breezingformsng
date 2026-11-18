@@ -49,7 +49,7 @@ final class CreateFormTool implements McpTool
                     'type' => 'array',
                     'maxItems' => 30,
                     'default' => [],
-                    'description' => 'Optional fields. Names must be unique; labels, placeholders and choice labels/values are plain text.',
+                    'description' => 'Optional fields. Names must be unique; labels, placeholders, initial values and choice labels/values are plain text.',
                     'items' => [
                         'type' => 'object',
                         'properties' => [
@@ -57,6 +57,7 @@ final class CreateFormTool implements McpTool
                             'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100, 'description' => 'Field name, starting with a letter; letters, numbers and underscores only.'],
                             'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Plain-text field label.'],
                             'placeholder' => ['type' => 'string', 'maxLength' => 255, 'default' => '', 'description' => 'Optional plain-text placeholder.'],
+                            'default_value' => ['type' => 'string', 'maxLength' => 4000, 'description' => 'Optional plain-text initial value for a text or textarea field.'],
                             'multiple' => ['type' => 'boolean', 'description' => 'Allow multiple selected values on a select field.'],
                             'checked' => ['type' => 'boolean', 'description' => 'Initial checked state for a checkbox field.'],
                             'value' => ['type' => 'string', 'maxLength' => 255, 'description' => 'Submitted value for a checkbox field; defaults to "1".'],

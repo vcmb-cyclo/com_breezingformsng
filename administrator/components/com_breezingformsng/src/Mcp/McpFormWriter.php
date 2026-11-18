@@ -307,6 +307,13 @@ final class McpFormWriter
                     throw new ToolException('When disabling multiple selection, include the options so the single default can be validated.');
                 }
             }
+            if (array_key_exists('default_value', $change)) {
+                if (!in_array($current[$key]['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)
+                    || !is_string($change['default_value']) || mb_strlen($change['default_value']) > 4000) {
+                    throw new ToolException('A default value can only be set on text or textarea fields and is limited to 4000 characters.');
+                }
+                $this->assertPlainText($change['default_value']);
+            }
             if (array_key_exists('checked', $change) || array_key_exists('value', $change)) {
                 if (($current[$key]['bfType'] ?? '') !== 'bfCheckbox') {
                     throw new ToolException('Only checkbox fields support checked and value settings.');
@@ -426,6 +433,9 @@ final class McpFormWriter
                         if (array_key_exists($property, $change)) {
                             $node['properties'][$property] = $change[$property];
                         }
+                    }
+                    if (array_key_exists('default_value', $change)) {
+                        $node['properties']['value'] = $change['default_value'];
                     }
                     if (array_key_exists('options', $change)) {
                         $choiceProperty = $node['properties']['bfType'] === 'bfSelect' ? 'list' : 'group';
@@ -653,9 +663,15 @@ final class McpFormWriter
             $name = trim((string) ($field['name'] ?? ''));
             $label = trim((string) ($field['label'] ?? ''));
             $placeholder = trim((string) ($field['placeholder'] ?? ''));
+            $defaultValue = $field['default_value'] ?? '';
             if (!in_array($type, ['text', 'textarea', 'select', 'radio', 'checkbox_group', 'checkbox'], true)) {
                 throw new ToolException('Supported field types are text, textarea, select, radio, checkbox_group and checkbox.');
             }
+            if (!is_string($defaultValue) || mb_strlen($defaultValue) > 4000
+                || (array_key_exists('default_value', $field) && !in_array($type, ['text', 'textarea'], true))) {
+                throw new ToolException('Default values are limited to 4000 characters and are only supported on text or textarea fields.');
+            }
+            $this->assertPlainText($defaultValue);
             if (!preg_match('/^[A-Za-z][A-Za-z0-9_]{0,99}$/D', $name)) {
                 throw new ToolException('Field names must start with a letter and contain only letters, numbers and underscores.');
             }
@@ -719,6 +735,7 @@ final class McpFormWriter
                 'name' => $name,
                 'label' => $label,
                 'placeholder' => $placeholder,
+                'default_value' => $defaultValue,
                 'options' => $choices,
                 'multiple' => $multiple,
                 'checked' => $checked,
@@ -732,7 +749,7 @@ final class McpFormWriter
         return $normalized;
     }
 
-    /** @param list<array{type: string, name: string, label: string, placeholder: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
+    /** @param list<array{type: string, name: string, label: string, placeholder: string, default_value: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
     private function quickmodeTree(string $name, string $title, string $description, array $fields): array
     {
         $children = [];
@@ -760,7 +777,7 @@ final class McpFormWriter
         ];
     }
 
-    /** @param array{type: string, name: string, label: string, placeholder: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field */
+    /** @param array{type: string, name: string, label: string, placeholder: string, default_value: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field */
     private function elementNode(array $field, int $order): array
     {
         $type = match ($field['type']) {
@@ -774,7 +791,7 @@ final class McpFormWriter
         $properties = [
             'type' => 'element',
             'bfType' => $type,
-            'value' => $type === 'bfCheckbox' ? $field['value'] : '',
+            'value' => $type === 'bfCheckbox' ? $field['value'] : $field['default_value'],
             'placeholder' => $field['placeholder'],
             'label' => $field['label'],
             'bfName' => $field['name'],
