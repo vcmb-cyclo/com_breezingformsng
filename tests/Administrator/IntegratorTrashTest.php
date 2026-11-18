@@ -53,6 +53,21 @@ final class IntegratorTrashTest extends TestCase
         self::assertStringContainsString('trashRules(', $this->method($controller, 'trash'));
     }
 
+    public function testMutationsRequireTheirJoomlaAclAction(): void
+    {
+        $controller = $this->read(self::ADMIN . '/src/Controller/IntegratorController.php');
+
+        foreach (['trash', 'setPublished', 'publish', 'unpublish'] as $task) {
+            self::assertStringContainsString("assertPermission('core.edit.state')", $this->method($controller, $task), $task);
+        }
+
+        self::assertStringContainsString("assertPermission('core.delete')", $this->method($controller, 'remove'));
+
+        $view = $this->read(self::ADMIN . '/src/View/Integrator/HtmlView.php');
+        self::assertStringContainsString("authorise('core.edit.state', 'com_breezingformsng')", $view);
+        self::assertStringContainsString("authorise('core.delete', 'com_breezingformsng')", $view);
+    }
+
     public function testStateChangesAcceptSelectionsAndOnlyKnownAjaxStates(): void
     {
         $controller = $this->read(self::ADMIN . '/src/Controller/IntegratorController.php');
@@ -88,12 +103,12 @@ final class IntegratorTrashTest extends TestCase
 
         self::assertStringNotContainsString('deleteList(', $view);
         self::assertSame(1, substr_count($view, "->delete('integrator.remove', 'JTOOLBAR_EMPTY_TRASH')"));
-        self::assertMatchesRegularExpression(
-            "/filter\.published'\) === \(string\) IntegratorModel::TRASHED\) \{[^}]*JTOOLBAR_EMPTY_TRASH[^}]*\} else \{\s*\\\$toolbar->trash\('integrator\.trash'\)/s",
-            $view
-        );
         self::assertStringContainsString("publish('integrator.publish')", $view);
         self::assertStringContainsString("unpublish('integrator.unpublish')", $view);
+        self::assertMatchesRegularExpression(
+            "/filter\.published'\) === \(string\) IntegratorModel::TRASHED\) \{[^}]*if \(\\\$canDelete\) \{[^}]*delete\('integrator\.remove'[^}]*\}[^}]*\} elseif \(\\\$canEditState\) \{[^}]*trash\('integrator\.trash'/s",
+            $view
+        );
     }
 
     public function testTemplateNeverTreatsTheTrashedStateAsPublished(): void

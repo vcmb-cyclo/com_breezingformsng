@@ -181,7 +181,7 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
                 <div class="d-flex gap-2">
                     <?php if ($this->sampleFormId === 0 && $this->canInstallSample) : ?>
                         <form action="<?= Route::_('index.php?option=com_breezingformsng&task=packages.installSample'); ?>" method="post"
-                            onsubmit="return window.confirm(<?= htmlspecialchars(json_encode(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_CONFIRM'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8'); ?>);">
+                            onsubmit="return window.confirm(<?= htmlspecialchars(json_encode(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_CONFIRM'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8'); ?>);">
                             <?= HTMLHelper::_('form.token'); ?>
                             <button type="submit" class="btn btn-primary btn-sm" id="bf-tools-sample-install">
                                 <span class="icon-upload" aria-hidden="true"></span>

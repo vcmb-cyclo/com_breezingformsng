@@ -107,20 +107,31 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         $this->filterForm = $list->getFilterForm();
         $this->activeFilters = $list->getActiveFilters();
 
-        $toolbar = $this->getDocument()->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
+        $document = $this->getDocument();
+
+        if (!$document instanceof HtmlDocument) {
+            throw new \RuntimeException('The HTML document is not available.');
+        }
+
+        $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
+        $user = $this->getCurrentUser();
+        $canEditState = $user->authorise('core.edit.state', 'com_breezingformsng');
+        $canDelete = $user->authorise('core.delete', 'com_breezingformsng');
         ToolbarHelper::addNew('integrator.edit');
-        $toolbar->publish('integrator.publish')->listCheck(true);
-        $toolbar->unpublish('integrator.unpublish')->listCheck(true);
+        if ($canEditState) {
+            $toolbar->publish('integrator.publish')->listCheck(true);
+            $toolbar->unpublish('integrator.unpublish')->listCheck(true);
+        }
 
         if ((string) $this->state->get('filter.published') === (string) IntegratorModel::TRASHED) {
             // Emptying the trash deletes the checked rules for good; admin-form.js
             // asks JGLOBAL_CONFIRM_DELETE before the task is sent.
-            $toolbar->delete('integrator.remove', 'JTOOLBAR_EMPTY_TRASH')->listCheck(true);
-        } else {
+            if ($canDelete) {
+                $toolbar->delete('integrator.remove', 'JTOOLBAR_EMPTY_TRASH')->listCheck(true);
+            }
+        } elseif ($canEditState) {
             $toolbar->trash('integrator.trash')->listCheck(true);
         }
-
-        $user = $this->getCurrentUser();
 
         if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
             ToolbarHelper::preferences('com_breezingformsng');

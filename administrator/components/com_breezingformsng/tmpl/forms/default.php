@@ -63,7 +63,10 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
             <td class="text-center"><?= (int) $form->pages; ?></td>
             <td class="text-center">
               <?php if ((int) $form->published === -2): ?>
-                <?= HTMLHelper::_('jgrid.published', -2, $i, 'forms.', false); ?>
+                <span class="tbody-icon" title="<?= Text::_('JTRASHED'); ?>">
+                  <span class="icon-trash text-danger" aria-hidden="true"></span>
+                  <span class="visually-hidden"><?= Text::_('JTRASHED'); ?></span>
+                </span>
               <?php else: ?>
               <a href="#"
                  class="tbody-icon<?= (int) $form->published === 1 ? ' active' : ''; ?>"

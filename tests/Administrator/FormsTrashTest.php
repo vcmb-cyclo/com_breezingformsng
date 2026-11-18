@@ -45,6 +45,7 @@ final class FormsTrashTest extends TestCase
     public function testDeleteRefusesAnyFormThatIsNotTrashed(): void
     {
         $controller = $this->admin('src/Controller/FormsController.php');
+        $model = $this->admin('src/Model/FormModel.php');
 
         self::assertMatchesRegularExpression(
             '/public function delete\(\): void\s*\{\s*\$this->checkToken\(\);.*notTrashed\(\$ids\) !== \[\].*'
@@ -52,6 +53,8 @@ final class FormsTrashTest extends TestCase
             $controller
         );
         self::assertStringContainsString("->where(\$db->quoteName('published') . ' = -2')", $controller);
+        // The model must protect other trusted callers as well as this route.
+        self::assertMatchesRegularExpression('/protected function canDelete\(\$record\).*published \?\? 0\).*parent::canDelete\(\$record\)/s', $model);
         // The toggle never restores a trashed form by accident.
         self::assertMatchesRegularExpression('/isTrashed\(\$id\).*AjaxStateService::error/s', $controller);
     }
@@ -84,7 +87,8 @@ final class FormsTrashTest extends TestCase
         $template = $this->admin('tmpl/forms/default.php');
 
         self::assertStringNotContainsString('$form->published ?', $template);
-        self::assertStringContainsString("HTMLHelper::_('jgrid.published', -2", $template);
+        // The trashed icon is red, like the ones of the records, scripts, pieces and rules lists.
+        self::assertStringContainsString('icon-trash text-danger', $template);
         self::assertStringContainsString('(int) $form->published === 1', $template);
     }
 
