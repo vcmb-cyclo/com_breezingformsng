@@ -13,6 +13,8 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Callback;
 use Securimage;
 use Joomla\CMS\Application\CMSApplication;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper;
+use Vcmb\Component\BreezingformsNG\Site\Service\Security\CaptchaCodeStore;
+use Vcmb\Component\BreezingformsNG\Site\Service\Security\SecurimageSessionAdapter;
 
 /**
  * Securimage captcha validation callback (checkCaptcha=1).
@@ -27,10 +29,11 @@ final class CaptchaCallback
     {
         $this->clearOutputBuffer();
 
-        $securimage = $this->createSecurimage();
         $capValue = $this->application->getInput()->getString('value', '');
 
-        echo $securimage->check(str_replace('?', '', $capValue))
+        // The browser checks the code before it sends the form: the submission
+        // checks it again, so this check leaves it in place.
+        echo $this->codeStore()->matches(str_replace('?', '', $capValue), false)
             ? 'capResult=>true'
             : 'capResult=>false';
 
@@ -56,6 +59,7 @@ final class CaptchaCallback
         $securimage->use_wordlist = true;
 
         $this->application->setHeader('status', '200', true);
+        // Securimage returns instead of exiting, so that Joomla saves the session with the new code.
         $securimage->show(JPATH_SITE . '/media/com_breezingformsng/images/site/captcha/backgrounds/bg6.jpg');
 
         $this->application->close();
@@ -63,14 +67,28 @@ final class CaptchaCallback
 
     private function createSecurimage(): Securimage
     {
+        // The response is a PNG or a capResult value: any error text in it breaks it.
+        // Securimage raises a PHP 8 deprecation for every pixel it warps, which
+        // would also flood the error log, so deprecations are left out here.
+        ini_set('display_errors', '0');
+        error_reporting(error_reporting() & ~E_DEPRECATED);
         VendorHelper::load();
 
-        return new Securimage();
+        return new Securimage([
+            'captchaId' => CaptchaCodeStore::CAPTCHA_ID,
+            'storage_adapters' => [new SecurimageSessionAdapter($this->codeStore())],
+            'no_exit' => true,
+        ]);
+    }
+
+    private function codeStore(): CaptchaCodeStore
+    {
+        return new CaptchaCodeStore($this->application->getSession());
     }
 
     private function clearOutputBuffer(): void
     {
-        if (ob_get_level() > 0) {
+        while (ob_get_level() > 0) {
             ob_end_clean();
         }
     }

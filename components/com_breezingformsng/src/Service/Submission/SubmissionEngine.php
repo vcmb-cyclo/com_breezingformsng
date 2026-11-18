@@ -19,7 +19,6 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Submission;
 
 use Exception;
 use HTML_facileFormsProcessor;
-use Securimage;
 use Joomla\CMS\Filter\InputFilter;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
@@ -45,14 +44,15 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Export\ExportEngine;
 use Vcmb\Component\BreezingformsNG\Site\Service\Notification\NotificationEngine;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\SubmissionTimestampFormatter;
 use Vcmb\Component\BreezingformsNG\Site\Service\Scripting\ScriptingEngine;
+use Vcmb\Component\BreezingformsNG\Site\Service\Security\CaptchaCodeStore;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\TemporaryUploadDirectory;
+use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadedFilesColumns;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FlashUploadFileMatcher;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FilemaskFilename;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadError;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadDirectoryProtection;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadRuntime;
 use Vcmb\Component\BreezingformsNG\Site\Service\Security\HtmlSanitizer;
-use Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper;
 use CB\Component\Contentbuilderng\Administrator\Helper\ContentbuilderngHelper;
 use CB\Component\Contentbuilderng\Administrator\Helper\FormSourceFactory;
 use CB\Component\Contentbuilderng\Administrator\Service\ArticleService;
@@ -243,10 +243,12 @@ final class SubmissionEngine
                                 }
                             }
 
-                            $uploadfiles = $this->processor->app->getInput()->files->get(
-                                'ff_nm_' . $row->name,
-                                null,
-                                'array'
+                            $uploadfiles = UploadedFilesColumns::fromJoomla(
+                                $this->processor->app->getInput()->files->get(
+                                    'ff_nm_' . $row->name,
+                                    null,
+                                    'array'
+                                )
                             );
 
                             if (
@@ -1099,9 +1101,8 @@ final class SubmissionEngine
         for ($i = 0; $i < $this->processor->rowcount; $i++) {
             $row = $elementRows[$i];
             if ($row->type == "Captcha") {
-                VendorHelper::load();
-                $securimage = new Securimage();
-                if (!$securimage->check($this->processor->app->getInput()->getString('bfCaptchaEntry', ''))) {
+                $captchaCodes = new CaptchaCodeStore($this->processor->app->getSession());
+                if (!$captchaCodes->matches($this->processor->app->getInput()->getString('bfCaptchaEntry', ''), true)) {
                     $this->processor->status = _FF_STATUS_CAPTCHA_FAILED;
                     exit;
                 }
