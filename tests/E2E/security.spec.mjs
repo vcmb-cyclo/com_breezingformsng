@@ -183,6 +183,7 @@ test.describe('security, as the site really answers', () => {
     test.describe('a user the permissions of the component do not allow', () => {
         let page;
         let csrf;
+        const integratorFixtures = [];
 
         const ajax = (task, fields) => page.evaluate(async ([url, data]) => {
             const body = new FormData();
@@ -201,6 +202,9 @@ test.describe('security, as the site really answers', () => {
         });
 
         test.afterAll(async () => {
+            for (const ruleId of integratorFixtures) {
+                db('delete-integrator-rule', String(ruleId));
+            }
             db('component-rules', '{}');
             await page.close();
         });
@@ -257,6 +261,41 @@ test.describe('security, as the site really answers', () => {
 
             expect(answer.status).toBe(403);
             expect(dbJson('record', String(record.id)).state).toBe('1');
+        });
+
+        test('Integrator state and permanent deletion each require their Joomla ACL right', async () => {
+            const ruleId = Number(db('create-integrator-rule', String(textForm)));
+            integratorFixtures.push(ruleId);
+            expect(ruleId).toBeGreaterThan(0);
+
+            db('component-rules', JSON.stringify({
+                'breezingformsng.code': { [MANAGER_GROUP]: 1 },
+                'core.edit.state': { [MANAGER_GROUP]: 0 },
+                'core.delete': { [MANAGER_GROUP]: 0 },
+            }));
+
+            const list = await page.goto(`${ADMIN}?option=com_breezingformsng&view=integrator`);
+            expect(list.status()).toBe(200);
+
+            const deniedToggle = await ajax('integrator.setPublished', {
+                id: String(ruleId), state: '0', [csrf]: '1',
+            });
+            const deniedTrash = await ajax('integrator.trash', {
+                'cid[]': String(ruleId), [csrf]: '1',
+            });
+
+            expect(deniedToggle.status).toBe(403);
+            expect(deniedTrash.status).toBe(403);
+            expect(db('integrator-rule-state', String(ruleId))).toBe('1');
+
+            // Seed the trash directly, then prove the user still cannot empty it.
+            db('set-integrator-rule-state', String(ruleId), '-2');
+            const deniedDelete = await ajax('integrator.remove', {
+                'cid[]': String(ruleId), [csrf]: '1',
+            });
+
+            expect(deniedDelete.status).toBe(403);
+            expect(db('integrator-rule-state', String(ruleId))).toBe('-2');
         });
 
         test('a record of a visitor is not opened for edition without the right to edit', async () => {

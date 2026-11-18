@@ -62,11 +62,11 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
               <td class="text-center">
                 <?php $isTrashed = (int) $row->published === PackageItemModel::TRASHED; ?>
                 <?php $isPublished = (int) $row->published === 1; ?>
-                <?php if ($isTrashed): ?>
+                <?php if ($isTrashed) : ?>
                   <span class="tbody-icon" title="<?= Text::_('JTRASHED'); ?>">
                     <span class="icon-trash text-danger" aria-hidden="true"></span>
                   </span>
-                <?php elseif ($this->canEdit): ?>
+                <?php elseif ($this->canEdit) : ?>
                   <a href="#"
                      class="tbody-icon js-bf-form-state<?= $isPublished ? ' active' : ''; ?>"
                      data-item-task="scripts.setPublished"

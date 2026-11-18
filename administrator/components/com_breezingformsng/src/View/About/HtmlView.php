@@ -39,8 +39,10 @@ class HtmlView extends BaseHtmlView
     public string $auditError = '';
     /** @var list<array{form: int, name: string, published: int, archived: int, trashed: int, total: int}> */
     public array $recordInventory = [];
-    /** @var list<array{label: string, view: string, count: int}> Forms, scripts, pieces and rules in the trash. */
+    /** @var list<array{view: string, label: string, count: int, items: list<array{id: int, title: string, name: string}>}> */
     public array $trashedItems = [];
+    /** @var array<string, bool> Who may empty the trash of which type. */
+    public array $canEmpty = [];
     public bool $canRepair = false;
 
     public bool $canDeleteOrphans = false;
@@ -129,7 +131,15 @@ class HtmlView extends BaseHtmlView
         } elseif ($layout === 'trash') {
             $database = Factory::getContainer()->get(DatabaseInterface::class);
             $this->recordInventory = (new RecordInventoryService($database))->getInventory();
-            $this->trashedItems = (new TrashInventoryService($database))->getTrashedItems();
+            $this->trashedItems = (new TrashInventoryService($database))->getTrashedByType();
+            $canDelete = $user->authorise('core.delete', 'com_breezingformsng');
+            $canCode = AreaAccess::isAllowed($user, AreaAccess::CODE);
+            $this->canEmpty = [
+                'forms' => $canDelete,
+                'scripts' => $canDelete && $canCode,
+                'pieces' => $canDelete && $canCode,
+                'integrator' => $canCode,
+            ];
         } elseif ($layout === 'audit') {
             $auditReport = $app->getUserState('com_breezingformsng.about.audit', []);
             $this->auditReport = is_array($auditReport) ? $auditReport : [];

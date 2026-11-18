@@ -32,15 +32,33 @@ final class TrashInventoryServiceTest extends TestCase
         self::assertStringContainsString(':trashed', $service);
     }
 
-    public function testTheTrashScreenListsThemWithALinkToTheTrashedList(): void
+    public function testTheTrashScreenHasOneTablePerTypeWithTheNamesAndItsOwnEmptyButton(): void
     {
         $template = (string) file_get_contents(self::BASE . 'tmpl/about/trash.php');
         $tools = (string) file_get_contents(self::BASE . 'tmpl/packages/default.php');
 
+        self::assertStringContainsString('foreach ($this->trashedItems as $type)', $template);
+        self::assertStringContainsString("id=\"bf-trash-<?php echo \$type['view']; ?>\"", $template);
+        self::assertStringContainsString("htmlspecialchars(\$item['title'] !== ''", $template);
+        self::assertStringContainsString("Joomla.submitform('about.emptyItemsTrash')", $template);
         self::assertStringContainsString("filter[published]=-2", $template);
-        self::assertStringContainsString('$this->trashedItems', $template);
-        // The counts are links too: the number of trashed records opens that trash.
-        self::assertGreaterThanOrEqual(2, substr_count($template, 'class="badge bg-danger text-decoration-none"'));
+        // The number of trashed records is a link too.
+        self::assertStringContainsString('class="badge bg-danger text-decoration-none"', $template);
         self::assertStringContainsString("'badge' => \$this->trashedTotal", $tools);
+    }
+
+    public function testEmptyingATypeOnlyTouchesItsTrashedItemsThroughTheirModels(): void
+    {
+        $controller = (string) file_get_contents(self::BASE . 'src/Controller/AboutController.php');
+        $start = (int) strpos($controller, 'public function emptyItemsTrash');
+        $action = substr($controller, $start, (int) strpos($controller, 'public function deleteOrphanElements') - $start);
+
+        self::assertStringContainsString('$this->checkToken();', $action);
+        self::assertStringContainsString("in_array(\$type, ['forms', 'scripts', 'pieces', 'integrator'], true)", $action);
+        self::assertStringContainsString('getTrashedIds($type)', $action);
+        self::assertStringContainsString("'core.delete'", $action);
+        self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CODE)', $action);
+        self::assertStringContainsString('->deleteRules($ids)', $action);
+        self::assertStringContainsString('$model->delete($pks)', $action);
     }
 }

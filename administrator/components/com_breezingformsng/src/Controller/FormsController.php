@@ -10,6 +10,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Access\Exception\NotAllowed;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\AdminController;
@@ -128,6 +129,10 @@ class FormsController extends AdminController
         try {
             $this->storeOptions($this->postedOptions());
         } catch (\Throwable $e) {
+            if ($e instanceof NotAllowed) {
+                $app->setHeader('status', (string) ($e->getCode() ?: 403), true);
+            }
+
             $this->answerOptionsSave($e->getMessage());
 
             return;
@@ -440,6 +445,15 @@ class FormsController extends AdminController
         if (!$this->checkToken('post')) {
             $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
             echo new JsonResponse(AjaxStateService::error(Text::_('JINVALID_TOKEN')));
+            $app->close();
+        }
+
+        $user = $app->getIdentity();
+
+        if ($user === null || !$user->authorise('core.edit.state', 'com_breezingformsng')) {
+            $app->setHeader('status', '403', true);
+            $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
+            echo new JsonResponse(AjaxStateService::error(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED')));
             $app->close();
         }
 
