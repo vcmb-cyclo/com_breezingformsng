@@ -17,9 +17,9 @@ use Joomla\Database\ParameterType;
 /**
  * Reads the forms and their elements for the MCP tools.
  *
- * Only the columns listed here are read: a form also holds the credentials of
- * its integrations (Mailchimp, Salesforce, Dropbox) and the addresses its
- * notifications go to, which never leave the site.
+ * Credentials for third-party integrations and notification addresses never
+ * leave the site. QuickMode templates are read only to extract a strict
+ * allowlist of non-code field settings.
  */
 final class FormCatalog
 {
@@ -110,6 +110,9 @@ final class FormCatalog
         $columns = [...self::FORM_COLUMNS, ...self::FORM_SETTINGS, ...($withCode ? self::FORM_CODE : [])];
         $query = $db->createQuery()
             ->select($db->quoteName($columns))
+            // Read only to extract an allowlist of non-code QuickMode settings;
+            // the template itself is never included in the MCP response.
+            ->select($db->quoteName('template_code'))
             ->select('(CASE WHEN ' . $db->quoteName('template_code') . " <> '' THEN 1 ELSE 0 END) AS " . $db->quoteName('quickmode'))
             ->select('(CASE WHEN ' . $db->quoteName('emailadr') . " <> '' THEN 1 ELSE 0 END) AS " . $db->quoteName('has_notification_address'))
             ->from($db->quoteName('#__facileforms_forms'))
@@ -153,6 +156,9 @@ final class FormCatalog
             $form['code'] = self::code($row, self::FORM_CODE);
         }
         $form['elements'] = $this->elements((int) $row['id'], $withCode);
+        if ((int) $row['quickmode'] === 1) {
+            $this->appendQuickModeSettings($form['elements'], $row['template_code']);
+        }
 
         return $form;
     }
@@ -195,6 +201,95 @@ final class FormCatalog
         }
 
         return $elements;
+    }
+
+    /**
+     * Adds an allowlist of non-code QuickMode settings to element rows.
+     * @param list<array<string, mixed>> $elements
+     */
+    private function appendQuickModeSettings(array &$elements, mixed $templateCode): void
+    {
+        if (!is_string($templateCode) || $templateCode === '' || strlen($templateCode) > 700000) {
+            return;
+        }
+        $json = base64_decode($templateCode, true);
+        if ($json === false || strlen($json) > 500000) {
+            return;
+        }
+        $tree = json_decode($json, true);
+        if (!is_array($tree) || !is_array($tree['properties'] ?? null) || !is_array($tree['children'] ?? null)) {
+            return;
+        }
+
+        $byId = [];
+        foreach ($tree['children'] as $page) {
+            if (!is_array($page) || !is_array($page['children'] ?? null)) {
+                continue;
+            }
+            foreach ($page['children'] as $node) {
+                $properties = $node['properties'] ?? null;
+                if (!is_array($properties) || ($properties['type'] ?? '') !== 'element') {
+                    continue;
+                }
+                $dbIdValue = $properties['dbId'] ?? null;
+                $dbId = is_numeric($dbIdValue) ? (int) $dbIdValue : 0;
+                if ($dbId > 0) {
+                    $byId[$dbId] = $properties;
+                }
+            }
+        }
+
+        foreach ($elements as &$element) {
+            $properties = $byId[(int) ($element['id'] ?? 0)] ?? null;
+            if (!is_array($properties)) {
+                continue;
+            }
+            $type = is_string($properties['bfType'] ?? null) ? $properties['bfType'] : '';
+            $element['quickmode_settings'] = [
+                'placeholder' => self::text(is_string($properties['placeholder'] ?? null) ? $properties['placeholder'] : ''),
+                'help_hint' => self::text(is_string($properties['hint'] ?? null) ? $properties['hint'] : ''),
+                'read_only' => !empty($properties['readonly']),
+            ];
+            if (in_array($type, ['bfTextfield', 'bfTextarea'], true)) {
+                $length = $type === 'bfTextfield' ? ($properties['maxLength'] ?? 0) : ($properties['maxlength'] ?? 0);
+                $element['quickmode_settings']['initial_value'] = self::text(
+                    is_string($properties['value'] ?? null) ? $properties['value'] : ''
+                );
+                $element['quickmode_settings']['maximum_length'] = is_numeric($length) ? (int) $length : 0;
+                $validationName = is_string($properties['validationFunctionName'] ?? null)
+                    ? $properties['validationFunctionName'] : '';
+                $validationCode = is_string($properties['validationCode'] ?? null)
+                    ? trim($properties['validationCode']) : '';
+                $validationId = is_numeric($properties['validationId'] ?? null)
+                    ? (int) $properties['validationId'] : 0;
+                $validationCondition = is_numeric($properties['validationCondition'] ?? null)
+                    ? (int) $properties['validationCondition'] : 0;
+                $standardRequired = $validationName === 'ff_valuenotempty'
+                    && $validationCondition === 1 && $validationCode === '';
+                $hasOtherValidation = $validationId !== 0 || $validationCode !== '' || $validationName !== '';
+                $element['quickmode_settings']['required'] = $standardRequired ? true : ($hasOtherValidation ? null : false);
+                $element['quickmode_settings']['required_message'] = self::text(
+                    is_string($properties['validationMessage'] ?? null) ? $properties['validationMessage'] : ''
+                );
+            }
+            if ($type === 'bfTextfield') {
+                $element['quickmode_settings']['size'] = self::text(
+                    is_string($properties['size'] ?? null) ? $properties['size'] : ''
+                );
+            } elseif ($type === 'bfTextarea') {
+                $element['quickmode_settings']['width'] = self::text(
+                    is_string($properties['width'] ?? null) ? $properties['width'] : ''
+                );
+                $element['quickmode_settings']['height'] = self::text(
+                    is_string($properties['height'] ?? null) ? $properties['height'] : ''
+                );
+            } elseif ($type === 'bfSelect') {
+                $element['quickmode_settings']['multiple'] = (bool) ($properties['multiple'] ?? false);
+            } elseif ($type === 'bfCheckbox') {
+                $element['quickmode_settings']['checked'] = (bool) ($properties['checked'] ?? false);
+            }
+        }
+        unset($element);
     }
 
     /**

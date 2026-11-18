@@ -41,6 +41,7 @@ final class GetFormTool implements McpTool
         return 'Reads one BreezingForms NG form, by id or by name: its title, description, state, settings and record count, '
             . 'and its elements in page and display order with their name, title, type and data (data1 to data3: '
             . 'the value, the options or the HTML of the element, as its type uses them). '
+            . 'QuickMode elements also include bounded non-code field settings such as help, dimensions, defaults and length limits. '
             . 'Texts over ' . FormCatalog::MAX_TEXT . ' characters end with [truncated]. '
             . 'Integration credentials and notification addresses are never returned. '
             . 'Set include_code to also get the scripts and pieces of the form and its elements: '
