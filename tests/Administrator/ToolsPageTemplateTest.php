@@ -184,7 +184,10 @@ final class ToolsPageTemplateTest extends TestCase
 
         self::assertStringContainsString('task=packages.installSample', $this->template());
         self::assertStringContainsString("HTMLHelper::_('form.token')", $this->template());
-        self::assertStringContainsString('window.confirm', $this->template());
+        // The confirmation names the forms ticked: it lives in the script of the card, not in the template.
+        $script = (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/js/admin/tools-samples.js');
+        self::assertStringContainsString('window.confirm', $script);
+        self::assertStringContainsString('data-confirm', $this->template());
         self::assertStringContainsString('$this->checkToken();', $install);
         self::assertStringContainsString('$this->assertAuthorised();', $install);
         self::assertStringContainsString('mayTransferTemplates()', $install);
@@ -202,7 +205,7 @@ final class ToolsPageTemplateTest extends TestCase
         $install = substr($controller, (int) strpos($controller, 'public function installSample'));
         $install = substr($install, 0, (int) strpos($install, 'public function import'));
 
-        self::assertStringContainsString('!$this->sampleNameTaken', $this->template());
+        self::assertStringContainsString('!$sample[\'nameTaken\']', $this->template());
         // A name already in use is a notice, never a "could not be installed" error.
         self::assertStringNotContainsString(
             "throw new \\RuntimeException(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'))",
@@ -214,14 +217,42 @@ final class ToolsPageTemplateTest extends TestCase
     {
         preg_match_all("/'(COM_BREEZINGFORMSNG_TOOLS_[A-Z_]+)'/", $this->template(), $matches);
         self::assertNotEmpty($matches[1]);
+        // The sample keys are built from the catalog: a prefix in the template, the whole key checked here.
+        $keys = array_filter($matches[1], static fn (string $key): bool => !str_ends_with($key, '_'));
+        foreach (['contact', 'event', 'quote', 'survey'] as $slug) {
+            $keys[] = 'COM_BREEZINGFORMSNG_TOOLS_SAMPLE_' . strtoupper($slug) . '_ITEM';
+            $keys[] = 'COM_BREEZINGFORMSNG_TOOLS_SAMPLE_' . strtoupper($slug) . '_DESC';
+        }
+        foreach (['business', 'technical'] as $category) {
+            $keys[] = 'COM_BREEZINGFORMSNG_TOOLS_SAMPLE_GROUP_' . strtoupper($category);
+        }
 
         foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $lang) {
             $ini = (string) file_get_contents(
                 __DIR__ . "/../../administrator/components/com_breezingformsng/language/$lang/com_breezingformsng.ini"
             );
-            foreach (array_unique($matches[1]) as $key) {
+            foreach (array_unique($keys) as $key) {
                 self::assertMatchesRegularExpression('/^' . $key . '="[^"]+"/m', $ini, "$key missing in $lang");
             }
         }
+    }
+
+    public function testSamplesAreTickedThenInstalledTogetherWithOneButton(): void
+    {
+        $template = $this->template();
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $controller = (string) file_get_contents($base . '/src/Controller/PackagesController.php');
+
+        // One form, one token and one button for the whole list; an installed sample is ticked and cannot be changed.
+        self::assertSame(1, substr_count($template, 'id="bf-tools-sample-form"'));
+        $card = substr($template, (int) strpos($template, 'id="bf-tools-sample"'));
+        self::assertSame(1, substr_count($card, "HTMLHelper::_('form.token')"));
+        self::assertStringContainsString('name="samples[]"', $template);
+        self::assertStringContainsString("\$installed ? 'checked'", $template);
+        self::assertStringContainsString("\$selectable ? '' : 'disabled'", $template);
+        // The controller installs each ticked sample on its own: one failure does not stop the others.
+        self::assertStringContainsString("get('samples', [], 'array')", $controller);
+        self::assertStringContainsString('private function installOneSample', $controller);
+        self::assertStringContainsString('foreach ($slugs as $slug)', $controller);
     }
 }

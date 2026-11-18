@@ -62,10 +62,16 @@ final class SampleContactPackageTest extends TestCase
             }
         }
 
-        // No custom code: the form data holds no script or piece of its own.
-        foreach (['script1', 'script2', 'piece1', 'piece2', 'piece3', 'piece4'] as $slot) {
+        // No custom code: the form data holds no script or piece of its own, except
+        // the one the QuickMode editor writes to show the thank-you page.
+        foreach (['script1', 'piece1', 'piece2', 'piece3', 'piece4'] as $slot) {
             self::assertSame(0, (int) $form['data'][$slot . 'cond'], $slot);
         }
+        self::assertSame(2, (int) $form['data']['script2cond']);
+        self::assertSame(
+            'function ff_Sample_Contact_submitted(status, message){if(status==0){ff_switchpage(2);}else{alert(message);}}',
+            $form['data']['script2code']
+        );
 
         // Only the library functions of BreezingForms are bundled.
         foreach ($package['scripts'] as $script) {
@@ -83,7 +89,9 @@ final class SampleContactPackageTest extends TestCase
         $form = $this->package()['forms'][0];
         self::assertSame('', $form['data']['emailadr']);
         self::assertNull($form['data']['checked_out']);
-        self::assertSame(0, (int) $form['data']['emailntf']);
+        // The notification goes to the address of the site that installs it (1), never to a stored one (2).
+        self::assertSame(1, (int) $form['data']['emailntf']);
+        self::assertSame(1, (int) $form['data']['mb_emailntf']);
     }
 
     public function testEveryFieldCanBeFilledIn(): void
@@ -100,7 +108,7 @@ final class SampleContactPackageTest extends TestCase
         };
         $walk($tree);
 
-        self::assertCount(7, $elements);
+        self::assertCount(12, $elements);
         foreach ($elements as $properties) {
             // A read-only field cannot be typed in: the sample must not inherit it from the form it was made from.
             self::assertEmpty($properties['readonly'] ?? false, $properties['bfName'] . ' is read-only');
@@ -112,11 +120,53 @@ final class SampleContactPackageTest extends TestCase
         self::assertTrue($tree['properties']['cancelInclude']);
     }
 
+    public function testItShowsHintsLimitsAndARequiredConsent(): void
+    {
+        $tree = $this->package()['forms'][0]['data']['template_code'];
+        $byName = [];
+        foreach ($tree['children'][0]['children'] as $section) {
+            foreach ($section['children'] as $node) {
+                $byName[$node['properties']['bfName']] = $node['properties'];
+            }
+        }
+
+        foreach (['LastName', 'FirstName', 'Email', 'Subject', 'Message', 'Consent'] as $name) {
+            self::assertTrue($byName[$name]['required'], $name . ' is required');
+            self::assertSame(1, (int) $byName[$name]['validationCondition'], $name . ' is validated');
+        }
+        self::assertFalse($byName['Phone']['required']);
+        self::assertSame('ff_validemail', $byName['Email']['validationFunctionName']);
+        self::assertSame('bfCheckbox', $byName['Consent']['bfType']);
+        self::assertSame('ff_checked', $byName['Consent']['validationFunctionName']);
+        self::assertSame('2000', $byName['Message']['maxlength']);
+        self::assertTrue($byName['Message']['showMaxlengthCounter']);
+        self::assertSame('20', $byName['Phone']['maxLength']);
+        self::assertNotSame('', $byName['Phone']['hint']);
+        self::assertSame('bfCaptcha', $byName['Captcha']['bfType']);
+    }
+
+    public function testASentPageReplacesTheFormAfterSubmission(): void
+    {
+        $form = $this->package()['forms'][0];
+        $tree = $form['data']['template_code'];
+
+        self::assertTrue($tree['properties']['lastPageThankYou']);
+        self::assertCount(2, $tree['children']);
+        self::assertSame(2, (int) $form['data']['pages']);
+        self::assertSame([], $tree['children'][1]['children']);
+        self::assertStringContainsString('class="bf-sent"', $tree['children'][1]['properties']['pageIntro']);
+        self::assertStringContainsString('Message sent', $tree['children'][1]['properties']['pageIntro']);
+        // "Send another message" opens a new form on the page of the sample, never the home page
+        // an empty href resolves to under Joomla's base tag.
+        self::assertStringNotContainsString('href=""', $tree['children'][1]['properties']['pageIntro']);
+        self::assertStringContainsString('href="tests/bf-sample-contact.html"', $tree['children'][1]['properties']['pageIntro']);
+    }
+
     public function testItShowsTheMainKindsOfFields(): void
     {
         $types = array_column($this->package()['forms'][0]['elements'], 'type');
 
-        foreach (['Text', 'Radio Group', 'Select List', 'Checkbox Group', 'Textarea'] as $type) {
+        foreach (['Text', 'Radio Group', 'Select List', 'Checkbox Group', 'Textarea', 'Checkbox', 'Captcha'] as $type) {
             self::assertContains($type, $types);
         }
     }

@@ -108,8 +108,8 @@ final class PackagesController extends BaseController
     }
 
     /**
-     * Installs the sample form shipped with the component, and puts it in the site menu
-     * under "Tests". It never overwrites an installed sample: the form may have been edited.
+     * Installs the sample forms ticked on the Tools screen, and puts each in the site menu under "Tests".
+     * It never overwrites an installed sample: the form may have been edited.
      */
     public function installSample(): void
     {
@@ -118,22 +118,47 @@ final class PackagesController extends BaseController
         $this->assertAuthorised();
         $this->checkToken();
         $home = Route::_('index.php?option=com_breezingformsng&view=packages', false);
+        $input = $app->getInput();
+        $slugs = array_unique(array_map('strval', (array) $input->get('samples', [], 'array')));
+
+        if ($slugs === []) {
+            $slugs = [$input->getCmd('sample', SampleFormService::DEFAULT_SAMPLE)];
+        }
+
+        // The layout of a form is template code: writing it takes the Configure permission.
+        if (!$this->mayTransferTemplates()) {
+            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_NEEDS_ADMIN'), 'error');
+            $app->redirect($home);
+
+            return;
+        }
+
+        foreach ($slugs as $slug) {
+            $this->installOneSample($app, (string) $slug);
+        }
+
+        $app->redirect($home);
+    }
+
+    private function installOneSample(CMSApplication $app, string $slug): void
+    {
+        // Only the samples of the catalog exist: the name never reaches a path or a query unchecked.
+        $known = SampleFormService::isSample($slug);
+        $label = $known ? Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_' . strtoupper($slug) . '_ITEM') : $slug;
 
         try {
-            // The layout of a form is template code: writing it takes the Configure permission.
-            if (!$this->mayTransferTemplates()) {
-                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_NEEDS_ADMIN'));
+            if (!$known) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
 
-            $sample = new SampleFormService(Factory::getContainer()->get(DatabaseInterface::class));
-
+            $sample = new SampleFormService(Factory::getContainer()->get(DatabaseInterface::class), $slug);
+            $already = Text::sprintf('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY', $label);
             $installedFormId = $sample->getInstalledFormId();
             $formNameCount = $sample->getFormNameCount();
 
             if ($installedFormId > 0) {
                 if ($formNameCount > 1) {
-                    $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'), 'warning');
-                    $app->redirect($home);
+                    $app->enqueueMessage($already, 'warning');
 
                     return;
                 }
@@ -141,28 +166,33 @@ final class PackagesController extends BaseController
                 // A prior attempt may have imported the form before menu creation failed.
                 // Finish the idempotent menu step without importing over administrator edits.
                 $sample->ensureMenu();
-                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'), 'message');
-            } else {
-                if ($formNameCount > 0) {
-                    $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'), 'warning');
-                    $app->redirect($home);
+                $app->enqueueMessage($already, 'message');
 
-                    return;
-                }
-
-                $this->model()->import(SampleFormService::packagePath(), true, 'bfng-sample-contact.json', false, null);
-                $sample->ensureMenu();
-                (new ActionLogger($app))->log(ActionLogger::IMPORTED, ActionLogger::PACKAGE);
-                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_DONE'), 'message');
+                return;
             }
+
+            if ($formNameCount > 0) {
+                $app->enqueueMessage($already, 'warning');
+
+                return;
+            }
+
+            $this->model()->import(
+                SampleFormService::packagePath($slug),
+                true,
+                basename(SampleFormService::packagePath($slug)),
+                false,
+                null
+            );
+            $sample->ensureMenu();
+            (new ActionLogger($app))->log(ActionLogger::IMPORTED, ActionLogger::PACKAGE);
+            $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_DONE', $label), 'message');
         } catch (\Throwable $exception) {
             $app->enqueueMessage(
-                Text::sprintf('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_FAILED', $exception->getMessage()),
+                Text::sprintf('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_FAILED', $label, $exception->getMessage()),
                 'error'
             );
         }
-
-        $app->redirect($home);
     }
 
     public function import(): void

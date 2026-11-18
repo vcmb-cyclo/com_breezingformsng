@@ -12,6 +12,7 @@
  *   .bfFormDiv                      container of the form (holds the tokens)
  *   .bfQuickMode                    the <form>, the card
  *   .bfPage > div:first-child h3    page title ("Contact us")
+ *   .bf-sent .bf-sent-icon .bf-sent-note   confirmation block of a thank-you page
  *   legend                          section title
  *   .bfElemWrap .bf-form-group      one field
  *   label.form-label.bfLabelBlock   its label (the asterisk is .fa-asterisk)
@@ -103,6 +104,48 @@
 .bfFormDiv .bfPage > div:first-child p {
     color: var(--bf-muted);
     text-align: center;
+}
+
+/* Confirmation shown after sending: the .bf-sent block of a thank-you page */
+.bfFormDiv .bf-sent {
+    padding: 0.5rem 0;
+    text-align: center;
+}
+
+.bfFormDiv .bf-sent-icon {
+    align-items: center;
+    background: var(--bf-accent-tint);
+    border-radius: 50%;
+    display: inline-flex;
+    height: 4.5rem;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+    width: 4.5rem;
+}
+
+.bfFormDiv .bf-sent-icon::after {
+    border: solid var(--bf-accent-ink);
+    border-width: 0 0.3rem 0.3rem 0;
+    content: "";
+    height: 2rem;
+    transform: translateY(-0.2rem) rotate(45deg);
+    width: 1rem;
+}
+
+.bfFormDiv .bf-sent p {
+    margin-inline: auto;
+    max-width: 30rem;
+}
+
+.bfFormDiv .bf-sent .bf-sent-note {
+    border-top: 1px solid var(--bf-line);
+    font-size: 0.875rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+}
+
+.bfFormDiv .bf-sent .btn {
+    margin-top: 0.75rem;
 }
 
 /* Sections: a small uppercase title, no rule and no frame */
