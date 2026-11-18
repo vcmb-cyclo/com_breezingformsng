@@ -64,9 +64,9 @@ test.describe('forms', () => {
     };
 
     const selectNode = async (type) => {
-        const id = await page.evaluate((wanted) => [...document.querySelectorAll('#bfElementExplorer li.jstree-node')]
+        const id = await (await page.waitForFunction((wanted) => [...document.querySelectorAll('#bfElementExplorer li.jstree-node')]
             .map((node) => node.id)
-            .find((nodeId) => window.BFQMApp.treeModel.getNodeType(window.BFQMApp.treeModel.find(nodeId)) === wanted), type);
+            .find((nodeId) => window.BFQMApp.treeModel.getNodeType(window.BFQMApp.treeModel.find(nodeId)) === wanted) || false, type, { timeout: 30000 })).jsonValue();
         await page.locator(`[id="${id}"] > a`).click();
         await page.waitForFunction((wanted) => window.BFQMApp.treeModel.getNodeType(window.BFQMApp.selectedTreeElement) === wanted, type);
     };

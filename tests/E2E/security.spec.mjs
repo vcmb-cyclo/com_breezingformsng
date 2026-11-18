@@ -39,9 +39,9 @@ test.describe('security, as the site really answers', () => {
     // A QuickMode form with one element of the given type, published, without notifications.
     const createForm = async (page, name, type, elementName) => {
         const selectNode = async (kind) => {
-            const id = await page.evaluate((wanted) => [...document.querySelectorAll('#bfElementExplorer li.jstree-node')]
+            const id = await (await page.waitForFunction((wanted) => [...document.querySelectorAll('#bfElementExplorer li.jstree-node')]
                 .map((node) => node.id)
-                .find((nodeId) => window.BFQMApp.treeModel.getNodeType(window.BFQMApp.treeModel.find(nodeId)) === wanted), kind);
+                .find((nodeId) => window.BFQMApp.treeModel.getNodeType(window.BFQMApp.treeModel.find(nodeId)) === wanted) || false, kind, { timeout: 30000 })).jsonValue();
             await page.locator(`[id="${id}"] > a`).click();
             await page.waitForFunction((wanted) => window.BFQMApp.treeModel.getNodeType(window.BFQMApp.selectedTreeElement) === wanted, kind);
         };
