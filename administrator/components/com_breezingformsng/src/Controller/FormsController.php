@@ -478,11 +478,16 @@ class FormsController extends AdminController
         }
 
         $user = $app->getIdentity();
+        $action = $property === 'debug' ? 'core.edit' : 'core.edit.state';
 
-        if ($user === null || !$user->authorise('core.edit.state', 'com_breezingformsng')) {
+        if ($user === null || !$user->authorise($action, 'com_breezingformsng')) {
             $app->setHeader('status', '403', true);
             $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
-            echo new JsonResponse(AjaxStateService::error(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED')));
+            echo new JsonResponse(AjaxStateService::error(Text::_(
+                $property === 'debug'
+                    ? 'JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED'
+                    : 'JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'
+            )));
             $app->close();
         }
 
@@ -497,6 +502,15 @@ class FormsController extends AdminController
         }
 
         if ($property === 'debug') {
+            try {
+                $this->assertFormEditPermission($id);
+            } catch (NotAllowed $exception) {
+                $app->setHeader('status', (string) ($exception->getCode() ?: 403), true);
+                $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
+                echo new JsonResponse(AjaxStateService::error($exception->getMessage()));
+                $app->close();
+            }
+
             $this->getOptionsModel()->setDebugMode($id, $state);
         } else {
             $model = $this->getFormModel();
