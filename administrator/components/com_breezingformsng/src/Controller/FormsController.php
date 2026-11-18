@@ -483,6 +483,7 @@ class FormsController extends AdminController
         if ($user === null || !$user->authorise($action, 'com_breezingformsng')) {
             $app->setHeader('status', '403', true);
             $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
+            $app->sendHeaders();
             echo new JsonResponse(AjaxStateService::error(Text::_(
                 $property === 'debug'
                     ? 'JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED'
@@ -508,6 +509,7 @@ class FormsController extends AdminController
             } catch (NotAllowed $exception) {
                 $app->setHeader('status', (string) ($exception->getCode() ?: 403), true);
                 $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
+                $app->sendHeaders();
                 echo new JsonResponse(AjaxStateService::error($exception->getMessage()));
                 $app->close();
             }
