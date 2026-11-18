@@ -17,8 +17,12 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\AboutModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseAuditService;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\InstallLogReader;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordInventoryService;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
 
 class HtmlView extends BaseHtmlView
@@ -32,6 +36,8 @@ class HtmlView extends BaseHtmlView
 
     /** Error of the last repair, shown in the audit section: HTML, escaped by the controller. */
     public string $auditError = '';
+    /** @var list<array{form: int, name: string, published: int, archived: int, trashed: int, total: int}> */
+    public array $recordInventory = [];
     public bool $canRepair = false;
 
     public bool $canDeleteOrphans = false;
@@ -59,41 +65,38 @@ class HtmlView extends BaseHtmlView
         /** @var Toolbar $toolbar */
         $toolbar = $document->getToolbar('toolbar');
 
-        if ($layout !== 'extensions') {
-            $actionsDropdown = $toolbar->dropdownButton('about-actions-group');
-            $actionsDropdown->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_ACTIONS'));
-            $actionsDropdown->toggleSplit(false);
-            $actionsDropdown->icon('fa-solid fa-wrench');
-            $actionsDropdown->buttonClass('btn btn-action');
-            $actionsDropdown->listCheck(false);
+        if (in_array($layout, ['statistics', 'trash', 'log'], true)) {
+            $toolbar->linkButton('about_back')
+                ->url(Route::_('index.php?option=com_breezingformsng&view=packages', false))
+                ->text('JTOOLBAR_BACK')
+                ->icon('fa-solid fa-arrow-left');
+        }
 
-            $actionsChildToolbar = $actionsDropdown->getChildToolbar();
-            $actionsChildToolbar->standardButton('about_audit')
+        if ($layout === 'extensions') {
+            $toolbar->linkButton('about_extensions_back')
+                ->url(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false))
+                ->text('JTOOLBAR_BACK')
+                ->icon('fa-solid fa-arrow-left');
+            $toolbar->linkButton('about_manage_plugins')
+                ->url(Route::_('index.php?option=com_plugins&view=plugins&filter[search]=' . rawurlencode('breezingforms'), false))
+                ->text('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS_MANAGE_PLUGINS')
+                ->icon('fa-solid fa-plug');
+        }
+
+        if ($layout === 'audit') {
+            $toolbar->linkButton('about_audit_back')
+                ->url(Route::_('index.php?option=com_breezingformsng&view=packages', false))
+                ->text('JTOOLBAR_BACK')
+                ->icon('fa-solid fa-arrow-left');
+            $toolbar->standardButton('about_audit')
                 ->task('about.runAudit')
-                ->text('COM_BREEZINGFORMSNG_ABOUT_RUN_AUDIT')
-                ->icon('fa-solid fa-stethoscope')
+                ->text('COM_BREEZINGFORMSNG_TOOLS_AUDIT_RUN')
+                ->icon('fa-solid fa-wave-square')
                 ->listCheck(false);
+        }
 
-            if (AreaAccess::isAllowed($user, AreaAccess::CONFIGURATION)) {
-                $actionsChildToolbar->standardButton('about_export_configuration')
-                    ->task('about.exportConfiguration')
-                    ->text('COM_BREEZINGFORMSNG_ABOUT_EXPORT_CONFIGURATION')
-                    ->icon('fa-solid fa-download')
-                    ->listCheck(false);
-
-                $actionsChildToolbar->standardButton('about_import_configuration')
-                    ->task('about.importConfiguration')
-                    ->text('COM_BREEZINGFORMSNG_ABOUT_IMPORT_CONFIGURATION')
-                    ->icon('fa-solid fa-upload')
-                    ->listCheck(false);
-            }
-
-            $toolbar->standardButton('about_show_log')
-                ->task('about.showLog')
-                ->text('COM_BREEZINGFORMSNG_ABOUT_SHOW_LOG')
-                ->icon('fa-solid fa-file-lines')
-                ->listCheck(false);
-
+        if (!in_array($layout, ['extensions', 'audit', 'statistics', 'trash', 'log'], true)) {
+            // The audit, the statistics, the trash and the install log are on the Tools page.
             $toolbar->linkButton('about_extensions')
                 ->url(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=extensions', false))
                 ->text('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS')
@@ -111,15 +114,31 @@ class HtmlView extends BaseHtmlView
 
         if ($layout === 'extensions') {
             $this->plugins = $this->getInstalledPlugins();
-        } else {
+        } elseif ($layout === 'statistics') {
+            // Read-only: the table inventory of the audit, without its repair actions.
+            $this->auditReport = (new DatabaseAuditService(
+                Factory::getContainer()->get(DatabaseInterface::class),
+                (string) $app->get('tmp_path', JPATH_ROOT . '/tmp')
+            ))->run();
+            $this->recordInventory = (new RecordInventoryService(
+                Factory::getContainer()->get(DatabaseInterface::class)
+            ))->getInventory();
+        } elseif ($layout === 'trash') {
+            $this->recordInventory = (new RecordInventoryService(
+                Factory::getContainer()->get(DatabaseInterface::class)
+            ))->getInventory();
+        } elseif ($layout === 'audit') {
             $auditReport = $app->getUserState('com_breezingformsng.about.audit', []);
             $this->auditReport = is_array($auditReport) ? $auditReport : [];
             $app->setUserState('com_breezingformsng.about.audit', []);
             $this->auditError = (string) $app->getUserState('com_breezingformsng.about.audit_error', '');
             $app->setUserState('com_breezingformsng.about.audit_error', '');
-            $logReport = $app->getUserState('com_breezingformsng.about.log', []);
-            $this->logReport = is_array($logReport) ? $logReport : [];
-            $app->setUserState('com_breezingformsng.about.log', []);
+        } elseif ($layout === 'log') {
+            try {
+                $this->logReport = (new InstallLogReader((string) $app->get('offset', 'UTC')))->read();
+            } catch (\Throwable $exception) {
+                $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_LOG_LOAD_FAILED', $exception->getMessage()), 'error');
+            }
         }
 
         parent::display($tpl);
@@ -209,6 +228,17 @@ class HtmlView extends BaseHtmlView
         return match ($group) {
             'system' => Text::_('COM_BREEZINGFORMSNG_EXTENSION_USAGE_SYSTEM'),
             default => Text::_('COM_BREEZINGFORMSNG_EXTENSION_USAGE_OTHER'),
+        };
+    }
+
+    protected function getDetailLabel(): ?string
+    {
+        return match ($this->getLayout()) {
+            'audit' => Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT'),
+            'statistics' => Text::_('COM_BREEZINGFORMSNG_TOOLS_STATISTICS_TITLE'),
+            'trash' => Text::_('COM_BREEZINGFORMSNG_TOOLS_TRASH_TITLE'),
+            'log' => Text::_('COM_BREEZINGFORMSNG_TOOLS_LOG_TITLE'),
+            default => null,
         };
     }
 }

@@ -47,12 +47,16 @@ final class AreaAccessArchitectureTest extends TestCase
         );
     }
 
-    public function testConfigurationTransferTasksAssertTheirPermission(): void
+    public function testPackageTransferTasksAssertTheirPermission(): void
     {
-        $source = file_get_contents(self::ADMIN . '/src/Controller/AboutController.php');
+        $source = file_get_contents(self::ADMIN . '/src/Controller/PackagesController.php');
+        $about = file_get_contents(self::ADMIN . '/src/Controller/AboutController.php');
 
         self::assertIsString($source);
-        self::assertSame(2, substr_count($source, 'AreaAccess::CONFIGURATION);'));
+        self::assertIsString($about);
+        self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CONFIGURATION);', $source);
+        // The raw configuration export and import are gone: no task is left unguarded in About.
+        self::assertSame(0, substr_count($about, 'AreaAccess::CONFIGURATION);'));
     }
 
     public function testPiecesAndScriptsStayReadableWithoutTheCodePermission(): void
@@ -102,7 +106,7 @@ final class AreaAccessArchitectureTest extends TestCase
     public function testAuditRepairsRequireAnAdministrator(): void
     {
         $controller = file_get_contents(self::ADMIN . '/src/Controller/AboutController.php');
-        $template = file_get_contents(self::ADMIN . '/tmpl/about/default.php');
+        $template = file_get_contents(self::ADMIN . '/tmpl/about/audit.php');
 
         self::assertIsString($controller);
         self::assertIsString($template);

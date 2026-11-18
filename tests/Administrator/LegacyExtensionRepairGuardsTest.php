@@ -57,7 +57,7 @@ final class LegacyExtensionRepairGuardsTest extends TestCase
         self::assertStringNotContainsString('->delete(', $method);
 
         // The About screen is one form: a nested form is dropped by the browser.
-        $template = (string) file_get_contents(self::ADMIN . '/tmpl/about/default.php');
+        $template = (string) file_get_contents(self::ADMIN . '/tmpl/about/audit.php');
         $menuBlock = substr($template, (int) strpos($template, 'AUDIT_MENU_ISSUES\''));
         $menuBlock = substr($menuBlock, 0, (int) strpos($menuBlock, 'auditDuplicateForms !== array()'));
 

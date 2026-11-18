@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
@@ -30,22 +31,6 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseRepairService;
 /** @property CMSApplication $app */
 class AboutController extends BaseController
 {
-    private const ABOUT_LOG_FILES = ['breezingforms_install2.log', 'breezingforms_install.log'];
-    private const ABOUT_LOG_TAIL_BYTES = 65536;
-    private const CONFIGURATION_TABLES = [
-        'facileforms_packages',
-        'facileforms_compmenus',
-        'facileforms_forms',
-        'facileforms_elements',
-        'facileforms_scripts',
-        'facileforms_pieces',
-        'facileforms_integrator_rules',
-        'facileforms_integrator_items',
-        'facileforms_integrator_criteria_fixed',
-        'facileforms_integrator_criteria_form',
-        'facileforms_integrator_criteria_joomla',
-    ];
-
     /**
      * @param bool                 $cachable
      * @param array<string, mixed> $urlparams
@@ -92,7 +77,37 @@ class AboutController extends BaseController
             $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_FAILED', $exception->getMessage()), 'error');
         }
 
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false));
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit', false));
+    }
+
+    /**
+     * Number of issues of the audit, read asynchronously by the Tools page badge.
+     * Read-only: nothing is stored, the report itself is built by the Audit button.
+     */
+    public function auditSummary(): void
+    {
+        if (!$this->checkToken('post', false)) {
+            $this->sendJson(403, Text::_('JINVALID_TOKEN'));
+
+            return;
+        }
+
+        try {
+            $this->getAuthorizedApplication();
+            $summary = (array) ($this->getAuditService()->run()['summary'] ?? []);
+        } catch (\Throwable $exception) {
+            $this->sendJson(
+                $exception->getCode() === 403 ? 403 : 500,
+                Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_FAILED', $exception->getMessage())
+            );
+
+            return;
+        }
+
+        $this->sendJson(200, '', [
+            'issues' => (int) ($summary['issues_total'] ?? 0),
+            'errors' => (int) ($summary['audit_errors'] ?? 0),
+        ]);
     }
 
     public function repairDuplicateIndexes(): void
@@ -140,7 +155,7 @@ class AboutController extends BaseController
             );
         }
 
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
     }
 
     public function repairColumnCollations(): void
@@ -188,7 +203,7 @@ class AboutController extends BaseController
             );
         }
 
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
     }
 
     public function repairTableCollations(): void
@@ -236,7 +251,7 @@ class AboutController extends BaseController
             );
         }
 
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
     }
 
     public function deleteStaleInstallerTemp(): void
@@ -282,7 +297,7 @@ class AboutController extends BaseController
             );
         }
 
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
     }
 
     public function removeLegacyExtensions(): void
@@ -332,7 +347,7 @@ class AboutController extends BaseController
             );
         }
 
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
     }
 
     public function deleteDuplicateForm(): void
@@ -393,7 +408,7 @@ class AboutController extends BaseController
             $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_FORM_DELETE_FAILED', $exception->getMessage()), 'error');
         }
 
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false));
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit', false));
     }
 
     /**
@@ -455,7 +470,7 @@ class AboutController extends BaseController
             $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE_FAILED', $exception->getMessage()), 'error');
         }
 
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
     }
 
     private function menuError(AdminModel $model, string $fallbackKey): string
@@ -489,13 +504,12 @@ class AboutController extends BaseController
                 (new ActionLogger($application))->log(ActionLogger::DELETED, ActionLogger::RECORD, $deleted);
             }
 
-            $application->setUserState('com_breezingformsng.about.audit', $this->getAuditService()->run());
             $this->setMessage(Text::plural('COM_BREEZINGFORMSNG_RECORDS_N_ITEMS_DELETED', count($deleted)), 'message');
         } catch (\Throwable $exception) {
             $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASH_EMPTY_FAILED', $exception->getMessage()), 'error');
         }
 
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=trash', false));
     }
 
     public function deleteOrphanElements(): void
@@ -679,7 +693,7 @@ class AboutController extends BaseController
             }
 
             $this->setMessage($message, 'error');
-            $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+            $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
 
             return;
         }
@@ -699,7 +713,7 @@ class AboutController extends BaseController
         }
 
         $this->setMessage($message, 'message');
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-audit-section', false));
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
     }
 
     /**
@@ -721,86 +735,6 @@ class AboutController extends BaseController
         $this->app->sendHeaders();
         echo $status === 200 ? new JsonResponse($data, $message) : new JsonResponse(null, $message, true);
         $this->app->close();
-    }
-
-    public function showLog(): void
-    {
-        $this->checkToken();
-
-        $application = $this->getAuthorizedApplication();
-
-        try {
-            $logReport = $this->readAboutLogReport();
-            $application->setUserState('com_breezingformsng.about.log', $logReport);
-            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_LOG_LOADED', (string) ($logReport['file'] ?? '')), 'message');
-        } catch (\Throwable $exception) {
-            $application->setUserState('com_breezingformsng.about.log', []);
-            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_LOG_LOAD_FAILED', $exception->getMessage()), 'error');
-        }
-
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about#bf-about-log', false));
-    }
-
-    public function exportConfiguration(): void
-    {
-        $this->checkToken();
-
-        try {
-            $app = $this->getAuthorizedApplication();
-            $user = $app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
-            AreaAccess::assert($user, AreaAccess::CONFIGURATION);
-            $db = $this->getDatabase();
-            $tables = [];
-
-            foreach (self::CONFIGURATION_TABLES as $table) {
-                if (!$this->tableExists($table)) {
-                    continue;
-                }
-
-                $query = $db->createQuery()->select('*')->from($db->quoteName('#__' . $table));
-                $db->setQuery($query);
-                $tables[$table] = $db->loadAssocList() ?: [];
-            }
-
-            $payload = [
-                'component' => 'com_breezingformsng',
-                'format' => 'breezingformsng-configuration',
-                'version' => 1,
-                'exported_at' => (new \Joomla\CMS\Date\Date())->toSql(),
-                'tables' => $tables,
-            ];
-            $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-            if (!is_string($json)) {
-                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_ABOUT_EXPORT_CONFIGURATION_INVALID'));
-            }
-
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-
-            $fileName = 'breezingformsng-config-' . (new \Joomla\CMS\Date\Date())->format('Ymd-His') . '.json';
-            $app->setHeader('Pragma', 'public', true);
-            $app->setHeader('Expires', '0', true);
-            $app->setHeader('Cache-Control', 'private', true);
-            $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
-            $app->setHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"', true);
-            $app->sendHeaders();
-            echo $json;
-            $app->close();
-        } catch (\Throwable $exception) {
-            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_EXPORT_CONFIGURATION_FAILED', $exception->getMessage()), 'error');
-            $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false));
-        }
-    }
-
-    public function importConfiguration(): void
-    {
-        $this->checkToken();
-        $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
-        AreaAccess::assert($user, AreaAccess::CONFIGURATION);
-        $this->setMessage(Text::_('COM_BREEZINGFORMSNG_ABOUT_IMPORT_CONFIGURATION_PREPARE'), 'warning');
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false));
     }
 
     /**
@@ -864,91 +798,5 @@ class AboutController extends BaseController
             $this->getDatabase(),
             (string) $this->app->get('tmp_path', JPATH_ROOT . '/tmp')
         );
-    }
-
-    private function tableExists(string $table): bool
-    {
-        $db = $this->getDatabase();
-
-        return in_array($db->getPrefix() . $table, $db->getTableList(), true);
-    }
-
-    /**
-     * @return array{file: string, size: int, loaded_at: string, content: string, truncated: int, tail_bytes: int}
-     */
-    private function readAboutLogReport(): array
-    {
-        $latestPath = '';
-        $latestMtime = 0;
-
-        foreach (self::ABOUT_LOG_FILES as $fileName) {
-            $path = JPATH_ADMINISTRATOR . '/logs/' . $fileName;
-
-            if (!is_file($path)) {
-                continue;
-            }
-
-            $mtime = filemtime($path);
-
-            if ($mtime === false) {
-                continue;
-            }
-
-            if ($latestPath === '' || $mtime > $latestMtime) {
-                $latestPath = $path;
-                $latestMtime = (int) $mtime;
-            }
-        }
-
-        if ($latestPath === '') {
-            throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_LOG_NOT_FOUND', JPATH_ADMINISTRATOR . '/logs'));
-        }
-
-        if (!is_readable($latestPath)) {
-            throw new \RuntimeException(basename($latestPath));
-        }
-
-        $size = filesize($latestPath);
-
-        if ($size === false) {
-            throw new \RuntimeException(basename($latestPath));
-        }
-
-        $content = '';
-        $truncated = false;
-
-        if ($size > 0) {
-            $handle = fopen($latestPath, 'rb');
-
-            if (!is_resource($handle)) {
-                throw new \RuntimeException(basename($latestPath));
-            }
-
-            if ($size > self::ABOUT_LOG_TAIL_BYTES) {
-                $truncated = true;
-                fseek($handle, -self::ABOUT_LOG_TAIL_BYTES, SEEK_END);
-            }
-
-            $content = (string) stream_get_contents($handle);
-            fclose($handle);
-        }
-
-        $loadedAt = '';
-
-        if ($latestMtime > 0) {
-            $timezone = new \DateTimeZone((string) $this->app->get('offset', 'UTC'));
-            $loadedAt = (new \Joomla\CMS\Date\Date('@' . $latestMtime))
-                ->setTimezone($timezone)
-                ->format('Y-m-d H:i:s', true);
-        }
-
-        return [
-            'file' => basename($latestPath),
-            'size' => $size,
-            'loaded_at' => $loadedAt,
-            'content' => $content,
-            'truncated' => $truncated ? 1 : 0,
-            'tail_bytes' => self::ABOUT_LOG_TAIL_BYTES,
-        ];
     }
 }

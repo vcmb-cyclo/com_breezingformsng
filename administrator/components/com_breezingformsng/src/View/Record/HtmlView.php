@@ -180,6 +180,13 @@ class HtmlView extends BaseHtmlView
             ['core']
         );
         $wa->registerAndUseScript(
+            'com_breezingformsng.record-sections',
+            'media/com_breezingformsng/js/admin/record-sections.js',
+            ['version' => 'auto'],
+            ['defer' => true],
+            ['core']
+        );
+        $wa->registerAndUseScript(
             'com_breezingformsng.admin-form',
             'media/com_breezingformsng/js/admin/admin-form.js',
             ['version' => 'auto'],

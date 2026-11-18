@@ -225,6 +225,28 @@ test.describe('security, as the site really answers', () => {
             expect(dbJson('record', String(record.id)).state).toBe('1');
         });
 
+        test('the audit summary requires a valid token and component permission', async () => {
+            db('component-rules', '{}');
+
+            const withoutToken = await ajax('about.auditSummary', {});
+            const invalidToken = await ajax('about.auditSummary', { ['0'.repeat(32)]: '1' });
+            const denied = await ajax('about.auditSummary', { [csrf]: '1' });
+
+            expect(withoutToken.status).toBe(403);
+            expect(invalidToken.status).toBe(403);
+            expect(denied.status).toBe(403);
+            expect(denied.text).not.toContain('issues_total');
+
+            db('component-rules', JSON.stringify({ 'core.manage': { [MANAGER_GROUP]: 1 } }));
+            const allowed = await ajax('about.auditSummary', { [csrf]: '1' });
+
+            expect(allowed.status).toBe(200);
+            const payload = JSON.parse(allowed.text);
+            expect(payload.data).toEqual(expect.objectContaining({ issues: expect.any(Number), errors: expect.any(Number) }));
+            expect(payload.data).not.toHaveProperty('report');
+            expect(payload.data).not.toHaveProperty('tables');
+        });
+
         test('allowed to manage but not to change states, a record cannot be archived', async () => {
             db('component-rules', JSON.stringify({ 'core.manage': { [MANAGER_GROUP]: 1 }, 'core.edit.state': { [MANAGER_GROUP]: 0 } }));
 

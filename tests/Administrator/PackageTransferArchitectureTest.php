@@ -73,8 +73,8 @@ final class PackageTransferArchitectureTest extends TestCase
         $controller = (string) file_get_contents($component . '/src/Controller/PackagesController.php');
         $layout = (string) file_get_contents($component . '/tmpl/packages/delete.php');
 
-        self::assertStringContainsString("linkButton('delete-package', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE')", $view);
-        self::assertStringContainsString('view=packages&layout=delete', $view);
+        $tools = (string) file_get_contents($component . '/tmpl/packages/default.php');
+        self::assertStringContainsString("'layout' => 'delete', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_DISSOLVE'", $tools);
         self::assertStringNotContainsString('confirmDelete', $view . $controller);
         self::assertStringContainsString('$model->getPackageContents($this->selectedPackage)', $view);
 
@@ -112,7 +112,8 @@ final class PackageTransferArchitectureTest extends TestCase
         $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
         $view = (string) file_get_contents($component . '/src/View/Packages/HtmlView.php');
 
-        self::assertStringContainsString("linkButton('createpkg', 'COM_BREEZINGFORMSNG_INSTALLER_CREATEPKG')", $view);
+        $tools = (string) file_get_contents($component . '/tmpl/packages/default.php');
+        self::assertStringContainsString("'layout' => 'export', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_CREATE'", $tools);
         self::assertStringContainsString("standardButton('download', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_EXPORT_PACKAGE', 'packages.export')", $view);
 
         foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $language) {

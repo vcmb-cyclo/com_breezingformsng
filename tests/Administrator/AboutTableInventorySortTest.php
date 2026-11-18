@@ -20,7 +20,7 @@ final class AboutTableInventorySortTest extends TestCase
 {
     public function testInventoryHeadersUseTheClientSideSortControls(): void
     {
-        $template = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/default.php');
+        $template = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/statistics.php');
         $script = file_get_contents(__DIR__ . '/../../media/com_breezingformsng/js/admin/about.js');
 
         self::assertIsString($template);

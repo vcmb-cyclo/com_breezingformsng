@@ -20,7 +20,7 @@ final class AboutColumnCollationRepairTest extends TestCase
 {
     public function testColumnCollationIssuesExposeSingleAndBulkRepairControls(): void
     {
-        $template = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/default.php');
+        $template = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/audit.php');
         $controller = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Controller/AboutController.php');
         $repairService = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Service/DatabaseRepairService.php');
 

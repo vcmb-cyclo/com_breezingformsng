@@ -189,6 +189,15 @@
     },
 
     {
+      "name": "com_breezingformsng.tools-audit",
+      "type": "script",
+      "uri": "media/com_breezingformsng/js/admin/tools-audit.js",
+      "dependencies": ["core"],
+      "attributes": { "defer": true },
+      "version": "auto"
+    },
+
+    {
       "name": "com_breezingformsng.about",
       "type": "script",
       "uri": "media/com_breezingformsng/js/admin/about.js",

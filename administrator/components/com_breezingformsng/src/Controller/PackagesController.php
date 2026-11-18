@@ -208,6 +208,7 @@ final class PackagesController extends BaseController
                 InvalidPackageException::JSON => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_JSON',
                 InvalidPackageException::XML => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_XML',
                 InvalidPackageException::VERSION => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UNSUPPORTED_VERSION',
+                InvalidPackageException::CONFIGURATION => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONFIGURATION_FILE',
                 default => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INVALID_NAMED_FILE',
             };
             $app->enqueueMessage(Text::sprintf(

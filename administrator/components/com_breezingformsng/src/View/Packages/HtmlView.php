@@ -16,14 +16,16 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
+use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Controller\PackagesController;
 use Vcmb\Component\BreezingformsNG\Administrator\Mcp\McpAvailability;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordInventoryService;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
 
 /**
- * Configuration screen: the default layout only holds the toolbar, each
+ * Tools screen: the default layout only holds the toolbar, each
  * action (create a package, install one) opens its own layout.
  */
 final class HtmlView extends BaseHtmlView
@@ -56,6 +58,8 @@ final class HtmlView extends BaseHtmlView
     public bool $mcpEnabled = false;
     public bool $mcpRouted = false;
     public bool $canConfigure = false;
+    /** Submitted records in the trash, shown on the Trash card. */
+    public int $trashedRecords = 0;
 
     public function display($tpl = null)
     {
@@ -105,8 +109,17 @@ final class HtmlView extends BaseHtmlView
         if ($this->getLayout() === 'default') {
             $this->mcpEnabled = McpAvailability::isEnabled();
             $this->mcpRouted = McpAvailability::isRouted();
+            $this->trashedRecords = array_sum(array_column(
+                (new RecordInventoryService(Factory::getContainer()->get(DatabaseInterface::class)))->getInventory(),
+                'trashed'
+            ));
             $this->canConfigure = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
-            $this->getDocument()->getWebAssetManager()->useStyle('com_breezingformsng.mcp-status');
+            $this->getDocument()->getWebAssetManager()
+                ->useStyle('com_breezingformsng.mcp-status')
+                ->useScript('com_breezingformsng.tools-audit');
+            foreach (['TOOLS_AUDIT_ISSUES', 'TOOLS_AUDIT_ISSUES_1', 'TOOLS_AUDIT_CLEAN', 'TOOLS_AUDIT_UNAVAILABLE'] as $key) {
+                Text::script('COM_BREEZINGFORMSNG_' . $key);
+            }
         }
 
         $this->addToolbar();
@@ -150,6 +163,7 @@ final class HtmlView extends BaseHtmlView
             $document->getWebAssetManager()->useScript('joomla.dialog');
             Text::script('JYES');
             Text::script('JNO');
+            Text::script('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONFIGURATION_FILE');
             foreach (['FILE', 'CONTENT', 'REPLACE', 'TEMPLATES', 'INTEGRATOR', 'TEMPLATES_SKIPPED', 'INTEGRATOR_SKIPPED'] as $part) {
                 Text::script('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_CONFIRM_' . $part);
             }
@@ -203,16 +217,6 @@ final class HtmlView extends BaseHtmlView
                 break;
 
             default:
-                $toolbar->linkButton('installer', 'COM_BREEZINGFORMSNG_INSTALLER')
-                    ->url(Route::_('index.php?option=com_breezingformsng&view=packages&layout=import'))
-                    ->icon('icon-upload');
-                $toolbar->linkButton('createpkg', 'COM_BREEZINGFORMSNG_INSTALLER_CREATEPKG')
-                    ->url(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export'))
-                    ->icon('icon-plus');
-                $toolbar->linkButton('delete-package', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE')
-                    ->url(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete'))
-                    ->icon('icon-trash');
-
                 // Last: Joomla right-aligns Options and every button after it.
                 if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
                     $toolbar->preferences('com_breezingformsng');

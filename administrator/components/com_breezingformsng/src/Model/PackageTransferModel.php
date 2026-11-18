@@ -456,6 +456,10 @@ final class PackageTransferModel extends BaseDatabaseModel
             }
         }
 
+        if (is_array($payload) && ($payload['format'] ?? '') === 'breezingformsng-configuration') {
+            throw new InvalidPackageException(null, InvalidPackageException::CONFIGURATION);
+        }
+
         if (!is_array($payload) || ($payload['format'] ?? '') !== self::FORMAT || !is_string($payload['package'] ?? null) || $payload['package'] === '') {
             throw new InvalidPackageException();
         }
