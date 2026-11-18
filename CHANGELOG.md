@@ -1,5 +1,33 @@
 # Changelog
 
+## 6.1.0-RC22
+
+### Added
+
+- Let AI assistants (MCP) create and configure forms: create an unpublished form from a short list of fields, change its title, description, publication state, size and administrator email notifications, add, change, move or remove text, text area, choice and check box fields and pages with their introductions, and move a form to the trash or restore it. Every action follows the Joomla permissions of the account that calls it, and reading a form now also returns the help, size, default and length settings of its fields and the introduction of its pages.
+- Add four field types to the QuickMode editor, chosen like the Slider: an International phone field with a country flag, the dial code and a number check, stored as +33612345678, a Date and time field with an earliest and latest value and a step, a Country list with the country names in the language of the visitor, and an Address search field that can suggest addresses and fill the street, postcode, city and country fields. The address suggestions are off by default: nothing is sent to a third-party service unless one is chosen in the field settings, and the editor says so.
+- Add a Drop zone option to the File field, so that visitors can drop their files on the field or browse for them, with the list of the chosen files.
+- Add three ready-to-use sample forms, installed from the Tools screen: an Event registration with a live price, a reduced rate and an optional lunch, a four-step Quote request with questions that depend on the project, an estimate that follows the choices, a specification file and a summary, and a Satisfaction survey with rating scales, an average score and a follow-up question for low ratings. A technical example, Field widgets, shows the new fields.
+- Show on the Tools screen the sample forms by category, Business templates and Technical examples, with one check box per form and one Install button. An installed form is ticked and has a Manage link, and a form whose name is already used by another form cannot be ticked.
+- Style the confirmation page that replaces a form after it is sent in the carte theme.
+
+### Changed
+
+- Show a short summary at the end of an installation or an update, with the versions, the plugins and the changes made, instead of every internal step. The whole detail stays in the installation log.
+- Enrich the sample contact form with required fields and hints, a consent check box, a security code, an optional international phone, an email to the site with a copy to the sender, and a thank-you page.
+
+### Fixed
+
+- Accept the security code of a form: the image is displayed again and the code that is typed is checked when the form is sent, which refused every code before.
+- Let a form with a file field be sent: it no longer stops with a technical error.
+- Send a form whose confirmation email field is left out without an error.
+- Install a sample form again when another form already has its name: the Install check box is disabled with an explanation, the Manage link opens the existing form, and the message is a notice instead of an error.
+
+### Security
+
+- Check on the server the phone numbers, the dates and times and the country codes of the new fields, and refuse a value that is not valid without writing it in a log.
+- Refuse a protocol-relative address in the report of the MCP database audit.
+
 ## 6.1.0-RC21
 
 ### Added
