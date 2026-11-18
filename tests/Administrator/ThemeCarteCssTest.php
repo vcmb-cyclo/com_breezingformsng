@@ -97,9 +97,19 @@ final class ThemeCarteCssTest extends TestCase
         self::assertStringContainsString('[data-bs-theme="dark"] .bfFormDiv', $css);
         self::assertStringContainsString('--bf-card: #1d232b;', $css);
         self::assertStringContainsString('--bf-field: #262d36;', $css);
+        self::assertStringContainsString('--bf-select-arrow: #f2f2f0;', $css);
         self::assertStringContainsString('--bf-color-scheme: dark;', $css);
         self::assertStringContainsString('background-color: var(--bf-card);', $css);
         self::assertStringContainsString('background: var(--bf-danger-bg);', $css);
+    }
+
+    public function testSelectArrowUsesTheThemeColorVariable(): void
+    {
+        $css = $this->css();
+
+        self::assertStringContainsString('--bf-select-arrow: #5b5853;', $css);
+        self::assertStringContainsString('var(--bf-select-arrow)', $css);
+        self::assertStringNotContainsString("stroke='%235b5853'", $css);
     }
 
     public function testItIsAWebAssetLoadedOnlyForTheFormsThatChoseIt(): void

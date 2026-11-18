@@ -9,6 +9,25 @@ function bfShowErrors(error) {
         return;
     }
 
+    var previousFeedbackIds = new Set(Array.from(document.querySelectorAll(".bfQuickMode .bf-field-error"))
+        .map(function (message) {
+            return message.id;
+        })
+        .filter(Boolean));
+
+    document.querySelectorAll(".bfQuickMode [aria-describedby]").forEach(function (field) {
+        var descriptions = (field.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        var remaining = descriptions.filter(function (description) {
+            return !previousFeedbackIds.has(description);
+        });
+
+        if (remaining.length > 0) {
+            field.setAttribute("aria-describedby", remaining.join(" "));
+        } else {
+            field.removeAttribute("aria-describedby");
+        }
+    });
+
     document.querySelectorAll(".bfQuickMode .is-invalid").forEach(function (field) {
         field.classList.remove("is-invalid");
         field.removeAttribute("aria-invalid");
