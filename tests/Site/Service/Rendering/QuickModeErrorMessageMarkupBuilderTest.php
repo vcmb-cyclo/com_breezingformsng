@@ -22,8 +22,18 @@ final class QuickModeErrorMessageMarkupBuilderTest extends TestCase
     public function testBuildsHiddenBootstrapErrorMessageContainer(): void
     {
         self::assertSame(
-            '<div class="bfErrorMessage alert alert-error" style="display:none"></div>' . "\n",
-            QuickModeErrorMessageMarkupBuilder::build('alert', 'alert-error', "\n")
+            '<div class="bfErrorMessage alert alert-error" role="alert" aria-live="assertive" style="display:none">'
+                . '<strong class="bfErrorSummaryTitle" data-title-singular="1 field to correct" data-title-plural="%d fields to correct"></strong>'
+                . '<ul class="bfErrorSummaryList"></ul></div>' . "\n",
+            QuickModeErrorMessageMarkupBuilder::build('alert', 'alert-error', '1 field to correct', '%d fields to correct', "\n")
         );
+    }
+
+    public function testEscapesTranslatedSummaryTitles(): void
+    {
+        $markup = QuickModeErrorMessageMarkupBuilder::build('alert', 'alert-error', '1 "field"', '<script>%d</script>', "\n");
+
+        self::assertStringContainsString('data-title-singular="1 &quot;field&quot;"', $markup);
+        self::assertStringContainsString('data-title-plural="&lt;script&gt;%d&lt;/script&gt;"', $markup);
     }
 }
