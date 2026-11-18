@@ -111,7 +111,7 @@ final class AuditReportFilter
     {
         [$path, $query] = array_pad(explode('?', explode('#', $link, 2)[0], 2), 2, '');
 
-        if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $path) === 1) {
+        if (str_starts_with($path, '//') || preg_match('#^[a-z][a-z0-9+.-]*://#i', $path) === 1) {
             $path = '[external]';
         }
 
