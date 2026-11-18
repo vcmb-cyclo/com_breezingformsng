@@ -94,7 +94,8 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   obligatoire, la valeur d’une case, la sélection multiple d’une liste et ses
   choix, mais pas le nom du champ. Les nouveaux champs peuvent être placés sur
   une page QuickMode existante ; `add_pages` ajoute jusqu’à 10 pages vierges,
-  que les nouveaux champs peuvent cibler au même appel. Les champs existants
+  que les nouveaux champs peuvent cibler au même appel. `remove_pages` retire
+  les pages vides uniquement, et seulement sans soumission. Les champs existants
   peuvent être déplacés entre les pages déjà présentes. Les choix, le mode
   multiple et les valeurs de case ne peuvent pas
   être modifiés après une soumission ;
