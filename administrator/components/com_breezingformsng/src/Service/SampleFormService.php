@@ -56,6 +56,21 @@ final class SampleFormService
         return (int) $this->db->setQuery($query)->loadResult();
     }
 
+    /** Id of the oldest form using the sample's name, whatever its package; 0 when there is none. */
+    public function getFormIdByName(): int
+    {
+        $name = self::FORM_NAME;
+        $query = $this->db->createQuery()
+            ->select($this->db->quoteName('id'))
+            ->from($this->db->quoteName('#__facileforms_forms'))
+            ->where($this->db->quoteName('name') . ' = :name')
+            ->order($this->db->quoteName('id') . ' ASC')
+            ->bind(':name', $name, ParameterType::STRING)
+            ->setLimit(1);
+
+        return (int) $this->db->setQuery($query)->loadResult();
+    }
+
     /** Number of forms whose name would be used by the sample's name-based menu route. */
     public function getFormNameCount(): int
     {

@@ -64,6 +64,10 @@ final class HtmlView extends BaseHtmlView
     public int $trashedTotal = 0;
     /** Id of the installed sample form, 0 when it is not installed. */
     public int $sampleFormId = 0;
+    /** Another form already uses the sample's name: it cannot be installed, and is left as it is. */
+    public bool $sampleNameTaken = false;
+    /** Form the Manage button opens: the installed sample, else the form already using its name. */
+    public int $sampleManageId = 0;
     /** Installing the sample writes a form layout: it takes the Configure permission. */
     public bool $canInstallSample = false;
 
@@ -118,8 +122,12 @@ final class HtmlView extends BaseHtmlView
             $database = Factory::getContainer()->get(DatabaseInterface::class);
             $this->trashedTotal = array_sum(array_column((new RecordInventoryService($database))->getInventory(), 'trashed'))
                 + array_sum(array_column((new TrashInventoryService($database))->getTrashedItems(), 'count'));
-            $this->sampleFormId = (new SampleFormService(Factory::getContainer()->get(DatabaseInterface::class)))
-                ->getInstalledFormId();
+            $sampleService = new SampleFormService($database);
+            $this->sampleFormId = $sampleService->getInstalledFormId();
+            $this->sampleNameTaken = $this->sampleFormId === 0 && $sampleService->getFormNameCount() > 0;
+            $this->sampleManageId = $this->sampleFormId > 0
+                ? $this->sampleFormId
+                : ($this->sampleNameTaken ? $sampleService->getFormIdByName() : 0);
             $this->canInstallSample = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
             $this->canConfigure = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
             $this->getDocument()->getWebAssetManager()
