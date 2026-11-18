@@ -78,7 +78,7 @@ final class SamplePackagesTest extends TestCase
 
     public function testTheCatalogIsComplete(): void
     {
-        self::assertSame(['contact', 'event', 'quote', 'survey'], array_keys(self::samples()));
+        self::assertSame(['contact', 'event', 'quote', 'survey', 'widgets'], array_keys(self::samples()));
     }
 
     #[DataProvider('samples')]

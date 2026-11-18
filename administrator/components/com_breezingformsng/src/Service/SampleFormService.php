@@ -53,6 +53,10 @@ final class SampleFormService
             'name' => 'Sample_Survey', 'title' => 'Sample satisfaction survey',
             'alias' => 'bf-sample-survey', 'file' => 'bfng-sample-survey.json', 'category' => 'business',
         ],
+        'widgets' => [
+            'name' => 'Sample_Widgets', 'title' => 'Sample field widgets',
+            'alias' => 'bf-sample-widgets', 'file' => 'bfng-sample-widgets.json', 'category' => 'technical',
+        ],
     ];
 
     private const FORM_LINK = 'index.php?option=com_breezingformsng&view=form';
