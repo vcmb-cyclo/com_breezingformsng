@@ -39,8 +39,11 @@ exige `core.delete` et `core.edit.state`; la restauration exige
 - `bfng_list_forms` : liste paginée des formulaires (recherche, état,
   `limit`, `offset`).
 - `bfng_get_form` : un formulaire par ID ou par nom, avec ses réglages et ses
-  éléments. `include_code` ajoute les scripts et pièces, et demande le droit
-  de code.
+  éléments. Pour QuickMode, chaque élément inclut aussi les réglages sûrs comme
+  l’aide, les dimensions, la valeur initiale, la longueur maximale, le mode
+  lecture seule et l’état obligatoire (`null` si une validation personnalisée
+  empêche de le déterminer). `include_code` ajoute les scripts et
+  pièces, et demande le droit de code.
 - `bfng_check_form` : contrôle d’un formulaire par ID ou par nom, sans rien
   modifier.
   - Erreurs : un champ de saisie sans nom, des noms en double, un script de
