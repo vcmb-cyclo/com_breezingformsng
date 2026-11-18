@@ -41,7 +41,7 @@ final class OrphanValuesLiveDeletionGuardsTest extends TestCase
     public function testButtonAsksForConfirmationInsteadOfShowingACheckbox(): void
     {
         $js = (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/js/admin/about.js');
-        $template = (string) file_get_contents(self::ADMIN . '/tmpl/about/default.php');
+        $template = (string) file_get_contents(self::ADMIN . '/tmpl/about/audit.php');
 
         self::assertStringContainsString('bfOrphanAcknowledge', $js);
         self::assertStringContainsString("params.set('orphan_acknowledged', '1')", $js);

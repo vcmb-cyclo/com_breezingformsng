@@ -148,7 +148,7 @@
             }
         );
 
-        return fetch('index.php?option=com_breezingformsng&task=about.display&view=about', {
+        return fetch('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit', {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         }).then(function (response) {
             return response.ok ? response.text() : '';

@@ -13,6 +13,8 @@ final class InvalidPackageException extends \RuntimeException
     public const XML = 'xml';
     public const VERSION = 'version';
     public const READ = 'read';
+    /** A configuration export of the About page: valid JSON, but not a package. */
+    public const CONFIGURATION = 'configuration';
 
     public function __construct(?\Throwable $previous = null, private readonly string $reason = self::INVALID)
     {

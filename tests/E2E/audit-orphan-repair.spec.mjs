@@ -54,7 +54,7 @@ test('orphan repairs preserve existing records and distinguish element zero from
             form: { [csrf]: '1' },
             maxRedirects: 0,
         });
-        await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about`);
+        await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about&layout=audit`);
         const audit = page.locator('[data-bf-orphan-check="subrecords_without_element"]');
         await expect(audit).toBeAttached();
         // Only the deletion must be withheld: reassignment buttons use the same data attribute.

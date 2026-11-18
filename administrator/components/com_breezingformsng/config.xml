@@ -3,18 +3,8 @@
     <fieldset
         name="general"
         label="COM_BREEZINGFORMSNG_CONFIG_FIELDSET_GENERAL"
+        description="COM_BREEZINGFORMSNG_CONFIG_FIELDSET_GENERAL_DESC"
     >
-        <field
-            name="disable_ip"
-            type="radio"
-            label="COM_BREEZINGFORMSNG_CONFIG_DISABLE_IP_ADDRESS_STORING"
-            description="COM_BREEZINGFORMSNG_CONFIG_DISABLE_IP_ADDRESS_STORING"
-            layout="joomla.form.field.radio.switcher"
-            default="0"
-        >
-            <option value="0">JNO</option>
-            <option value="1">JYES</option>
-        </field>
         <field
             name="emailadr"
             type="text"
@@ -22,6 +12,7 @@
             description="COM_BREEZINGFORMSNG_CONFIG_DEFAULTEMAIL_TIP"
             default="Enter your email address here"
             size="60"
+            class="w-100"
         />
         <field
             name="uploads"
@@ -30,7 +21,25 @@
             description="COM_BREEZINGFORMSNG_CONFIG_FFUPLOADS_TIP"
             default="{mospath}/media/breezingforms/uploads"
             size="70"
+            class="w-100"
         />
+    </fieldset>
+    <fieldset
+        name="privacy"
+        label="COM_BREEZINGFORMSNG_CONFIG_FIELDSET_PRIVACY"
+        description="COM_BREEZINGFORMSNG_CONFIG_FIELDSET_PRIVACY_DESC"
+    >
+        <field
+            name="disable_ip"
+            type="radio"
+            label="COM_BREEZINGFORMSNG_CONFIG_DISABLE_IP_ADDRESS_STORING"
+            description="COM_BREEZINGFORMSNG_CONFIG_DISABLE_IP_ADDRESS_STORING_DESC"
+            layout="joomla.form.field.radio.switcher"
+            default="0"
+        >
+            <option value="0">JNO</option>
+            <option value="1">JYES</option>
+        </field>
         <field
             name="save_history"
             type="radio"
@@ -49,6 +58,7 @@
             description="JGLOBAL_HISTORY_LIMIT_OPTIONS_DESC"
             filter="integer"
             min="0"
+            class="w-auto"
             default="10"
             showon="save_history:1"
         />
@@ -56,6 +66,7 @@
     <fieldset
         name="csv"
         label="COM_BREEZINGFORMSNG_CONFIG_CSV_FIELDSET"
+        description="COM_BREEZINGFORMSNG_CONFIG_CSV_FIELDSET_DESC"
     >
         <field
             name="csvdelimiter"
@@ -65,6 +76,7 @@
             default=";"
             maxlength="1"
             size="2"
+            class="w-auto"
         />
         <field
             name="csvquote"
@@ -74,6 +86,7 @@
             default="&quot;"
             maxlength="1"
             size="2"
+            class="w-auto"
         />
         <field
             name="cellnewline"
@@ -90,6 +103,7 @@
     <fieldset
         name="mcp"
         label="COM_BREEZINGFORMSNG_CONFIG_MCP_FIELDSET"
+        description="COM_BREEZINGFORMSNG_CONFIG_MCP_FIELDSET_DESC"
     >
         <field
             name="mcp_enabled"

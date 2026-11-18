@@ -14,19 +14,10 @@ use Joomla\CMS\Router\Route;
 $plugins = $this->plugins;
 ?>
 <div class="card">
-    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div class="card-header">
         <div>
             <h2 class="h5 mb-1"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS_TITLE'); ?></h2>
             <p class="text-muted mb-0"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS_DESC'); ?></p>
-        </div>
-        <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-sm btn-outline-primary" href="<?php echo Route::_('index.php?option=com_plugins&view=plugins&filter[search]=' . rawurlencode('breezingforms'), false); ?>">
-                <span class="fa-solid fa-plug" aria-hidden="true"></span>
-                <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS_MANAGE_PLUGINS'); ?>
-            </a>
-            <a class="btn btn-sm btn-outline-secondary" href="<?php echo Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false); ?>">
-                <?php echo Text::_('COM_BREEZINGFORMSNG_HELP_BACK_TO_ABOUT'); ?>
-            </a>
         </div>
     </div>
     <div class="card-body">

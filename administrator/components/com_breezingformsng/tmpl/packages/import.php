@@ -278,6 +278,12 @@ const bfImportLines = (file, payload, chosen = null) => {
     return content.innerHTML;
 };
 
+const bfImportIsConfiguration = (payload) => !!payload && typeof payload === 'object' && payload.format === 'breezingformsng-configuration';
+
+// A JSON file that is not a package (no package name) gets no confirmation of
+// "0 forms": the server answers why it cannot be imported.
+const bfImportIsOtherJson = (payload) => !!payload && typeof payload === 'object' && typeof payload.package !== 'string';
+
 const bfImportRead = (file) => file.text().then((source) => {
     try {
         return JSON.parse(source);
@@ -463,6 +469,10 @@ document.getElementById('bf-package-file').addEventListener('change', (event) =>
         .then(([payload, preview]) => {
             // Only the answer for the file still chosen is shown.
             if (reading === bfImportReading) {
+                // The configuration export of the About page is not a package: say so at once.
+                if (bfImportIsConfiguration(payload)) {
+                    Joomla.renderMessages({ error: [bfImportText('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONFIGURATION_FILE', file.name)] });
+                }
                 bfImportStatuses = preview ? preview.statuses : null;
                 bfImportIds = preview && preview.ids && typeof preview.ids === 'object' ? preview.ids : null;
                 bfImportPayload = preview && preview.payload ? preview.payload : null;
@@ -502,8 +512,10 @@ bfImportForm.addEventListener('submit', (event) => {
 
     const reading = bfImportReading;
     bfImportRead(file)
-        .then((payload) => import('joomla.dialog').then((module) => reading === bfImportReading
-            ? module.default.confirm(bfImportLines(file, bfImportPayload ?? payload, chosen)) : false))
+        .then((payload) => bfImportPayload === null && bfImportIsOtherJson(payload)
+            ? true
+            : import('joomla.dialog').then((module) => reading === bfImportReading
+                ? module.default.confirm(bfImportLines(file, bfImportPayload ?? payload, chosen)) : false))
         .then((confirmed) => {
             if (confirmed && reading === bfImportReading) {
                 bfImportConfirmed = true;

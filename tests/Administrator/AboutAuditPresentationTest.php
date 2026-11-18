@@ -18,11 +18,23 @@ use PHPUnit\Framework\TestCase;
 
 final class AboutAuditPresentationTest extends TestCase
 {
+    public function testTheTableInventoryMovedFromTheAuditToTheStatisticsScreen(): void
+    {
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $audit = (string) file_get_contents($base . '/tmpl/about/audit.php');
+        $statistics = (string) file_get_contents($base . '/tmpl/about/statistics.php');
+
+        self::assertStringNotContainsString('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_INVENTORY', $audit);
+        self::assertStringContainsString('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_INVENTORY', $statistics);
+        self::assertStringContainsString('data-bf-sortable-table', $statistics);
+        self::assertStringContainsString("aboutUrl('statistics')", (string) file_get_contents($base . '/tmpl/packages/default.php'));
+    }
+
     public function testAuditIsTheOnlyGlobalMaintenanceEntryPoint(): void
     {
         $controller = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Controller/AboutController.php');
         $view = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/View/About/HtmlView.php');
-        $template = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/default.php');
+        $template = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/audit.php');
         $auditService = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Service/DatabaseAuditService.php');
         $repairService = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Service/DatabaseRepairService.php');
 
@@ -31,7 +43,13 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertIsString($template);
         self::assertIsString($auditService);
         self::assertIsString($repairService);
-        self::assertStringContainsString("->task('about.runAudit')", $view);
+        // The audit has its own layout (Tools / Audit), started from the Tools page.
+        self::assertStringContainsString('if ($layout === \'audit\')', $view);
+        self::assertStringNotContainsString("dropdownButton('about-actions-group')", $view);
+        self::assertStringContainsString(
+            'task=about.runAudit',
+            (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/packages/default.php')
+        );
         self::assertStringNotContainsString('about.startRepairWorkflow', $view);
         self::assertStringNotContainsString('function startRepairWorkflow()', $controller);
         self::assertStringNotContainsString('function migratePackedData()', $controller);
@@ -49,7 +67,7 @@ final class AboutAuditPresentationTest extends TestCase
     public function testAuditTitlesAreNeverEmptyAndOrphanValuesCanBeReassigned(): void
     {
         $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
-        $template = file_get_contents($base . '/tmpl/about/default.php');
+        $template = file_get_contents($base . '/tmpl/about/audit.php');
         $controller = file_get_contents($base . '/src/Controller/AboutController.php');
         $repair = file_get_contents($base . '/src/Service/DatabaseRepairService.php');
         $matcher = file_get_contents($base . '/src/Service/OrphanValueMatcher.php');
@@ -89,7 +107,7 @@ final class AboutAuditPresentationTest extends TestCase
     public function testOrphanValuesCanBeMovedToAFieldOfTheSameType(): void
     {
         $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
-        $template = file_get_contents($base . '/tmpl/about/default.php');
+        $template = file_get_contents($base . '/tmpl/about/audit.php');
         $controller = file_get_contents($base . '/src/Controller/AboutController.php');
         $repair = file_get_contents($base . '/src/Service/DatabaseRepairService.php');
         $matcher = file_get_contents($base . '/src/Service/OrphanValueMatcher.php');
@@ -126,7 +144,7 @@ final class AboutAuditPresentationTest extends TestCase
     {
         $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
         $audit = file_get_contents($base . '/src/Service/DatabaseAuditService.php');
-        $template = file_get_contents($base . '/tmpl/about/default.php');
+        $template = file_get_contents($base . '/tmpl/about/audit.php');
 
         self::assertIsString($audit);
         self::assertIsString($template);
@@ -144,5 +162,19 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringContainsString("'atum' : 'cassiopeia'", $repair);
         self::assertStringContainsString("quoteName('template_style_id') . ' = 0'", $repair);
         self::assertStringContainsString('No \' . $coreTemplate', $repair);
+    }
+
+    public function testExtensionsButtonsAreInTheToolbarBackFirst(): void
+    {
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $view = (string) file_get_contents($base . '/src/View/About/HtmlView.php');
+        $template = (string) file_get_contents($base . '/tmpl/about/extensions.php');
+
+        self::assertLessThan(
+            (int) strpos($view, "linkButton('about_manage_plugins')"),
+            (int) strpos($view, "linkButton('about_extensions_back')")
+        );
+        self::assertStringNotContainsString('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS_MANAGE_PLUGINS', $template);
+        self::assertStringNotContainsString('HELP_BACK_TO_ABOUT', $template);
     }
 }

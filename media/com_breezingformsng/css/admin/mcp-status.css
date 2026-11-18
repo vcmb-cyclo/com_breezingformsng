@@ -1,5 +1,5 @@
-/* MCP status of the Configuration page: the official logo, in the variant
-   made for the color scheme of the administrator template, never recolored. */
+/* Tools page: the MCP logo, in the variant made for the color scheme of the
+   administrator template, never recolored, and the quick-access tiles. */
 .bf-mcp-logo {
     height: 1.75rem;
     max-width: 100%;
@@ -16,4 +16,63 @@
 
 [data-color-scheme="dark"] .bf-mcp-logo--dark {
     display: inline-block;
+}
+
+/* Tools page: quick-access tiles, in the manner of the Joomla control panel.
+   Only Atum variables, so both color schemes follow the template. */
+.bf-tiles {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+}
+
+.bf-tile {
+    background: var(--template-bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    color: var(--body-color);
+    display: flex;
+    flex-direction: column;
+    font: inherit;
+    gap: 0.35rem;
+    padding: 1rem;
+    position: relative;
+    text-align: start;
+    text-decoration: none;
+    width: 100%;
+}
+
+.bf-tile:hover,
+.bf-tile:focus-visible {
+    border-color: var(--template-link-hover-color);
+    color: var(--body-color);
+    text-decoration: none;
+}
+
+.bf-tile__icon {
+    color: var(--template-link-hover-color);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.bf-tile__title {
+    color: var(--template-link-hover-color);
+    font-weight: 700;
+}
+
+.bf-tile__desc {
+    color: var(--secondary-color);
+    font-size: 0.85rem;
+    line-height: 1.35;
+}
+
+.bf-tile__badge {
+    position: absolute;
+    right: 0.75rem;
+    top: 0.75rem;
+}
+
+.bf-tile--danger .bf-tile__icon,
+.bf-tile--danger .bf-tile__title {
+    color: var(--danger);
 }
