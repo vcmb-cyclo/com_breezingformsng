@@ -273,6 +273,7 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['bfType']             = 'Text';
                         $element['options']['value']    = $mdata['value'];
                         $element['options']['placeholder'] = $mdata['placeholder'] ?? '';
+                        $element['options']['maxLength'] = $mdata['maxLength'] ?? '';
                         $element['data1']              = $mdata['value'];
                         // Forms saved by earlier versions hold none of these keys.
                         $element['options']['password'] = $mdata['password'] ?? false;
@@ -287,6 +288,8 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['options']['value']   = $mdata['value'];
                         $element['data1']              = $mdata['value'];
                         $element['options']['placeholder'] = $mdata['placeholder'] ?? '';
+                        $element['options']['maxlength'] = $mdata['maxlength'] ?? 0;
+                        $element['options']['showMaxlengthCounter'] = $mdata['showMaxlengthCounter'] ?? true;
                         break;
                     case 'bfSelect':
                         $element['bfType']             = 'Select List';
