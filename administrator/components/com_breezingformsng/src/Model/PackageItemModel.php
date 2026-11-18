@@ -23,6 +23,7 @@ use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Versioning\VersionableModelInterface;
 use Joomla\CMS\Versioning\VersionableModelTrait;
+use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AuditUserNames;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
@@ -39,6 +40,11 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\VersionOrigin;
 abstract class PackageItemModel extends AdminModel implements VersionableModelInterface
 {
     use VersionableModelTrait;
+
+    /**
+     * The published state of an item in the trash.
+     */
+    public const TRASHED = -2;
 
     /**
      * @param list<string> $values
@@ -169,6 +175,14 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
     public function delete(&$pks)
     {
         $ids = array_values(array_unique(ArrayHelper::toInteger((array) $pks)));
+
+        if ($ids !== [] && !$this->allTrashed($ids)) {
+            $pks = [];
+            $this->setError(Text::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'));
+
+            return false;
+        }
+
         $deleted = parent::delete($pks);
         $pks = $ids;
 
@@ -183,6 +197,40 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
         }
 
         return $deleted;
+    }
+
+    /**
+     * Only an item in the trash is deleted for good.
+     */
+    protected function canDelete($record)
+    {
+        return (int) ($record->published ?? 0) === self::TRASHED && parent::canDelete($record);
+    }
+
+    /** Whether this item is in the trash: it is restored from the trash list, not toggled in place. */
+    public function isTrashed(int $id): bool
+    {
+        return $id > 0 && $this->allTrashed([$id]);
+    }
+
+    /**
+     * Whether every id exists and is in the trash: the whole selection is
+     * refused otherwise, whatever the order of its items.
+     *
+     * @param int[] $ids
+     */
+    private function allTrashed(array $ids): bool
+    {
+        $db = $this->getDatabase();
+        $trashed = self::TRASHED;
+        $query = $db->createQuery()
+            ->select('COUNT(*)')
+            ->from($db->quoteName($this->getTable()->getTableName()))
+            ->whereIn($db->quoteName('id'), $ids)
+            ->where($db->quoteName('published') . ' = :trashed')
+            ->bind(':trashed', $trashed, ParameterType::INTEGER);
+
+        return (int) $db->setQuery($query)->loadResult() === \count($ids);
     }
 
     /**

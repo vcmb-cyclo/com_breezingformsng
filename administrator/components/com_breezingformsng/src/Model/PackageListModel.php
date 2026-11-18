@@ -90,6 +90,9 @@ abstract class PackageListModel extends ListModel implements ListPositionInterfa
             $published = (int) $published;
             $query->where($db->quoteName('published') . ' = :published')
                 ->bind(':published', $published, ParameterType::INTEGER);
+        } elseif ($published !== '*') {
+            // The trash is shown only on request.
+            $query->where($db->quoteName('published') . ' >= 0');
         }
 
         $search = trim((string) $this->getState('filter.search'));

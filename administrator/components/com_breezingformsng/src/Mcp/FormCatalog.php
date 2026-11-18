@@ -63,6 +63,8 @@ final class FormCatalog
         if ($published !== null) {
             $state = $published ? 1 : 0;
             $query->where($db->quoteName('f.published') . ' = :published')->bind(':published', $state, ParameterType::INTEGER);
+        } else {
+            $query->where($db->quoteName('f.published') . ' >= 0');
         }
 
         $count = clone $query;
@@ -110,7 +112,8 @@ final class FormCatalog
             ->select($db->quoteName($columns))
             ->select('(CASE WHEN ' . $db->quoteName('template_code') . " <> '' THEN 1 ELSE 0 END) AS " . $db->quoteName('quickmode'))
             ->select('(CASE WHEN ' . $db->quoteName('emailadr') . " <> '' THEN 1 ELSE 0 END) AS " . $db->quoteName('has_notification_address'))
-            ->from($db->quoteName('#__facileforms_forms'));
+            ->from($db->quoteName('#__facileforms_forms'))
+            ->where($db->quoteName('published') . ' >= 0');
         if ($id !== null) {
             $query->where($db->quoteName('id') . ' = :id')->bind(':id', $id, ParameterType::INTEGER);
         } else {

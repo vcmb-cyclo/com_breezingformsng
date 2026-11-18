@@ -62,15 +62,19 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
             <td><?= htmlspecialchars($form->name); ?></td>
             <td class="text-center"><?= (int) $form->pages; ?></td>
             <td class="text-center">
+              <?php if ((int) $form->published === -2): ?>
+                <?= HTMLHelper::_('jgrid.published', -2, $i, 'forms.', false); ?>
+              <?php else: ?>
               <a href="#"
-                 class="tbody-icon<?= $form->published ? ' active' : ''; ?>"
+                 class="tbody-icon<?= (int) $form->published === 1 ? ' active' : ''; ?>"
                  data-item-id="cb<?= (int) $i; ?>"
                  data-item-task="forms.setPublished"
                  data-item-form-id="<?= (int) $form->id; ?>"
                  onclick="bfTogglePublished(<?= (int) $form->id; ?>, 'forms', this); return false;"
-                 title="<?= $form->published ? Text::_('JPUBLISHED') : Text::_('JUNPUBLISHED'); ?>">
-                <span class="<?= $form->published ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+                 title="<?= (int) $form->published === 1 ? Text::_('JPUBLISHED') : Text::_('JUNPUBLISHED'); ?>">
+                <span class="<?= (int) $form->published === 1 ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
               </a>
+              <?php endif; ?>
             </td>
             <td class="order text-center text-nowrap">
               <?= $pagination->orderUpIcon(

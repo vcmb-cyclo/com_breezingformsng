@@ -7,6 +7,7 @@
 			label="COM_BREEZINGFORMSNG_FORM"
 			sql_select="id, title"
 			sql_from="#__facileforms_forms"
+			sql_where="published &gt;= 0"
 			sql_order="title ASC"
 			key_field="id"
 			value_field="title"

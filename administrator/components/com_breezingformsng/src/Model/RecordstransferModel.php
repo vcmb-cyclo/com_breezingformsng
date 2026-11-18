@@ -85,6 +85,7 @@ class RecordstransferModel extends BaseDatabaseModel
         $query = $db->createQuery()
             ->select($db->quoteName(['id', 'title']))
             ->from($db->quoteName('#__facileforms_forms'))
+            ->where($db->quoteName('published') . ' >= 0')
             ->order($db->quoteName('title'));
 
         return array_values($db->setQuery($query)->loadObjectList() ?: []);

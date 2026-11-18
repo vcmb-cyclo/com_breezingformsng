@@ -19,6 +19,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PieceModel;
 
 $listOrder = $this->escape((string) $this->state->get('list.ordering'));
@@ -59,18 +60,24 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
               <td class="text-center"><?= HTMLHelper::_('grid.id', $i, (int) $row->id, false, 'cid', 'cb', (string) $row->title); ?></td>
               <td><?= (int) $row->id; ?></td>
               <td class="text-center">
-                <?php if ($this->canEdit): ?>
+                <?php $isTrashed = (int) $row->published === PackageItemModel::TRASHED; ?>
+                <?php $isPublished = (int) $row->published === 1; ?>
+                <?php if ($isTrashed): ?>
+                  <span class="tbody-icon" title="<?= Text::_('JTRASHED'); ?>">
+                    <span class="icon-trash text-danger" aria-hidden="true"></span>
+                  </span>
+                <?php elseif ($this->canEdit): ?>
                   <a href="#"
-                     class="tbody-icon js-bf-form-state<?= $row->published ? ' active' : ''; ?>"
+                     class="tbody-icon js-bf-form-state<?= $isPublished ? ' active' : ''; ?>"
                      data-item-task="pieces.setPublished"
                      data-item-form-id="<?= (int) $row->id; ?>"
                      data-state-type="published"
-                     title="<?= Text::_($row->published ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
-                    <span class="<?= $row->published ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+                     title="<?= Text::_($isPublished ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
+                    <span class="<?= $isPublished ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
                   </a>
                 <?php else: ?>
-                  <span class="tbody-icon<?= $row->published ? ' active' : ''; ?>" title="<?= Text::_($row->published ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
-                    <span class="<?= $row->published ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+                  <span class="tbody-icon<?= $isPublished ? ' active' : ''; ?>" title="<?= Text::_($isPublished ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
+                    <span class="<?= $isPublished ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
                   </span>
                 <?php endif; ?>
               </td>

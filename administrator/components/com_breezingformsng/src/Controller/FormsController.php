@@ -379,6 +379,46 @@ class FormsController extends AdminController
         $this->setRedirect(Route::_(self::LIST_URL, false));
     }
 
+    /**
+     * Permanent deletion, only of forms already in the trash. The "trash" task
+     * is the native AdminController one (published = -2, with its token, ACL
+     * and checked-out rules in the model).
+     */
+    public function delete(): void
+    {
+        $this->checkToken();
+
+        $ids = array_filter((array) $this->input->get('cid', [], 'int'));
+
+        if ($ids !== [] && $this->notTrashed($ids) !== []) {
+            $this->setMessage(Text::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'), 'error');
+            $this->setRedirect(Route::_(self::LIST_URL, false));
+
+            return;
+        }
+
+        parent::delete();
+    }
+
+    /**
+     * @param  int[]  $ids
+     *
+     * @return int[] The ids that are not trashed, a missing form included.
+     */
+    private function notTrashed(array $ids): array
+    {
+        $ids = array_values(array_unique(ArrayHelper::toInteger($ids)));
+        $db  = Factory::getContainer()->get(DatabaseInterface::class);
+        $query = $db->createQuery()
+            ->select($db->quoteName('id'))
+            ->from($db->quoteName('#__facileforms_forms'))
+            ->where($db->quoteName('published') . ' = -2')
+            ->whereIn($db->quoteName('id'), $ids);
+        $trashed = array_map('intval', $db->setQuery($query)->loadColumn() ?: []);
+
+        return array_values(array_diff($ids, $trashed));
+    }
+
     public function setPublished(): void
     {
         $this->setAjaxState('published');
@@ -419,6 +459,13 @@ class FormsController extends AdminController
             $model = $this->getFormModel();
             $pks = [$id];
 
+            // A trashed form is restored from the list toolbar, never by the toggle.
+            if ($this->isTrashed($id)) {
+                $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
+                echo new JsonResponse(AjaxStateService::error(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED')));
+                $app->close();
+            }
+
             if (!$model->publish($pks, $state)) {
                 $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
                 echo new JsonResponse(AjaxStateService::error((string) $model->getError()));
@@ -429,6 +476,11 @@ class FormsController extends AdminController
         $app->setHeader('Content-Type', 'application/json; charset=utf-8', true);
         echo new JsonResponse(AjaxStateService::success($state));
         $app->close();
+    }
+
+    private function isTrashed(int $id): bool
+    {
+        return $this->notTrashed([$id]) === [];
     }
 
     protected function postDeleteHook(BaseDatabaseModel $model, $id = null)
