@@ -339,6 +339,11 @@ final class McpFormWriter
                     throw new ToolException('Maximum length must be from 0 to 10000 and can only be set on text or textarea fields.');
                 }
             }
+            if (array_key_exists('readonly', $change)
+                && (!in_array($current[$key]['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)
+                    || !is_bool($change['readonly']))) {
+                throw new ToolException('Only text and textarea fields support the read-only setting.');
+            }
             if (array_key_exists('checked', $change) || array_key_exists('value', $change)) {
                 if (($current[$key]['bfType'] ?? '') !== 'bfCheckbox') {
                     throw new ToolException('Only checkbox fields support checked and value settings.');
@@ -458,6 +463,9 @@ final class McpFormWriter
                         if (array_key_exists($property, $change)) {
                             $node['properties'][$property] = $change[$property];
                         }
+                    }
+                    if (array_key_exists('readonly', $change)) {
+                        $node['properties']['readonly'] = $change['readonly'];
                     }
                     if (array_key_exists('default_value', $change)) {
                         $node['properties']['value'] = $change['default_value'];
@@ -681,7 +689,7 @@ final class McpFormWriter
     }
 
     /**
-     * @return list<array{type: string, name: string, label: string, placeholder: string, default_value: string, max_length: int, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}>
+     * @return list<array{type: string, name: string, label: string, placeholder: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}>
      * @throws ToolException
      */
     private function normalizeFields(mixed $fields): array
@@ -703,6 +711,7 @@ final class McpFormWriter
             $placeholder = trim((string) ($field['placeholder'] ?? ''));
             $defaultValue = $field['default_value'] ?? '';
             $maxLength = $field['max_length'] ?? 0;
+            $readOnly = $field['readonly'] ?? false;
             if (!in_array($type, ['text', 'textarea', 'select', 'radio', 'checkbox_group', 'checkbox'], true)) {
                 throw new ToolException('Supported field types are text, textarea, select, radio, checkbox_group and checkbox.');
             }
@@ -714,6 +723,9 @@ final class McpFormWriter
             if (!is_int($maxLength) || $maxLength < 0 || $maxLength > 10000
                 || (array_key_exists('max_length', $field) && !in_array($type, ['text', 'textarea'], true))) {
                 throw new ToolException('Maximum length must be from 0 to 10000 and can only be set on text or textarea fields.');
+            }
+            if (!is_bool($readOnly) || (array_key_exists('readonly', $field) && !in_array($type, ['text', 'textarea'], true))) {
+                throw new ToolException('Only text and textarea fields support the read-only setting.');
             }
             if (!preg_match('/^[A-Za-z][A-Za-z0-9_]{0,99}$/D', $name)) {
                 throw new ToolException('Field names must start with a letter and contain only letters, numbers and underscores.');
@@ -780,6 +792,7 @@ final class McpFormWriter
                 'placeholder' => $placeholder,
                 'default_value' => $defaultValue,
                 'max_length' => $maxLength,
+                'readonly' => $readOnly,
                 'options' => $choices,
                 'multiple' => $multiple,
                 'checked' => $checked,
@@ -793,7 +806,7 @@ final class McpFormWriter
         return $normalized;
     }
 
-    /** @param list<array{type: string, name: string, label: string, placeholder: string, default_value: string, max_length: int, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
+    /** @param list<array{type: string, name: string, label: string, placeholder: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
     private function quickmodeTree(string $name, string $title, string $description, array $fields): array
     {
         $children = [];
@@ -821,7 +834,7 @@ final class McpFormWriter
         ];
     }
 
-    /** @param array{type: string, name: string, label: string, placeholder: string, default_value: string, max_length: int, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field */
+    /** @param array{type: string, name: string, label: string, placeholder: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field */
     private function elementNode(array $field, int $order): array
     {
         $type = match ($field['type']) {
@@ -837,6 +850,7 @@ final class McpFormWriter
             'bfType' => $type,
             'value' => $type === 'bfCheckbox' ? $field['value'] : $field['default_value'],
             'placeholder' => $field['placeholder'],
+            'readonly' => $field['readonly'],
             'label' => $field['label'],
             'bfName' => $field['name'],
             'orderNumber' => $order,

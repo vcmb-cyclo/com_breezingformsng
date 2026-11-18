@@ -34,7 +34,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
     public function description(): string
     {
         return 'Adds, updates or removes text, textarea, select, radio, checkbox-group and checkbox fields on compatible QuickMode forms. '
-            . 'Pages can be added or empty pages removed; new fields can target existing or new pages, and existing fields can move between pages. Updates can change safe field names, text/textarea type, labels, placeholders, default values, maximum lengths, required state, checkbox values, select multiplicity or choice options. Renaming requires no submissions, scripts, validations, templates or integrations that could refer to the field. '
+            . 'Pages can be added or empty pages removed; new fields can target existing or new pages, and existing fields can move between pages. Updates can change safe field names, text/textarea type, labels, placeholders, default values, maximum lengths, read-only and required state, checkbox values, select multiplicity or choice options. Renaming requires no submissions, scripts, validations, templates or integrations that could refer to the field. '
             . 'Existing custom scripts and settings are preserved; the required option uses only the standard non-empty validation. Fields cannot be removed after submissions exist. '
             . 'Forms with other field types or nested field structures are not changed. Choice options cannot be changed after submissions exist.';
     }
@@ -50,6 +50,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
                 'placeholder' => ['type' => 'string', 'maxLength' => 255, 'default' => '', 'description' => 'Optional plain-text placeholder.'],
                 'default_value' => ['type' => 'string', 'maxLength' => 4000, 'description' => 'Optional plain-text initial value for a text or textarea field.'],
                 'max_length' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 10000, 'description' => 'Optional maximum characters for a text or textarea field; 0 means unlimited.'],
+                'readonly' => ['type' => 'boolean', 'description' => 'Whether a text or textarea field is read-only.'],
                 'multiple' => ['type' => 'boolean', 'description' => 'Allow multiple selected values on a select field.'],
                 'checked' => ['type' => 'boolean', 'description' => 'Initial checked state for a checkbox field.'],
                 'value' => ['type' => 'string', 'maxLength' => 255, 'description' => 'Submitted value for a checkbox field.'],
@@ -71,6 +72,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
                 'placeholder' => ['type' => 'string', 'maxLength' => 255, 'description' => 'Optional new plain-text placeholder.'],
                 'default_value' => ['type' => 'string', 'maxLength' => 4000, 'description' => 'Optional new plain-text initial value for a text or textarea field.'],
                 'max_length' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 10000, 'description' => 'Maximum characters for a text or textarea field; 0 means unlimited.'],
+                'readonly' => ['type' => 'boolean', 'description' => 'Set whether the text or textarea field is read-only.'],
                 'multiple' => ['type' => 'boolean', 'description' => 'Whether a select field accepts more than one choice.'],
                 'checked' => ['type' => 'boolean', 'description' => 'New initial checked state for a checkbox field.'],
                 'value' => ['type' => 'string', 'maxLength' => 255, 'description' => 'New submitted value for a checkbox field.'],
