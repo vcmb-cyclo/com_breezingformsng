@@ -84,6 +84,29 @@ final class SampleContactPackageTest extends TestCase
         self::assertSame(0, (int) $form['data']['emailntf']);
     }
 
+    public function testEveryFieldCanBeFilledIn(): void
+    {
+        $tree = $this->package()['forms'][0]['data']['template_code'];
+        $elements = [];
+        $walk = static function (array $node) use (&$walk, &$elements): void {
+            if (($node['properties']['type'] ?? '') === 'element') {
+                $elements[] = $node['properties'];
+            }
+            foreach ($node['children'] ?? [] as $child) {
+                $walk($child);
+            }
+        };
+        $walk($tree);
+
+        self::assertCount(9, $elements);
+        foreach ($elements as $properties) {
+            // A read-only field cannot be typed in: the sample must not inherit it from the form it was made from.
+            self::assertEmpty($properties['readonly'] ?? false, $properties['bfName'] . ' is read-only');
+            self::assertEmpty($properties['size'] ?? '', $properties['bfName'] . ' has a fixed width');
+        }
+        self::assertTrue($tree['properties']['themebootstrapLabelTop']);
+    }
+
     public function testItShowsTheMainKindsOfFields(): void
     {
         $types = array_column($this->package()['forms'][0]['elements'], 'type');
