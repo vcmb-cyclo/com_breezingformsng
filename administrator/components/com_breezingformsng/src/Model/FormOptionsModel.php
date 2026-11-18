@@ -258,8 +258,8 @@ class FormOptionsModel extends BaseDatabaseModel
 
     public function setDebugMode(int $id, int $state): void
     {
-        if (!$this->getCurrentUser()->authorise('core.edit.state', 'com_breezingformsng')) {
-            throw new NotAllowed(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), 403);
+        if (!$this->getCurrentUser()->authorise('core.edit', 'com_breezingformsng')) {
+            throw new NotAllowed(Text::_('JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED'), 403);
         }
 
         $db = $this->db();
