@@ -58,6 +58,25 @@
     --bf-color-scheme: dark;
 }
 
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) body:not([data-bs-theme="light"]) .bfFormDiv:not([data-bs-theme="light"]) {
+        --bf-card: #1d232b;
+        --bf-field: #262d36;
+        --bf-text: #f2f2f0;
+        --bf-muted: #b8b8b3;
+        --bf-line: #454b54;
+        --bf-accent: #e4b665;
+        --bf-accent-ink: #f1ca83;
+        --bf-accent-tint: #493a22;
+        --bf-selected-ink: #ffdaa0;
+        --bf-select-arrow: #f2f2f0;
+        --bf-danger: #ff8d82;
+        --bf-danger-bg: #3b2525;
+        --bf-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+        --bf-color-scheme: dark;
+    }
+}
+
 /* The card */
 .bfFormDiv .bfQuickMode {
     background: var(--bf-card);
