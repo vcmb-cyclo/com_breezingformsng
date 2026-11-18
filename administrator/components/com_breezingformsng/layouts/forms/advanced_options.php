@@ -67,6 +67,41 @@ $tabIdentifier = $tabId;
  * @psalm-suppress UndefinedGlobalVariable
  */
 $entryCounts = $tabEntryCounts;
+/**
+ * @var \Joomla\CMS\Editor\Editor $formEditor
+ * @psalm-suppress UndefinedGlobalVariable
+ */
+$formEditor = $editor;
+/**
+ * @var array<int, \stdClass> $initialScripts
+ * @psalm-suppress UndefinedGlobalVariable
+ */
+$initialScripts = $initScripts;
+/**
+ * @var array<int, \stdClass> $submittedScriptsList
+ * @psalm-suppress UndefinedGlobalVariable
+ */
+$submittedScriptsList = $submittedScripts;
+/**
+ * @var array<int, \stdClass> $piecesBefore
+ * @psalm-suppress UndefinedGlobalVariable
+ */
+$piecesBefore = $pieceBefore;
+/**
+ * @var array<int, \stdClass> $piecesAfter
+ * @psalm-suppress UndefinedGlobalVariable
+ */
+$piecesAfter = $pieceAfter;
+/**
+ * @var array<int, \stdClass> $piecesBeginSubmit
+ * @psalm-suppress UndefinedGlobalVariable
+ */
+$piecesBeginSubmit = $pieceBeginSubmit;
+/**
+ * @var array<int, \stdClass> $piecesEndSubmit
+ * @psalm-suppress UndefinedGlobalVariable
+ */
+$piecesEndSubmit = $pieceEndSubmit;
 
 $labelTip = static fn (string $key): string => ' title="' . htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8') . '"';
 
@@ -92,10 +127,9 @@ $customEmail = (int) ($formOptions->email_type ?? 0) === 1;
 $defaultBody = FormsAdvancedOptionsHtml::notificationDefaultBody($formOptions);
 $emailHtml = FormsAdvancedOptionsHtml::notificationHtmlSelection($formOptions);
 
-/** @psalm-suppress UndefinedGlobalVariable */
 $missingPieces = FormsAdvancedOptionsHtml::missingPieces(
     $formOptions,
-    [1 => $pieceBefore, 2 => $pieceAfter, 3 => $pieceBeginSubmit, 4 => $pieceEndSubmit]
+    [1 => $piecesBefore, 2 => $piecesAfter, 3 => $piecesBeginSubmit, 4 => $piecesEndSubmit]
 );
 $paneErrors = [
     'form-pieces' => isset($missingPieces[1]) || isset($missingPieces[2]),
@@ -124,7 +158,7 @@ $paneErrors = [
     ] as $pane => $label): ?>
     <li class="nav-item" role="presentation">
       <button class="nav-link" id="tab-<?= $pane; ?>" data-bs-toggle="tab" data-bs-target="#pane-<?= $pane; ?>"
-              type="button" role="tab"><?= $label; ?><?php if (($entryCounts[$pane] ?? 0) > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts[$pane]; ?></span><?php endif; ?><?php if (!empty($paneErrors[$pane])): ?> <span class="icon-warning text-danger" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'), ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></span><span class="visually-hidden"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'); ?></span><?php endif; ?></button>
+              type="button" role="tab"><?= $label; ?><?php if (($entryCounts[$pane] ?? 0) > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts[$pane] ?? 0; ?></span><?php endif; ?><?php if (!empty($paneErrors[$pane])): ?> <span class="icon-warning text-danger" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'), ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></span><span class="visually-hidden"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'); ?></span><?php endif; ?></button>
     </li>
     <?php endforeach; ?>
   </ul>
@@ -150,7 +184,7 @@ $paneErrors = [
           <select class="form-select" id="jf_package" name="package">
             <option value=""><?= Text::_('COM_BREEZINGFORMSNG_FORMS_NONE'); ?></option>
             <?php foreach (FormsAdvancedOptionsHtml::packageNames($package) as $packageId => $packageLabel) : ?>
-              <option value="<?= htmlspecialchars((string) $packageId, ENT_QUOTES, 'UTF-8'); ?>"<?= (string) $packageId === $package ? ' selected' : ''; ?>><?= htmlspecialchars($packageLabel, ENT_QUOTES, 'UTF-8'); ?></option>
+              <option value="<?= htmlspecialchars($packageId, ENT_QUOTES, 'UTF-8'); ?>"<?= $packageId === $package ? ' selected' : ''; ?>><?= htmlspecialchars($packageLabel, ENT_QUOTES, 'UTF-8'); ?></option>
             <?php endforeach; ?>
           </select>
           <div class="form-text"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PACKAGE_HINT'); ?></div>
@@ -498,10 +532,10 @@ $paneErrors = [
             </div>
           </div>
           <div id="s1lib" style="display:<?= (int) ($formOptions->script1cond ?? 0) === 1 ? '' : 'none'; ?>">
-            <?= FormsAdvancedOptionsHtml::bfSel($initScripts, 'script1id', (int) ($formOptions->script1id ?? 0)); ?>
+            <?= FormsAdvancedOptionsHtml::bfSel($initialScripts, 'script1id', (int) ($formOptions->script1id ?? 0)); ?>
           </div>
           <div id="s1code" data-bf-search-code="<?= htmlspecialchars($formOptions->script1code ?? '', ENT_QUOTES, 'UTF-8'); ?>" style="display:<?= (int) ($formOptions->script1cond ?? 0) === 2 ? '' : 'none'; ?>">
-            <?= $editor->display('script1code', htmlspecialchars($formOptions->script1code ?? ''), '100%', '200px', 60, 10, false, 'jf_script1code', null, null, ['syntax' => 'javascript']); ?>
+            <?= $formEditor->display('script1code', htmlspecialchars($formOptions->script1code ?? ''), '100%', '200px', 60, 10, false, 'jf_script1code', null, null, ['syntax' => 'javascript']); ?>
           </div>
         </div>
       </div>
@@ -523,10 +557,10 @@ $paneErrors = [
             </div>
           </div>
           <div id="s2lib" style="display:<?= (int) ($formOptions->script2cond ?? 0) === 1 ? '' : 'none'; ?>">
-            <?= FormsAdvancedOptionsHtml::bfSel($submittedScripts, 'script2id', (int) ($formOptions->script2id ?? 0)); ?>
+            <?= FormsAdvancedOptionsHtml::bfSel($submittedScriptsList, 'script2id', (int) ($formOptions->script2id ?? 0)); ?>
           </div>
           <div id="s2code" data-bf-search-code="<?= htmlspecialchars($formOptions->script2code ?? '', ENT_QUOTES, 'UTF-8'); ?>" style="display:<?= (int) ($formOptions->script2cond ?? 0) === 2 ? '' : 'none'; ?>">
-            <?= $editor->display('script2code', htmlspecialchars($formOptions->script2code ?? ''), '100%', '200px', 60, 10, false, 'jf_script2code', null, null, ['syntax' => 'javascript']); ?>
+            <?= $formEditor->display('script2code', htmlspecialchars($formOptions->script2code ?? ''), '100%', '200px', 60, 10, false, 'jf_script2code', null, null, ['syntax' => 'javascript']); ?>
           </div>
         </div>
       </div>
@@ -535,10 +569,10 @@ $paneErrors = [
 
     <?php
     $pieceLabels = [
-        1 => ['COM_BREEZINGFORMSNG_FORMS_PIECE_BEFORE', $pieceBefore, 'piece1cond', 'piece1id', 'piece1code', 'p1'],
-        2 => ['COM_BREEZINGFORMSNG_FORMS_PIECE_AFTER', $pieceAfter, 'piece2cond', 'piece2id', 'piece2code', 'p2'],
-        3 => ['COM_BREEZINGFORMSNG_FORMS_PIECE_BEGIN_SUBMIT', $pieceBeginSubmit, 'piece3cond', 'piece3id', 'piece3code', 'p3'],
-        4 => ['COM_BREEZINGFORMSNG_FORMS_PIECE_END_SUBMIT', $pieceEndSubmit, 'piece4cond', 'piece4id', 'piece4code', 'p4'],
+        1 => ['COM_BREEZINGFORMSNG_FORMS_PIECE_BEFORE', $piecesBefore, 'piece1cond', 'piece1id', 'piece1code', 'p1'],
+        2 => ['COM_BREEZINGFORMSNG_FORMS_PIECE_AFTER', $piecesAfter, 'piece2cond', 'piece2id', 'piece2code', 'p2'],
+        3 => ['COM_BREEZINGFORMSNG_FORMS_PIECE_BEGIN_SUBMIT', $piecesBeginSubmit, 'piece3cond', 'piece3id', 'piece3code', 'p3'],
+        4 => ['COM_BREEZINGFORMSNG_FORMS_PIECE_END_SUBMIT', $piecesEndSubmit, 'piece4cond', 'piece4id', 'piece4code', 'p4'],
     ];
     foreach (['form-pieces' => [1, 2], 'submit-pieces' => [3, 4]] as $piecePane => $pieceIndexes): ?>
     <div class="tab-pane fade" id="pane-<?= $piecePane; ?>" role="tabpanel">
@@ -573,7 +607,7 @@ $paneErrors = [
             <?= FormsAdvancedOptionsHtml::bfSel($pieces, $idName, (int) ($formOptions->$idName ?? 0), isset($missingPieces[$pieceIndex]) ? 'aria-invalid="true"' : ''); ?>
           </div>
           <div id="<?= $pfx; ?>code" data-bf-search-code="<?= htmlspecialchars($formOptions->$codeName ?? '', ENT_QUOTES, 'UTF-8'); ?>" style="display:<?= (int) ($formOptions->$condName ?? 0) === 2 ? '' : 'none'; ?>">
-            <?= $editor->display($codeName, htmlspecialchars($formOptions->$codeName ?? ''), '100%', '200px', 60, 10, false, 'jf_' . $codeName, null, null, ['syntax' => 'php']); ?>
+            <?= $formEditor->display($codeName, htmlspecialchars($formOptions->$codeName ?? ''), '100%', '200px', 60, 10, false, 'jf_' . $codeName, null, null, ['syntax' => 'php']); ?>
           </div>
         </div>
       </div>
