@@ -151,7 +151,8 @@ class QuickmodeModel extends BaseDatabaseModel
      */
     public function getThemesBootstrap(): array
     {
-        return $this->scanThemeDir(JPATH_SITE . '/media/breezingforms/themes-bootstrap5/');
+        // "carte" ships with the component as a stylesheet (media/com_breezingformsng/css/theme-carte.css).
+        return array_values(array_unique(['carte', ...$this->scanThemeDir(JPATH_SITE . '/media/breezingforms/themes-bootstrap5/')]));
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

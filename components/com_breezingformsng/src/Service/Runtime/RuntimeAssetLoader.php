@@ -55,6 +55,25 @@ final class RuntimeAssetLoader
         $manager->useStyle($name);
     }
 
+    /** Bootstrap themes shipped with the component, as a web asset (the others are folders of media/breezingforms). */
+    private const SHIPPED_THEMES = ['carte'];
+
+    /**
+     * Loads the stylesheet of a shipped Bootstrap theme ("carte"), registered in
+     * the joomla.asset.json of the component, when the form chose it.
+     */
+    public static function shippedTheme(CMSApplication $application, string $theme): void
+    {
+        if (!in_array($theme, self::SHIPPED_THEMES, true)) {
+            return;
+        }
+
+        $document = $application->getDocument() ?? throw new \RuntimeException('The document is not available.');
+        $manager = $document->getWebAssetManager();
+        $manager->getRegistry()->addExtensionRegistryFile('com_breezingformsng');
+        $manager->useStyle('com_breezingformsng.theme-' . $theme);
+    }
+
     /**
      * Joomla's own Font Awesome (the "fontawesome" web asset), for the icons
      * written as <i class="fa-solid fa-...">: a site template that does not load it

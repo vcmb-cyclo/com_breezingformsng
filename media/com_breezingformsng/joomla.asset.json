@@ -333,6 +333,13 @@
     },
 
     {
+      "name": "com_breezingformsng.theme-carte",
+      "type": "style",
+      "uri": "media/com_breezingformsng/css/theme-carte.css",
+      "version": "auto"
+    },
+
+    {
       "name": "com_breezingformsng.mcp-status",
       "type": "style",
       "uri": "media/com_breezingformsng/css/admin/mcp-status.css",
