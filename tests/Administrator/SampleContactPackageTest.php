@@ -77,7 +77,9 @@ final class SampleContactPackageTest extends TestCase
     {
         $raw = (string) file_get_contents(self::FILE);
 
-        self::assertDoesNotMatchRegularExpression('/vcmb|gn_[a-z_]+|<\?php|heolwenn|@[a-z0-9-]+\.[a-z]{2,}/i', $raw);
+        // The only address is the placeholder of the email field, on the reserved example.org domain.
+        $withoutPlaceholder = str_replace('name@example.org', '', $raw);
+        self::assertDoesNotMatchRegularExpression('/vcmb|gn_[a-z_]+|<\?php|heolwenn|@[a-z0-9-]+\.[a-z]{2,}/i', $withoutPlaceholder);
         $form = $this->package()['forms'][0];
         self::assertSame('', $form['data']['emailadr']);
         self::assertNull($form['data']['checked_out']);
@@ -98,20 +100,23 @@ final class SampleContactPackageTest extends TestCase
         };
         $walk($tree);
 
-        self::assertCount(9, $elements);
+        self::assertCount(7, $elements);
         foreach ($elements as $properties) {
             // A read-only field cannot be typed in: the sample must not inherit it from the form it was made from.
             self::assertEmpty($properties['readonly'] ?? false, $properties['bfName'] . ' is read-only');
             self::assertEmpty($properties['size'] ?? '', $properties['bfName'] . ' has a fixed width');
         }
         self::assertTrue($tree['properties']['themebootstrapLabelTop']);
+        // The buttons are the ones of the form itself (primary Send, secondary Reset).
+        self::assertTrue($tree['properties']['submitInclude']);
+        self::assertTrue($tree['properties']['cancelInclude']);
     }
 
     public function testItShowsTheMainKindsOfFields(): void
     {
         $types = array_column($this->package()['forms'][0]['elements'], 'type');
 
-        foreach (['Text', 'Radio Group', 'Select List', 'Checkbox Group', 'Textarea', 'Regular Button'] as $type) {
+        foreach (['Text', 'Radio Group', 'Select List', 'Checkbox Group', 'Textarea'] as $type) {
             self::assertContains($type, $types);
         }
     }
