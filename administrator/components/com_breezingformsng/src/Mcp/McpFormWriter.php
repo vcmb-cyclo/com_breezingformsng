@@ -170,7 +170,7 @@ final class McpFormWriter
 
     /**
      * @param array<string, mixed> $arguments
-     * @return array{id: int, added: list<string>, updated: list<string>, removed: list<string>, field_count: int, versioned: bool, contentbuilder_synced: bool}
+     * @return array{id: int, added: list<string>, updated: list<string>, removed: list<string>, pages_added: int, field_count: int, versioned: bool, contentbuilder_synced: bool}
      * @throws ToolException
      */
     public function manageFields(array $arguments, User $user): array
@@ -180,6 +180,10 @@ final class McpFormWriter
         }
 
         $id = (int) $arguments['id'];
+        $pagesToAdd = $arguments['add_pages'] ?? 0;
+        if (!is_int($pagesToAdd) || $pagesToAdd < 0 || $pagesToAdd > 10) {
+            throw new ToolException('At most 10 QuickMode pages can be added per call.');
+        }
         $form = $this->options->getForm($id);
         if ($form === null || (int) $form->published === -2) {
             throw new ToolException('Form not found or cannot be edited.');
@@ -202,8 +206,9 @@ final class McpFormWriter
         }
 
         $add = $this->normalizeFields($arguments['add'] ?? []);
+        $targetPageCount = count($tree['children']) + $pagesToAdd;
         foreach ($add as $field) {
-            if ($field['page'] > count($tree['children'])) {
+            if ($field['page'] > $targetPageCount) {
                 throw new ToolException(sprintf('Page %d does not exist on this form.', $field['page']));
             }
         }
@@ -213,7 +218,7 @@ final class McpFormWriter
             || !is_array($removals) || !array_is_list($removals) || count($removals) > 30) {
             throw new ToolException('Field updates and removals must be lists of at most 30 items.');
         }
-        if ($add === [] && $updates === [] && $removals === []) {
+        if ($add === [] && $updates === [] && $removals === [] && $pagesToAdd === 0) {
             throw new ToolException('Give at least one field to add, update or remove.');
         }
 
@@ -241,7 +246,7 @@ final class McpFormWriter
                 }
             }
             if (array_key_exists('page', $change)
-                && (!is_int($change['page']) || $change['page'] < 1 || $change['page'] > count($tree['children']))) {
+                && (!is_int($change['page']) || $change['page'] < 1 || $change['page'] > $targetPageCount)) {
                 throw new ToolException('A field can only be assigned to a page that already exists on the form.');
             }
             if (array_key_exists('options', $change)) {
@@ -389,6 +394,19 @@ final class McpFormWriter
             $resultPages[] = $page;
         }
 
+        $highestPageId = 0;
+        foreach ($resultPages as $page) {
+            preg_match('/^bfQuickModePage([1-9][0-9]*)$/D', (string) $page['attributes']['id'], $matches);
+            $highestPageId = max($highestPageId, (int) ($matches[1] ?? 0));
+        }
+        for ($pageIndex = 0; $pageIndex < $pagesToAdd; $pageIndex++) {
+            $resultPages[] = [
+                'attributes' => ['id' => 'bfQuickModePage' . ($highestPageId + $pageIndex + 1)],
+                'properties' => ['type' => 'page'],
+                'children' => [],
+            ];
+        }
+
         foreach ($resultPages as $pageIndex => &$page) {
             foreach ($movedFields[$pageIndex] ?? [] as $node) {
                 $page['children'][] = $node;
@@ -450,6 +468,7 @@ final class McpFormWriter
             'added' => array_column($add, 'name'),
             'updated' => $updated,
             'removed' => $removed,
+            'pages_added' => $pagesToAdd,
             'field_count' => count($allFields),
             'versioned' => $versioned,
             'contentbuilder_synced' => $contentBuilderSynced,
@@ -735,12 +754,13 @@ final class McpFormWriter
         $elementIds = [];
         $quickmodeIds = [];
         $pageIds = [];
-        foreach ($tree['children'] as $page) {
+        foreach ($tree['children'] as $pageIndex => $page) {
             if (!is_array($page) || !is_array($page['attributes'] ?? null) || !is_array($page['properties'] ?? null)) {
                 throw new ToolException('This form has a malformed page that the MCP field editor cannot safely preserve.');
             }
             $pageId = (string) ($page['attributes']['id'] ?? '');
-            if (!preg_match('/^bfQuickModePage[1-9][0-9]*$/D', $pageId)
+            if ($pageId !== 'bfQuickModePage' . ($pageIndex + 1)
+                || !preg_match('/^bfQuickModePage[1-9][0-9]*$/D', $pageId)
                 || isset($pageIds[$pageId])
                 || ($page['properties']['type'] ?? null) !== 'page' || !is_array($page['children'] ?? null)) {
                 throw new ToolException('This form has a page structure that the MCP field editor cannot safely preserve.');

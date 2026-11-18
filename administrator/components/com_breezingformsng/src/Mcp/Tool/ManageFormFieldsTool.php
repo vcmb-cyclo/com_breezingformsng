@@ -34,7 +34,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
     public function description(): string
     {
         return 'Adds, updates or removes text, textarea, select, radio, checkbox-group and checkbox fields on compatible QuickMode forms. '
-            . 'New fields can target an existing page and existing fields can move between pages. Updates can change text/textarea type, labels, placeholders, required state, checkbox values, select multiplicity or choice options; field names stay fixed. '
+            . 'Pages can be added, new fields can target existing or new pages, and existing fields can move between pages. Updates can change text/textarea type, labels, placeholders, required state, checkbox values, select multiplicity or choice options; field names stay fixed. '
             . 'Existing custom scripts and settings are preserved; the required option uses only the standard non-empty validation. Fields cannot be removed after submissions exist. '
             . 'Forms with other field types or nested field structures are not changed. Choice options cannot be changed after submissions exist.';
     }
@@ -53,7 +53,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
                 'value' => ['type' => 'string', 'maxLength' => 255, 'description' => 'Submitted value for a checkbox field.'],
                 'required' => ['type' => 'boolean', 'description' => 'Make a text or textarea field required.'],
                 'required_message' => ['type' => 'string', 'maxLength' => 255, 'description' => 'Optional plain-text required message.'],
-                'page' => ['type' => 'integer', 'minimum' => 1, 'description' => 'Existing QuickMode page number, starting at 1; defaults to the first page.'],
+                'page' => ['type' => 'integer', 'minimum' => 1, 'description' => 'Existing or newly added QuickMode page number, starting at 1; defaults to the first page.'],
                 'options' => self::choiceOptionsSchema(),
             ],
             'required' => ['type', 'name', 'label'],
@@ -71,7 +71,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
                 'value' => ['type' => 'string', 'maxLength' => 255, 'description' => 'New submitted value for a checkbox field.'],
                 'required' => ['type' => 'boolean', 'description' => 'Whether a text or textarea field is required.'],
                 'required_message' => ['type' => 'string', 'maxLength' => 255, 'description' => 'New plain-text required message.'],
-                'page' => ['type' => 'integer', 'minimum' => 1, 'description' => 'Move the field to an existing QuickMode page number, starting at 1.'],
+                'page' => ['type' => 'integer', 'minimum' => 1, 'description' => 'Move the field to an existing or newly added QuickMode page number, starting at 1.'],
                 'options' => self::choiceOptionsSchema(false),
             ],
             'required' => ['name'],
@@ -82,6 +82,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
             'type' => 'object',
             'properties' => [
                 'id' => ['type' => 'integer', 'minimum' => 1, 'description' => 'Id of the MCP-managed form.'],
+                'add_pages' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 10, 'default' => 0, 'description' => 'Number of blank QuickMode pages to append before adding or moving fields.'],
                 'add' => ['type' => 'array', 'maxItems' => 30, 'default' => [], 'items' => $newField, 'description' => 'Fields to add.'],
                 'update' => ['type' => 'array', 'maxItems' => 30, 'default' => [], 'items' => $updateField, 'description' => 'Existing fields to update.'],
                 'remove' => ['type' => 'array', 'maxItems' => 30, 'default' => [], 'items' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100], 'description' => 'Existing field names to remove.'],

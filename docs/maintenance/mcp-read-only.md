@@ -93,8 +93,10 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   texte et zone de texte, régler le libellé, l’espace réservé, le caractère
   obligatoire, la valeur d’une case, la sélection multiple d’une liste et ses
   choix, mais pas le nom du champ. Les nouveaux champs peuvent être placés sur
-  une page QuickMode existante et les champs déplacés entre les pages déjà
-  présentes. Les choix, le mode multiple et les valeurs de case ne peuvent pas
+  une page QuickMode existante ; `add_pages` ajoute jusqu’à 10 pages vierges,
+  que les nouveaux champs peuvent cibler au même appel. Les champs existants
+  peuvent être déplacés entre les pages déjà présentes. Les choix, le mode
+  multiple et les valeurs de case ne peuvent pas
   être modifiés après une soumission ;
   la suppression est également refusée dès qu’il existe une soumission. Les
   formulaires avec d’autres types de champs ou des structures imbriquées sont
