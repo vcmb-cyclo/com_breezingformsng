@@ -76,14 +76,16 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   peut être précochée et une liste peut accepter plusieurs réponses. Les champs
   texte et zone de texte peuvent être obligatoires, avec un message facultatif.
   Seule la validation standard « valeur non vide » est disponible. Les scripts
-  personnalisés, autres validations, intégrations, téléversements, paiements et
-  destinataires de notification ne sont pas configurables.
+  personnalisés, autres validations, intégrations, téléversements et paiements
+  ne sont pas configurables.
 - `bfng_update_form` : modifie par ID un ou plusieurs champs parmi le nom, le
   titre et la description, ou règle la largeur en pixels ou en pourcentage,
-  la hauteur fixe ou automatique, l’ajustement automatique et la publication.
-  Publier ou dépublier exige aussi le droit Joomla `core.edit.state`. Les
-  champs, les scripts, les intégrations et les réglages de notification
-  restent inchangés. Les
+  la hauteur fixe ou automatique, l’ajustement automatique, la publication et
+  les notifications administrateur. Il est possible d’activer ou désactiver
+  l’envoi et de définir un destinataire unique ; une adresse valide est requise
+  pour activer l’envoi. Cette adresse n’est pas renvoyée par MCP. Publier ou
+  dépublier exige aussi le droit Joomla `core.edit.state`. Les champs, les
+  scripts, les modèles de courriel et les intégrations restent inchangés. Les
   formulaires supprimés ne peuvent pas être modifiés. Le verrouillage et
   l’historique Joomla sont appliqués comme lors d’une sauvegarde dans
   l’administration.
