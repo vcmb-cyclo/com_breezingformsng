@@ -219,7 +219,7 @@ final class ToolsPageTemplateTest extends TestCase
         self::assertNotEmpty($matches[1]);
         // The sample keys are built from the catalog: a prefix in the template, the whole key checked here.
         $keys = array_filter($matches[1], static fn (string $key): bool => !str_ends_with($key, '_'));
-        foreach (['contact', 'event', 'quote', 'survey'] as $slug) {
+        foreach (['contact', 'event', 'quote', 'survey', 'widgets'] as $slug) {
             $keys[] = 'COM_BREEZINGFORMSNG_TOOLS_SAMPLE_' . strtoupper($slug) . '_ITEM';
             $keys[] = 'COM_BREEZINGFORMSNG_TOOLS_SAMPLE_' . strtoupper($slug) . '_DESC';
         }
