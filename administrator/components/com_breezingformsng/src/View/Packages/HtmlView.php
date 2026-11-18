@@ -22,6 +22,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Mcp\McpAvailability;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordInventoryService;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\SampleFormService;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
 
 /**
@@ -60,6 +61,10 @@ final class HtmlView extends BaseHtmlView
     public bool $canConfigure = false;
     /** Submitted records in the trash, shown on the Trash card. */
     public int $trashedRecords = 0;
+    /** Id of the installed sample form, 0 when it is not installed. */
+    public int $sampleFormId = 0;
+    /** Installing the sample writes a form layout: it takes the Configure permission. */
+    public bool $canInstallSample = false;
 
     public function display($tpl = null)
     {
@@ -113,6 +118,9 @@ final class HtmlView extends BaseHtmlView
                 (new RecordInventoryService(Factory::getContainer()->get(DatabaseInterface::class)))->getInventory(),
                 'trashed'
             ));
+            $this->sampleFormId = (new SampleFormService(Factory::getContainer()->get(DatabaseInterface::class)))
+                ->getInstalledFormId();
+            $this->canInstallSample = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
             $this->canConfigure = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
             $this->getDocument()->getWebAssetManager()
                 ->useStyle('com_breezingformsng.mcp-status')
