@@ -17,8 +17,8 @@ namespace Vcmb\Component\BreezingformsNG\Tests\Site\Service\Callback;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The captcha image is a PNG: the deprecations Securimage raises under PHP 8
- * must never be written into it, or the browser shows no security code.
+ * The security code image is a clean JPEG that is never cached, its code is kept in the Joomla session,
+ * and the browser check leaves that code for the submission.
  */
 final class CaptchaCallbackTest extends TestCase
 {
@@ -32,36 +32,43 @@ final class CaptchaCallbackTest extends TestCase
     public function testNoErrorTextIsWrittenIntoTheCaptchaResponse(): void
     {
         $source = $this->source();
-        $create = substr($source, (int) strpos($source, 'private function createSecurimage'));
+        $clear = substr($source, (int) strpos($source, 'private function clearOutputBuffer'));
 
-        self::assertStringContainsString("ini_set('display_errors', '0');", $create);
-        self::assertStringContainsString('~E_DEPRECATED', $create);
-        // Both settings come before the library is loaded and the image drawn.
-        self::assertLessThan(
-            (int) strpos($create, 'VendorHelper::load()'),
-            (int) strpos($create, "ini_set('display_errors', '0');")
-        );
+        // Both responses (the image and capResult) go through the buffer clearing.
+        self::assertStringContainsString("ini_set('display_errors', '0');", $clear);
+        self::assertSame(2, substr_count($source, '$this->clearOutputBuffer();'));
     }
 
-    public function testTheCodeIsKeptInTheJoomlaSessionAndTheBrowserCheckLeavesIt(): void
+    public function testTheImageIsNeverCachedAndItsCodeIsKeptInTheSession(): void
+    {
+        $source = $this->source();
+        $image = substr($source, (int) strpos($source, 'public function image'));
+        $image = substr($image, 0, (int) strpos($image, 'private function codeStore'));
+
+        self::assertStringContainsString('no-store', $image);
+        self::assertStringContainsString("'Content-Type', CaptchaImage::MIME_TYPE", $image);
+        // The code is stored before the image is sent, so that the session holds it when the page is shown.
+        self::assertLessThan(
+            (int) strpos($image, 'sendHeaders'),
+            (int) strpos($image, '$this->codeStore()->store(')
+        );
+        self::assertStringNotContainsString('Securimage', $source);
+    }
+
+    public function testTheBrowserCheckLeavesTheCodeForTheSubmission(): void
     {
         $source = $this->source();
         $check = substr($source, (int) strpos($source, 'public function check'));
         $check = substr($check, 0, (int) strpos($check, 'public function image'));
 
-        self::assertStringContainsString("'captchaId' => CaptchaCodeStore::CAPTCHA_ID", $source);
-        self::assertStringContainsString('new SecurimageSessionAdapter(', $source);
-        // Without no_exit, Securimage exits before Joomla saves the session holding the code.
-        self::assertStringContainsString("'no_exit' => true", $source);
         self::assertStringContainsString('->matches(', $check);
         self::assertStringContainsString(', false)', $check);
-        self::assertStringNotContainsString('->check(', $check);
 
         $submission = (string) file_get_contents(
             __DIR__ . '/../../../../components/com_breezingformsng/src/Service/Submission/SubmissionEngine.php'
         );
         self::assertStringContainsString("getString('bfCaptchaEntry', ''), true)", $submission);
-        self::assertStringNotContainsString('new Securimage(', $submission);
+        self::assertStringNotContainsString('Securimage', $submission);
     }
 
     public function testEveryOutputBufferIsClearedBeforeTheResponse(): void

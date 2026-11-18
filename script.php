@@ -3316,17 +3316,20 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->removeLegacyBreezingFormsComponentDirectories();
         $this->removeObsoleteSystemPlugin();
         $this->removeObsoleteComponentFiles();
-        $this->removeObsoleteCaptchaNoise();
+        $this->removeObsoleteCaptchaLibrary();
         $this->log(
             'Legacy BreezingForms component cleanup completed in safe mode; uninstall hooks intentionally skipped.'
         );
     }
 
-    /** Remove only background-noise assets omitted from production packages. */
-    private function removeObsoleteCaptchaNoise(): void
+    /**
+     * Remove the CAPTCHA library of earlier versions, Securimage, replaced by gregwar/captcha: exactly its own
+     * folder under the component's vendor directory, and the folder of its publisher once nothing else is in it.
+     */
+    private function removeObsoleteCaptchaLibrary(): void
     {
         $directory = JPATH_ADMINISTRATOR
-            . '/components/com_breezingformsng/vendor/bgli100/securimage/audio/noise';
+            . '/components/com_breezingformsng/vendor/bgli100/securimage';
 
         if (!is_link($directory) && !Folder::exists($directory)) {
             return;
@@ -3341,7 +3344,13 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 return;
             }
 
-            $this->log('Removed obsolete CAPTCHA background noise assets.');
+            $publisher = dirname($directory);
+
+            if (!is_link($publisher) && is_dir($publisher) && scandir($publisher) === ['.', '..']) {
+                @rmdir($publisher);
+            }
+
+            $this->log('Removed the obsolete CAPTCHA library (Securimage).');
         } catch (FilesystemException | \UnexpectedValueException $e) {
             $this->log(
                 $e->getMessage(),

@@ -10,14 +10,13 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Callback;
 
 \defined('_JEXEC') or die;
 
-use Securimage;
 use Joomla\CMS\Application\CMSApplication;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper;
 use Vcmb\Component\BreezingformsNG\Site\Service\Security\CaptchaCodeStore;
-use Vcmb\Component\BreezingformsNG\Site\Service\Security\SecurimageSessionAdapter;
+use Vcmb\Component\BreezingformsNG\Site\Service\Security\CaptchaImage;
 
 /**
- * Securimage captcha validation callback (checkCaptcha=1).
+ * Security code callbacks: the image (bfCaptcha=1) and its check (checkCaptcha=1).
  */
 final class CaptchaCallback
 {
@@ -43,42 +42,20 @@ final class CaptchaCallback
     public function image(): void
     {
         $this->clearOutputBuffer();
-
-        $securimage = $this->createSecurimage();
-        $securimage->image_width = 230;
-        $securimage->image_height = 80;
-        $securimage->perturbation = 0.9;
-        $securimage->image_bg_color = new \Securimage_Color('#6495ED');
-        $securimage->text_color = new \Securimage_Color('#B0E0E6');
-        $securimage->line_color = new \Securimage_Color('#B0E0E6');
-        $securimage->noise_color = new \Securimage_Color('#B0E0E6');
-        $securimage->use_transparent_text = false;
-        $securimage->text_transparency_percentage = 60;
-        $securimage->num_lines = 15;
-        $securimage->image_signature = '';
-        $securimage->use_wordlist = true;
-
-        $this->application->setHeader('status', '200', true);
-        // Securimage returns instead of exiting, so that Joomla saves the session with the new code.
-        $securimage->show(JPATH_SITE . '/media/com_breezingformsng/images/site/captcha/backgrounds/bg6.jpg');
-
-        $this->application->close();
-    }
-
-    private function createSecurimage(): Securimage
-    {
-        // The response is a PNG or a capResult value: any error text in it breaks it.
-        // Securimage raises a PHP 8 deprecation for every pixel it warps, which
-        // would also flood the error log, so deprecations are left out here.
-        ini_set('display_errors', '0');
-        error_reporting(error_reporting() & ~E_DEPRECATED);
         VendorHelper::load();
 
-        return new Securimage([
-            'captchaId' => CaptchaCodeStore::CAPTCHA_ID,
-            'storage_adapters' => [new SecurimageSessionAdapter($this->codeStore())],
-            'no_exit' => true,
-        ]);
+        $captcha = (new CaptchaImage())->create();
+        $this->codeStore()->store($captcha['phrase']);
+
+        // A new image every time: the browser must not show an earlier one for a code that has changed.
+        $this->application->setHeader('Content-Type', CaptchaImage::MIME_TYPE, true);
+        $this->application->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate', true);
+        $this->application->setHeader('Pragma', 'no-cache', true);
+        $this->application->setHeader('status', '200', true);
+        $this->application->sendHeaders();
+        echo $captcha['image'];
+
+        $this->application->close();
     }
 
     private function codeStore(): CaptchaCodeStore
@@ -88,6 +65,9 @@ final class CaptchaCallback
 
     private function clearOutputBuffer(): void
     {
+        // The response is an image or a capResult value: any error text written into it would break it.
+        ini_set('display_errors', '0');
+
         while (ob_get_level() > 0) {
             ob_end_clean();
         }

@@ -108,9 +108,6 @@ fi
 
 # Production dependencies can still ship development-only files.
 vendor_dir="${package_dir}/administrator/components/com_breezingformsng/vendor"
-# Keep the CAPTCHA engine and English audio; exclude optional background noise.
-rm -rf "${vendor_dir}/bgli100/securimage/audio/noise"
-
 find "${vendor_dir}" -depth -type d \
     \( -iname test -o -iname tests -o -name .github -o -name PHPStan -o -name .phpunit.cache \) \
     -exec rm -rf {} +

@@ -23,10 +23,7 @@ use Joomla\Session\SessionInterface;
  */
 final class CaptchaCodeStore
 {
-    /** Captcha id given to Securimage: the session already keeps visitors apart. */
-    public const CAPTCHA_ID = 'bfng';
-
-    /** Seconds a code stays valid, as Securimage's default expiry time. */
+    /** Seconds a code stays valid. */
     public const LIFETIME = 900;
 
     /** Wrong entries tolerated before the code is dropped and a new image is needed. */
@@ -96,7 +93,7 @@ final class CaptchaCodeStore
         return true;
     }
 
-    /** Securimage codes are not case-sensitive; a word list code may hold spaces. */
+    /** A code is typed without regard to case or to the spaces around it. */
     private static function normalise(string $code): string
     {
         return strtolower(trim((string) preg_replace('/\s+/', ' ', $code)));

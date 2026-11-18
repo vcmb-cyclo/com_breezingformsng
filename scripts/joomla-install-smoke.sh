@@ -598,14 +598,14 @@ fi
 
 # Exercise the installed Composer autoloader through the component's loader.
 # This catches packages that are present in source but missing from a clean
-# Joomla installation, including Securimage and tc-lib-pdf.
+# Joomla installation, including gregwar/captcha and tc-lib-pdf.
 docker exec "${web_container}" php -r '
     define("_JEXEC", 1);
     define("JPATH_SITE", "/var/www/html");
     define("JPATH_ADMINISTRATOR", "/var/www/html/administrator");
     require "/var/www/html/administrator/components/com_breezingformsng/src/Helper/VendorHelper.php";
     \Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper::load();
-    if (!class_exists("Securimage") || !class_exists(\Com\Tecnick\Pdf\Tcpdf::class)) {
+    if (!class_exists(\Gregwar\Captcha\CaptchaBuilder::class) || !class_exists(\Com\Tecnick\Pdf\Tcpdf::class)) {
         exit(1);
     }
     require "/var/www/html/administrator/components/com_breezingformsng/src/Service/PdfDocument.php";
@@ -619,11 +619,9 @@ docker exec "${web_container}" php -r '
     if (!str_starts_with($pdfOutput, "%PDF-")) {
         exit(1);
     }
-    $captcha = new Securimage(["no_exit" => true, "send_headers" => false]);
-    ob_start();
-    $captcha->show();
-    $image = ob_get_clean();
-    exit(str_starts_with($image, "\x89PNG\r\n\x1a\n") ? 0 : 1);
+    $captcha = new \Gregwar\Captcha\CaptchaBuilder();
+    $captcha->build(230, 80);
+    exit(str_starts_with($captcha->get(), "\xFF\xD8\xFF") ? 0 : 1);
 '
 
 module_count="$(docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "SELECT COUNT(*) FROM \`${table_prefix}extensions\` WHERE type = 'module' AND element = 'mod_breezingforms' AND client_id = 0;")"

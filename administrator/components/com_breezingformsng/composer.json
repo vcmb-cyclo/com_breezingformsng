@@ -5,8 +5,8 @@
     "type": "project",
     "require": {
         "php": ">=8.3",
-        "bgli100/securimage": "^4.0",
         "ext-bcmath": "*",
+        "gregwar/captcha": "^2.1",
         "phpoffice/phpspreadsheet": "^5.8",
         "stripe/stripe-php": "^22.0",
         "tecnickcom/tc-lib-pdf": "^8"

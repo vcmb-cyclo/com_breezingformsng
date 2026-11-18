@@ -35,9 +35,9 @@ required=(
     "administrator/components/com_breezingformsng/sql/install.mysql.utf8.sql"
     "administrator/components/com_breezingformsng/plugins/bfcompat/bfcompat.xml"
     "administrator/components/com_breezingformsng/plugins/privacy/breezingformsng.xml"
-    "administrator/components/com_breezingformsng/vendor/bgli100/securimage/securimage.php"
-    "administrator/components/com_breezingformsng/vendor/bgli100/securimage/CaptchaObject.php"
-    "administrator/components/com_breezingformsng/vendor/bgli100/securimage/StorageAdapter/Session.php"
+    "administrator/components/com_breezingformsng/vendor/gregwar/captcha/src/Gregwar/Captcha/CaptchaBuilder.php"
+    "administrator/components/com_breezingformsng/vendor/gregwar/captcha/src/Gregwar/Captcha/Font/captcha0.ttf"
+    "components/com_breezingformsng/src/Service/Security/CaptchaImage.php"
     "administrator/components/com_breezingformsng/vendor/autoload.php"
     "administrator/components/com_breezingformsng/vendor/tecnickcom/tc-lib-pdf/src/Tcpdf.php"
     "administrator/components/com_breezingformsng/vendor/tecnickcom/tc-lib-pdf-font/target/fonts/core/helvetica.json"
@@ -56,7 +56,7 @@ for path in "${required[@]}"; do
 done
 
 forbidden_patterns=(
-    '^administrator/components/com_breezingformsng/vendor/bgli100/securimage/audio/noise/'
+    '^administrator/components/com_breezingformsng/vendor/bgli100/securimage/'
     '^administrator/components/com_breezingformsng/vendor/tecnickcom/tcpdf/'
     '^administrator/components/com_breezingformsng/vendor/bin/'
     '^administrator/components/com_breezingformsng/vendor/phpunit/'

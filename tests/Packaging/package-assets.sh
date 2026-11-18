@@ -17,16 +17,12 @@ while IFS= read -r path; do
     printf 'fixture\n' > "${package_dir}/${path}"
 done < <(sed -n '/^required=(/,/^)/s/^    "\(.*\)"$/\1/p' "${validator}")
 cp "${root_dir}/breezingformsng.xml" "${package_dir}/breezingformsng.xml"
-captcha_dir="${package_dir}/administrator/components/com_breezingformsng/vendor/bgli100/securimage"
-mkdir -p "${captcha_dir}/audio/noise" "${captcha_dir}/audio/en"
-printf 'noise\n' > "${captcha_dir}/audio/noise/background.wav"
-printf 'letter\n' > "${captcha_dir}/audio/en/0.wav"
+captcha_dir="${package_dir}/administrator/components/com_breezingformsng/vendor/gregwar/captcha/src/Gregwar/Captcha"
 
 # Execute the builder's real vendor-cleanup block against the fixture.
 sed -n '/^vendor_dir=/,/^archive=/{ /^archive=/d; p; }' "${builder}" > "${temporary_dir}/cleanup.sh"
 source "${temporary_dir}/cleanup.sh"
-test ! -d "${captcha_dir}/audio/noise"
-test -f "${captcha_dir}/audio/en/0.wav"
+test -f "${captcha_dir}/Font/captcha0.ttf"
 test -f "${package_dir}/media/com_breezingformsng/images/bfng-easter-egg-2026.webp"
 
 archive="${temporary_dir}/fixture.zip"
@@ -41,14 +37,15 @@ fi
 grep -Fq 'Required package entry is missing: media/com_breezingformsng/images/bfng-easter-egg-2026.webp' "${temporary_dir}/validation.log"
 (cd "${package_dir}" && zip -q "${archive}" media/com_breezingformsng/images/bfng-easter-egg-2026.webp)
 
-mkdir -p "${captcha_dir}/audio/noise"
-printf 'noise\n' > "${captcha_dir}/audio/noise/background.wav"
-(cd "${package_dir}" && zip -q "${archive}" administrator/components/com_breezingformsng/vendor/bgli100/securimage/audio/noise/background.wav)
+old_captcha="${package_dir}/administrator/components/com_breezingformsng/vendor/bgli100/securimage"
+mkdir -p "${old_captcha}"
+printf 'engine\n' > "${old_captcha}/securimage.php"
+(cd "${package_dir}" && zip -q "${archive}" administrator/components/com_breezingformsng/vendor/bgli100/securimage/securimage.php)
 if bash "${validator}" "${archive}" > "${temporary_dir}/validation.log" 2>&1; then
-    echo 'Validator accepted excluded CAPTCHA background noise.' >&2
+    echo 'Validator accepted the replaced CAPTCHA library.' >&2
     exit 1
 fi
-grep -Fq 'vendor/bgli100/securimage/audio/noise/' "${temporary_dir}/validation.log"
+grep -Fq 'vendor/bgli100/securimage/' "${temporary_dir}/validation.log"
 
 # Missing release notes must fail before deleting existing staging contents.
 guard_dir="${temporary_dir}/release-guard"
@@ -74,4 +71,4 @@ fi
 grep -Fq 'com_breezingformsng_changelog.xml has no entry for 0.0.0-test.' "${temporary_dir}/guard.log"
 test -f "${guard_dir}/build/package/keep.txt"
 
-echo 'PASS: CAPTCHA noise removed; English audio and Easter Egg kept; invalid ZIPs rejected; release notes required before staging cleanup.'
+echo 'PASS: new CAPTCHA library and Easter Egg kept; the replaced library rejected; invalid ZIPs rejected; release notes required before staging cleanup.'
