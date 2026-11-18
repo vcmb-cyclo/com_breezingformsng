@@ -33,8 +33,8 @@ final class CreateFormTool implements McpTool
 
     public function description(): string
     {
-        return 'Creates an unpublished BreezingForms NG form with up to 30 text, textarea, select, radio or checkbox-group fields. '
-            . 'It does not configure scripts, validations, integrations, file uploads, payments or notification destinations.';
+        return 'Creates an unpublished BreezingForms NG form with up to 30 text, textarea, select, radio, checkbox-group or checkbox fields. '
+            . 'Text and textarea fields can use the standard non-empty validation; custom scripts, other validations, integrations, file uploads, payments and notification destinations are not configured.';
     }
 
     public function inputSchema(): array
@@ -53,10 +53,15 @@ final class CreateFormTool implements McpTool
                     'items' => [
                         'type' => 'object',
                         'properties' => [
-                            'type' => ['type' => 'string', 'enum' => ['text', 'textarea', 'select', 'radio', 'checkbox_group'], 'description' => 'Field type.'],
+                            'type' => ['type' => 'string', 'enum' => ['text', 'textarea', 'select', 'radio', 'checkbox_group', 'checkbox'], 'description' => 'Field type.'],
                             'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100, 'description' => 'Field name, starting with a letter; letters, numbers and underscores only.'],
                             'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Plain-text field label.'],
                             'placeholder' => ['type' => 'string', 'maxLength' => 255, 'default' => '', 'description' => 'Optional plain-text placeholder.'],
+                            'multiple' => ['type' => 'boolean', 'description' => 'Allow multiple selected values on a select field.'],
+                            'checked' => ['type' => 'boolean', 'description' => 'Initial checked state for a checkbox field.'],
+                            'value' => ['type' => 'string', 'maxLength' => 255, 'description' => 'Submitted value for a checkbox field; defaults to "1".'],
+                            'required' => ['type' => 'boolean', 'description' => 'Make a text or textarea field required.'],
+                            'required_message' => ['type' => 'string', 'maxLength' => 255, 'description' => 'Optional plain-text message shown when a required field is empty.'],
                             'options' => [
                                 'type' => 'array',
                                 'maxItems' => 30,
@@ -67,6 +72,7 @@ final class CreateFormTool implements McpTool
                                     'properties' => [
                                         'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255],
                                         'value' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255],
+                                        'selected' => ['type' => 'boolean', 'default' => false],
                                     ],
                                     'required' => ['label', 'value'],
                                     'additionalProperties' => false,
