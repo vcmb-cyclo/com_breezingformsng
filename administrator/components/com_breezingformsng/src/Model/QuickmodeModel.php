@@ -18,6 +18,7 @@ use Joomla\Database\ParameterType;
 use Joomla\Filesystem\File;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\QuickmodeThemePath;
 use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
+use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions;
 
 class QuickmodeModel extends BaseDatabaseModel
 {
@@ -283,6 +284,11 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['mailback']           = !empty($mdata['mailback']) ? 1 : 0;
                         $element['mailbackAsSender']   = !empty($mdata['mailbackAsSender']) ? 1 : 0;
                         $element['mailbackfile']       = $mdata['mailbackfile'] ?? '';
+                        $widget                        = WidgetOptions::widget($mdata);
+                        if ($widget !== '') {
+                            $element['options']['widget']        = $widget;
+                            $element['options']['widgetOptions'] = WidgetOptions::options($widget, $mdata);
+                        }
                         break;
                     case 'bfTextarea':
                         $element['bfType']             = 'Textarea';
@@ -341,6 +347,9 @@ class QuickmodeModel extends BaseDatabaseModel
                         $element['data2']                           = strtolower($mdata['allowedFileExtensions']);
                         $element['options']['attachToAdminMail']     = $mdata['attachToAdminMail'];
                         $element['options']['attachToUserMail']      = $mdata['attachToUserMail'];
+                        if (WidgetOptions::hasDropZone($mdata)) {
+                            $element['options']['dropZone']          = true;
+                        }
                         break;
                     case 'bfSubmitButton':
                         $element['bfType']             = 'Regular Button';

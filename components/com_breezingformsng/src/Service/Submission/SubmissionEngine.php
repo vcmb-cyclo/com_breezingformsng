@@ -53,6 +53,7 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadError;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadDirectoryProtection;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadRuntime;
 use Vcmb\Component\BreezingformsNG\Site\Service\Security\HtmlSanitizer;
+use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetValueValidator;
 use CB\Component\Contentbuilderng\Administrator\Helper\ContentbuilderngHelper;
 use CB\Component\Contentbuilderng\Administrator\Helper\FormSourceFactory;
 use CB\Component\Contentbuilderng\Administrator\Service\ArticleService;
@@ -153,6 +154,33 @@ final class SubmissionEngine
         }
 
         return ['default' => $result->path, 'server' => $result->serverPath];
+    }
+
+    /**
+     * Refuses the submission when a QuickMode widget field (phone, date and time, country) holds a malformed
+     * value. The submitted value is never logged or put in the message.
+     */
+    private function refuseInvalidWidgetValue(object $row): bool
+    {
+        if (trim((string) $this->processor->formrow->template_code_processed) !== 'QuickMode') {
+            return false;
+        }
+
+        $areas = json_decode((string) $this->processor->formrow->template_areas, true);
+        if (!is_array($areas)) {
+            return false;
+        }
+
+        $values = $this->processor->app->getInput()->post->get('ff_nm_' . $row->name, [], 'array');
+        $error = (new WidgetValueValidator())->validateAreas($areas, (string) $row->name, $values);
+        if ($error === null) {
+            return false;
+        }
+
+        $this->processor->status = _FF_STATUS_FILE_EXTENSION_NOT_ALLOWED;
+        $this->processor->message = Text::_($error);
+
+        return true;
     }
 
     public function measureTime(): float
@@ -759,6 +787,10 @@ final class SubmissionEngine
                         case 'Calendar':
                         case 'Hidden Input':
                         case 'Signature':
+                            if ($row->type === 'Text' && $this->refuseInvalidWidgetValue($row)) {
+                                return;
+                            }
+
                             if ($row->logging == 1) {
                                 $rawValues = $this->processor->app->getInput()->post->get(
                                     "ff_nm_" . $row->name,

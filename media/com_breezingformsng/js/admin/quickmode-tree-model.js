@@ -12,6 +12,30 @@ const NODE_CLASSES = Object.freeze({
     element: 'bfQuickModeElementClass'
 });
 
+/** Textfield presets: widget property value => #bfElementType option. */
+const WIDGET_OPTIONS = Object.freeze({
+    phone: 'bfElementTypePhone',
+    datetime: 'bfElementTypeDateTime',
+    country: 'bfElementTypeCountry',
+    address: 'bfElementTypeAddress'
+});
+
+/** Defaults of the widget* properties; a missing key means its default. */
+const WIDGET_DEFAULTS = Object.freeze({
+    widgetDefaultCountry: 'fr',
+    widgetCountries: '',
+    widgetShowFlags: true,
+    widgetShowDialCode: true,
+    widgetValidate: true,
+    widgetMode: 'datetime',
+    widgetMin: '',
+    widgetMax: '',
+    widgetStep: 15,
+    widgetProvider: '',
+    widgetMinChars: 3,
+    widgetFill: ''
+});
+
 export class QuickmodeTreeModel {
     constructor(root) {
         this.root = root;
@@ -161,7 +185,7 @@ export class QuickmodeTreeModel {
         }
 
         if (bfType === 'bfTextfield') {
-            return 'bfElementTypeText';
+            return this.getWidgetOption(node.properties.widget) || 'bfElementTypeText';
         }
 
         if (bfType === 'bfNumberInput' && node.properties.range) {
@@ -169,6 +193,41 @@ export class QuickmodeTreeModel {
         }
 
         return 'bfElementType' + bfType.slice(2);
+    }
+
+    /**
+     * #bfElementType option of a Textfield widget preset, or '' for plain text
+     * and for any unknown widget.
+     */
+    getWidgetOption(widget) {
+        return Object.hasOwn(WIDGET_OPTIONS, widget) ? WIDGET_OPTIONS[widget] : '';
+    }
+
+    /**
+     * Widget of a #bfElementType option: 'phone', 'datetime', 'country',
+     * 'address', or '' for any other option (plain text included).
+     */
+    getWidgetFromOption(option) {
+        return Object.keys(WIDGET_OPTIONS).find((widget) => WIDGET_OPTIONS[widget] === option) || '';
+    }
+
+    /**
+     * Turns a Textfield into the given widget preset ('' = plain text) while
+     * keeping every other property. Missing widget* keys get their default;
+     * existing ones are kept so switching presets does not lose settings.
+     */
+    applyWidgetPreset(properties, widget) {
+        properties.widget = Object.hasOwn(WIDGET_OPTIONS, widget) ? widget : '';
+
+        if (properties.widget) {
+            for (const [key, value] of Object.entries(WIDGET_DEFAULTS)) {
+                if (!Object.hasOwn(properties, key)) {
+                    properties[key] = value;
+                }
+            }
+        }
+
+        return properties;
     }
 
     /**

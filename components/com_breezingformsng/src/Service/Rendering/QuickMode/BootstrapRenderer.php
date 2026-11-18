@@ -18,6 +18,8 @@ use HTML_facileFormsProcessor;
 
 use Joomla\CMS\Uri\Uri;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\RuntimeAssetLoader;
+use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetAssets;
+use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetFieldBuilder;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Editor\Editor;
@@ -663,6 +665,10 @@ class BootstrapRenderer
 
                 $mdata = QuickModeSubmittedValueHydrator::hydrate($this->p, $mdata, $this->language_tag);
 
+                if (WidgetFieldBuilder::hasWidget($mdata)) {
+                    WidgetAssets::register($this->p->app);
+                }
+
                 switch ($mdata['bfType']) {
                     case 'bfNumberInput':
                         $this->renderBootstrapStyleNumberInputField($mdata, $label, $tabIndex, $onclick, $onblur, $onchange, $onfocus, $onselect, $readonly);
@@ -820,14 +826,16 @@ class BootstrapRenderer
                                 $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . $readonly,
                                 'hidden',
                                 (string) $mdata['bfName'],
-                                (int) $mdata['dbId']
+                                (int) $mdata['dbId'],
+                                WidgetFieldBuilder::fileAttributes($mdata)
                             );
                         } else {
                             echo QuickModeFileInputBuilder::build(
                                 $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect . $readonly,
                                 'file',
                                 (string) $mdata['bfName'],
-                                (int) $mdata['dbId']
+                                (int) $mdata['dbId'],
+                                WidgetFieldBuilder::fileAttributes($mdata)
                             );
                         }
                         if ($mdata['attachToAdminMail']) {
