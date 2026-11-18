@@ -63,9 +63,9 @@ final class ToolsPageTemplateTest extends TestCase
     {
         $template = $this->template();
 
-        self::assertStringContainsString("'badge' => \$this->trashedRecords", $template);
+        self::assertStringContainsString("'badge' => \$this->trashedTotal", $template);
         self::assertStringContainsString('data-trash-count', $template);
-        self::assertStringContainsString("Text::plural('COM_BREEZINGFORMSNG_TOOLS_TRASH_COUNT'", $template);
+        self::assertStringContainsString("Text::plural('COM_BREEZINGFORMSNG_TOOLS_TRASH_TOTAL'", $template);
         self::assertStringContainsString("aboutUrl('trash')", $template);
     }
 
