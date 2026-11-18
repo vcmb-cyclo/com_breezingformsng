@@ -566,7 +566,7 @@ class AboutController extends BaseController
                     $pks = $ids;
 
                     if (!$model->delete($pks)) {
-                        throw new \RuntimeException((string) $model->getError());
+                        throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
                     }
 
                     $deleted = count($ids) - count($service->getTrashedIds($type));

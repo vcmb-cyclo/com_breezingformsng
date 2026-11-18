@@ -44,13 +44,14 @@ final class SampleFormService
     public function getInstalledFormId(): int
     {
         $name = self::FORM_NAME;
+        $package = self::FORM_PACKAGE_NAME;
         $query = $this->db->createQuery()
             ->select($this->db->quoteName('id'))
             ->from($this->db->quoteName('#__facileforms_forms'))
             ->where($this->db->quoteName('name') . ' = :name')
             ->where($this->db->quoteName('package') . ' = :package')
             ->bind(':name', $name, ParameterType::STRING)
-            ->bind(':package', self::FORM_PACKAGE_NAME, ParameterType::STRING);
+            ->bind(':package', $package, ParameterType::STRING);
 
         return (int) $this->db->setQuery($query)->loadResult();
     }
@@ -174,7 +175,7 @@ final class SampleFormService
         ];
 
         if (!$table->bind($data) || !$table->check() || !$table->store()) {
-            throw new \RuntimeException($table->getError() ?: 'The menu item could not be stored.');
+            throw new \RuntimeException('The menu item could not be stored.');
         }
 
         return (int) $table->id;

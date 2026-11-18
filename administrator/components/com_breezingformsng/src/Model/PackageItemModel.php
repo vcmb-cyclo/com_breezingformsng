@@ -44,7 +44,7 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
     /**
      * The published state of an item in the trash.
      */
-    public const TRASHED = -2;
+    public const int TRASHED = -2;
 
     /**
      * @param list<string> $values
@@ -177,10 +177,7 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
         $ids = array_values(array_unique(ArrayHelper::toInteger((array) $pks)));
 
         if ($ids !== [] && !$this->allTrashed($ids)) {
-            $pks = [];
-            $this->setError(Text::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'));
-
-            return false;
+            throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'));
         }
 
         $deleted = parent::delete($pks);

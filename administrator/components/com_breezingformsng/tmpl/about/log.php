@@ -1,7 +1,8 @@
 <?php
-/** @psalm-suppress InvalidScope */
 
 /**
+ * @psalm-suppress InvalidScope
+ *
  * BreezingForms NG - A Joomla Forms Application
  *
  * @package BreezingFormsNG

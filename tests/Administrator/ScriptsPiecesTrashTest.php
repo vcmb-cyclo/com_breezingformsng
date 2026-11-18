@@ -65,10 +65,15 @@ final class ScriptsPiecesTrashTest extends TestCase
     {
         $model = $this->read(self::ADMIN . 'src/Model/PackageItemModel.php');
 
-        self::assertStringContainsString('public const TRASHED = -2;', $model);
+        self::assertStringContainsString('public const int TRASHED = -2;', $model);
         self::assertStringContainsString('!$this->allTrashed($ids)', $model);
+        self::assertStringContainsString("throw new \\RuntimeException(Text::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'))", $model);
         self::assertStringContainsString('(int) ($record->published ?? 0) === self::TRASHED', $model);
         self::assertStringContainsString("quoteName('published') . ' = :trashed'", $model);
+
+        $controller = $this->read(self::ADMIN . 'src/Controller/PackageListController.php');
+        self::assertStringContainsString('public function delete(): void', $controller);
+        self::assertStringContainsString('!$model->isTrashed($id)', $controller);
     }
 
     #[DataProvider('lists')]

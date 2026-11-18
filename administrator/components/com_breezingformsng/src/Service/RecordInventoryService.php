@@ -68,13 +68,13 @@ final class RecordInventoryService
      */
     public static function normalize(array $rows): array
     {
-        return array_values(array_map(static fn (array $row): array => [
+        return array_map(static fn (array $row): array => [
             'form' => (int) ($row['form'] ?? 0),
             'name' => trim((string) ($row['name'] ?? '')),
             'published' => (int) ($row['published'] ?? 0),
             'archived' => (int) ($row['archived'] ?? 0),
             'trashed' => (int) ($row['trashed'] ?? 0),
             'total' => (int) ($row['total'] ?? 0),
-        ], $rows));
+        ], $rows);
     }
 }
