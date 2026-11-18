@@ -50,10 +50,11 @@ final class McpFormWriter
         }
 
         $description = trim((string) ($arguments['description'] ?? ''));
+        $pageIntro = $this->normalizePageIntro($arguments['page_intro'] ?? '');
         $fields = $this->normalizeFields($arguments['fields'] ?? []);
         $this->db->transactionStart();
         try {
-            $id = $this->quickmode->save(0, $this->quickmodeTree($name, $title, $description, $fields), 0, false);
+            $id = $this->quickmode->save(0, $this->quickmodeTree($name, $title, $description, $fields, $pageIntro), 0, false);
             $versioned = $this->recordVersion($id);
             $this->db->transactionCommit();
         } catch (\Throwable $e) {
@@ -189,7 +190,7 @@ final class McpFormWriter
 
     /**
      * @param array<string, mixed> $arguments
-     * @return array{id: int, added: list<string>, updated: list<string>, removed: list<string>, pages_added: int, pages_removed: list<int>, field_count: int, versioned: bool, contentbuilder_synced: bool}
+     * @return array{id: int, added: list<string>, updated: list<string>, removed: list<string>, pages_added: int, pages_updated: list<int>, pages_removed: list<int>, field_count: int, versioned: bool, contentbuilder_synced: bool}
      * @throws ToolException
      */
     public function manageFields(array $arguments, User $user): array
@@ -209,6 +210,10 @@ final class McpFormWriter
         }
         if ($pagesToAdd > 0 && $pagesToRemove !== []) {
             throw new ToolException('Add pages and remove pages in separate calls so page numbers remain unambiguous.');
+        }
+        $pageUpdates = $arguments['update_pages'] ?? [];
+        if (!is_array($pageUpdates) || !array_is_list($pageUpdates) || count($pageUpdates) > 10) {
+            throw new ToolException('Page updates must be a list of at most 10 items.');
         }
         $form = $this->options->getForm($id);
         if ($form === null || (int) $form->published === -2) {
@@ -235,6 +240,19 @@ final class McpFormWriter
 
         $add = $this->normalizeFields($arguments['add'] ?? []);
         $targetPageCount = count($tree['children']) + $pagesToAdd;
+        $pageIntroByNumber = [];
+        foreach ($pageUpdates as $pageUpdate) {
+            if (!is_array($pageUpdate) || !is_int($pageUpdate['page'] ?? null)
+                || $pageUpdate['page'] < 1 || $pageUpdate['page'] > $targetPageCount
+                || !array_key_exists('intro', $pageUpdate)) {
+                throw new ToolException('Each page update must identify an existing or newly added page and provide its intro text.');
+            }
+            $pageNumber = $pageUpdate['page'];
+            if (isset($pageIntroByNumber[$pageNumber])) {
+                throw new ToolException('A page can only be updated once per call.');
+            }
+            $pageIntroByNumber[$pageNumber] = $this->normalizePageIntro($pageUpdate['intro']);
+        }
         foreach ($add as $field) {
             if ($field['page'] > $targetPageCount) {
                 throw new ToolException(sprintf('Page %d does not exist on this form.', $field['page']));
@@ -246,8 +264,9 @@ final class McpFormWriter
             || !is_array($removals) || !array_is_list($removals) || count($removals) > 30) {
             throw new ToolException('Field updates and removals must be lists of at most 30 items.');
         }
-        if ($add === [] && $updates === [] && $removals === [] && $pagesToAdd === 0 && $pagesToRemove === []) {
-            throw new ToolException('Give at least one field to add, update or remove.');
+        if ($add === [] && $updates === [] && $removals === [] && $pagesToAdd === 0
+            && $pagesToRemove === [] && $pageIntroByNumber === []) {
+            throw new ToolException('Give at least one field or page change to make.');
         }
 
         $updateByName = [];
@@ -459,6 +478,9 @@ final class McpFormWriter
         if (count($removePageSet) >= count($tree['children'])) {
             throw new ToolException('A QuickMode form must keep at least one page.');
         }
+        if (array_intersect_key($pageIntroByNumber, $removePageSet) !== []) {
+            throw new ToolException('A page cannot be updated and removed in the same call.');
+        }
         if ($removePageSet !== [] && $this->submissionCount($id) > 0) {
             throw new ToolException('Pages cannot be removed while the form has submissions; historical page structure is preserved.');
         }
@@ -552,9 +574,20 @@ final class McpFormWriter
         for ($pageIndex = 0; $pageIndex < $pagesToAdd; $pageIndex++) {
             $resultPages[] = [
                 'attributes' => ['id' => 'bfQuickModePage' . ($highestPageId + $pageIndex + 1)],
-                'properties' => ['type' => 'page'],
+                'properties' => [
+                    'type' => 'page',
+                    'pageNumber' => $highestPageId + $pageIndex + 1,
+                    'pageIntro' => '',
+                ],
                 'children' => [],
             ];
+        }
+
+        $pagesUpdated = [];
+        foreach ($pageIntroByNumber as $pageNumber => $intro) {
+            $resultPages[$pageNumber - 1]['properties']['pageIntro'] = $intro;
+            $resultPages[$pageNumber - 1]['properties']['pageNumber'] = $pageNumber;
+            $pagesUpdated[] = $pageNumber;
         }
 
         foreach ($resultPages as $pageIndex => &$page) {
@@ -590,6 +623,7 @@ final class McpFormWriter
             $resultPages = array_values($resultPages);
             foreach ($resultPages as $pageIndex => &$page) {
                 $page['attributes']['id'] = 'bfQuickModePage' . ($pageIndex + 1);
+                $page['properties']['pageNumber'] = $pageIndex + 1;
             }
             unset($page);
         }
@@ -647,6 +681,7 @@ final class McpFormWriter
             'updated' => $updated,
             'removed' => $removed,
             'pages_added' => $pagesToAdd,
+            'pages_updated' => $pagesUpdated,
             'pages_removed' => $pagesRemoved,
             'field_count' => count($allFields),
             'versioned' => $versioned,
@@ -867,7 +902,7 @@ final class McpFormWriter
     }
 
     /** @param list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
-    private function quickmodeTree(string $name, string $title, string $description, array $fields): array
+    private function quickmodeTree(string $name, string $title, string $description, array $fields, string $pageIntro): array
     {
         $children = [];
         foreach ($fields as $index => $field) {
@@ -888,7 +923,7 @@ final class McpFormWriter
             ],
             'children' => [[
                 'attributes' => ['id' => 'bfQuickModePage1'],
-                'properties' => ['type' => 'page'],
+                'properties' => ['type' => 'page', 'pageNumber' => 1, 'pageIntro' => $pageIntro],
                 'children' => $children,
             ]],
         ];
@@ -1077,6 +1112,20 @@ final class McpFormWriter
         }
 
         return $value;
+    }
+
+    private function normalizePageIntro(mixed $intro): string
+    {
+        if (!is_string($intro) || mb_strlen($intro) > 1000) {
+            throw new ToolException('Page intro text must be plain text limited to 1000 characters.');
+        }
+
+        $intro = trim($intro);
+        if (strpbrk($intro, '<>{}') !== false) {
+            throw new ToolException('Page intro text cannot contain markup or module/plugin syntax.');
+        }
+
+        return $intro;
     }
 
     /** @return list<array{label: string, value: string, selected: bool}> */

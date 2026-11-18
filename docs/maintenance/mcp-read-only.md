@@ -42,7 +42,9 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   éléments. Pour QuickMode, chaque élément inclut aussi les réglages sûrs comme
   l’aide, les dimensions, la valeur initiale, la longueur maximale, le mode
   lecture seule et l’état obligatoire (`null` si une validation personnalisée
-  empêche de le déterminer). `include_code` ajoute les scripts et
+  empêche de le déterminer). Les pages donnent leur introduction en texte brut ;
+  les introductions contenant du balisage ou une syntaxe de module sont signalées
+  sans que leur contenu soit renvoyé. `include_code` ajoute les scripts et
   pièces, et demande le droit de code.
 - `bfng_check_form` : contrôle d’un formulaire par ID ou par nom, sans rien
   modifier.
@@ -72,8 +74,9 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   `<nom>_total`, et `summary` garde les totaux. Les noms de formulaires, de
   tables et d’extensions restent dans le rapport.
 - `bfng_create_form` : crée un formulaire dépublié avec le nom interne, le
-  titre, une description facultative et jusqu’à 30 champs texte, zone de texte,
-  liste simple ou multiple, radio, groupe de cases à cocher ou case à cocher.
+  titre, une description facultative, une introduction en texte brut pour la
+  première page et jusqu’à 30 champs texte, zone de texte, liste simple ou
+  multiple, radio, groupe de cases à cocher ou case à cocher.
   Les noms de champ sont uniques et les libellés, espaces réservés et choix
   sont du texte brut. Les choix peuvent définir les valeurs initiales, une case
   peut être précochée et une liste peut accepter plusieurs réponses. Les champs
@@ -107,7 +110,9 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   modèles de courriel ou intégrations peuvent référencer le nom du champ. Les
   nouveaux champs peuvent être placés sur une page QuickMode existante ;
   `add_pages` ajoute jusqu’à 10 pages vierges,
-  que les nouveaux champs peuvent cibler au même appel. `remove_pages` retire
+  que les nouveaux champs peuvent cibler au même appel. `update_pages` définit
+  ou efface une introduction de page en texte brut, sans balisage ni syntaxe de
+  module. `remove_pages` retire
   les pages vides uniquement, et seulement sans soumission. Les champs existants
   peuvent être déplacés entre les pages déjà présentes. Les choix, le mode
   multiple et les valeurs de case ne peuvent pas

@@ -157,7 +157,7 @@ final class FormCatalog
         }
         $form['elements'] = $this->elements((int) $row['id'], $withCode);
         if ((int) $row['quickmode'] === 1) {
-            $this->appendQuickModeSettings($form['elements'], $row['template_code']);
+            $form['quickmode_pages'] = $this->appendQuickModeSettings($form['elements'], $row['template_code']);
         }
 
         return $form;
@@ -204,28 +204,38 @@ final class FormCatalog
     }
 
     /**
-     * Adds an allowlist of non-code QuickMode settings to element rows.
+     * Adds an allowlist of non-code QuickMode settings and safe page intros.
      * @param list<array<string, mixed>> $elements
+     * @return list<array{page: int, intro_text: ?string, intro_is_rich: bool}>
      */
-    private function appendQuickModeSettings(array &$elements, mixed $templateCode): void
+    private function appendQuickModeSettings(array &$elements, mixed $templateCode): array
     {
         if (!is_string($templateCode) || $templateCode === '' || strlen($templateCode) > 700000) {
-            return;
+            return [];
         }
         $json = base64_decode($templateCode, true);
         if ($json === false || strlen($json) > 500000) {
-            return;
+            return [];
         }
         $tree = json_decode($json, true);
         if (!is_array($tree) || !is_array($tree['properties'] ?? null) || !is_array($tree['children'] ?? null)) {
-            return;
+            return [];
         }
 
         $byId = [];
-        foreach ($tree['children'] as $page) {
+        $quickModePages = [];
+        foreach ($tree['children'] as $pageIndex => $page) {
             if (!is_array($page) || !is_array($page['children'] ?? null)) {
                 continue;
             }
+            $pageProperties = is_array($page['properties'] ?? null) ? $page['properties'] : [];
+            $pageIntro = is_string($pageProperties['pageIntro'] ?? null) ? trim($pageProperties['pageIntro']) : '';
+            $introHasMarkup = strpbrk($pageIntro, '<>{}') !== false;
+            $quickModePages[] = [
+                'page' => (int) $pageIndex + 1,
+                'intro_text' => $introHasMarkup ? null : self::text($pageIntro),
+                'intro_is_rich' => $introHasMarkup,
+            ];
             foreach ($page['children'] as $node) {
                 $properties = $node['properties'] ?? null;
                 if (!is_array($properties) || ($properties['type'] ?? '') !== 'element') {
@@ -290,6 +300,8 @@ final class FormCatalog
             }
         }
         unset($element);
+
+        return $quickModePages;
     }
 
     /**

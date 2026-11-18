@@ -34,7 +34,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
     public function description(): string
     {
         return 'Adds, updates or removes text, textarea, select, radio, checkbox-group and checkbox fields on compatible QuickMode forms. '
-            . 'Pages can be added or empty pages removed; new fields can target existing or new pages, and existing fields can move between pages. Updates can change safe field names, text/textarea type, labels, placeholders, help hints, dimensions, default values, maximum lengths, read-only and required state, checkbox values, select multiplicity or choice options. Renaming requires no submissions, scripts, validations, templates or integrations that could refer to the field. '
+            . 'Pages can be added, have plain-text intro text updated or empty pages removed; new fields can target existing or new pages, and existing fields can move between pages. Updates can change safe field names, text/textarea type, labels, placeholders, help hints, dimensions, default values, maximum lengths, read-only and required state, checkbox values, select multiplicity or choice options. Renaming requires no submissions, scripts, validations, templates or integrations that could refer to the field. '
             . 'Existing custom scripts and settings are preserved; the required option uses only the standard non-empty validation. Fields cannot be removed after submissions exist. '
             . 'Forms with other field types or nested field structures are not changed. Choice options cannot be changed after submissions exist.';
     }
@@ -98,6 +98,21 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
             'properties' => [
                 'id' => ['type' => 'integer', 'minimum' => 1, 'description' => 'Id of the MCP-managed form.'],
                 'add_pages' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 10, 'default' => 0, 'description' => 'Number of blank QuickMode pages to append before adding or moving fields.'],
+                'update_pages' => [
+                    'type' => 'array',
+                    'maxItems' => 10,
+                    'default' => [],
+                    'description' => 'Set plain-text intro text on existing or newly added pages. Markup and module/plugin syntax are rejected.',
+                    'items' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'page' => ['type' => 'integer', 'minimum' => 1, 'description' => 'Page number, starting at 1.'],
+                            'intro' => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Plain-text intro; an empty string clears it.'],
+                        ],
+                        'required' => ['page', 'intro'],
+                        'additionalProperties' => false,
+                    ],
+                ],
                 'remove_pages' => ['type' => 'array', 'maxItems' => 10, 'default' => [], 'items' => ['type' => 'integer', 'minimum' => 1], 'description' => 'Existing empty page numbers to remove; submissions prevent page removal.'],
                 'add' => ['type' => 'array', 'maxItems' => 30, 'default' => [], 'items' => $newField, 'description' => 'Fields to add.'],
                 'update' => ['type' => 'array', 'maxItems' => 30, 'default' => [], 'items' => $updateField, 'description' => 'Existing fields to update.'],

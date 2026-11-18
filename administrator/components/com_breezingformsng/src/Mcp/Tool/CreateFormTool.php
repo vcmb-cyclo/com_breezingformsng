@@ -33,7 +33,7 @@ final class CreateFormTool implements McpTool
 
     public function description(): string
     {
-        return 'Creates an unpublished BreezingForms NG form with up to 30 text, textarea, select, radio, checkbox-group or checkbox fields. '
+        return 'Creates an unpublished BreezingForms NG form with an optional plain-text first-page introduction and up to 30 text, textarea, select, radio, checkbox-group or checkbox fields. '
             . 'Text and textarea fields can use the standard non-empty validation; custom scripts, other validations, integrations, file uploads, payments and notification destinations are not configured.';
     }
 
@@ -45,6 +45,7 @@ final class CreateFormTool implements McpTool
                 'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Internal form name.'],
                 'title' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Title shown to administrators and visitors.'],
                 'description' => ['type' => 'string', 'maxLength' => 10000, 'default' => '', 'description' => 'Optional form description.'],
+                'page_intro' => ['type' => 'string', 'maxLength' => 1000, 'default' => '', 'description' => 'Optional plain-text introduction for the first page. Markup and module/plugin syntax are rejected.'],
                 'fields' => [
                     'type' => 'array',
                     'maxItems' => 30,
