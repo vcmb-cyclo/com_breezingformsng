@@ -200,6 +200,7 @@ final class McpFormWriter
         $originalTree = $tree;
         $current = [];
         $currentPages = [];
+        $currentNodeIds = [];
         foreach ($tree['children'] as $pageIndex => $page) {
             foreach ($page['children'] as $node) {
                 $properties = $node['properties'];
@@ -209,6 +210,7 @@ final class McpFormWriter
                 }
                 $current[$key] = $properties;
                 $currentPages[$key] = $pageIndex + 1;
+                $currentNodeIds[$key] = (string) $node['attributes']['id'];
             }
         }
 
@@ -230,6 +232,8 @@ final class McpFormWriter
         }
 
         $updateByName = [];
+        $renameTargets = [];
+        $addedNameKeys = array_fill_keys(array_map(static fn (array $field): string => strtolower($field['name']), $add), true);
         foreach ($updates as $change) {
             if (!is_array($change)) {
                 throw new ToolException('Each field update must be an object.');
@@ -243,8 +247,34 @@ final class McpFormWriter
                 throw new ToolException('A field can be updated only once per call.');
             }
             unset($change['name']);
+            if (array_key_exists('new_name', $change)) {
+                if (!is_string($change['new_name'])) {
+                    throw new ToolException('A new field name must be text.');
+                }
+                $newName = trim($change['new_name']);
+                if (!preg_match('/^[A-Za-z][A-Za-z0-9_]{0,99}$/D', $newName)
+                    || preg_match('/^bfFakeName(?:[2-4])?$/iD', $newName)) {
+                    throw new ToolException('New field names must be valid and cannot use reserved submit-control names.');
+                }
+                $newKey = strtolower($newName);
+                if (($newKey !== $key && isset($current[$newKey])) || isset($addedNameKeys[$newKey])) {
+                    throw new ToolException('A field with that new name already exists.');
+                }
+                if ($newName !== (string) $current[$key]['bfName']) {
+                    if (isset($renameTargets[$newKey]) && $renameTargets[$newKey] !== $key) {
+                        throw new ToolException('Each field must have a different new name.');
+                    }
+                    if (!preg_match('/^(bfQuickModeElement[1-9][0-9]*)_/D', $currentNodeIds[$key])) {
+                        throw new ToolException('This field has an unsupported QuickMode identity and cannot be renamed.');
+                    }
+                    $renameTargets[$newKey] = $key;
+                    $change['new_name'] = $newName;
+                } else {
+                    unset($change['new_name']);
+                }
+            }
             if ($change === []) {
-                throw new ToolException('Give a new type, label, placeholder or choice options for each field update.');
+                throw new ToolException('Give a new name, type, label, placeholder or field setting for each field update.');
             }
             if (isset($change['type'])) {
                 if (!in_array($change['type'], ['text', 'textarea'], true)
@@ -314,6 +344,13 @@ final class McpFormWriter
                 }
             }
             $updateByName[$key] = $change;
+        }
+
+        if ($renameTargets !== []) {
+            $this->assertFieldsCanBeRenamed($form, $tree);
+            if ($this->submissionCount($id) > 0) {
+                throw new ToolException('Fields cannot be renamed while the form has submissions.');
+            }
         }
 
         $removeByName = [];
@@ -398,6 +435,11 @@ final class McpFormWriter
                         if (array_key_exists($property, $change)) {
                             $node['properties'][$property] = $change[$property];
                         }
+                    }
+                    if (isset($change['new_name'])) {
+                        preg_match('/^(bfQuickModeElement[1-9][0-9]*)_/', (string) $node['attributes']['id'], $matches);
+                        $node['properties']['bfName'] = $change['new_name'];
+                        $node['attributes']['id'] = $matches[1] . '_' . strtolower($change['new_name']);
                     }
                     if (isset($change['requiredConfig'])) {
                         $this->applyRequiredConfiguration($node['properties'], $change['requiredConfig']);
@@ -485,7 +527,7 @@ final class McpFormWriter
             throw new ToolException('The form changed while this request was being prepared; read it again and retry.');
         }
 
-        $historySensitiveChange = $removeByName !== [] || $removePageSet !== []
+        $historySensitiveChange = $removeByName !== [] || $removePageSet !== [] || $renameTargets !== []
             || array_filter($updateByName, static fn (array $change): bool => array_key_exists('options', $change)
                 || array_key_exists('multiple', $change) || array_key_exists('value', $change)) !== [];
         if ($historySensitiveChange && $this->submissionCount($id) > 0) {
@@ -1044,5 +1086,55 @@ final class McpFormWriter
         $this->requiredValidationId = $id;
 
         return $id;
+    }
+
+    /** @param array<string, mixed> $tree
+     */
+    private function assertFieldsCanBeRenamed(\stdClass $form, array $tree): void
+    {
+        foreach (['script1id', 'script2id', 'piece1id', 'piece2id', 'piece3id', 'piece4id'] as $column) {
+            if (!empty($form->$column)) {
+                throw new ToolException('Fields cannot be renamed while the form has a script or piece that may reference field names.');
+            }
+        }
+        foreach (['script1code', 'script2code', 'piece1code', 'piece2code', 'piece3code', 'piece4code'] as $column) {
+            if (trim((string) ($form->$column ?? '')) !== '') {
+                throw new ToolException('Fields cannot be renamed while the form has custom script code.');
+            }
+        }
+        foreach ([
+            'email_custom_template', 'mb_email_custom_template', 'mailchimp_email_field',
+            'mailchimp_checkbox_field', 'mailchimp_text_html_mobile_field',
+            'mailchimp_unsubscribe_field', 'salesforce_fields',
+        ] as $column) {
+            if (trim((string) ($form->$column ?? '')) !== '') {
+                throw new ToolException('Fields cannot be renamed while a form template or integration may reference field names.');
+            }
+        }
+
+        $root = $tree['properties'];
+        if (trim((string) ($root['submittedScriptCode'] ?? '')) !== ''
+            || (int) ($root['submittedScriptCondidtion'] ?? -1) !== -1) {
+            throw new ToolException('Fields cannot be renamed while a submitted script is configured.');
+        }
+        foreach ($tree['children'] as $page) {
+            foreach ($page['children'] as $node) {
+                $properties = $node['properties'];
+                if ((int) ($properties['validationId'] ?? 0) !== 0
+                    || (int) ($properties['initId'] ?? 0) !== 0
+                    || (int) ($properties['actionId'] ?? 0) !== 0
+                    || trim((string) ($properties['validationCode'] ?? '')) !== ''
+                    || trim((string) ($properties['initCode'] ?? '')) !== ''
+                    || trim((string) ($properties['actionCode'] ?? '')) !== ''
+                    || !empty($properties['validationFunctionName'])
+                    || !empty($properties['initFunctionName'])
+                    || !empty($properties['actionFunctionName'])
+                    || !empty($properties['password']) || !empty($properties['mailback'])
+                    || !empty($properties['mailbackAsSender']) || !empty($properties['mailbackfile'])
+                    || !empty($properties['mailbackAccept']) || !empty($properties['mailbackConnectWith'])) {
+                    throw new ToolException('Fields cannot be renamed while any field has scripts, validation, password or mailback settings.');
+                }
+            }
+        }
     }
 }
