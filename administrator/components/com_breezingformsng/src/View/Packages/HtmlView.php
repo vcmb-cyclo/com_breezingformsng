@@ -23,6 +23,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordInventoryService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\SampleFormService;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\TrashInventoryService;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
 
 /**
@@ -60,7 +61,7 @@ final class HtmlView extends BaseHtmlView
     public bool $mcpRouted = false;
     public bool $canConfigure = false;
     /** Submitted records in the trash, shown on the Trash card. */
-    public int $trashedRecords = 0;
+    public int $trashedTotal = 0;
     /** Id of the installed sample form, 0 when it is not installed. */
     public int $sampleFormId = 0;
     /** Installing the sample writes a form layout: it takes the Configure permission. */
@@ -114,10 +115,9 @@ final class HtmlView extends BaseHtmlView
         if ($this->getLayout() === 'default') {
             $this->mcpEnabled = McpAvailability::isEnabled();
             $this->mcpRouted = McpAvailability::isRouted();
-            $this->trashedRecords = array_sum(array_column(
-                (new RecordInventoryService(Factory::getContainer()->get(DatabaseInterface::class)))->getInventory(),
-                'trashed'
-            ));
+            $database = Factory::getContainer()->get(DatabaseInterface::class);
+            $this->trashedTotal = array_sum(array_column((new RecordInventoryService($database))->getInventory(), 'trashed'))
+                + array_sum(array_column((new TrashInventoryService($database))->getTrashedItems(), 'count'));
             $this->sampleFormId = (new SampleFormService(Factory::getContainer()->get(DatabaseInterface::class)))
                 ->getInstalledFormId();
             $this->canInstallSample = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');

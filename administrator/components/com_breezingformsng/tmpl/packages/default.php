@@ -37,7 +37,7 @@ $maintenanceTiles = [
     ['id' => 'bf-tools-statistics', 'icon' => 'fa-chart-column', 'title' => 'COM_BREEZINGFORMSNG_TOOLS_STATISTICS_TITLE',
         'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_STATISTICS_DESC', 'url' => $aboutUrl('statistics')],
     ['id' => 'bf-tools-trash', 'icon' => 'fa-trash-can', 'title' => 'COM_BREEZINGFORMSNG_TOOLS_TRASH_TITLE',
-        'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_TRASH_DESC', 'url' => $aboutUrl('trash'), 'badge' => $this->trashedRecords],
+        'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_TRASH_DESC', 'url' => $aboutUrl('trash'), 'badge' => $this->trashedTotal],
     ['id' => 'bf-tools-log', 'icon' => 'fa-file-lines', 'title' => 'COM_BREEZINGFORMSNG_TOOLS_LOG_TITLE',
         'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_LOG_DESC', 'url' => $aboutUrl('log')],
 ];
@@ -68,7 +68,7 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
     if (!empty($tile['badge'])) {
         $badge = '<span class="bf-tile__badge badge bg-danger" data-trash-count="' . (int) $tile['badge'] . '">'
             . number_format((int) $tile['badge'], 0, '.', ' ') . '<span class="visually-hidden"> – '
-            . htmlspecialchars(Text::plural('COM_BREEZINGFORMSNG_TOOLS_TRASH_COUNT', (int) $tile['badge']), ENT_QUOTES, 'UTF-8')
+            . htmlspecialchars(Text::plural('COM_BREEZINGFORMSNG_TOOLS_TRASH_TOTAL', (int) $tile['badge']), ENT_QUOTES, 'UTF-8')
             . '</span></span>';
     }
 

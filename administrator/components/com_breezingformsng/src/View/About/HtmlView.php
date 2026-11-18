@@ -23,6 +23,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseAuditService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\InstallLogReader;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordInventoryService;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\TrashInventoryService;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
 
 class HtmlView extends BaseHtmlView
@@ -38,6 +39,8 @@ class HtmlView extends BaseHtmlView
     public string $auditError = '';
     /** @var list<array{form: int, name: string, published: int, archived: int, trashed: int, total: int}> */
     public array $recordInventory = [];
+    /** @var list<array{label: string, view: string, count: int}> Forms, scripts, pieces and rules in the trash. */
+    public array $trashedItems = [];
     public bool $canRepair = false;
 
     public bool $canDeleteOrphans = false;
@@ -124,9 +127,9 @@ class HtmlView extends BaseHtmlView
                 Factory::getContainer()->get(DatabaseInterface::class)
             ))->getInventory();
         } elseif ($layout === 'trash') {
-            $this->recordInventory = (new RecordInventoryService(
-                Factory::getContainer()->get(DatabaseInterface::class)
-            ))->getInventory();
+            $database = Factory::getContainer()->get(DatabaseInterface::class);
+            $this->recordInventory = (new RecordInventoryService($database))->getInventory();
+            $this->trashedItems = (new TrashInventoryService($database))->getTrashedItems();
         } elseif ($layout === 'audit') {
             $auditReport = $app->getUserState('com_breezingformsng.about.audit', []);
             $this->auditReport = is_array($auditReport) ? $auditReport : [];
