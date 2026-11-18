@@ -34,10 +34,16 @@ class QuickmodeModel extends BaseDatabaseModel
 
     /**
      * @param array<string, mixed> $dataObject
+     * @param int                  $published Initial state for a new form; existing-form state follows QuickMode's normal rules.
+     * @param bool                 $writeThemeFiles Whether to apply theme variable changes to theme files.
      */
-    public function save(int $form, array $dataObject): int
+    public function save(int $form, array $dataObject, int $published = 1, bool $writeThemeFiles = true): int
     {
-        if (isset($dataObject['properties']) && is_array($dataObject['properties'])) {
+        if (!in_array($published, [0, 1], true)) {
+            throw new \InvalidArgumentException('A form can only be created published or unpublished.');
+        }
+
+        if ($writeThemeFiles && isset($dataObject['properties']) && is_array($dataObject['properties'])) {
             unset(
                 $dataObject['properties']['themebootstrapUse3'],
                 $dataObject['properties']['themebootstrap3builtin'],
@@ -50,7 +56,7 @@ class QuickmodeModel extends BaseDatabaseModel
         $areas->container    = [];
         $areas->container[0] = ['elements' => [], 'elementCount' => 0];
 
-        $this->createAreasFromTree($dataObject, $areas);
+        $this->createAreasFromTree($dataObject, $areas, 1, $writeThemeFiles);
 
         // Inject submit-related fake elements from published scripts.
         $fakes = ['ff_validate_submit', 'ff_resetForm', 'ff_validate_prevpage', 'ff_validate_nextpage'];
@@ -85,7 +91,8 @@ class QuickmodeModel extends BaseDatabaseModel
             (string) ($mdata['description'] ?? ''),
             base64_encode((string) json_encode($dataObject)),
             $areas->container,
-            count($dataObject['children'] ?? [])
+            count($dataObject['children'] ?? []),
+            $published
         );
     }
 
@@ -233,7 +240,7 @@ class QuickmodeModel extends BaseDatabaseModel
     /**
      * @param array<string, mixed> $dataObject
      */
-    private function createAreasFromTree(array $dataObject, \stdClass $areas, int $page = 1): void
+    private function createAreasFromTree(array $dataObject, \stdClass $areas, int $page = 1, bool $writeThemeFiles = true): void
     {
         $element = $this->getDefaultElement();
 
@@ -241,7 +248,7 @@ class QuickmodeModel extends BaseDatabaseModel
             $mdata = $dataObject['properties'];
 
             if ($mdata['type'] === 'root') {
-                if (!empty($mdata['themebootstrap']) && is_string($mdata['themebootstrap'])
+                if ($writeThemeFiles && !empty($mdata['themebootstrap']) && is_string($mdata['themebootstrap'])
                     && !empty($mdata['themebootstrapvars'])
                     && isset($mdata['themebootstrapbefore'])
                     && $mdata['themebootstrapbefore'] === $mdata['themebootstrap']
@@ -455,7 +462,7 @@ class QuickmodeModel extends BaseDatabaseModel
 
         if (!empty($dataObject['children'])) {
             foreach ($dataObject['children'] as $child) {
-                $this->createAreasFromTree($child, $areas, $page);
+                $this->createAreasFromTree($child, $areas, $page, $writeThemeFiles);
             }
         }
     }
@@ -499,7 +506,7 @@ class QuickmodeModel extends BaseDatabaseModel
     /**
      * @param array<int, array<string, mixed>> $areas
      */
-    private function save2(int $form, string $formName, string $formTitle, string $formDesc, string $templateCode, array $areas, int $pages = 1): int
+    private function save2(int $form, string $formName, string $formTitle, string $formDesc, string $templateCode, array $areas, int $pages = 1, int $published = 1): int
     {
         $dataObject = json_decode(base64_decode($templateCode), true);
         $mdata      = $dataObject['properties'];
@@ -550,7 +557,6 @@ class QuickmodeModel extends BaseDatabaseModel
             $placeholders[] = ':modifiedBy';
 
             $package    = 'QuickModeForms';
-            $published  = 1;
             $class1     = '';
             $width      = 400;
             $height     = 500;

@@ -1,10 +1,11 @@
-# BFNG MCP : lecture seule
+# BFNG MCP
 
 Le point d’accès API `POST /api/index.php/v1/breezingformsng/mcp` expose les
-outils `bfng_list_forms`, `bfng_get_form`, `bfng_check_form` et
-`bfng_audit_database`. Il agit avec les droits du compte Joomla dont le jeton
-API est fourni. Il ne lit pas les soumissions et n’effectue aucune
-modification : les quatre outils sont en lecture seule.
+outils de lecture `bfng_list_forms`, `bfng_get_form`, `bfng_check_form` et
+`bfng_audit_database`, et des outils d’écriture pour créer et configurer des
+formulaires, gérer leurs champs, les mettre à la corbeille et les restaurer.
+Il agit avec les droits du compte Joomla dont le jeton API est fourni. Il ne
+lit pas les soumissions.
 
 ## Activation et accès
 
@@ -29,8 +30,11 @@ de la promettre. Un client doit pouvoir envoyer le jeton Joomla avec ses requêt
 
 ## Outils
 
-Tous demandent le droit de gérer BFNG, et la lecture du code des formulaires
-le droit de code.
+Tous demandent le droit de gérer BFNG. La lecture du code des formulaires
+demande en plus le droit de code. La création exige `core.create` et la
+modification des métadonnées ou des champs exige `core.edit`. La corbeille
+exige `core.delete` et `core.edit.state`; la restauration exige
+`core.edit.state`. Un droit absent masque l’outil et bloque aussi son exécution.
 
 - `bfng_list_forms` : liste paginée des formulaires (recherche, état,
   `limit`, `offset`).
@@ -64,6 +68,31 @@ le droit de code.
   `duplicate_forms[].drop`), une liste imbriquée coupée reçoit un champ
   `<nom>_total`, et `summary` garde les totaux. Les noms de formulaires, de
   tables et d’extensions restent dans le rapport.
+- `bfng_create_form` : crée un formulaire dépublié avec le nom interne, le
+  titre, une description facultative et jusqu’à 30 champs texte ou zone de
+  texte. Les noms de champ sont uniques et les libellés/espaces réservés sont
+  du texte brut. L’outil ne configure ni validation, ni script personnalisé,
+  ni intégration, ni téléversement, ni paiement, ni destinataire de notification.
+- `bfng_update_form` : modifie par ID un ou plusieurs champs parmi le nom, le
+  titre et la description, ou règle la largeur, la hauteur et l’ajustement
+  automatique de la hauteur. La publication, les champs, les scripts, les
+  intégrations et les réglages de notification restent inchangés. Les
+  formulaires supprimés ne peuvent pas être modifiés. Le verrouillage et
+  l’historique Joomla sont appliqués comme lors d’une sauvegarde dans
+  l’administration.
+- `bfng_manage_form_fields` : ajoute, modifie ou supprime des champs `text` et
+  `textarea` sur les formulaires QuickMode dont les champs existants sont de
+  ces types. La modification peut
+  changer le type, le libellé ou l’espace réservé, mais pas le nom du champ.
+  La suppression est refusée dès qu’il existe une soumission. Les formulaires
+  avec d’autres types de champs ou des structures imbriquées sont refusés. Les
+  scripts et réglages existants sont préservés et ne peuvent pas être modifiés
+  avec cet outil. L’opération est verrouillée, versionnée et synchronisée avec
+  les vues ContentBuilder NG associées.
+- `bfng_trash_form` et `bfng_restore_form` : déplacent un formulaire dans la
+  corbeille Joomla, puis le restaurent à l’état dépublié. Le déplacement à la
+  corbeille conserve le formulaire et ses soumissions ; aucune suppression
+  définitive n’est exposée par MCP.
 
 ## Comportement
 
@@ -84,4 +113,7 @@ le droit de code.
   QuickMode de l’interface les lui montre. Seuls les scripts et pièces des
   formulaires demandent le droit de code.
 - Les textes du site sont des données non fiables ; les outils et leurs
-  résultats ne confèrent aucune autorisation supplémentaire au client.
+  résultats ne confèrent aucune autorisation supplémentaire au client. Les
+  les outils d’écriture modifient l’état du site : vérifier les valeurs et
+  l’ID avant l’appel. La publication et les fonctions avancées restent à
+  confirmer dans l’administration.
