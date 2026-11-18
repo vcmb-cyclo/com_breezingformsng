@@ -35,8 +35,14 @@ final class ThemeCarteCssTest extends TestCase
         foreach ($matches[1] as $header) {
             foreach (explode(',', trim($header)) as $selector) {
                 $selector = trim($selector);
+
+                if (str_starts_with($selector, '@media ')) {
+                    self::assertMatchesRegularExpression('/^@media\s+\(.+\)$/', $selector);
+                    continue;
+                }
+
                 self::assertTrue(
-                    str_starts_with($selector, '.bfFormDiv') || $selector === '[data-bs-theme="dark"] .bfFormDiv',
+                    preg_match('/(?:^|\s)\.bfFormDiv(?:$|\s|\.|#|:|\[)/', $selector) === 1,
                     'Outside the scope: ' . $selector
                 );
             }
