@@ -9,7 +9,7 @@
  *
  * Everything lives under .bfFormDiv, the container BFNG emits around the form.
  * BFNG selectors used:
- *   .bfFormDiv                      container of the form (page background)
+ *   .bfFormDiv                      container of the form (holds the tokens)
  *   .bfQuickMode                    the <form>, the card
  *   .bfPage > div:first-child h3    page title ("Contact us")
  *   legend                          section title
@@ -24,7 +24,6 @@
  */
 
 .bfFormDiv {
-    --bf-page: #e9e7e4;
     --bf-card: #fff;
     --bf-field: #f3f2f2;
     --bf-text: #201f1d;
@@ -34,12 +33,7 @@
     --bf-accent-ink: #7a5413;
     --bf-accent-tint: #f3e9d6;
     --bf-danger: #b3261e;
-    --bf-font-head: "Cormorant Garamond", Georgia, "Times New Roman", serif;
-    --bf-font-body: "Lora", Georgia, "Times New Roman", serif;
     --bf-shadow: 0 6px 24px rgba(32, 31, 29, 0.1);
-
-    background: var(--bf-page);
-    padding: 2.25rem;
 }
 
 /* The card */
@@ -48,7 +42,6 @@
     border-radius: 10px;
     box-shadow: var(--bf-shadow);
     color: var(--bf-text);
-    font-family: var(--bf-font-body);
     margin-inline: auto;
     max-width: 640px;
     padding: 2.5rem;
@@ -58,7 +51,6 @@
 .bfFormDiv .bfPage > div:first-child h2,
 .bfFormDiv .bfPage > div:first-child h3 {
     color: var(--bf-text);
-    font-family: var(--bf-font-head);
     font-size: 2.4rem;
     font-weight: 500;
     line-height: 1;
@@ -76,7 +68,6 @@
     border: 0;
     color: var(--bf-accent-ink);
     float: none;
-    font-family: var(--bf-font-body);
     font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.12em;
