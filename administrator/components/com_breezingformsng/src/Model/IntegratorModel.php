@@ -230,7 +230,7 @@ class IntegratorModel extends BaseDatabaseModel
             $db->setQuery($query)->execute();
         }
 
-        return ['deleted' => $ids, 'refused' => $refused];
+        return ['deleted' => array_values($ids), 'refused' => $refused];
     }
 
     /**

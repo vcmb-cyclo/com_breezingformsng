@@ -111,6 +111,7 @@ class IntegratorController extends BaseController
     public function remove(): void
     {
         $this->checkToken();
+        $this->assertPermission('core.delete');
         $ids = (array) $this->app->getInput()->get('cid', [], 'ARRAY');
         $result = $this->getIntegratorModel()->deleteRules($ids);
 
@@ -129,6 +130,7 @@ class IntegratorController extends BaseController
     public function trash(): void
     {
         $this->checkToken();
+        $this->assertPermission('core.edit.state');
         $ids = (array) $this->app->getInput()->get('cid', [], 'ARRAY');
         $this->getIntegratorModel()->trashRules($ids);
         $this->setRedirect($this->listUrl());
@@ -137,6 +139,7 @@ class IntegratorController extends BaseController
     public function setPublished(): void
     {
         $this->checkToken();
+        $this->assertPermission('core.edit.state');
 
         if (ob_get_level() > 0) {
             ob_end_clean();
@@ -158,6 +161,7 @@ class IntegratorController extends BaseController
     public function publish(): void
     {
         $this->checkToken();
+        $this->assertPermission('core.edit.state');
         $this->changeState(1);
         $this->setRedirect($this->listUrl());
     }
@@ -165,6 +169,7 @@ class IntegratorController extends BaseController
     public function unpublish(): void
     {
         $this->checkToken();
+        $this->assertPermission('core.edit.state');
         $this->changeState(0);
         $this->setRedirect($this->listUrl());
     }
@@ -185,6 +190,12 @@ class IntegratorController extends BaseController
             $key = $state === 1 ? 'COM_BREEZINGFORMSNG_N_ITEMS_PUBLISHED' : 'COM_BREEZINGFORMSNG_N_ITEMS_UNPUBLISHED';
             $this->setMessage(Text::plural($key, count($ids)));
         }
+    }
+
+    private function assertPermission(string $action): void
+    {
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+        AreaAccess::assert($user, $action);
     }
 
     public function addItem(): void
