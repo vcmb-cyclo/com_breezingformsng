@@ -235,4 +235,18 @@ final class SamplePackagesTest extends TestCase
         self::assertStringContainsString('turn on element LowReason if Overall is 2', $rules);
         self::assertStringContainsString('turn off element LowReason if Overall is 5', $rules);
     }
+
+    public function testTheBusinessTemplatesUseTheFieldWidgets(): void
+    {
+        foreach (['bfng-sample-event.json', 'bfng-sample-quote.json'] as $file) {
+            $elements = $this->elements($this->package($file)['forms'][0]['data']['template_code']);
+            $phone = array_values(array_filter($elements, static fn (array $e): bool => $e['bfName'] === 'Phone'));
+
+            self::assertSame('phone', $phone[0]['widget'] ?? null, $file);
+        }
+
+        $quote = $this->elements($this->package('bfng-sample-quote.json')['forms'][0]['data']['template_code']);
+        $file = array_values(array_filter($quote, static fn (array $e): bool => $e['bfName'] === 'Specification'));
+        self::assertTrue($file[0]['dropZone'] ?? false, 'The specification file is dropped on a zone');
+    }
 }

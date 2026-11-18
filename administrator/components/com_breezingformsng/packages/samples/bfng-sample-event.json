@@ -100,7 +100,7 @@
     "menus": [],
     "forms": [
         {
-            "source_id": 101,
+            "source_id": 111,
             "data": {
                 "alt_mailfrom": null,
                 "alt_fromname": null,
@@ -234,7 +234,7 @@
                                                 "label": "Last name",
                                                 "labelPosition": "left",
                                                 "bfName": "LastName",
-                                                "dbId": 6895,
+                                                "dbId": 7261,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -290,7 +290,7 @@
                                                 "label": "First name",
                                                 "labelPosition": "left",
                                                 "bfName": "FirstName",
-                                                "dbId": 6896,
+                                                "dbId": 7262,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -346,7 +346,7 @@
                                                 "label": "Email",
                                                 "labelPosition": "left",
                                                 "bfName": "Email",
-                                                "dbId": 6897,
+                                                "dbId": 7263,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -402,7 +402,7 @@
                                                 "label": "Phone",
                                                 "labelPosition": "left",
                                                 "bfName": "Phone",
-                                                "dbId": 6898,
+                                                "dbId": 7264,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -410,7 +410,7 @@
                                                 "required": false,
                                                 "hint": "Optional: used only if the organiser needs to reach you.",
                                                 "off": false,
-                                                "placeholder": "+33 6 12 34 56 78",
+                                                "placeholder": "",
                                                 "value": "",
                                                 "maxLength": "20",
                                                 "readonly": false,
@@ -439,7 +439,20 @@
                                                 "actionChange": 0,
                                                 "actionFocus": 0,
                                                 "actionSelect": 0,
-                                                "hideInMailback": false
+                                                "hideInMailback": false,
+                                                "widgetDefaultCountry": "fr",
+                                                "widgetCountries": "",
+                                                "widgetShowFlags": true,
+                                                "widgetShowDialCode": true,
+                                                "widgetValidate": true,
+                                                "widgetMode": "datetime",
+                                                "widgetMin": "",
+                                                "widgetMax": "",
+                                                "widgetStep": 15,
+                                                "widgetProvider": "",
+                                                "widgetMinChars": 3,
+                                                "widgetFill": "",
+                                                "widget": "phone"
                                             }
                                         }
                                     ]
@@ -482,7 +495,7 @@
                                                 "label": "Training",
                                                 "labelPosition": "left",
                                                 "bfName": "Training",
-                                                "dbId": 6899,
+                                                "dbId": 7265,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -535,7 +548,7 @@
                                                 "label": "Number of participants",
                                                 "labelPosition": "left",
                                                 "bfName": "Participants",
-                                                "dbId": 6900,
+                                                "dbId": 7266,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -588,7 +601,7 @@
                                                 "label": "Rate",
                                                 "labelPosition": "left",
                                                 "bfName": "Rate",
-                                                "dbId": 6901,
+                                                "dbId": 7267,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -638,7 +651,7 @@
                                                 "label": "Add a lunch (+€15 per participant)",
                                                 "labelPosition": "left",
                                                 "bfName": "Lunch",
-                                                "dbId": 6902,
+                                                "dbId": 7268,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -690,7 +703,7 @@
                                                 "label": "Dietary requirements",
                                                 "labelPosition": "left",
                                                 "bfName": "Diet",
-                                                "dbId": 6903,
+                                                "dbId": 7269,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -770,7 +783,7 @@
                                                 "label": "Price per participant (€)",
                                                 "labelPosition": "left",
                                                 "bfName": "PricePerPerson",
-                                                "dbId": 6904,
+                                                "dbId": 7270,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -826,7 +839,7 @@
                                                 "label": "Discount (€)",
                                                 "labelPosition": "left",
                                                 "bfName": "Discount",
-                                                "dbId": 6905,
+                                                "dbId": 7271,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -882,7 +895,7 @@
                                                 "label": "Total (€)",
                                                 "labelPosition": "left",
                                                 "bfName": "Total",
-                                                "dbId": 6906,
+                                                "dbId": 7272,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -962,7 +975,7 @@
                                                 "label": "Training",
                                                 "labelPosition": "left",
                                                 "bfName": "SumTraining",
-                                                "dbId": 6907,
+                                                "dbId": 7273,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": false,
@@ -1016,7 +1029,7 @@
                                                 "label": "Participants",
                                                 "labelPosition": "left",
                                                 "bfName": "SumParticipants",
-                                                "dbId": 6908,
+                                                "dbId": 7274,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": false,
@@ -1070,7 +1083,7 @@
                                                 "label": "Total",
                                                 "labelPosition": "left",
                                                 "bfName": "SumTotal",
-                                                "dbId": 6909,
+                                                "dbId": 7275,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": false,
@@ -1124,7 +1137,7 @@
                                                 "label": "I accept the registration terms and the cancellation policy.",
                                                 "labelPosition": "left",
                                                 "bfName": "Terms",
-                                                "dbId": 6910,
+                                                "dbId": 7276,
                                                 "orderNumber": "-1",
                                                 "tabIndex": "-1",
                                                 "logging": true,
@@ -1185,7 +1198,7 @@
                     ]
                 },
                 "template_code_processed": "QuickMode",
-                "template_areas": "[{\"elements\":[{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"\",\"placeholder\":\"Doe\",\"password\":false,\"mailback\":false,\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":1,\"script3id\":\"48\",\"script3code\":\"\",\"script3msg\":\"Please enter your last name.\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"ff_valuenotempty\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Last name\",\"name\":\"LastName\",\"page\":1,\"orderNumber\":1,\"dbId\":6895,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"LastName\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"\",\"placeholder\":\"Jane\",\"password\":false,\"mailback\":false,\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":1,\"script3id\":\"48\",\"script3code\":\"\",\"script3msg\":\"Please enter your first name.\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"ff_valuenotempty\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"First name\",\"name\":\"FirstName\",\"page\":1,\"orderNumber\":2,\"dbId\":6896,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"FirstName\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"\",\"placeholder\":\"name@example.org\",\"password\":false,\"mailback\":true,\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":1,\"script3id\":\"46\",\"script3code\":\"\",\"script3msg\":\"Please enter a valid email address.\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"ff_validemail\",\"flag1\":0,\"flag2\":0,\"mailback\":1,\"mailbackfile\":\"\",\"title\":\"Email\",\"name\":\"Email\",\"page\":1,\"orderNumber\":3,\"dbId\":6897,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Email\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"\",\"placeholder\":\"+33 6 12 34 56 78\",\"password\":false,\"mailback\":false,\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Phone\",\"name\":\"Phone\",\"page\":1,\"orderNumber\":4,\"dbId\":6898,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Phone\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Select List\",\"elementType\":\"\",\"options\":{\"multiple\":false,\"options\":\"1;Choose a training;\\n0;Web accessibility basics (€120);Web accessibility basics\\n0;Joomla administration (€180);Joomla administration\\n0;Advanced forms workshop (€240);Advanced forms workshop\\n\",\"mailback\":false,\"readonly\":false},\"data1\":1,\"data2\":\"1;Choose a training;\\n0;Web accessibility basics (€120);Web accessibility basics\\n0;Joomla administration (€180);Joomla administration\\n0;Advanced forms workshop (€240);Advanced forms workshop\\n\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":2,\"script2id\":0,\"script2code\":\"var bfEventPrices = {'Web accessibility basics': 120, 'Joomla administration': 180, 'Advanced forms workshop': 240};\\nvar bfEventLunch = 15, bfEventReduced = 0.2;\\nfunction bfEventTotal() {\\n  var price = bfEventPrices[bfField('Training')] || 0;\\n  var people = Number(bfField('Participants')) || 0;\\n  var reduced = bfField('Rate') === 'Reduced';\\n  var lunch = bfField('Lunch') ? bfEventLunch : 0;\\n  var each = price * (reduced ? 1 - bfEventReduced : 1) + lunch;\\n  ff_getElementByName('PricePerPerson').value = each.toFixed(2);\\n  ff_getElementByName('Discount').value = (price * (reduced ? bfEventReduced : 0) * people).toFixed(2);\\n  ff_getElementByName('Total').value = (each * people).toFixed(2);\\n  if (typeof populateSummarizers === 'function') { populateSummarizers(); }\\n}\\nfunction ff_Training_action(element, action) { bfEventTotal(); }\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":1,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":1,\"script3id\":\"48\",\"script3code\":\"\",\"script3msg\":\"Please choose a training.\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"ff_Training_action\",\"functionNameScript3\":\"ff_valuenotempty\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Training\",\"name\":\"Training\",\"page\":1,\"orderNumber\":5,\"dbId\":6899,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Training\",\"internalType\":\"bfSelect\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Select List\",\"elementType\":\"\",\"options\":{\"multiple\":false,\"options\":\"1;1;1\\n0;2;2\\n0;3;3\\n0;4;4\\n0;5;5\\n0;6;6\\n0;7;7\\n0;8;8\\n0;9;9\\n0;10;10\\n\",\"mailback\":false,\"readonly\":false},\"data1\":1,\"data2\":\"1;1;1\\n0;2;2\\n0;3;3\\n0;4;4\\n0;5;5\\n0;6;6\\n0;7;7\\n0;8;8\\n0;9;9\\n0;10;10\\n\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":2,\"script2id\":0,\"script2code\":\"function ff_Participants_action(element, action) { bfEventTotal(); }\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":1,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"ff_Participants_action\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Number of participants\",\"name\":\"Participants\",\"page\":1,\"orderNumber\":6,\"dbId\":6900,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Participants\",\"internalType\":\"bfSelect\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Radio Group\",\"elementType\":\"\",\"options\":{\"readonly\":false},\"data1\":\"\",\"data2\":\"1;Standard rate;Standard\\n0;Reduced rate: 20% off;Reduced\\n\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":2,\"script2id\":0,\"script2code\":\"function ff_Rate_action(element, action) { bfEventTotal(); }\",\"script2flag1\":1,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"ff_Rate_action\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Rate\",\"name\":\"Rate\",\"page\":1,\"orderNumber\":7,\"dbId\":6901,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Rate\",\"internalType\":\"bfRadioGroup\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Checkbox\",\"elementType\":\"\",\"options\":{\"checked\":false,\"value\":\"Yes\",\"readonly\":false},\"data1\":\"Yes\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":2,\"script2id\":0,\"script2code\":\"function ff_Lunch_action(element, action) { bfEventTotal(); }\",\"script2flag1\":1,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"ff_Lunch_action\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Add a lunch (+€15 per participant)\",\"name\":\"Lunch\",\"page\":1,\"orderNumber\":8,\"dbId\":6902,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Lunch\",\"internalType\":\"bfCheckbox\",\"mailbackAccept\":false,\"mailbackAcceptConnectWith\":\"\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"\",\"placeholder\":\"\",\"password\":false,\"mailback\":false,\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Dietary requirements\",\"name\":\"Diet\",\"page\":1,\"orderNumber\":9,\"dbId\":6903,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Diet\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"0.00\",\"placeholder\":\"\",\"password\":false,\"mailback\":false,\"readonly\":true},\"data1\":\"0.00\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":1,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Price per participant (€)\",\"name\":\"PricePerPerson\",\"page\":1,\"orderNumber\":10,\"dbId\":6904,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"PricePerPerson\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"0.00\",\"placeholder\":\"\",\"password\":false,\"mailback\":false,\"readonly\":true},\"data1\":\"0.00\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":1,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Discount (€)\",\"name\":\"Discount\",\"page\":1,\"orderNumber\":11,\"dbId\":6905,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Discount\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"0.00\",\"placeholder\":\"\",\"password\":false,\"mailback\":false,\"readonly\":true},\"data1\":\"0.00\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":1,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Total (€)\",\"name\":\"Total\",\"page\":1,\"orderNumber\":12,\"dbId\":6906,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Total\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Unknown\",\"elementType\":\"\",\"options\":{\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Training\",\"name\":\"SumTraining\",\"page\":1,\"orderNumber\":13,\"dbId\":6907,\"appElementOrderId\":0,\"id\":0,\"logging\":false,\"qId\":\"SumTraining\",\"internalType\":\"bfSummarize\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Unknown\",\"elementType\":\"\",\"options\":{\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Participants\",\"name\":\"SumParticipants\",\"page\":1,\"orderNumber\":14,\"dbId\":6908,\"appElementOrderId\":0,\"id\":0,\"logging\":false,\"qId\":\"SumParticipants\",\"internalType\":\"bfSummarize\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Unknown\",\"elementType\":\"\",\"options\":{\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Total\",\"name\":\"SumTotal\",\"page\":1,\"orderNumber\":15,\"dbId\":6909,\"appElementOrderId\":0,\"id\":0,\"logging\":false,\"qId\":\"SumTotal\",\"internalType\":\"bfSummarize\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Checkbox\",\"elementType\":\"\",\"options\":{\"checked\":false,\"value\":\"Yes\",\"readonly\":false},\"data1\":\"Yes\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":1,\"script3id\":\"2\",\"script3code\":\"\",\"script3msg\":\"Please accept the terms to register.\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"ff_checked\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"I accept the registration terms and the cancellation policy.\",\"name\":\"Terms\",\"page\":1,\"orderNumber\":16,\"dbId\":6910,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Terms\",\"internalType\":\"bfCheckbox\",\"mailbackAccept\":false,\"mailbackAcceptConnectWith\":\"\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"\",\"elementType\":\"\",\"options\":[],\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":1,\"script2id\":44,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"bfFakeTitle\",\"name\":\"bfFakeName\",\"page\":1,\"orderNumber\":0,\"dbId\":6911,\"appElementOrderId\":0,\"id\":0,\"logging\":0,\"qId\":0,\"internalType\":\"\"},{\"element\":null,\"bfType\":\"\",\"elementType\":\"\",\"options\":[],\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":1,\"script2id\":24,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"bfFakeTitle2\",\"name\":\"bfFakeName2\",\"page\":1,\"orderNumber\":0,\"dbId\":6912,\"appElementOrderId\":0,\"id\":0,\"logging\":0,\"qId\":0,\"internalType\":\"\"},{\"element\":null,\"bfType\":\"\",\"elementType\":\"\",\"options\":[],\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":1,\"script2id\":43,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"bfFakeTitle3\",\"name\":\"bfFakeName3\",\"page\":1,\"orderNumber\":0,\"dbId\":6913,\"appElementOrderId\":0,\"id\":0,\"logging\":0,\"qId\":0,\"internalType\":\"\"},{\"element\":null,\"bfType\":\"\",\"elementType\":\"\",\"options\":[],\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":1,\"script2id\":41,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"bfFakeTitle4\",\"name\":\"bfFakeName4\",\"page\":1,\"orderNumber\":0,\"dbId\":6914,\"appElementOrderId\":0,\"id\":0,\"logging\":0,\"qId\":0,\"internalType\":\"\"}],\"elementCount\":16}]",
+                "template_areas": "[{\"elements\":[{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"\",\"placeholder\":\"Doe\",\"maxLength\":\"60\",\"size\":\"\",\"password\":false,\"mailback\":false,\"hint\":\"\",\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":1,\"script3id\":\"48\",\"script3code\":\"\",\"script3msg\":\"Please enter your last name.\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"ff_valuenotempty\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Last name\",\"name\":\"LastName\",\"page\":1,\"orderNumber\":1,\"dbId\":7261,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"LastName\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"\",\"placeholder\":\"Jane\",\"maxLength\":\"60\",\"size\":\"\",\"password\":false,\"mailback\":false,\"hint\":\"\",\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":1,\"script3id\":\"48\",\"script3code\":\"\",\"script3msg\":\"Please enter your first name.\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"ff_valuenotempty\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"First name\",\"name\":\"FirstName\",\"page\":1,\"orderNumber\":2,\"dbId\":7262,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"FirstName\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"\",\"placeholder\":\"name@example.org\",\"maxLength\":\"120\",\"size\":\"\",\"password\":false,\"mailback\":true,\"hint\":\"Your confirmation is sent to this address.\",\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":1,\"script3id\":\"46\",\"script3code\":\"\",\"script3msg\":\"Please enter a valid email address.\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"ff_validemail\",\"flag1\":0,\"flag2\":0,\"mailback\":1,\"mailbackfile\":\"\",\"title\":\"Email\",\"name\":\"Email\",\"page\":1,\"orderNumber\":3,\"dbId\":7263,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Email\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"\",\"placeholder\":\"\",\"maxLength\":\"20\",\"size\":\"\",\"password\":false,\"mailback\":false,\"widget\":\"phone\",\"widgetOptions\":{\"defaultCountry\":\"fr\",\"countries\":[],\"flags\":true,\"dialCode\":true,\"validate\":true},\"hint\":\"Optional: used only if the organiser needs to reach you.\",\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Phone\",\"name\":\"Phone\",\"page\":1,\"orderNumber\":4,\"dbId\":7264,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Phone\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Select List\",\"elementType\":\"\",\"options\":{\"multiple\":false,\"options\":\"1;Choose a training;\\n0;Web accessibility basics (€120);Web accessibility basics\\n0;Joomla administration (€180);Joomla administration\\n0;Advanced forms workshop (€240);Advanced forms workshop\\n\",\"mailback\":false,\"hint\":\"\",\"readonly\":false},\"data1\":1,\"data2\":\"1;Choose a training;\\n0;Web accessibility basics (€120);Web accessibility basics\\n0;Joomla administration (€180);Joomla administration\\n0;Advanced forms workshop (€240);Advanced forms workshop\\n\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":2,\"script2id\":0,\"script2code\":\"var bfEventPrices = {'Web accessibility basics': 120, 'Joomla administration': 180, 'Advanced forms workshop': 240};\\nvar bfEventLunch = 15, bfEventReduced = 0.2;\\nfunction bfEventTotal() {\\n  var price = bfEventPrices[bfField('Training')] || 0;\\n  var people = Number(bfField('Participants')) || 0;\\n  var reduced = bfField('Rate') === 'Reduced';\\n  var lunch = bfField('Lunch') ? bfEventLunch : 0;\\n  var each = price * (reduced ? 1 - bfEventReduced : 1) + lunch;\\n  ff_getElementByName('PricePerPerson').value = each.toFixed(2);\\n  ff_getElementByName('Discount').value = (price * (reduced ? bfEventReduced : 0) * people).toFixed(2);\\n  ff_getElementByName('Total').value = (each * people).toFixed(2);\\n  if (typeof populateSummarizers === 'function') { populateSummarizers(); }\\n}\\nfunction ff_Training_action(element, action) { bfEventTotal(); }\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":1,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":1,\"script3id\":\"48\",\"script3code\":\"\",\"script3msg\":\"Please choose a training.\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"ff_Training_action\",\"functionNameScript3\":\"ff_valuenotempty\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Training\",\"name\":\"Training\",\"page\":1,\"orderNumber\":5,\"dbId\":7265,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Training\",\"internalType\":\"bfSelect\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Select List\",\"elementType\":\"\",\"options\":{\"multiple\":false,\"options\":\"1;1;1\\n0;2;2\\n0;3;3\\n0;4;4\\n0;5;5\\n0;6;6\\n0;7;7\\n0;8;8\\n0;9;9\\n0;10;10\\n\",\"mailback\":false,\"hint\":\"Up to 10 people per registration.\",\"readonly\":false},\"data1\":1,\"data2\":\"1;1;1\\n0;2;2\\n0;3;3\\n0;4;4\\n0;5;5\\n0;6;6\\n0;7;7\\n0;8;8\\n0;9;9\\n0;10;10\\n\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":2,\"script2id\":0,\"script2code\":\"function ff_Participants_action(element, action) { bfEventTotal(); }\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":1,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"ff_Participants_action\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Number of participants\",\"name\":\"Participants\",\"page\":1,\"orderNumber\":6,\"dbId\":7266,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Participants\",\"internalType\":\"bfSelect\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Radio Group\",\"elementType\":\"\",\"options\":{\"hint\":\"The reduced rate is for students, job seekers and association members.\",\"readonly\":false},\"data1\":\"\",\"data2\":\"1;Standard rate;Standard\\n0;Reduced rate: 20% off;Reduced\\n\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":2,\"script2id\":0,\"script2code\":\"function ff_Rate_action(element, action) { bfEventTotal(); }\",\"script2flag1\":1,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"ff_Rate_action\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Rate\",\"name\":\"Rate\",\"page\":1,\"orderNumber\":7,\"dbId\":7267,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Rate\",\"internalType\":\"bfRadioGroup\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Checkbox\",\"elementType\":\"\",\"options\":{\"checked\":false,\"value\":\"Yes\",\"hint\":\"\",\"readonly\":false},\"data1\":\"Yes\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":2,\"script2id\":0,\"script2code\":\"function ff_Lunch_action(element, action) { bfEventTotal(); }\",\"script2flag1\":1,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"ff_Lunch_action\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Add a lunch (+€15 per participant)\",\"name\":\"Lunch\",\"page\":1,\"orderNumber\":8,\"dbId\":7268,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Lunch\",\"internalType\":\"bfCheckbox\",\"mailbackAccept\":false,\"mailbackAcceptConnectWith\":\"\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"\",\"placeholder\":\"\",\"maxLength\":\"120\",\"size\":\"\",\"password\":false,\"mailback\":false,\"hint\":\"Allergies or a vegetarian meal, for example.\",\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Dietary requirements\",\"name\":\"Diet\",\"page\":1,\"orderNumber\":9,\"dbId\":7269,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Diet\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"0.00\",\"placeholder\":\"\",\"maxLength\":\"\",\"size\":\"\",\"password\":false,\"mailback\":false,\"hint\":\"\",\"readonly\":true},\"data1\":\"0.00\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":1,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Price per participant (€)\",\"name\":\"PricePerPerson\",\"page\":1,\"orderNumber\":10,\"dbId\":7270,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"PricePerPerson\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"0.00\",\"placeholder\":\"\",\"maxLength\":\"\",\"size\":\"\",\"password\":false,\"mailback\":false,\"hint\":\"\",\"readonly\":true},\"data1\":\"0.00\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":1,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Discount (€)\",\"name\":\"Discount\",\"page\":1,\"orderNumber\":11,\"dbId\":7271,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Discount\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Text\",\"elementType\":\"\",\"options\":{\"value\":\"0.00\",\"placeholder\":\"\",\"maxLength\":\"\",\"size\":\"\",\"password\":false,\"mailback\":false,\"hint\":\"Calculated from your choices. The organiser confirms the final amount and your seat.\",\"readonly\":true},\"data1\":\"0.00\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":1,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Total (€)\",\"name\":\"Total\",\"page\":1,\"orderNumber\":12,\"dbId\":7272,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Total\",\"internalType\":\"bfTextfield\",\"mailbackAsSender\":0,\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Unknown\",\"elementType\":\"\",\"options\":{\"hint\":\"\",\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Training\",\"name\":\"SumTraining\",\"page\":1,\"orderNumber\":13,\"dbId\":7273,\"appElementOrderId\":0,\"id\":0,\"logging\":false,\"qId\":\"SumTraining\",\"internalType\":\"bfSummarize\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Unknown\",\"elementType\":\"\",\"options\":{\"hint\":\"\",\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Participants\",\"name\":\"SumParticipants\",\"page\":1,\"orderNumber\":14,\"dbId\":7274,\"appElementOrderId\":0,\"id\":0,\"logging\":false,\"qId\":\"SumParticipants\",\"internalType\":\"bfSummarize\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Unknown\",\"elementType\":\"\",\"options\":{\"hint\":\"\",\"readonly\":false},\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"Total\",\"name\":\"SumTotal\",\"page\":1,\"orderNumber\":15,\"dbId\":7275,\"appElementOrderId\":0,\"id\":0,\"logging\":false,\"qId\":\"SumTotal\",\"internalType\":\"bfSummarize\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"Checkbox\",\"elementType\":\"\",\"options\":{\"checked\":false,\"value\":\"Yes\",\"hint\":\"The seat is confirmed by the organiser by email.\",\"readonly\":false},\"data1\":\"Yes\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":0,\"script2id\":0,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":1,\"script3id\":\"2\",\"script3code\":\"\",\"script3msg\":\"Please accept the terms to register.\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"ff_checked\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"I accept the registration terms and the cancellation policy.\",\"name\":\"Terms\",\"page\":1,\"orderNumber\":16,\"dbId\":7276,\"appElementOrderId\":0,\"id\":0,\"logging\":true,\"qId\":\"Terms\",\"internalType\":\"bfCheckbox\",\"mailbackAccept\":false,\"mailbackAcceptConnectWith\":\"\",\"tabIndex\":\"-1\",\"hideInMailback\":false},{\"element\":null,\"bfType\":\"\",\"elementType\":\"\",\"options\":[],\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":1,\"script2id\":44,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"bfFakeTitle\",\"name\":\"bfFakeName\",\"page\":1,\"orderNumber\":0,\"dbId\":7277,\"appElementOrderId\":0,\"id\":0,\"logging\":0,\"qId\":0,\"internalType\":\"\"},{\"element\":null,\"bfType\":\"\",\"elementType\":\"\",\"options\":[],\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":1,\"script2id\":24,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"bfFakeTitle2\",\"name\":\"bfFakeName2\",\"page\":1,\"orderNumber\":0,\"dbId\":7278,\"appElementOrderId\":0,\"id\":0,\"logging\":0,\"qId\":0,\"internalType\":\"\"},{\"element\":null,\"bfType\":\"\",\"elementType\":\"\",\"options\":[],\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":1,\"script2id\":43,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"bfFakeTitle3\",\"name\":\"bfFakeName3\",\"page\":1,\"orderNumber\":0,\"dbId\":7279,\"appElementOrderId\":0,\"id\":0,\"logging\":0,\"qId\":0,\"internalType\":\"\"},{\"element\":null,\"bfType\":\"\",\"elementType\":\"\",\"options\":[],\"data1\":\"\",\"data2\":\"\",\"data3\":\"\",\"script1cond\":0,\"script1id\":0,\"script1code\":\"\",\"script1flag1\":0,\"script1flag2\":0,\"script2cond\":1,\"script2id\":41,\"script2code\":\"\",\"script2flag1\":0,\"script2flag2\":0,\"script2flag3\":0,\"script2flag4\":0,\"script2flag5\":0,\"script3cond\":0,\"script3id\":0,\"script3code\":\"\",\"script3msg\":\"\",\"functionNameScript1\":\"\",\"functionNameScript2\":\"\",\"functionNameScript3\":\"\",\"flag1\":0,\"flag2\":0,\"mailback\":0,\"mailbackfile\":\"\",\"title\":\"bfFakeTitle4\",\"name\":\"bfFakeName4\",\"page\":1,\"orderNumber\":0,\"dbId\":7280,\"appElementOrderId\":0,\"id\":0,\"logging\":0,\"qId\":0,\"internalType\":\"\"}],\"elementCount\":16}]",
                 "ordering": 0,
                 "published": 1,
                 "debug_mode": 0,
@@ -1245,7 +1258,7 @@
             },
             "elements": [
                 {
-                    "source_id": 6911,
+                    "source_id": 7277,
                     "page": 1,
                     "ordering": 0,
                     "published": 1,
@@ -1289,7 +1302,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6912,
+                    "source_id": 7278,
                     "page": 1,
                     "ordering": 0,
                     "published": 1,
@@ -1333,7 +1346,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6913,
+                    "source_id": 7279,
                     "page": 1,
                     "ordering": 0,
                     "published": 1,
@@ -1377,7 +1390,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6914,
+                    "source_id": 7280,
                     "page": 1,
                     "ordering": 0,
                     "published": 1,
@@ -1421,7 +1434,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6895,
+                    "source_id": 7261,
                     "page": 1,
                     "ordering": 1,
                     "published": 1,
@@ -1465,7 +1478,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6896,
+                    "source_id": 7262,
                     "page": 1,
                     "ordering": 2,
                     "published": 1,
@@ -1509,7 +1522,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6897,
+                    "source_id": 7263,
                     "page": 1,
                     "ordering": 3,
                     "published": 1,
@@ -1553,7 +1566,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6898,
+                    "source_id": 7264,
                     "page": 1,
                     "ordering": 4,
                     "published": 1,
@@ -1597,7 +1610,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6899,
+                    "source_id": 7265,
                     "page": 1,
                     "ordering": 5,
                     "published": 1,
@@ -1641,7 +1654,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6900,
+                    "source_id": 7266,
                     "page": 1,
                     "ordering": 6,
                     "published": 1,
@@ -1685,7 +1698,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6901,
+                    "source_id": 7267,
                     "page": 1,
                     "ordering": 7,
                     "published": 1,
@@ -1729,7 +1742,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6902,
+                    "source_id": 7268,
                     "page": 1,
                     "ordering": 8,
                     "published": 1,
@@ -1773,7 +1786,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6903,
+                    "source_id": 7269,
                     "page": 1,
                     "ordering": 9,
                     "published": 1,
@@ -1817,7 +1830,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6904,
+                    "source_id": 7270,
                     "page": 1,
                     "ordering": 10,
                     "published": 1,
@@ -1861,7 +1874,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6905,
+                    "source_id": 7271,
                     "page": 1,
                     "ordering": 11,
                     "published": 1,
@@ -1905,7 +1918,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6906,
+                    "source_id": 7272,
                     "page": 1,
                     "ordering": 12,
                     "published": 1,
@@ -1949,7 +1962,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6907,
+                    "source_id": 7273,
                     "page": 1,
                     "ordering": 13,
                     "published": 1,
@@ -1993,7 +2006,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6908,
+                    "source_id": 7274,
                     "page": 1,
                     "ordering": 14,
                     "published": 1,
@@ -2037,7 +2050,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6909,
+                    "source_id": 7275,
                     "page": 1,
                     "ordering": 15,
                     "published": 1,
@@ -2081,7 +2094,7 @@
                     "mailbackfile": ""
                 },
                 {
-                    "source_id": 6910,
+                    "source_id": 7276,
                     "page": 1,
                     "ordering": 16,
                     "published": 1,
