@@ -344,7 +344,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         if ($this->utf8mb4Supported) {
             $message = 'utf8mb4 support detected on the database server.'
                 . ' BreezingForms tables will be checked and converted when needed.';
-            $this->announce($message . ' Target collation: ' . $this->utf8mb4Collation . '.', 'message', Log::INFO);
+            $this->log($message . ' Target collation: ' . $this->utf8mb4Collation . '.');
         } else {
             $message = 'utf8mb4 is not available on the database server.'
                 . ' BreezingForms cannot auto-convert its text columns to utf8mb4 on this installation.';
@@ -594,8 +594,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $issues = $this->getUtf8mb4NonCompliantTables($db, $tables);
 
         if (empty($issues)) {
-            $message = 'BreezingForms NG utf8mb4 check: all existing component tables already use utf8mb4.';
-            $this->announce($message, 'message', Log::INFO);
+            $this->log('BreezingForms NG utf8mb4 check: all existing component tables already use utf8mb4.');
             return;
         }
 
@@ -630,8 +629,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         if (empty($failed)) {
-            $message = 'BreezingForms utf8mb4 verification completed successfully.';
-            $this->announce($message, 'message', Log::INFO);
+            $this->log('BreezingForms utf8mb4 verification completed successfully.');
         }
     }
 
@@ -1020,7 +1018,12 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
     }
 
-    private function log(string $message, int $priority = Log::INFO): void
+    /**
+     * Everything is written to the install log file. Only warnings, errors,
+     * [OK] results and explicitly announced messages reach the administrator
+     * screen, so the page lists what changed instead of every internal step.
+     */
+    private function log(string $message, int $priority = Log::INFO, bool $display = false): void
     {
         if ($priority === Log::ERROR) {
             $this->criticalFailureDetected = true;
@@ -1047,6 +1050,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         file_put_contents($logPath, $line, FILE_APPEND | LOCK_EX);
 
+        if ($priority === Log::INFO && !$display && !str_starts_with($message, '[OK] ')) {
+            return;
+        }
+
         try {
             $type = match ($priority) {
                 Log::ERROR => 'error',
@@ -1061,7 +1068,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function announce(string $message, string $type = 'message', int $priority = Log::INFO): void
     {
-        $this->log($message, $priority);
+        $this->log($message, $priority, true);
     }
 
     private function resetCriticalFailures(): void
@@ -1299,7 +1306,6 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $version = '0.0.0';
         }
 
-        $this->log('Detected current version : ' . $version . '.');
         return $version;
     }
 
@@ -1338,6 +1344,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             return;
         }
 
+        $installedFolders = [];
+
         foreach ($folders as $folder) {
             $this->log("Installing plugin from folder: {$folder}");
 
@@ -1347,10 +1355,17 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $installer->setDatabase(Factory::getContainer()->get(DatabaseInterface::class));
 
             if ($installer->install($basePath . '/' . $folder)) {
+                $installedFolders[] = $folder;
                 $this->log("Plugin {$folder} installed successfully.", Log::INFO);
             } else {
                 $this->announce("Failed to install BreezingForms plugin: {$folder}", 'error', Log::ERROR);
             }
+        }
+
+        if ($installedFolders !== []) {
+            $this->announce(
+                'BreezingForms plugins installed or updated: ' . implode(', ', $installedFolders) . '.'
+            );
         }
 
         // Preserve existing plugin states; enable newly installed plugins only.
@@ -1434,6 +1449,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             return;
         }
 
+        $copiedTotal = 0;
+
         foreach ($directories as $directory) {
             $sourceDir = $sourceImages . '/' . $directory;
             if (!Folder::exists($sourceDir)) {
@@ -1472,8 +1489,13 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             }
 
             if ($relativeCounter > 0) {
+                $copiedTotal += $relativeCounter;
                 $this->log("Copied {$relativeCounter} file(s) from '{$directory}' into /images.");
             }
+        }
+
+        if ($copiedTotal > 0) {
+            $this->announce("Copied {$copiedTotal} sample image file(s) into /images.");
         }
     }
 
@@ -1987,7 +2009,11 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
                 $updated = (int) $db->getAffectedRows();
                 if ($updated > 0) {
-                    $this->log("Normalized {$updated} Joomla menu row(s) from {$legacyElement} to {$targetElement}.");
+                    $this->log(
+                        "Normalized {$updated} Joomla menu row(s) from {$legacyElement} to {$targetElement}.",
+                        Log::INFO,
+                        true
+                    );
                 }
             } catch (\Throwable $e) {
                 $this->log(
@@ -3588,7 +3614,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     public function update(InstallerAdapter $adapter): bool
     {
-        $this->log('Updating BreezingForms from version ' . $this->getCurrentInstalledVersion());
+        $this->log('Updating BreezingForms from version ' . $this->currentInstalledVersion . '.');
         $this->ensureUtf8mb4Columns();
         $this->migrateLegacyComponentOptionReferences();
 
@@ -4281,22 +4307,16 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         $this->announce(
-            '[INFO] BreezingForms ' . strtoupper($type) .
-            ' | package version: <strong>' . htmlspecialchars(
+            '[INFO] BreezingForms ' . strtoupper($type) . ' | '
+            . htmlspecialchars($this->currentInstalledVersion, ENT_QUOTES, 'UTF-8') . ' &rarr; <strong>'
+            . htmlspecialchars(
                 $this->incomingPackageVersion !== '' ? $this->incomingPackageVersion : 'unknown',
                 ENT_QUOTES,
                 'UTF-8'
-            ) . '</strong>' .
-            ' | installed version: <strong>'
-            . htmlspecialchars($this->currentInstalledVersion, ENT_QUOTES, 'UTF-8') . '</strong>.',
-            'message',
-            Log::INFO
-        );
-        $this->announce(
-            '[INFO] Environment | Joomla <strong>'
-            . htmlspecialchars(defined('JVERSION') ? JVERSION : 'unknown', ENT_QUOTES, 'UTF-8') . '</strong>' .
-            ' | PHP <strong>' . htmlspecialchars(PHP_VERSION, ENT_QUOTES, 'UTF-8') . '</strong>' .
-            ' | DB <strong>' . htmlspecialchars($this->getDatabaseRuntimeLabel(), ENT_QUOTES, 'UTF-8') . '</strong>.',
+            )
+            . '</strong> | Joomla ' . htmlspecialchars(defined('JVERSION') ? JVERSION : 'unknown', ENT_QUOTES, 'UTF-8')
+            . ' | PHP ' . htmlspecialchars(PHP_VERSION, ENT_QUOTES, 'UTF-8')
+            . ' | DB ' . htmlspecialchars($this->getDatabaseRuntimeLabel(), ENT_QUOTES, 'UTF-8') . '.',
             'message',
             Log::INFO
         );
@@ -4366,15 +4386,12 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $packageVersion = $this->incomingPackageVersion !== ''
             ? $this->incomingPackageVersion
             : $this->getIncomingVersion($adapter);
-        $installedVersion = $this->getCurrentInstalledVersion();
-
         $finishedWithFailure = $this->hasCriticalFailure();
         $finishMessage = ($finishedWithFailure ? '[ERROR] BreezingForms ' : '[OK] BreezingForms ')
             . $actionLabel
             . ($finishedWithFailure ? ' finished with critical issue(s).' : ' finished successfully.')
-            . ' Package version: <strong>'
+            . ' ' . htmlspecialchars($this->currentInstalledVersion, ENT_QUOTES, 'UTF-8') . ' &rarr; <strong>'
             . htmlspecialchars($packageVersion !== '' ? $packageVersion : 'unknown', ENT_QUOTES, 'UTF-8') . '</strong>'
-            . ' | installed version: <strong>' . htmlspecialchars($installedVersion, ENT_QUOTES, 'UTF-8') . '</strong>'
             . ' | duration: <strong>' . number_format($durationSeconds, 2, '.', '') . 's</strong>.';
 
         $this->announce(
