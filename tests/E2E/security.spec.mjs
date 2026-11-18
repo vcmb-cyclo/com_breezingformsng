@@ -263,12 +263,59 @@ test.describe('security, as the site really answers', () => {
             expect(dbJson('record', String(record.id)).state).toBe('1');
         });
 
+        test('form options and the QuickMode lock require the form ACLs', async () => {
+            db('component-rules', JSON.stringify({
+                'core.manage': { [MANAGER_GROUP]: 1 },
+                'core.edit': { [MANAGER_GROUP]: 0 },
+                'core.edit.state': { [MANAGER_GROUP]: 0 },
+            }));
+
+            const before = dbJson('form', String(textForm));
+            const deniedSave = await ajax('forms.saveOptions', {
+                id: String(textForm), title: 'e2e_unauthorized_title', [csrf]: '1',
+            });
+            const deniedDebug = await ajax('forms.setDebug', {
+                id: String(textForm), state: '1', [csrf]: '1',
+            });
+
+            expect(deniedSave.status).toBe(403);
+            expect(deniedDebug.status).toBe(403);
+            expect(dbJson('form', String(textForm)).title).toBe(before.title);
+            expect(dbJson('form', String(textForm)).debug_mode).toBe(before.debug_mode);
+
+            db('set', String(textForm), 'checked_out', '0');
+            await page.goto(`${ADMIN}?option=com_breezingformsng&task=quickmode.display&form=${textForm}`);
+
+            expect(new URL(page.url()).searchParams.get('view')).toBe('forms');
+            expect(Number(dbJson('form', String(textForm)).checked_out ?? 0)).toBe(0);
+
+            // A valid edit session can render the editor, but a cross-site GET
+            // cannot acquire the lock because rendering no longer mutates state.
+            db('component-rules', JSON.stringify({
+                'core.manage': { [MANAGER_GROUP]: 1 },
+                'core.edit': { [MANAGER_GROUP]: 1 },
+                'core.edit.state': { [MANAGER_GROUP]: 0 },
+            }));
+            const editor = await page.goto(`${ADMIN}?option=com_breezingformsng&task=quickmode.display&form=${textForm}`);
+
+            expect(editor.status()).toBe(200);
+            expect(Number(dbJson('form', String(textForm)).checked_out ?? 0)).toBe(0);
+
+            const allowedEdit = await ajax('forms.saveOptions', {
+                id: String(textForm), title: before.title, published: '0', [csrf]: '1',
+            });
+
+            expect(allowedEdit.status).toBe(200);
+            expect(Number(dbJson('form', String(textForm)).published)).toBe(Number(before.published));
+        });
+
         test('Integrator state and permanent deletion each require their Joomla ACL right', async () => {
             const ruleId = Number(db('create-integrator-rule', String(textForm)));
             integratorFixtures.push(ruleId);
             expect(ruleId).toBeGreaterThan(0);
 
             db('component-rules', JSON.stringify({
+                'core.manage': { [MANAGER_GROUP]: 1 },
                 'breezingformsng.code': { [MANAGER_GROUP]: 1 },
                 'core.edit.state': { [MANAGER_GROUP]: 0 },
                 'core.delete': { [MANAGER_GROUP]: 0 },
@@ -295,6 +342,10 @@ test.describe('security, as the site really answers', () => {
             });
 
             expect(deniedDelete.status).toBe(403);
+            expect(db('integrator-rule-state', String(ruleId))).toBe('-2');
+
+            // About's bulk action must enforce the same right as the list.
+            await ajax('about.emptyItemsTrash', { trash_type: 'integrator', [csrf]: '1' });
             expect(db('integrator-rule-state', String(ruleId))).toBe('-2');
         });
 
@@ -450,8 +501,6 @@ test.describe('security, as the site really answers', () => {
             forms: dbJson('forms-count', payload.package).package,
             rules: Number(db('rules-count', payload.package)),
         });
-        const DANGER = 'joomla-alert[type="danger"], .alert-danger';
-
         // As a user sends it: the page reads the file and asks the server for a
         // preview first, and answers Import once that is done. Its answer to the
         // preview is part of what is sent, so the import waits for it.

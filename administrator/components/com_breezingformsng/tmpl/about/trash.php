@@ -125,7 +125,7 @@ $trashedTotal = array_sum(array_column($trashed, 'trashed'));
                         type="button"
                         class="btn btn-danger"
                         <?php echo !empty($this->canEmpty[$type['view']]) ? '' : ' disabled'; ?>
-                        onclick="if (window.confirm(<?php echo htmlspecialchars(json_encode(Text::_('JGLOBAL_CONFIRM_DELETE'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8'); ?>)) { document.getElementById('bf-trash-type').value = '<?php echo $type['view']; ?>'; Joomla.submitform('about.emptyItemsTrash'); }"
+                        onclick="if (window.confirm(<?php echo htmlspecialchars(json_encode(Text::_('JGLOBAL_CONFIRM_DELETE'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8'); ?>)) { document.getElementById('bf-trash-type').value = '<?php echo $type['view']; ?>'; Joomla.submitform('about.emptyItemsTrash'); }"
                     ><span class="icon-trash" aria-hidden="true"></span> <?php echo Text::_('JTOOLBAR_EMPTY_TRASH'); ?></button>
                     <a class="btn btn-outline-secondary"
                         href="<?php echo Route::_('index.php?option=com_breezingformsng&view=' . $type['view'] . '&filter[published]=-2'); ?>">

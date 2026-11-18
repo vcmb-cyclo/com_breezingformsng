@@ -276,10 +276,17 @@ class FormsController extends AdminController
     {
         $app = $this->app;
         $id  = (int) ($data['id'] ?? 0);
+        $this->assertFormEditPermission($id);
 
         if ($id > 0) {
+            $formModel = $this->getFormModel();
+
+            if (!$formModel->checkout($id)) {
+                throw new \RuntimeException(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', $formModel->getError()));
+            }
+
             // A form without versions keeps the state it had before this save.
-            (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class), $this->getFormModel()))->keepOrigin($id);
+            (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class), $formModel))->keepOrigin($id);
         }
 
         $id  = $this->getOptionsModel()->saveForm($data);
@@ -298,6 +305,24 @@ class FormsController extends AdminController
         );
 
         return $id;
+    }
+
+    private function assertFormEditPermission(int $id): void
+    {
+        $user = $this->app->getIdentity();
+        $action = $id > 0 ? 'core.edit' : 'core.create';
+
+        if ($user === null || !$user->authorise($action, 'com_breezingformsng')) {
+            throw new NotAllowed(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+        }
+
+        if ($id > 0) {
+            $form = $this->getOptionsModel()->getForm($id);
+
+            if ($form === null || (int) $form->published === -2) {
+                throw new NotAllowed(Text::_('JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED'), 403);
+            }
+        }
     }
 
     public function cancel(): void

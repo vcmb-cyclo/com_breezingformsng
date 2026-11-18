@@ -20,6 +20,31 @@ namespace Joomla\CMS\MVC\Controller {
                 throw new \RuntimeException('Wrong token method');
             }
         }
+
+        public function getModel(string $name): object
+        {
+            return $name === 'FormOptions'
+                ? new \Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel()
+                : new \Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel();
+        }
+    }
+}
+
+namespace Vcmb\Component\BreezingformsNG\Administrator\Model {
+    class FormOptionsModel
+    {
+        public function getForm(int $id): object
+        {
+            return (object) ['id' => $id, 'published' => 1];
+        }
+    }
+
+    class FormModel
+    {
+        public function checkout(int $id): bool
+        {
+            return true;
+        }
     }
 }
 
