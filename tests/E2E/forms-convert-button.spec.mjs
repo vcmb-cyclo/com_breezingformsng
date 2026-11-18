@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { loginAsAdmin } from './login.mjs';
 
 // The Convert to QuickMode button only makes sense for a form that is not in
 // QuickMode format: it shows when the list holds one.
@@ -21,9 +22,7 @@ test('the Convert to QuickMode button shows only when the list holds a form that
     const page = await browser.newPage();
     await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
     await page.goto(ADMIN);
-    await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-    await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-    await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+    await loginAsAdmin(page);
 
     const button = page.locator('joomla-toolbar-button[task="forms.convertLegacy"]');
     const list = (search) => page.goto(`${ADMIN}?option=com_breezingformsng&view=forms&filter[search]=${search}`);

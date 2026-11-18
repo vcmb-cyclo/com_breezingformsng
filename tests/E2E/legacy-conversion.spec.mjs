@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { loginAsAdmin, submitLogin } from './login.mjs';
 
 // Run only against the disposable Joomla configured by the E2E runner.
 const container = process.env.BFNG_E2E_CONTAINER;
@@ -22,9 +23,7 @@ test.describe('legacy form conversion', () => {
         page = await browser.newPage();
         await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
         await page.goto(admin);
-        await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-        await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await loginAsAdmin(page);
     });
 
     test.afterAll(async () => {
@@ -257,9 +256,7 @@ test.describe('legacy form conversion', () => {
             const restrictedPage = await restricted.newPage();
             await restrictedPage.route('**/plg_system_guidedtours/**', (route) => route.abort());
             await restrictedPage.goto(admin);
-            await restrictedPage.fill('#mod-login-username', username);
-            await restrictedPage.fill('#mod-login-password', password);
-            await Promise.all([restrictedPage.waitForNavigation(), restrictedPage.click('#btn-login-submit')]);
+            await submitLogin(restrictedPage, username, password);
             await restrictedPage.goto(`${admin}?option=com_breezingformsng&view=forms`);
             await expect(restrictedPage.getByRole('button', { name: /convert to quickmode/i })).toHaveCount(0);
             const token = await restrictedPage.locator('#adminForm input[type="hidden"]').evaluateAll((inputs) =>

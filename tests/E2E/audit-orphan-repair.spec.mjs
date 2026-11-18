@@ -1,6 +1,7 @@
 import { test, expect, request } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { loginAsAdmin } from './login.mjs';
 
 const ADMIN = 'administrator/index.php';
 const AUDIT = 'api/index.php/v1/breezingformsng/audit';
@@ -40,9 +41,7 @@ test('orphan repairs preserve existing records and distinguish element zero from
 
         await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
         await page.goto(ADMIN);
-        await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-        await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await loginAsAdmin(page);
         const csrf = await page.evaluate(() => Joomla.getOptions('csrf.token'));
         const noToken = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.deleteOrphanValues&format=json`, {
             form: { orphan_all: '1' },

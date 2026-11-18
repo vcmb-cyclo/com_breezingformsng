@@ -1,6 +1,7 @@
 import { test, expect, request } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { submitLogin } from './login.mjs';
 
 // Functional checks of the protections a source test can only see written: each
 // request below is really sent, and what the site did with it is read back from
@@ -31,9 +32,7 @@ test.describe('security, as the site really answers', () => {
 
     const login = async (page, username, password) => {
         await page.goto(ADMIN);
-        await page.fill('#mod-login-username', username);
-        await page.fill('#mod-login-password', password);
-        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await submitLogin(page, username, password);
     };
 
     // A QuickMode form with one element of the given type, published, without notifications.
@@ -51,17 +50,14 @@ test.describe('security, as the site really answers', () => {
         await page.fill('#bfFormTitle', name);
         await page.fill('#bfFormName', name);
         await page.locator('#bfNewPageButton').click();
-        await page.waitForTimeout(500);
         await selectNode('page');
         await page.locator('#bfNewSectionButton').click();
-        await page.waitForTimeout(500);
         await selectNode('section');
         await page.locator('#bfNewElementButton').click();
         await selectNode('element');
-        await page.waitForTimeout(300);
         await page.locator('#bfElementTypeButton').click();
         await page.locator(`#bfElementTypeList .bfng-type-icon--bfElementType${type}`).first().click();
-        await page.waitForTimeout(300);
+            await expect(page.locator('#bfElementTypeList')).toBeHidden();
         await page.fill('#bfElementLabel', elementName);
         await page.fill('#bfElementName', elementName);
         if (type === 'File') {

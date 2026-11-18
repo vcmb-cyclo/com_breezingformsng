@@ -1,13 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { loginAsAdmin } from './login.mjs';
 
 const ADMIN = 'administrator/index.php';
 
 test.beforeEach(async ({ page }) => {
     await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
     await page.goto(ADMIN);
-    await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-    await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-    await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+    await loginAsAdmin(page);
     await page.goto(`${ADMIN}?option=com_breezingformsng&view=packages&layout=import`);
 });
 

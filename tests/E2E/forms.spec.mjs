@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { addedWarnings, containerErrors } from './container-log.mjs';
+import { loginAsAdmin } from './login.mjs';
 
 const CONTAINER = process.env.BFNG_E2E_CONTAINER;
 const ADMIN = 'administrator/index.php';
@@ -38,9 +39,7 @@ test.describe('forms', () => {
         });
 
         await page.goto(ADMIN);
-        await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-        await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await loginAsAdmin(page);
     });
 
     test.afterEach(() => {
@@ -83,17 +82,14 @@ test.describe('forms', () => {
         await page.fill('#bfFormName', 'e2eform');
 
         await page.locator('#bfNewPageButton').click();
-        await page.waitForTimeout(500);
         await selectNode('page');
         await page.locator('#bfNewSectionButton').click();
-        await page.waitForTimeout(500);
         await selectNode('section');
         await page.locator('#bfNewElementButton').click();
         await selectNode('element');
-        await page.waitForTimeout(300);
         await page.locator('#bfElementTypeButton').click();
         await page.locator('#bfElementTypeList [role=option] .bfng-type-icon--bfElementTypeText, #bfElementTypeList .bfng-type-icon--bfElementTypeText').first().click();
-        await page.waitForTimeout(300);
+        await expect(page.locator('#bfElementTypeList')).toBeHidden();
         await page.fill('#bfElementLabel', 'First name');
         await page.fill('#bfElementName', 'firstname');
         await selectNode('section');
@@ -313,10 +309,10 @@ test.describe('forms', () => {
             return items.find((item) => item.properties.bfName !== 'firstname').attributes.id;
         });
         await page.locator(`[id="${added}"] > a`).click();
-        await page.waitForTimeout(300);
+        await page.waitForFunction((id) => window.BFQMApp.selectedTreeElement.attributes.id === id, added);
         await page.locator('#bfElementTypeButton').click();
         await page.locator('#bfElementTypeList .bfng-type-icon--bfElementTypeStripe').first().click();
-        await page.waitForTimeout(300);
+        await expect(page.locator('#bfElementTypeList')).toBeHidden();
         await page.fill('#bfElementLabel', 'Pay');
         await page.fill('#bfElementName', 'paybutton');
         await page.locator('label[for="bfElementTypeStripeAmountSourceField"]').click();
@@ -401,7 +397,7 @@ test.describe('forms', () => {
         });
         expect(stripe.actionClick).toBe(0);
         await page.locator(`[id="${stripe.id}"] > a`).click();
-        await page.waitForTimeout(300);
+        await page.waitForFunction((id) => window.BFQMApp.selectedTreeElement.attributes.id === id, stripe.id);
         await page.locator('label[for="bfElementTypeStripeAmountSourceFixed"]').click();
         await page.fill('#bfElementTypeStripeAmount', '25.00');
         await saveQuickMode();
