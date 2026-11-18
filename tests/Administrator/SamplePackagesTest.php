@@ -238,7 +238,7 @@ final class SamplePackagesTest extends TestCase
 
     public function testTheBusinessTemplatesUseTheFieldWidgets(): void
     {
-        foreach (['bfng-sample-event.json', 'bfng-sample-quote.json'] as $file) {
+        foreach (['bfng-sample-contact.json', 'bfng-sample-event.json', 'bfng-sample-quote.json'] as $file) {
             $elements = $this->elements($this->package($file)['forms'][0]['data']['template_code']);
             $phone = array_values(array_filter($elements, static fn (array $e): bool => $e['bfName'] === 'Phone'));
 
