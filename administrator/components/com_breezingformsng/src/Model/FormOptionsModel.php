@@ -10,6 +10,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Access\Exception\NotAllowed;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Plugin\PluginHelper;
@@ -130,6 +131,34 @@ class FormOptionsModel extends BaseDatabaseModel
         $now = (new \Joomla\CMS\Date\Date())->toSql();
         $uid = (string) $this->getCurrentUser()->username;
         $id  = (int) ($data['id'] ?? 0);
+        $user = $this->getCurrentUser();
+        $editAction = $id > 0 ? 'core.edit' : 'core.create';
+
+        if (!$user->authorise($editAction, 'com_breezingformsng')) {
+            throw new NotAllowed(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+        }
+
+        if ($id > 0) {
+            $form = $this->getForm($id);
+
+            if ($form === null) {
+                throw new NotAllowed(Text::_('JLIB_APPLICATION_ERROR_NOT_EXIST'), 404);
+            }
+
+            if ((int) $form->published === -2) {
+                throw new NotAllowed(Text::_('JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED'), 403);
+            }
+        }
+
+        // A form editor may change its content without holding the separate
+        // permission to publish, unpublish or trash it.
+        if (!$user->authorise('core.edit.state', 'com_breezingformsng')) {
+            if ($id > 0) {
+                unset($data['published']);
+            } else {
+                $data['published'] = 0;
+            }
+        }
 
         if ($id > 0 && !empty($data['published'])) {
             $form = $this->getForm($id);
@@ -229,6 +258,10 @@ class FormOptionsModel extends BaseDatabaseModel
 
     public function setDebugMode(int $id, int $state): void
     {
+        if (!$this->getCurrentUser()->authorise('core.edit.state', 'com_breezingformsng')) {
+            throw new NotAllowed(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), 403);
+        }
+
         $db = $this->db();
         $db->setQuery(
             $db->createQuery()

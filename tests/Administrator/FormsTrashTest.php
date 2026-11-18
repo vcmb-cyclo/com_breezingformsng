@@ -75,11 +75,11 @@ final class FormsTrashTest extends TestCase
         $view = $this->admin('src/View/Forms/HtmlView.php');
 
         self::assertSame(1, substr_count($view, 'deleteList('));
-        self::assertMatchesRegularExpression(
-            "/filter\.published'\) === '-2'\) \{[^}]*deleteList\('JGLOBAL_CONFIRM_DELETE', 'forms\.delete', 'JTOOLBAR_EMPTY_TRASH'\);"
-            . "\s*\} else \{\s*ToolbarHelper::trash\('forms\.trash'\);/s",
-            $view
-        );
+        self::assertStringContainsString("if ((string) \$this->state->get('filter.published') === '-2')", $view);
+        self::assertStringContainsString("if (\$user->authorise('core.delete', 'com_breezingformsng'))", $view);
+        self::assertStringContainsString("elseif (\$user->authorise('core.edit.state', 'com_breezingformsng'))", $view);
+        self::assertStringContainsString("ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'forms.delete', 'JTOOLBAR_EMPTY_TRASH')", $view);
+        self::assertStringContainsString("ToolbarHelper::trash('forms.trash')", $view);
     }
 
     public function testTheTemplateTreatsOnlyOneAsPublished(): void

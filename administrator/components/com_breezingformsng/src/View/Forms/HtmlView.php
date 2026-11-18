@@ -169,18 +169,22 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
                 && $this->getCurrentUser()->authorise('core.edit', 'com_breezingformsng')) {
                 ToolbarHelper::custom('forms.convertLegacy', 'copy', '', 'COM_BREEZINGFORMSNG_FORMS_CONVERT_LEGACY', true);
             }
-            ToolbarHelper::publish('forms.publish', 'JTOOLBAR_PUBLISH', true);
-            ToolbarHelper::unpublish('forms.unpublish', 'JTOOLBAR_UNPUBLISH', true);
+            $user = $this->getCurrentUser();
+
+            if ($user->authorise('core.edit.state', 'com_breezingformsng')) {
+                ToolbarHelper::publish('forms.publish', 'JTOOLBAR_PUBLISH', true);
+                ToolbarHelper::unpublish('forms.unpublish', 'JTOOLBAR_UNPUBLISH', true);
+            }
             ToolbarHelper::checkin('forms.checkin');
 
             if ((string) $this->state->get('filter.published') === '-2') {
                 // In the trash, Publish and Unpublish restore.
-                ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'forms.delete', 'JTOOLBAR_EMPTY_TRASH');
-            } else {
+                if ($user->authorise('core.delete', 'com_breezingformsng')) {
+                    ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'forms.delete', 'JTOOLBAR_EMPTY_TRASH');
+                }
+            } elseif ($user->authorise('core.edit.state', 'com_breezingformsng')) {
                 ToolbarHelper::trash('forms.trash');
             }
-
-            $user = $this->getCurrentUser();
 
             if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
                 ToolbarHelper::preferences('com_breezingformsng');

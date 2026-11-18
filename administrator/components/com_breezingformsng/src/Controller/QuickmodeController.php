@@ -34,9 +34,27 @@ class QuickmodeController extends BaseController
     public function display($cachable = false, $urlparams = []): static
     {
         $formId = $this->app->getInput()->getInt('form', 0);
+        $user = $this->app->getIdentity();
+        $action = $formId > 0 ? 'core.edit' : 'core.create';
+
+        if ($user === null || !$user->authorise($action, 'com_breezingformsng')) {
+            $this->setMessage(Text::_('JERROR_ALERTNOAUTHOR'), 'error');
+            $this->setRedirect(Route::_('index.php?option=com_breezingformsng&view=forms', false));
+
+            return $this;
+        }
 
         // The form stays checked out while it is open in QuickMode; close() checks it in.
         if ($formId > 0) {
+            $form = $this->getOptionsModel()->getForm($formId);
+
+            if ($form === null || (int) $form->published === -2) {
+                $this->setMessage(Text::_('JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED'), 'error');
+                $this->setRedirect(Route::_('index.php?option=com_breezingformsng&view=forms', false));
+
+                return $this;
+            }
+
             $model = $this->getFormModel();
 
             if (!$model->checkout($formId)) {
@@ -66,7 +84,7 @@ class QuickmodeController extends BaseController
             // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
             if (!$model->checkin($formId)) {
                 $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()), 'error');
-            } else {
+            } elseif (($user = $this->app->getIdentity()) !== null && $user->authorise('core.edit.state', 'com_breezingformsng')) {
                 $this->getOptionsModel()->setDebugMode($formId, 0);
             }
         }
@@ -96,6 +114,17 @@ class QuickmodeController extends BaseController
             $app->setHeader('status', '403', true);
             $app->close();
             return;
+        }
+
+        if ($form > 0) {
+            $existingForm = $this->getOptionsModel()->getForm($form);
+
+            if ($existingForm === null || (int) $existingForm->published === -2) {
+                $app->setHeader('status', '403', true);
+                $app->close();
+
+                return;
+            }
         }
 
         $chunkIdx     = $input->getInt('chunkIdx', 0);

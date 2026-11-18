@@ -27,6 +27,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseAuditService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseRepairService;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\TrashInventoryService;
 
 /** @property CMSApplication $app */
 class AboutController extends BaseController
@@ -507,6 +508,71 @@ class AboutController extends BaseController
             $this->setMessage(Text::plural('COM_BREEZINGFORMSNG_RECORDS_N_ITEMS_DELETED', count($deleted)), 'message');
         } catch (\Throwable $exception) {
             $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASH_EMPTY_FAILED', $exception->getMessage()), 'error');
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=trash', false));
+    }
+
+    /**
+     * Permanently deletes every trashed item of one type (forms, scripts, pieces or
+     * Integrator rules) from the Tools / Trash screen: only what is already in the
+     * trash, through the same models and permissions as the list of the type.
+     */
+    public function emptyItemsTrash(): void
+    {
+        $this->checkToken();
+        $type = $this->input->post->getCmd('trash_type', '');
+        $failed = null;
+        $deleted = 0;
+
+        try {
+            $application = $this->getAuthorizedApplication();
+            $user = $application->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            $service = new TrashInventoryService($this->getDatabase());
+            $ids = $service->getTrashedIds($type);
+
+            if (!in_array($type, ['forms', 'scripts', 'pieces', 'integrator'], true)) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            if (!$user->authorise('core.delete', 'com_breezingformsng')) {
+                throw new NotAllowed(Text::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'));
+            }
+
+            if ($type !== 'forms') {
+                // Scripts, pieces and rules hold code.
+                AreaAccess::assert($user, AreaAccess::CODE);
+            }
+
+            if ($ids !== []) {
+                $factory = $this->getMVCFactoryOf($application);
+
+                if ($type === 'integrator') {
+                    $deleted = count($factory->createModel('Integrator', 'Administrator', ['ignore_request' => true])->deleteRules($ids)['deleted']);
+                } else {
+                    $model = $factory->createModel(['forms' => 'Form', 'scripts' => 'Script', 'pieces' => 'Piece'][$type], 'Administrator', ['ignore_request' => true]);
+                    $pks = $ids;
+
+                    if (!$model->delete($pks)) {
+                        throw new \RuntimeException((string) $model->getError());
+                    }
+
+                    $deleted = count($ids) - count($service->getTrashedIds($type));
+                    (new ActionLogger($application))->log(
+                        ActionLogger::DELETED,
+                        ['forms' => ActionLogger::FORM, 'scripts' => ActionLogger::SCRIPT, 'pieces' => ActionLogger::PIECE][$type],
+                        $ids
+                    );
+                }
+            }
+        } catch (\Throwable $exception) {
+            $failed = $exception->getMessage();
+        }
+
+        if ($failed !== null) {
+            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASH_EMPTY_FAILED', $failed), 'error');
+        } else {
+            $this->setMessage(Text::plural('COM_BREEZINGFORMSNG_N_ITEMS_DELETED', $deleted), 'message');
         }
 
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=trash', false));

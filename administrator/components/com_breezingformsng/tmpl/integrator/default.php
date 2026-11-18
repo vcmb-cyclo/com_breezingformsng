@@ -51,15 +51,15 @@ $listDirn  = $this->escape((string) $this->state->get('list.direction'));
             <td><?= htmlspecialchars($rule->form_name); ?></td>
             <td><?= htmlspecialchars($rule->reference_table); ?></td>
             <td class="text-center">
-              <?php if ((int) $rule->published === -2) : ?>
-                <span class="icon-trash text-danger" title="<?= $this->escape(Text::_('JTRASHED')); ?>" role="img" aria-label="<?= $this->escape(Text::_('JTRASHED')); ?>"></span>
-              <?php else : ?>
                 <?php $isPublished = (int) $rule->published === 1; ?>
-                <a href="#" onclick="bfTogglePublished(<?= (int) $rule->id; ?>, 'integrator', this); return false;"
-                   title="<?= $isPublished ? Text::_('JPUBLISHED') : Text::_('JUNPUBLISHED'); ?>">
-                  <span class="<?= $isPublished ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
-                </a>
-              <?php endif; ?>
+                <?php if ((int) $rule->published === -2) : ?>
+                  <span class="icon-trash text-danger" title="<?= $this->escape(Text::_('JTRASHED')); ?>" role="img" aria-label="<?= $this->escape(Text::_('JTRASHED')); ?>"></span>
+                <?php else : ?>
+                  <a href="#" onclick="bfTogglePublished(<?= (int) $rule->id; ?>, 'integrator', this); return false;"
+                     title="<?= $isPublished ? Text::_('JPUBLISHED') : Text::_('JUNPUBLISHED'); ?>">
+                    <span class="<?= $isPublished ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+                  </a>
+                <?php endif; ?>
             </td>
           </tr>
         <?php endforeach; ?>

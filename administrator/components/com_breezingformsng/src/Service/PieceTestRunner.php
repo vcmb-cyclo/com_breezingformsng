@@ -48,7 +48,7 @@ class BFAdminPieceTestContext
 			->select($this->db->quoteName('code'))
 			->from($this->db->quoteName('#__facileforms_pieces'))
 			->where($this->db->quoteName('name') . ' = :name')
-			->where($this->db->quoteName('published') . ' = 1')
+            ->where($this->db->quoteName('published') . ' = 1')
 			->bind(':name', $name)
 			->setLimit(1);
 		$this->db->setQuery($query);

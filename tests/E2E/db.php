@@ -196,6 +196,31 @@ switch ($argv[1] ?? '') {
         $package = $db->real_escape_string($argv[2] ?? '');
         echo (int) $db->query("SELECT COUNT(*) c FROM {$config->dbprefix}facileforms_integrator_rules r JOIN {$forms} f ON f.id = r.form_id WHERE f.package = '{$package}'")->fetch_assoc()['c'];
         break;
+    case 'create-integrator-rule':
+        // create-integrator-rule <form id>: a minimal disposable rule for ACL journeys.
+        $name = 'e2e_security_' . bin2hex(random_bytes(4));
+        $db->query("INSERT INTO {$config->dbprefix}facileforms_integrator_rules (name, form_id, reference_table, type, published) VALUES ('{$name}', {$id}, 'users', 'insert', 1)");
+        echo $db->insert_id;
+        break;
+    case 'integrator-rule-state':
+        // integrator-rule-state <rule id>: current state of one disposable rule.
+        $ruleId = (int) ($argv[2] ?? 0);
+        echo (int) $db->query("SELECT published FROM {$config->dbprefix}facileforms_integrator_rules WHERE id = {$ruleId}")->fetch_assoc()['published'];
+        break;
+    case 'set-integrator-rule-state':
+        // set-integrator-rule-state <rule id> <state>: seed a trashed ACL fixture.
+        $ruleId = (int) ($argv[2] ?? 0);
+        $state = (int) ($argv[3] ?? 0);
+        if (!in_array($state, [-2, 1], true)) {
+            throw new RuntimeException('Unsupported fixture state.');
+        }
+        $db->query("UPDATE {$config->dbprefix}facileforms_integrator_rules SET published = {$state} WHERE id = {$ruleId}");
+        break;
+    case 'delete-integrator-rule':
+        // delete-integrator-rule <rule id>: remove a disposable ACL fixture.
+        $ruleId = (int) ($argv[2] ?? 0);
+        $db->query("DELETE FROM {$config->dbprefix}facileforms_integrator_rules WHERE id = {$ruleId}");
+        break;
     case 'records-count':
         // records-count <form id>
         echo (int) $db->query("SELECT COUNT(*) c FROM {$config->dbprefix}facileforms_records WHERE form = {$id}")->fetch_assoc()['c'];
