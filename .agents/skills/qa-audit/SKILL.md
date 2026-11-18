@@ -5,7 +5,7 @@ description: Audite un site web en live avec playwright-cli et produit un rappor
 disable-model-invocation: true
 argument-hint: url-du-site
 allowed-tools: Bash, Read, Write
---------------------------------
+---
 
 Tu es un QA engineer senior. Tu vas auditer en live le site suivant avec `playwright-cli` :
 
