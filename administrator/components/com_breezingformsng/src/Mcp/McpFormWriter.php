@@ -380,6 +380,13 @@ final class McpFormWriter
                     $this->assertPlainText($change[$property]);
                 }
             }
+            if (array_key_exists('hint', $change)) {
+                if (!is_string($change['hint']) || mb_strlen($change['hint']) > 1000) {
+                    throw new ToolException('Field hints must be plain text limited to 1000 characters.');
+                }
+                $change['hint'] = trim($change['hint']);
+                $this->assertPlainText($change['hint']);
+            }
             $updateByName[$key] = $change;
         }
 
@@ -463,6 +470,9 @@ final class McpFormWriter
                         if (array_key_exists($property, $change)) {
                             $node['properties'][$property] = $change[$property];
                         }
+                    }
+                    if (array_key_exists('hint', $change)) {
+                        $node['properties']['hint'] = $change['hint'];
                     }
                     if (array_key_exists('readonly', $change)) {
                         $node['properties']['readonly'] = $change['readonly'];
@@ -709,6 +719,7 @@ final class McpFormWriter
             $name = trim((string) ($field['name'] ?? ''));
             $label = trim((string) ($field['label'] ?? ''));
             $placeholder = trim((string) ($field['placeholder'] ?? ''));
+            $hint = $field['hint'] ?? '';
             $defaultValue = $field['default_value'] ?? '';
             $maxLength = $field['max_length'] ?? 0;
             $readOnly = $field['readonly'] ?? false;
@@ -720,6 +731,11 @@ final class McpFormWriter
                 throw new ToolException('Default values are limited to 4000 characters and are only supported on text or textarea fields.');
             }
             $this->assertPlainText($defaultValue);
+            if (!is_string($hint) || mb_strlen($hint) > 1000) {
+                throw new ToolException('Field hints must be plain text limited to 1000 characters.');
+            }
+            $hint = trim($hint);
+            $this->assertPlainText($hint);
             if (!is_int($maxLength) || $maxLength < 0 || $maxLength > 10000
                 || (array_key_exists('max_length', $field) && !in_array($type, ['text', 'textarea'], true))) {
                 throw new ToolException('Maximum length must be from 0 to 10000 and can only be set on text or textarea fields.');
@@ -790,6 +806,7 @@ final class McpFormWriter
                 'name' => $name,
                 'label' => $label,
                 'placeholder' => $placeholder,
+                'hint' => $hint,
                 'default_value' => $defaultValue,
                 'max_length' => $maxLength,
                 'readonly' => $readOnly,
@@ -806,7 +823,7 @@ final class McpFormWriter
         return $normalized;
     }
 
-    /** @param list<array{type: string, name: string, label: string, placeholder: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
+    /** @param list<array{type: string, name: string, label: string, placeholder: string, hint: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
     private function quickmodeTree(string $name, string $title, string $description, array $fields): array
     {
         $children = [];
@@ -834,7 +851,7 @@ final class McpFormWriter
         ];
     }
 
-    /** @param array{type: string, name: string, label: string, placeholder: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field */
+    /** @param array{type: string, name: string, label: string, placeholder: string, hint: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field */
     private function elementNode(array $field, int $order): array
     {
         $type = match ($field['type']) {
@@ -850,6 +867,7 @@ final class McpFormWriter
             'bfType' => $type,
             'value' => $type === 'bfCheckbox' ? $field['value'] : $field['default_value'],
             'placeholder' => $field['placeholder'],
+            'hint' => $field['hint'],
             'readonly' => $field['readonly'],
             'label' => $field['label'],
             'bfName' => $field['name'],

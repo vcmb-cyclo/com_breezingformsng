@@ -424,6 +424,7 @@ class QuickmodeModel extends BaseDatabaseModel
 
                 $areas->container[0]['elementCount']++;
 
+                $element['options']['hint'] = $mdata['hint'] ?? '';
                 $element['title']               = $mdata['label'];
                 $element['name']                = $mdata['bfName'];
                 $element['orderNumber']         = $mdata['orderNumber'] != -1 ? $mdata['orderNumber'] : $areas->container[0]['elementCount'];
