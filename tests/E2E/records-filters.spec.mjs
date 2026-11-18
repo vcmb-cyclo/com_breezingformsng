@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { loginAsAdmin } from './login.mjs';
 
 // The list screens show the search, the filters, Clear and the page size on one
 // line, with no "Filter Options" button.
@@ -10,9 +11,7 @@ test('the filters of the list screens share one line with the search', async ({ 
     const page = await browser.newPage({ viewport: { width: 1500, height: 900 } });
     await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
     await page.goto(ADMIN);
-    await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-    await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-    await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+    await loginAsAdmin(page);
 
     const centre = async (locator) => {
         const box = await locator.boundingBox();

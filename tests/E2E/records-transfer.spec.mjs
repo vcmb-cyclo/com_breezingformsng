@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { execFileSync, spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { loginAsAdmin, submitLogin } from './login.mjs';
 
 // The transfer of records to another form, through its four screens, and what
 // it wrote, read back from the database of the site.
@@ -59,9 +60,7 @@ test.describe('records transfer', () => {
             }
         });
         await page.goto(ADMIN);
-        await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-        await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await loginAsAdmin(page);
     });
 
     test.afterEach(() => {
@@ -194,9 +193,7 @@ test('simultaneous confirmations copy each source record only once', async ({ br
     try {
         await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
         await page.goto(ADMIN);
-        await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-        await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await loginAsAdmin(page);
         await page.goto(`${ADMIN}?option=com_breezingformsng&view=records&filter[form]=${source}`);
         const token = await page.evaluate(() => Joomla.getOptions('csrf.token'));
         await page.request.post(`${ADMIN}?option=com_breezingformsng&task=recordstransfer.start`, {
@@ -237,9 +234,7 @@ test('editing waits for the source record lock before changing any field', async
     try {
         await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
         await page.goto(ADMIN);
-        await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-        await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await loginAsAdmin(page);
         await page.goto(`${ADMIN}?option=com_breezingformsng&task=record.edit&id=${record}`);
         const fields = page.locator('#record-section-values textarea');
         await expect(fields).toHaveCount(2);
@@ -274,9 +269,7 @@ test.describe('payment preservation during transfer', () => {
             const page = await browser.newPage();
             await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
             await page.goto(ADMIN);
-            await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-            await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-            await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+            await loginAsAdmin(page);
             await page.goto(`${ADMIN}?option=com_breezingformsng&view=records&filter[form]=${source}`);
             await page.locator(`input[name="cid[]"][value="${record}"]`).check();
             await Promise.all([page.waitForNavigation(), page.click('#toolbar-transfer button')]);
@@ -312,9 +305,7 @@ test.describe('records transfer, from a deleted form', () => {
         const page = await browser.newPage();
         await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
         await page.goto(ADMIN);
-        await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-        await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await loginAsAdmin(page);
 
         await page.goto(`${ADMIN}?option=com_breezingformsng&view=records&filter[form]=${gone}`);
         await page.locator(`input[name="cid[]"][value="${record}"]`).check();
@@ -357,9 +348,7 @@ test.describe('records transfer, required fields of the target form', () => {
         const page = await browser.newPage();
         await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
         await page.goto(ADMIN);
-        await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-        await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await loginAsAdmin(page);
 
         await page.goto(`${ADMIN}?option=com_breezingformsng&view=records&filter[form]=${source}`);
         await page.locator(`input[name="cid[]"][value="${record}"]`).check();
@@ -403,9 +392,7 @@ test.describe('records transfer, sorted lists', () => {
         const page = await browser.newPage();
         await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
         await page.goto(ADMIN);
-        await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-        await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await loginAsAdmin(page);
 
         await page.goto(`${ADMIN}?option=com_breezingformsng&view=records&filter[form]=${source}`);
         await page.locator(`input[name="cid[]"][value="${record}"]`).check();
@@ -438,9 +425,7 @@ test.describe('records transfer, without the right to create', () => {
         page = await (await browser.newContext()).newPage();
         await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
         await page.goto(ADMIN);
-        await page.fill('#mod-login-username', MANAGER);
-        await page.fill('#mod-login-password', PASSWORD);
-        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await submitLogin(page, MANAGER, PASSWORD);
     });
 
     test.afterAll(async () => {

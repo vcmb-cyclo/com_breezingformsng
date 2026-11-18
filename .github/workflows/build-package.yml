@@ -254,14 +254,26 @@ jobs:
           # package build also compiles (see scripts/build-package.sh).
           make -C administrator/components/com_breezingformsng/vendor/tecnickcom/tc-lib-pdf-font fonts
 
+      - name: Download the Joomla libraries used by the integration suite
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/joomla.zip"
+          curl -fsSL -o "$archive" \
+            https://github.com/joomla/joomla-cms/releases/download/6.2.0/Joomla_6.2.0-Stable-Full_Package.zip
+          mkdir -p "$RUNNER_TEMP/joomla"
+          unzip -q "$archive" 'libraries/*' -d "$RUNNER_TEMP/joomla"
+          echo "BFNG_JOOMLA_LIBRARIES=$RUNNER_TEMP/joomla/libraries" >> "$GITHUB_ENV"
+
+      # A skipped test is a missing guarantee: the integration suite must run.
       - name: Run unit tests
         if: matrix.php-version != '8.3'
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --fail-on-skipped
 
       - name: Run unit tests and generate coverage reports
         if: matrix.php-version == '8.3'
         run: |
           vendor/bin/phpunit \
+            --fail-on-skipped \
             --coverage-clover=coverage/clover.xml \
             --coverage-html=coverage/html \
             --coverage-text

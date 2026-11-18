@@ -5,8 +5,19 @@
          colors="true"
          cacheDirectory=".phpunit.cache">
     <testsuites>
+        <!-- `vendor/bin/phpunit` runs all three; select one with the testsuite option. -->
         <testsuite name="unit">
             <directory>tests</directory>
+            <exclude>tests/Integration</exclude>
+            <exclude>tests/Site/Service/Rendering/QuickMode</exclude>
+        </testsuite>
+        <!-- Output snapshots of the QuickMode renderers (HTML safety net). -->
+        <testsuite name="characterization">
+            <directory>tests/Site/Service/Rendering/QuickMode</directory>
+        </testsuite>
+        <!-- Needs BFNG_JOOMLA_LIBRARIES (a Joomla 6 libraries directory). -->
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
     <source>

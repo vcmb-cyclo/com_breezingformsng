@@ -1,6 +1,7 @@
 import { test, expect, request } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { loginAsAdmin } from './login.mjs';
 
 const CONTAINER = process.env.BFNG_E2E_CONTAINER;
 const ADMIN = 'administrator/index.php';
@@ -54,9 +55,7 @@ test.describe('MCP endpoint', () => {
         page = await browser.newPage();
         await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
         await page.goto(ADMIN);
-        await page.fill('#mod-login-username', process.env.BFNG_E2E_USER);
-        await page.fill('#mod-login-password', process.env.BFNG_E2E_PASSWORD);
-        await Promise.all([page.waitForNavigation(), page.click('#btn-login-submit')]);
+        await loginAsAdmin(page);
     });
 
     test.afterAll(async () => {
@@ -99,9 +98,18 @@ test.describe('MCP endpoint', () => {
 
         const tools = (await (await send({ id: 2, method: 'tools/list' })).json()).result.tools;
         expect(tools.map((tool) => tool.name)).toEqual([
-            'bfng_list_forms', 'bfng_get_form', 'bfng_check_form', 'bfng_audit_database',
+            'bfng_list_forms', 'bfng_get_form', 'bfng_check_form',
+            'bfng_create_form', 'bfng_update_form', 'bfng_manage_form_fields',
+            'bfng_trash_form', 'bfng_restore_form', 'bfng_audit_database',
         ]);
-        expect(tools.every((tool) => tool.annotations.readOnlyHint === true)).toBe(true);
+        // Reading tools are read only; every form-management tool says that it writes.
+        const readOnly = ['bfng_list_forms', 'bfng_get_form', 'bfng_check_form', 'bfng_audit_database'];
+        for (const tool of tools) {
+            expect(tool.annotations.readOnlyHint, tool.name).toBe(readOnly.includes(tool.name));
+        }
+        // Removing or rewriting fields is flagged as destructive for the client.
+        const destructive = tools.filter((tool) => tool.annotations.destructiveHint).map((tool) => tool.name);
+        expect(destructive).toEqual(['bfng_manage_form_fields', 'bfng_trash_form']);
 
         const formId = Number(db('sample-form', 'e2e_mcp'));
         const list = (await (await send({
