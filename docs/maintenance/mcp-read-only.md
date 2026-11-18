@@ -80,8 +80,9 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   destinataires de notification ne sont pas configurables.
 - `bfng_update_form` : modifie par ID un ou plusieurs champs parmi le nom, le
   titre et la description, ou règle la largeur en pixels ou en pourcentage,
-  la hauteur fixe ou automatique et l’ajustement automatique. La publication,
-  les champs, les scripts, les intégrations et les réglages de notification
+  la hauteur fixe ou automatique, l’ajustement automatique et la publication.
+  Publier ou dépublier exige aussi le droit Joomla `core.edit.state`. Les
+  champs, les scripts, les intégrations et les réglages de notification
   restent inchangés. Les
   formulaires supprimés ne peuvent pas être modifiés. Le verrouillage et
   l’historique Joomla sont appliqués comme lors d’une sauvegarde dans

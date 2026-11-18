@@ -107,6 +107,13 @@ final class McpFormWriter
             }
         }
 
+        if (array_key_exists('published', $arguments)) {
+            if (!$user->authorise('core.edit.state', 'com_breezingformsng')) {
+                throw new ToolException('You are not allowed to publish or unpublish forms.');
+            }
+            $data['published'] = $arguments['published'] ? 1 : 0;
+        }
+
         if (array_key_exists('width', $data) || array_key_exists('widthmode', $data)) {
             $width = (int) ($data['width'] ?? $form->width);
             $widthMode = (int) ($data['widthmode'] ?? $form->widthmode);
@@ -149,7 +156,7 @@ final class McpFormWriter
             'id' => $id,
             'name' => array_key_exists('name', $data) ? $data['name'] : (string) $form->name,
             'title' => array_key_exists('title', $data) ? $data['title'] : (string) $form->title,
-            'published' => (int) $form->published === 1,
+            'published' => (int) ($data['published'] ?? $form->published) === 1,
             'settings' => [
                 'width' => (int) ($data['width'] ?? $form->width),
                 'widthmode' => (int) ($data['widthmode'] ?? $form->widthmode),
