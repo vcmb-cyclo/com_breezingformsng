@@ -74,8 +74,8 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   Les noms de champ sont uniques et les libellés, espaces réservés et choix
   sont du texte brut. Les choix peuvent définir les valeurs initiales, une case
   peut être précochée et une liste peut accepter plusieurs réponses. Les champs
-  texte et zone de texte peuvent être obligatoires, avec un message facultatif,
-  une valeur initiale et une longueur maximale.
+  texte et zone de texte peuvent être obligatoires ou en lecture seule, avec un
+  message facultatif, une valeur initiale et une longueur maximale.
   Seule la validation standard « valeur non vide » est disponible. Les scripts
   personnalisés, autres validations, intégrations, téléversements et paiements
   ne sont pas configurables.
@@ -94,9 +94,10 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   zone de texte, liste, radio, groupe de cases à cocher et cases à cocher sur
   les formulaires QuickMode compatibles. La modification peut changer entre
   texte et zone de texte, régler le libellé, l’espace réservé, le caractère
-  obligatoire, la valeur initiale et la longueur maximale des champs texte et
-  zone de texte, la valeur d’une case, la sélection multiple d’une liste et ses
-  choix. Le renommage est refusé si des soumissions, scripts, validations,
+  obligatoire ou en lecture seule, la valeur initiale et la longueur maximale
+  des champs texte et zone de texte, la valeur d’une case, la sélection
+  multiple d’une liste et ses choix. Le renommage est refusé si des soumissions,
+  scripts, validations,
   modèles de courriel ou intégrations peuvent référencer le nom du champ. Les
   nouveaux champs peuvent être placés sur une page QuickMode existante ;
   `add_pages` ajoute jusqu’à 10 pages vierges,
