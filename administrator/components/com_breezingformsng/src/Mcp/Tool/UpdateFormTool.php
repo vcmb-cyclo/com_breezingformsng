@@ -33,9 +33,8 @@ final class UpdateFormTool implements McpTool
 
     public function description(): string
     {
-        return 'Updates one existing BreezingForms NG form by id. Give one or more of name, title and description. '
-            . 'It can configure publication, width in pixels or percent and fixed or automatic height. Publishing requires core.edit.state. It does not change fields, scripts, '
-            . 'integrations or notification settings.';
+        return 'Updates one existing BreezingForms NG form by id. Give one or more form metadata or settings changes. '
+            . 'It can configure publication, dimensions and administrative email notifications. Publishing requires core.edit.state. It does not change fields, scripts or third-party integrations.';
     }
 
     public function inputSchema(): array
@@ -53,6 +52,8 @@ final class UpdateFormTool implements McpTool
                 'height' => ['type' => 'integer', 'minimum' => 100, 'maximum' => 5000, 'description' => 'Form height in pixels.'],
                 'heightmode' => ['type' => 'integer', 'enum' => [0, 1], 'description' => '0 for fixed height; 1 for automatic height.'],
                 'autoheight' => ['type' => 'boolean', 'description' => 'Whether the form grows to fit its content.'],
+                'email_notifications' => ['type' => 'boolean', 'description' => 'Whether submissions send the standard administrator notification email.'],
+                'notification_recipient' => ['type' => 'string', 'maxLength' => 254, 'description' => 'Single email address for administrator submission notifications. An empty string clears it; notifications cannot remain enabled without a valid address.'],
             ],
             'required' => ['id'],
             'additionalProperties' => false,

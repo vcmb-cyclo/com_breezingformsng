@@ -73,7 +73,7 @@ final class McpFormWriter
 
     /**
      * @param array<string, mixed> $arguments
-     * @return array{id: int, name: string, title: string, published: bool, settings: array{width: int, widthmode: int, height: int, heightmode: int, autoheight: bool}, versioned: bool}
+     * @return array{id: int, name: string, title: string, published: bool, settings: array{width: int, widthmode: int, height: int, heightmode: int, autoheight: bool, email_notifications: bool}, versioned: bool}
      * @throws ToolException
      */
     public function update(array $arguments, User $user): array
@@ -107,6 +107,24 @@ final class McpFormWriter
             }
         }
 
+        if (array_key_exists('email_notifications', $arguments)) {
+            $data['emailntf'] = $arguments['email_notifications'] ? 1 : 0;
+        }
+        if (array_key_exists('notification_recipient', $arguments)) {
+            $recipient = trim((string) $arguments['notification_recipient']);
+            if ($recipient !== '' && filter_var($recipient, FILTER_VALIDATE_EMAIL) === false) {
+                throw new ToolException('The notification recipient must be one valid email address.');
+            }
+            $data['emailadr'] = $recipient;
+        }
+        if (array_key_exists('email_notifications', $arguments) || array_key_exists('notification_recipient', $arguments)) {
+            $notificationsEnabled = (bool) ($data['emailntf'] ?? $form->emailntf);
+            $recipient = (string) ($data['emailadr'] ?? $form->emailadr);
+            if ($notificationsEnabled && filter_var($recipient, FILTER_VALIDATE_EMAIL) === false) {
+                throw new ToolException('Set one valid notification recipient before enabling administrator notification emails.');
+            }
+        }
+
         if (array_key_exists('published', $arguments)) {
             if (!$user->authorise('core.edit.state', 'com_breezingformsng')) {
                 throw new ToolException('You are not allowed to publish or unpublish forms.');
@@ -125,7 +143,7 @@ final class McpFormWriter
         }
 
         if (count($data) === 1) {
-            throw new ToolException('Give at least one of name, title or description to update.');
+            throw new ToolException('Give at least one form metadata or settings change to update.');
         }
 
         if ((int) ($form->checked_out ?? 0) > 0) {
@@ -163,6 +181,7 @@ final class McpFormWriter
                 'height' => (int) ($data['height'] ?? $form->height),
                 'heightmode' => (int) ($data['heightmode'] ?? $form->heightmode),
                 'autoheight' => (bool) ($data['autoheight'] ?? $form->autoheight),
+                'email_notifications' => (bool) ($data['emailntf'] ?? $form->emailntf),
             ],
             'versioned' => $versioned,
         ];
