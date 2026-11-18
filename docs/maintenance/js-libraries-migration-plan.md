@@ -58,6 +58,14 @@ Deux librairies vendorisées sont identiques, octet par octet, aux paquets npm d
 - Font Awesome 4.7.0 n'était chargé par rien : la copie de `media/com_breezingformsng/font-awesome` est supprimée (et retirée des sites par l'installateur). Le site s'appuie sur le Font Awesome 6 de Joomla (ressource web `fontawesome`), que les rendus QuickMode chargent eux-mêmes.
 - Hors du dispositif : pickadate (patch local du commit 837e95bd, à réappliquer après toute mise à jour), Plupload et moxie (identiques à l'étiquette GitHub `v3.1.5`, pas à npm, qui s'arrête à 2.3.9) et `LICENSE-MIT` de jsTree (mêmes lignes, fins de ligne différentes).
 
+## intl-tel-input (widget téléphone international)
+
+- Version épinglée : `intl-tel-input` 29.5.11 (licence MIT, `LICENSE` du paquet npm), dans `dependencies` de `package.json`, empreinte dans `package-lock.json`.
+- Copié par `npm run vendor:sync` sous `media/com_breezingformsng/libraries/intl-tel-input/`, en gardant l'arborescence de `dist/` : `js/intlTelInputWithUtils.min.js`, `css/intlTelInput.min.css`, `img/flags.webp`, `img/flags@2x.webp` et `js/locale/{en,fr,de,it,es,hu,nl,tr}.js`. Ce découpage permet à la feuille de style, qui référence `../img/flags.webp`, de trouver les drapeaux sans modifier le CSS vendorisé ; `vendor:check` compare chaque fichier octet par octet.
+- Build « WithUtils » : il embarque les métadonnées de numérotation (libphonenumber allégé) nécessaires à la validation et au format E.164, sans second fichier à charger. Les fichiers de langue sont des modules ES chargés à la demande par `bfng-widgets.js` (`import()`).
+- Poids ajouté : environ 500 Ko sur disque (script 307 Ko, CSS 17 Ko, drapeaux 124 Ko, langues ~ 20 Ko), chargé uniquement dans les pages qui contiennent un champ téléphone. Les variantes PNG et non minifiées ne sont pas copiées.
+- Mise à jour : une PR Dependabot change `package.json` et `package-lock.json` ; lancer `npm ci && npm run vendor:sync`, commiter le résultat et rejouer `npm run test:vendor`. Ne jamais éditer un fichier copié.
+
 ## Notes de vérification
 
 - Vérifications faites via le registre npm et les tags GitHub officiels (Remodal, pickadate, Plupload, Ladda) le 2026-07-24.
