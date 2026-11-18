@@ -22,6 +22,7 @@ use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\IntegratorModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
@@ -548,9 +549,20 @@ class AboutController extends BaseController
                 $factory = $this->getMVCFactoryOf($application);
 
                 if ($type === 'integrator') {
-                    $deleted = count($factory->createModel('Integrator', 'Administrator', ['ignore_request' => true])->deleteRules($ids)['deleted']);
+                    $model = $factory->createModel('Integrator', 'Administrator', ['ignore_request' => true]);
+
+                    if (!$model instanceof IntegratorModel) {
+                        throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+                    }
+
+                    $deleted = count($model->deleteRules($ids)['deleted']);
                 } else {
                     $model = $factory->createModel(['forms' => 'Form', 'scripts' => 'Script', 'pieces' => 'Piece'][$type], 'Administrator', ['ignore_request' => true]);
+
+                    if (!$model instanceof AdminModel) {
+                        throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+                    }
+
                     $pks = $ids;
 
                     if (!$model->delete($pks)) {

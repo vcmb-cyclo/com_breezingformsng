@@ -103,4 +103,20 @@ final class FormsTrashTest extends TestCase
         self::assertStringContainsString("quoteName('published') . ' >= 0'", $this->admin('src/Model/FormModel.php'));
         self::assertStringContainsString('sql_where="published &gt;= 0"', $this->admin('forms/recordsimport.xml'));
     }
+
+    public function testOptionWritesRequireEditAndStatePermissions(): void
+    {
+        $options = $this->admin('src/Model/FormOptionsModel.php');
+        $controller = $this->admin('src/Controller/FormsController.php');
+
+        self::assertStringContainsString("authorise(\$editAction, 'com_breezingformsng')", $options);
+        self::assertStringContainsString("authorise('core.edit.state', 'com_breezingformsng')", $options);
+        self::assertStringContainsString('unset($data[\'published\'])', $options);
+        self::assertStringContainsString("authorise('core.edit.state', 'com_breezingformsng')", $controller);
+
+        $quickmode = $this->admin('src/Controller/QuickmodeController.php');
+        self::assertStringContainsString("authorise(\$action, 'com_breezingformsng')", $quickmode);
+        self::assertStringContainsString('(int) $form->published === -2', $quickmode);
+        self::assertStringContainsString('(int) $existingForm->published === -2', $quickmode);
+    }
 }

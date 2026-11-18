@@ -89,7 +89,7 @@ final class CheckOutArchitectureTest extends TestCase
         );
     }
 
-    public function testQuickModeChecksTheFormOutAndCloseChecksItIn(): void
+    public function testQuickModeChecksTheFormOutOnlyOnASaveAndCloseChecksItIn(): void
     {
         $controller = $this->read(
             'administrator/components/com_breezingformsng/src/Controller/QuickmodeController.php'
@@ -97,7 +97,8 @@ final class CheckOutArchitectureTest extends TestCase
         $app = $this->read('media/com_breezingformsng/js/admin/quickmode-app.js');
         $forms = $this->read('administrator/components/com_breezingformsng/src/Controller/FormsController.php');
 
-        self::assertMatchesRegularExpression('/if \(!\$model->checkout\(\$formId\)\) \{/', $controller);
+        self::assertStringNotContainsString('$model->checkout($formId)', substr($controller, 0, strpos($controller, 'public function close')));
+        self::assertMatchesRegularExpression('/public function doAjaxSave\(\): void.*?checkout\(\$form\)/s', $controller);
         self::assertMatchesRegularExpression(
             '/public function close\(\): void\s+\{\s+\$this->checkToken\(\'get\'\);.*?->checkin\(\$formId\)/s',
             $controller

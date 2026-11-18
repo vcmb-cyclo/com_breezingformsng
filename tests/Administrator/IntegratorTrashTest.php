@@ -88,6 +88,15 @@ final class IntegratorTrashTest extends TestCase
         self::assertStringContainsString('public const TRASHED = -2;', $model);
     }
 
+    public function testAboutTrashBulkDeleteAlsoRequiresCoreDelete(): void
+    {
+        $controller = $this->read(self::ADMIN . '/src/Controller/AboutController.php');
+        $method = $this->method($controller, 'emptyItemsTrash');
+
+        self::assertStringContainsString("authorise('core.delete', 'com_breezingformsng')", $method);
+        self::assertStringContainsString("\$factory->createModel('Integrator'", $method);
+    }
+
     public function testListHidesTheTrashUnlessAskedFor(): void
     {
         $model = $this->read(self::ADMIN . '/src/Model/IntegratorRulesModel.php');

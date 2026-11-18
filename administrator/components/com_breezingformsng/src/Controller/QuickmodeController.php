@@ -44,21 +44,12 @@ class QuickmodeController extends BaseController
             return $this;
         }
 
-        // The form stays checked out while it is open in QuickMode; close() checks it in.
+        // GET only renders the editor. The lock is acquired by the token-checked save.
         if ($formId > 0) {
             $form = $this->getOptionsModel()->getForm($formId);
 
             if ($form === null || (int) $form->published === -2) {
                 $this->setMessage(Text::_('JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED'), 'error');
-                $this->setRedirect(Route::_('index.php?option=com_breezingformsng&view=forms', false));
-
-                return $this;
-            }
-
-            $model = $this->getFormModel();
-
-            if (!$model->checkout($formId)) {
-                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', $model->getError()), 'error');
                 $this->setRedirect(Route::_('index.php?option=com_breezingformsng&view=forms', false));
 
                 return $this;
@@ -172,6 +163,13 @@ class QuickmodeController extends BaseController
             if (!is_array($dataObject)) {
                 $app->setHeader('status', '400', true);
                 $app->close();
+            }
+
+            if ($form > 0 && !$this->getFormModel()->checkout($form)) {
+                $app->setHeader('status', '409', true);
+                $app->close();
+
+                return;
             }
 
             $db = Factory::getContainer()->get(DatabaseInterface::class);

@@ -100,11 +100,11 @@ final class TrashInventoryService
                 ->bind(':trashed', $trashed, \Joomla\Database\ParameterType::INTEGER)
                 ->order($db->quoteName('t.id'))
                 ->setLimit(self::LIST_LIMIT);
-            $items = array_map(static fn (array $row): array => [
+            $items = array_values(array_map(static fn (array $row): array => [
                 'id' => (int) $row['id'],
                 'title' => (string) ($row['title'] ?? ''),
                 'name' => (string) ($row['name'] ?? ''),
-            ], $db->setQuery($query)->loadAssocList() ?: []);
+            ], $db->setQuery($query)->loadAssocList() ?: []));
 
             $types[] = ['view' => $view, 'label' => $label, 'count' => $count, 'items' => $items];
         }
@@ -132,7 +132,7 @@ final class TrashInventoryService
                 ->bind(':trashed', $trashed, \Joomla\Database\ParameterType::INTEGER)
                 ->order($this->db->quoteName('id'));
 
-            return array_map('intval', $this->db->setQuery($query)->loadColumn() ?: []);
+            return array_values(array_map('intval', $this->db->setQuery($query)->loadColumn() ?: []));
         }
 
         return [];
