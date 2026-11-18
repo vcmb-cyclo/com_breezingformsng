@@ -85,7 +85,7 @@ final class IntegratorTrashTest extends TestCase
         self::assertStringContainsString("'refused'", $delete);
         self::assertStringContainsString('#__facileforms_integrator_criteria_fixed', $delete);
         self::assertStringContainsString('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED', $this->read(self::ADMIN . '/src/Controller/IntegratorController.php'));
-        self::assertStringContainsString('public const TRASHED = -2;', $model);
+        self::assertStringContainsString('public const int TRASHED = -2;', $model);
     }
 
     public function testAboutTrashBulkDeleteAlsoRequiresCoreDelete(): void

@@ -24,6 +24,9 @@ final class InstallLogReader
 
     public function __construct(private readonly string $timezone = 'UTC')
     {
+        if ($timezone === '') {
+            throw new \InvalidArgumentException('The time zone cannot be empty.');
+        }
     }
 
     /**
@@ -49,7 +52,7 @@ final class InstallLogReader
 
             if ($latestPath === '' || $mtime > $latestMtime) {
                 $latestPath = $path;
-                $latestMtime = (int) $mtime;
+                $latestMtime = $mtime;
             }
         }
 

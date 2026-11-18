@@ -26,7 +26,7 @@ class IntegratorModel extends BaseDatabaseModel
     }
 
     /** The trashed state of a rule (the Joomla value). */
-    public const TRASHED = -2;
+    public const int TRASHED = -2;
 
     public function getRule(int $id): ?\stdClass
     {

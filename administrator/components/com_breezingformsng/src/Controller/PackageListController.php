@@ -95,6 +95,27 @@ abstract class PackageListController extends AdminController
         }
     }
 
+    /** Only items already in the trash can be permanently deleted. */
+    #[\Override]
+    public function delete(): void
+    {
+        $this->checkToken();
+
+        $ids = array_values(array_filter(ArrayHelper::toInteger((array) $this->input->get('cid', [], 'array'))));
+        $model = $this->getModel();
+
+        foreach ($ids as $id) {
+            if (!$model instanceof PackageItemModel || !$model->isTrashed($id)) {
+                $this->setMessage(Text::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'), 'error');
+                $this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
+
+                return;
+            }
+        }
+
+        parent::delete();
+    }
+
     /**
      * Publishes or unpublishes one item from the published icon of the list,
      * by Ajax, as the forms list does.

@@ -282,7 +282,10 @@ class FormsController extends AdminController
             $formModel = $this->getFormModel();
 
             if (!$formModel->checkout($id)) {
-                throw new \RuntimeException(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', $formModel->getError()));
+                throw new \RuntimeException(Text::sprintf(
+                    'JLIB_APPLICATION_ERROR_CHECKOUT_FAILED',
+                    Text::_('JERROR_AN_ERROR_HAS_OCCURRED')
+                ));
             }
 
             // A form without versions keeps the state it had before this save.

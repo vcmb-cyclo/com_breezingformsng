@@ -34,7 +34,11 @@ final class ThemeCarteCssTest extends TestCase
         self::assertNotEmpty($matches[1]);
         foreach ($matches[1] as $header) {
             foreach (explode(',', trim($header)) as $selector) {
-                self::assertStringStartsWith('.bfFormDiv', trim($selector), 'Outside the scope: ' . trim($selector));
+                $selector = trim($selector);
+                self::assertTrue(
+                    str_starts_with($selector, '.bfFormDiv') || $selector === '[data-bs-theme="dark"] .bfFormDiv',
+                    'Outside the scope: ' . $selector
+                );
             }
         }
     }
@@ -60,6 +64,18 @@ final class ThemeCarteCssTest extends TestCase
         }
         // Reset before Send, and no solid fill on the main button.
         self::assertStringContainsString('order: -1;', $css);
+    }
+
+    public function testItDefinesDarkColorsWhenBootstrapDarkModeIsActive(): void
+    {
+        $css = $this->css();
+
+        self::assertStringContainsString('[data-bs-theme="dark"] .bfFormDiv', $css);
+        self::assertStringContainsString('--bf-card: #1d232b;', $css);
+        self::assertStringContainsString('--bf-field: #262d36;', $css);
+        self::assertStringContainsString('--bf-color-scheme: dark;', $css);
+        self::assertStringContainsString('background-color: var(--bf-card);', $css);
+        self::assertStringContainsString('background: var(--bf-danger-bg);', $css);
     }
 
     public function testItIsAWebAssetLoadedOnlyForTheFormsThatChoseIt(): void
