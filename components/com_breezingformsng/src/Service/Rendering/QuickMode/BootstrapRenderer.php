@@ -1099,6 +1099,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
         // loading system css
             // loading theme
             RuntimeAssetLoader::style($this->p->app, Uri::root(true) . '/components/com_breezingformsng/themes/quickmode-bootstrap' . '5' . '/system.css');
+            RuntimeAssetLoader::shippedTheme($this->p->app, (string) ($this->rootMdata['themebootstrap'] ?? ''));
 
         if (isset($this->rootMdata['themebootstrap'])) {
             $vars = '';
