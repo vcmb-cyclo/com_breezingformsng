@@ -170,7 +170,7 @@ final class McpFormWriter
 
     /**
      * @param array<string, mixed> $arguments
-     * @return array{id: int, added: list<string>, updated: list<string>, removed: list<string>, pages_added: int, field_count: int, versioned: bool, contentbuilder_synced: bool}
+     * @return array{id: int, added: list<string>, updated: list<string>, removed: list<string>, pages_added: int, pages_removed: list<int>, field_count: int, versioned: bool, contentbuilder_synced: bool}
      * @throws ToolException
      */
     public function manageFields(array $arguments, User $user): array
@@ -183,6 +183,13 @@ final class McpFormWriter
         $pagesToAdd = $arguments['add_pages'] ?? 0;
         if (!is_int($pagesToAdd) || $pagesToAdd < 0 || $pagesToAdd > 10) {
             throw new ToolException('At most 10 QuickMode pages can be added per call.');
+        }
+        $pagesToRemove = $arguments['remove_pages'] ?? [];
+        if (!is_array($pagesToRemove) || !array_is_list($pagesToRemove) || count($pagesToRemove) > 10) {
+            throw new ToolException('Page removals must be a list of at most 10 page numbers.');
+        }
+        if ($pagesToAdd > 0 && $pagesToRemove !== []) {
+            throw new ToolException('Add pages and remove pages in separate calls so page numbers remain unambiguous.');
         }
         $form = $this->options->getForm($id);
         if ($form === null || (int) $form->published === -2) {
@@ -218,7 +225,7 @@ final class McpFormWriter
             || !is_array($removals) || !array_is_list($removals) || count($removals) > 30) {
             throw new ToolException('Field updates and removals must be lists of at most 30 items.');
         }
-        if ($add === [] && $updates === [] && $removals === [] && $pagesToAdd === 0) {
+        if ($add === [] && $updates === [] && $removals === [] && $pagesToAdd === 0 && $pagesToRemove === []) {
             throw new ToolException('Give at least one field to add, update or remove.');
         }
 
@@ -345,6 +352,21 @@ final class McpFormWriter
             throw new ToolException('Choice settings and checkbox values cannot be changed while the form has submissions; historical values are preserved.');
         }
 
+        $removePageSet = [];
+        foreach ($pagesToRemove as $pageNumber) {
+            if (!is_int($pageNumber) || $pageNumber < 1 || $pageNumber > count($tree['children'])
+                || isset($removePageSet[$pageNumber])) {
+                throw new ToolException('Every removed page must identify a different existing page number.');
+            }
+            $removePageSet[$pageNumber] = true;
+        }
+        if (count($removePageSet) >= count($tree['children'])) {
+            throw new ToolException('A QuickMode form must keep at least one page.');
+        }
+        if ($removePageSet !== [] && $this->submissionCount($id) > 0) {
+            throw new ToolException('Pages cannot be removed while the form has submissions; historical page structure is preserved.');
+        }
+
         $resultPages = [];
         $movedFields = [];
         $allFields = [];
@@ -423,6 +445,26 @@ final class McpFormWriter
             unset($node);
         }
         unset($page);
+
+        $pagesRemoved = [];
+        foreach ($resultPages as $pageIndex => $page) {
+            $pageNumber = $pageIndex + 1;
+            if (!isset($removePageSet[$pageNumber])) {
+                continue;
+            }
+            if ($page['children'] !== []) {
+                throw new ToolException(sprintf('Page %d still has fields; move or remove them before deleting the page.', $pageNumber));
+            }
+            $pagesRemoved[] = $pageNumber;
+            unset($resultPages[$pageIndex]);
+        }
+        if ($pagesRemoved !== []) {
+            $resultPages = array_values($resultPages);
+            foreach ($resultPages as $pageIndex => &$page) {
+                $page['attributes']['id'] = 'bfQuickModePage' . ($pageIndex + 1);
+            }
+            unset($page);
+        }
         $tree['properties']['name'] = (string) $form->name;
         $tree['properties']['title'] = (string) $form->title;
         $tree['properties']['description'] = (string) $form->description;
@@ -441,6 +483,14 @@ final class McpFormWriter
             || $lockedTree !== $originalTree) {
             $this->forms->checkin($id);
             throw new ToolException('The form changed while this request was being prepared; read it again and retry.');
+        }
+
+        $historySensitiveChange = $removeByName !== [] || $removePageSet !== []
+            || array_filter($updateByName, static fn (array $change): bool => array_key_exists('options', $change)
+                || array_key_exists('multiple', $change) || array_key_exists('value', $change)) !== [];
+        if ($historySensitiveChange && $this->submissionCount($id) > 0) {
+            $this->forms->checkin($id);
+            throw new ToolException('This change is no longer safe because the form now has submissions.');
         }
 
         try {
@@ -469,6 +519,7 @@ final class McpFormWriter
             'updated' => $updated,
             'removed' => $removed,
             'pages_added' => $pagesToAdd,
+            'pages_removed' => $pagesRemoved,
             'field_count' => count($allFields),
             'versioned' => $versioned,
             'contentbuilder_synced' => $contentBuilderSynced,

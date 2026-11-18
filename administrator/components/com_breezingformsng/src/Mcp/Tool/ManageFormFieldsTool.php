@@ -34,7 +34,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
     public function description(): string
     {
         return 'Adds, updates or removes text, textarea, select, radio, checkbox-group and checkbox fields on compatible QuickMode forms. '
-            . 'Pages can be added, new fields can target existing or new pages, and existing fields can move between pages. Updates can change text/textarea type, labels, placeholders, required state, checkbox values, select multiplicity or choice options; field names stay fixed. '
+            . 'Pages can be added or empty pages removed; new fields can target existing or new pages, and existing fields can move between pages. Updates can change text/textarea type, labels, placeholders, required state, checkbox values, select multiplicity or choice options; field names stay fixed. '
             . 'Existing custom scripts and settings are preserved; the required option uses only the standard non-empty validation. Fields cannot be removed after submissions exist. '
             . 'Forms with other field types or nested field structures are not changed. Choice options cannot be changed after submissions exist.';
     }
@@ -83,6 +83,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
             'properties' => [
                 'id' => ['type' => 'integer', 'minimum' => 1, 'description' => 'Id of the MCP-managed form.'],
                 'add_pages' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 10, 'default' => 0, 'description' => 'Number of blank QuickMode pages to append before adding or moving fields.'],
+                'remove_pages' => ['type' => 'array', 'maxItems' => 10, 'default' => [], 'items' => ['type' => 'integer', 'minimum' => 1], 'description' => 'Existing empty page numbers to remove; submissions prevent page removal.'],
                 'add' => ['type' => 'array', 'maxItems' => 30, 'default' => [], 'items' => $newField, 'description' => 'Fields to add.'],
                 'update' => ['type' => 'array', 'maxItems' => 30, 'default' => [], 'items' => $updateField, 'description' => 'Existing fields to update.'],
                 'remove' => ['type' => 'array', 'maxItems' => 30, 'default' => [], 'items' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100], 'description' => 'Existing field names to remove.'],
