@@ -22,6 +22,8 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 /** Creates forms and applies bounded, permission-checked updates through MCP. */
 final class McpFormWriter
 {
+    private ?int $requiredValidationId = null;
+
     public function __construct(
         private readonly DatabaseInterface $db,
         private readonly FormOptionsModel $options,
@@ -179,7 +181,8 @@ final class McpFormWriter
         $tree = $this->managedTree($id);
         $originalTree = $tree;
         $current = [];
-        foreach ($tree['children'] as $page) {
+        $currentPages = [];
+        foreach ($tree['children'] as $pageIndex => $page) {
             foreach ($page['children'] as $node) {
                 $properties = $node['properties'];
                 $key = strtolower($properties['bfName']);
@@ -187,10 +190,16 @@ final class McpFormWriter
                     throw new ToolException('This form has duplicate field names and cannot be safely edited through MCP.');
                 }
                 $current[$key] = $properties;
+                $currentPages[$key] = $pageIndex + 1;
             }
         }
 
         $add = $this->normalizeFields($arguments['add'] ?? []);
+        foreach ($add as $field) {
+            if ($field['page'] > count($tree['children'])) {
+                throw new ToolException(sprintf('Page %d does not exist on this form.', $field['page']));
+            }
+        }
         $updates = $arguments['update'] ?? [];
         $removals = $arguments['remove'] ?? [];
         if (!is_array($updates) || !array_is_list($updates) || count($updates) > 30
@@ -224,14 +233,45 @@ final class McpFormWriter
                     throw new ToolException('Existing fields can only change between text and textarea types.');
                 }
             }
+            if (array_key_exists('page', $change)
+                && (!is_int($change['page']) || $change['page'] < 1 || $change['page'] > count($tree['children']))) {
+                throw new ToolException('A field can only be assigned to a page that already exists on the form.');
+            }
             if (array_key_exists('options', $change)) {
                 if (!in_array($current[$key]['bfType'] ?? '', ['bfSelect', 'bfRadioGroup', 'bfCheckboxGroup'], true)) {
                     throw new ToolException('Choice options can only be changed on select, radio or checkbox-group fields.');
                 }
-                $change['options'] = $this->normalizeChoices($change['options']);
+                $choiceType = $current[$key]['bfType'];
+                $allowMultipleSelections = $choiceType === 'bfCheckboxGroup'
+                    || ($choiceType === 'bfSelect' && (bool) ($change['multiple'] ?? $current[$key]['multiple']));
+                $change['options'] = $this->normalizeChoices($change['options'], $allowMultipleSelections);
                 if ($change['options'] === []) {
                     throw new ToolException('Choice fields must keep at least one option.');
                 }
+            }
+            if (array_key_exists('multiple', $change)) {
+                if (($current[$key]['bfType'] ?? '') !== 'bfSelect' || !is_bool($change['multiple'])) {
+                    throw new ToolException('Only select fields support the multiple setting.');
+                }
+                if (!$change['multiple'] && !array_key_exists('options', $change)
+                    && (bool) ($current[$key]['multiple'] ?? false)) {
+                    throw new ToolException('When disabling multiple selection, include the options so the single default can be validated.');
+                }
+            }
+            if (array_key_exists('checked', $change) || array_key_exists('value', $change)) {
+                if (($current[$key]['bfType'] ?? '') !== 'bfCheckbox') {
+                    throw new ToolException('Only checkbox fields support checked and value settings.');
+                }
+                if (array_key_exists('checked', $change) && !is_bool($change['checked'])) {
+                    throw new ToolException('A checkbox checked setting must be boolean.');
+                }
+                if (array_key_exists('value', $change)) {
+                    $change['value'] = $this->normalizeCheckboxValue($change['value']);
+                }
+            }
+            if (array_key_exists('required', $change) || array_key_exists('required_message', $change)) {
+                $change['requiredConfig'] = $this->normalizeRequiredChange($change, $current[$key]);
+                unset($change['required'], $change['required_message']);
             }
             if (isset($change['type'])
                 && $change['type'] !== ($current[$key]['bfType'] === 'bfTextfield' ? 'text' : 'textarea')
@@ -287,12 +327,14 @@ final class McpFormWriter
                 throw new ToolException('Fields cannot be removed while the form has submissions; existing records are preserved.');
             }
         }
-        if (array_filter($updateByName, static fn (array $change): bool => array_key_exists('options', $change)) !== []
+        if (array_filter($updateByName, static fn (array $change): bool => array_key_exists('options', $change)
+            || array_key_exists('multiple', $change) || array_key_exists('value', $change)) !== []
             && $this->submissionCount($id) > 0) {
-            throw new ToolException('Choice options cannot be changed while the form has submissions; historical values are preserved.');
+            throw new ToolException('Choice settings and checkbox values cannot be changed while the form has submissions; historical values are preserved.');
         }
 
         $resultPages = [];
+        $movedFields = [];
         $allFields = [];
         $updated = [];
         $removed = [];
@@ -318,24 +360,44 @@ final class McpFormWriter
                         $choiceProperty = $node['properties']['bfType'] === 'bfSelect' ? 'list' : 'group';
                         $node['properties'][$choiceProperty] = $this->serializeChoices($change['options']);
                     }
+                    foreach (['multiple', 'checked', 'value'] as $property) {
+                        if (array_key_exists($property, $change)) {
+                            $node['properties'][$property] = $change[$property];
+                        }
+                    }
+                    if (isset($change['requiredConfig'])) {
+                        $this->applyRequiredConfiguration($node['properties'], $change['requiredConfig']);
+                    }
+                    $targetPage = $change['page'] ?? $currentPages[$key];
+                    if ($targetPage !== $pageIndex + 1) {
+                        $movedFields[$targetPage - 1][] = $node;
+                        $updated[] = $node['properties']['bfName'];
+                        continue;
+                    }
                     $updated[] = $node['properties']['bfName'];
                 }
                 $result[] = $node;
             }
+            $page['children'] = $result;
+            $resultPages[] = $page;
+        }
 
-            if ($pageIndex === 0) {
-                foreach ($add as $field) {
-                    $result[] = $this->elementNode($field, count($result) + 1);
+        foreach ($resultPages as $pageIndex => &$page) {
+            foreach ($movedFields[$pageIndex] ?? [] as $node) {
+                $page['children'][] = $node;
+            }
+            foreach ($add as $field) {
+                if ($field['page'] === $pageIndex + 1) {
+                    $page['children'][] = $this->elementNode($field, count($page['children']) + 1);
                 }
             }
-            foreach ($result as $index => &$node) {
+            foreach ($page['children'] as $index => &$node) {
                 $node['properties']['orderNumber'] = $index + 1;
                 $allFields[] = $node['properties']['bfName'];
             }
             unset($node);
-            $page['children'] = $result;
-            $resultPages[] = $page;
         }
+        unset($page);
         $tree['properties']['name'] = (string) $form->name;
         $tree['properties']['title'] = (string) $form->title;
         $tree['properties']['description'] = (string) $form->description;
@@ -452,7 +514,7 @@ final class McpFormWriter
     }
 
     /**
-     * @return list<array{type: string, name: string, label: string, placeholder: string}>
+     * @return list<array{type: string, name: string, label: string, placeholder: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}>
      * @throws ToolException
      */
     private function normalizeFields(mixed $fields): array
@@ -472,8 +534,8 @@ final class McpFormWriter
             $name = trim((string) ($field['name'] ?? ''));
             $label = trim((string) ($field['label'] ?? ''));
             $placeholder = trim((string) ($field['placeholder'] ?? ''));
-            if (!in_array($type, ['text', 'textarea', 'select', 'radio', 'checkbox_group'], true)) {
-                throw new ToolException('Supported field types are text, textarea, select, radio and checkbox_group.');
+            if (!in_array($type, ['text', 'textarea', 'select', 'radio', 'checkbox_group', 'checkbox'], true)) {
+                throw new ToolException('Supported field types are text, textarea, select, radio, checkbox_group and checkbox.');
             }
             if (!preg_match('/^[A-Za-z][A-Za-z0-9_]{0,99}$/D', $name)) {
                 throw new ToolException('Field names must start with a letter and contain only letters, numbers and underscores.');
@@ -486,12 +548,46 @@ final class McpFormWriter
             }
             $this->assertPlainText($label);
             $this->assertPlainText($placeholder);
-            $choices = $this->normalizeChoices($field['options'] ?? []);
+            $multiple = $field['multiple'] ?? false;
+            if (!is_bool($multiple) || (array_key_exists('multiple', $field) && $type !== 'select')) {
+                throw new ToolException('Only select fields support the multiple setting.');
+            }
+            $checked = $field['checked'] ?? false;
+            if (!is_bool($checked) || (array_key_exists('checked', $field) && $type !== 'checkbox')) {
+                throw new ToolException('Only checkbox fields support the checked setting.');
+            }
+            $checkboxValue = array_key_exists('value', $field) ? $this->normalizeCheckboxValue($field['value']) : '1';
+            if (array_key_exists('value', $field) && $type !== 'checkbox') {
+                throw new ToolException('Only checkbox fields support a submitted value setting.');
+            }
+            $required = $field['required'] ?? false;
+            if (!is_bool($required) || ((array_key_exists('required', $field) || array_key_exists('required_message', $field))
+                && !in_array($type, ['text', 'textarea'], true))) {
+                throw new ToolException('Only text and textarea fields can use the required setting.');
+            }
+            $requiredMessage = $field['required_message'] ?? '';
+            if (!is_string($requiredMessage) || mb_strlen($requiredMessage) > 255) {
+                throw new ToolException('A required message must be plain text of at most 255 characters.');
+            }
+            $requiredMessage = trim($requiredMessage);
+            if (array_key_exists('required_message', $field) && !$required) {
+                throw new ToolException('A required message can only be set when the field is required.');
+            }
+            $this->assertPlainText($requiredMessage);
+            if ($required) {
+                $this->requiredValidationScriptId();
+            }
+            $allowMultipleSelections = $type === 'checkbox_group' || ($type === 'select' && $multiple);
+            $choices = $this->normalizeChoices($field['options'] ?? [], $allowMultipleSelections);
             if (in_array($type, ['select', 'radio', 'checkbox_group'], true) && $choices === []) {
                 throw new ToolException('Select, radio and checkbox_group fields need at least one choice.');
             }
-            if (in_array($type, ['text', 'textarea'], true) && $choices !== []) {
-                throw new ToolException('Text and textarea fields cannot have choice options.');
+            if (in_array($type, ['text', 'textarea', 'checkbox'], true) && $choices !== []) {
+                throw new ToolException('Text, textarea and checkbox fields cannot have choice options.');
+            }
+            $page = $field['page'] ?? 1;
+            if (!is_int($page) || $page < 1) {
+                throw new ToolException('A field page must be a positive page number.');
             }
 
             $key = strtolower($name);
@@ -499,13 +595,25 @@ final class McpFormWriter
                 throw new ToolException('Field names must be unique within the form.');
             }
             $names[$key] = true;
-            $normalized[] = ['type' => $type, 'name' => $name, 'label' => $label, 'placeholder' => $placeholder, 'options' => $choices];
+            $normalized[] = [
+                'type' => $type,
+                'name' => $name,
+                'label' => $label,
+                'placeholder' => $placeholder,
+                'options' => $choices,
+                'multiple' => $multiple,
+                'checked' => $checked,
+                'value' => $checkboxValue,
+                'required' => $required,
+                'required_message' => $requiredMessage,
+                'page' => $page,
+            ];
         }
 
         return $normalized;
     }
 
-    /** @param list<array{type: string, name: string, label: string, placeholder: string, options: list<array{label: string, value: string}>}> $fields */
+    /** @param list<array{type: string, name: string, label: string, placeholder: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
     private function quickmodeTree(string $name, string $title, string $description, array $fields): array
     {
         $children = [];
@@ -533,7 +641,7 @@ final class McpFormWriter
         ];
     }
 
-    /** @param array{type: string, name: string, label: string, placeholder: string, options: list<array{label: string, value: string}>} $field */
+    /** @param array{type: string, name: string, label: string, placeholder: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field */
     private function elementNode(array $field, int $order): array
     {
         $type = match ($field['type']) {
@@ -542,11 +650,12 @@ final class McpFormWriter
             'select' => 'bfSelect',
             'radio' => 'bfRadioGroup',
             'checkbox_group' => 'bfCheckboxGroup',
+            'checkbox' => 'bfCheckbox',
         };
         $properties = [
             'type' => 'element',
             'bfType' => $type,
-            'value' => '',
+            'value' => $type === 'bfCheckbox' ? $field['value'] : '',
             'placeholder' => $field['placeholder'],
             'label' => $field['label'],
             'bfName' => $field['name'],
@@ -569,11 +678,21 @@ final class McpFormWriter
             'dbId' => 0,
         ];
         if ($type === 'bfSelect') {
-            $properties['multiple'] = false;
+            $properties['multiple'] = $field['multiple'];
             $properties['list'] = $this->serializeChoices($field['options']);
             $properties['mailback'] = false;
         } elseif (in_array($type, ['bfRadioGroup', 'bfCheckboxGroup'], true)) {
             $properties['group'] = $this->serializeChoices($field['options']);
+        } elseif ($type === 'bfCheckbox') {
+            $properties['checked'] = $field['checked'];
+            $properties['mailbackAccept'] = false;
+            $properties['mailbackConnectWith'] = '';
+        }
+        if ($field['required']) {
+            $properties['validationId'] = $this->requiredValidationScriptId();
+            $properties['validationFunctionName'] = 'ff_valuenotempty';
+            $properties['validationCondition'] = 1;
+            $properties['validationMessage'] = $field['required_message'];
         }
 
         return [
@@ -637,7 +756,7 @@ final class McpFormWriter
                 ];
                 if (!is_string($nodeId) || isset($quickmodeIds[$nodeId])
                     || ($properties['type'] ?? null) !== 'element'
-                    || !in_array($properties['bfType'] ?? null, ['bfTextfield', 'bfTextarea', 'bfSelect', 'bfRadioGroup', 'bfCheckboxGroup'], true)
+                    || !in_array($properties['bfType'] ?? null, ['bfTextfield', 'bfTextarea', 'bfSelect', 'bfRadioGroup', 'bfCheckboxGroup', 'bfCheckbox'], true)
                     || array_diff($requiredProperties, array_keys($properties)) !== []
                     || !is_array($node['children'] ?? null) || $node['children'] !== []) {
                     throw new ToolException('This form contains an unsupported field or nested structure the MCP field editor cannot safely preserve.');
@@ -661,6 +780,11 @@ final class McpFormWriter
                         && (!is_bool($properties['multiple'] ?? null) || !is_bool($properties['mailback'] ?? null))))) {
                     throw new ToolException('This form has a malformed choice field that cannot be safely edited through MCP.');
                 }
+                if ($properties['bfType'] === 'bfCheckbox'
+                    && (!is_bool($properties['checked'] ?? null) || !is_string($properties['mailbackConnectWith'] ?? null)
+                        || !is_bool($properties['mailbackAccept'] ?? null))) {
+                    throw new ToolException('This form has a malformed checkbox that cannot be safely edited through MCP.');
+                }
                 $elementIds[$dbId] = true;
                 $quickmodeIds[$nodeId] = true;
             }
@@ -676,8 +800,8 @@ final class McpFormWriter
         }
     }
 
-    /** @return list<array{label: string, value: string}> */
-    private function normalizeChoices(mixed $choices): array
+    /** @return list<array{label: string, value: string, selected: bool}> */
+    private function normalizeChoices(mixed $choices, bool $allowMultipleSelections = true): array
     {
         if (!is_array($choices) || !array_is_list($choices) || count($choices) > 30) {
             throw new ToolException('Choice options must be a list of at most 30 items.');
@@ -685,12 +809,21 @@ final class McpFormWriter
 
         $normalized = [];
         $values = [];
+        $selectedCount = 0;
         foreach ($choices as $choice) {
             if (!is_array($choice)) {
                 throw new ToolException('Each choice option must be an object.');
             }
             $label = trim((string) ($choice['label'] ?? ''));
             $value = trim((string) ($choice['value'] ?? ''));
+            $selected = $choice['selected'] ?? false;
+            if (!is_bool($selected)) {
+                throw new ToolException('Choice selected flags must be boolean.');
+            }
+            $selectedCount += $selected ? 1 : 0;
+            if (!$allowMultipleSelections && $selectedCount > 1) {
+                throw new ToolException('Select fields and radio groups can have at most one initially selected choice.');
+            }
             foreach ([$label, $value] as $text) {
                 if ($text === '' || mb_strlen($text) > 255 || preg_match('/[;\r\n\x00]/u', $text)) {
                     throw new ToolException('Choice labels and values must be non-empty plain text of at most 255 characters without semicolons or line breaks.');
@@ -701,16 +834,30 @@ final class McpFormWriter
                 throw new ToolException('Choice values must be unique within a field.');
             }
             $values[$value] = true;
-            $normalized[] = ['label' => $label, 'value' => $value];
+            $normalized[] = ['label' => $label, 'value' => $value, 'selected' => $selected];
         }
 
         return $normalized;
     }
 
-    /** @param list<array{label: string, value: string}> $choices */
+    /** @param list<array{label: string, value: string, selected: bool}> $choices */
     private function serializeChoices(array $choices): string
     {
-        return implode('', array_map(static fn (array $choice): string => '0;' . $choice['label'] . ';' . $choice['value'] . "\n", $choices));
+        return implode('', array_map(static fn (array $choice): string => ($choice['selected'] ? '1;' : '0;') . $choice['label'] . ';' . $choice['value'] . "\n", $choices));
+    }
+
+    private function normalizeCheckboxValue(mixed $value): string
+    {
+        if (!is_string($value)) {
+            throw new ToolException('A checkbox submitted value must be text.');
+        }
+        $value = trim($value);
+        if ($value === '' || mb_strlen($value) > 255 || preg_match('/[\x00-\x1F\x7F]/u', $value)) {
+            throw new ToolException('A checkbox submitted value must be non-empty text of at most 255 characters without control characters.');
+        }
+        $this->assertPlainText($value);
+
+        return $value;
     }
 
     private function submissionCount(int $formId): int
@@ -722,5 +869,102 @@ final class McpFormWriter
                 ->where($this->db->quoteName('form') . ' = :form')
                 ->bind(':form', $formId, ParameterType::INTEGER)
         )->loadResult();
+    }
+
+    /** @param array<string, mixed> $change
+     *  @param array<string, mixed> $current
+     *  @return array{required: bool, message: string}
+     */
+    private function normalizeRequiredChange(array $change, array $current): array
+    {
+        if (!in_array($current['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)) {
+            throw new ToolException('Only text and textarea fields can use the required setting.');
+        }
+
+        $validationFunction = (string) ($current['validationFunctionName'] ?? '');
+        $isRequired = $validationFunction === 'ff_valuenotempty'
+            && (int) ($current['validationCondition'] ?? 0) === 1
+            && (string) ($current['validationCode'] ?? '') === '';
+        $hasValidation = (int) ($current['validationId'] ?? 0) !== 0
+            || (string) ($current['validationCode'] ?? '') !== ''
+            || $validationFunction !== ''
+            || (int) ($current['validationCondition'] ?? 0) !== 0;
+
+        if (array_key_exists('required', $change) && !is_bool($change['required'])) {
+            throw new ToolException('A required setting must be boolean.');
+        }
+        $required = $change['required'] ?? $isRequired;
+        if (array_key_exists('required_message', $change) && !is_string($change['required_message'])) {
+            throw new ToolException('A required message must be plain text.');
+        }
+        $message = array_key_exists('required_message', $change)
+            ? trim($change['required_message'])
+            : ($isRequired ? (string) ($current['validationMessage'] ?? '') : '');
+        if (mb_strlen($message) > 255) {
+            throw new ToolException('A required message must be plain text of at most 255 characters.');
+        }
+        $this->assertPlainText($message);
+
+        if (array_key_exists('required_message', $change) && !$required) {
+            throw new ToolException('A required message can only be set when the field is required.');
+        }
+        if ($required && $hasValidation && !$isRequired) {
+            throw new ToolException('A field with another validation cannot be made required through MCP.');
+        }
+        if ($required) {
+            $this->requiredValidationScriptId();
+        }
+
+        return ['required' => $required, 'message' => $message];
+    }
+
+    /** @param array<string, mixed> $properties
+     *  @param array{required: bool, message: string} $configuration
+     */
+    private function applyRequiredConfiguration(array &$properties, array $configuration): void
+    {
+        if ($configuration['required']) {
+            $properties['validationId'] = $this->requiredValidationScriptId();
+            $properties['validationCode'] = '';
+            $properties['validationFunctionName'] = 'ff_valuenotempty';
+            $properties['validationCondition'] = 1;
+            $properties['validationMessage'] = $configuration['message'];
+
+            return;
+        }
+
+        if (($properties['validationFunctionName'] ?? '') === 'ff_valuenotempty'
+            && (int) ($properties['validationCondition'] ?? 0) === 1
+            && (string) ($properties['validationCode'] ?? '') === '') {
+            $properties['validationId'] = 0;
+            $properties['validationCode'] = '';
+            $properties['validationFunctionName'] = '';
+            $properties['validationCondition'] = 0;
+            $properties['validationMessage'] = '';
+        }
+    }
+
+    private function requiredValidationScriptId(): int
+    {
+        if ($this->requiredValidationId !== null) {
+            return $this->requiredValidationId;
+        }
+
+        $query = $this->db->createQuery()
+            ->select($this->db->quoteName('id'))
+            ->from($this->db->quoteName('#__facileforms_scripts'))
+            ->where($this->db->quoteName('published') . ' = 1')
+            ->where($this->db->quoteName('type') . ' = :type')
+            ->where($this->db->quoteName('name') . ' = :name')
+            ->order($this->db->quoteName('id') . ' DESC')
+            ->bind(':type', 'Element Validation', ParameterType::STRING)
+            ->bind(':name', 'ff_valuenotempty', ParameterType::STRING);
+        $id = (int) $this->db->setQuery($query, 0, 1)->loadResult();
+        if ($id <= 0) {
+            throw new ToolException('The standard ff_valuenotempty validation is unavailable or unpublished.');
+        }
+        $this->requiredValidationId = $id;
+
+        return $id;
     }
 }

@@ -70,27 +70,38 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   tables et d’extensions restent dans le rapport.
 - `bfng_create_form` : crée un formulaire dépublié avec le nom interne, le
   titre, une description facultative et jusqu’à 30 champs texte, zone de texte,
-  liste, radio ou groupe de cases à cocher. Les noms de champ sont uniques et
-  les libellés, espaces réservés et choix sont du texte brut. L’outil ne
-  configure ni validation, ni script personnalisé,
-  ni intégration, ni téléversement, ni paiement, ni destinataire de notification.
+  liste simple ou multiple, radio, groupe de cases à cocher ou case à cocher.
+  Les noms de champ sont uniques et les libellés, espaces réservés et choix
+  sont du texte brut. Les choix peuvent définir les valeurs initiales, une case
+  peut être précochée et une liste peut accepter plusieurs réponses. Les champs
+  texte et zone de texte peuvent être obligatoires, avec un message facultatif.
+  Seule la validation standard « valeur non vide » est disponible. Les scripts
+  personnalisés, autres validations, intégrations, téléversements, paiements et
+  destinataires de notification ne sont pas configurables.
 - `bfng_update_form` : modifie par ID un ou plusieurs champs parmi le nom, le
   titre et la description, ou règle la largeur en pixels ou en pourcentage,
-  la hauteur fixe ou automatique et l’ajustement automatique. La publication, les champs, les scripts, les
-  intégrations et les réglages de notification restent inchangés. Les
+  la hauteur fixe ou automatique et l’ajustement automatique. La publication,
+  les champs, les scripts, les intégrations et les réglages de notification
+  restent inchangés. Les
   formulaires supprimés ne peuvent pas être modifiés. Le verrouillage et
   l’historique Joomla sont appliqués comme lors d’une sauvegarde dans
   l’administration.
 - `bfng_manage_form_fields` : ajoute, modifie ou supprime des champs texte,
-  zone de texte, liste, radio et groupe de cases à cocher sur les formulaires
-  QuickMode compatibles. La modification peut changer entre texte et zone de
-  texte, ou mettre à jour le libellé, l’espace réservé et les choix, mais pas
-  le nom du champ. Les choix ne peuvent pas être modifiés après une soumission ;
+  zone de texte, liste, radio, groupe de cases à cocher et cases à cocher sur
+  les formulaires QuickMode compatibles. La modification peut changer entre
+  texte et zone de texte, régler le libellé, l’espace réservé, le caractère
+  obligatoire, la valeur d’une case, la sélection multiple d’une liste et ses
+  choix, mais pas le nom du champ. Les nouveaux champs peuvent être placés sur
+  une page QuickMode existante et les champs déplacés entre les pages déjà
+  présentes. Les choix, le mode multiple et les valeurs de case ne peuvent pas
+  être modifiés après une soumission ;
   la suppression est également refusée dès qu’il existe une soumission. Les
   formulaires avec d’autres types de champs ou des structures imbriquées sont
   refusés. Les
-  scripts et réglages existants sont préservés et ne peuvent pas être modifiés
-  avec cet outil. L’opération est verrouillée, versionnée et synchronisée avec
+  scripts personnalisés et réglages existants sont préservés et ne peuvent pas
+  être modifiés avec cet outil. L’outil ne gère que la validation standard de
+  champ obligatoire pour les champs texte et zone de texte. L’opération est
+  verrouillée, versionnée et synchronisée avec
   les vues ContentBuilder NG associées.
 - `bfng_trash_form` et `bfng_restore_form` : déplacent un formulaire dans la
   corbeille Joomla, puis le restaurent à l’état dépublié. Le déplacement à la

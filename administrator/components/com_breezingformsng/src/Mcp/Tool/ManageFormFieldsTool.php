@@ -33,9 +33,9 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
 
     public function description(): string
     {
-        return 'Adds, updates or removes text, textarea, select, radio and checkbox-group fields on compatible QuickMode forms. '
-            . 'Updates can change text/textarea type, label, placeholder or choice options; field names stay fixed. '
-            . 'Existing scripts and settings are preserved but cannot be edited. Fields cannot be removed after submissions exist. '
+        return 'Adds, updates or removes text, textarea, select, radio, checkbox-group and checkbox fields on compatible QuickMode forms. '
+            . 'New fields can target an existing page and existing fields can move between pages. Updates can change text/textarea type, labels, placeholders, required state, checkbox values, select multiplicity or choice options; field names stay fixed. '
+            . 'Existing custom scripts and settings are preserved; the required option uses only the standard non-empty validation. Fields cannot be removed after submissions exist. '
             . 'Forms with other field types or nested field structures are not changed. Choice options cannot be changed after submissions exist.';
     }
 
@@ -44,10 +44,16 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
         $newField = [
             'type' => 'object',
             'properties' => [
-                'type' => ['type' => 'string', 'enum' => ['text', 'textarea', 'select', 'radio', 'checkbox_group'], 'description' => 'Field type.'],
+                'type' => ['type' => 'string', 'enum' => ['text', 'textarea', 'select', 'radio', 'checkbox_group', 'checkbox'], 'description' => 'Field type.'],
                 'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100, 'description' => 'Unique field name.'],
                 'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Plain-text field label.'],
                 'placeholder' => ['type' => 'string', 'maxLength' => 255, 'default' => '', 'description' => 'Optional plain-text placeholder.'],
+                'multiple' => ['type' => 'boolean', 'description' => 'Allow multiple selected values on a select field.'],
+                'checked' => ['type' => 'boolean', 'description' => 'Initial checked state for a checkbox field.'],
+                'value' => ['type' => 'string', 'maxLength' => 255, 'description' => 'Submitted value for a checkbox field.'],
+                'required' => ['type' => 'boolean', 'description' => 'Make a text or textarea field required.'],
+                'required_message' => ['type' => 'string', 'maxLength' => 255, 'description' => 'Optional plain-text required message.'],
+                'page' => ['type' => 'integer', 'minimum' => 1, 'description' => 'Existing QuickMode page number, starting at 1; defaults to the first page.'],
                 'options' => self::choiceOptionsSchema(),
             ],
             'required' => ['type', 'name', 'label'],
@@ -60,6 +66,12 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
                 'type' => ['type' => 'string', 'enum' => ['text', 'textarea'], 'description' => 'Optional new text or textarea type.'],
                 'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Optional new plain-text label.'],
                 'placeholder' => ['type' => 'string', 'maxLength' => 255, 'description' => 'Optional new plain-text placeholder.'],
+                'multiple' => ['type' => 'boolean', 'description' => 'Whether a select field accepts more than one choice.'],
+                'checked' => ['type' => 'boolean', 'description' => 'New initial checked state for a checkbox field.'],
+                'value' => ['type' => 'string', 'maxLength' => 255, 'description' => 'New submitted value for a checkbox field.'],
+                'required' => ['type' => 'boolean', 'description' => 'Whether a text or textarea field is required.'],
+                'required_message' => ['type' => 'string', 'maxLength' => 255, 'description' => 'New plain-text required message.'],
+                'page' => ['type' => 'integer', 'minimum' => 1, 'description' => 'Move the field to an existing QuickMode page number, starting at 1.'],
                 'options' => self::choiceOptionsSchema(false),
             ],
             'required' => ['name'],
@@ -106,6 +118,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
                 'properties' => [
                     'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255],
                     'value' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255],
+                    'selected' => ['type' => 'boolean', 'default' => false],
                 ],
                 'required' => ['label', 'value'],
                 'additionalProperties' => false,
