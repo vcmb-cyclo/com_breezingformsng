@@ -1,5 +1,29 @@
 # Changelog
 
+## 6.1.0-RC21
+
+### Added
+
+- Replace the Configuration screen by Tools, laid out like the Joomla control panel: Maintenance tiles (Audit with the number of issues counted in the background, Statistics, Trash with the number of items it holds, Log), Package tiles (Install, Create / edit, Dissolve), the AI assistants (MCP) status with its address, and the sample data card.
+- Give the Audit, the Statistics, the Trash and the Log their own screens under Tools, with a Back button. The Statistics list the records of each form by state (published, archived, trashed) with links that open the form and its records in a new tab, and the tables with their rows and size, with a hint on the tables whose columns use another collation than the table.
+- Add a trash to the lists of forms, scripts, pieces and Integrator rules: Trash instead of Delete, restore with Publish or Unpublish from the Trashed filter, and Empty trash to delete for good after a confirmation. A trashed form is no longer shown on the site, copied or exported, a trashed script or piece no longer runs and a trashed rule no longer fires.
+- Show on the Trash screen one table per kind of object, with the id, title and name of each trashed form, script, piece and rule, its own Empty trash button and a link to its trashed list. The number of trashed records of a form opens them.
+- Install a sample contact form from the Sample data card of the Tools screen, after a confirmation. It is also added to the site menu under Tests, is never replaced if it is already installed, and needs administrator rights.
+- Add the carte theme for the forms in Bootstrap mode, chosen from the Bootstrap theme list of the form properties: a white card, soft fields, pill-shaped choices and an outlined main button, as one stylesheet. The sample contact form uses it.
+- Add a Privacy and history tab to the options and describe each tab.
+
+### Changed
+
+- Move the audit report and the installation log out of the About screen: the Actions menu and the Show log button are gone, and the Extensions screen gets its Back and Manage plugins buttons in the toolbar.
+- Keep the open or closed sections of the Record screen when going from one record to the next.
+- Tell at once that a configuration export is not a package when it is chosen in the package import, instead of asking to confirm a package of 0 forms.
+- Remove the Export and Import configuration actions: the import never worked and the packages cover the transfers.
+
+### Security
+
+- Count the issues of the Audit tile with a read-only request that needs a valid token and the right to manage the component.
+- Open a form in QuickMode without locking it: the lock is taken when the form is saved, with a token, and saving a form needs the right to edit or create it and refuses a form that is in the trash.
+
 ## 6.1.0-RC20
 
 ### Added
