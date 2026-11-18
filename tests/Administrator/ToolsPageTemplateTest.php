@@ -175,9 +175,24 @@ final class ToolsPageTemplateTest extends TestCase
         self::assertStringContainsString('breezingforms_install2.log', (string) file_get_contents($base . '/src/Service/InstallLogReader.php'));
     }
 
-    public function testSampleDataIsMarkedInProgress(): void
+    public function testSampleFormInstallIsATokenProtectedPostThatNeverOverwrites(): void
     {
-        self::assertStringContainsString('COM_BREEZINGFORMSNG_TOOLS_IN_PROGRESS', $this->template());
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $controller = (string) file_get_contents($base . '/src/Controller/PackagesController.php');
+        $install = substr($controller, (int) strpos($controller, 'public function installSample'));
+        $install = substr($install, 0, (int) strpos($install, 'public function import'));
+
+        self::assertStringContainsString('task=packages.installSample', $this->template());
+        self::assertStringContainsString("HTMLHelper::_('form.token')", $this->template());
+        self::assertStringContainsString('window.confirm', $this->template());
+        self::assertStringContainsString('$this->checkToken();', $install);
+        self::assertStringContainsString('$this->assertAuthorised();', $install);
+        self::assertStringContainsString('mayTransferTemplates()', $install);
+        // An installed sample is never replaced: the form may have been edited.
+        self::assertLessThan(
+            (int) strpos($install, '->import('),
+            (int) strpos($install, 'getInstalledFormId() > 0')
+        );
     }
 
     public function testToolsTranslationKeysExistInEveryLanguage(): void

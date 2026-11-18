@@ -20,6 +20,8 @@ use Vcmb\Component\BreezingformsNG\Administrator\Exception\InvalidPackageExcepti
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\SampleFormService;
+use Joomla\Database\DatabaseInterface;
 
 final class PackagesController extends BaseController
 {
@@ -103,6 +105,44 @@ final class PackagesController extends BaseController
             $app->enqueueMessage($exception->getMessage(), 'error');
             $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . rawurlencode($package), false));
         }
+    }
+
+    /**
+     * Installs the sample form shipped with the component, and puts it in the site menu
+     * under "Tests". It never overwrites an installed sample: the form may have been edited.
+     */
+    public function installSample(): void
+    {
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
+        $this->assertAuthorised();
+        $this->checkToken();
+        $home = Route::_('index.php?option=com_breezingformsng&view=packages', false);
+
+        try {
+            // The layout of a form is template code: writing it takes the Configure permission.
+            if (!$this->mayTransferTemplates()) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_NEEDS_ADMIN'));
+            }
+
+            $sample = new SampleFormService(Factory::getContainer()->get(DatabaseInterface::class));
+
+            if ($sample->getInstalledFormId() > 0) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'));
+            }
+
+            $this->model()->import(SampleFormService::packagePath(), true, 'bfng-sample-contact.json', false, null);
+            $sample->ensureMenu();
+            (new ActionLogger($app))->log(ActionLogger::IMPORTED, ActionLogger::PACKAGE);
+            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_DONE'), 'message');
+        } catch (\Throwable $exception) {
+            $app->enqueueMessage(
+                Text::sprintf('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_FAILED', $exception->getMessage()),
+                'error'
+            );
+        }
+
+        $app->redirect($home);
     }
 
     public function import(): void

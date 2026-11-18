@@ -1,0 +1,197 @@
+<?php
+
+/**
+ * BreezingForms NG - A Joomla Forms Application
+ *
+ * @package BreezingFormsNG
+ * @copyright Copyright (C) 2026 by XDA+GIL
+ * @license GNU General Public License version 2 or later; see LICENSE.txt
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ **/
+
+namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
+
+\defined('_JEXEC') or die;
+
+use Joomla\CMS\Table\Menu;
+use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
+
+/**
+ * The sample form shipped with the component: where its package file is, whether
+ * it is installed, and its entry in the site menu ("Tests" > the form).
+ */
+final class SampleFormService
+{
+    public const FORM_NAME = 'Sample_Contact';
+    public const FORM_TITLE = 'Sample contact form';
+    public const MENU_PARENT_TITLE = 'Tests';
+
+    private const FORM_LINK = 'index.php?option=com_breezingformsng&view=form';
+
+    public function __construct(private readonly DatabaseInterface $db)
+    {
+    }
+
+    public static function packagePath(): string
+    {
+        return JPATH_ADMINISTRATOR . '/components/com_breezingformsng/packages/samples/bfng-sample-contact.json';
+    }
+
+    /** Id of the installed sample form, 0 when it is not installed. */
+    public function getInstalledFormId(): int
+    {
+        $name = self::FORM_NAME;
+        $query = $this->db->createQuery()
+            ->select($this->db->quoteName('id'))
+            ->from($this->db->quoteName('#__facileforms_forms'))
+            ->where($this->db->quoteName('name') . ' = :name')
+            ->bind(':name', $name, ParameterType::STRING);
+
+        return (int) $this->db->setQuery($query)->loadResult();
+    }
+
+    /**
+     * Makes sure the site menu has a "Tests" entry with the sample form under it.
+     *
+     * @return int Id of the menu item of the sample form
+     */
+    public function ensureMenu(): int
+    {
+        $existing = $this->findFormMenuItem();
+
+        if ($existing > 0) {
+            return $existing;
+        }
+
+        $menutype = $this->siteMenuType();
+        $parentId = $this->ensureParent($menutype);
+        $componentId = $this->componentId();
+        $params = [
+            'ff_com_name' => self::FORM_NAME, 'ff_com_page' => '1', 'ff_com_editable' => '0',
+            'ff_com_editable_override' => '0', 'ff_com_frame' => '0', 'ff_com_border' => '0', 'ff_com_align' => '1',
+            'ff_com_left' => '0', 'ff_com_top' => '0', 'ff_com_parprv' => '', 'ff_com_parpub' => '',
+            'ff_com_suffix' => '', 'menu-anchor_title' => '', 'menu-anchor_css' => '', 'menu_icon_css' => '',
+            'menu_image' => '', 'menu_image_css' => '', 'menu_text' => 1, 'menu_show' => 1, 'page_title' => '',
+            'show_page_heading' => '', 'page_heading' => '', 'pageclass_sfx' => '', 'menu-meta_description' => '',
+            'robots' => '',
+        ];
+
+        return $this->storeItem([
+            'menutype' => $menutype,
+            'title' => '(BF) ' . self::FORM_TITLE,
+            'alias' => 'bf-sample-contact',
+            'path' => 'tests/bf-sample-contact',
+            'link' => self::FORM_LINK,
+            'type' => 'component',
+            'parent_id' => $parentId,
+            'level' => 2,
+            'component_id' => $componentId,
+            'params' => json_encode($params, JSON_THROW_ON_ERROR),
+        ]);
+    }
+
+    private function findFormMenuItem(): int
+    {
+        $link = self::FORM_LINK;
+        $like = '%"ff_com_name":"' . self::FORM_NAME . '"%';
+        $query = $this->db->createQuery()
+            ->select($this->db->quoteName('id'))
+            ->from($this->db->quoteName('#__menu'))
+            ->where($this->db->quoteName('client_id') . ' = 0')
+            ->where($this->db->quoteName('published') . ' >= 0')
+            ->where($this->db->quoteName('link') . ' = :link')
+            ->where($this->db->quoteName('params') . ' LIKE :params')
+            ->bind(':link', $link, ParameterType::STRING)
+            ->bind(':params', $like, ParameterType::STRING);
+
+        return (int) $this->db->setQuery($query)->loadResult();
+    }
+
+    private function ensureParent(string $menutype): int
+    {
+        $title = self::MENU_PARENT_TITLE;
+        $query = $this->db->createQuery()
+            ->select($this->db->quoteName('id'))
+            ->from($this->db->quoteName('#__menu'))
+            ->where($this->db->quoteName('client_id') . ' = 0')
+            ->where($this->db->quoteName('menutype') . ' = :menutype')
+            ->where($this->db->quoteName('parent_id') . ' = 1')
+            ->where($this->db->quoteName('type') . ' = ' . $this->db->quote('separator'))
+            ->where($this->db->quoteName('title') . ' = :title')
+            ->where($this->db->quoteName('published') . ' >= 0')
+            ->bind(':menutype', $menutype, ParameterType::STRING)
+            ->bind(':title', $title, ParameterType::STRING);
+        $id = (int) $this->db->setQuery($query)->loadResult();
+
+        if ($id > 0) {
+            return $id;
+        }
+
+        return $this->storeItem([
+            'menutype' => $menutype,
+            'title' => $title,
+            'alias' => 'tests',
+            'path' => 'tests',
+            'link' => '',
+            'type' => 'separator',
+            'parent_id' => 1,
+            'level' => 1,
+            'component_id' => 0,
+            'params' => json_encode(
+                ['menu-anchor_css' => '', 'menu_icon_css' => '', 'menu_image' => '', 'menu_image_css' => '',
+                    'menu_text' => 1, 'menu_show' => 1],
+                JSON_THROW_ON_ERROR
+            ),
+        ]);
+    }
+
+    /** @param array<string, mixed> $data */
+    private function storeItem(array $data): int
+    {
+        $table = new Menu($this->db);
+        $table->setLocation((int) $data['parent_id'], 'last-child');
+        $data += [
+            'note' => '', 'published' => 1, 'checked_out' => 0, 'checked_out_time' => null, 'browserNav' => 0,
+            'access' => 1, 'img' => '', 'template_style_id' => 0, 'home' => 0, 'language' => '*', 'client_id' => 0,
+        ];
+
+        if (!$table->bind($data) || !$table->check() || !$table->store()) {
+            throw new \RuntimeException($table->getError() ?: 'The menu item could not be stored.');
+        }
+
+        return (int) $table->id;
+    }
+
+    private function siteMenuType(): string
+    {
+        $query = $this->db->createQuery()
+            ->select($this->db->quoteName('menutype'))
+            ->from($this->db->quoteName('#__menu_types'))
+            ->where($this->db->quoteName('client_id') . ' = 0')
+            ->order(
+                'CASE WHEN ' . $this->db->quoteName('menutype') . ' = ' . $this->db->quote('mainmenu')
+                . ' THEN 0 ELSE 1 END, ' . $this->db->quoteName('id') . ' ASC'
+            )
+            ->setLimit(1);
+        $menutype = (string) $this->db->setQuery($query)->loadResult();
+
+        if ($menutype === '') {
+            throw new \RuntimeException('No site menu is available.');
+        }
+
+        return $menutype;
+    }
+
+    private function componentId(): int
+    {
+        $query = $this->db->createQuery()
+            ->select($this->db->quoteName('extension_id'))
+            ->from($this->db->quoteName('#__extensions'))
+            ->where($this->db->quoteName('element') . ' = ' . $this->db->quote('com_breezingformsng'))
+            ->where($this->db->quoteName('type') . ' = ' . $this->db->quote('component'));
+
+        return (int) $this->db->setQuery($query)->loadResult();
+    }
+}
