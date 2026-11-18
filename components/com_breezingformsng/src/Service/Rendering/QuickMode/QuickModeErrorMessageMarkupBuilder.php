@@ -17,9 +17,18 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering\QuickMode;
 /** Builds the Bootstrap error-message container shared by two renderers. */
 final class QuickModeErrorMessageMarkupBuilder
 {
-    public static function build(mixed $alertClass, mixed $errorClass, string $newline): string
-    {
+    public static function build(
+        mixed $alertClass,
+        mixed $errorClass,
+        string $titleSingular,
+        string $titlePlural,
+        string $newline
+    ): string {
         return '<div class="bfErrorMessage ' . (string) $alertClass . ' ' . (string) $errorClass
-            . '" style="display:none"></div>' . $newline;
+            . '" role="alert" aria-live="assertive" style="display:none">'
+            . '<strong class="bfErrorSummaryTitle" data-title-singular="'
+            . htmlspecialchars($titleSingular, ENT_QUOTES, 'UTF-8')
+            . '" data-title-plural="' . htmlspecialchars($titlePlural, ENT_QUOTES, 'UTF-8')
+            . '"></strong><ul class="bfErrorSummaryList"></ul></div>' . $newline;
     }
 }

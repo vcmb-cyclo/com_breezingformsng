@@ -105,6 +105,7 @@
     margin-bottom: 0.4rem;
 }
 
+.bfFormDiv .bfQuickMode .fa-asterisk,
 .bfFormDiv .form-label .fa-asterisk {
     color: var(--bf-accent-ink);
     font-size: 0.6em;
@@ -174,6 +175,11 @@
     font-size: 0.875rem;
 }
 
+.bfFormDiv .invalid-feedback.bf-field-error {
+    display: block;
+    white-space: pre-line;
+}
+
 .bfFormDiv .bfErrorMessage.alert-danger {
     background: var(--bf-danger-bg);
     border: 1px solid var(--bf-danger);
@@ -184,6 +190,22 @@
 
 .bfFormDiv .bfErrorMessage:empty {
     display: none;
+}
+
+.bfFormDiv .bfErrorSummaryTitle {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+
+.bfFormDiv .bfErrorSummaryList {
+    margin: 0;
+    padding-inline-start: 1.25rem;
+}
+
+.bfFormDiv .bfErrorSummaryList a {
+    color: inherit;
+    text-decoration: underline;
 }
 
 /* Choices as pills: the native input stays in the page, focusable, but out of sight */

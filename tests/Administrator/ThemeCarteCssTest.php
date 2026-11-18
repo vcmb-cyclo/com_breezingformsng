@@ -64,6 +64,30 @@ final class ThemeCarteCssTest extends TestCase
         }
         // Reset before Send, and no solid fill on the main button.
         self::assertStringContainsString('order: -1;', $css);
+        self::assertStringContainsString('color: var(--bf-accent-ink);', $css);
+        self::assertStringContainsString('display: block;', $css);
+        self::assertStringContainsString('.bfErrorSummaryTitle', $css);
+        self::assertStringContainsString('.bfErrorSummaryList a', $css);
+    }
+
+    public function testBootstrapErrorSummaryTitlesExistInEverySiteLanguage(): void
+    {
+        foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $language) {
+            $ini = (string) file_get_contents(
+                self::ROOT . 'components/com_breezingformsng/language/' . $language . '/com_breezingformsng.ini'
+            );
+
+            self::assertMatchesRegularExpression(
+                '/^COM_BREEZINGFORMSNG_QM_ERROR_FIELD_TITLE_SINGULAR="[^"\\r\\n]+"$/m',
+                $ini,
+                $language
+            );
+            self::assertMatchesRegularExpression(
+                '/^COM_BREEZINGFORMSNG_QM_ERROR_FIELD_TITLE_PLURAL="[^"\\r\\n]*%d[^"\\r\\n]+"$/m',
+                $ini,
+                $language
+            );
+        }
     }
 
     public function testItDefinesDarkColorsWhenBootstrapDarkModeIsActive(): void

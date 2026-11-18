@@ -544,6 +544,8 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                     echo QuickModeErrorMessageMarkupBuilder::build(
                         $this->bsClass('alert'),
                         $this->bsClass('alert-error'),
+                        Text::_('COM_BREEZINGFORMSNG_QM_ERROR_FIELD_TITLE_SINGULAR'),
+                        Text::_('COM_BREEZINGFORMSNG_QM_ERROR_FIELD_TITLE_PLURAL'),
                         "\n"
                     );
                 }
