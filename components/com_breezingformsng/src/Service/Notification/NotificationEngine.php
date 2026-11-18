@@ -98,7 +98,7 @@ final class NotificationEngine
 
           for ($i = 0; $i < $this->processor->rowcount; $i++) {
           $row = $this->processor->rows[$i];
-          $mb = $this->processor->app->getInput()->get('ff_nm_' . $row->name, '', 'string');
+          $mb = (array) $this->processor->app->getInput()->get('ff_nm_' . $row->name, [], 'string');
           if ($row->mailback == 1) {
           $mbCnt = count($mb);
           for ($x = 0; $x < $mbCnt; $x++) {
@@ -418,8 +418,8 @@ final class NotificationEngine
         $sender = $this->processor->app->getInput()->get('mailbackSender', array(), 'string');
         for ($i = 0; $i < $this->processor->rowcount; $i++) {
             $row = ($this->processor->rows ?? [])[$i];
-            $mb = $this->processor->app->getInput()->get('ff_nm_' . $row->name, '', 'string');
-            if ($row->mailback == 1 && is_array($mb)) {
+            $mb = (array) $this->processor->app->getInput()->get('ff_nm_' . $row->name, [], 'string');
+            if ($row->mailback == 1) {
                 $mbCnt = count($mb);
                 for ($x = 0; $x < $mbCnt; $x++) {
                     if (isset($mb[$x]) && trim($mb[$x]) != '' && bf_is_email(trim($mb[$x]))) {
@@ -744,7 +744,7 @@ final class NotificationEngine
         $recipients = array();
         for ($i = 0; $i < $this->processor->rowcount; $i++) {
             $row = ($this->processor->rows ?? [])[$i];
-            $mb = $this->processor->app->getInput()->get('ff_nm_' . $row->name, '', 'string');
+            $mb = (array) $this->processor->app->getInput()->get('ff_nm_' . $row->name, [], 'string');
             if ($row->mailback == 1) {
                 $mbCnt = count($mb);
                 for ($x = 0; $x < $mbCnt; $x++) {
