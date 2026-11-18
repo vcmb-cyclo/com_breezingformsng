@@ -344,6 +344,21 @@ final class McpFormWriter
                     || !is_bool($change['readonly']))) {
                 throw new ToolException('Only text and textarea fields support the read-only setting.');
             }
+            $currentFieldType = $current[$key]['bfType'] ?? '';
+            $targetFieldType = $change['type'] ?? match ($currentFieldType) {
+                'bfTextfield' => 'text',
+                'bfTextarea' => 'textarea',
+                default => '',
+            };
+            foreach (['size' => 'text', 'width' => 'textarea', 'height' => 'textarea'] as $property => $supportedType) {
+                if (!array_key_exists($property, $change)) {
+                    continue;
+                }
+                if ($targetFieldType !== $supportedType) {
+                    throw new ToolException(sprintf('The %s setting is only supported on %s fields.', $property, $supportedType));
+                }
+                $change[$property] = $this->normalizeCssDimension($change[$property], $property);
+            }
             if (array_key_exists('checked', $change) || array_key_exists('value', $change)) {
                 if (($current[$key]['bfType'] ?? '') !== 'bfCheckbox') {
                     throw new ToolException('Only checkbox fields support checked and value settings.');
@@ -473,6 +488,11 @@ final class McpFormWriter
                     }
                     if (array_key_exists('hint', $change)) {
                         $node['properties']['hint'] = $change['hint'];
+                    }
+                    foreach (['size', 'width', 'height'] as $property) {
+                        if (array_key_exists($property, $change)) {
+                            $node['properties'][$property] = $change[$property];
+                        }
                     }
                     if (array_key_exists('readonly', $change)) {
                         $node['properties']['readonly'] = $change['readonly'];
@@ -699,7 +719,7 @@ final class McpFormWriter
     }
 
     /**
-     * @return list<array{type: string, name: string, label: string, placeholder: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}>
+     * @return list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}>
      * @throws ToolException
      */
     private function normalizeFields(mixed $fields): array
@@ -720,6 +740,9 @@ final class McpFormWriter
             $label = trim((string) ($field['label'] ?? ''));
             $placeholder = trim((string) ($field['placeholder'] ?? ''));
             $hint = $field['hint'] ?? '';
+            $size = $field['size'] ?? '';
+            $width = $field['width'] ?? '';
+            $height = $field['height'] ?? '';
             $defaultValue = $field['default_value'] ?? '';
             $maxLength = $field['max_length'] ?? 0;
             $readOnly = $field['readonly'] ?? false;
@@ -736,6 +759,23 @@ final class McpFormWriter
             }
             $hint = trim($hint);
             $this->assertPlainText($hint);
+            foreach (['size' => $size, 'width' => $width, 'height' => $height] as $property => $dimension) {
+                if (!array_key_exists($property, $field)) {
+                    continue;
+                }
+                if (($property === 'size' && $type !== 'text')
+                    || (in_array($property, ['width', 'height'], true) && $type !== 'textarea')) {
+                    throw new ToolException(sprintf('The %s setting is not supported on this field type.', $property));
+                }
+                $dimension = $this->normalizeCssDimension($dimension, $property);
+                if ($property === 'size') {
+                    $size = $dimension;
+                } elseif ($property === 'width') {
+                    $width = $dimension;
+                } else {
+                    $height = $dimension;
+                }
+            }
             if (!is_int($maxLength) || $maxLength < 0 || $maxLength > 10000
                 || (array_key_exists('max_length', $field) && !in_array($type, ['text', 'textarea'], true))) {
                 throw new ToolException('Maximum length must be from 0 to 10000 and can only be set on text or textarea fields.');
@@ -807,6 +847,9 @@ final class McpFormWriter
                 'label' => $label,
                 'placeholder' => $placeholder,
                 'hint' => $hint,
+                'size' => $size,
+                'width' => $width,
+                'height' => $height,
                 'default_value' => $defaultValue,
                 'max_length' => $maxLength,
                 'readonly' => $readOnly,
@@ -823,7 +866,7 @@ final class McpFormWriter
         return $normalized;
     }
 
-    /** @param list<array{type: string, name: string, label: string, placeholder: string, hint: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
+    /** @param list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
     private function quickmodeTree(string $name, string $title, string $description, array $fields): array
     {
         $children = [];
@@ -851,7 +894,7 @@ final class McpFormWriter
         ];
     }
 
-    /** @param array{type: string, name: string, label: string, placeholder: string, hint: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field */
+    /** @param array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field */
     private function elementNode(array $field, int $order): array
     {
         $type = match ($field['type']) {
@@ -891,9 +934,12 @@ final class McpFormWriter
         ];
         if ($type === 'bfTextfield') {
             $properties['maxLength'] = $field['max_length'] > 0 ? $field['max_length'] : '';
+            $properties['size'] = $field['size'];
         } elseif ($type === 'bfTextarea') {
             $properties['maxlength'] = $field['max_length'];
             $properties['showMaxlengthCounter'] = true;
+            $properties['width'] = $field['width'];
+            $properties['height'] = $field['height'];
         }
         if ($type === 'bfSelect') {
             $properties['multiple'] = $field['multiple'];
@@ -1015,8 +1061,22 @@ final class McpFormWriter
     private function assertPlainText(string $text): void
     {
         if (str_contains($text, '<') || str_contains($text, '>')) {
-            throw new ToolException('Field labels and placeholders must be plain text without markup.');
+            throw new ToolException('Field text must be plain text without markup.');
         }
+    }
+
+    private function normalizeCssDimension(mixed $value, string $property): string
+    {
+        if (!is_string($value)) {
+            throw new ToolException(sprintf('The %s setting must be a CSS dimension string.', $property));
+        }
+
+        $value = trim($value);
+        if ($value !== '' && !preg_match('/^(?:[0-9]+(?:\.[0-9]+)?(?:px|%|em|rem|ch|vw|vh)|auto)$/iD', $value)) {
+            throw new ToolException(sprintf('The %s setting must be a simple CSS dimension such as 240px, 80%%, 18rem or auto.', $property));
+        }
+
+        return $value;
     }
 
     /** @return list<array{label: string, value: string, selected: bool}> */

@@ -75,8 +75,9 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   sont du texte brut. Les choix peuvent définir les valeurs initiales, une case
   peut être précochée et une liste peut accepter plusieurs réponses. Les champs
   texte et zone de texte peuvent être obligatoires ou en lecture seule, avec un
-  message facultatif, une indication d’aide, une valeur initiale et une longueur
-  maximale.
+  message facultatif, une indication d’aide, une valeur initiale, une longueur
+  maximale et des dimensions de présentation. Les dimensions acceptent seulement
+  des valeurs CSS simples en px, %, em, rem, ch, vw ou vh, ou `auto`.
   Seule la validation standard « valeur non vide » est disponible. Les scripts
   personnalisés, autres validations, intégrations, téléversements et paiements
   ne sont pas configurables.
@@ -95,8 +96,9 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   zone de texte, liste, radio, groupe de cases à cocher et cases à cocher sur
   les formulaires QuickMode compatibles. La modification peut changer entre
   texte et zone de texte, régler le libellé, l’espace réservé, le caractère
-  obligatoire ou en lecture seule, l’indication d’aide, la valeur initiale et la
-  longueur maximale des champs texte et zone de texte, la valeur d’une case, la sélection
+  obligatoire ou en lecture seule, l’indication d’aide, les dimensions, la valeur
+  initiale et la longueur maximale des champs texte et zone de texte, la valeur
+  d’une case, la sélection
   multiple d’une liste et ses choix. Le renommage est refusé si des soumissions,
   scripts, validations,
   modèles de courriel ou intégrations peuvent référencer le nom du champ. Les

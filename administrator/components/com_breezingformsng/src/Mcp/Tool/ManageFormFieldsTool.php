@@ -34,7 +34,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
     public function description(): string
     {
         return 'Adds, updates or removes text, textarea, select, radio, checkbox-group and checkbox fields on compatible QuickMode forms. '
-            . 'Pages can be added or empty pages removed; new fields can target existing or new pages, and existing fields can move between pages. Updates can change safe field names, text/textarea type, labels, placeholders, help hints, default values, maximum lengths, read-only and required state, checkbox values, select multiplicity or choice options. Renaming requires no submissions, scripts, validations, templates or integrations that could refer to the field. '
+            . 'Pages can be added or empty pages removed; new fields can target existing or new pages, and existing fields can move between pages. Updates can change safe field names, text/textarea type, labels, placeholders, help hints, dimensions, default values, maximum lengths, read-only and required state, checkbox values, select multiplicity or choice options. Renaming requires no submissions, scripts, validations, templates or integrations that could refer to the field. '
             . 'Existing custom scripts and settings are preserved; the required option uses only the standard non-empty validation. Fields cannot be removed after submissions exist. '
             . 'Forms with other field types or nested field structures are not changed. Choice options cannot be changed after submissions exist.';
     }
@@ -49,6 +49,9 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
                 'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Plain-text field label.'],
                 'placeholder' => ['type' => 'string', 'maxLength' => 255, 'default' => '', 'description' => 'Optional plain-text placeholder.'],
                 'hint' => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optional plain-text help shown with the field.'],
+                'size' => ['type' => 'string', 'maxLength' => 20, 'description' => 'Optional text-field width; only simple CSS dimensions are accepted.'],
+                'width' => ['type' => 'string', 'maxLength' => 20, 'description' => 'Optional textarea width; only simple CSS dimensions are accepted.'],
+                'height' => ['type' => 'string', 'maxLength' => 20, 'description' => 'Optional textarea height; only simple CSS dimensions are accepted.'],
                 'default_value' => ['type' => 'string', 'maxLength' => 4000, 'description' => 'Optional plain-text initial value for a text or textarea field.'],
                 'max_length' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 10000, 'description' => 'Optional maximum characters for a text or textarea field; 0 means unlimited.'],
                 'readonly' => ['type' => 'boolean', 'description' => 'Whether a text or textarea field is read-only.'],
@@ -72,6 +75,9 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
                 'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Optional new plain-text label.'],
                 'placeholder' => ['type' => 'string', 'maxLength' => 255, 'description' => 'Optional new plain-text placeholder.'],
                 'hint' => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optional new plain-text help shown with the field; an empty string clears it.'],
+                'size' => ['type' => 'string', 'maxLength' => 20, 'description' => 'Text-field width such as 240px, 80%, 18rem or auto; an empty string clears it.'],
+                'width' => ['type' => 'string', 'maxLength' => 20, 'description' => 'Textarea width as a simple CSS dimension; an empty string clears it.'],
+                'height' => ['type' => 'string', 'maxLength' => 20, 'description' => 'Textarea height as a simple CSS dimension; an empty string clears it.'],
                 'default_value' => ['type' => 'string', 'maxLength' => 4000, 'description' => 'Optional new plain-text initial value for a text or textarea field.'],
                 'max_length' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 10000, 'description' => 'Maximum characters for a text or textarea field; 0 means unlimited.'],
                 'readonly' => ['type' => 'boolean', 'description' => 'Set whether the text or textarea field is read-only.'],
