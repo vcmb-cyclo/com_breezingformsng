@@ -195,6 +195,21 @@ final class ToolsPageTemplateTest extends TestCase
         );
     }
 
+    public function testSampleInstallButtonIsDisabledWhenTheSampleNameIsTaken(): void
+    {
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $controller = (string) file_get_contents($base . '/src/Controller/PackagesController.php');
+        $install = substr($controller, (int) strpos($controller, 'public function installSample'));
+        $install = substr($install, 0, (int) strpos($install, 'public function import'));
+
+        self::assertStringContainsString('!$this->sampleNameTaken', $this->template());
+        // A name already in use is a notice, never a "could not be installed" error.
+        self::assertStringNotContainsString(
+            "throw new \\RuntimeException(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'))",
+            $install
+        );
+    }
+
     public function testToolsTranslationKeysExistInEveryLanguage(): void
     {
         preg_match_all("/'(COM_BREEZINGFORMSNG_TOOLS_[A-Z_]+)'/", $this->template(), $matches);

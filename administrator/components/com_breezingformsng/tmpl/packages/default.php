@@ -178,9 +178,12 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
                         <?php endif; ?>
                     </h3>
                     <p class="text-muted small mb-0"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_DESC'); ?></p>
+                    <?php if ($this->sampleNameTaken) : ?>
+                        <p class="text-muted small mb-0" data-tools-state="name-taken"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'); ?></p>
+                    <?php endif; ?>
                 </div>
                 <div class="d-flex gap-2">
-                    <?php if ($this->sampleFormId === 0 && $this->canInstallSample) : ?>
+                    <?php if ($this->sampleFormId === 0 && $this->canInstallSample && !$this->sampleNameTaken) : ?>
                         <form action="<?= Route::_('index.php?option=com_breezingformsng&task=packages.installSample'); ?>" method="post"
                             onsubmit="return window.confirm(<?= htmlspecialchars(json_encode(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_CONFIRM'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8'); ?>);">
                             <?= HTMLHelper::_('form.token'); ?>
@@ -195,9 +198,9 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
                             <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_INSTALL'); ?>
                         </button>
                     <?php endif; ?>
-                    <?php if ($this->sampleFormId > 0) : ?>
+                    <?php if ($this->sampleManageId > 0) : ?>
                         <a class="btn btn-primary btn-sm" id="bf-tools-sample-manage"
-                            href="<?= Route::_('index.php?option=com_breezingformsng&task=quickmode.display&form=' . $this->sampleFormId); ?>">
+                            href="<?= Route::_('index.php?option=com_breezingformsng&task=quickmode.display&form=' . $this->sampleManageId); ?>">
                             <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_MANAGE'); ?>
                         </a>
                     <?php else : ?>

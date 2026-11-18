@@ -132,7 +132,10 @@ final class PackagesController extends BaseController
 
             if ($installedFormId > 0) {
                 if ($formNameCount > 1) {
-                    throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'));
+                    $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'), 'warning');
+                    $app->redirect($home);
+
+                    return;
                 }
 
                 // A prior attempt may have imported the form before menu creation failed.
@@ -141,7 +144,10 @@ final class PackagesController extends BaseController
                 $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'), 'message');
             } else {
                 if ($formNameCount > 0) {
-                    throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'));
+                    $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'), 'warning');
+                    $app->redirect($home);
+
+                    return;
                 }
 
                 $this->model()->import(SampleFormService::packagePath(), true, 'bfng-sample-contact.json', false, null);
