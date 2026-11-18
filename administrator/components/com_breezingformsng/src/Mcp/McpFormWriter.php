@@ -204,10 +204,22 @@ final class McpFormWriter
             }
             unset($change['name']);
             if ($change === []) {
-                throw new ToolException('Give a new type, label or placeholder for each field update.');
+                throw new ToolException('Give a new type, label, placeholder or choice options for each field update.');
             }
-            if (isset($change['type']) && !in_array($change['type'], ['text', 'textarea'], true)) {
-                throw new ToolException('Field types are limited to text and textarea.');
+            if (isset($change['type'])) {
+                if (!in_array($change['type'], ['text', 'textarea'], true)
+                    || !in_array($current[$key]['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)) {
+                    throw new ToolException('Existing fields can only change between text and textarea types.');
+                }
+            }
+            if (array_key_exists('options', $change)) {
+                if (!in_array($current[$key]['bfType'] ?? '', ['bfSelect', 'bfRadioGroup', 'bfCheckboxGroup'], true)) {
+                    throw new ToolException('Choice options can only be changed on select, radio or checkbox-group fields.');
+                }
+                $change['options'] = $this->normalizeChoices($change['options']);
+                if ($change['options'] === []) {
+                    throw new ToolException('Choice fields must keep at least one option.');
+                }
             }
             if (isset($change['type'])
                 && $change['type'] !== ($current[$key]['bfType'] === 'bfTextfield' ? 'text' : 'textarea')
@@ -258,16 +270,14 @@ final class McpFormWriter
         }
 
         if ($removeByName !== []) {
-            $recordCount = (int) $this->db->setQuery(
-                $this->db->createQuery()
-                    ->select('COUNT(*)')
-                    ->from($this->db->quoteName('#__facileforms_records'))
-                    ->where($this->db->quoteName('form') . ' = :form')
-                    ->bind(':form', $id, ParameterType::INTEGER)
-            )->loadResult();
+            $recordCount = $this->submissionCount($id);
             if ($recordCount > 0) {
                 throw new ToolException('Fields cannot be removed while the form has submissions; existing records are preserved.');
             }
+        }
+        if (array_filter($updateByName, static fn (array $change): bool => array_key_exists('options', $change)) !== []
+            && $this->submissionCount($id) > 0) {
+            throw new ToolException('Choice options cannot be changed while the form has submissions; historical values are preserved.');
         }
 
         $resultPages = [];
@@ -291,6 +301,10 @@ final class McpFormWriter
                         if (array_key_exists($property, $change)) {
                             $node['properties'][$property] = $change[$property];
                         }
+                    }
+                    if (array_key_exists('options', $change)) {
+                        $choiceProperty = $node['properties']['bfType'] === 'bfSelect' ? 'list' : 'group';
+                        $node['properties'][$choiceProperty] = $this->serializeChoices($change['options']);
                     }
                     $updated[] = $node['properties']['bfName'];
                 }
@@ -334,7 +348,7 @@ final class McpFormWriter
             $this->db->transactionStart();
             $versioning = new FormVersioning($this->db, $this->forms);
             $versioning->keepOrigin($id);
-            $this->quickmode->save($id, $tree, 1, false);
+            $this->quickmode->save($id, $tree, (int) $form->published, false);
             try {
                 $versioned = $versioning->record($id);
             } catch (\Throwable) {
@@ -446,8 +460,8 @@ final class McpFormWriter
             $name = trim((string) ($field['name'] ?? ''));
             $label = trim((string) ($field['label'] ?? ''));
             $placeholder = trim((string) ($field['placeholder'] ?? ''));
-            if (!in_array($type, ['text', 'textarea'], true)) {
-                throw new ToolException('Field types are limited to text and textarea.');
+            if (!in_array($type, ['text', 'textarea', 'select', 'radio', 'checkbox_group'], true)) {
+                throw new ToolException('Supported field types are text, textarea, select, radio and checkbox_group.');
             }
             if (!preg_match('/^[A-Za-z][A-Za-z0-9_]{0,99}$/D', $name)) {
                 throw new ToolException('Field names must start with a letter and contain only letters, numbers and underscores.');
@@ -460,19 +474,26 @@ final class McpFormWriter
             }
             $this->assertPlainText($label);
             $this->assertPlainText($placeholder);
+            $choices = $this->normalizeChoices($field['options'] ?? []);
+            if (in_array($type, ['select', 'radio', 'checkbox_group'], true) && $choices === []) {
+                throw new ToolException('Select, radio and checkbox_group fields need at least one choice.');
+            }
+            if (in_array($type, ['text', 'textarea'], true) && $choices !== []) {
+                throw new ToolException('Text and textarea fields cannot have choice options.');
+            }
 
             $key = strtolower($name);
             if (isset($names[$key])) {
                 throw new ToolException('Field names must be unique within the form.');
             }
             $names[$key] = true;
-            $normalized[] = ['type' => $type, 'name' => $name, 'label' => $label, 'placeholder' => $placeholder];
+            $normalized[] = ['type' => $type, 'name' => $name, 'label' => $label, 'placeholder' => $placeholder, 'options' => $choices];
         }
 
         return $normalized;
     }
 
-    /** @param list<array{type: string, name: string, label: string, placeholder: string}> $fields */
+    /** @param list<array{type: string, name: string, label: string, placeholder: string, options: list<array{label: string, value: string}>}> $fields */
     private function quickmodeTree(string $name, string $title, string $description, array $fields): array
     {
         $children = [];
@@ -500,36 +521,52 @@ final class McpFormWriter
         ];
     }
 
-    /** @param array{type: string, name: string, label: string, placeholder: string} $field */
+    /** @param array{type: string, name: string, label: string, placeholder: string, options: list<array{label: string, value: string}>} $field */
     private function elementNode(array $field, int $order): array
     {
+        $type = match ($field['type']) {
+            'text' => 'bfTextfield',
+            'textarea' => 'bfTextarea',
+            'select' => 'bfSelect',
+            'radio' => 'bfRadioGroup',
+            'checkbox_group' => 'bfCheckboxGroup',
+        };
+        $properties = [
+            'type' => 'element',
+            'bfType' => $type,
+            'value' => '',
+            'placeholder' => $field['placeholder'],
+            'label' => $field['label'],
+            'bfName' => $field['name'],
+            'orderNumber' => $order,
+            'tabIndex' => 0,
+            'logging' => 1,
+            'validationId' => 0,
+            'validationCode' => '',
+            'validationMessage' => '',
+            'validationFunctionName' => '',
+            'validationCondition' => 0,
+            'initId' => 0,
+            'initCode' => '',
+            'initFunctionName' => '',
+            'initCondition' => 0,
+            'actionId' => 0,
+            'actionCode' => '',
+            'actionFunctionName' => '',
+            'actionCondition' => 0,
+            'dbId' => 0,
+        ];
+        if ($type === 'bfSelect') {
+            $properties['multiple'] = false;
+            $properties['list'] = $this->serializeChoices($field['options']);
+            $properties['mailback'] = false;
+        } elseif (in_array($type, ['bfRadioGroup', 'bfCheckboxGroup'], true)) {
+            $properties['group'] = $this->serializeChoices($field['options']);
+        }
+
         return [
             'attributes' => ['id' => 'bfQuickModeElement' . $order . '_' . strtolower($field['name'])],
-            'properties' => [
-                'type' => 'element',
-                'bfType' => $field['type'] === 'text' ? 'bfTextfield' : 'bfTextarea',
-                'value' => '',
-                'placeholder' => $field['placeholder'],
-                'label' => $field['label'],
-                'bfName' => $field['name'],
-                'orderNumber' => $order,
-                'tabIndex' => 0,
-                'logging' => 1,
-                'validationId' => 0,
-                'validationCode' => '',
-                'validationMessage' => '',
-                'validationFunctionName' => '',
-                'validationCondition' => 0,
-                'initId' => 0,
-                'initCode' => '',
-                'initFunctionName' => '',
-                'initCondition' => 0,
-                'actionId' => 0,
-                'actionCode' => '',
-                'actionFunctionName' => '',
-                'actionCondition' => 0,
-                'dbId' => 0,
-            ],
+            'properties' => $properties,
             'children' => [],
         ];
     }
@@ -588,10 +625,10 @@ final class McpFormWriter
                 ];
                 if (!is_string($nodeId) || isset($quickmodeIds[$nodeId])
                     || ($properties['type'] ?? null) !== 'element'
-                    || !in_array($properties['bfType'] ?? null, ['bfTextfield', 'bfTextarea'], true)
+                    || !in_array($properties['bfType'] ?? null, ['bfTextfield', 'bfTextarea', 'bfSelect', 'bfRadioGroup', 'bfCheckboxGroup'], true)
                     || array_diff($requiredProperties, array_keys($properties)) !== []
                     || !is_array($node['children'] ?? null) || $node['children'] !== []) {
-                    throw new ToolException('This form contains a non-text field or nested structure the MCP field editor cannot safely preserve.');
+                    throw new ToolException('This form contains an unsupported field or nested structure the MCP field editor cannot safely preserve.');
                 }
                 $dbId = (int) ($properties['dbId'] ?? 0);
                 $fieldName = trim((string) ($properties['bfName'] ?? ''));
@@ -601,6 +638,16 @@ final class McpFormWriter
                     || mb_strlen((string) ($properties['label'] ?? '')) > 255
                     || mb_strlen((string) ($properties['placeholder'] ?? '')) > 255) {
                     throw new ToolException('This form has a field identity or text value that cannot be safely edited through MCP.');
+                }
+                $choiceProperty = match ($properties['bfType']) {
+                    'bfSelect' => 'list',
+                    'bfRadioGroup', 'bfCheckboxGroup' => 'group',
+                    default => null,
+                };
+                if ($choiceProperty !== null && (!is_string($properties[$choiceProperty] ?? null)
+                    || ($properties['bfType'] === 'bfSelect'
+                        && (!is_bool($properties['multiple'] ?? null) || !is_bool($properties['mailback'] ?? null))))) {
+                    throw new ToolException('This form has a malformed choice field that cannot be safely edited through MCP.');
                 }
                 $elementIds[$dbId] = true;
                 $quickmodeIds[$nodeId] = true;
@@ -615,5 +662,53 @@ final class McpFormWriter
         if (str_contains($text, '<') || str_contains($text, '>')) {
             throw new ToolException('Field labels and placeholders must be plain text without markup.');
         }
+    }
+
+    /** @return list<array{label: string, value: string}> */
+    private function normalizeChoices(mixed $choices): array
+    {
+        if (!is_array($choices) || !array_is_list($choices) || count($choices) > 30) {
+            throw new ToolException('Choice options must be a list of at most 30 items.');
+        }
+
+        $normalized = [];
+        $values = [];
+        foreach ($choices as $choice) {
+            if (!is_array($choice)) {
+                throw new ToolException('Each choice option must be an object.');
+            }
+            $label = trim((string) ($choice['label'] ?? ''));
+            $value = trim((string) ($choice['value'] ?? ''));
+            foreach ([$label, $value] as $text) {
+                if ($text === '' || mb_strlen($text) > 255 || preg_match('/[;\r\n\x00]/u', $text)) {
+                    throw new ToolException('Choice labels and values must be non-empty plain text of at most 255 characters without semicolons or line breaks.');
+                }
+                $this->assertPlainText($text);
+            }
+            if (isset($values[$value])) {
+                throw new ToolException('Choice values must be unique within a field.');
+            }
+            $values[$value] = true;
+            $normalized[] = ['label' => $label, 'value' => $value];
+        }
+
+        return $normalized;
+    }
+
+    /** @param list<array{label: string, value: string}> $choices */
+    private function serializeChoices(array $choices): string
+    {
+        return implode('', array_map(static fn (array $choice): string => '0;' . $choice['label'] . ';' . $choice['value'] . "\n", $choices));
+    }
+
+    private function submissionCount(int $formId): int
+    {
+        return (int) $this->db->setQuery(
+            $this->db->createQuery()
+                ->select('COUNT(*)')
+                ->from($this->db->quoteName('#__facileforms_records'))
+                ->where($this->db->quoteName('form') . ' = :form')
+                ->bind(':form', $formId, ParameterType::INTEGER)
+        )->loadResult();
     }
 }

@@ -33,7 +33,7 @@ final class CreateFormTool implements McpTool
 
     public function description(): string
     {
-        return 'Creates an unpublished BreezingForms NG form with up to 30 simple text or textarea fields. '
+        return 'Creates an unpublished BreezingForms NG form with up to 30 text, textarea, select, radio or checkbox-group fields. '
             . 'It does not configure scripts, validations, integrations, file uploads, payments or notification destinations.';
     }
 
@@ -49,14 +49,29 @@ final class CreateFormTool implements McpTool
                     'type' => 'array',
                     'maxItems' => 30,
                     'default' => [],
-                    'description' => 'Optional simple fields. Names must be unique; labels and placeholders are plain text.',
+                    'description' => 'Optional fields. Names must be unique; labels, placeholders and choice labels/values are plain text.',
                     'items' => [
                         'type' => 'object',
                         'properties' => [
-                            'type' => ['type' => 'string', 'enum' => ['text', 'textarea'], 'description' => 'Field type.'],
+                            'type' => ['type' => 'string', 'enum' => ['text', 'textarea', 'select', 'radio', 'checkbox_group'], 'description' => 'Field type.'],
                             'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100, 'description' => 'Field name, starting with a letter; letters, numbers and underscores only.'],
                             'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Plain-text field label.'],
                             'placeholder' => ['type' => 'string', 'maxLength' => 255, 'default' => '', 'description' => 'Optional plain-text placeholder.'],
+                            'options' => [
+                                'type' => 'array',
+                                'maxItems' => 30,
+                                'default' => [],
+                                'description' => 'Choices for select, radio and checkbox_group fields; each value must be unique.',
+                                'items' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255],
+                                        'value' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255],
+                                    ],
+                                    'required' => ['label', 'value'],
+                                    'additionalProperties' => false,
+                                ],
+                            ],
                         ],
                         'required' => ['type', 'name', 'label'],
                         'additionalProperties' => false,

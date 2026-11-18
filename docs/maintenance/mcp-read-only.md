@@ -69,9 +69,10 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   `<nom>_total`, et `summary` garde les totaux. Les noms de formulaires, de
   tables et d’extensions restent dans le rapport.
 - `bfng_create_form` : crée un formulaire dépublié avec le nom interne, le
-  titre, une description facultative et jusqu’à 30 champs texte ou zone de
-  texte. Les noms de champ sont uniques et les libellés/espaces réservés sont
-  du texte brut. L’outil ne configure ni validation, ni script personnalisé,
+  titre, une description facultative et jusqu’à 30 champs texte, zone de texte,
+  liste, radio ou groupe de cases à cocher. Les noms de champ sont uniques et
+  les libellés, espaces réservés et choix sont du texte brut. L’outil ne
+  configure ni validation, ni script personnalisé,
   ni intégration, ni téléversement, ni paiement, ni destinataire de notification.
 - `bfng_update_form` : modifie par ID un ou plusieurs champs parmi le nom, le
   titre et la description, ou règle la largeur, la hauteur et l’ajustement
@@ -80,12 +81,14 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   formulaires supprimés ne peuvent pas être modifiés. Le verrouillage et
   l’historique Joomla sont appliqués comme lors d’une sauvegarde dans
   l’administration.
-- `bfng_manage_form_fields` : ajoute, modifie ou supprime des champs `text` et
-  `textarea` sur les formulaires QuickMode dont les champs existants sont de
-  ces types. La modification peut
-  changer le type, le libellé ou l’espace réservé, mais pas le nom du champ.
-  La suppression est refusée dès qu’il existe une soumission. Les formulaires
-  avec d’autres types de champs ou des structures imbriquées sont refusés. Les
+- `bfng_manage_form_fields` : ajoute, modifie ou supprime des champs texte,
+  zone de texte, liste, radio et groupe de cases à cocher sur les formulaires
+  QuickMode compatibles. La modification peut changer entre texte et zone de
+  texte, ou mettre à jour le libellé, l’espace réservé et les choix, mais pas
+  le nom du champ. Les choix ne peuvent pas être modifiés après une soumission ;
+  la suppression est également refusée dès qu’il existe une soumission. Les
+  formulaires avec d’autres types de champs ou des structures imbriquées sont
+  refusés. Les
   scripts et réglages existants sont préservés et ne peuvent pas être modifiés
   avec cet outil. L’opération est verrouillée, versionnée et synchronisée avec
   les vues ContentBuilder NG associées.
