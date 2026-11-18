@@ -71,7 +71,7 @@ final class McpFormWriter
 
     /**
      * @param array<string, mixed> $arguments
-     * @return array{id: int, name: string, title: string, published: bool, settings: array{width: int, height: int, autoheight: bool}, versioned: bool}
+     * @return array{id: int, name: string, title: string, published: bool, settings: array{width: int, widthmode: int, height: int, heightmode: int, autoheight: bool}, versioned: bool}
      * @throws ToolException
      */
     public function update(array $arguments, User $user): array
@@ -99,9 +99,19 @@ final class McpFormWriter
             $data[$field] = $value;
         }
 
-        foreach (['width', 'height', 'autoheight'] as $field) {
+        foreach (['width', 'widthmode', 'height', 'heightmode', 'autoheight'] as $field) {
             if (array_key_exists($field, $arguments)) {
                 $data[$field] = $arguments[$field];
+            }
+        }
+
+        if (array_key_exists('width', $data) || array_key_exists('widthmode', $data)) {
+            $width = (int) ($data['width'] ?? $form->width);
+            $widthMode = (int) ($data['widthmode'] ?? $form->widthmode);
+            $minimumWidth = $widthMode === 1 ? 1 : 100;
+            $maximumWidth = $widthMode === 1 ? 100 : 2000;
+            if ($width < $minimumWidth || $width > $maximumWidth) {
+                throw new ToolException(sprintf('The width must be between %d and %d for the selected width mode.', $minimumWidth, $maximumWidth));
             }
         }
 
@@ -140,7 +150,9 @@ final class McpFormWriter
             'published' => (int) $form->published === 1,
             'settings' => [
                 'width' => (int) ($data['width'] ?? $form->width),
+                'widthmode' => (int) ($data['widthmode'] ?? $form->widthmode),
                 'height' => (int) ($data['height'] ?? $form->height),
+                'heightmode' => (int) ($data['heightmode'] ?? $form->heightmode),
                 'autoheight' => (bool) ($data['autoheight'] ?? $form->autoheight),
             ],
             'versioned' => $versioned,
