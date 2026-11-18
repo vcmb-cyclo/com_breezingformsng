@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Third-party files that npm provides byte for byte: jsTree and SweetAlert2.
+// Third-party files that npm provides byte for byte: jsTree, SweetAlert2 and
+// intl-tel-input.
 // package.json pins their exact versions and package-lock.json their
 // integrity, so that Dependabot and `npm audit` follow them. The copies
 // stay at their current paths, which the asset registry and the renderers
@@ -17,6 +18,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const intl = 'media/com_breezingformsng/libraries/intl-tel-input';
 const jstree = 'administrator/components/com_breezingformsng/libraries/jquery/jstree3';
 
 /** @type {Array<[string, string, string]>} The package, its file and the copy in the repository. */
@@ -26,6 +28,16 @@ const FILES = [
         .map((file) => ['jstree', `dist/themes/default/${file}`, `${jstree}/themes/default/${file}`]),
     // The bundle with its style: it also gives the window.swal alias.
     ['sweetalert2', 'dist/sweetalert2.all.min.js', 'components/com_breezingformsng/libraries/js/sweetalert2.min.js'],
+    // intl-tel-input keeps the layout of its dist folder: the stylesheet finds
+    // the flag sprites at ../img/ without being edited. The WithUtils build
+    // embeds the number metadata used to validate and format numbers; the
+    // locale files are ES modules loaded on demand.
+    ['intl-tel-input', 'dist/js/intlTelInputWithUtils.min.js', `${intl}/js/intlTelInputWithUtils.min.js`],
+    ['intl-tel-input', 'dist/css/intlTelInput.min.css', `${intl}/css/intlTelInput.min.css`],
+    ...['flags.webp', 'flags@2x.webp']
+        .map((file) => ['intl-tel-input', `dist/img/${file}`, `${intl}/img/${file}`]),
+    ...['en', 'fr', 'de', 'it', 'es', 'hu', 'nl', 'tr']
+        .map((code) => ['intl-tel-input', `dist/js/locale/${code}.js`, `${intl}/js/locale/${code}.js`]),
 ];
 
 const args = process.argv.slice(2);

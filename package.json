@@ -29,6 +29,7 @@
     "stylelint-config-standard": "41.0.0"
   },
   "dependencies": {
+    "intl-tel-input": "29.5.11",
     "jstree": "3.3.17",
     "sweetalert2": "11.26.25"
   }
