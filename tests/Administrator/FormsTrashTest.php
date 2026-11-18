@@ -107,7 +107,8 @@ final class FormsTrashTest extends TestCase
         self::assertStringContainsString("authorise(\$editAction, 'com_breezingformsng')", $options);
         self::assertStringContainsString("authorise('core.edit.state', 'com_breezingformsng')", $options);
         self::assertStringContainsString('unset($data[\'published\'])', $options);
-        self::assertStringContainsString("authorise('core.edit.state', 'com_breezingformsng')", $controller);
+        self::assertStringContainsString("\$action = \$property === 'debug' ? 'core.edit' : 'core.edit.state'", $controller);
+        self::assertStringContainsString('$this->assertFormEditPermission($id)', $controller);
 
         $quickmode = $this->admin('src/Controller/QuickmodeController.php');
         self::assertStringContainsString("authorise(\$action, 'com_breezingformsng')", $quickmode);
