@@ -127,14 +127,28 @@ final class PackagesController extends BaseController
 
             $sample = new SampleFormService(Factory::getContainer()->get(DatabaseInterface::class));
 
-            if ($sample->getInstalledFormId() > 0) {
-                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'));
-            }
+            $installedFormId = $sample->getInstalledFormId();
+            $formNameCount = $sample->getFormNameCount();
 
-            $this->model()->import(SampleFormService::packagePath(), true, 'bfng-sample-contact.json', false, null);
-            $sample->ensureMenu();
-            (new ActionLogger($app))->log(ActionLogger::IMPORTED, ActionLogger::PACKAGE);
-            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_DONE'), 'message');
+            if ($installedFormId > 0) {
+                if ($formNameCount > 1) {
+                    throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'));
+                }
+
+                // A prior attempt may have imported the form before menu creation failed.
+                // Finish the idempotent menu step without importing over administrator edits.
+                $sample->ensureMenu();
+                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'), 'message');
+            } else {
+                if ($formNameCount > 0) {
+                    throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY'));
+                }
+
+                $this->model()->import(SampleFormService::packagePath(), true, 'bfng-sample-contact.json', false, null);
+                $sample->ensureMenu();
+                (new ActionLogger($app))->log(ActionLogger::IMPORTED, ActionLogger::PACKAGE);
+                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_DONE'), 'message');
+            }
         } catch (\Throwable $exception) {
             $app->enqueueMessage(
                 Text::sprintf('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_FAILED', $exception->getMessage()),

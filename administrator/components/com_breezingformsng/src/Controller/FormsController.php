@@ -414,6 +414,7 @@ class FormsController extends AdminController
      * is the native AdminController one (published = -2, with its token, ACL
      * and checked-out rules in the model).
      */
+    #[\Override]
     public function delete(): void
     {
         $this->checkToken();

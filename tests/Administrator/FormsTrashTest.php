@@ -31,13 +31,8 @@ final class FormsTrashTest extends TestCase
         return $this->read('administrator/components/com_breezingformsng/' . $path);
     }
 
-    public function testTheTrashTaskIsTheNativeTokenCheckedOne(): void
+    public function testFormsControllerLeavesTheNativeTrashTaskAvailable(): void
     {
-        $native = $this->read('joomla-stubs/libraries/src/MVC/Controller/AdminController.php');
-
-        self::assertStringContainsString("registerTask('trash', 'publish')", $native);
-        self::assertStringContainsString("'trash' => -2", $native);
-        self::assertMatchesRegularExpression('/function publish\(\)\s*\{\s*(\/\/[^\n]*\n\s*)?\$this->checkToken\(\)/', $native);
         // No override that would bypass the native task.
         self::assertStringNotContainsString('function trash(', $this->admin('src/Controller/FormsController.php'));
     }

@@ -128,6 +128,7 @@ class FormModel extends AdminModel implements VersionableModelInterface
     }
 
     /** Only forms already in the trash can be permanently deleted. */
+    #[\Override]
     protected function canDelete($record)
     {
         return (int) ($record->published ?? 0) === -2 && parent::canDelete($record);

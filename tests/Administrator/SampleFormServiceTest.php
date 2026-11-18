@@ -60,8 +60,12 @@ final class SampleFormServiceTest extends TestCase
         );
 
         self::assertSame('Sample_Contact', $package['forms'][0]['data']['name']);
+        self::assertSame('QuickModeForms', $package['forms'][0]['data']['package']);
         self::assertSame('Sample contact form', $package['forms'][0]['data']['title']);
         self::assertStringContainsString("FORM_NAME = 'Sample_Contact'", $this->source());
+        self::assertStringContainsString("FORM_PACKAGE_NAME = 'QuickModeForms'", $this->source());
+        self::assertStringContainsString("quoteName('package') . ' = :package'", $this->source());
+        self::assertStringContainsString('getFormNameCount', $this->source());
         self::assertStringContainsString("FORM_TITLE = 'Sample contact form'", $this->source());
     }
 }

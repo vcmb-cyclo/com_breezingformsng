@@ -202,6 +202,7 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
     /**
      * Only an item in the trash is deleted for good.
      */
+    #[\Override]
     protected function canDelete($record)
     {
         return (int) ($record->published ?? 0) === self::TRASHED && parent::canDelete($record);
