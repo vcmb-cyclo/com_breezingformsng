@@ -171,7 +171,7 @@ final class McpServer
                 'annotations' => [
                     'title' => $tool->title(),
                     'readOnlyHint' => $tool->readOnly(),
-                    'destructiveHint' => false,
+                    'destructiveHint' => $tool instanceof DestructiveMcpTool,
                     'idempotentHint' => $tool->readOnly(),
                     // The tools reach this site only.
                     'openWorldHint' => false,

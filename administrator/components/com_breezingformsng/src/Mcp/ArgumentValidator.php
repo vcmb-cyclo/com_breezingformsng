@@ -14,10 +14,9 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Mcp;
  * Checks the arguments of a tool call against the schema of the tool, and
  * returns them with the defaults of the schema filled in.
  *
- * It knows the subset of JSON Schema the tools use: an object with
- * properties of type string, integer, boolean or array of strings or
- * integers, with required, enum, minimum, maximum, minLength, maxLength,
- * maxItems and default, and no other property.
+ * It knows the subset of JSON Schema the tools use: objects with nested
+ * properties, strings, integers, booleans and arrays, with required, enum,
+ * minimum, maximum, minLength, maxLength, maxItems and default.
  */
 final class ArgumentValidator
 {
@@ -71,6 +70,7 @@ final class ArgumentValidator
             'integer' => is_int($value) || (is_float($value) && floor($value) === $value && abs($value) <= PHP_INT_MAX),
             'boolean' => is_bool($value),
             'array' => is_array($value) && array_is_list($value),
+            'object' => is_array($value) && ($value === [] || !array_is_list($value)),
             default => false,
         };
         if (!$valid) {
@@ -112,6 +112,14 @@ final class ArgumentValidator
             $items = $property['items'] ?? [];
             foreach ($value as $index => $item) {
                 $value[$index] = self::value($name . '[' . $index . ']', $item, $items);
+            }
+        }
+
+        if ($type === 'object') {
+            try {
+                $value = self::validate($value, $property);
+            } catch (\InvalidArgumentException $e) {
+                throw new \InvalidArgumentException(sprintf('The argument "%s" is invalid: %s', $name, $e->getMessage()), 0, $e);
             }
         }
 
