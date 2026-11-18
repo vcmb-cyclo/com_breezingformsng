@@ -131,7 +131,7 @@ final class PackageTransferArchitectureTest extends TestCase
 
         self::assertStringContainsString('<select class="form-select" id="jf_package" name="package">', $layout);
         self::assertStringNotContainsString('id="jf_package" name="package" value=', $layout);
-        self::assertStringContainsString('FormsAdvancedOptionsHtml::packageNames($pkg)', $layout);
+        self::assertStringContainsString('FormsAdvancedOptionsHtml::packageNames($package)', $layout);
         // A form keeps a package missing from the list instead of losing it on save.
         self::assertStringContainsString('$packages[$current] = $current;', $helper);
         // The list shows the package name; the identifier stays the stored value.

@@ -23,7 +23,7 @@ final class FormsAdvancedEmailTabsTest extends TestCase
         $layout = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/layouts/forms/advanced_options.php');
 
         self::assertIsString($layout);
-        self::assertStringContainsString('id="<?= $tabId; ?>-email"', $layout);
+        self::assertStringContainsString('id="<?= $tabIdentifier; ?>-email"', $layout);
         self::assertStringContainsString('data-bs-target="#pane-email-admin"', $layout);
         self::assertStringContainsString('data-bs-target="#pane-email-user"', $layout);
         self::assertStringContainsString('name="emailntf"', $layout);

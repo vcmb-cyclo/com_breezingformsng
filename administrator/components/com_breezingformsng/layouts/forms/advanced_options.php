@@ -47,6 +47,27 @@ use Vcmb\Component\BreezingformsNG\Administrator\Helper\FormsAdvancedOptionsHtml
 
 HTMLHelper::_('bootstrap.tab');
 
+/**
+ * @var \stdClass $formOptions
+ * @psalm-suppress UndefinedGlobalVariable
+ */
+$formOptions = $f;
+/**
+ * @var string $package
+ * @psalm-suppress UndefinedGlobalVariable
+ */
+$package = $pkg;
+/**
+ * @var string $tabIdentifier
+ * @psalm-suppress UndefinedGlobalVariable
+ */
+$tabIdentifier = $tabId;
+/**
+ * @var array<string, int> $entryCounts
+ * @psalm-suppress UndefinedGlobalVariable
+ */
+$entryCounts = $tabEntryCounts;
+
 $labelTip = static fn (string $key): string => ' title="' . htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8') . '"';
 
 $mailEditor = Editor::getInstance(Factory::getApplication()->get('editor'));
@@ -63,18 +84,17 @@ if (!empty($quickMode)) {
         ],
     ]);
 }
-/** @psalm-suppress UndefinedGlobalVariable */
-$mailFieldNames = FormsAdvancedOptionsHtml::mailFieldNames((int) ($f->id ?? 0), (int) ($f->emaillog ?? 1));
-$mbCustomEmail = (int) ($f->mb_email_type ?? 0) === 1;
-$mbDefaultBody = FormsAdvancedOptionsHtml::mailbackDefaultBody($f);
-$mbEmailHtml = FormsAdvancedOptionsHtml::mailbackHtmlSelection($f);
-$customEmail = (int) ($f->email_type ?? 0) === 1;
-$defaultBody = FormsAdvancedOptionsHtml::notificationDefaultBody($f);
-$emailHtml = FormsAdvancedOptionsHtml::notificationHtmlSelection($f);
+$mailFieldNames = FormsAdvancedOptionsHtml::mailFieldNames((int) ($formOptions->id ?? 0), (int) ($formOptions->emaillog ?? 1));
+$mbCustomEmail = (int) ($formOptions->mb_email_type ?? 0) === 1;
+$mbDefaultBody = FormsAdvancedOptionsHtml::mailbackDefaultBody($formOptions);
+$mbEmailHtml = FormsAdvancedOptionsHtml::mailbackHtmlSelection($formOptions);
+$customEmail = (int) ($formOptions->email_type ?? 0) === 1;
+$defaultBody = FormsAdvancedOptionsHtml::notificationDefaultBody($formOptions);
+$emailHtml = FormsAdvancedOptionsHtml::notificationHtmlSelection($formOptions);
 
 /** @psalm-suppress UndefinedGlobalVariable */
 $missingPieces = FormsAdvancedOptionsHtml::missingPieces(
-    $f,
+    $formOptions,
     [1 => $pieceBefore, 2 => $pieceAfter, 3 => $pieceBeginSubmit, 4 => $pieceEndSubmit]
 );
 $paneErrors = [
@@ -82,18 +102,18 @@ $paneErrors = [
     'submit-pieces' => isset($missingPieces[3]) || isset($missingPieces[4]),
 ];
 ?>
-  <ul class="nav nav-tabs bfng-tabs" id="<?= $tabId; ?>" role="tablist">
+  <ul class="nav nav-tabs bfng-tabs" id="<?= $tabIdentifier; ?>" role="tablist">
     <li class="nav-item" role="presentation">
       <button class="nav-link active" id="tab-general" data-bs-toggle="tab" data-bs-target="#pane-general"
-              type="button" role="tab"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_TAB_GENERAL'); ?><?php if ($tabEntryCounts['general'] > 0): ?> <span class="badge bg-primary text-white"><?= $tabEntryCounts['general']; ?></span><?php endif; ?></button>
+              type="button" role="tab"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_TAB_GENERAL'); ?><?php if ($entryCounts['general'] > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts['general']; ?></span><?php endif; ?></button>
     </li>
     <li class="nav-item" role="presentation">
       <button class="nav-link" id="tab-email" data-bs-toggle="tab" data-bs-target="#pane-email"
-              type="button" role="tab"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_TAB_EMAIL'); ?><?php if ($tabEntryCounts['email'] > 0): ?> <span class="badge bg-primary text-white"><?= $tabEntryCounts['email']; ?></span><?php endif; ?></button>
+              type="button" role="tab"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_TAB_EMAIL'); ?><?php if ($entryCounts['email'] > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts['email']; ?></span><?php endif; ?></button>
     </li>
     <li class="nav-item" role="presentation">
       <button class="nav-link" id="tab-scripts" data-bs-toggle="tab" data-bs-target="#pane-scripts"
-              type="button" role="tab"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_TAB_SCRIPTS'); ?><?php if ($tabEntryCounts['scripts'] > 0): ?> <span class="badge bg-primary text-white"><?= $tabEntryCounts['scripts']; ?></span><?php endif; ?></button>
+              type="button" role="tab"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_TAB_SCRIPTS'); ?><?php if ($entryCounts['scripts'] > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts['scripts']; ?></span><?php endif; ?></button>
     </li>
     <?php foreach ([
         'form-pieces' => Text::_('COM_BREEZINGFORMSNG_FORMS_FORMPIECES'),
@@ -104,7 +124,7 @@ $paneErrors = [
     ] as $pane => $label): ?>
     <li class="nav-item" role="presentation">
       <button class="nav-link" id="tab-<?= $pane; ?>" data-bs-toggle="tab" data-bs-target="#pane-<?= $pane; ?>"
-              type="button" role="tab"><?= $label; ?><?php if (($tabEntryCounts[$pane] ?? 0) > 0): ?> <span class="badge bg-primary text-white"><?= $tabEntryCounts[$pane]; ?></span><?php endif; ?><?php if (!empty($paneErrors[$pane])): ?> <span class="icon-warning text-danger" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'), ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></span><span class="visually-hidden"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'); ?></span><?php endif; ?></button>
+              type="button" role="tab"><?= $label; ?><?php if (($entryCounts[$pane] ?? 0) > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts[$pane]; ?></span><?php endif; ?><?php if (!empty($paneErrors[$pane])): ?> <span class="icon-warning text-danger" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'), ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></span><span class="visually-hidden"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'); ?></span><?php endif; ?></button>
     </li>
     <?php endforeach; ?>
   </ul>
@@ -116,12 +136,12 @@ $paneErrors = [
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_title"<?= $labelTip('COM_BREEZINGFORMSNG_QM_FORM_TITLE'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_TITLE'); ?> <span class="text-danger">*</span></label>
-        <div class="col-sm-9"><input type="text" class="form-control" id="jf_title" name="title" required value="<?= htmlspecialchars($f->title ?? ''); ?>"></div>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_title" name="title" required value="<?= htmlspecialchars($formOptions->title ?? ''); ?>"></div>
       </div>
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_name"<?= $labelTip('COM_BREEZINGFORMSNG_QM_FORM_NAME'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_NAME'); ?></label>
-        <div class="col-sm-9"><input type="text" class="form-control" id="jf_name" name="name" value="<?= htmlspecialchars($f->name ?? ''); ?>"></div>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_name" name="name" value="<?= htmlspecialchars($formOptions->name ?? ''); ?>"></div>
       </div>
 
       <div class="row mb-3">
@@ -129,8 +149,8 @@ $paneErrors = [
         <div class="col-sm-9">
           <select class="form-select" id="jf_package" name="package">
             <option value=""><?= Text::_('COM_BREEZINGFORMSNG_FORMS_NONE'); ?></option>
-            <?php foreach (FormsAdvancedOptionsHtml::packageNames($pkg) as $packageId => $packageLabel) : ?>
-              <option value="<?= htmlspecialchars((string) $packageId, ENT_QUOTES, 'UTF-8'); ?>"<?= (string) $packageId === $pkg ? ' selected' : ''; ?>><?= htmlspecialchars($packageLabel, ENT_QUOTES, 'UTF-8'); ?></option>
+            <?php foreach (FormsAdvancedOptionsHtml::packageNames($package) as $packageId => $packageLabel) : ?>
+              <option value="<?= htmlspecialchars((string) $packageId, ENT_QUOTES, 'UTF-8'); ?>"<?= (string) $packageId === $package ? ' selected' : ''; ?>><?= htmlspecialchars($packageLabel, ENT_QUOTES, 'UTF-8'); ?></option>
             <?php endforeach; ?>
           </select>
           <div class="form-text"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PACKAGE_HINT'); ?></div>
@@ -139,29 +159,29 @@ $paneErrors = [
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_description"<?= $labelTip('COM_BREEZINGFORMSNG_QM_FORM_DESCRIPTION'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_DESCRIPTION'); ?></label>
-        <div class="col-sm-9"><textarea class="form-control" id="jf_description" name="description" rows="3"><?= htmlspecialchars($f->description ?? ''); ?></textarea></div>
+        <div class="col-sm-9"><textarea class="form-control" id="jf_description" name="description" rows="3"><?= htmlspecialchars($formOptions->description ?? ''); ?></textarea></div>
       </div>
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_pages"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_PAGES_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PAGES'); ?></label>
-        <div class="col-sm-9"><input type="number" class="form-control w-auto" id="jf_pages" name="pages" min="1" value="<?= (int) ($f->pages ?? 1); ?>"></div>
+        <div class="col-sm-9"><input type="number" class="form-control w-auto" id="jf_pages" name="pages" min="1" value="<?= (int) ($formOptions->pages ?? 1); ?>"></div>
       </div>
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_class1"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_CLASS_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_CLASS'); ?></label>
-        <div class="col-sm-9"><input type="text" class="form-control" id="jf_class1" name="class1" value="<?= htmlspecialchars($f->class1 ?? 'content_outline'); ?>"></div>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_class1" name="class1" value="<?= htmlspecialchars($formOptions->class1 ?? 'content_outline'); ?>"></div>
       </div>
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_WIDTH_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_WIDTH'); ?></label>
         <div class="col-sm-9 d-flex gap-2 align-items-center">
-          <input type="number" class="form-control w-auto" name="width" min="0" value="<?= (int) ($f->width ?? 400); ?>">
+          <input type="number" class="form-control w-auto" name="width" min="0" value="<?= (int) ($formOptions->width ?? 400); ?>">
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="widthmode" id="wm0" value="0"<?= !(int) ($f->widthmode ?? 0) ? ' checked' : ''; ?>>
+            <input class="form-check-input" type="radio" name="widthmode" id="wm0" value="0"<?= !(int) ($formOptions->widthmode ?? 0) ? ' checked' : ''; ?>>
             <label class="form-check-label" for="wm0">px</label>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="widthmode" id="wm1" value="1"<?= (int) ($f->widthmode ?? 0) ? ' checked' : ''; ?>>
+            <input class="form-check-input" type="radio" name="widthmode" id="wm1" value="1"<?= (int) ($formOptions->widthmode ?? 0) ? ' checked' : ''; ?>>
             <label class="form-check-label" for="wm1">%</label>
           </div>
         </div>
@@ -170,13 +190,13 @@ $paneErrors = [
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_HEIGHT_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_HEIGHT'); ?></label>
         <div class="col-sm-9 d-flex gap-2 align-items-center">
-          <input type="number" class="form-control w-auto" name="height" min="0" value="<?= (int) ($f->height ?? 500); ?>">
+          <input type="number" class="form-control w-auto" name="height" min="0" value="<?= (int) ($formOptions->height ?? 500); ?>">
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="heightmode" id="hm0" value="0"<?= !(int) ($f->heightmode ?? 0) ? ' checked' : ''; ?>>
+            <input class="form-check-input" type="radio" name="heightmode" id="hm0" value="0"<?= !(int) ($formOptions->heightmode ?? 0) ? ' checked' : ''; ?>>
             <label class="form-check-label" for="hm0"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_FIXED'); ?></label>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="heightmode" id="hm1" value="1"<?= (int) ($f->heightmode ?? 0) ? ' checked' : ''; ?>>
+            <input class="form-check-input" type="radio" name="heightmode" id="hm1" value="1"<?= (int) ($formOptions->heightmode ?? 0) ? ' checked' : ''; ?>>
             <label class="form-check-label" for="hm1"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_AUTO'); ?></label>
           </div>
         </div>
@@ -186,11 +206,11 @@ $paneErrors = [
         <label class="col-sm-3 col-form-label"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_PUBLISHED_TIP'); ?>><?= Text::_('JPUBLISHED'); ?></label>
         <div class="col-sm-9 d-flex gap-3">
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="published" id="pub1" value="1"<?= (int) ($f->published ?? 1) ? ' checked' : ''; ?>>
+            <input class="form-check-input" type="radio" name="published" id="pub1" value="1"<?= (int) ($formOptions->published ?? 1) ? ' checked' : ''; ?>>
             <label class="form-check-label" for="pub1"><?= Text::_('JYES'); ?></label>
           </div>
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="published" id="pub0" value="0"<?= !(int) ($f->published ?? 1) ? ' checked' : ''; ?>>
+            <input class="form-check-input" type="radio" name="published" id="pub0" value="0"<?= !(int) ($formOptions->published ?? 1) ? ' checked' : ''; ?>>
             <label class="form-check-label" for="pub0"><?= Text::_('JNO'); ?></label>
           </div>
         </div>
@@ -198,18 +218,18 @@ $paneErrors = [
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_ordering"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_ORDERING_TIP'); ?>><?= Text::_('JFIELD_ORDERING_LABEL'); ?></label>
-        <div class="col-sm-9"><input type="number" class="form-control w-auto" id="jf_ordering" name="ordering" value="<?= (int) ($f->ordering ?? 0); ?>"></div>
+        <div class="col-sm-9"><input type="number" class="form-control w-auto" id="jf_ordering" name="ordering" value="<?= (int) ($formOptions->ordering ?? 0); ?>"></div>
       </div>
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_DBLOG_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_DBLOG'); ?></label>
         <div class="col-sm-9 d-flex gap-3">
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="dblog" id="dbl1" value="1"<?= (int) ($f->dblog ?? 1) ? ' checked' : ''; ?>>
+            <input class="form-check-input" type="radio" name="dblog" id="dbl1" value="1"<?= (int) ($formOptions->dblog ?? 1) ? ' checked' : ''; ?>>
             <label class="form-check-label" for="dbl1"><?= Text::_('JYES'); ?></label>
           </div>
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="dblog" id="dbl0" value="0"<?= !(int) ($f->dblog ?? 1) ? ' checked' : ''; ?>>
+            <input class="form-check-input" type="radio" name="dblog" id="dbl0" value="0"<?= !(int) ($formOptions->dblog ?? 1) ? ' checked' : ''; ?>>
             <label class="form-check-label" for="dbl0"><?= Text::_('JNO'); ?></label>
           </div>
         </div>
@@ -219,7 +239,7 @@ $paneErrors = [
 
     <!-- TAB: NOTIFICATIONS EMAIL -->
     <div class="tab-pane fade" id="pane-email" role="tabpanel">
-      <ul class="nav nav-tabs" id="<?= $tabId; ?>-email" role="tablist">
+      <ul class="nav nav-tabs" id="<?= $tabIdentifier; ?>-email" role="tablist">
         <li class="nav-item" role="presentation">
           <button class="nav-link active" id="tab-email-admin" data-bs-toggle="tab" data-bs-target="#pane-email-admin" type="button" role="tab" aria-controls="pane-email-admin" aria-selected="true"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_ADMIN'); ?></button>
         </li>
@@ -235,7 +255,7 @@ $paneErrors = [
         <div class="col-sm-9 d-flex gap-3">
           <?php foreach ([0 => 'JNONE', 1 => 'JYES', 2 => 'COM_BREEZINGFORMSNG_FORMS_EMAILLOG_ONLY'] as $v => $key): ?>
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="emailntf" id="entf<?= $v; ?>" value="<?= $v; ?>"<?= (int) ($f->emailntf ?? 1) === $v ? ' checked' : ''; ?>>
+              <input class="form-check-input" type="radio" name="emailntf" id="entf<?= $v; ?>" value="<?= $v; ?>"<?= (int) ($formOptions->emailntf ?? 1) === $v ? ' checked' : ''; ?>>
               <label class="form-check-label" for="entf<?= $v; ?>"><?= Text::_($key); ?></label>
             </div>
           <?php endforeach; ?>
@@ -244,22 +264,22 @@ $paneErrors = [
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_emailadr"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_EMAILADR_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAILADR'); ?></label>
-        <div class="col-sm-9"><input type="text" class="form-control" id="jf_emailadr" name="emailadr" value="<?= htmlspecialchars($f->emailadr ?? ''); ?>"></div>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_emailadr" name="emailadr" value="<?= htmlspecialchars($formOptions->emailadr ?? ''); ?>"></div>
       </div>
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_custom_mail_subject"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_MAILSUBJECT_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MAILSUBJECT'); ?></label>
-        <div class="col-sm-9"><input type="text" class="form-control" id="jf_custom_mail_subject" name="custom_mail_subject" value="<?= htmlspecialchars($f->custom_mail_subject ?? ''); ?>"></div>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_custom_mail_subject" name="custom_mail_subject" value="<?= htmlspecialchars($formOptions->custom_mail_subject ?? ''); ?>"></div>
       </div>
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_alt_mailfrom"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_MAILFROM_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MAILFROM'); ?></label>
-        <div class="col-sm-9"><input type="text" class="form-control" id="jf_alt_mailfrom" name="alt_mailfrom" value="<?= htmlspecialchars($f->alt_mailfrom ?? ''); ?>"></div>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_alt_mailfrom" name="alt_mailfrom" value="<?= htmlspecialchars($formOptions->alt_mailfrom ?? ''); ?>"></div>
       </div>
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_alt_fromname"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_FROMNAME_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_FROMNAME'); ?></label>
-        <div class="col-sm-9"><input type="text" class="form-control" id="jf_alt_fromname" name="alt_fromname" value="<?= htmlspecialchars($f->alt_fromname ?? ''); ?>"></div>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_alt_fromname" name="alt_fromname" value="<?= htmlspecialchars($formOptions->alt_fromname ?? ''); ?>"></div>
       </div>
 
       <div class="row mb-3">
@@ -267,7 +287,7 @@ $paneErrors = [
         <div class="col-sm-9">
           <select class="form-select w-auto" id="jf_emaillog" name="emaillog">
             <?php foreach ([0 => 'COM_BREEZINGFORMSNG_FORMS_HDRONLY', 1 => 'COM_BREEZINGFORMSNG_FORMS_NONEMPTY', 2 => 'COM_BREEZINGFORMSNG_FORMS_ALLVALS'] as $v => $key) : ?>
-              <option value="<?= $v; ?>"<?= (int) ($f->emaillog ?? 1) === $v ? ' selected' : ''; ?>><?= Text::_($key); ?></option>
+              <option value="<?= $v; ?>"<?= (int) ($formOptions->emaillog ?? 1) === $v ? ' selected' : ''; ?>><?= Text::_($key); ?></option>
             <?php endforeach; ?>
           </select>
         </div>
@@ -278,7 +298,7 @@ $paneErrors = [
         <div class="col-sm-9">
           <select class="form-select w-auto" id="jf_emailxml" name="emailxml">
             <?php // 2 is the former "XML: all values": the engine sends it as XML.
-            $attachment = (int) ($f->emailxml ?? 0) === 2 ? 1 : (int) ($f->emailxml ?? 0);
+            $attachment = (int) ($formOptions->emailxml ?? 0) === 2 ? 1 : (int) ($formOptions->emailxml ?? 0);
             foreach ([0 => Text::_('JNO'), 1 => 'XML', 3 => 'CSV', 4 => 'PDF'] as $v => $label) : ?>
               <option value="<?= $v; ?>"<?= $attachment === $v ? ' selected' : ''; ?>><?= $label; ?></option>
             <?php endforeach; ?>
@@ -338,7 +358,7 @@ $paneErrors = [
           </div>
           <div class="col-sm-9">
             <div class="form-text mb-2"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_SOURCE_HINT'); ?></div>
-            <?= $mailEditor->display('email_custom_template', htmlspecialchars((string) ($f->email_custom_template ?? ''), ENT_QUOTES, 'UTF-8'), '100%', '400px', 60, 20, false, 'jf_email_custom_template'); ?>
+            <?= $mailEditor->display('email_custom_template', htmlspecialchars((string) ($formOptions->email_custom_template ?? ''), ENT_QUOTES, 'UTF-8'), '100%', '400px', 60, 20, false, 'jf_email_custom_template'); ?>
           </div>
         </div>
       </div>
@@ -351,7 +371,7 @@ $paneErrors = [
         <div class="col-sm-9 d-flex gap-3">
           <?php foreach ([0 => 'JNONE', 1 => 'JYES', 2 => 'COM_BREEZINGFORMSNG_FORMS_EMAILLOG_ONLY'] as $v => $key): ?>
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="mb_emailntf" id="mbentf<?= $v; ?>" value="<?= $v; ?>"<?= (int) ($f->mb_emailntf ?? 1) === $v ? ' checked' : ''; ?>>
+              <input class="form-check-input" type="radio" name="mb_emailntf" id="mbentf<?= $v; ?>" value="<?= $v; ?>"<?= (int) ($formOptions->mb_emailntf ?? 1) === $v ? ' checked' : ''; ?>>
               <label class="form-check-label" for="mbentf<?= $v; ?>"><?= Text::_($key); ?></label>
             </div>
           <?php endforeach; ?>
@@ -360,17 +380,17 @@ $paneErrors = [
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_mb_custom_mail_subject"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_MB_MAILSUBJECT_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MB_MAILSUBJECT'); ?></label>
-        <div class="col-sm-9"><input type="text" class="form-control" id="jf_mb_custom_mail_subject" name="mb_custom_mail_subject" value="<?= htmlspecialchars($f->mb_custom_mail_subject ?? ''); ?>"></div>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_mb_custom_mail_subject" name="mb_custom_mail_subject" value="<?= htmlspecialchars($formOptions->mb_custom_mail_subject ?? ''); ?>"></div>
       </div>
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_mb_alt_mailfrom"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_MB_MAILFROM_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MB_MAILFROM'); ?></label>
-        <div class="col-sm-9"><input type="text" class="form-control" id="jf_mb_alt_mailfrom" name="mb_alt_mailfrom" value="<?= htmlspecialchars($f->mb_alt_mailfrom ?? ''); ?>"></div>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_mb_alt_mailfrom" name="mb_alt_mailfrom" value="<?= htmlspecialchars($formOptions->mb_alt_mailfrom ?? ''); ?>"></div>
       </div>
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_mb_alt_fromname"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_MB_FROMNAME_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MB_FROMNAME'); ?></label>
-        <div class="col-sm-9"><input type="text" class="form-control" id="jf_mb_alt_fromname" name="mb_alt_fromname" value="<?= htmlspecialchars($f->mb_alt_fromname ?? ''); ?>"></div>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_mb_alt_fromname" name="mb_alt_fromname" value="<?= htmlspecialchars($formOptions->mb_alt_fromname ?? ''); ?>"></div>
       </div>
 
       <div class="row mb-3">
@@ -378,7 +398,7 @@ $paneErrors = [
         <div class="col-sm-9">
           <select class="form-select w-auto" id="jf_mb_emaillog" name="mb_emaillog">
             <?php foreach ([0 => 'COM_BREEZINGFORMSNG_FORMS_HDRONLY', 1 => 'COM_BREEZINGFORMSNG_FORMS_NONEMPTY', 2 => 'COM_BREEZINGFORMSNG_FORMS_ALLVALS'] as $v => $key) : ?>
-              <option value="<?= $v; ?>"<?= (int) ($f->mb_emaillog ?? 1) === $v ? ' selected' : ''; ?>><?= Text::_($key); ?></option>
+              <option value="<?= $v; ?>"<?= (int) ($formOptions->mb_emaillog ?? 1) === $v ? ' selected' : ''; ?>><?= Text::_($key); ?></option>
             <?php endforeach; ?>
           </select>
         </div>
@@ -389,7 +409,7 @@ $paneErrors = [
         <div class="col-sm-9">
           <select class="form-select w-auto" id="jf_mb_emailxml" name="mb_emailxml">
             <?php // 2 is the former "XML: all values": the engine sends it as XML.
-            $mbAttachment = (int) ($f->mb_emailxml ?? 0) === 2 ? 1 : (int) ($f->mb_emailxml ?? 0);
+            $mbAttachment = (int) ($formOptions->mb_emailxml ?? 0) === 2 ? 1 : (int) ($formOptions->mb_emailxml ?? 0);
             foreach ([0 => Text::_('JNO'), 1 => 'XML', 3 => 'CSV', 4 => 'PDF'] as $v => $label) : ?>
               <option value="<?= $v; ?>"<?= $mbAttachment === $v ? ' selected' : ''; ?>><?= $label; ?></option>
             <?php endforeach; ?>
@@ -449,7 +469,7 @@ $paneErrors = [
           </div>
           <div class="col-sm-9">
             <div class="form-text mb-2"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MB_EMAIL_SOURCE_HINT'); ?></div>
-            <?= $mailEditor->display('mb_email_custom_template', htmlspecialchars((string) ($f->mb_email_custom_template ?? ''), ENT_QUOTES, 'UTF-8'), '100%', '400px', 60, 20, false, 'jf_mb_email_custom_template'); ?>
+            <?= $mailEditor->display('mb_email_custom_template', htmlspecialchars((string) ($formOptions->mb_email_custom_template ?? ''), ENT_QUOTES, 'UTF-8'), '100%', '400px', 60, 20, false, 'jf_mb_email_custom_template'); ?>
           </div>
         </div>
       </div>
@@ -471,17 +491,17 @@ $paneErrors = [
               <?php foreach ([0 => 'JNONE', 1 => 'COM_BREEZINGFORMSNG_FORMS_LIBRARY', 2 => 'COM_BREEZINGFORMSNG_FORMS_INLINE'] as $v => $k): ?>
                 <div class="form-check">
                   <input class="form-check-input" type="radio" name="script1cond" id="s1c<?= $v; ?>" value="<?= $v; ?>"
-                         onchange="bfToggle('s1lib','s1code',this.value)"<?= (int) ($f->script1cond ?? 0) === $v ? ' checked' : ''; ?>>
+                         onchange="bfToggle('s1lib','s1code',this.value)"<?= (int) ($formOptions->script1cond ?? 0) === $v ? ' checked' : ''; ?>>
                   <label class="form-check-label" for="s1c<?= $v; ?>"><?= Text::_($k); ?></label>
                 </div>
               <?php endforeach; ?>
             </div>
           </div>
-          <div id="s1lib" style="display:<?= (int) ($f->script1cond ?? 0) === 1 ? '' : 'none'; ?>">
-            <?= FormsAdvancedOptionsHtml::bfSel($initScripts, 'script1id', (int) ($f->script1id ?? 0)); ?>
+          <div id="s1lib" style="display:<?= (int) ($formOptions->script1cond ?? 0) === 1 ? '' : 'none'; ?>">
+            <?= FormsAdvancedOptionsHtml::bfSel($initScripts, 'script1id', (int) ($formOptions->script1id ?? 0)); ?>
           </div>
-          <div id="s1code" data-bf-search-code="<?= htmlspecialchars($f->script1code ?? '', ENT_QUOTES, 'UTF-8'); ?>" style="display:<?= (int) ($f->script1cond ?? 0) === 2 ? '' : 'none'; ?>">
-            <?= $editor->display('script1code', htmlspecialchars($f->script1code ?? ''), '100%', '200px', 60, 10, false, 'jf_script1code', null, null, ['syntax' => 'javascript']); ?>
+          <div id="s1code" data-bf-search-code="<?= htmlspecialchars($formOptions->script1code ?? '', ENT_QUOTES, 'UTF-8'); ?>" style="display:<?= (int) ($formOptions->script1cond ?? 0) === 2 ? '' : 'none'; ?>">
+            <?= $editor->display('script1code', htmlspecialchars($formOptions->script1code ?? ''), '100%', '200px', 60, 10, false, 'jf_script1code', null, null, ['syntax' => 'javascript']); ?>
           </div>
         </div>
       </div>
@@ -496,17 +516,17 @@ $paneErrors = [
               <?php foreach ([0 => 'JNONE', 1 => 'COM_BREEZINGFORMSNG_FORMS_LIBRARY', 2 => 'COM_BREEZINGFORMSNG_FORMS_INLINE'] as $v => $k): ?>
                 <div class="form-check">
                   <input class="form-check-input" type="radio" name="script2cond" id="s2c<?= $v; ?>" value="<?= $v; ?>"
-                         onchange="bfToggle('s2lib','s2code',this.value)"<?= (int) ($f->script2cond ?? 0) === $v ? ' checked' : ''; ?>>
+                         onchange="bfToggle('s2lib','s2code',this.value)"<?= (int) ($formOptions->script2cond ?? 0) === $v ? ' checked' : ''; ?>>
                   <label class="form-check-label" for="s2c<?= $v; ?>"><?= Text::_($k); ?></label>
                 </div>
               <?php endforeach; ?>
             </div>
           </div>
-          <div id="s2lib" style="display:<?= (int) ($f->script2cond ?? 0) === 1 ? '' : 'none'; ?>">
-            <?= FormsAdvancedOptionsHtml::bfSel($submittedScripts, 'script2id', (int) ($f->script2id ?? 0)); ?>
+          <div id="s2lib" style="display:<?= (int) ($formOptions->script2cond ?? 0) === 1 ? '' : 'none'; ?>">
+            <?= FormsAdvancedOptionsHtml::bfSel($submittedScripts, 'script2id', (int) ($formOptions->script2id ?? 0)); ?>
           </div>
-          <div id="s2code" data-bf-search-code="<?= htmlspecialchars($f->script2code ?? '', ENT_QUOTES, 'UTF-8'); ?>" style="display:<?= (int) ($f->script2cond ?? 0) === 2 ? '' : 'none'; ?>">
-            <?= $editor->display('script2code', htmlspecialchars($f->script2code ?? ''), '100%', '200px', 60, 10, false, 'jf_script2code', null, null, ['syntax' => 'javascript']); ?>
+          <div id="s2code" data-bf-search-code="<?= htmlspecialchars($formOptions->script2code ?? '', ENT_QUOTES, 'UTF-8'); ?>" style="display:<?= (int) ($formOptions->script2cond ?? 0) === 2 ? '' : 'none'; ?>">
+            <?= $editor->display('script2code', htmlspecialchars($formOptions->script2code ?? ''), '100%', '200px', 60, 10, false, 'jf_script2code', null, null, ['syntax' => 'javascript']); ?>
           </div>
         </div>
       </div>
@@ -535,13 +555,13 @@ $paneErrors = [
                 <div class="form-check">
                   <input class="form-check-input" type="radio" name="<?= $condName; ?>" id="<?= $pfx; ?>c<?= $v; ?>"
                          value="<?= $v; ?>" onchange="bfToggle('<?= $pfx; ?>lib','<?= $pfx; ?>code',this.value)"
-                         <?= (int) ($f->$condName ?? 0) === $v ? ' checked' : ''; ?>>
+                         <?= (int) ($formOptions->$condName ?? 0) === $v ? ' checked' : ''; ?>>
                   <label class="form-check-label" for="<?= $pfx; ?>c<?= $v; ?>"><?= Text::_($k); ?></label>
                 </div>
               <?php endforeach; ?>
             </div>
           </div>
-          <div id="<?= $pfx; ?>lib" style="display:<?= (int) ($f->$condName ?? 0) === 1 ? '' : 'none'; ?>">
+          <div id="<?= $pfx; ?>lib" style="display:<?= (int) ($formOptions->$condName ?? 0) === 1 ? '' : 'none'; ?>">
             <?php if (isset($missingPieces[$pieceIndex])): ?>
               <div class="alert alert-danger" role="alert">
                 <span class="icon-warning" aria-hidden="true"></span>
@@ -550,10 +570,10 @@ $paneErrors = [
                     : Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_NOT_CHOSEN'); ?>
               </div>
             <?php endif; ?>
-            <?= FormsAdvancedOptionsHtml::bfSel($pieces, $idName, (int) ($f->$idName ?? 0), isset($missingPieces[$pieceIndex]) ? 'aria-invalid="true"' : ''); ?>
+            <?= FormsAdvancedOptionsHtml::bfSel($pieces, $idName, (int) ($formOptions->$idName ?? 0), isset($missingPieces[$pieceIndex]) ? 'aria-invalid="true"' : ''); ?>
           </div>
-          <div id="<?= $pfx; ?>code" data-bf-search-code="<?= htmlspecialchars($f->$codeName ?? '', ENT_QUOTES, 'UTF-8'); ?>" style="display:<?= (int) ($f->$condName ?? 0) === 2 ? '' : 'none'; ?>">
-            <?= $editor->display($codeName, htmlspecialchars($f->$codeName ?? ''), '100%', '200px', 60, 10, false, 'jf_' . $codeName, null, null, ['syntax' => 'php']); ?>
+          <div id="<?= $pfx; ?>code" data-bf-search-code="<?= htmlspecialchars($formOptions->$codeName ?? '', ENT_QUOTES, 'UTF-8'); ?>" style="display:<?= (int) ($formOptions->$condName ?? 0) === 2 ? '' : 'none'; ?>">
+            <?= $editor->display($codeName, htmlspecialchars($formOptions->$codeName ?? ''), '100%', '200px', 60, 10, false, 'jf_' . $codeName, null, null, ['syntax' => 'php']); ?>
           </div>
         </div>
       </div>
@@ -573,14 +593,14 @@ $paneErrors = [
       ] as $name => $label): ?>
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label>
-        <div class="col-sm-9"><input class="form-control" id="jf_<?= $name; ?>" name="<?= $name; ?>" value="<?= htmlspecialchars($f->$name ?? ''); ?>"></div>
+        <div class="col-sm-9"><input class="form-control" id="jf_<?= $name; ?>" name="<?= $name; ?>" value="<?= htmlspecialchars($formOptions->$name ?? ''); ?>"></div>
       </div>
       <?php endforeach; ?>
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_mailchimp_default_type"<?= $labelTip('COM_BREEZINGFORMSNG_DEFAULT_TYPE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DEFAULT_TYPE'); ?></label>
         <div class="col-sm-9"><select class="form-select" id="jf_mailchimp_default_type" name="mailchimp_default_type">
           <?php foreach (['text' => 'Text', 'html' => 'HTML', 'mobile' => 'Mobile'] as $value => $label): ?>
-          <option value="<?= $value; ?>"<?= ($f->mailchimp_default_type ?? 'text') === $value ? ' selected' : ''; ?>><?= $label; ?></option>
+          <option value="<?= $value; ?>"<?= ($formOptions->mailchimp_default_type ?? 'text') === $value ? ' selected' : ''; ?>><?= $label; ?></option>
           <?php endforeach; ?>
         </select></div>
       </div>
@@ -591,7 +611,7 @@ $paneErrors = [
       ] as $name => $label): ?>
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label>
-        <div class="col-sm-9 form-check form-switch"><input type="hidden" name="<?= $name; ?>" value="0"><input class="form-check-input" id="jf_<?= $name; ?>" type="checkbox" name="<?= $name; ?>" value="1"<?= !empty($f->$name) ? ' checked' : ''; ?>></div>
+        <div class="col-sm-9 form-check form-switch"><input type="hidden" name="<?= $name; ?>" value="0"><input class="form-check-input" id="jf_<?= $name; ?>" type="checkbox" name="<?= $name; ?>" value="1"<?= !empty($formOptions->$name) ? ' checked' : ''; ?>></div>
       </div>
       <?php endforeach; ?>
     </div>
@@ -599,17 +619,17 @@ $paneErrors = [
     <div class="tab-pane fade" id="pane-salesforce" role="tabpanel">
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_salesforce_enabled"<?= $labelTip('COM_BREEZINGFORMSNG_SF_ENABLED_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_ENABLED'); ?></label>
-        <div class="col-sm-9 form-check form-switch"><input type="hidden" name="salesforce_enabled" value="0"><input class="form-check-input" id="jf_salesforce_enabled" type="checkbox" name="salesforce_enabled" value="1"<?= !empty($f->salesforce_enabled) ? ' checked' : ''; ?>></div>
+        <div class="col-sm-9 form-check form-switch"><input type="hidden" name="salesforce_enabled" value="0"><input class="form-check-input" id="jf_salesforce_enabled" type="checkbox" name="salesforce_enabled" value="1"<?= !empty($formOptions->salesforce_enabled) ? ' checked' : ''; ?>></div>
       </div>
       <?php foreach ([
           'salesforce_token' => 'COM_BREEZINGFORMSNG_SF_TOKEN',
           'salesforce_username' => 'COM_BREEZINGFORMSNG_SF_USERNAME',
           'salesforce_type' => 'COM_BREEZINGFORMSNG_SF_TYPE',
       ] as $name => $label): ?>
-      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label><div class="col-sm-9"><input class="form-control" id="jf_<?= $name; ?>" name="<?= $name; ?>" value="<?= htmlspecialchars($f->$name ?? ''); ?>"></div></div>
+      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label><div class="col-sm-9"><input class="form-control" id="jf_<?= $name; ?>" name="<?= $name; ?>" value="<?= htmlspecialchars($formOptions->$name ?? ''); ?>"></div></div>
       <?php endforeach; ?>
       <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_salesforce_password"<?= $labelTip('COM_BREEZINGFORMSNG_SF_PASSWORD_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_PASSWORD'); ?></label><div class="col-sm-9"><input type="password" class="form-control" id="jf_salesforce_password" name="salesforce_password" autocomplete="new-password"></div></div>
-      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_salesforce_fields"<?= $labelTip('COM_BREEZINGFORMSNG_SF_FIELDS_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_FIELDS'); ?></label><div class="col-sm-9"><input class="form-control" id="jf_salesforce_fields" name="salesforce_fields[]" value="<?= htmlspecialchars($f->salesforce_fields ?? ''); ?>"></div></div>
+      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_salesforce_fields"<?= $labelTip('COM_BREEZINGFORMSNG_SF_FIELDS_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_FIELDS'); ?></label><div class="col-sm-9"><input class="form-control" id="jf_salesforce_fields" name="salesforce_fields[]" value="<?= htmlspecialchars($formOptions->salesforce_fields ?? ''); ?>"></div></div>
     </div>
 
     <div class="tab-pane fade" id="pane-dropbox" role="tabpanel">
@@ -618,12 +638,12 @@ $paneErrors = [
           'dropbox_password' => 'COM_BREEZINGFORMSNG_DROPBOX_AUTH_CODE',
           'dropbox_folder' => 'COM_BREEZINGFORMSNG_DROPBOX_FOLDER',
       ] as $name => $label): ?>
-      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label><div class="col-sm-9"><input class="form-control" id="jf_<?= $name; ?>" name="<?= $name; ?>" value="<?= htmlspecialchars($f->$name ?? ''); ?>"></div></div>
+      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label><div class="col-sm-9"><input class="form-control" id="jf_<?= $name; ?>" name="<?= $name; ?>" value="<?= htmlspecialchars($formOptions->$name ?? ''); ?>"></div></div>
       <?php endforeach; ?>
-      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_dropbox_submission_enabled"<?= $labelTip('COM_BREEZINGFORMSNG_DROPBOX_UPLOAD_SUBMISSION_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DROPBOX_UPLOAD_SUBMISSION'); ?></label><div class="col-sm-9 form-check form-switch"><input type="hidden" name="dropbox_submission_enabled" value="0"><input class="form-check-input" id="jf_dropbox_submission_enabled" type="checkbox" name="dropbox_submission_enabled" value="1"<?= !empty($f->dropbox_submission_enabled) ? ' checked' : ''; ?>></div></div>
+      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_dropbox_submission_enabled"<?= $labelTip('COM_BREEZINGFORMSNG_DROPBOX_UPLOAD_SUBMISSION_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DROPBOX_UPLOAD_SUBMISSION'); ?></label><div class="col-sm-9 form-check form-switch"><input type="hidden" name="dropbox_submission_enabled" value="0"><input class="form-check-input" id="jf_dropbox_submission_enabled" type="checkbox" name="dropbox_submission_enabled" value="1"<?= !empty($formOptions->dropbox_submission_enabled) ? ' checked' : ''; ?>></div></div>
       <div class="row mb-3"><span class="col-sm-3 col-form-label"<?= $labelTip('COM_BREEZINGFORMSNG_DROPBOX_SUBMISSION_TYPES_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DROPBOX_SUBMISSION_TYPES'); ?></span><div class="col-sm-9 d-flex gap-3">
         <input type="hidden" name="dropbox_submission_types[]" value="">
-        <?php $dropboxTypes = explode(',', (string) ($f->dropbox_submission_types ?? 'pdf')); foreach (['pdf', 'csv', 'xml'] as $type): ?>
+        <?php $dropboxTypes = explode(',', (string) ($formOptions->dropbox_submission_types ?? 'pdf')); foreach (['pdf', 'csv', 'xml'] as $type): ?>
         <label class="form-check"><input class="form-check-input" type="checkbox" name="dropbox_submission_types[]" value="<?= $type; ?>"<?= in_array($type, $dropboxTypes, true) ? ' checked' : ''; ?>> <?= strtoupper($type); ?></label>
         <?php endforeach; ?>
       </div></div>
