@@ -117,6 +117,14 @@ final class AreaAccessArchitectureTest extends TestCase
         self::assertStringContainsString("\$this->canRepair ? '' : ' disabled'", $template);
     }
 
+    public function testIntegratorTrashButtonRequiresDeleteAndCodePermissions(): void
+    {
+        $view = file_get_contents(self::ADMIN . '/src/View/About/HtmlView.php');
+
+        self::assertIsString($view);
+        self::assertStringContainsString("'integrator' => \$canDelete && \$canCode", $view);
+    }
+
     public function testAccessFileDeclaresEveryEnforcedAction(): void
     {
         $access = simplexml_load_file(self::ADMIN . '/access.xml');

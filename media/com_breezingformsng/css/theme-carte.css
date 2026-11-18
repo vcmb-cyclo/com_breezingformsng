@@ -33,6 +33,7 @@
     --bf-accent-ink: #7a5413;
     --bf-accent-tint: #f3e9d6;
     --bf-selected-ink: #4a3208;
+    --bf-select-arrow: #5b5853;
     --bf-danger: #b3261e;
     --bf-danger-bg: #fdf2f1;
     --bf-shadow: 0 6px 24px rgba(32, 31, 29, 0.1);
@@ -50,6 +51,7 @@
     --bf-accent-ink: #f1ca83;
     --bf-accent-tint: #493a22;
     --bf-selected-ink: #ffdaa0;
+    --bf-select-arrow: #f2f2f0;
     --bf-danger: #ff8d82;
     --bf-danger-bg: #3b2525;
     --bf-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
@@ -125,10 +127,12 @@
 }
 
 .bfFormDiv .form-select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%235b5853' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
-    background-position: right 0.9rem center;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--bf-select-arrow) 50%),
+        linear-gradient(135deg, var(--bf-select-arrow) 50%, transparent 50%);
+    background-position: calc(100% - 12px) calc(50% - 2px), calc(100% - 7px) calc(50% - 2px);
     background-repeat: no-repeat;
-    background-size: 12px;
+    background-size: 5px 5px;
     padding-right: 2.25rem;
 }
 

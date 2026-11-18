@@ -10,6 +10,7 @@ test('Bootstrap validation marks fields, gives each one a message and links the 
                 </div>
                 <div class="bfElemWrap"><input id="ff_elem43" name="ff_nm_email[]"></div>
                 <div class="bfElemWrap"><input id="ff_elem44" name="ff_nm_city[]"></div>
+                <div class="bfElemWrap"><select class="form-select" id="country"><option>Country</option></select></div>
                 <div class="bfErrorMessage alert alert-danger" data-title-singular="1 field to correct" data-title-plural="%d fields to correct"></div>
             </form>
         </div>
@@ -53,9 +54,27 @@ test('Bootstrap validation marks fields, gives each one a message and links the 
     await expect(summary).toHaveCSS('background-color', 'rgb(253, 242, 241)');
     await expect(summary).toHaveCSS('color', 'rgb(179, 38, 30)');
 
+    const select = page.locator('#country');
+    await expect.poll(() => select.evaluate((element) => getComputedStyle(element.closest('.bfFormDiv'))
+        .getPropertyValue('--bf-select-arrow').trim())).toBe('#5b5853');
+    await page.locator('.bfFormDiv').evaluate((element) => element.setAttribute('data-bs-theme', 'dark'));
+    await expect.poll(() => select.evaluate((element) => getComputedStyle(element.closest('.bfFormDiv'))
+        .getPropertyValue('--bf-select-arrow').trim())).toBe('#f2f2f0');
+    await expect(select).toHaveCSS('background-image', /linear-gradient/);
+
     await summary.locator('li a').first().click();
     await expect.poll(() => page.evaluate(() => window.ff_currentpage)).toBe(2);
     await expect(name).toBeFocused();
+
+    await page.evaluate(() => {
+        window.inlineErrorElements = [];
+        window.bfShowErrors('');
+    });
+
+    await expect(name).not.toHaveClass(/is-invalid/);
+    await expect(name).not.toHaveAttribute('aria-invalid');
+    await expect(name).not.toHaveAttribute('aria-describedby');
+    await expect(page.locator('.bf-field-error')).toHaveCount(0);
 });
 
 test('field and summary errors render untrusted validator text as text', async ({ page }) => {

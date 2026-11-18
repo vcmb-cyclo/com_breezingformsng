@@ -138,7 +138,7 @@ class HtmlView extends BaseHtmlView
                 'forms' => $canDelete,
                 'scripts' => $canDelete && $canCode,
                 'pieces' => $canDelete && $canCode,
-                'integrator' => $canCode,
+                'integrator' => $canDelete && $canCode,
             ];
         } elseif ($layout === 'audit') {
             $auditReport = $app->getUserState('com_breezingformsng.about.audit', []);
