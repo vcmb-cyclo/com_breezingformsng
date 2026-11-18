@@ -57,6 +57,7 @@ final class CreateFormTool implements McpTool
                             'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100, 'description' => 'Field name, starting with a letter; letters, numbers and underscores only.'],
                             'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Plain-text field label.'],
                             'placeholder' => ['type' => 'string', 'maxLength' => 255, 'default' => '', 'description' => 'Optional plain-text placeholder.'],
+                            'hint' => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optional plain-text help shown with the field.'],
                             'default_value' => ['type' => 'string', 'maxLength' => 4000, 'description' => 'Optional plain-text initial value for a text or textarea field.'],
                             'max_length' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 10000, 'description' => 'Optional maximum characters for a text or textarea field; 0 means unlimited.'],
                             'readonly' => ['type' => 'boolean', 'description' => 'Whether a text or textarea field is read-only.'],
