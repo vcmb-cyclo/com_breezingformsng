@@ -4,63 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9e7f803187a983cbd2f90c630cce33b4",
+    "content-hash": "bb0178f4e49b90b2a26377eab4700f3e",
     "packages": [
-        {
-            "name": "bgli100/securimage",
-            "version": "4.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/bgli100/securimage.git",
-                "reference": "aabde76d839d75a238970661187f83312c2eeda7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/bgli100/securimage/zipball/aabde76d839d75a238970661187f83312c2eeda7",
-                "reference": "aabde76d839d75a238970661187f83312c2eeda7",
-                "shasum": ""
-            },
-            "require": {
-                "ext-gd": "*",
-                "php": ">=5.4"
-            },
-            "suggest": {
-                "ext-pdo": "For database storage support",
-                "ext-pdo_mysql": "For MySQL database support",
-                "ext-pdo_sqlite": "For SQLite3 database support"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Securimage\\": "./"
-                },
-                "classmap": [
-                    "securimage.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Drew Phillips",
-                    "email": "drew@drew-phillips.com"
-                }
-            ],
-            "description": "PHP CAPTCHA Library",
-            "homepage": "https://www.phpcaptcha.org",
-            "keywords": [
-                "Forms",
-                "anti-spam",
-                "captcha",
-                "security"
-            ],
-            "support": {
-                "source": "https://github.com/bgli100/securimage/tree/4.0.2"
-            },
-            "time": "2020-05-30T10:05:48+00:00"
-        },
         {
             "name": "composer/pcre",
             "version": "3.4.0",
@@ -136,6 +81,68 @@
                 }
             ],
             "time": "2026-06-07T11:47:49+00:00"
+        },
+        {
+            "name": "gregwar/captcha",
+            "version": "v2.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Gregwar/Captcha.git",
+                "reference": "c1e67b3d7ac4f873f785daa366051d7c73d19ca0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Gregwar/Captcha/zipball/c1e67b3d7ac4f873f785daa366051d7c73d19ca0",
+                "reference": "c1e67b3d7ac4f873f785daa366051d7c73d19ca0",
+                "shasum": ""
+            },
+            "require": {
+                "ext-fileinfo": "*",
+                "ext-gd": "*",
+                "ext-mbstring": "*",
+                "php": "^8.2",
+                "symfony/finder": "*"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.49",
+                "phpstan/phpstan": "2.1.17",
+                "phpstan/phpstan-phpunit": "2.0.6",
+                "phpunit/phpunit": "^9.6",
+                "squizlabs/php_codesniffer": "4.0.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Gregwar\\": "src/Gregwar"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Grégoire Passault",
+                    "email": "g.passault@gmail.com",
+                    "homepage": "http://www.gregwar.com/"
+                },
+                {
+                    "name": "Jeremy Livingston",
+                    "email": "jeremy.j.livingston@gmail.com"
+                }
+            ],
+            "description": "Captcha generator",
+            "homepage": "https://github.com/Gregwar/Captcha",
+            "keywords": [
+                "bot",
+                "captcha",
+                "spam"
+            ],
+            "support": {
+                "issues": "https://github.com/Gregwar/Captcha/issues",
+                "source": "https://github.com/Gregwar/Captcha/tree/v2.1.1"
+            },
+            "time": "2026-08-27T10:37:12+00:00"
         },
         {
             "name": "maennchen/zipstream-php",
@@ -599,6 +606,74 @@
                 "source": "https://github.com/stripe/stripe-php/tree/v22.1.0"
             },
             "time": "2026-10-29T19:51:41+00:00"
+        },
+        {
+            "name": "symfony/finder",
+            "version": "v7.4.23",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/finder.git",
+                "reference": "c723f990aefe8c1053b18374faf4231eba84f518"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/finder/zipball/c723f990aefe8c1053b18374faf4231eba84f518",
+                "reference": "c723f990aefe8c1053b18374faf4231eba84f518",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "symfony/filesystem": "^6.4|^7.0|^8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Finder\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Finds files and directories via an intuitive fluent interface",
+            "homepage": "https://symfony.com",
+            "support": {
+                "source": "https://github.com/symfony/finder/tree/v7.4.23"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-11-02T10:56:49+00:00"
         },
         {
             "name": "tecnickcom/tc-lib-barcode",
