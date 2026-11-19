@@ -19,7 +19,25 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ContentBuilderFormSync;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 
-/** Creates forms and applies bounded, permission-checked updates through MCP. */
+/**
+ * Creates forms and applies bounded, permission-checked updates through MCP.
+ *
+ * @phpstan-type QuickModeElement array{
+ *     attributes: array{id: string},
+ *     properties: array<string, mixed>,
+ *     children: list<never>
+ * }
+ * @phpstan-type QuickModePage array{
+ *     attributes: array{id: string},
+ *     properties: array<string, mixed>,
+ *     children: list<QuickModeElement>
+ * }
+ * @phpstan-type QuickModeTree array{
+ *     attributes: array{id: string},
+ *     properties: array<string, mixed>,
+ *     children: list<QuickModePage>
+ * }
+ */
 final class McpFormWriter
 {
     private ?int $requiredValidationId = null;
@@ -1084,7 +1102,7 @@ final class McpFormWriter
     }
 
     /**
-     * @return array<string, mixed>
+     * @return QuickModeTree
      * @throws ToolException
      */
     private function managedTree(int $formId): array
@@ -1191,7 +1209,53 @@ final class McpFormWriter
             }
         }
 
+        $this->assertManagedTreeShape($tree);
+
         return $tree;
+    }
+
+    /**
+     * @param array<string, mixed> $tree
+     * @phpstan-assert QuickModeTree $tree
+     * @throws ToolException
+     */
+    private function assertManagedTreeShape(array $tree): void
+    {
+        if (
+            !is_array($tree['attributes'] ?? null)
+            || !is_string($tree['attributes']['id'] ?? null)
+            || !is_array($tree['properties'] ?? null)
+            || !is_array($tree['children'] ?? null)
+            || !array_is_list($tree['children'])
+        ) {
+            throw new ToolException('This QuickMode form has an unsupported root structure.');
+        }
+
+        foreach ($tree['children'] as $page) {
+            if (
+                !is_array($page)
+                || !is_array($page['attributes'] ?? null)
+                || !is_string($page['attributes']['id'] ?? null)
+                || !is_array($page['properties'] ?? null)
+                || !is_array($page['children'] ?? null)
+                || !array_is_list($page['children'])
+            ) {
+                throw new ToolException('This form has a malformed page that the MCP field editor cannot safely preserve.');
+            }
+
+            foreach ($page['children'] as $node) {
+                if (
+                    !is_array($node)
+                    || !is_array($node['attributes'] ?? null)
+                    || !is_string($node['attributes']['id'] ?? null)
+                    || !is_array($node['properties'] ?? null)
+                    || !is_array($node['children'] ?? null)
+                    || $node['children'] !== []
+                ) {
+                    throw new ToolException('This form contains a malformed field that cannot be safely preserved.');
+                }
+            }
+        }
     }
 
     private function assertPlainText(string $text): void
