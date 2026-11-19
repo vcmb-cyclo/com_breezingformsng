@@ -247,8 +247,9 @@ class OnePageRenderer
         $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
         $document->getWebAssetManager()->addInlineScript('<!--');
 
-        $dataObject = json_decode(bf_b64dec($this->p->formrow->template_code), true);
-        $this->assertQuickModeRootNode($dataObject);
+        $dataObject = $this->normalizedQuickModeRootNode(
+            json_decode(bf_b64dec($this->p->formrow->template_code), true)
+        );
         $this->dataObject = $dataObject;
 
         $this->rootMdata = $this->normalizeBootstrapStyleFieldData(

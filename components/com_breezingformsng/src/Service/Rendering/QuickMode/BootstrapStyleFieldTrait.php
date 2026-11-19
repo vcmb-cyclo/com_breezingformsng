@@ -201,6 +201,19 @@ trait BootstrapStyleFieldTrait
     }
 
     /**
+     * @return QuickModeRootNode
+     */
+    private function normalizedQuickModeRootNode(mixed $dataObject): array
+    {
+        $this->assertQuickModeProcessNode($dataObject);
+        if (!array_key_exists('children', $dataObject)) {
+            $dataObject['children'] = [];
+        }
+
+        return $dataObject;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function quickModeNodeProperties(mixed $dataObject): array
