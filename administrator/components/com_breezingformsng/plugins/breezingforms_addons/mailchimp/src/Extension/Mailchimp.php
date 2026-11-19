@@ -104,7 +104,8 @@ final class Mailchimp extends CMSPlugin implements SubscriberInterface
 
         $api = new MailchimpClient();
         $apiKey = trim((string) $form['mailchimp_api_key']);
-        $memberHash = md5(strtolower($email)); // nosemgrep: php.lang.security.weak-crypto.weak-crypto -- Mailchimp API member identifier.
+        // nosemgrep: php.lang.security.weak-crypto.weak-crypto -- Mailchimp API member identifier.
+        $memberHash = md5(strtolower($email));
         $lists = array_values(array_filter(
             array_map('trim', explode(',', (string) $form['mailchimp_list_id'])),
             static fn(string $list): bool => $list !== ''
