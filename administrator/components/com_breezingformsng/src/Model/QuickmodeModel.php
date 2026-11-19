@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
@@ -22,6 +23,14 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\QuickmodeThemePath;
 use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
 use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions;
 
+/**
+ * @phpstan-type QuickModeTreeNode array{
+ *     attributes: array{id: string},
+ *     properties: array<string, mixed>,
+ *     children?: list<array<string, mixed>>
+ * }
+ * @phpstan-type QuickModeElementData array<string, mixed>&array{options: array<string, mixed>}
+ */
 class QuickmodeModel extends BaseDatabaseModel
 {
     private DatabaseInterface $db;
@@ -53,11 +62,13 @@ class QuickmodeModel extends BaseDatabaseModel
      */
     public function save(int $form, array $dataObject, int $published = 1, bool $writeThemeFiles = true): int
     {
+        $this->assertQuickModeTreeNode($dataObject);
+
         if (!in_array($published, [0, 1], true)) {
             throw new \InvalidArgumentException('A form can only be created published or unpublished.');
         }
 
-        if ($writeThemeFiles && isset($dataObject['properties']) && is_array($dataObject['properties'])) {
+        if ($writeThemeFiles) {
             unset(
                 $dataObject['properties']['themebootstrapUse3'],
                 $dataObject['properties']['themebootstrap3builtin'],
@@ -98,7 +109,7 @@ class QuickmodeModel extends BaseDatabaseModel
             }
         }
 
-        $mdata = $dataObject['properties'];
+        $mdata = $this->quickModeNodeProperties($dataObject);
 
         return $this->save2(
             $form,
@@ -178,6 +189,7 @@ class QuickmodeModel extends BaseDatabaseModel
         $guarded = (new FormCodeGuard())->applyToTree($dataObject, $elements, $stored, $filepaths, false);
 
         $dataObject               = $guarded['tree'];
+        $this->assertQuickModeTreeNode($dataObject);
         $this->ignoredCodeColumns = $guarded['ignored'];
         $this->storedElementCode  = $elements;
     }
@@ -274,7 +286,47 @@ class QuickmodeModel extends BaseDatabaseModel
     }
 
     /**
+     * @phpstan-assert QuickModeTreeNode $dataObject
+     */
+    private function assertQuickModeTreeNode(mixed $dataObject): void
+    {
+        if (
+            !is_array($dataObject)
+            || !isset($dataObject['attributes'])
+            || !is_array($dataObject['attributes'])
+            || !isset($dataObject['attributes']['id'])
+            || !is_string($dataObject['attributes']['id'])
+            || !isset($dataObject['properties'])
+            || !is_array($dataObject['properties'])
+        ) {
+            throw new \UnexpectedValueException('QuickMode tree node has an invalid shape.');
+        }
+
+        if (!array_key_exists('children', $dataObject)) {
+            return;
+        }
+
+        if (!is_array($dataObject['children']) || !array_is_list($dataObject['children'])) {
+            throw new \UnexpectedValueException('QuickMode tree children must be a list.');
+        }
+
+        foreach ($dataObject['children'] as $child) {
+            $this->assertQuickModeTreeNode($child);
+        }
+    }
+
+    /**
      * @return array<string, mixed>
+     */
+    private function quickModeNodeProperties(mixed $dataObject): array
+    {
+        $this->assertQuickModeTreeNode($dataObject);
+
+        return $dataObject['properties'];
+    }
+
+    /**
+     * @return QuickModeElementData
      */
     private function getDefaultElement(): array
     {
@@ -323,18 +375,17 @@ class QuickmodeModel extends BaseDatabaseModel
         ];
     }
 
-    /**
-     * @param array<string, mixed> $dataObject
-     */
-    private function createAreasFromTree(array $dataObject, \stdClass $areas, int $page = 1, bool $writeThemeFiles = true): void
+    private function createAreasFromTree(mixed $dataObject, \stdClass $areas, int $page = 1, bool $writeThemeFiles = true): void
     {
+        $this->assertQuickModeTreeNode($dataObject);
         $element = $this->getDefaultElement();
 
-        if (isset($dataObject['attributes'], $dataObject['properties'])) {
-            $mdata = $dataObject['properties'];
+        if (isset($dataObject['properties']['type'])) {
+            $mdata = $this->quickModeNodeProperties($dataObject);
 
             if ($mdata['type'] === 'root') {
-                if ($writeThemeFiles && !empty($mdata['themebootstrap']) && is_string($mdata['themebootstrap'])
+                if (
+                    $writeThemeFiles && !empty($mdata['themebootstrap']) && is_string($mdata['themebootstrap'])
                     && !empty($mdata['themebootstrapvars'])
                     && isset($mdata['themebootstrapbefore'])
                     && $mdata['themebootstrapbefore'] === $mdata['themebootstrap']
@@ -568,19 +619,16 @@ class QuickmodeModel extends BaseDatabaseModel
         }
     }
 
-    /**
-     * @param array<string, mixed> $dataObject
-     */
-    private function updateDbId(array &$dataObject, mixed $id, int $dbId): void
+    private function updateDbId(mixed &$dataObject, mixed $id, int $dbId): void
     {
-        if (isset($dataObject['attributes'], $dataObject['properties'])) {
-            if ($dataObject['properties']['type'] === 'element' && $dataObject['attributes']['id'] === $id) {
-                $dataObject['properties']['dbId'] = $dbId;
-                return;
-            }
+        $this->assertQuickModeTreeNode($dataObject);
+
+        if ($dataObject['properties']['type'] === 'element' && $dataObject['attributes']['id'] === $id) {
+            $dataObject['properties']['dbId'] = $dbId;
+            return;
         }
 
-        if (!empty($dataObject['children'])) {
+        if (isset($dataObject['children'])) {
             foreach ($dataObject['children'] as &$child) {
                 $this->updateDbId($child, $id, $dbId);
             }
@@ -610,7 +658,9 @@ class QuickmodeModel extends BaseDatabaseModel
     private function save2(int $form, string $formName, string $formTitle, string $formDesc, string $templateCode, array $areas, int $pages = 1, int $published = 1): int
     {
         $dataObject = json_decode(base64_decode($templateCode), true);
-        $mdata      = $dataObject['properties'];
+        $mdata      = is_array($dataObject) && is_array($dataObject['properties'] ?? null)
+            ? $dataObject['properties']
+            : [];
         $now        = (new \Joomla\CMS\Date\Date())->toSql();
         $userId     = (string) $this->getCurrentUser()->username;
 
