@@ -40,7 +40,8 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
  */
 final class McpFormWriter
 {
-    private ?int $requiredValidationId = null;
+    private readonly McpFormInputNormalizer $input;
+    private readonly McpQuickModeTree $tree;
 
     public function __construct(
         private readonly DatabaseInterface $db,
@@ -48,36 +49,18 @@ final class McpFormWriter
         private readonly FormModel $forms,
         private readonly QuickmodeModel $quickmode
     ) {
+        $this->input = new McpFormInputNormalizer($db);
+        $this->tree = new McpQuickModeTree($options, $quickmode, $this->input);
     }
 
     private function stringValue(mixed $value): string
     {
-        if (is_string($value)) {
-            return $value;
-        }
-
-        if (is_int($value) || is_float($value) || is_bool($value)) {
-            return (string) $value;
-        }
-
-        if ($value === null) {
-            return '';
-        }
-
-        throw new ToolException('Expected a scalar text value.');
+        return $this->input->stringValue($value);
     }
 
     private function intValue(mixed $value): int
     {
-        if (is_int($value)) {
-            return $value;
-        }
-
-        if (is_string($value) && preg_match('/^-?[0-9]+$/D', $value)) {
-            return (int) $value;
-        }
-
-        throw new ToolException('Expected an integer value.');
+        return $this->input->intValue($value);
     }
 
     /**
@@ -880,160 +863,10 @@ final class McpFormWriter
         }
     }
 
-    /**
-     * @return list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}>
-     * @throws ToolException
-     */
+    /** @return list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> */
     private function normalizeFields(mixed $fields): array
     {
-        if (!is_array($fields) || !array_is_list($fields) || count($fields) > 30) {
-            throw new ToolException('Fields must be a list of at most 30 simple fields.');
-        }
-
-        $normalized = [];
-        $names = [];
-        foreach ($fields as $field) {
-            if (!is_array($field)) {
-                throw new ToolException('Each field must be an object.');
-            }
-
-            $type = $this->stringValue($field['type'] ?? '');
-            $name = trim($this->stringValue($field['name'] ?? ''));
-            $label = trim($this->stringValue($field['label'] ?? ''));
-            $placeholder = trim($this->stringValue($field['placeholder'] ?? ''));
-            $hint = $this->stringValue($field['hint'] ?? '');
-            $size = $this->stringValue($field['size'] ?? '');
-            $width = $this->stringValue($field['width'] ?? '');
-            $height = $this->stringValue($field['height'] ?? '');
-            $defaultValue = $this->stringValue($field['default_value'] ?? '');
-            $maxLength = $field['max_length'] ?? 0;
-            $readOnly = $field['readonly'] ?? false;
-            if (!in_array($type, ['text', 'textarea', 'select', 'radio', 'checkbox_group', 'checkbox'], true)) {
-                throw new ToolException('Supported field types are text, textarea, select, radio, checkbox_group and checkbox.');
-            }
-            if (
-                mb_strlen($defaultValue) > 4000
-                || (array_key_exists('default_value', $field) && !in_array($type, ['text', 'textarea'], true))
-            ) {
-                throw new ToolException('Default values are limited to 4000 characters and are only supported on text or textarea fields.');
-            }
-            $this->assertPlainText($defaultValue);
-            if (mb_strlen($hint) > 1000) {
-                throw new ToolException('Field hints must be plain text limited to 1000 characters.');
-            }
-            $hint = trim($hint);
-            $this->assertPlainText($hint);
-            foreach (['size' => $size, 'width' => $width, 'height' => $height] as $property => $dimension) {
-                if (!array_key_exists($property, $field)) {
-                    continue;
-                }
-                if (
-                    ($property === 'size' && $type !== 'text')
-                    || (in_array($property, ['width', 'height'], true) && $type !== 'textarea')
-                ) {
-                    throw new ToolException(sprintf('The %s setting is not supported on this field type.', $property));
-                }
-                $dimension = $this->normalizeCssDimension($dimension, $property);
-                if ($property === 'size') {
-                    $size = $dimension;
-                } elseif ($property === 'width') {
-                    $width = $dimension;
-                } else {
-                    $height = $dimension;
-                }
-            }
-            if (
-                !is_int($maxLength) || $maxLength < 0 || $maxLength > 10000
-                || (array_key_exists('max_length', $field) && !in_array($type, ['text', 'textarea'], true))
-            ) {
-                throw new ToolException('Maximum length must be from 0 to 10000 and can only be set on text or textarea fields.');
-            }
-            if (!is_bool($readOnly) || (array_key_exists('readonly', $field) && !in_array($type, ['text', 'textarea'], true))) {
-                throw new ToolException('Only text and textarea fields support the read-only setting.');
-            }
-            if (!preg_match('/^[A-Za-z][A-Za-z0-9_]{0,99}$/D', $name)) {
-                throw new ToolException('Field names must start with a letter and contain only letters, numbers and underscores.');
-            }
-            if (preg_match('/^bfFakeName(?:[2-4])?$/iD', $name)) {
-                throw new ToolException('That field name is reserved for a QuickMode submit control.');
-            }
-            if ($label === '' || mb_strlen($label) > 255 || mb_strlen($placeholder) > 255) {
-                throw new ToolException('Field labels are required and field text is limited to 255 characters.');
-            }
-            $this->assertPlainText($label);
-            $this->assertPlainText($placeholder);
-            $multiple = $field['multiple'] ?? false;
-            if (!is_bool($multiple) || (array_key_exists('multiple', $field) && $type !== 'select')) {
-                throw new ToolException('Only select fields support the multiple setting.');
-            }
-            $checked = $field['checked'] ?? false;
-            if (!is_bool($checked) || (array_key_exists('checked', $field) && $type !== 'checkbox')) {
-                throw new ToolException('Only checkbox fields support the checked setting.');
-            }
-            $checkboxValue = array_key_exists('value', $field) ? $this->normalizeCheckboxValue($field['value']) : '1';
-            if (array_key_exists('value', $field) && $type !== 'checkbox') {
-                throw new ToolException('Only checkbox fields support a submitted value setting.');
-            }
-            $required = $field['required'] ?? false;
-            if (
-                !is_bool($required) || ((array_key_exists('required', $field) || array_key_exists('required_message', $field))
-                && !in_array($type, ['text', 'textarea'], true))
-            ) {
-                throw new ToolException('Only text and textarea fields can use the required setting.');
-            }
-            $requiredMessage = $field['required_message'] ?? '';
-            if (!is_string($requiredMessage) || mb_strlen($requiredMessage) > 255) {
-                throw new ToolException('A required message must be plain text of at most 255 characters.');
-            }
-            $requiredMessage = trim($requiredMessage);
-            if (array_key_exists('required_message', $field) && !$required) {
-                throw new ToolException('A required message can only be set when the field is required.');
-            }
-            $this->assertPlainText($requiredMessage);
-            if ($required) {
-                $this->requiredValidationScriptId();
-            }
-            $allowMultipleSelections = $type === 'checkbox_group' || ($type === 'select' && $multiple);
-            $choices = $this->normalizeChoices($field['options'] ?? [], $allowMultipleSelections);
-            if (in_array($type, ['select', 'radio', 'checkbox_group'], true) && $choices === []) {
-                throw new ToolException('Select, radio and checkbox_group fields need at least one choice.');
-            }
-            if (in_array($type, ['text', 'textarea', 'checkbox'], true) && $choices !== []) {
-                throw new ToolException('Text, textarea and checkbox fields cannot have choice options.');
-            }
-            $page = $field['page'] ?? 1;
-            if (!is_int($page) || $page < 1) {
-                throw new ToolException('A field page must be a positive page number.');
-            }
-
-            $key = strtolower($name);
-            if (isset($names[$key])) {
-                throw new ToolException('Field names must be unique within the form.');
-            }
-            $names[$key] = true;
-            $normalized[] = [
-                'type' => $type,
-                'name' => $name,
-                'label' => $label,
-                'placeholder' => $placeholder,
-                'hint' => $hint,
-                'size' => $size,
-                'width' => $width,
-                'height' => $height,
-                'default_value' => $defaultValue,
-                'max_length' => $maxLength,
-                'readonly' => $readOnly,
-                'options' => $choices,
-                'multiple' => $multiple,
-                'checked' => $checked,
-                'value' => $checkboxValue,
-                'required' => $required,
-                'required_message' => $requiredMessage,
-                'page' => $page,
-            ];
-        }
-
-        return $normalized;
+        return $this->input->normalizeFields($fields);
     }
 
     /** @param list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields
@@ -1041,29 +874,7 @@ final class McpFormWriter
      */
     private function quickmodeTree(string $name, string $title, string $description, array $fields, string $pageIntro): array
     {
-        $children = [];
-        foreach ($fields as $index => $field) {
-            $children[] = $this->elementNode($field, $index + 1);
-        }
-
-        return [
-            'attributes' => ['id' => 'bfQuickModeForm'],
-            'properties' => [
-                'type' => 'root',
-                'name' => $name,
-                'title' => $title,
-                'description' => $description,
-                'mailNotification' => false,
-                'mailRecipient' => '',
-                'submittedScriptCondidtion' => -1,
-                'bfngManaged' => true,
-            ],
-            'children' => [[
-                'attributes' => ['id' => 'bfQuickModePage1'],
-                'properties' => ['type' => 'page', 'pageNumber' => 1, 'pageIntro' => $pageIntro],
-                'children' => $children,
-            ]],
-        ];
+        return $this->tree->create($name, $title, $description, $fields, $pageIntro);
     }
 
     /** @param array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field
@@ -1071,74 +882,7 @@ final class McpFormWriter
      */
     private function elementNode(array $field, int $order): array
     {
-        $type = match ($field['type']) {
-            'text' => 'bfTextfield',
-            'textarea' => 'bfTextarea',
-            'select' => 'bfSelect',
-            'radio' => 'bfRadioGroup',
-            'checkbox_group' => 'bfCheckboxGroup',
-            'checkbox' => 'bfCheckbox',
-            default => throw new ToolException('Unsupported field type.'),
-        };
-        $properties = [
-            'type' => 'element',
-            'bfType' => $type,
-            'value' => $type === 'bfCheckbox' ? $field['value'] : $field['default_value'],
-            'placeholder' => $field['placeholder'],
-            'hint' => $field['hint'],
-            'readonly' => $field['readonly'],
-            'label' => $field['label'],
-            'bfName' => $field['name'],
-            'orderNumber' => $order,
-            'tabIndex' => 0,
-            'logging' => 1,
-            'validationId' => 0,
-            'validationCode' => '',
-            'validationMessage' => '',
-            'validationFunctionName' => '',
-            'validationCondition' => 0,
-            'initId' => 0,
-            'initCode' => '',
-            'initFunctionName' => '',
-            'initCondition' => 0,
-            'actionId' => 0,
-            'actionCode' => '',
-            'actionFunctionName' => '',
-            'actionCondition' => 0,
-            'dbId' => 0,
-        ];
-        if ($type === 'bfTextfield') {
-            $properties['maxLength'] = $field['max_length'] > 0 ? $field['max_length'] : '';
-            $properties['size'] = $field['size'];
-        } elseif ($type === 'bfTextarea') {
-            $properties['maxlength'] = $field['max_length'];
-            $properties['showMaxlengthCounter'] = true;
-            $properties['width'] = $field['width'];
-            $properties['height'] = $field['height'];
-        }
-        if ($type === 'bfSelect') {
-            $properties['multiple'] = $field['multiple'];
-            $properties['list'] = $this->serializeChoices($field['options']);
-            $properties['mailback'] = false;
-        } elseif (in_array($type, ['bfRadioGroup', 'bfCheckboxGroup'], true)) {
-            $properties['group'] = $this->serializeChoices($field['options']);
-        } elseif ($type === 'bfCheckbox') {
-            $properties['checked'] = $field['checked'];
-            $properties['mailbackAccept'] = false;
-            $properties['mailbackConnectWith'] = '';
-        }
-        if ($field['required']) {
-            $properties['validationId'] = $this->requiredValidationScriptId();
-            $properties['validationFunctionName'] = 'ff_valuenotempty';
-            $properties['validationCondition'] = 1;
-            $properties['validationMessage'] = $field['required_message'];
-        }
-
-        return [
-            'attributes' => ['id' => 'bfQuickModeElement' . $order . '_' . strtolower($field['name'])],
-            'properties' => $properties,
-            'children' => [],
-        ];
+        return $this->tree->element($field, $order);
     }
 
     /**
@@ -1147,250 +891,39 @@ final class McpFormWriter
      */
     private function managedTree(int $formId): array
     {
-        $form = $this->options->getForm($formId);
-        $template = $this->quickmode->getTemplateCode($formId);
-        if (
-            $form === null || (string) ($form->package ?? '') !== 'QuickModeForms'
-            || (string) ($form->template_code_processed ?? '') !== 'QuickMode' || strlen($template) > 500000
-        ) {
-            throw new ToolException('Only QuickMode forms with a supported simple field structure can be edited here.');
-        }
-
-        $tree = json_decode($template, true);
-        if (
-            !is_array($tree) || !is_array($tree['attributes'] ?? null)
-            || ($tree['attributes']['id'] ?? null) !== 'bfQuickModeForm'
-            || !is_array($tree['properties'] ?? null) || !is_array($tree['children'] ?? null) || $tree['children'] === []
-            || ($tree['properties']['type'] ?? null) !== 'root'
-            || !is_array($tree['children'])
-        ) {
-            throw new ToolException('This QuickMode form has an unsupported root structure.');
-        }
-        if (
-            ($tree['properties']['submittedScriptCondidtion'] ?? -1) != -1
-            && !is_string($tree['properties']['submittedScriptCode'] ?? null)
-        ) {
-            throw new ToolException('This form has an incomplete submitted script configuration.');
-        }
-
-        $elementIds = [];
-        $quickmodeIds = [];
-        $pageIds = [];
-        foreach ($tree['children'] as $pageIndex => $page) {
-            if (!is_array($page) || !is_array($page['attributes'] ?? null) || !is_array($page['properties'] ?? null)) {
-                throw new ToolException('This form has a malformed page that the MCP field editor cannot safely preserve.');
-            }
-            $pageId = $this->stringValue($page['attributes']['id'] ?? '');
-            if (
-                $pageId !== 'bfQuickModePage' . ((int) $pageIndex + 1)
-                || !preg_match('/^bfQuickModePage[1-9][0-9]*$/D', $pageId)
-                || isset($pageIds[$pageId])
-                || ($page['properties']['type'] ?? null) !== 'page' || !is_array($page['children'] ?? null)
-            ) {
-                throw new ToolException('This form has a page structure that the MCP field editor cannot safely preserve.');
-            }
-            $pageIds[$pageId] = true;
-
-            foreach ($page['children'] as $node) {
-                if (!is_array($node)) {
-                    throw new ToolException('This form contains a malformed field that cannot be safely preserved.');
-                }
-                $properties = $node['properties'] ?? null;
-                if (!is_array($node['attributes'] ?? null) || !is_array($properties)) {
-                    throw new ToolException('This form contains a malformed field that cannot be safely preserved.');
-                }
-                $nodeId = $node['attributes']['id'] ?? null;
-                $requiredProperties = [
-                    'type', 'bfType', 'value', 'label', 'bfName', 'orderNumber', 'tabIndex', 'logging',
-                    'validationId', 'validationCode', 'validationMessage', 'validationFunctionName', 'validationCondition',
-                    'initId', 'initCode', 'initFunctionName', 'initCondition', 'actionId', 'actionFunctionName', 'dbId',
-                ];
-                if (
-                    !is_string($nodeId) || isset($quickmodeIds[$nodeId])
-                    || ($properties['type'] ?? null) !== 'element'
-                    || !in_array($properties['bfType'] ?? null, ['bfTextfield', 'bfTextarea', 'bfSelect', 'bfRadioGroup', 'bfCheckboxGroup', 'bfCheckbox'], true)
-                    || array_diff($requiredProperties, array_keys($properties)) !== []
-                    || !is_array($node['children'] ?? null) || $node['children'] !== []
-                ) {
-                    throw new ToolException('This form contains an unsupported field or nested structure the MCP field editor cannot safely preserve.');
-                }
-                $dbId = $this->intValue($properties['dbId'] ?? 0);
-                $fieldName = trim($this->stringValue($properties['bfName'] ?? ''));
-                if (
-                    $dbId <= 0 || isset($elementIds[$dbId]) || $fieldName === '' || mb_strlen($fieldName) > 255
-                    || preg_match('/[\x00-\x1F\x7F]/u', $fieldName)
-                    || !is_string($properties['value']) || !is_string($properties['label'])
-                    || mb_strlen($properties['label']) > 255
-                    || mb_strlen($this->stringValue($properties['placeholder'] ?? '')) > 255
-                ) {
-                    throw new ToolException('This form has a field identity or text value that cannot be safely edited through MCP.');
-                }
-                $choiceProperty = match ($properties['bfType']) {
-                    'bfSelect' => 'list',
-                    'bfRadioGroup', 'bfCheckboxGroup' => 'group',
-                    default => null,
-                };
-                if (
-                    $choiceProperty !== null && (!is_string($properties[$choiceProperty] ?? null)
-                    || ($properties['bfType'] === 'bfSelect'
-                        && (!is_bool($properties['multiple'] ?? null) || !is_bool($properties['mailback'] ?? null))))
-                ) {
-                    throw new ToolException('This form has a malformed choice field that cannot be safely edited through MCP.');
-                }
-                if (
-                    $properties['bfType'] === 'bfCheckbox'
-                    && (!is_bool($properties['checked'] ?? null) || !is_string($properties['mailbackConnectWith'] ?? null)
-                        || !is_bool($properties['mailbackAccept'] ?? null))
-                ) {
-                    throw new ToolException('This form has a malformed checkbox that cannot be safely edited through MCP.');
-                }
-                $elementIds[$dbId] = true;
-                $quickmodeIds[$nodeId] = true;
-            }
-        }
-
-        $this->assertManagedTreeShape($tree);
-
-        return $tree;
-    }
-
-    /**
-     * @param array<string, mixed> $tree
-     * @phpstan-assert QuickModeTree $tree
-     * @throws ToolException
-     */
-    private function assertManagedTreeShape(array $tree): void
-    {
-        if (
-            !is_array($tree['attributes'] ?? null)
-            || !is_string($tree['attributes']['id'] ?? null)
-            || !is_array($tree['properties'] ?? null)
-            || !is_array($tree['children'] ?? null)
-            || !array_is_list($tree['children'])
-        ) {
-            throw new ToolException('This QuickMode form has an unsupported root structure.');
-        }
-
-        foreach ($tree['children'] as $page) {
-            if (
-                !is_array($page)
-                || !is_array($page['attributes'] ?? null)
-                || !is_string($page['attributes']['id'] ?? null)
-                || !is_array($page['properties'] ?? null)
-                || !is_array($page['children'] ?? null)
-                || !array_is_list($page['children'])
-            ) {
-                throw new ToolException('This form has a malformed page that the MCP field editor cannot safely preserve.');
-            }
-
-            foreach ($page['children'] as $node) {
-                if (
-                    !is_array($node)
-                    || !is_array($node['attributes'] ?? null)
-                    || !is_string($node['attributes']['id'] ?? null)
-                    || !is_array($node['properties'] ?? null)
-                    || !is_array($node['children'] ?? null)
-                    || $node['children'] !== []
-                ) {
-                    throw new ToolException('This form contains a malformed field that cannot be safely preserved.');
-                }
-            }
-        }
+        return $this->tree->managed($formId);
     }
 
     private function assertPlainText(string $text): void
     {
-        if (str_contains($text, '<') || str_contains($text, '>')) {
-            throw new ToolException('Field text must be plain text without markup.');
-        }
+        $this->input->assertPlainText($text);
     }
 
     private function normalizeCssDimension(mixed $value, string $property): string
     {
-        if (!is_string($value)) {
-            throw new ToolException(sprintf('The %s setting must be a CSS dimension string.', $property));
-        }
-
-        $value = trim($value);
-        if ($value !== '' && !preg_match('/^(?:[0-9]+(?:\.[0-9]+)?(?:px|%|em|rem|ch|vw|vh)|auto)$/iD', $value)) {
-            throw new ToolException(sprintf('The %s setting must be a simple CSS dimension such as 240px, 80%%, 18rem or auto.', $property));
-        }
-
-        return $value;
+        return $this->input->normalizeCssDimension($value, $property);
     }
 
     private function normalizePageIntro(mixed $intro): string
     {
-        if (!is_string($intro) || mb_strlen($intro) > 1000) {
-            throw new ToolException('Page intro text must be plain text limited to 1000 characters.');
-        }
-
-        $intro = trim($intro);
-        if (strpbrk($intro, '<>{}') !== false) {
-            throw new ToolException('Page intro text cannot contain markup or module/plugin syntax.');
-        }
-
-        return $intro;
+        return $this->input->normalizePageIntro($intro);
     }
 
     /** @return list<array{label: string, value: string, selected: bool}> */
     private function normalizeChoices(mixed $choices, bool $allowMultipleSelections = true): array
     {
-        if (!is_array($choices) || !array_is_list($choices) || count($choices) > 30) {
-            throw new ToolException('Choice options must be a list of at most 30 items.');
-        }
-
-        $normalized = [];
-        $values = [];
-        $selectedCount = 0;
-        foreach ($choices as $choice) {
-            if (!is_array($choice)) {
-                throw new ToolException('Each choice option must be an object.');
-            }
-            $label = trim($this->stringValue($choice['label'] ?? ''));
-            $value = trim($this->stringValue($choice['value'] ?? ''));
-            $selected = $choice['selected'] ?? false;
-            if (!is_bool($selected)) {
-                throw new ToolException('Choice selected flags must be boolean.');
-            }
-            $selectedCount += $selected ? 1 : 0;
-            if (!$allowMultipleSelections && $selectedCount > 1) {
-                throw new ToolException('Select fields and radio groups can have at most one initially selected choice.');
-            }
-            foreach ([$label, $value] as $text) {
-                if ($text === '' || mb_strlen($text) > 255 || preg_match('/[;\r\n\x00]/u', $text)) {
-                    throw new ToolException('Choice labels and values must be non-empty plain text of at most 255 characters without semicolons or line breaks.');
-                }
-                $this->assertPlainText($text);
-            }
-            if (isset($values[$value])) {
-                throw new ToolException('Choice values must be unique within a field.');
-            }
-            $values[$value] = true;
-            $normalized[] = ['label' => $label, 'value' => $value, 'selected' => $selected];
-        }
-
-        return $normalized;
+        return $this->input->normalizeChoices($choices, $allowMultipleSelections);
     }
 
     /** @param list<array{label: string, value: string, selected: bool}> $choices */
     private function serializeChoices(array $choices): string
     {
-        return implode('', array_map(static fn (array $choice): string => ($choice['selected'] ? '1;' : '0;') . $choice['label'] . ';' . $choice['value'] . "\n", $choices));
+        return $this->input->serializeChoices($choices);
     }
 
     private function normalizeCheckboxValue(mixed $value): string
     {
-        if (!is_string($value)) {
-            throw new ToolException('A checkbox submitted value must be text.');
-        }
-        $value = trim($value);
-        if ($value === '' || mb_strlen($value) > 255 || preg_match('/[\x00-\x1F\x7F]/u', $value)) {
-            throw new ToolException('A checkbox submitted value must be non-empty text of at most 255 characters without control characters.');
-        }
-        $this->assertPlainText($value);
-
-        return $value;
+        return $this->input->normalizeCheckboxValue($value);
     }
 
     /**
@@ -1535,28 +1068,7 @@ final class McpFormWriter
 
     private function requiredValidationScriptId(): int
     {
-        if ($this->requiredValidationId !== null) {
-            return $this->requiredValidationId;
-        }
-
-        $scriptType = 'Element Validation';
-        $scriptName = 'ff_valuenotempty';
-        $query = $this->db->createQuery()
-            ->select($this->db->quoteName('id'))
-            ->from($this->db->quoteName('#__facileforms_scripts'))
-            ->where($this->db->quoteName('published') . ' = 1')
-            ->where($this->db->quoteName('type') . ' = :type')
-            ->where($this->db->quoteName('name') . ' = :name')
-            ->order($this->db->quoteName('id') . ' DESC')
-            ->bind(':type', $scriptType, ParameterType::STRING)
-            ->bind(':name', $scriptName, ParameterType::STRING);
-        $id = $this->intValue($this->db->setQuery($query, 0, 1)->loadResult());
-        if ($id <= 0) {
-            throw new ToolException('The standard ff_valuenotempty validation is unavailable or unpublished.');
-        }
-        $this->requiredValidationId = $id;
-
-        return $id;
+        return $this->input->requiredValidationScriptId();
     }
 
     /** @param QuickModeTree $tree
