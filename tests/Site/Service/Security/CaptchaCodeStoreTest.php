@@ -93,6 +93,19 @@ final class CaptchaCodeStoreTest extends TestCase
         self::assertTrue($store->matches('bombes', true));
     }
 
+    public function testTooManyWrongEntriesDropTheCode(): void
+    {
+        $store = $this->store();
+        $store->store('bombes');
+
+        for ($attempt = 1; $attempt <= CaptchaCodeStore::MAX_ATTEMPTS; $attempt++) {
+            self::assertFalse($store->matches('wrong', false));
+        }
+
+        self::assertNull($store->get());
+        self::assertFalse($store->matches('bombes', true), 'The right code no longer works once the code is dropped.');
+    }
+
     public function testNothingMatchesWithoutAShownImage(): void
     {
         self::assertFalse($this->store()->matches('', false));

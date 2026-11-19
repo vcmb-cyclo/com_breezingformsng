@@ -53,7 +53,9 @@ final class WidgetValueValidator
         }
 
         return match ($widget) {
-            'phone' => preg_match('/^\+[1-9]\d{7,14}\z/', $value) === 1 ? null : self::INVALID_PHONE,
+            'phone' => $this->validatesPhone($options) && preg_match('/^\+[1-9]\d{7,14}\z/', $value) !== 1
+                ? self::INVALID_PHONE
+                : null,
             'datetime' => $this->validateDatetime($options, $value, $now),
             'country' => $this->validateCountry($options, $value),
             default => null,
@@ -100,6 +102,12 @@ final class WidgetValueValidator
         }
 
         return null;
+    }
+
+    /** The format check is the administrator's choice: it is off when the widget does not validate. */
+    private function validatesPhone(array $options): bool
+    {
+        return filter_var($options['validate'] ?? true, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
     }
 
     /** Whether the value has the (calendar-unchecked) shape of the mode. */

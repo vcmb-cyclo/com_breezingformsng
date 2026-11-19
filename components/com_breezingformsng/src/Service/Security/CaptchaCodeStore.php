@@ -29,6 +29,9 @@ final class CaptchaCodeStore
     /** Seconds a code stays valid, as Securimage's default expiry time. */
     public const LIFETIME = 900;
 
+    /** Wrong entries tolerated before the code is dropped and a new image is needed. */
+    public const MAX_ATTEMPTS = 5;
+
     private const KEY = 'com_breezingformsng.captcha';
 
     public function __construct(private readonly SessionInterface $session)
@@ -37,7 +40,7 @@ final class CaptchaCodeStore
 
     public function store(string $code): void
     {
-        $this->session->set(self::KEY, ['code' => $code, 'time' => time()]);
+        $this->session->set(self::KEY, ['code' => $code, 'time' => time(), 'attempts' => 0]);
     }
 
     /** @return array{code: string, time: int}|null */
@@ -75,6 +78,14 @@ final class CaptchaCodeStore
         $code = self::normalise($stored['code']);
 
         if ($code === '' || !hash_equals($code, self::normalise($entered))) {
+            // The code cannot be guessed by trying: too many wrong entries drop it.
+            $attempts = (int) ($this->session->get(self::KEY)['attempts'] ?? 0) + 1;
+            if ($attempts >= self::MAX_ATTEMPTS) {
+                $this->clear();
+            } else {
+                $this->session->set(self::KEY, ['code' => $stored['code'], 'time' => $stored['time'], 'attempts' => $attempts]);
+            }
+
             return false;
         }
 

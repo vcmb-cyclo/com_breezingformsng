@@ -159,6 +159,7 @@ final class McpFormWriter
             $versioning = new FormVersioning($this->db, $this->forms);
             $versioning->keepOrigin($id);
             $this->options->saveForm($data);
+            $this->syncQuickModeRoot($id, $data);
 
             try {
                 $versioned = $versioning->record($id);
@@ -319,6 +320,10 @@ final class McpFormWriter
                     || !in_array($current[$key]['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)) {
                     throw new ToolException('Existing fields can only change between text and textarea types.');
                 }
+            }
+            if (\Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions::widget($current[$key]) !== ''
+                && array_intersect_key($change, ['type' => 1, 'size' => 1, 'max_length' => 1]) !== []) {
+                throw new ToolException('A field that uses a widget (phone, date and time, country or address) cannot change type, size or maximum length through MCP; edit it in the QuickMode editor.');
             }
             if (array_key_exists('page', $change)
                 && (!is_int($change['page']) || $change['page'] < 1 || $change['page'] > $targetPageCount)) {
@@ -638,25 +643,26 @@ final class McpFormWriter
             throw new ToolException('The form is checked out and cannot be edited now.');
         }
 
-        $lockedForm = $this->options->getForm($id);
-        $lockedTree = json_decode($this->quickmode->getTemplateCode($id), true);
-        if ($lockedForm === null || (int) ($lockedForm->version ?? -1) !== (int) ($form->version ?? -2)
-            || (string) ($lockedForm->modified ?? '') !== (string) ($form->modified ?? '')
-            || $lockedTree !== $originalTree) {
-            $this->forms->checkin($id);
-            throw new ToolException('The form changed while this request was being prepared; read it again and retry.');
-        }
-
-        $historySensitiveChange = $removeByName !== [] || $removePageSet !== [] || $renameTargets !== []
-            || array_filter($updateByName, static fn (array $change): bool => array_key_exists('options', $change)
-                || array_key_exists('multiple', $change) || array_key_exists('value', $change)) !== [];
-        if ($historySensitiveChange && $this->submissionCount($id) > 0) {
-            $this->forms->checkin($id);
-            throw new ToolException('This change is no longer safe because the form now has submissions.');
-        }
+        $transactionStarted = false;
 
         try {
+            $lockedForm = $this->options->getForm($id);
+            $lockedTree = json_decode($this->quickmode->getTemplateCode($id), true);
+            if ($lockedForm === null || (int) ($lockedForm->version ?? -1) !== (int) ($form->version ?? -2)
+                || (string) ($lockedForm->modified ?? '') !== (string) ($form->modified ?? '')
+                || $lockedTree !== $originalTree) {
+                throw new ToolException('The form changed while this request was being prepared; read it again and retry.');
+            }
+
+            $historySensitiveChange = $removeByName !== [] || $removePageSet !== [] || $renameTargets !== []
+                || array_filter($updateByName, static fn (array $change): bool => array_key_exists('options', $change)
+                    || array_key_exists('multiple', $change) || array_key_exists('value', $change)) !== [];
+            if ($historySensitiveChange && $this->submissionCount($id, true) > 0) {
+                throw new ToolException('This change is no longer safe because the form now has submissions.');
+            }
+
             $this->db->transactionStart();
+            $transactionStarted = true;
             $versioning = new FormVersioning($this->db, $this->forms);
             $versioning->keepOrigin($id);
             $this->quickmode->save($id, $tree, (int) $form->published, false);
@@ -667,9 +673,12 @@ final class McpFormWriter
             }
             $this->db->transactionCommit();
         } catch (\Throwable $e) {
-            $this->db->transactionRollback();
+            if ($transactionStarted) {
+                $this->db->transactionRollback();
+            }
             throw $e;
         } finally {
+            // Whatever failed after the checkout, the form is released.
             $this->forms->checkin($id);
         }
 
@@ -1188,9 +1197,62 @@ final class McpFormWriter
         return $value;
     }
 
-    private function submissionCount(int $formId): int
+    /**
+     * The QuickMode editor rewrites the form row from the root of its tree on every
+     * save: the tree must carry the identity and notification changes made here.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function syncQuickModeRoot(int $id, array $data): void
     {
-        return (int) $this->db->setQuery(
+        $tree = json_decode($this->quickmode->getTemplateCode($id), true);
+        if (!is_array($tree) || !isset($tree['properties']) || !is_array($tree['properties'])) {
+            return;
+        }
+
+        $map = ['name' => 'name', 'title' => 'title', 'description' => 'description', 'emailadr' => 'mailRecipient'];
+        foreach ($map as $column => $property) {
+            if (array_key_exists($column, $data)) {
+                $tree['properties'][$property] = (string) $data[$column];
+            }
+        }
+        if (array_key_exists('emailntf', $data)) {
+            $tree['properties']['mailNotification'] = (int) $data['emailntf'] > 0;
+        }
+
+        $encoded = base64_encode((string) json_encode($tree, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+        $column = $this->db->quoteName('template_code');
+        $this->db->setQuery(
+            $this->db->createQuery()
+                ->update($this->db->quoteName('#__facileforms_forms'))
+                ->set($column . " = ''")
+                ->where($this->db->quoteName('id') . ' = :form')
+                ->bind(':form', $id, ParameterType::INTEGER)
+        )->execute();
+
+        // Written in chunks, as the QuickMode model does, to stay under the packet limit.
+        foreach (str_split($encoded, 60000) as $chunk) {
+            $this->db->setQuery(
+                $this->db->createQuery()
+                    ->update($this->db->quoteName('#__facileforms_forms'))
+                    ->set($column . ' = CONCAT(' . $column . ', :chunk)')
+                    ->where($this->db->quoteName('id') . ' = :form')
+                    ->bind(':chunk', $chunk)
+                    ->bind(':form', $id, ParameterType::INTEGER)
+            )->execute();
+        }
+    }
+
+    /** Submission counts already read in this request; the checks after the form lock ask for a fresh one. */
+    private array $submissionCounts = [];
+
+    private function submissionCount(int $formId, bool $fresh = false): int
+    {
+        if (!$fresh && isset($this->submissionCounts[$formId])) {
+            return $this->submissionCounts[$formId];
+        }
+
+        return $this->submissionCounts[$formId] = (int) $this->db->setQuery(
             $this->db->createQuery()
                 ->select('COUNT(*)')
                 ->from($this->db->quoteName('#__facileforms_records'))
