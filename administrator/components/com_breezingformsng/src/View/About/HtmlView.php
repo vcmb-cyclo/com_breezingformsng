@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
@@ -14,6 +15,7 @@ use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
@@ -30,6 +32,7 @@ class HtmlView extends BaseHtmlView
 {
     /** @var list<array<string, mixed>> */
     public array $plugins = [];
+    public bool $canEditPluginState = false;
     /** @var array<mixed> */
     public array $logReport = [];
     /** @var array<mixed> */
@@ -59,6 +62,7 @@ class HtmlView extends BaseHtmlView
         $user = $this->getCurrentUser();
         $this->canRepair = AreaAccess::canRepair($user);
         $this->canDeleteOrphans = AreaAccess::canDeleteOrphans($user);
+        $this->canEditPluginState = $user->authorise('core.edit.state', 'com_plugins');
         /** @var HtmlDocument $document */
         $document = $app->getDocument();
         $wa = $document->getWebAssetManager();
@@ -119,6 +123,23 @@ class HtmlView extends BaseHtmlView
 
         if ($layout === 'extensions') {
             $this->plugins = $this->getInstalledPlugins();
+
+            if ($this->canEditPluginState) {
+                $wa->registerAndUseScript(
+                    'com_breezingformsng.admin-toggle-published',
+                    'media/com_breezingformsng/js/admin/admin-toggle-published.js',
+                    ['version' => 'auto'],
+                    ['defer' => true],
+                    ['core']
+                );
+                $document->addScriptOptions(
+                    'com_breezingformsng.admin-toggle-published',
+                    ['csrfToken' => Session::getFormToken()]
+                );
+                Text::script('JPUBLISHED');
+                Text::script('JUNPUBLISHED');
+                Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
+            }
         } elseif ($layout === 'statistics') {
             // Read-only: the table inventory of the audit, without its repair actions.
             $this->auditReport = (new DatabaseAuditService(

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
@@ -32,7 +33,7 @@ $plugins = $this->plugins;
                     <tr>
                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PLUGIN'); ?></th>
                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_CATEGORY'); ?></th>
-                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PLUGIN_STATUS'); ?></th>
+                        <th scope="col" class="text-center"><?php echo Text::_('COM_BREEZINGFORMSNG_PLUGIN_STATUS'); ?></th>
                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_PURPOSE'); ?></th>
                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_USAGE'); ?></th>
                     </tr>
@@ -64,10 +65,25 @@ $plugins = $this->plugins;
                                 </span>
                             </th>
                             <td><?php echo htmlspecialchars((string) ($plugin['category'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td>
-                                <span class="badge <?php echo !empty($plugin['enabled']) ? 'bg-success' : 'bg-secondary'; ?>">
-                                    <?php echo Text::_(!empty($plugin['enabled']) ? 'COM_BREEZINGFORMSNG_PUBLISHED' : 'COM_BREEZINGFORMSNG_UNPUBLISHED'); ?>
-                                </span>
+                            <td class="text-center">
+                                <?php $isEnabled = !empty($plugin['enabled']); ?>
+                                <?php if ($this->canEditPluginState && $pluginId > 0) : ?>
+                                    <button type="button"
+                                        class="tbody-icon js-bf-form-state<?php echo $isEnabled ? ' active' : ''; ?>"
+                                        data-item-task="about.setPluginState"
+                                        data-item-form-id="<?php echo $pluginId; ?>"
+                                        data-state-type="published"
+                                        title="<?php echo Text::_($isEnabled ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>"
+                                        aria-pressed="<?php echo $isEnabled ? 'true' : 'false'; ?>"
+                                        aria-label="<?php echo Text::_($isEnabled ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
+                                        <span class="<?php echo $isEnabled ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+                                    </button>
+                                <?php else : ?>
+                                    <span class="tbody-icon<?php echo $isEnabled ? ' active' : ''; ?>"
+                                        title="<?php echo Text::_($isEnabled ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
+                                        <span class="<?php echo $isEnabled ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+                                    </span>
+                                <?php endif; ?>
                             </td>
                             <td><?php echo htmlspecialchars((string) ($plugin['purpose'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                             <td><?php echo htmlspecialchars((string) ($plugin['usage'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
