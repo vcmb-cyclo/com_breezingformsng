@@ -43,6 +43,7 @@ use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Plugin\PluginHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\FormsAdvancedOptionsHtml;
 
 HTMLHelper::_('bootstrap.tab');
@@ -67,6 +68,16 @@ $tabIdentifier = $tabId;
  * @psalm-suppress UndefinedGlobalVariable
  */
 $entryCounts = $tabEntryCounts;
+/**
+ * The add-on tabs only show while their plugin is enabled: a disabled plugin does nothing with the settings.
+ * The settings already saved stay in the form; the fields of a hidden tab are not posted, so they are kept.
+ *
+ * @var array<string, bool> $addonEnabled
+ */
+$addonEnabled = [];
+foreach (['mailchimp', 'salesforce', 'dropbox'] as $addon) {
+    $addonEnabled[$addon] = PluginHelper::isEnabled('breezingforms_addons', $addon);
+}
 /**
  * @var \Joomla\CMS\Editor\Editor $formEditor
  * @psalm-suppress UndefinedGlobalVariable
@@ -156,6 +167,7 @@ $paneErrors = [
         'salesforce' => 'Salesforce®',
         'dropbox' => 'Dropbox®',
     ] as $pane => $label): ?>
+    <?php if (isset($addonEnabled[$pane]) && !$addonEnabled[$pane]) { continue; } ?>
     <li class="nav-item" role="presentation">
       <button class="nav-link" id="tab-<?= $pane; ?>" data-bs-toggle="tab" data-bs-target="#pane-<?= $pane; ?>"
               type="button" role="tab"><?= $label; ?><?php if (($entryCounts[$pane] ?? 0) > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts[$pane] ?? 0; ?></span><?php endif; ?><?php if (!empty($paneErrors[$pane])): ?> <span class="icon-warning text-danger" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'), ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></span><span class="visually-hidden"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'); ?></span><?php endif; ?></button>
@@ -615,6 +627,7 @@ $paneErrors = [
     </div>
     <?php endforeach; ?>
 
+    <?php if ($addonEnabled['mailchimp']) : ?>
     <div class="tab-pane fade" id="pane-mailchimp" role="tabpanel">
       <?php foreach ([
           'mailchimp_api_key' => 'COM_BREEZINGFORMSNG_API_KEY',
@@ -649,7 +662,9 @@ $paneErrors = [
       </div>
       <?php endforeach; ?>
     </div>
+    <?php endif; ?>
 
+    <?php if ($addonEnabled['salesforce']) : ?>
     <div class="tab-pane fade" id="pane-salesforce" role="tabpanel">
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_salesforce_enabled"<?= $labelTip('COM_BREEZINGFORMSNG_SF_ENABLED_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_ENABLED'); ?></label>
@@ -665,7 +680,9 @@ $paneErrors = [
       <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_salesforce_password"<?= $labelTip('COM_BREEZINGFORMSNG_SF_PASSWORD_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_PASSWORD'); ?></label><div class="col-sm-9"><input type="password" class="form-control" id="jf_salesforce_password" name="salesforce_password" autocomplete="new-password"></div></div>
       <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_salesforce_fields"<?= $labelTip('COM_BREEZINGFORMSNG_SF_FIELDS_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_FIELDS'); ?></label><div class="col-sm-9"><input class="form-control" id="jf_salesforce_fields" name="salesforce_fields[]" value="<?= htmlspecialchars($formOptions->salesforce_fields ?? ''); ?>"></div></div>
     </div>
+    <?php endif; ?>
 
+    <?php if ($addonEnabled['dropbox']) : ?>
     <div class="tab-pane fade" id="pane-dropbox" role="tabpanel">
       <?php foreach ([
           'dropbox_email' => 'COM_BREEZINGFORMSNG_DROPBOX_ACCESS_TOKEN',
@@ -683,5 +700,6 @@ $paneErrors = [
       </div></div>
       <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_dropbox_reset_auth"<?= $labelTip('COM_BREEZINGFORMSNG_DROPBOX_RESET_AUTH_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DROPBOX_RESET_AUTH'); ?></label><div class="col-sm-9 form-check"><input class="form-check-input" id="jf_dropbox_reset_auth" type="checkbox" name="dropbox_reset_auth" value="1"></div></div>
     </div>
+    <?php endif; ?>
 
   </div><!-- /.tab-content -->
