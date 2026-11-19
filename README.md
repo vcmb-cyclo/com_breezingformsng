@@ -135,6 +135,10 @@ This project is maintained by volunteers on a best-effort basis. Only
 [GitHub Releases](https://github.com/vcmb-cyclo/com_breezingformsng/releases) are meant for production.
 Issues and pull requests are welcome.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, coding guidelines, checks, and pull request expectations.
+
 ⚠️ This is **not** an official Crosstec project. All trademarks and original copyrights remain
 the property of their respective owners.
 
