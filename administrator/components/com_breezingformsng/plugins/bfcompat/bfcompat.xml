@@ -2,10 +2,10 @@
 <extension type="plugin" group="system" method="upgrade">
 	<name>PLG_SYSTEM_BFCOMPAT</name>
 	<author>XDA/GIL</author>
-	<creationDate>2026-07-20</creationDate>
+	<creationDate>2026-11-19</creationDate>
 	<copyright>Copyright 2024 - 2026 by XDA+GIL</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-	<version>6.1.0-RC13</version>
+	<version>6.1.0-RC22</version>
 	<description>PLG_SYSTEM_BFCOMPAT_XML_DESCRIPTION</description>
 	<namespace path="src">Vcmb\Plugin\System\Bfcompat</namespace>
 	<files>
