@@ -92,8 +92,9 @@ final class StandardLibraryUpgradeTest extends TestCase
         $model->incomingVersion = '6.2.0';
         self::assertSame(['COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_BEFORE_STANDARD|6.2.0', 'COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_STANDARD|6.2.0'], $notes());
 
+        // A key the language does not translate yet never ends up in the history: the note falls back to English.
         $model->incomingVersion = '';
-        self::assertSame(['COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_BEFORE_STANDARD_UNVERSIONED', 'COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_STANDARD_UNVERSIONED'], $notes());
+        self::assertSame(['Before the update to the standard library', 'Standard library of the update'], $notes());
     }
 }
 

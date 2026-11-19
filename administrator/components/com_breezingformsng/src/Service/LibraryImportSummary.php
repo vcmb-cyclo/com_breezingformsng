@@ -30,6 +30,20 @@ final class LibraryImportSummary
     ];
 
     /**
+     * The sentences in English, used when the language files of the version being installed are not read yet.
+     * The format of each one is the format of its language key.
+     */
+    public const FALLBACKS = [
+        'COM_BREEZINGFORMSNG_INSTALL_STANDARD_LIBRARY_CREATED_SCRIPTS' => 'Created scripts (%d): %s',
+        'COM_BREEZINGFORMSNG_INSTALL_STANDARD_LIBRARY_CREATED_PIECES' => 'Created pieces (%d): %s',
+        'COM_BREEZINGFORMSNG_INSTALL_STANDARD_LIBRARY_REPLACED_SCRIPTS'
+            => 'Replaced by the standard version, previous code kept in the history of each script (Versions) (%d): %s',
+        'COM_BREEZINGFORMSNG_INSTALL_STANDARD_LIBRARY_REPLACED_PIECES'
+            => 'Replaced by the standard version, previous code kept in the history of each piece (Versions) (%d): %s',
+        'COM_BREEZINGFORMSNG_INSTALL_STANDARD_LIBRARY_CHANGES' => 'Standard library changes: %s.',
+    ];
+
+    /**
      * @param callable(string, int, string): string $translate Language key, count and names to a sentence
      *
      * @return list<string> Nothing when the import changed nothing
