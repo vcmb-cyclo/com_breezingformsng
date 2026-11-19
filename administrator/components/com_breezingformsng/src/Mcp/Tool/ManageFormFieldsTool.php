@@ -21,16 +21,19 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
     {
     }
 
+    #[\Override]
     public function name(): string
     {
         return 'bfng_manage_form_fields';
     }
 
+    #[\Override]
     public function title(): string
     {
         return 'Manage form fields';
     }
 
+    #[\Override]
     public function description(): string
     {
         return 'Adds, updates or removes text, textarea, select, radio, checkbox-group and checkbox fields on compatible QuickMode forms. '
@@ -39,6 +42,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
             . 'Forms with other field types or nested field structures are not changed. Choice options cannot be changed after submissions exist.';
     }
 
+    #[\Override]
     public function inputSchema(): array
     {
         $newField = [
@@ -123,17 +127,20 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
         ];
     }
 
+    #[\Override]
     public function readOnly(): bool
     {
         return false;
     }
 
+    #[\Override]
     public function allows(User $user): bool
     {
         return $user->authorise('core.manage', 'com_breezingformsng')
             && $user->authorise('core.edit', 'com_breezingformsng');
     }
 
+    #[\Override]
     public function call(array $arguments, User $user): array
     {
         return $this->writer->manageFields($arguments, $user);

@@ -29,16 +29,19 @@ final class AuditDatabaseTool implements McpTool
     {
     }
 
+    #[\Override]
     public function name(): string
     {
         return 'bfng_audit_database';
     }
 
+    #[\Override]
     public function title(): string
     {
         return 'Audit the BreezingForms NG database';
     }
 
+    #[\Override]
     public function description(): string
     {
         return 'Runs the database audit of the BreezingForms NG About screen and changes nothing. '
@@ -53,23 +56,27 @@ final class AuditDatabaseTool implements McpTool
             . 'and a cut nested list gets a sibling <name>_total. Repairs are made by the user on the About screen.';
     }
 
+    #[\Override]
     public function inputSchema(): array
     {
         // No argument: without properties, a JSON object schema that allows none.
         return ['type' => 'object', 'additionalProperties' => false];
     }
 
+    #[\Override]
     public function readOnly(): bool
     {
         return true;
     }
 
+    #[\Override]
     public function allows(User $user): bool
     {
         // The audit of the About screen: the same right as running it there.
         return $user->authorise('core.manage', 'com_breezingformsng');
     }
 
+    #[\Override]
     public function call(array $arguments, User $user): array
     {
         return AuditReportFilter::filter(($this->report)(), $this->root);

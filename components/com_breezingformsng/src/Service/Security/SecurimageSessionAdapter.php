@@ -28,6 +28,7 @@ final class SecurimageSessionAdapter implements AdapterInterface
     {
     }
 
+    #[\Override]
     /**
      * @param string $captchaId
      * @param mixed  $captchaInfo
@@ -41,6 +42,7 @@ final class SecurimageSessionAdapter implements AdapterInterface
         return true;
     }
 
+    #[\Override]
     /**
      * @param string $captchaId
      * @param mixed  $audioData
@@ -51,6 +53,7 @@ final class SecurimageSessionAdapter implements AdapterInterface
         return false;
     }
 
+    #[\Override]
     /**
      * @param string      $captchaId
      * @param int         $what
@@ -72,6 +75,7 @@ final class SecurimageSessionAdapter implements AdapterInterface
         return $captcha;
     }
 
+    #[\Override]
     /** @param string $captchaId */
     public function delete($captchaId): bool
     {

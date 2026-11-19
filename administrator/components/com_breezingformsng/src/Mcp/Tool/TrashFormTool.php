@@ -21,22 +21,26 @@ final class TrashFormTool implements DestructiveMcpTool
     {
     }
 
+    #[\Override]
     public function name(): string
     {
         return 'bfng_trash_form';
     }
 
+    #[\Override]
     public function title(): string
     {
         return 'Move form to trash';
     }
 
+    #[\Override]
     public function description(): string
     {
         return 'Moves a form to Joomla trash without permanently deleting it or its submissions. '
             . 'A trashed form can be restored with bfng_restore_form.';
     }
 
+    #[\Override]
     public function inputSchema(): array
     {
         return [
@@ -47,11 +51,13 @@ final class TrashFormTool implements DestructiveMcpTool
         ];
     }
 
+    #[\Override]
     public function readOnly(): bool
     {
         return false;
     }
 
+    #[\Override]
     public function allows(User $user): bool
     {
         return $user->authorise('core.manage', 'com_breezingformsng')
@@ -59,6 +65,7 @@ final class TrashFormTool implements DestructiveMcpTool
             && $user->authorise('core.edit.state', 'com_breezingformsng');
     }
 
+    #[\Override]
     public function call(array $arguments, User $user): array
     {
         return $this->writer->trashForm($arguments, $user);

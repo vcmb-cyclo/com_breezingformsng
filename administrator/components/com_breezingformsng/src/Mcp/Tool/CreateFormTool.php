@@ -21,22 +21,26 @@ final class CreateFormTool implements McpTool
     {
     }
 
+    #[\Override]
     public function name(): string
     {
         return 'bfng_create_form';
     }
 
+    #[\Override]
     public function title(): string
     {
         return 'Create form';
     }
 
+    #[\Override]
     public function description(): string
     {
         return 'Creates an unpublished BreezingForms NG form with an optional plain-text first-page introduction and up to 30 text, textarea, select, radio, checkbox-group or checkbox fields. '
             . 'Text and textarea fields can use the standard non-empty validation; custom scripts, other validations, integrations, file uploads, payments and notification destinations are not configured.';
     }
 
+    #[\Override]
     public function inputSchema(): array
     {
         return [
@@ -97,17 +101,20 @@ final class CreateFormTool implements McpTool
         ];
     }
 
+    #[\Override]
     public function readOnly(): bool
     {
         return false;
     }
 
+    #[\Override]
     public function allows(User $user): bool
     {
         return $user->authorise('core.manage', 'com_breezingformsng')
             && $user->authorise('core.create', 'com_breezingformsng');
     }
 
+    #[\Override]
     public function call(array $arguments, User $user): array
     {
         return $this->writer->create($arguments, $user);
