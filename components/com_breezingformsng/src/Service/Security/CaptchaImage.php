@@ -18,13 +18,13 @@ use Gregwar\Captcha\CaptchaBuilder;
 use Gregwar\Captcha\PhraseBuilder;
 
 /**
- * The security code image: a few characters on a light background, with a slight
- * distortion and some lines. Characters that are easy to confuse (i, l, o, 0, 1)
- * are left out.
+ * The security code image: a few characters on a light background, with no distortion
+ * and only faint lines behind them, so that a person reads it at once. Characters
+ * that look alike (i, l, o, 0, 1, u, v, w, y, s, z, 2, 5, g, q, b, 6) are left out.
  */
 final class CaptchaImage
 {
-    public const CHARACTERS = 'abcdefghjkmnpqrstuvwxyz23456789';
+    public const CHARACTERS = 'acdefhjkmnprtx34679';
     public const LENGTH = 5;
     public const WIDTH = 230;
     public const HEIGHT = 80;
@@ -38,9 +38,9 @@ final class CaptchaImage
         $builder = new CaptchaBuilder(null, new PhraseBuilder(self::LENGTH, self::CHARACTERS));
         $builder->setBackgroundColor(245, 245, 240)
             ->setTextColor(32, 31, 29)
-            ->setMaxBehindLines(4)
-            ->setMaxFrontLines(2)
-            ->setDistortion(true)
+            ->setMaxBehindLines(2)
+            ->setMaxFrontLines(0)
+            ->setDistortion(false)
             ->build(self::WIDTH, self::HEIGHT);
 
         return ['phrase' => (string) $builder->getPhrase(), 'image' => $builder->get(self::QUALITY)];
