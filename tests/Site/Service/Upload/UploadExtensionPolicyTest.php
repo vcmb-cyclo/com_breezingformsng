@@ -50,7 +50,94 @@ final class UploadExtensionPolicyTest extends TestCase
             'double extension' => ['shell.php.jpg'],
             'htaccess' => ['.htaccess'],
             'path in the name' => ['..\\x\\shell.php5'],
+            'trailing space' => ['shell.php '],
+            'trailing dot' => ['shell.php.'],
+            'trailing dots and spaces' => ['shell.php . .'],
+            'space inside' => ['shell. php'],
+            'no break space' => ["shell.php\u{00A0}"],
+            'NUL truncation' => ["shell.php\0.jpg"],
+            'NUL at the end' => ["shell.jpg\0.php"],
+            'alternate data stream' => ['shell.php::$DATA'],
+            'stream with extension' => ['shell.php:.jpg'],
+            'full width' => ['shell.ｐｈｐ'],
+            'right to left override' => ["shell.\u{202E}gpj.php"],
+            'zero width' => ["shell.p\u{200B}hp"],
+            'invalid utf-8' => ["shell\xFF.php"],
+            'php 8 variants' => ['a.php8'],
+            'phar' => ['a.phar'],
+            'pht' => ['a.pht'],
+            'inc' => ['config.inc'],
+            'shtml' => ['a.shtml'],
+            'cgi' => ['a.cgi'],
+            'double cgi' => ['a.cgi.png'],
+            'asp' => ['a.aspx'],
+            'jsp' => ['a.jsp'],
+            'user ini' => ['.user.ini'],
+            'user ini upper case' => ['.USER.INI'],
+            'php ini' => ['php.ini'],
+            'web config' => ['web.config'],
+            'web config in a path' => ['uploads/Web.Config'],
+            'htpasswd' => ['.htpasswd'],
+            'env' => ['.env'],
+            'windows program' => ['setup.exe'],
+            'batch' => ['run.BAT'],
+            'powershell' => ['x.ps1'],
+            'jar' => ['x.jar'],
+            'html page' => ['page.html'],
+            'svg image' => ['logo.SVG'],
+            'xml' => ['data.xml'],
+            'javascript' => ['x.js'],
+            'only dots' => ['...'],
+            'only spaces' => ['   '],
         ];
+    }
+
+    #[DataProvider('legitimateNames')]
+    public function testLegitimateFilesAreAccepted(string $name): void
+    {
+        self::assertNull((new UploadExtensionPolicy())->firstRefused([$name], ''));
+        self::assertTrue((new UploadExtensionPolicy())->isAccepted($name, [strtolower((string) pathinfo($name, PATHINFO_EXTENSION))]));
+    }
+
+    /** @return array<string, array{string}> */
+    public static function legitimateNames(): array
+    {
+        return [
+            'pdf' => ['report.pdf'],
+            'jpg' => ['photo.jpg'],
+            'jpeg upper case' => ['PHOTO.JPEG'],
+            'png' => ['logo.png'],
+            'zip' => ['archive.zip'],
+            'docx' => ['letter.docx'],
+            'xlsx' => ['sheet.xlsx'],
+            'txt' => ['notes.txt'],
+            'csv' => ['data.csv'],
+            'mp4' => ['clip.mp4'],
+            'accents' => ['résumé été.pdf'],
+            'dots in name' => ['v1.2.final.pdf'],
+            'spaces' => ['my report.pdf'],
+            'php in a word' => ['phpbook.pdf'],
+            'com in a name' => ['john.com.pdf'],
+            'path with folders' => ['/Users/me/photo.jpg'],
+        ];
+    }
+
+    public function testActiveContentIsAcceptedOnlyWhenTheFormListsItExplicitly(): void
+    {
+        $policy = new UploadExtensionPolicy();
+
+        self::assertNull($policy->firstRefused(['logo.svg'], 'svg,png'));
+        self::assertSame('logo.svg', $policy->firstRefused(['logo.svg'], 'png'));
+        self::assertSame('logo.svg', $policy->firstRefused(['logo.svg'], ''));
+    }
+
+    public function testTheAllowListIsNotAWayAroundTheDeniedList(): void
+    {
+        $policy = new UploadExtensionPolicy();
+
+        self::assertSame('a.phtml', $policy->firstRefused(['a.phtml'], 'phtml,jpg'));
+        self::assertSame('a.htaccess', $policy->firstRefused(['a.htaccess'], 'htaccess'));
+        self::assertSame('x.exe', $policy->firstRefused(['x.exe'], 'exe'));
     }
 
     public function testAnyOtherFileIsAcceptedWhenTheFormAllowsEverything(): void

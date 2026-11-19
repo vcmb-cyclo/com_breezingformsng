@@ -62,11 +62,12 @@ Les sections ci-dessous décrivent l'audit tel que remis, avant correction. Ce t
 | SEC-R2-003 nom de thème dans un `require_once` | Corrigé | |
 | SEC-R2-004 nom de formulaire dans les gabarits PHP | Corrigé à l'usage | Non imposé à l'enregistrement : un nom atypique perd son gabarit personnalisé |
 | SEC-R2-005 restauration de version (F-19) | Corrigé | |
-| SEC-R2-006 captcha sans limitation de débit | **Ouvert** | |
+| SEC-R2-006 captcha sans limitation de débit | Corrigé | Code abandonné après 5 essais, 30 images par 10 minutes et par session ; aucun message dédié pour le visiteur |
 | SEC-R2-007 IPN PayPal non atomique | Corrigé | Pas de test en vraie concurrence |
-| SEC-R2-008 `filepath` sans dossier de base | Corrigé en partie | Un fichier sans extension (ex. `/etc/passwd`) passe encore la politique |
+| SEC-R2-008 `filepath` sans dossier de base | Corrigé | Fichiers sans extension et dossiers sensibles refusés ; pas de dossier de base configurable. Une sauvegarde rangée dans `administrator/` ou `tmp/` est maintenant refusée |
 | SEC-R2-009 dossier des signatures | Corrigé en partie | Règle Apache seulement ; nginx non couvert |
-| SEC-R2-010 à SEC-R2-015 | **Ouvert** | Jokers `LIKE`, erreur Dropbox, validation de fichiers, installateur, code mort, bibliothèques JS embarquées (avis non vérifiables) |
+| SEC-R2-010 jokers `LIKE`, SEC-R2-011 erreur Dropbox, SEC-R2-012 validation des fichiers, SEC-R2-014 code mort | Corrigé | SEC-R2-014 : trois fonctions supprimées après vérification qu'aucun appel n'existe dans le dépôt |
+| SEC-R2-013 installateur, SEC-R2-015 bibliothèques JS embarquées | **Ouvert** | SEC-R2-013 demande une autorisation ; SEC-R2-015 : avis non vérifiables hors ligne |
 
 Mises à jour des lignes précédentes : SEC-001 et SEC-002 couvrent maintenant le code des éléments, l'import, la restauration et la conversion legacy ; les sélecteurs de bibliothèque (`cond`/`id`) restent volontairement libres pour ne pas empêcher un éditeur de poser une validation standard. SEC-007 : le champ `filepath` exige le droit « code ». SEC-008 : confirmation en POST. SEC-009 : cache en JSON hors racine web, anciennes entrées toujours consommées.
 

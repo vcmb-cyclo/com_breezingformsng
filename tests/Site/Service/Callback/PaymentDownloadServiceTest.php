@@ -22,6 +22,7 @@ use Joomla\CMS\Application\CMSApplication;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use PHPUnit\Framework\TestCase;
+use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadFilePolicy;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadPolicy;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadService;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentFormLoader;
@@ -132,6 +133,8 @@ final class PaymentDownloadServiceTest extends TestCase
     public function testMatchesTheRecordFormAndClaimsTheDownloadWithOneConditionalUpdate(): void
     {
         $file = tempnam(sys_get_temp_dir(), 'bfng');
+        rename($file, $file . '.zip');
+        $file .= '.zip';
         file_put_contents($file, 'x');
         try {
             $application = $this->application(['form' => 4, 'record_id' => 12, 'token' => 'abc']);
@@ -183,16 +186,46 @@ final class PaymentDownloadServiceTest extends TestCase
         self::assertSame(['COM_BREEZINGFORMSNG_MAX_DOWNLOAD_TRIES_REACHED'], $application->messages);
     }
 
+    public function testAFileUnderASensitiveRootIsRefusedAndNotStreamed(): void
+    {
+        $directory = sys_get_temp_dir() . '/bfng-sensitive-' . bin2hex(random_bytes(4));
+        mkdir($directory);
+        $file = $directory . '/backup.zip';
+        file_put_contents($file, 'x');
+
+        try {
+            $application = $this->application(['form' => 4, 'record_id' => 12, 'token' => 'abc']);
+            $database = new PaymentDownloadDatabaseDouble([
+                [$this->form('bfStripe', $file)],
+                [(object) ['paypal_download_tries' => 1]],
+            ]);
+
+            $this->service($application, $database, new PaymentDownloadFilePolicy([$directory]))->download(
+                'bfStripe',
+                'COM_BREEZINGFORMSNG_COULD_NOT_FIND_PAYMENT_DATA',
+                'token',
+                'Stripe'
+            );
+
+            self::assertSame(['COM_BREEZINGFORMSNG_COULD_NOT_FIND_DOWNLOAD_FILE'], $application->messages);
+        } finally {
+            unlink($file);
+            rmdir($directory);
+        }
+    }
+
     private function service(
         PaymentDownloadApplicationDouble $application,
-        PaymentDownloadDatabaseDouble $database
+        PaymentDownloadDatabaseDouble $database,
+        ?PaymentDownloadFilePolicy $filePolicy = null
     ): PaymentDownloadService {
         return new PaymentDownloadService(
             $application,
             $database,
             new PaymentFormLoader($database),
             new RedirectHelper($application),
-            new PaymentDownloadPolicy()
+            new PaymentDownloadPolicy(),
+            $filePolicy ?? new PaymentDownloadFilePolicy()
         );
     }
 

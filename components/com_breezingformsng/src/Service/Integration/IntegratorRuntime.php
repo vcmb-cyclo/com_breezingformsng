@@ -295,7 +295,13 @@ class IntegratorRuntime
             if (trim($rule['rule']->finalize_code) != '') {
                 $this->handleFinalizeCode($rule['rule']->finalize_code);
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
+            // Generic message only: neither the exception text nor submitted data may reach the log.
+            Log::add(
+                'Integrator rule ' . (int) $rule['rule']->id . ' failed while updating or inserting the reference row.',
+                Log::WARNING,
+                'com_breezingformsng'
+            );
         }
     }
 
@@ -374,7 +380,12 @@ class IntegratorRuntime
             if (trim($rule['rule']->finalize_code) != '') {
                 $this->handleFinalizeCode($rule['rule']->finalize_code);
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
+            Log::add(
+                'Integrator rule ' . (int) $rule['rule']->id . ' failed while updating or inserting the reference row.',
+                Log::WARNING,
+                'com_breezingformsng'
+            );
         }
     }
 
@@ -411,21 +422,26 @@ class IntegratorRuntime
             $placeholder = ':criteriaValue' . $bindIndex++;
             $like = null;
 
+            // Wildcards inside the value match literally: the value is bound as a
+            // parameter, so only the LIKE metacharacters are escaped (with "!",
+            // declared through ESCAPE, which is independent of NO_BACKSLASH_ESCAPES).
+            $escaped = static fn ($raw): string => (string) preg_replace('/[!%_]/', '!$0', (string) $raw);
+
             switch ($operator) {
                 case '%...%':
-                    $like = '%' . $value . '%';
+                    $like = '%' . $escaped($value) . '%';
                     break;
                 case '%...':
-                    $like = '%' . $value;
+                    $like = '%' . $escaped($value);
                     break;
                 case '...%':
-                    $like = $value . '%';
+                    $like = $escaped($value) . '%';
                     break;
             }
 
             if ($like !== null) {
                 $query->bind($placeholder, $like);
-                $clauses .= $db->quoteName($column) . ' LIKE ' . $placeholder;
+                $clauses .= $db->quoteName($column) . ' LIKE ' . $placeholder . " ESCAPE '!'";
             } else {
                 $query->bind($placeholder, $value);
                 $clauses .= $db->quoteName($column) . ' ' . $operator . ' ' . $placeholder;

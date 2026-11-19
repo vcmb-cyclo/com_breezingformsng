@@ -49,6 +49,11 @@
 - Stop a QuickMode save from taking over an element that belongs to another form.
 - Record a PayPal payment once, and notify once, even when PayPal sends the same notification twice at the same moment.
 - Protect the folder of the signature images with an access rule.
+- Make the image security code harder to guess: a code is dropped after five wrong entries, and a visit can only be given a limited number of new images.
+- Refuse more risky files in upload fields: scripts and server configuration files, active content such as HTML, SVG and JavaScript unless the form lists them, and names that hide an extension with trailing dots, colons or invisible characters.
+- Refuse as a paid download any file without an extension and any file in the folders of Joomla itself, such as administrator, libraries, plugins, configuration, temporary files and logs, or in system folders.
+- Match the percent and underscore signs typed by a visitor literally in the contains, starts-with and ends-with rules of the Integrator.
+- Keep a Dropbox error from stopping the sending of a form.
 
 ## 6.1.0-RC22
 

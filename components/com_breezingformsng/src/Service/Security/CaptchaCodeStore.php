@@ -29,7 +29,18 @@ final class CaptchaCodeStore
     /** Wrong entries tolerated before the code is dropped and a new image is needed. */
     public const MAX_ATTEMPTS = 5;
 
+    /** Shortest pause, in seconds, between two images issued to the same session. */
+    public const ISSUE_INTERVAL = 0.5;
+
+    /** Images a session may be issued within ISSUE_WINDOW seconds. */
+    public const ISSUE_LIMIT = 30;
+
+    /** Length, in seconds, of the window the issue limit applies to. */
+    public const ISSUE_WINDOW = 600;
+
     private const KEY = 'com_breezingformsng.captcha';
+
+    private const ISSUE_KEY = 'com_breezingformsng.captcha_issues';
 
     public function __construct(private readonly SessionInterface $session)
     {
@@ -38,6 +49,35 @@ final class CaptchaCodeStore
     public function store(string $code): void
     {
         $this->session->set(self::KEY, ['code' => $code, 'time' => time(), 'attempts' => 0]);
+    }
+
+    /**
+     * Whether a new image may be issued to this session now; when it may, the issue is recorded.
+     * A refused request is not recorded, so a visitor is served again once the pause or window has passed.
+     */
+    public function allowIssue(?float $now = null): bool
+    {
+        $now ??= microtime(true);
+        $state = $this->session->get(self::ISSUE_KEY);
+        $last = is_array($state) && is_numeric($state['last'] ?? null) ? (float) $state['last'] : 0.0;
+        $times = [];
+
+        if (is_array($state) && is_array($state['times'] ?? null)) {
+            foreach ($state['times'] as $time) {
+                if ((is_float($time) || is_int($time)) && $now - $time < self::ISSUE_WINDOW) {
+                    $times[] = (float) $time;
+                }
+            }
+        }
+
+        if (($last > 0.0 && $now - $last < self::ISSUE_INTERVAL) || count($times) >= self::ISSUE_LIMIT) {
+            return false;
+        }
+
+        $times[] = $now;
+        $this->session->set(self::ISSUE_KEY, ['last' => $now, 'times' => $times]);
+
+        return true;
     }
 
     /** @return array{code: string, time: int}|null */
