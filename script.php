@@ -4311,13 +4311,13 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
         $this->announce(
             '[INFO] BreezingForms ' . strtoupper($type) . ' | '
-            . htmlspecialchars($this->currentInstalledVersion, ENT_QUOTES, 'UTF-8') . ' &rarr; <strong>'
+            . htmlspecialchars($this->currentInstalledVersion, ENT_QUOTES, 'UTF-8') . ' → '
             . htmlspecialchars(
                 $this->incomingPackageVersion !== '' ? $this->incomingPackageVersion : 'unknown',
                 ENT_QUOTES,
                 'UTF-8'
             )
-            . '</strong> | Joomla ' . htmlspecialchars(defined('JVERSION') ? JVERSION : 'unknown', ENT_QUOTES, 'UTF-8')
+            . ' | Joomla ' . htmlspecialchars(defined('JVERSION') ? JVERSION : 'unknown', ENT_QUOTES, 'UTF-8')
             . ' | PHP ' . htmlspecialchars(PHP_VERSION, ENT_QUOTES, 'UTF-8')
             . ' | DB ' . htmlspecialchars($this->getDatabaseRuntimeLabel(), ENT_QUOTES, 'UTF-8') . '.',
             'message',
@@ -4393,9 +4393,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $finishMessage = ($finishedWithFailure ? '[ERROR] BreezingForms ' : '[OK] BreezingForms ')
             . $actionLabel
             . ($finishedWithFailure ? ' finished with critical issue(s).' : ' finished successfully.')
-            . ' ' . htmlspecialchars($this->currentInstalledVersion, ENT_QUOTES, 'UTF-8') . ' &rarr; <strong>'
-            . htmlspecialchars($packageVersion !== '' ? $packageVersion : 'unknown', ENT_QUOTES, 'UTF-8') . '</strong>'
-            . ' | duration: <strong>' . number_format($durationSeconds, 2, '.', '') . 's</strong>.';
+            . ' ' . htmlspecialchars($this->currentInstalledVersion, ENT_QUOTES, 'UTF-8') . ' → '
+            . htmlspecialchars($packageVersion !== '' ? $packageVersion : 'unknown', ENT_QUOTES, 'UTF-8')
+            . ' | duration: ' . number_format($durationSeconds, 2, '.', '') . ' s.';
 
         $this->announce(
             $finishMessage,
