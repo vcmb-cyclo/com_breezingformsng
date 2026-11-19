@@ -1,0 +1,57 @@
+name: Feature request
+description: Suggest an improvement or a new capability
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the suggestion. For a substantial feature, an issue is the right place to discuss scope and
+        compatibility before any code is written (see [CONTRIBUTING.md](https://github.com/vcmb-cyclo/com_breezingformsng/blob/main/CONTRIBUTING.md)).
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem or need
+      description: What are you trying to do, and what stops you today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+      description: How would you like it to work, from the point of view of the person building or filling in the form?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and workarounds
+      description: What do you do today, and what other products offer, if you know.
+  - type: dropdown
+    id: users
+    attributes:
+      label: Who benefits?
+      options:
+        - Administrators building forms
+        - Visitors filling in forms
+        - Site owners reading submissions
+        - Developers integrating with BreezingForms NG
+        - Other
+  - type: input
+    id: versions
+    attributes:
+      label: Versions you use
+      description: BreezingForms NG, Joomla and PHP, if relevant.
+      placeholder: "BFNG 6.1.0-RC22, Joomla 6.2.0, PHP 8.4"
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Impact on existing forms and data
+      description: Could it change how current forms, stored submissions, packages or permissions behave?
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send
+      options:
+        - label: I searched the existing issues and found no duplicate.
+          required: true

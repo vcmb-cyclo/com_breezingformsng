@@ -1,0 +1,120 @@
+name: Bug report
+description: Something does not work as expected in BreezingForms NG
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a problem.
+
+        **Do not report a security vulnerability here.** Use the private reporting described in
+        [SECURITY.md](https://github.com/vcmb-cyclo/com_breezingformsng/security/policy).
+
+        Please remove passwords, tokens, personal data, form submissions and payment details from everything you post.
+  - type: input
+    id: bfng-version
+    attributes:
+      label: BreezingForms NG version
+      description: As shown on the About screen of the component, including a release candidate suffix such as `-RC22`.
+      placeholder: "6.1.0-RC22"
+    validations:
+      required: true
+  - type: input
+    id: joomla-version
+    attributes:
+      label: Joomla version
+      placeholder: "6.2.0"
+    validations:
+      required: true
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP version
+      placeholder: "8.4.x"
+    validations:
+      required: true
+  - type: input
+    id: database
+    attributes:
+      label: Database and version
+      placeholder: "MySQL 8.0.36 or MariaDB 10.11"
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      description: Only if the problem is on screen.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where does it happen?
+      options:
+        - Form editor (QuickMode)
+        - Form on the website (front end)
+        - Submissions / records
+        - Export (CSV, XLSX, PDF)
+        - E-mail notifications
+        - Payments
+        - Package import or export
+        - Installation or update
+        - MCP / AI assistants
+        - Administration (other screens)
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: origin
+    attributes:
+      label: How did you get this version?
+      options:
+        - Fresh installation
+        - Updated from an earlier BreezingForms NG version
+        - Upgraded from Crosstec BreezingForms
+  - type: textarea
+    id: description
+    attributes:
+      label: What happens
+      description: A clear description of the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest set of steps that shows the problem, preferably with a new form and sample data.
+      placeholder: |
+        1. Create a form with ...
+        2. Open ...
+        3. Click ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include the exact error message if there is one.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and screenshots
+      description: >-
+        Joomla error log lines or the browser console, if relevant. Enable Joomla's debug mode on a test site to
+        get details. Remove anything private first.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send
+      options:
+        - label: I searched the existing issues and found no duplicate.
+          required: true
+        - label: I removed private data from what I posted.
+          required: true
