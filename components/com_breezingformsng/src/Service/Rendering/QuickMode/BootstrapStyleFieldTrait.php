@@ -39,7 +39,7 @@ trait BootstrapStyleFieldTrait
 
     /**
      * @param array<string, mixed> $mdata
-     * @return array<string, mixed>
+     * @return BootstrapStyleFieldData
      */
     private function normalizeBootstrapStyleFieldData(array $mdata): array
     {
@@ -90,9 +90,105 @@ trait BootstrapStyleFieldTrait
         $normalized['group'] = $this->bootstrapStyleString($mdata['group'] ?? null, 'group');
         $normalized['wrap'] = $this->bootstrapStyleBoolean($mdata['wrap'] ?? null, 'wrap');
 
-        $this->assertBootstrapStyleFieldData($normalized);
+        foreach (
+            [
+                'type', 'bfType', 'name', 'pageIntro', 'label', 'hint', 'labelPosition', 'title', 'description',
+                'connectType', 'emptyMessage', 'toggleFields', 'theme', 'placeholder', 'mailbackConnectWith',
+                'actionFunctionName', 'fieldCalc', 'format', 'firstDay', 'minYear', 'maxYear', 'pagingPrevLabel',
+                'pagingNextLabel', 'submitLabel', 'cancelLabel',
+            ] as $key
+        ) {
+            $normalized[$key] = $this->bootstrapStyleString($mdata[$key] ?? null, $key);
+        }
+        foreach (['dbId', 'pageNumber', 'tabIndex', 'maxlength'] as $key) {
+            $normalized[$key] = $this->bootstrapStyleInteger($mdata[$key] ?? null, $key);
+        }
+        foreach (
+            [
+                'actionBlur', 'actionChange', 'actionFocus', 'actionSelect', 'hideIfEmpty', 'hideLabel', 'off',
+                'required', 'readonly', 'wrap', 'is_html', 'flashUploader', 'html5', 'invisibleCaptcha',
+                'showMaxlengthCounter', 'attachToAdminMail', 'attachToUserMail', 'fadeIn', 'useErrorAlerts',
+                'useDefaultErrors', 'useBalloonErrors', 'rollover', 'lastPageThankYou', 'pagingInclude',
+                'submitInclude', 'cancelInclude', 'joomlaHint',
+            ] as $key
+        ) {
+            $normalized[$key] = $this->bootstrapStyleBoolean($mdata[$key] ?? null, $key);
+        }
 
-        return $normalized;
+        return $this->validatedBootstrapStyleFieldData($normalized);
+    }
+
+    /**
+     * @return BootstrapStyleFieldData
+     */
+    private function validatedBootstrapStyleFieldData(mixed $mdata): array
+    {
+        $this->assertBootstrapStyleFieldData($mdata);
+
+        return $mdata;
+    }
+
+    /**
+     * @phpstan-assert QuickModeTreeNode $dataObject
+     */
+    private function assertQuickModeTreeNode(mixed $dataObject): void
+    {
+        if (!is_array($dataObject)) {
+            throw new \UnexpectedValueException('QuickMode tree node has an invalid shape.');
+        }
+
+        if (array_key_exists('properties', $dataObject) && !is_array($dataObject['properties'])) {
+            throw new \UnexpectedValueException('QuickMode tree node properties have an invalid shape.');
+        }
+
+        if (
+            array_key_exists('attributes', $dataObject)
+            && (!is_array($dataObject['attributes'])
+                || !isset($dataObject['attributes']['id'])
+                || !is_string($dataObject['attributes']['id']))
+        ) {
+            throw new \UnexpectedValueException('QuickMode tree node attributes have an invalid shape.');
+        }
+
+        if (
+            array_key_exists('children', $dataObject)
+            && (!is_array($dataObject['children']) || !array_is_list($dataObject['children']))
+        ) {
+            throw new \UnexpectedValueException('QuickMode tree children must be a list.');
+        }
+    }
+
+    /**
+     * @phpstan-assert QuickModeProcessNode $dataObject
+     */
+    private function assertQuickModeProcessNode(mixed $dataObject): void
+    {
+        $this->assertQuickModeTreeNode($dataObject);
+
+        if (!isset($dataObject['properties']) || !is_array($dataObject['properties'])) {
+            throw new \UnexpectedValueException('QuickMode process node properties have an invalid shape.');
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function quickModeNodeProperties(mixed $dataObject): array
+    {
+        $this->assertQuickModeProcessNode($dataObject);
+
+        return $dataObject['properties'];
+    }
+
+    /**
+     * @param QuickModeTreeNode $dataObject
+     * @return list<array<string, mixed>>
+     */
+    private function quickModeRootChildren(array $dataObject): array
+    {
+        $this->assertQuickModeTreeNode($dataObject);
+
+        return $dataObject['children'] ?? [];
     }
 
     private function bootstrapStyleString(mixed $value, string $key): string
@@ -158,12 +254,71 @@ trait BootstrapStyleFieldTrait
     }
 
     /**
-     * @param array<string, mixed> $mdata
+     * @param mixed $mdata
+     * @phpstan-assert BootstrapStyleFieldData $mdata
      */
-    private function assertBootstrapStyleFieldData(array $mdata): void
+    private function assertBootstrapStyleFieldData(mixed $mdata): void
     {
-        if (!is_string($mdata['bfName']) || !is_int($mdata['dbId']) || !is_string($mdata['value'])) {
-            throw new \UnexpectedValueException('QuickMode field metadata has an invalid normalized shape.');
+        if (!is_array($mdata)) {
+            throw new \UnexpectedValueException('QuickMode field metadata must be an array.');
+        }
+
+        foreach (
+            [
+                'type', 'bfType', 'bfName', 'name', 'pageIntro', 'label', 'hint', 'labelPosition', 'title',
+                'description', 'actionFunctionName', 'connectType', 'emptyMessage', 'fieldCalc', 'format',
+                'firstDay', 'minYear', 'maxYear', 'width', 'height', 'size', 'value', 'placeholder', 'group',
+                'list', 'src', 'image', 'mailbackConnectWith', 'theme', 'toggleFields', 'pagingPrevLabel',
+                'pagingNextLabel', 'submitLabel', 'cancelLabel',
+            ] as $key
+        ) {
+            if (!is_string($mdata[$key] ?? null)) {
+                throw new \UnexpectedValueException(
+                    sprintf('QuickMode field metadata "%s" must be a string.', $key)
+                );
+            }
+        }
+
+        foreach (['dbId', 'pageNumber', 'tabIndex', 'maxlength'] as $key) {
+            if (!is_int($mdata[$key] ?? null)) {
+                throw new \UnexpectedValueException(
+                    sprintf('QuickMode field metadata "%s" must be an integer.', $key)
+                );
+            }
+        }
+
+        foreach (
+            [
+                'actionClick', 'actionBlur', 'actionChange', 'actionFocus', 'actionSelect', 'hideIfEmpty',
+                'hideLabel', 'off', 'required', 'readonly', 'multiple', 'wrap', 'mailbackAccept', 'mailbackAsSender',
+                'is_html', 'flashUploader', 'html5', 'invisibleCaptcha', 'showMaxlengthCounter', 'attachToAdminMail',
+                'attachToUserMail', 'fadeIn', 'useErrorAlerts', 'useDefaultErrors', 'useBalloonErrors', 'rollover',
+                'lastPageThankYou', 'pagingInclude', 'submitInclude', 'cancelInclude', 'joomlaHint',
+            ] as $key
+        ) {
+            if (!is_bool($mdata[$key] ?? null)) {
+                throw new \UnexpectedValueException(
+                    sprintf('QuickMode field metadata "%s" must be a boolean.', $key)
+                );
+            }
+        }
+
+        if (!is_string($mdata['connectWith'] ?? null) && !is_array($mdata['connectWith'] ?? null)) {
+            throw new \UnexpectedValueException('QuickMode field metadata "connectWith" has an invalid type.');
+        }
+
+        if (is_array($mdata['connectWith'] ?? null)) {
+            if (!array_is_list($mdata['connectWith'])) {
+                throw new \UnexpectedValueException('QuickMode field metadata "connectWith" must be a list.');
+            }
+
+            foreach ($mdata['connectWith'] as $value) {
+                if (!is_string($value)) {
+                    throw new \UnexpectedValueException(
+                        'QuickMode field metadata "connectWith" must contain only strings.'
+                    );
+                }
+            }
         }
     }
 
