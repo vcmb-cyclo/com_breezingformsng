@@ -46,6 +46,15 @@
         <file name="components/com_breezingformsng/breezingformsng.php"/>
     </extraFiles>
 
+    <issueHandlers>
+        <!-- Declared in a guarded block of the legacy helpers, which Psalm does not follow. -->
+        <UndefinedFunction>
+            <errorLevel type="suppress">
+                <referencedFunction name="bf_tooltipText"/>
+            </errorLevel>
+        </UndefinedFunction>
+    </issueHandlers>
+
     <stubs>
         <file name="psalm-stubs/joomla-taint.phpstub"/>
     </stubs>
