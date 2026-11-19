@@ -181,8 +181,7 @@ class RecordsModel extends ListModel
         ?string $value,
         int $recordId,
         string $side
-    ): void
-    {
+    ): void {
         $db = $this->getDatabase();
         $id = $db->quoteName('records.id');
         $below = $side === 'below';
