@@ -149,7 +149,10 @@ final class IntegratorRuntimeTest extends TestCase
         );
 
         self::assertIsString($source);
-        self::assertStringContainsString("' skipped: a stored criterion has an invalid operator or connector.'", $source);
+        self::assertStringContainsString(
+            "' skipped: a stored criterion has an invalid operator or connector.'",
+            $source
+        );
         self::assertStringContainsString("Log::WARNING,\n                'com_breezingformsng'", $source);
     }
 
@@ -267,14 +270,17 @@ final class IntegratorRuntimeTest extends TestCase
         );
 
         self::assertStringContainsString("' failed while updating or inserting the reference row.'", $source);
-        self::assertStringNotContainsString('catch (\\Throwable $e) {'."\n        }", $source);
+        self::assertStringNotContainsString('catch (\\Throwable $e) {' . "\n        }", $source);
     }
 
     public function testTheCodeOfAnItemChangesTheValueItWrites(): void
     {
         $runtime = (new ReflectionClass(IntegratorRuntime::class))->newInstanceWithoutConstructor();
 
-        self::assertSame('JEAN@EXAMPLE.INVALID', $runtime->handleCode('jean@example.invalid', '$value = strtoupper($value);'));
+        self::assertSame(
+            'JEAN@EXAMPLE.INVALID',
+            $runtime->handleCode('jean@example.invalid', '$value = strtoupper($value);')
+        );
         self::assertSame('kept', $runtime->handleCode('kept', ''));
     }
 }
