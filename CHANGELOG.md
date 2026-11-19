@@ -20,6 +20,7 @@
 - Make the Reset button an explicit button.
 - Translate the default captions and the untitled element label of the QuickMode editor, and the remaining untranslated character counter.
 - Give the content, privacy and MCP plugins clearer names, in all languages.
+- Make the sample forms of the Tools screen easier to pick: a Select all box for the ones still to install, a highlighted row when one is ticked, an Install selection button that shows how many are ticked, and an installed form that no longer looks like a selection.
 
 ### Fixed
 

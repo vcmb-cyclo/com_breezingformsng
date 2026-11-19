@@ -156,9 +156,13 @@ final class HtmlView extends BaseHtmlView
             $this->canConfigure = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
             $this->getDocument()->getWebAssetManager()
                 ->useStyle('com_breezingformsng.mcp-status')
+                ->useStyle('com_breezingformsng.tools-samples-style')
                 ->useScript('com_breezingformsng.tools-audit')
                 ->useScript('com_breezingformsng.tools-samples');
-            foreach (['TOOLS_AUDIT_ISSUES', 'TOOLS_AUDIT_ISSUES_1', 'TOOLS_AUDIT_CLEAN', 'TOOLS_AUDIT_UNAVAILABLE'] as $key) {
+            foreach ([
+                'TOOLS_AUDIT_ISSUES', 'TOOLS_AUDIT_ISSUES_1', 'TOOLS_AUDIT_CLEAN', 'TOOLS_AUDIT_UNAVAILABLE',
+                'TOOLS_SAMPLE_HELP_NONE', 'TOOLS_SAMPLE_SELECTED_ONE', 'TOOLS_SAMPLE_SELECTED_MANY',
+            ] as $key) {
                 Text::script('COM_BREEZINGFORMSNG_' . $key);
             }
         }
