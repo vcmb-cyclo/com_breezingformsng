@@ -70,6 +70,18 @@ test.describe('forms', () => {
         await page.waitForFunction((wanted) => window.BFQMApp.treeModel.getNodeType(window.BFQMApp.selectedTreeElement) === wanted, type);
     };
 
+    // HTML a mail template must keep as typed: tags, a link, a table and an inline style (issue #207).
+    const MAIL_HTML = (who) => `<p>${who} body <strong>{firstname:value}</strong></p>`
+        + '<p><a href="https://example.com/">Link</a></p>'
+        + '<table><tbody><tr><td style="color: #c00;">Cell</td></tr></tbody></table>';
+    const expectMailHtml = (stored, who) => {
+        expect(stored).toContain(`${who} body`);
+        expect(stored).toContain('<strong>{firstname:value}</strong>');
+        expect(stored).toContain('<a href="https://example.com/">Link</a>');
+        expect(stored).toContain('<table');
+        expect(stored).toMatch(/color:\s*#c00/);
+    };
+
     const setEditor = (id, value) => page.evaluate(async ([editorId, text]) => {
         const { JoomlaEditor } = await import('editor-api');
         JoomlaEditor.get(editorId).setValue(text);
@@ -181,14 +193,14 @@ test.describe('forms', () => {
         await page.selectOption('#jf_emailxml', '3');
         await page.locator('#etype1').check();
         await expect(page.locator('#bfEmailTemplate')).toBeVisible();
-        await setEditor('jf_email_custom_template', '<p>Admin body {firstname:value}</p>');
+        await setEditor('jf_email_custom_template', MAIL_HTML('Admin'));
 
         await page.locator('#tab-email-user').click();
         await page.selectOption('#jf_mb_emaillog', '1');
         await page.selectOption('#jf_mb_emailxml', '4');
         await expect(page.locator('#bfMbEmailDefault pre')).toBeVisible();
         await page.locator('#mbetype1').check();
-        await setEditor('jf_mb_email_custom_template', '<p>User body {firstname:value}</p>');
+        await setEditor('jf_mb_email_custom_template', MAIL_HTML('User'));
 
         await Promise.all([page.waitForNavigation(), page.evaluate(() => window.Joomla.submitbutton('forms.save'))]);
 
@@ -197,11 +209,11 @@ test.describe('forms', () => {
         expect(row.emaillog).toBe('2');
         expect(row.emailxml).toBe('3');
         expect(row.email_type).toBe('1');
-        expect(row.email_custom_template).toContain('Admin body');
+        expectMailHtml(row.email_custom_template, 'Admin');
         expect(row.mb_emaillog).toBe('1');
         expect(row.mb_emailxml).toBe('4');
         expect(row.mb_email_type).toBe('1');
-        expect(row.mb_email_custom_template).toContain('User body');
+        expectMailHtml(row.mb_email_custom_template, 'User');
         expect(row.prevwidth).toBe('1234');
     });
 
@@ -210,8 +222,8 @@ test.describe('forms', () => {
         await saveQuickMode();
 
         const row = formRow(formId);
-        expect(row.email_custom_template).toContain('Admin body');
-        expect(row.mb_email_custom_template).toContain('User body');
+        expectMailHtml(row.email_custom_template, 'Admin');
+        expectMailHtml(row.mb_email_custom_template, 'User');
         expect(row.emaillog).toBe('2');
         expect(row.mb_emailxml).toBe('4');
     });
