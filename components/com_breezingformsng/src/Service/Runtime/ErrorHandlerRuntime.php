@@ -74,8 +74,12 @@ final class ErrorHandlerRuntime
 
         if ($n) {
             $info = $this->processor->traceStack[$n - 1] ?? [];
+            $frameName = $info[2] ?? '';
+            $frameLine = $info[3] ?? '';
+            $frameName = is_scalar($frameName) ? (string) $frameName : '';
+            $frameLine = is_scalar($frameLine) ? (string) $frameLine : '';
             $name = htmlspecialchars(
-                $info[2] . ' ' . Text::_('COM_BREEZINGFORMSNG_PROCESS_ATLINE') . ' ' . $info[3],
+                $frameName . ' ' . Text::_('COM_BREEZINGFORMSNG_PROCESS_ATLINE') . ' ' . $frameLine,
                 ENT_QUOTES
             );
             $msg .= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_PROCESS_LASTPOS'), ENT_QUOTES) . ' ' . $name . "\n";

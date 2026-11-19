@@ -36,7 +36,8 @@ final class TraceRuntime
         }
 
         $trc = str_repeat('  ', count($this->processor->traceStack ?? []));
-        $trc .= Text::_('COM_BREEZINGFORMSNG_PROCESS_MSGUNKNOWN') . ": $msg\n";
+        $trc .= Text::_('COM_BREEZINGFORMSNG_PROCESS_MSGUNKNOWN') . ': '
+            . $this->displayValue($msg) . "\n";
         $this->processor->traceBuffer .= htmlspecialchars($trc, ENT_QUOTES);
         if ($this->processor->traceMode & _FF_TRACEMODE_DIRECT) {
             $this->processor->dumpTrace();
@@ -56,7 +57,8 @@ final class TraceRuntime
         $level = count($this->processor->traceStack ?? []);
         if ($msg && ($this->processor->traceMode & _FF_TRACEMODE_MESSAGE)) {
             $trc = str_repeat('  ', $level);
-            $trc .= Text::_('COM_BREEZINGFORMSNG_PROCESS_LINE') . " $line: $msg\n";
+            $trc .= Text::_('COM_BREEZINGFORMSNG_PROCESS_LINE') . " $line: "
+                . $this->displayValue($msg) . "\n";
             $this->processor->traceBuffer .= htmlspecialchars($trc, ENT_QUOTES);
             if ($this->processor->traceMode & _FF_TRACEMODE_DIRECT) {
                 $this->processor->dumpTrace();
@@ -70,14 +72,15 @@ final class TraceRuntime
 
     /**
      * @param int|null $newmode
+     * @param-out int $newmode
      * @param string $name
      *
-     * @return int|null
+     * @return int
      */
     public function getMode(&$newmode, &$name)
     {
-        $oldmode = $this->processor->traceMode;
-        if (is_null($newmode) || ($newmode & _FF_TRACEMODE_PRIORITY) < ($oldmode & _FF_TRACEMODE_PRIORITY)) {
+        $oldmode = is_int($this->processor->traceMode) ? $this->processor->traceMode : 0;
+        if (!is_int($newmode) || ($newmode & _FF_TRACEMODE_PRIORITY) < ($oldmode & _FF_TRACEMODE_PRIORITY)) {
             $newmode = $oldmode;
             return $oldmode;
         }
@@ -194,8 +197,8 @@ final class TraceRuntime
 
         $info = $this->processor->traceStack !== null ? array_pop($this->processor->traceStack) : null;
         if ($info) {
-            $oldmode = $this->processor->traceMode;
-            $newmode = $info[0];
+            $oldmode = is_int($this->processor->traceMode) ? $this->processor->traceMode : 0;
+            $newmode = is_int($info[0] ?? null) ? $info[0] : $oldmode;
             $kind = $info[1];
             $name = $info[2];
             if ($kind == 'p') {
@@ -208,7 +211,8 @@ final class TraceRuntime
                 $this->processor->traceBuffer .= str_repeat('  ', count($this->processor->traceStack ?? []));
                 $this->processor->traceBuffer .= htmlspecialchars(
                     "-" . Text::_('COM_BREEZINGFORMSNG_PROCESS_LEAVE')
-                        . " $name " . Text::_('COM_BREEZINGFORMSNG_PROCESS_ATLINE') . " $line\n",
+                        . ' ' . $this->displayValue($name) . ' '
+                        . Text::_('COM_BREEZINGFORMSNG_PROCESS_ATLINE') . " $line\n",
                     ENT_QUOTES
                 );
                 if ($oldmode & _FF_TRACEMODE_DIRECT) {
@@ -235,7 +239,9 @@ final class TraceRuntime
 
     public function dumpTrace(): void
     {
-        if ($this->processor->traceMode & _FF_TRACEMODE_DIRECT) {
+        $traceMode = is_int($this->processor->traceMode) ? $this->processor->traceMode : 0;
+
+        if ($traceMode & _FF_TRACEMODE_DIRECT) {
             $html = ob_get_contents();
             ob_end_clean();
             echo htmlspecialchars((string) $html, ENT_QUOTES) . $this->processor->traceBuffer;
@@ -248,7 +254,7 @@ final class TraceRuntime
             return;
         }
 
-        if ($this->processor->traceMode & _FF_TRACEMODE_APPEND) {
+        if ($traceMode & _FF_TRACEMODE_APPEND) {
             echo '<pre>' . $this->processor->traceBuffer . '</pre>';
             $this->processor->traceBuffer = null;
             return;
@@ -274,7 +280,10 @@ final class TraceRuntime
         }
 
         $this->processor->traceBuffer .= str_repeat('  ', count($this->processor->traceStack ?? []));
-        $this->processor->traceBuffer .= htmlspecialchars("eval($name)\n", ENT_QUOTES);
+        $this->processor->traceBuffer .= htmlspecialchars(
+            'eval(' . $this->displayValue($name) . ")\n",
+            ENT_QUOTES
+        );
         if ($this->processor->traceMode & _FF_TRACEMODE_DIRECT) {
             $this->dumpTrace();
         }
@@ -312,5 +321,34 @@ final class TraceRuntime
         restore_error_handler();
 
         return true;
+    }
+
+    private function displayValue(mixed $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_bool($value)) {
+            return $value ? '1' : '';
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
+
+        if ($value instanceof \Stringable) {
+            return (string) $value;
+        }
+
+        if (is_array($value)) {
+            return 'Array';
+        }
+
+        return get_debug_type($value);
     }
 }

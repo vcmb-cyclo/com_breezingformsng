@@ -62,9 +62,12 @@ final class ProcessorRuntimeContextInitializer
             (string) $configuration->uploads
         );
 
+        $offset = $application->get('offset');
+        $offset = is_string($offset) ? $offset : '';
+
         return new ProcessorRuntimeContext(
             $requestMetadata,
-            $this->timestampFactory->create((string) $application->get('offset')),
+            $this->timestampFactory->create($offset),
             $displayContext,
             $formPaths
         );

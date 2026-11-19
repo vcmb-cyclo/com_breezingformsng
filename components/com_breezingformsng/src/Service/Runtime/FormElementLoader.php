@@ -40,6 +40,18 @@ final class FormElementLoader
 
         $this->database->setQuery($query);
 
-        return $this->database->loadObjectList();
+        $elements = $this->database->loadObjectList();
+        if (!is_array($elements)) {
+            return [];
+        }
+
+        $published = [];
+        foreach ($elements as $element) {
+            if ($element instanceof \stdClass) {
+                $published[] = $element;
+            }
+        }
+
+        return $published;
     }
 }
