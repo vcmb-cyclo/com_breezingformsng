@@ -2059,12 +2059,12 @@ JQuery(document).on('change', 'input[name="bfStripeReturnMode"]', function () {
                             appScope.treeModel.renumberPages(BFQMConfig.labels['COM_BREEZINGFORMSNG_PAGE']);
                         }
                     } catch (error) {
-                        alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_NEW_SECTION_ERROR']);
+                        appScope.showEditorErrors(BFQMConfig.labels['COM_BREEZINGFORMSNG_NEW_SECTION_ERROR']);
                     }
                 } else {
                     var refusal = selected ? appScope.treeModel.getInsertionRefusal(selected, obj) : null;
 
-                    alert(BFQMConfig.labels[{
+                    appScope.showEditorErrors(BFQMConfig.labels[{
                         page: 'COM_BREEZINGFORMSNG_QM_NEW_ITEM_PAGE_ONLY_IN_FORM',
                         form: 'COM_BREEZINGFORMSNG_QM_NEW_ITEM_NOT_IN_FORM',
                         element: 'COM_BREEZINGFORMSNG_QM_NEW_ITEM_NOT_IN_ELEMENT'

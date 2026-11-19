@@ -34,10 +34,7 @@ final class UploadDirectoryProtectionTest extends TestCase
             UploadDirectoryProtection::ensure($directory, true);
             self::assertSame("custom rules\n", file_get_contents($file));
         } finally {
-            if (is_file($file)) {
-                unlink($file);
-            }
-            rmdir($directory);
+            self::removeDirectory($directory);
         }
     }
 
@@ -51,12 +48,68 @@ final class UploadDirectoryProtectionTest extends TestCase
             UploadDirectoryProtection::ensure($directory, false);
             self::assertFileDoesNotExist($file);
             UploadDirectoryProtection::ensure($directory, true);
-            self::assertSame('deny from all', file_get_contents($file));
+            $rules = (string) file_get_contents($file);
+            self::assertStringContainsString("<IfModule mod_authz_core.c>\n    Require all denied\n</IfModule>", $rules);
+            self::assertStringContainsString("<IfModule !mod_authz_core.c>\n    deny from all\n</IfModule>", $rules);
+            self::assertFileExists($directory . '/index.html');
         } finally {
-            if (is_file($file)) {
-                unlink($file);
-            }
-            rmdir($directory);
+            self::removeDirectory($directory);
         }
+    }
+
+    public function testIndexIsAddedNextToExistingHtaccessWithoutTouchingIt(): void
+    {
+        $directory = sys_get_temp_dir() . '/bf-protection-' . bin2hex(random_bytes(8));
+        mkdir($directory);
+        file_put_contents($directory . '/.htaccess', "custom\n");
+        file_put_contents($directory . '/index.html', 'mine');
+
+        try {
+            UploadDirectoryProtection::ensure($directory, true);
+            self::assertSame("custom\n", file_get_contents($directory . '/.htaccess'));
+            self::assertSame('mine', file_get_contents($directory . '/index.html'));
+        } finally {
+            self::removeDirectory($directory);
+        }
+    }
+
+    public function testOnlyDirectoriesUnderTheWebRootAreProtected(): void
+    {
+        $base = sys_get_temp_dir() . '/bf-protection-' . bin2hex(random_bytes(8));
+        $root = $base . '/site';
+        $inside = $root . '/media/uploads';
+        $outside = $base . '/private';
+        $sibling = $base . '/site-other';
+        mkdir($inside, 0777, true);
+        mkdir($outside);
+        mkdir($sibling);
+
+        try {
+            UploadDirectoryProtection::ensureWithinWebRoot($inside, $root);
+            UploadDirectoryProtection::ensureWithinWebRoot($outside, $root);
+            UploadDirectoryProtection::ensureWithinWebRoot($sibling, $root);
+            UploadDirectoryProtection::ensureWithinWebRoot($base . '/missing', $root);
+
+            self::assertFileExists($inside . '/.htaccess');
+            self::assertFileExists($inside . '/index.html');
+            self::assertFileDoesNotExist($outside . '/.htaccess');
+            self::assertFileDoesNotExist($sibling . '/.htaccess');
+            self::assertFalse(UploadDirectoryProtection::isWithin($inside . '/../../../private', $root));
+        } finally {
+            self::removeDirectory($base);
+        }
+    }
+
+    private static function removeDirectory(string $directory): void
+    {
+        if (!is_dir($directory)) {
+            return;
+        }
+
+        foreach (new \FilesystemIterator($directory) as $entry) {
+            $entry->isDir() && !$entry->isLink() ? self::removeDirectory($entry->getPathname()) : unlink($entry->getPathname());
+        }
+
+        rmdir($directory);
     }
 }

@@ -318,13 +318,8 @@ test.describe('forms', () => {
         await page.locator('label[for="bfElementTypeStripeAmountSourceField"]').click();
 
         // No field chosen: the save stops and says so.
-        let refusal = '';
-        page.once('dialog', async (dialog) => {
-            refusal = dialog.message();
-            await dialog.accept();
-        });
         await page.locator('#toolbar-apply').click();
-        await expect.poll(() => refusal).toContain('paybutton');
+        await expect(page.locator('#system-message-container')).toContainText('paybutton');
 
         await page.selectOption('#bfElementTypeStripeAmountField', 'firstname');
         await saveQuickMode();

@@ -26,4 +26,25 @@ final class PayPalInvalidIpnRegressionTest extends TestCase
             json_decode($output, true, 512, JSON_THROW_ON_ERROR)
         );
     }
+
+    public function testAVerifiedIpnPaidToAnotherAccountIsNotRecorded(): void
+    {
+        $process = proc_open(
+            [PHP_BINARY, __DIR__ . '/fixtures/paypal-ipn.php'],
+            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+            $pipes,
+            null,
+            ['IPN_RECEIVER' => 'buyer@example.com']
+        );
+        self::assertIsResource($process);
+        $output = stream_get_contents($pipes[1]);
+        $error = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        self::assertSame(0, proc_close($process), $error);
+        self::assertSame(
+            [[0, ''], 0, ''],
+            json_decode($output, true, 512, JSON_THROW_ON_ERROR)
+        );
+    }
 }

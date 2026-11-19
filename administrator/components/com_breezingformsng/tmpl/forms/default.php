@@ -28,6 +28,7 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
   <?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this]); ?>
 
   <table class="table table-striped table-hover">
+    <caption class="visually-hidden"><?= Text::_('COM_BREEZINGFORMSNG_MANAGEFORMS'); ?></caption>
     <thead>
       <tr>
         <th class="w-1 text-center">
@@ -68,15 +69,17 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
                   <span class="visually-hidden"><?= Text::_('JTRASHED'); ?></span>
                 </span>
                 <?php else : ?>
-                <a href="#"
+                <button type="button"
                    class="tbody-icon<?= (int) $form->published === 1 ? ' active' : ''; ?>"
                    data-item-id="cb<?= (int) $i; ?>"
                    data-item-task="forms.setPublished"
                    data-item-form-id="<?= (int) $form->id; ?>"
                    onclick="bfTogglePublished(<?= (int) $form->id; ?>, 'forms', this); return false;"
-                   title="<?= (int) $form->published === 1 ? Text::_('JPUBLISHED') : Text::_('JUNPUBLISHED'); ?>">
+                   title="<?= (int) $form->published === 1 ? Text::_('JPUBLISHED') : Text::_('JUNPUBLISHED'); ?>"
+                   aria-pressed="<?= (int) $form->published === 1 ? 'true' : 'false'; ?>"
+                   aria-label="<?= (int) $form->published === 1 ? Text::_('JPUBLISHED') : Text::_('JUNPUBLISHED'); ?>">
                   <span class="<?= (int) $form->published === 1 ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
-                </a>
+                </button>
                 <?php endif; ?>
             </td>
             <td class="order text-center text-nowrap">

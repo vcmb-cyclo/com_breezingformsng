@@ -292,7 +292,12 @@ class FormsController extends AdminController
             (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class), $formModel))->keepOrigin($id);
         }
 
-        $id  = $this->getOptionsModel()->saveForm($data);
+        $optionsModel = $this->getOptionsModel();
+        $id           = $optionsModel->saveForm($data);
+
+        if ($optionsModel->getIgnoredCodeColumns() !== []) {
+            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_FORM_CODE_NOT_SAVED'), 'warning');
+        }
 
         try {
             (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class), $this->getFormModel()))->record($id);
@@ -349,6 +354,12 @@ class FormsController extends AdminController
     public function copy(): void
     {
         $this->checkToken();
+
+        // A copy is a new form: it takes the permission to create one.
+        $user = $this->app->getIdentity();
+        if ($user === null || !$user->authorise('core.create', 'com_breezingformsng')) {
+            throw new NotAllowed(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+        }
 
         $ids = ArrayHelper::toInteger((array) $this->input->get('cid', [], 'array'));
 

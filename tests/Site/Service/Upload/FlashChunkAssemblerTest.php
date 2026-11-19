@@ -57,4 +57,78 @@ final class FlashChunkAssemblerTest extends TestCase
             $this->directory
         ));
     }
+
+    public function testOrderedChunksAreAssembledAndTheChunkIsKept(): void
+    {
+        $final = $this->directory . '/final';
+        $assembler = new FlashChunkAssembler();
+
+        self::assertSame(FlashChunkAssembler::OK, $assembler->appendAt($this->chunk('abc'), $final, $this->directory, 0, 10));
+        self::assertSame(FlashChunkAssembler::OK, $assembler->appendAt($this->chunk('def'), $final, $this->directory, 3, 10));
+        self::assertSame('abcdef', file_get_contents($final));
+    }
+
+    public function testRepeatedChunkIsRejectedAndPartialFileDeleted(): void
+    {
+        $final = $this->directory . '/final';
+        $chunk = $this->chunk('abc');
+        $assembler = new FlashChunkAssembler();
+        $assembler->appendAt($chunk, $final, $this->directory, 0, 100);
+        $assembler->appendAt($this->chunk('def'), $final, $this->directory, 3, 100);
+
+        $repeat = $this->chunk('def');
+        self::assertSame(FlashChunkAssembler::OUT_OF_ORDER, $assembler->appendAt($repeat, $final, $this->directory, 3, 100));
+        self::assertFileDoesNotExist($final);
+        self::assertFileDoesNotExist($repeat);
+    }
+
+    public function testOutOfOrderOffsetsAreRejected(): void
+    {
+        $final = $this->directory . '/final';
+        $assembler = new FlashChunkAssembler();
+        $assembler->appendAt($this->chunk('abc'), $final, $this->directory, 0, 100);
+
+        self::assertSame(FlashChunkAssembler::OUT_OF_ORDER, $assembler->appendAt($this->chunk('xyz'), $final, $this->directory, 9, 100));
+        self::assertFileDoesNotExist($final);
+        self::assertSame(FlashChunkAssembler::OUT_OF_ORDER, $assembler->appendAt($this->chunk('xyz'), $final, $this->directory, 3, 100));
+        self::assertSame(FlashChunkAssembler::OUT_OF_ORDER, $assembler->appendAt($this->chunk('xyz'), $final, $this->directory, -1, 100));
+    }
+
+    public function testCumulativeSizeIsCheckedBeforeAppendingAndRejectionDeletesPartialFile(): void
+    {
+        $final = $this->directory . '/final';
+        $assembler = new FlashChunkAssembler();
+        self::assertSame(FlashChunkAssembler::OK, $assembler->appendAt($this->chunk('abcd'), $final, $this->directory, 0, 6));
+
+        $over = $this->chunk('efg');
+        self::assertSame(FlashChunkAssembler::TOO_LARGE, $assembler->appendAt($over, $final, $this->directory, 4, 6));
+        self::assertFileDoesNotExist($final);
+        self::assertFileDoesNotExist($over);
+    }
+
+    public function testOffsetZeroRestartsAStaleFile(): void
+    {
+        $final = $this->directory . '/final';
+        file_put_contents($final, 'stale data');
+
+        self::assertSame(FlashChunkAssembler::OK, (new FlashChunkAssembler())->appendAt($this->chunk('new'), $final, $this->directory, 0, 100));
+        self::assertSame('new', file_get_contents($final));
+    }
+
+    public function testMissingChunkFailsAndRemovesPartialFile(): void
+    {
+        $final = $this->directory . '/final';
+        file_put_contents($final, 'abc');
+
+        self::assertSame(FlashChunkAssembler::FAILED, (new FlashChunkAssembler())->appendAt($this->directory . '/none', $final, $this->directory, 3, 100));
+        self::assertFileDoesNotExist($final);
+    }
+
+    private function chunk(string $content): string
+    {
+        $path = $this->directory . '/chunk_' . bin2hex(random_bytes(4));
+        file_put_contents($path, $content);
+
+        return $path;
+    }
 }

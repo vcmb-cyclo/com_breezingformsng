@@ -159,6 +159,25 @@ final class PayPalPayment
         return $paid !== null && $paid === $amount + (int) $this->cents($expected['tax']);
     }
 
+    /**
+     * Whether the account PayPal reports as the receiver is the merchant
+     * account of the form. The "business" field of the payment form is posted
+     * by the browser, so a payer could name another account: the notification
+     * is only trusted when it names the configured one, by e-mail address or
+     * by merchant ID.
+     */
+    public function isReceiver(string $business, string $receiverEmail, string $receiverId): bool
+    {
+        $business = strtolower(trim($business));
+
+        if ($business === '') {
+            return false;
+        }
+
+        return $business === strtolower(trim($receiverEmail))
+            || $business === strtolower(trim($receiverId));
+    }
+
     private function normalise(string $money): string
     {
         $cents = $this->cents($money) ?? 0;

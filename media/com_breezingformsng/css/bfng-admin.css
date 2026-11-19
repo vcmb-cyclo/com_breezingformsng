@@ -200,6 +200,9 @@ body:has(#bfQuickModeWrapper) .page-title {
   cursor: pointer;
   transition: background var(--bfng-t), border-color var(--bfng-t), color var(--bfng-t);
 }
+a.bfng-seg__opt {
+  text-decoration: none;
+}
 .bfng-seg__opt:hover {
   background: var(--bfng-surface-2);
   border-color: var(--bfng-accent-500);

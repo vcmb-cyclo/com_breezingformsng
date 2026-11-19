@@ -93,7 +93,29 @@ final class TokenizedDirectoryResolver
 
     public function makeSafeFolder(string $path): string
     {
-        return (string) preg_replace('#[^A-Za-z0-9{}\.:_\\/-]#', '_', $path);
+        $path = (string) preg_replace('#[^A-Za-z0-9{}\.:_\\/-]#', '_', $path);
+
+        // A value typed in a field must not leave the upload folder: "." and ".." are never kept.
+        $segments = explode('/', str_replace('\\', '/', $path));
+        $kept     = [];
+
+        foreach ($segments as $index => $segment) {
+            if ($segment === '.' || $segment === '..') {
+                continue;
+            }
+
+            // An empty first segment is the root of an absolute path; other empty ones are doubled slashes.
+            if ($segment === '' && $index > 0) {
+                continue;
+            }
+
+            $kept[] = $segment;
+        }
+
+        // A trailing slash marks a folder: it is kept.
+        $safe = implode('/', $kept);
+
+        return str_ends_with($path, '/') && !str_ends_with($safe, '/') ? $safe . '/' : $safe;
     }
 
     /**

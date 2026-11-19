@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { QuickmodeTreeModel } from '../../media/com_breezingformsng/js/admin/quickmode-tree-model.js';
+import { QuickmodeTreeModel, getTreeKeyCommand } from '../../media/com_breezingformsng/js/admin/quickmode-tree-model.js';
 
 function element(id, dbId = 7) {
     return {
@@ -161,4 +161,56 @@ test('applying a widget preset keeps the properties and only fills missing defau
     const plain = { bfType: 'bfTextfield' };
     model.applyWidgetPreset(plain, 'unknown');
     assert.deepEqual(plain, { bfType: 'bfTextfield', widget: '' });
+});
+
+function ids(model, id) {
+    return model.getChildren(model.find(id)).map((node) => node.attributes.id);
+}
+
+test('keyboard move swaps siblings and crosses into the neighbouring container', () => {
+    const root = tree();
+    root.children[0].children.push(section('section2'));
+    root.children[0].children.push(section('section3'));
+    const model = new QuickmodeTreeModel(root);
+
+    let target = model.getKeyboardMove('section2', 'up');
+    assert.deepEqual(target, { parentId: 'bfQuickModePage1', index: 0 });
+    model.move('section2', target.parentId, 'inside', target.index);
+    assert.deepEqual(ids(model, 'bfQuickModePage1'), ['section2', 'section1', 'section3']);
+
+    target = model.getKeyboardMove('section2', 'down');
+    model.move('section2', target.parentId, 'inside', target.index);
+    assert.deepEqual(ids(model, 'bfQuickModePage1'), ['section1', 'section2', 'section3']);
+
+    assert.equal(model.getKeyboardMove('section1', 'up'), null);
+
+    target = model.getKeyboardMove('section3', 'down');
+    assert.deepEqual(target, { parentId: 'bfQuickModePage2', index: 0 });
+    model.move('section3', target.parentId, 'inside', target.index);
+    assert.deepEqual(ids(model, 'bfQuickModePage2'), ['section3']);
+
+    target = model.getKeyboardMove('section3', 'up');
+    assert.deepEqual(target, { parentId: 'bfQuickModePage1', index: 2 });
+});
+
+test('keyboard move reorders pages and refuses the root and the edges', () => {
+    const model = new QuickmodeTreeModel(tree());
+
+    assert.deepEqual(model.getKeyboardMove('bfQuickModePage1', 'down'), { parentId: 'bfQuickModeRoot', index: 1 });
+    assert.equal(model.getKeyboardMove('bfQuickModePage1', 'up'), null);
+    assert.equal(model.getKeyboardMove('bfQuickModePage2', 'down'), null);
+    assert.equal(model.getKeyboardMove('bfQuickModeRoot', 'down'), null);
+    assert.equal(model.getKeyboardMove('missing', 'down'), null);
+    assert.equal(model.getKeyboardMove('section1', 'left'), null);
+});
+
+test('maps tree key events to commands', () => {
+    assert.equal(getTreeKeyCommand({ key: 'ArrowUp', altKey: true }), 'move-up');
+    assert.equal(getTreeKeyCommand({ key: 'ArrowDown', altKey: true }), 'move-down');
+    assert.equal(getTreeKeyCommand({ key: 'ArrowDown' }), null);
+    assert.equal(getTreeKeyCommand({ key: 'ArrowDown', altKey: true, ctrlKey: true }), null);
+    assert.equal(getTreeKeyCommand({ key: 'F10', shiftKey: true }), 'context-menu');
+    assert.equal(getTreeKeyCommand({ key: 'F10' }), null);
+    assert.equal(getTreeKeyCommand({ key: 'ContextMenu' }), 'context-menu');
+    assert.equal(getTreeKeyCommand(null), null);
 });

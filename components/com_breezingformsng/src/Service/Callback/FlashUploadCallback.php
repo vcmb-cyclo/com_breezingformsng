@@ -23,6 +23,7 @@ use Joomla\Input\Input;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\TemporaryUploadDirectory;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FlashChunkAssembler;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FlashUploadSizeValidator;
+use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadDirectoryProtection;
 
 /**
  * Chunked (legacy flash) upload endpoint (flashUpload=1).
@@ -73,36 +74,45 @@ final class FlashUploadCallback
             $temporaryUploads = new TemporaryUploadDirectory((string) $this->application->get('tmp_path'));
             $targetPath = $temporaryUploads->path();
             if ($temporaryUploads->ensure()) {
+                UploadDirectoryProtection::ensureWithinWebRoot($targetPath, JPATH_SITE);
                 $secureTicket = $this->application->getSession()->get('secure_ticket', '');
                 if ($secureTicket == '') {
                     $secureTicket = bin2hex(random_bytes(16));
                     $this->application->getSession()->set('secure_ticket', $secureTicket);
                 }
 
-                $targetFile = str_replace('//', '/', $targetPath) . 'chunks/' . $input->getInt('offset', 0) . '_' . bf_sanitizeFilename($input->getString('name', 'unknown')) . '_' . $input->getString('itemName', '') . '_' . $input->getString('bfFlashUploadTicket', '') . '_' . $secureTicket . '_chunktmp';
+                // plupload sends the chunk number, not a byte offset: derive the offset from the announced chunk size.
+                $offset = $input->getInt('offset', -1);
+                if ($offset < 0) {
+                    $offset = max(0, $input->getInt('chunk', 0)) * FlashUploadSizeValidator::CHUNK_BYTES;
+                }
+
+                $targetFile = str_replace('//', '/', $targetPath) . 'chunks/' . $offset . '_' . bf_sanitizeFilename($input->getString('name', 'unknown')) . '_' . $input->getString('itemName', '') . '_' . $input->getString('bfFlashUploadTicket', '') . '_' . $secureTicket . '_chunktmp';
                 $finaltargetFile = str_replace('//', '/', $targetPath) . bf_sanitizeFilename($input->getString('name', 'unknown')) . '_' . $input->getString('itemName', '') . '_' . $input->getString('bfFlashUploadTicket', '') . '_' . $secureTicket . '_flashtmp';
 
-                if (File::upload($tempFile, $targetFile)
-                    && $this->chunkAssembler()->append($targetFile, $finaltargetFile, $targetPath)
-                ) {
+                $dataObject = json_decode(bf_b64dec($objectList[0]->template_code), true);
+                $dataObject = \is_array($dataObject) ? $dataObject : [];
+                $limit = $this->uploadSizeValidator->limitFor($dataObject, $itemName);
 
-                    $dataObject = json_decode(bf_b64dec($objectList[0]->template_code), true);
+                if (!File::upload($tempFile, $targetFile)) {
+                    echo Text::_('COM_BREEZINGFORMSNG_PROCESS_UPLOADFAILED');
+                } else {
+                    // The cumulative size and the offset are checked before the chunk is appended; a rejection deletes the partial file.
+                    $status = $this->chunkAssembler()->appendAt($targetFile, $finaltargetFile, $targetPath, $offset, $limit['maxBytes']);
 
-                    $oversized = $this->uploadSizeValidator->findOversized($dataObject, $finaltargetFile, $itemName);
-
-                    if ($oversized !== null) {
-                        File::delete($finaltargetFile);
-                            echo $oversized['label'] . ': ' . Text::sprintf(
-                                'COM_BREEZINGFORMSNG_UPLOAD_FILE_TOO_LARGE_DETAIL',
-                                basename(str_replace('\\', '/', $input->getString('name', 'unknown'))),
-                                (string) $oversized['maxBytes']
-                            );
+                    if ($status === FlashChunkAssembler::TOO_LARGE) {
+                        echo ($limit['label'] !== '' ? $limit['label'] : $itemName) . ': ' . Text::sprintf(
+                            'COM_BREEZINGFORMSNG_UPLOAD_FILE_TOO_LARGE_DETAIL',
+                            basename(str_replace('\\', '/', $input->getString('name', 'unknown'))),
+                            (string) $limit['maxBytes']
+                        );
+                        $this->application->close();
+                    } elseif ($status !== FlashChunkAssembler::OK) {
+                        echo Text::_('COM_BREEZINGFORMSNG_PROCESS_UPLOADFAILED');
                         $this->application->close();
                     }
 
                     File::delete($targetFile);
-                } else {
-                    echo Text::_('COM_BREEZINGFORMSNG_PROCESS_UPLOADFAILED');
                 }
             } else {
                 echo Text::_('COM_BREEZINGFORMSNG_PROCESS_UPLOADFAILED');

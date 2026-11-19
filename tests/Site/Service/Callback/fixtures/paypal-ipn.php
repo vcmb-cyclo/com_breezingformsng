@@ -64,6 +64,10 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Submission {
         {
             return $amount === '10' && $currency === 'EUR';
         }
+        public function isReceiver(string $business, string $email, string $id): bool
+        {
+            return $business !== '' && $business === $email;
+        }
     }
 }
 
@@ -84,7 +88,7 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Callback {
         {
             return [['elements' => [[
                 'internalType' => 'bfPayPal',
-                'options' => ['token' => '', 'testaccount' => false, 'sendNotificationAfterPayment' => false],
+                'options' => ['token' => '', 'business' => 'shop@example.com', 'testaccount' => false, 'sendNotificationAfterPayment' => false],
             ]]]];
         }
     }
@@ -133,7 +137,8 @@ namespace {
         {
             return match ($name) {
                 'txn_id' => 'synthetic', 'custom' => 'valid', 'payment_status' => 'Completed',
-                'mc_gross' => '10', 'mc_currency' => 'EUR', default => $default,
+                'mc_gross' => '10', 'mc_currency' => 'EUR',
+                'receiver_email' => (string) (getenv('IPN_RECEIVER') ?: 'shop@example.com'), default => $default,
             };
         }
         public function getArray(): array

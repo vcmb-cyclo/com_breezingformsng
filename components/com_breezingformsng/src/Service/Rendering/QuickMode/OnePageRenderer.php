@@ -85,6 +85,7 @@ class OnePageRenderer
     private ?QuickModeCalendarInitScriptBuilder $quickModeCalendarInitScriptBuilderService = null;
     private ?QuickModeCaptchaUrlBuilder $quickModeCaptchaUrlBuilderService = null;
     private ?QuickModeCaptchaMarkupBuilder $quickModeCaptchaMarkupBuilderService = null;
+    private ?QuickModeRequiredMarkupBuilder $quickModeRequiredMarkupBuilderService = null;
     private ?QuickModeCaptchaReloadScriptBuilder $quickModeCaptchaReloadScriptBuilderService = null;
     private ?QuickModeUploadOptionsBuilder $quickModeUploadOptionsBuilderService = null;
     private ?QuickModePagingActionBuilder $quickModePagingActionBuilderService = null;
@@ -177,6 +178,11 @@ class OnePageRenderer
     private function quickModeCaptchaUrlBuilder(): QuickModeCaptchaUrlBuilder
     {
         return $this->quickModeCaptchaUrlBuilderService ??= new QuickModeCaptchaUrlBuilder();
+    }
+
+    private function quickModeRequiredMarkupBuilder(): QuickModeRequiredMarkupBuilder
+    {
+        return $this->quickModeRequiredMarkupBuilderService ??= new QuickModeRequiredMarkupBuilder();
     }
 
     private function quickModeCaptchaMarkupBuilder(): QuickModeCaptchaMarkupBuilder
@@ -720,7 +726,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                         }
                         $required = '';
                         if ($mdata['required']) {
-                            $required = ' <i class="' . $this->bsClass('icon-asterisk') . '"></i> ' . "\n";
+                            $required = ' ' . $this->quickModeRequiredMarkupBuilder()->marker('<i class="' . $this->bsClass('icon-asterisk') . '" aria-hidden="true"></i>');
                         }
                         $label = '<label class="' . $this->bsClass('control-label') . '' . (isset($this->rootMdata['themebootstrapLabelTop']) && $this->rootMdata['themebootstrapLabelTop'] ? ' bfLabelBlock' : '') . '" id="bfLabel' . $mdata['dbId'] . '" ' . $for . '>' . $tipOpen . str_replace("***", "\"", $labelText) . $tipClose . $required . '</label>' . "\n";
                     }
@@ -735,6 +741,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                 if ($mdata['tabIndex'] != -1 && is_numeric($mdata['tabIndex'])) {
                     $tabIndex = 'tabindex="' . intval($mdata['tabIndex']) . '" ';
                 }
+                $tabIndex .= $this->quickModeRequiredMarkupBuilder()->ariaRequiredAttribute((string) $mdata['bfType'], !empty($mdata['required']));
 
                 /* translatables */
                 if (isset($mdata['value_translation' . $this->language_tag]) && $mdata['value_translation' . $this->language_tag] != '') {
@@ -971,10 +978,12 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                         echo '<div style="display: inline-block;">';
 
                         echo $this->quickModeCaptchaMarkupBuilder()->buildImage(
-                            isset($mdata['width']) && intval($mdata['width']) > 0 ? ' style="width: ' . intval($mdata['width']) . 'px !important;min-width: ' . intval($mdata['width']) . 'px !important;max-width: ' . intval($mdata['width']) . 'px !important;"' : 'style="width: 230px !important;min-width: 230px !important;max-width: 230px !important;"',
+                            isset($mdata['width']) && intval($mdata['width']) > 0 ? ' style="width: ' . intval($mdata['width']) . 'px;max-width: 100% !important;height: auto;"' : 'style="width: 230px;max-width: 100% !important;height: auto;"',
                             'ff_capimgValue',
                             'ff_capimg ' . $this->bsClass('img-thumbnail'),
-                            $captcha_url
+                            $captcha_url,
+                            '',
+                            Text::_('COM_BREEZINGFORMSNG_CAPTCHA_IMAGE_ALT')
                         );
                         echo '<div style="height: 10px;"></div>';
                         echo '<div class="' . $this->bsClass('input-append') . '">';
@@ -984,7 +993,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                             '',
                             true
                         );
-                        echo '<button type="button" class="ff_elem ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . ' button" onclick="' . $this->quickModeCaptchaReloadScriptBuilder()->build($captcha_url) . '"><i class="' . $this->bsClass('icon-refresh') . '"></i></button>' . "\n";
+                        echo '<button type="button" class="ff_elem ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-primary') . ' button" aria-label="' . htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_RC_REFRESH'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '" onclick="' . $this->quickModeCaptchaReloadScriptBuilder()->build($captcha_url) . '"><i class="' . $this->bsClass('icon-refresh') . '" aria-hidden="true"></i></button>' . "\n";
                         echo '</div>';
                         echo '</div>';
 

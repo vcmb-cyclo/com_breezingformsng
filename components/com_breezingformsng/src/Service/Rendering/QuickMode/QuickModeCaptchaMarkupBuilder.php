@@ -19,14 +19,16 @@ final class QuickModeCaptchaMarkupBuilder
         string $elementId,
         string $class,
         string $src,
-        string $suffix = ''
+        string $suffix = '',
+        string $alt = ''
     ): string {
         $imageAttributes = trim($attributes);
         $escapedElementId = htmlspecialchars($elementId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $escapedClass = htmlspecialchars($class, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $escapedAlt = htmlspecialchars($alt, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $escapedSrc = htmlspecialchars($src, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
-        return '<img alt="" ' . ($imageAttributes !== '' ? $imageAttributes . ' ' : '')
+        return '<img alt="' . $escapedAlt . '" ' . ($imageAttributes !== '' ? $imageAttributes . ' ' : '')
             . 'id="' . $escapedElementId . '" class="' . $escapedClass
             . '" src="' . $escapedSrc . '"/>' . $suffix . "\n";
     }

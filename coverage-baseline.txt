@@ -1,0 +1,4 @@
+# Line coverage baseline (percent) enforced by scripts/check-coverage.php.
+# Measured 30.46 from coverage/clover.xml of 2026-11-18 (PHP 8.3, pcov).
+# The build fails below this value minus 0.5 point; raise it when coverage rises by more than 1 point.
+30.46

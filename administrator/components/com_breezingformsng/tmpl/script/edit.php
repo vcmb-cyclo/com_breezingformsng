@@ -40,14 +40,16 @@ $action = Route::_('index.php?option=com_breezingformsng&view=script&layout=edit
             <span class="fw-semibold" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_SCRIPTS_TIPPUBLISHED'), ENT_QUOTES, 'UTF-8'); ?>">
               <?= Text::_('COM_BREEZINGFORMSNG_SCRIPTS_PUBLISHED'); ?>
             </span>
-            <a href="#"
+            <button type="button"
               class="tbody-icon js-bf-form-state<?= $this->item->published ? ' active' : ''; ?>"
               data-item-task="scripts.setPublished"
               data-item-form-id="<?= (int) $this->item->id; ?>"
               data-state-type="published"
-              title="<?= Text::_($this->item->published ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
+              title="<?= Text::_($this->item->published ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>"
+              aria-pressed="<?= $this->item->published ? 'true' : 'false'; ?>"
+              aria-label="<?= Text::_($this->item->published ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
               <span class="<?= $this->item->published ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
-            </a>
+            </button>
           </div>
         </div>
       <?php endif; ?>

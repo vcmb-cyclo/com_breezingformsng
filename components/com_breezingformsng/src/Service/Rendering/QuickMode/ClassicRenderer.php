@@ -86,6 +86,7 @@ class ClassicRenderer
     private ?QuickModeCalendarInitScriptBuilder $quickModeCalendarInitScriptBuilderService = null;
     private ?QuickModeCaptchaUrlBuilder $quickModeCaptchaUrlBuilderService = null;
     private ?QuickModeCaptchaMarkupBuilder $quickModeCaptchaMarkupBuilderService = null;
+    private ?QuickModeRequiredMarkupBuilder $quickModeRequiredMarkupBuilderService = null;
     private ?QuickModeCaptchaReloadScriptBuilder $quickModeCaptchaReloadScriptBuilderService = null;
     private ?QuickModeUploadOptionsBuilder $quickModeUploadOptionsBuilderService = null;
     private ?QuickModePagingActionBuilder $quickModePagingActionBuilderService = null;
@@ -271,6 +272,11 @@ float:left;
     private function quickModeCaptchaUrlBuilder(): QuickModeCaptchaUrlBuilder
     {
         return $this->quickModeCaptchaUrlBuilderService ??= new QuickModeCaptchaUrlBuilder();
+    }
+
+    private function quickModeRequiredMarkupBuilder(): QuickModeRequiredMarkupBuilder
+    {
+        return $this->quickModeRequiredMarkupBuilderService ??= new QuickModeRequiredMarkupBuilder();
     }
 
     private function quickModeCaptchaMarkupBuilder(): QuickModeCaptchaMarkupBuilder
@@ -601,7 +607,7 @@ float:left;
                         }
                         $required = '';
                         if ($mdata['required']) {
-                            $required = '<span class="bfRequired">*</span> ' . "\n";
+                            $required = $this->quickModeRequiredMarkupBuilder()->marker('<span class="bfRequired" aria-hidden="true">*</span>');
                         }
                         echo '<label id="bfLabel' . $mdata['dbId'] . '" ' . $for . '>' . $tipOpen . $tipClose . str_replace("***", "\"", $labelText) . $required . '</label>' . $tipScript . "\n";
                     }
@@ -616,6 +622,7 @@ float:left;
                 if ($mdata['tabIndex'] != -1 && is_numeric($mdata['tabIndex'])) {
                     $tabIndex = 'tabindex="' . intval($mdata['tabIndex']) . '" ';
                 }
+                $tabIndex .= $this->quickModeRequiredMarkupBuilder()->ariaRequiredAttribute((string) $mdata['bfType'], !empty($mdata['required']));
 
                 $mdata = QuickModeSubmittedValueHydrator::hydrate($this->p, $mdata, $this->language_tag);
 
@@ -1077,7 +1084,9 @@ float:left;
             isset($mdata['width']) && intval($mdata['width']) > 0 ? ' width="' . intval($mdata['width']) . '"' : 'width="230"',
             'ff_capimgValue',
             'ff_capimg',
-            $captcha_url
+            $captcha_url,
+            '',
+            Text::_('COM_BREEZINGFORMSNG_CAPTCHA_IMAGE_ALT')
         );
 
         echo '<br/>';
@@ -1087,7 +1096,7 @@ float:left;
             '',
             true
         );
-        echo '<a href="#" class="ff_elem" onclick="' . $this->quickModeCaptchaReloadScriptBuilder()->build($captcha_url) . '"><img alt="captcha" src="' . Uri::root(true) . '/media/com_breezingformsng/images/site/captcha/refresh-captcha.png" /></a>' . "\n";
+        echo '<a href="#" class="ff_elem" role="button" onclick="' . $this->quickModeCaptchaReloadScriptBuilder()->build($captcha_url) . '"><img alt="' . htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_RC_REFRESH'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '" src="' . Uri::root(true) . '/media/com_breezingformsng/images/site/captcha/refresh-captcha.png" /></a>' . "\n";
         echo '</span>' . "\n";
     }
 

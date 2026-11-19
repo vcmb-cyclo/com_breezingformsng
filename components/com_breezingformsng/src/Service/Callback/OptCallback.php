@@ -42,6 +42,11 @@ final class OptCallback
 
     $userSubmitedID = $jinput->getString('id', '');
     $token = $jinput->getString('token', '');
+    if (!(new OptLinkPolicy())->isUsable($userSubmitedID, $token)) {
+        echo Text::_('JGLOBAL_RESOURCE_NOT_FOUND');
+
+        return;
+    }
     $optDate = HTMLHelper::date('now', 'Y-m-d H:i:s');
     $query = $database->createQuery()
         ->update($database->quoteName('#__facileforms_records'))
@@ -57,6 +62,13 @@ final class OptCallback
         ->bind(':userSubmitedID', $userSubmitedID, ParameterType::STRING);
     $database->setQuery($query);
     $database->execute();
+
+    // A link used twice changes nothing but still names its record; a link that names none says so.
+    if ($database->getAffectedRows() === 0 && !$this->recordHasToken((int) $userSubmitedID, $token)) {
+        echo Text::_('JGLOBAL_RESOURCE_NOT_FOUND');
+
+        return;
+    }
 
     echo Text::_("COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_EMAIL_THANK_YOU");
 
@@ -75,6 +87,11 @@ final class OptCallback
 
     $userSubmitedID = $jinput->getString('id', '');
     $token = $jinput->getString('token', '');
+    if (!(new OptLinkPolicy())->isUsable($userSubmitedID, $token)) {
+        echo Text::_('JGLOBAL_RESOURCE_NOT_FOUND');
+
+        return;
+    }
     $optDate = HTMLHelper::date('now', 'Y-m-d H:i:s');
     $query = $database->createQuery()
         ->update($database->quoteName('#__facileforms_records'))
@@ -91,6 +108,27 @@ final class OptCallback
     $database->setQuery($query);
     $database->execute();
 
+    // A link used twice changes nothing but still names its record; a link that names none says so.
+    if ($database->getAffectedRows() === 0 && !$this->recordHasToken((int) $userSubmitedID, $token)) {
+        echo Text::_('JGLOBAL_RESOURCE_NOT_FOUND');
+
+        return;
+    }
+
     echo Text::_("COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_OUT_EMAIL_THANK_YOU");
+    }
+
+    private function recordHasToken(int $recordId, string $token): bool
+    {
+        $database = $this->database;
+        $query    = $database->createQuery()
+            ->select('1')
+            ->from($database->quoteName('#__facileforms_records'))
+            ->where($database->quoteName('id') . ' = :recordId')
+            ->where($database->quoteName('opt_token') . ' = :token')
+            ->bind(':recordId', $recordId, ParameterType::INTEGER)
+            ->bind(':token', $token, ParameterType::STRING);
+
+        return (bool) $database->setQuery($query)->loadResult();
     }
 }

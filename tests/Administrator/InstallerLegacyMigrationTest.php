@@ -107,6 +107,7 @@ final class InstallerLegacyMigrationTest extends TestCase
         $postflight = substr($source, $postflightStart, $postflightEnd - $postflightStart) . "        return true;\n    }\n";
 
         return eval('use Joomla\\CMS\\Installer\\InstallerAdapter; return new class { public array $calls = [];'
+            . 'private string $currentInstalledVersion = "0.0.0"; private string $schemaVersionBeforeUpdate = "";'
             . 'public function __call(string $name, array $arguments): mixed {'
             . '$this->calls[] = $name; return $name === "getCurrentInstalledVersion" ? "5.0.0-RC11" : null; }'
             . $update . $postflight . ' };');

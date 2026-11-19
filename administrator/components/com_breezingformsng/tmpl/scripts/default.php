@@ -67,14 +67,16 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
                     <span class="icon-trash text-danger" aria-hidden="true"></span>
                   </span>
                 <?php elseif ($this->canEdit) : ?>
-                  <a href="#"
+                  <button type="button"
                      class="tbody-icon js-bf-form-state<?= $isPublished ? ' active' : ''; ?>"
                      data-item-task="scripts.setPublished"
                      data-item-form-id="<?= (int) $row->id; ?>"
                      data-state-type="published"
-                     title="<?= Text::_($isPublished ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
+                     title="<?= Text::_($isPublished ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>"
+                     aria-pressed="<?= $isPublished ? 'true' : 'false'; ?>"
+                     aria-label="<?= Text::_($isPublished ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
                     <span class="<?= $isPublished ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
-                  </a>
+                  </button>
                 <?php else: ?>
                   <span class="tbody-icon<?= $isPublished ? ' active' : ''; ?>" title="<?= Text::_($isPublished ? 'JPUBLISHED' : 'JUNPUBLISHED'); ?>">
                     <span class="<?= $isPublished ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>

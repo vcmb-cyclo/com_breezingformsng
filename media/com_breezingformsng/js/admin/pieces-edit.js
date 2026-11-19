@@ -17,7 +17,8 @@ function checkIdentifier(value)
 				var error = '';
 				var action = pressbutton.indexOf('.') === -1 ? pressbutton : pressbutton.split('.').pop();
 				if (action == 'test' && isEditTestBlocked()) {
-					alert(Joomla.Text._('COM_BREEZINGFORMSNG_TEST_SAVE_PIECE_BEFORE_CONTINUE'));
+					Joomla.removeMessages();
+					Joomla.renderMessages({ warning: [Joomla.Text._('COM_BREEZINGFORMSNG_TEST_SAVE_PIECE_BEFORE_CONTINUE')] });
 					return;
 				}
 				if (action == 'apply' || action == 'save') {
@@ -25,7 +26,8 @@ function checkIdentifier(value)
 					if (getFieldValue('title') == '') error += Joomla.Text._('COM_BREEZINGFORMSNG_PIECES_ENTTITLE') + "\n";
 				} // if
 				if (error != '') {
-					alert(error);
+					Joomla.removeMessages();
+					Joomla.renderMessages({ error: error.split("\n").filter(Boolean) });
 					return;
 				}
 				Joomla.submitform('piece.' + action, form);

@@ -53,4 +53,15 @@ final class QuickModeCaptchaMarkupBuilderTest extends TestCase
         self::assertStringNotContainsString('onfocus="alert(1)', $markup);
         self::assertStringContainsString('captcha&quot; onfocus=&quot;alert(1)', $markup);
     }
+
+    public function testBuildsCaptchaImageWithEscapedAlternativeText(): void
+    {
+        $markup = (new QuickModeCaptchaMarkupBuilder())->buildImage('', 'ff_capimgValue', 'ff_capimg', '/captcha', '', 'Type "the" code');
+
+        $document = new \DOMDocument();
+        $document->loadHTML('<!doctype html>' . $markup);
+        $image = $document->getElementsByTagName('img')->item(0);
+
+        self::assertSame('Type "the" code', $image?->getAttribute('alt'));
+    }
 }

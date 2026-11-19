@@ -55,10 +55,12 @@ $listDirn  = $this->escape((string) $this->state->get('list.direction'));
                 <?php if ((int) $rule->published === -2) : ?>
                   <span class="icon-trash text-danger" title="<?= $this->escape(Text::_('JTRASHED')); ?>" role="img" aria-label="<?= $this->escape(Text::_('JTRASHED')); ?>"></span>
                 <?php else : ?>
-                  <a href="#" onclick="bfTogglePublished(<?= (int) $rule->id; ?>, 'integrator', this); return false;"
-                     title="<?= $isPublished ? Text::_('JPUBLISHED') : Text::_('JUNPUBLISHED'); ?>">
+                  <button type="button" class="tbody-icon" onclick="bfTogglePublished(<?= (int) $rule->id; ?>, 'integrator', this); return false;"
+                     title="<?= $isPublished ? Text::_('JPUBLISHED') : Text::_('JUNPUBLISHED'); ?>"
+                     aria-pressed="<?= $isPublished ? 'true' : 'false'; ?>"
+                     aria-label="<?= $isPublished ? Text::_('JPUBLISHED') : Text::_('JUNPUBLISHED'); ?>">
                     <span class="<?= $isPublished ? 'icon-publish' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
-                  </a>
+                  </button>
                 <?php endif; ?>
             </td>
           </tr>

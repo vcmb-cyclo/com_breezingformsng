@@ -4,7 +4,7 @@
 import { JoomlaEditor } from 'editor-api';
 // Through the import map, which carries the version: a relative import has none,
 // and a browser would keep an old copy of the module after an update.
-import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
+import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quickmode-tree-model';
 
 (function () {
     'use strict';
@@ -32,6 +32,46 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                 var selectedTreeElement = null;
                 var copyTreeElement = null;
                 var appScope = this;
+
+                // Editor errors go through Joomla's message area (joomla-alert,
+                // role="alert") instead of blocking native alert() boxes. The
+                // first faulty field, when given, receives the focus.
+                var editorErrorsShown = false;
+                this.showEditorErrors = function (messages, focusSelector) {
+                    var list = (Array.isArray(messages) ? messages : [messages]).filter(Boolean);
+
+                    if (!list.length) {
+                        return;
+                    }
+
+                    editorErrorsShown = true;
+                    Joomla.removeMessages();
+                    Joomla.renderMessages({ error: list });
+
+                    var container = document.getElementById('system-message-container');
+
+                    if (container && typeof container.scrollIntoView === 'function') {
+                        container.scrollIntoView({ block: 'nearest' });
+                    }
+
+                    if (focusSelector) {
+                        var field = document.querySelector(focusSelector);
+
+                        if (field && typeof field.focus === 'function') {
+                            field.focus();
+                        }
+                    }
+                };
+
+                // Polite announcement for assistive technology (#bfTreeLiveRegion).
+                this.announceTree = function (message) {
+                    var region = document.getElementById('bfTreeLiveRegion');
+
+                    if (region) {
+                        region.textContent = '';
+                        region.textContent = message;
+                    }
+                };
                 this.elementScripts = BFQMConfig.elementScripts;
                 this.dataObject = BFQMConfig.dataObject;
 
@@ -404,8 +444,74 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                     });
                 });
 
+                // Keyboard equivalents of drag and drop and of the right click:
+                // Alt+ArrowUp / Alt+ArrowDown move the focused node one step,
+                // Shift+F10 / ContextMenu open the context menu. jsTree supplies
+                // the tree, treeitem, aria-expanded and aria-selected semantics
+                // and the arrow-key navigation itself.
+                function moveTreeNodeByKeyboard(instance, event, direction) {
+                    event.preventDefault();
+
+                    var node = instance.get_node(event.currentTarget);
+                    var destination = node ? appScope.treeModel.getKeyboardMove(node.id, direction) : null;
+
+                    if (!destination) {
+                        return;
+                    }
+
+                    var movedId = node.id;
+                    var movedText = instance.get_text(node);
+
+                    if (!appScope.moveDataObjectItem(movedId, destination.parentId, destination.index, appScope.dataObject)) {
+                        return;
+                    }
+
+                    var parent = appScope.treeModel.getParent(movedId);
+                    var siblings = appScope.treeModel.getChildren(parent);
+
+                    appScope.refreshTree(function () {
+                        var anchor = instance.get_node(movedId, true).children('.jstree-anchor');
+
+                        if (anchor.length) {
+                            anchor.trigger('focus');
+                        }
+
+                        appScope.announceTree(
+                            Joomla.Text._('COM_BREEZINGFORMSNG_QM_TREE_MOVED')
+                                .replace('%1$s', movedText)
+                                .replace('%2$d', siblings.indexOf(appScope.treeModel.find(movedId)) + 1)
+                                .replace('%3$d', siblings.length)
+                        );
+                    });
+                }
+
+                function treeKeyboardHandler(command) {
+                    return function (event) {
+                        if (getTreeKeyCommand({ key: event.key, altKey: event.altKey, shiftKey: event.shiftKey, ctrlKey: event.ctrlKey, metaKey: event.metaKey }) !== command) {
+                            return;
+                        }
+
+                        if (command === 'context-menu') {
+                            event.preventDefault();
+                            this.show_contextmenu(event.currentTarget);
+
+                            return;
+                        }
+
+                        moveTreeNodeByKeyboard(this, event, command === 'move-up' ? 'up' : 'down');
+                    };
+                }
+
                 JQuery('#bfElementExplorer').jstree({
                     core: {
+                        keyboard: {
+                            // Merged with jsTree's own bindings; the numeric key is the
+                            // ContextMenu key, which jsTree has no name for.
+                            'alt-up': treeKeyboardHandler('move-up'),
+                            'alt-down': treeKeyboardHandler('move-down'),
+                            'shift-f10': treeKeyboardHandler('context-menu'),
+                            '93': treeKeyboardHandler('context-menu')
+                        },
                         data: [toJsTreeNode(appScope.dataObject)],
                         multiple: false,
                         check_callback: function (operation, node, node_parent) {
@@ -436,7 +542,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
 
                             if (itemType === 'section' || itemType === 'element') {
                                 menuItems.copy = {
-                                    label: 'Copy',
+                                    label: Joomla.Text._('COM_BREEZINGFORMSNG_QM_TREE_COPY'),
                                     action: function () {
                                         appScope.copyTreeElement = item;
                                     }
@@ -445,7 +551,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
 
                             if (appScope.copyTreeElement && (itemType === 'section' || itemType === 'page')) {
                                 menuItems.paste = {
-                                    label: 'Paste',
+                                    label: Joomla.Text._('COM_BREEZINGFORMSNG_QM_TREE_PASTE'),
                                     action: function () {
                                         appScope.insertElementInto(clone_obj(appScope.copyTreeElement), item);
                                         appScope.refreshTree();
@@ -455,7 +561,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
 
                             if (itemType !== 'root') {
                                 menuItems.remove = {
-                                    label: 'Delete',
+                                    label: Joomla.Text._('COM_BREEZINGFORMSNG_QM_TREE_DELETE'),
                                     icon: 'icon-trash',
                                     action: function () {
                                         appScope.selectedTreeElement = null;
@@ -596,7 +702,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                     });
 
                     if (missing) {
-                        alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_QM_STRIPE_AMOUNT_FIELD_MISSING'].replace('%s', missing.properties.bfName));
+                        appScope.showEditorErrors(BFQMConfig.labels['COM_BREEZINGFORMSNG_QM_STRIPE_AMOUNT_FIELD_MISSING'].replace('%s', missing.properties.bfName));
                     }
 
                     return !missing;
@@ -604,22 +710,30 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
 
                 this.saveButton = function () {
                     var error = false;
+                    var errors = [];
+                    var firstField = null;
+                    var nameCharacters = /^([a-zA-Z0-9_]+)$/;
+
+                    function fail(message, selector) {
+                        errors.push(message);
+                        error = true;
+                        if (!firstField) {
+                            firstField = selector;
+                        }
+                    }
+
                     if (appScope.selectedTreeElement) {
 
                         switch (appScope.getNodeClass(appScope.selectedTreeElement)) {
                             case 'bfQuickModeRootClass':
                                 if (JQuery.trim(JQuery('#bfFormTitle').val()) == '') {
-                                    alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_TITLE']);
-                                    error = true;
+                                    fail(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_TITLE'], '#bfFormTitle');
                                 }
                                 if (JQuery.trim(JQuery('#bfFormName').val()) == '') {
-                                    alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME']);
-                                    error = true;
+                                    fail(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME'], '#bfFormName');
                                 }
-                                var myRegxp = /^([a-zA-Z0-9_]+)$/;
-                                if (!myRegxp.test(JQuery('#bfFormName').val())) {
-                                    alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS']);
-                                    error = true;
+                                if (!nameCharacters.test(JQuery('#bfFormName').val())) {
+                                    fail(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS'], '#bfFormName');
                                 }
                                 if (!error) {
                                     appScope.saveFormProperties();
@@ -627,8 +741,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                                 break;
                             case 'bfQuickModeSectionClass':
                                 if (JQuery.trim(JQuery('#bfSectionName').val()) == '') {
-                                    alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME']);
-                                    error = true;
+                                    fail(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME'], '#bfSectionName');
                                 }
                                 if (!error) {
                                     appScope.saveSectionProperties();
@@ -636,25 +749,20 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                                 break;
                             case 'bfQuickModeElementClass':
                                 if (JQuery.trim(JQuery('#bfElementLabel').val()) == '') {
-                                    alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_LABEL']);
-                                    error = true;
+                                    fail(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_LABEL'], '#bfElementLabel');
                                 }
                                 if (JQuery.trim(JQuery('#bfElementName').val()) == '') {
-                                    alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME']);
-                                    error = true;
+                                    fail(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME'], '#bfElementName');
                                 }
-                                var myRegxp = /^([a-zA-Z0-9_]+)$/;
-                                if (!myRegxp.test(JQuery('#bfElementName').val())) {
-                                    alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS']);
-                                    error = true;
+                                if (!nameCharacters.test(JQuery('#bfElementName').val())) {
+                                    fail(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS'], '#bfElementName');
                                 }
 
                                 var items = new Array();
                                 appScope.getItemsFlattened(appScope.dataObject, items);
                                 for (var i = 0; i < items.length; i++) {
                                     if (appScope.selectedTreeElement.attributes.id != items[i].attributes.id && JQuery.trim(items[i].properties.bfName) == JQuery.trim(JQuery('#bfElementName').val())) {
-                                        alert(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_NAME_EXISTS'] + " " + JQuery.trim(JQuery('#bfElementName').val()) + " (" + JQuery.trim(JQuery('#bfElementLabel').val()) + ")");
-                                        error = true;
+                                        fail(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_NAME_EXISTS'] + " " + JQuery.trim(JQuery('#bfElementName').val()) + " (" + JQuery.trim(JQuery('#bfElementLabel').val()) + ")", '#bfElementName');
                                     }
                                 }
 
@@ -666,6 +774,12 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                             case 'bfQuickModePageClass':
                                 appScope.savePageProperties();
                                 break;
+                        }
+                        if (error) {
+                            appScope.showEditorErrors(errors, firstField);
+                        } else if (editorErrorsShown) {
+                            editorErrorsShown = false;
+                            Joomla.removeMessages();
                         }
                         if (!error) {
                             // TODO: remove the 2nd refresh if found out why this works only on the 2nd
@@ -954,7 +1068,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                     var form = document.bfForm;
                     var name = mdata.bfName;
                     if (name == '') {
-                        alert('Please enter the element name first.');
+                        app.showEditorErrors(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME'], '#bfElementName');
                         return;
                     } // if
                     if (!confirm(BFQMConfig.labels['COM_BREEZINGFORMSNG_ELEMENTS_CREAINIT'] + "\n" + BFQMConfig.labels['COM_BREEZINGFORMSNG_ELEMENTS_EXISTAPP']))
@@ -992,7 +1106,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                     var form = document.bfForm;
                     var name = mdata.bfName;
                     if (name == '') {
-                        alert('Please enter the element name first.');
+                        app.showEditorErrors(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME'], '#bfElementName');
                         return;
                     } // if
                     if (!confirm(BFQMConfig.labels['COM_BREEZINGFORMSNG_ELEMENTS_CREAVALID'] + "\n" + BFQMConfig.labels['COM_BREEZINGFORMSNG_ELEMENTS_EXISTAPP']))
@@ -1024,7 +1138,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                     var form = document.bfForm;
                     var name = mdata.bfName;
                     if (name == '') {
-                        alert('Please enter the element name first.');
+                        app.showEditorErrors(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME'], '#bfElementName');
                         return;
                     } // if
                     if (!confirm(BFQMConfig.labels['COM_BREEZINGFORMSNG_ELEMENTS_CREAACTION'] + "\n" + BFQMConfig.labels['COM_BREEZINGFORMSNG_ELEMENTS_EXISTAPP']))

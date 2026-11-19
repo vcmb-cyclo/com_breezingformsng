@@ -14,6 +14,10 @@ declare(strict_types=1);
 
 $report = $argv[1] ?? '';
 $minimum = isset($argv[2]) ? (float) $argv[2] : 0.0;
+// Optional third argument: the baseline file of the ratchet (see CoverageRatchet).
+$baselineFile = $argv[3] ?? '';
+
+require_once __DIR__ . '/CoverageRatchet.php';
 
 if ($report === '' || !is_file($report)) {
     fwrite(STDERR, "::error::Coverage report not found: {$report}\n");
@@ -51,9 +55,35 @@ if (is_string($stepSummary) && $stepSummary !== '') {
     file_put_contents($stepSummary, "## PHPUnit coverage\n\n{$summary}\n", FILE_APPEND);
 }
 
+$ratchet = null;
+
+if ($baselineFile !== '') {
+    try {
+        $ratchet = CoverageRatchet::evaluate($percentage, CoverageRatchet::readBaseline($baselineFile));
+    } catch (RuntimeException $exception) {
+        fwrite(STDERR, "::error::{$exception->getMessage()}\n");
+        exit(1);
+    }
+
+    $summary .= "\n" . $ratchet['message'];
+}
+
+if (is_string($stepSummary) && $stepSummary !== '' && $ratchet !== null) {
+    file_put_contents($stepSummary, "\n{$ratchet['message']}\n" . ($ratchet['notice'] !== '' ? "\n{$ratchet['notice']}\n" : ''), FILE_APPEND);
+}
+
 fwrite(STDOUT, "{$summary}\n");
+
+if ($ratchet !== null && $ratchet['notice'] !== '') {
+    fwrite(STDOUT, "::notice::{$ratchet['notice']}\n");
+}
 
 if ($percentage < $minimum) {
     fwrite(STDERR, "::error::Coverage is below the required threshold.\n");
+    exit(1);
+}
+
+if ($ratchet !== null && $ratchet['failed']) {
+    fwrite(STDERR, "::error::Coverage dropped below the baseline of {$baselineFile} minus the tolerance.\n");
     exit(1);
 }

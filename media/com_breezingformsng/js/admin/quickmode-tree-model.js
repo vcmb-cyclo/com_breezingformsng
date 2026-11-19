@@ -354,6 +354,50 @@ export class QuickmodeTreeModel {
         return { node: source, parent: destination, index: insertionIndex };
     }
 
+    /**
+     * Destination of a keyboard move of one step ("up" or "down") of a node,
+     * as { parentId, index } for move(id, parentId, 'inside', index), or null
+     * when the node cannot move. Within its parent the node swaps with its
+     * neighbour; at the edge it crosses into the neighbouring container of the
+     * same kind (previous or next page or section) when that one may contain
+     * it. index counts in the parent's children once the node is removed.
+     */
+    getKeyboardMove(id, direction) {
+        const node = this.find(id);
+        const parent = this.getParent(id);
+
+        if (!node || !parent || node === this.root || (direction !== 'up' && direction !== 'down')) {
+            return null;
+        }
+
+        const siblings = this.getChildren(parent);
+        const position = siblings.indexOf(node);
+        const step = direction === 'up' ? -1 : 1;
+        const swapWith = position + step;
+
+        if (swapWith >= 0 && swapWith < siblings.length) {
+            return { parentId: parent.attributes.id, index: swapWith };
+        }
+
+        const grandParent = this.getParent(parent.attributes.id);
+
+        if (!grandParent) {
+            return null;
+        }
+
+        const containers = this.getChildren(grandParent);
+        const neighbour = containers[containers.indexOf(parent) + step];
+
+        if (!neighbour || !this.canContain(neighbour, node)) {
+            return null;
+        }
+
+        return {
+            parentId: neighbour.attributes.id,
+            index: direction === 'up' ? this.getChildren(neighbour).length : 0
+        };
+    }
+
     cloneInto(sourceId, targetId, index = null) {
         const source = this.find(sourceId);
         const target = this.find(targetId);
@@ -471,6 +515,37 @@ export class QuickmodeTreeModel {
 
         return candidate;
     }
+}
+
+/**
+ * Keyboard command of a keydown on a tree node: "move-up" and "move-down"
+ * (Alt+ArrowUp / Alt+ArrowDown), "context-menu" (Shift+F10 or the ContextMenu
+ * key), or null for any other key.
+ */
+export function getTreeKeyCommand(event) {
+    if (!event || event.ctrlKey || event.metaKey) {
+        return null;
+    }
+
+    const key = event.key;
+
+    if (event.altKey && !event.shiftKey) {
+        if (key === 'ArrowUp') {
+            return 'move-up';
+        }
+
+        if (key === 'ArrowDown') {
+            return 'move-down';
+        }
+
+        return null;
+    }
+
+    if (!event.altKey && ((event.shiftKey && key === 'F10') || (!event.shiftKey && key === 'ContextMenu'))) {
+        return 'context-menu';
+    }
+
+    return null;
 }
 
 export default QuickmodeTreeModel;

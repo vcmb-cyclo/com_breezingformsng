@@ -387,7 +387,11 @@ $ff_request = array();
 
 
             if ($menu_item_show_page_heading) {
-                echo '<h1>' . ($menu_item_title != '' ? ($menu_item_page_heading != '' ? $menu_item_page_heading : $menu_item_title) : $form->title) . '</h1>' . "\n";
+                echo \Vcmb\Component\BreezingformsNG\Site\Service\Support\PageHeading::html(
+                    (string) $menu_item_title,
+                    (string) $menu_item_page_heading,
+                    (string) $form->title
+                ) . "\n";
             }
 
             // process inline

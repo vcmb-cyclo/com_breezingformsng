@@ -90,7 +90,8 @@ final class PaymentDownloadService
                 $selectQuery = $this->database->createQuery()
                     ->select($this->database->quoteName('paypal_download_tries'))
                     ->from($this->database->quoteName('#__facileforms_records'))
-                    ->where($this->database->quoteName('id') . ' = :downloadRecordId');
+                    ->where($this->database->quoteName('id') . ' = :downloadRecordId')
+                    ->where($this->database->quoteName('form') . ' = :downloadFormId');
                 $transactionConditions = [];
                 foreach (array_keys($transactionBindings) as $parameter) {
                     $transactionConditions[] = $this->database->quoteName('paypal_tx_id') . ' = ' . $parameter;
@@ -101,6 +102,7 @@ final class PaymentDownloadService
                     $selectQuery->extendWhere('AND', $transactionConditions, 'OR');
                 }
                 $selectQuery->bind(':downloadRecordId', $downloadRecordId, ParameterType::INTEGER);
+                $selectQuery->bind(':downloadFormId', $formId, ParameterType::INTEGER);
                 foreach ($transactionBindings as $parameter => $value) {
                     $selectQuery->bind($parameter, $value, ParameterType::STRING);
                 }
@@ -116,10 +118,11 @@ final class PaymentDownloadService
                     break;
                 }
 
+                $maximumTries = (int) ($options['downloadTries'] ?? 0);
                 if (
                     !$this->downloadPolicy->canDownload(
                         (int) $downloads[0]->paypal_download_tries,
-                        (int) ($options['downloadTries'] ?? 0)
+                        $maximumTries
                     )
                 ) {
                     $this->redirectHelper->to(
@@ -138,21 +141,37 @@ final class PaymentDownloadService
                         . $this->database->quoteName('paypal_download_tries')
                         . ' + 1'
                     )
-                    ->where($this->database->quoteName('id') . ' = :downloadRecordId');
+                    ->where($this->database->quoteName('id') . ' = :downloadRecordId')
+                    ->where($this->database->quoteName('form') . ' = :downloadFormId')
+                    ->where($this->database->quoteName('paypal_download_tries') . ' < :maximumTries');
                 if (count($transactionConditions) === 1) {
                     $updateQuery->where($transactionConditions[0]);
                 } else {
                     $updateQuery->extendWhere('AND', $transactionConditions, 'OR');
                 }
                 $updateQuery->bind(':downloadRecordId', $downloadRecordId, ParameterType::INTEGER);
+                $updateQuery->bind(':downloadFormId', $formId, ParameterType::INTEGER);
+                $updateQuery->bind(':maximumTries', $maximumTries, ParameterType::INTEGER);
                 foreach ($transactionBindings as $parameter => $value) {
                     $updateQuery->bind($parameter, $value, ParameterType::STRING);
                 }
                 $this->database->setQuery($updateQuery);
                 $this->database->execute();
 
+                // The conditional UPDATE is the authoritative quota check: concurrent
+                // requests cannot both claim the last remaining download.
+                if ($this->database->getAffectedRows() !== 1) {
+                    $this->redirectHelper->to(
+                        Uri::root(),
+                        Text::_('COM_BREEZINGFORMSNG_MAX_DOWNLOAD_TRIES_REACHED')
+                    );
+
+                    break;
+                }
+
                 $file = (string) ($options['filepath'] ?? '');
-                if (!is_file($file)) {
+                $resolved = realpath($file);
+                if ($resolved === false || !(new PaymentDownloadFilePolicy())->isServable($resolved)) {
                     $this->redirectHelper->to(
                         Uri::root(),
                         Text::_('COM_BREEZINGFORMSNG_COULD_NOT_FIND_DOWNLOAD_FILE')
@@ -161,7 +180,7 @@ final class PaymentDownloadService
                     break;
                 }
 
-                DownloadHelper::stream($this->application, $file);
+                DownloadHelper::stream($this->application, $resolved);
             }
         }
     }

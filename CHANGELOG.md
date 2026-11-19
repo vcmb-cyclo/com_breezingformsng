@@ -1,5 +1,40 @@
 # Changelog
 
+## 6.1.0-RC23
+
+### Added
+
+- Reorder the elements of the QuickMode tree from the keyboard with Alt+Up and Alt+Down, and open its context menu with Shift+F10 or the Menu key. The new position is announced to screen readers.
+
+### Changed
+
+- Show the errors of the QuickMode editor as Joomla messages instead of browser pop-ups, all together, with the focus on the first field to correct.
+- Turn the language selector of the editor into real links, and the publish toggles of the lists into buttons with an accessible name.
+- Show the title of a form as plain text: a title that contained HTML tags now displays them as typed.
+- Refuse files that a web server runs as scripts, such as .php files, in every upload field, even when the field accepts any type of file. The list of allowed extensions now applies to every form.
+- Ask for the permission to create when copying a form, a piece or a script.
+
+### Fixed
+
+- Announce required fields to screen readers, with a hidden Required text next to the asterisk and the matching ARIA attribute.
+- Describe the security code image in words, name its refresh button, and fit the image to narrow screens.
+- Check every file of an upload field against the allowed extensions, not only the first one.
+- Translate the Copy, Paste and Delete items of the QuickMode tree menu in all languages.
+- Keep an interrupted update from leaving the modification dates of records half converted: the conversion is done all at once and resumes safely.
+- Stop a double opt-in link without a valid token from confirming or cancelling anything, and say so instead of thanking the visitor.
+
+### Security
+
+- Keep the PHP pieces and scripts of a form out of reach of editors who do not hold the Manage Code permission: their changes to code are not saved and a warning says so. This also applies to package imports and to AI assistants (MCP).
+- Accept a PayPal payment notification only when the payment went to the account set on the form.
+- Check the security code before any uploaded file or signature is written, and accept only PNG images of at most 1 MB as signatures.
+- Keep uploaded files inside their folder: a value typed in a field can no longer use .. to leave it.
+- Never serve configuration or script files as a paid download, tie each download to its own form, and count the attempts so that simultaneous requests cannot exceed the limit.
+- Check the size of a file sent in chunks before writing each chunk, in order, with a limit of 256 MB per file when the field sets none.
+- Protect the upload folders and the folder of the payment emails waiting to be sent with access rules and an empty index page, and stop reading objects from that queue.
+- Escape the title of a form wherever it is displayed.
+- Check the server name of a Mailchimp API key before contacting Mailchimp.
+
 ## 6.1.0-RC22
 
 ### Added

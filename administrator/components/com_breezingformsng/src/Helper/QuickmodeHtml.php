@@ -321,7 +321,11 @@ final class QuickmodeHtml
                         placeholder="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_QM_SEARCH_FORM_PLACEHOLDER'), ENT_QUOTES, 'UTF-8'); ?>">
                     <div id="bfFormSearchResults" class="list-group mt-2" aria-live="polite"></div>
                 </div>
-                <div id="bfElementExplorer" class="bfng-tree"></div>
+                <p id="bfTreeKeyboardHint" class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_TREE_KEYBOARD_HINT'); ?></p>
+                <div id="bfTreeLiveRegion" class="visually-hidden" role="status" aria-live="polite"></div>
+                <div id="bfElementExplorer" class="bfng-tree"
+                    aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_QM_TREE_LABEL'), ENT_QUOTES, 'UTF-8'); ?>"
+                    aria-describedby="bfTreeKeyboardHint"></div>
 
             </div> <!-- ##### bfQuickModeLeft end ##### -->
 
@@ -330,26 +334,32 @@ final class QuickmodeHtml
 
                 <?php if ($formId > 0) : ?>
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                    <div class="d-flex flex-wrap align-items-center gap-1 bfng-seg">
                     <?php if (count($languages) > 1) : ?>
-                    <div onclick="location.href = 'index.php?option=com_breezingformsng&format=html&task=quickmode.display&formName=translationtest&form=<?php echo $formId ?>&active_language_code='"
-                        class="bfLanguageButton bfng-seg__opt<?php echo $active_language_code == $default || $active_language_code == '' ? ' bfLanguageButtonActive' : '' ?>">
-                        <?php echo $default; ?>
-                    </div>
+                    <nav class="d-flex flex-wrap align-items-center gap-1 bfng-seg"
+                        aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_LANGUAGE'), ENT_QUOTES, 'UTF-8'); ?>">
+                    <?php
+                    $languageUrl = 'index.php?option=com_breezingformsng&amp;format=html&amp;task=quickmode.display&amp;formName=translationtest&amp;form=' . (int) $formId . '&amp;active_language_code=';
+                    $defaultActive = $active_language_code == $default || $active_language_code == '';
+                    ?>
+                    <a href="<?php echo $languageUrl; ?>"
+                        class="bfLanguageButton bfng-seg__opt<?php echo $defaultActive ? ' bfLanguageButtonActive' : '' ?>"<?php echo $defaultActive ? ' aria-current="true"' : ''; ?>>
+                        <?php echo htmlspecialchars((string) $default, ENT_QUOTES, 'UTF-8'); ?>
+                    </a>
                     <?php
                     foreach ($languages as $languageCode) {
                         if ($languageCode !== $default) {
+                            $languageActive = $active_language_code === $languageCode;
                             ?>
-                            <div onclick="location.href = 'index.php?option=com_breezingformsng&format=html&task=quickmode.display&formName=translationtest&form=<?php echo $formId ?>&active_language_code=<?php echo rawurlencode($languageCode); ?>'"
-                                class="bfLanguageButton bfng-seg__opt<?php echo $active_language_code === $languageCode ? ' bfLanguageButtonActive' : '' ?>">
+                            <a href="<?php echo $languageUrl . rawurlencode($languageCode); ?>"
+                                class="bfLanguageButton bfng-seg__opt<?php echo $languageActive ? ' bfLanguageButtonActive' : '' ?>"<?php echo $languageActive ? ' aria-current="true"' : ''; ?>>
                                 <?php echo htmlspecialchars($languageCode, ENT_QUOTES, 'UTF-8'); ?>
-                            </div>
+                            </a>
                             <?php
                         }
                     }
                     ?>
+                    </nav>
                     <?php endif; ?>
-                    </div>
                     <?php self::renderSection('form_state_actions', get_defined_vars()); ?>
                     <span id="bfUnsavedBadge" class="bfng-badge bfng-badge--unpublished" hidden>
                         <?php echo Text::_('COM_BREEZINGFORMSNG_QM_UNSAVED_CHANGES'); ?>

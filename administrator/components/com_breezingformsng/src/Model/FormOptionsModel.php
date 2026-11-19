@@ -17,6 +17,8 @@ use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\Event\Event;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormCodeGuard;
 use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
 
 /**
@@ -24,6 +26,20 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetecto
  */
 class FormOptionsModel extends BaseDatabaseModel
 {
+    /** @var list<string> The code columns of the last save whose change was not kept. */
+    private array $ignoredCodeColumns = [];
+
+    /**
+     * The code columns of the last save that were left as they were because
+     * the user does not hold the permission to edit code.
+     *
+     * @return list<string>
+     */
+    public function getIgnoredCodeColumns(): array
+    {
+        return $this->ignoredCodeColumns;
+    }
+
     private function db(): DatabaseInterface
     {
         return $this->getDatabase();
@@ -174,6 +190,15 @@ class FormOptionsModel extends BaseDatabaseModel
                 $data['published'] = 0;
             }
         }
+
+        // The code of a form is run by the site: editing the form is not enough to change it.
+        $guarded = (new FormCodeGuard())->apply(
+            $data,
+            $id > 0 ? $this->getForm($id) : null,
+            AreaAccess::isAllowed($user, AreaAccess::CODE)
+        );
+        $data = $guarded['data'];
+        $this->ignoredCodeColumns = $guarded['ignored'];
 
         if ($id > 0 && !empty($data['published'])) {
             $form = $this->getForm($id);

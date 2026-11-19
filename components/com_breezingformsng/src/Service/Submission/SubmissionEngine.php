@@ -50,6 +50,7 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadedFilesColumns;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FlashUploadFileMatcher;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\FilemaskFilename;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadError;
+use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadExtensionPolicy;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadDirectoryProtection;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadRuntime;
 use Vcmb\Component\BreezingformsNG\Site\Service\Security\HtmlSanitizer;
@@ -289,24 +290,21 @@ final class SubmissionEngine
                                 )
                             );
 
-                            if (
-                                $this->processor->formrow->template_code != ''
-                                && ($uploadfiles['tmp_name'][0] ?? '') != ''
-                                && trim($row->data2) != ''
-                            ) {
-                                $fileName = (string) ($uploadfiles['name'][0] ?? '');
-                                $ext = strtolower(substr($fileName, strrpos($fileName, '.') + 1));
-                                $allowedExtensions = explode(',', strtolower(str_replace(' ', '', trim($row->data2))));
-
-                                if (!in_array($ext, $allowedExtensions)) {
-                                    $this->processor->status = _FF_STATUS_FILE_EXTENSION_NOT_ALLOWED;
-                                    $this->processor->message = Text::sprintf(
-                                        'COM_BREEZINGFORMSNG_UPLOAD_EXTENSION_NOT_ALLOWED_DETAIL',
-                                        basename(str_replace('\\', '/', $fileName)),
-                                        implode(', ', $allowedExtensions)
-                                    );
-                                    return;
-                                }
+                            // Every file of the field is checked, not only the first one.
+                            $refusedFile = (new UploadExtensionPolicy())->firstRefused(
+                                array_values(array_map('strval', (array) ($uploadfiles['name'] ?? []))),
+                                (string) $row->data2
+                            );
+                            if ($refusedFile !== null) {
+                                $this->processor->status = _FF_STATUS_FILE_EXTENSION_NOT_ALLOWED;
+                                $this->processor->message = Text::sprintf(
+                                    'COM_BREEZINGFORMSNG_UPLOAD_EXTENSION_NOT_ALLOWED_DETAIL',
+                                    basename(str_replace('\\', '/', $refusedFile)),
+                                    trim((string) $row->data2) !== ''
+                                        ? implode(', ', explode(',', strtolower(str_replace(' ', '', trim((string) $row->data2)))))
+                                        : Text::_('COM_BREEZINGFORMSNG_UPLOAD_EXTENSION_EXECUTABLE_FILES')
+                                );
+                                return;
                             }
 
                             $paths = array();
@@ -349,6 +347,10 @@ final class SubmissionEngine
                                         }
                                         $path = $pathInfo['default'];
                                         $serverPath = $pathInfo['server'];
+                                        // ContentBuilder decides by itself (protect_upload_directory) above.
+                                        if ($cbResult === null || !isset($cbResult['data']) || $cbResult['data'] == null) {
+                                            UploadDirectoryProtection::ensureWithinWebRoot(dirname($serverPath), JPATH_SITE);
+                                        }
                                         if ($this->processor->status != _FF_STATUS_OK) {
                                             return;
                                         }
@@ -888,18 +890,23 @@ final class SubmissionEngine
                                             );
                                         }
                                         $sig_decoded = bf_b64dec($value);
-                                        $sig_file = JPATH_SITE . '/media/breezingforms/signatures/'
-                                            // nosemgrep: php.lang.security.weak-crypto.weak-crypto -- MD5 names the signature file after its content, not a secret.
-                                            . $row->name . '-' . md5($value) . '.png';
-                                        File::write($sig_file, $sig_decoded);
-                                        $value = basename($sig_file);
+                                        if (!(new SignatureImagePolicy())->isStorable($sig_decoded)) {
+                                            // Not a PNG of a reasonable size: nothing is written under a ".png" name.
+                                            $value = '';
+                                        } else {
+                                            $sig_file = JPATH_SITE . '/media/breezingforms/signatures/'
+                                                // nosemgrep: php.lang.security.weak-crypto.weak-crypto -- MD5 names the signature file after its content, not a secret.
+                                                . $row->name . '-' . md5($value) . '.png';
+                                            File::write($sig_file, $sig_decoded);
+                                            $value = basename($sig_file);
 
-                                        $sigValues .= $value;
+                                            $sigValues .= $value;
 
-                                        // DROPBOX SUPPORT request v2 API
-                                        // DROPBOX Signature upload
-                                        if ($this->processor->formrow->dropbox_email) {
-                                            $this->uploadFileToDropbox($sig_file);
+                                            // DROPBOX SUPPORT request v2 API
+                                            // DROPBOX Signature upload
+                                            if ($this->processor->formrow->dropbox_email) {
+                                                $this->uploadFileToDropbox($sig_file);
+                                            }
                                         }
                                     }
 
@@ -1136,9 +1143,7 @@ final class SubmissionEngine
         $this->processor->message = '';
         $this->processor->sendNotificationAfterPayment = false;
 
-        // handle Begin Submit piece
-        $this->collectSubmitdata($cbResult);
-
+        // The captcha is checked before anything is written: a robot that fails it leaves no file behind.
             $elementRows = $this->processor->rows ?? [];
         for ($i = 0; $i < $this->processor->rowcount; $i++) {
             $row = $elementRows[$i];
@@ -1180,6 +1185,11 @@ final class SubmissionEngine
                     break;
             }
         }
+
+
+        // handle Begin Submit piece
+        $this->collectSubmitdata($cbResult);
+
 
 
             $areas = json_decode((string) $this->processor->formrow->template_areas, true);

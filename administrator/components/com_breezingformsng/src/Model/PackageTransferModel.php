@@ -17,6 +17,7 @@ use Joomla\Database\ParameterType;
 use Joomla\Filesystem\File;
 use Vcmb\Component\BreezingformsNG\Administrator\Exception\InvalidPackageException;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AuditUserNames;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormCodeGuard;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\LegacyXmlPackage;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PackageTemplateCode;
@@ -25,6 +26,9 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Integration\IntegratorCriteriaPo
 
 final class PackageTransferModel extends BaseDatabaseModel
 {
+    /** Whether the import may write the code of the package: set by each import and comparison. */
+    private bool $mayWriteCode = false;
+
     private const FORMAT = 'breezingformsng-package';
     /** Version 3 holds the template code of the forms in clear; 1 and 2, as the database stores it. */
     private const VERSION = 3;
@@ -359,9 +363,19 @@ final class PackageTransferModel extends BaseDatabaseModel
         // Templates and Integrator rules are PHP code: without the permission to
         // write them, they are left out and the rest of the package is imported.
         // Even an empty rule list would replace the existing rules of a form.
+        $this->mayWriteCode = $allowIntegrator;
         if (!$allowIntegrator && !empty($payload['integrator'])) {
             unset($payload['integrator']);
             $this->importSummary['skipped'][] = 'integrator';
+        }
+        // Scripts, pieces and the code of the forms are run by the site: they take the same permission.
+        if (!$allowIntegrator) {
+            foreach (['scripts', 'pieces'] as $part) {
+                if (!empty($payload[$part])) {
+                    unset($payload[$part]);
+                    $this->importSummary['skipped'][] = $part;
+                }
+            }
         }
         if (!$allowTemplates && !empty($payload['templates'])) {
             unset($payload['templates']);
@@ -506,8 +520,9 @@ final class PackageTransferModel extends BaseDatabaseModel
         $payload = $this->readPayload($filename);
         $summary = $this->payloadSummary($payload);
         // The parts the user may not write are left out of the import, and of the comparison.
+        $this->mayWriteCode = $allowIntegrator;
         if (!$allowIntegrator) {
-            unset($payload['integrator']);
+            unset($payload['integrator'], $payload['scripts'], $payload['pieces']);
         }
         if (!$allowTemplates) {
             unset($payload['templates']);
@@ -1518,6 +1533,12 @@ final class PackageTransferModel extends BaseDatabaseModel
         // The version number belongs to the form of this site, not to the package.
         $data = $this->only($source, $this->tableColumns('#__facileforms_forms'), ['id', 'created', 'created_by', 'modified', 'modified_by', 'version']);
         $data['package'] = $package;
+        // Without the permission to write code, the form keeps the code it has, or none when it is new.
+        if (!$this->mayWriteCode) {
+            foreach (FormCodeGuard::CODE_COLUMNS as $column) {
+                unset($data[$column]);
+            }
+        }
         // A package can hold a form saved as "Backend only": it stays off the
         // site, unpublished, as the update does for the forms of this site.
         $backendOnly = (int) ($data['runmode'] ?? 0) === 1;

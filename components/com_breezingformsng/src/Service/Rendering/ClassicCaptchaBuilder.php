@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering;
 
+use Joomla\CMS\Language\Text;
+
 /**
  * Builds the classic renderer markup for a CAPTCHA element.
  */
@@ -41,14 +43,16 @@ final class ClassicCaptchaBuilder
 
         return $indent . '<div id="ff_div' . $elementId . '" style="' . $wrapperStyle
             . '"' . $wrapperClass . '>' . $compactNewline
-            . '<img id="ff_capimgValue" class="ff_capimg" src="' . $captchaUrl . '"/>' . $compactNewline
+            . '<img id="ff_capimgValue" class="ff_capimg" src="' . $captchaUrl . '" alt="'
+            . htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_CAPTCHA_IMAGE_ALT'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"/>' . $compactNewline
             . '<br/>' . $compactNewline
             . '<input type="text" style="' . $dimensions . '" name="bfCaptchaEntry" id="bfCaptchaEntry" />'
             . $compactNewline
-            . '<a href="#" onclick="document.getElementById(\'bfCaptchaEntry\').value=\'\';'
+            . '<a href="#" role="button" onclick="document.getElementById(\'bfCaptchaEntry\').value=\'\';'
             . 'document.getElementById(\'bfCaptchaEntry\').focus();document.getElementById(\'ff_capimgValue\').src = \''
             . $captchaUrl . '&bfMathRandom=\' + Math.random(); return false"><img src="' . $rootUrl
-            . 'media/com_breezingformsng/images/site/captcha/refresh-captcha.png" border="0" /></a>' . $compactNewline
+            . 'media/com_breezingformsng/images/site/captcha/refresh-captcha.png" border="0" alt="'
+            . htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_RC_REFRESH'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '" /></a>' . $compactNewline
             . $indent . '</div>' . $newline;
     }
 }

@@ -34,6 +34,10 @@ final class MailchimpClient
         }
 
         $dataCenter = substr($apiKey, $separator + 1);
+        if (preg_match('/^[a-z0-9]+$/D', $dataCenter) !== 1) {
+            throw new RuntimeException('Invalid Mailchimp API key.');
+        }
+
         $headers = [
             'Authorization' => 'Basic ' . base64_encode('breezingformsng:' . $apiKey),
             'Accept' => 'application/json',

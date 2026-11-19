@@ -186,6 +186,28 @@ final class PayPalPaymentTest extends TestCase
         );
     }
 
+    /**
+     * @return array<string, array{string, string, string, bool}>
+     */
+    public static function receivers(): array
+    {
+        return [
+            'same e-mail' => ['shop@example.com', 'shop@example.com', '', true],
+            'e-mail in another case' => ['Shop@Example.com', ' shop@EXAMPLE.com ', '', true],
+            'merchant id' => ['ABCDE12345678', '', 'abcde12345678', true],
+            'buyer own account' => ['shop@example.com', 'buyer@example.com', 'BUYERID123456', false],
+            'no receiver reported' => ['shop@example.com', '', '', false],
+            'no business configured' => ['', '', '', false],
+            'blank business and blank receiver' => ['  ', ' ', '', false],
+        ];
+    }
+
+    #[DataProvider('receivers')]
+    public function testOnlyTheConfiguredAccountIsTheReceiver(string $business, string $email, string $id, bool $expected): void
+    {
+        self::assertSame($expected, (new PayPalPayment())->isReceiver($business, $email, $id));
+    }
+
     public function testAFreeAmountStillChecksTheCurrency(): void
     {
         $free = ['amount' => '0.00', 'tax' => '0.00', 'currency' => 'EUR'];

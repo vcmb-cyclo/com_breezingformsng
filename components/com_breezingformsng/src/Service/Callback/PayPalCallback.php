@@ -59,10 +59,12 @@ final class PayPalCallback
                     $options = $element['options'];
 
                     $auth_token = $options['token'];
+                    $business = (string) ($options['business'] ?? '');
                     $paypal = 'https://www.paypal.com';
                     if ($options['testaccount']) {
                         $paypal = 'https://www.sandbox.paypal.com';
                         $auth_token = $options['testToken'];
+                        $business = (string) ($options['testBusiness'] ?? '');
                     }
 
                     $req = 'cmd=_notify-validate';
@@ -99,6 +101,11 @@ final class PayPalCallback
                             && $record->paypal_tx_id === ''
                             && $input->post->getString('payment_status', '') === 'Completed'
                             && $expected !== null
+                            && $payment->isReceiver(
+                                $business,
+                                $input->post->getString('receiver_email', ''),
+                                $input->post->getString('receiver_id', '')
+                            )
                             && $payment->matches(
                                 $expected,
                                 $input->post->getString('mc_gross', ''),
@@ -127,7 +134,7 @@ final class PayPalCallback
                             }
                         } elseif ($record !== null && $record->paypal_tx_id === '' && $input->post->getString('payment_status', '') === 'Completed') {
                             Log::add(
-                                'PayPal notification for record ' . $recordId . ' ignored: its amount, currency or signature is not the expected one.',
+                                'PayPal notification for record ' . $recordId . ' ignored: its receiver, amount, currency or signature is not the expected one.',
                                 Log::WARNING,
                                 'com_breezingformsng'
                             );

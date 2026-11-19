@@ -432,7 +432,8 @@ function bf_sendNotificationByPaymentCache($formId, $recordId, $type = 'admin')
 			return true;
 		}
 
-		$contents = unserialize((string) stream_get_contents($cacheHandle));
+		// The queue holds only arrays and strings: no object is ever rebuilt from the file.
+		$contents = unserialize((string) stream_get_contents($cacheHandle), ['allowed_classes' => false]);
 		if (!is_array($contents) || $contents === []) {
 			return false;
 		}

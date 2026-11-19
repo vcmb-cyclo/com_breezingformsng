@@ -16,6 +16,7 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Notification;
 
 \defined('_JEXEC') or die;
 
+use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadDirectoryProtection;
 use HTML_facileFormsProcessor;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Event\Event;
@@ -613,6 +614,8 @@ final class NotificationEngine
                     )
                 );
                 File::write($paymentCache . $paymentFile, $later_content);
+                // The queued message holds what the visitor typed: the folder must not be listed or served.
+                UploadDirectoryProtection::ensure($paymentCache, true);
             }
         }
     }
@@ -1263,6 +1266,8 @@ final class NotificationEngine
                     )
                 );
                 File::write($paymentCache . $paymentFile, $later_content);
+                // The queued message holds what the visitor typed: the folder must not be listed or served.
+                UploadDirectoryProtection::ensure($paymentCache, true);
             }
         }
 

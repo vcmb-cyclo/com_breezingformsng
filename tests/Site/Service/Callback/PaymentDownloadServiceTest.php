@@ -104,6 +104,7 @@ final class PaymentDownloadServiceTest extends TestCase
         self::assertSame(
             [
                 ':downloadRecordId' => '12',
+                ':downloadFormId' => '4',
                 ':paymentTransaction0' => 'PayPal: abc',
                 ':paymentTransaction1' => 'PayPal: abc (VALID)',
             ],
@@ -128,6 +129,60 @@ final class PaymentDownloadServiceTest extends TestCase
         self::assertSame(1, count($database->queries));
     }
 
+    public function testMatchesTheRecordFormAndClaimsTheDownloadWithOneConditionalUpdate(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'bfng');
+        file_put_contents($file, 'x');
+        try {
+            $application = $this->application(['form' => 4, 'record_id' => 12, 'token' => 'abc']);
+            $database = new PaymentDownloadDatabaseDouble([
+                [$this->form('bfStripe', $file)],
+                [(object) ['paypal_download_tries' => 1]],
+            ]);
+
+            try {
+                $this->service($application, $database)->download(
+                    'bfStripe',
+                    'COM_BREEZINGFORMSNG_COULD_NOT_FIND_PAYMENT_DATA',
+                    'token',
+                    'Stripe'
+                );
+            } catch (\Throwable) {
+                // Streaming the file is outside the scope of this test.
+            }
+
+            self::assertSame(1, $database->executions);
+            foreach ([1, 2] as $index) {
+                self::assertSame('4', $database->queries[$index]->bindings[':downloadFormId']);
+                self::assertSame('12', $database->queries[$index]->bindings[':downloadRecordId']);
+            }
+            self::assertSame('3', $database->queries[2]->bindings[':maximumTries']);
+            self::assertTrue($database->queries[2]->conditionsInclude('< :maximumTries'));
+            self::assertTrue($database->queries[1]->conditionsInclude('form'));
+        } finally {
+            unlink($file);
+        }
+    }
+
+    public function testRefusesWhenAConcurrentRequestAlreadyConsumedTheLastDownload(): void
+    {
+        $application = $this->application(['form' => 4, 'record_id' => 12, 'token' => 'abc']);
+        $database = new PaymentDownloadDatabaseDouble([
+            [$this->form('bfStripe')],
+            [(object) ['paypal_download_tries' => 2]],
+        ]);
+        $database->affectedRows = 0;
+
+        $this->service($application, $database)->download(
+            'bfStripe',
+            'COM_BREEZINGFORMSNG_COULD_NOT_FIND_PAYMENT_DATA',
+            'token',
+            'Stripe'
+        );
+
+        self::assertSame(['COM_BREEZINGFORMSNG_MAX_DOWNLOAD_TRIES_REACHED'], $application->messages);
+    }
+
     private function service(
         PaymentDownloadApplicationDouble $application,
         PaymentDownloadDatabaseDouble $database
@@ -150,7 +205,7 @@ final class PaymentDownloadServiceTest extends TestCase
         return $application;
     }
 
-    private function form(string $internalType): object
+    private function form(string $internalType, string $filepath = '/tmp/bfng-download-does-not-exist'): object
     {
         return (object) [
             'template_areas' => json_encode([
@@ -161,7 +216,7 @@ final class PaymentDownloadServiceTest extends TestCase
                             'options' => [
                                 'downloadableFile' => true,
                                 'downloadTries' => 3,
-                                'filepath' => '/tmp/bfng-download-does-not-exist',
+                                'filepath' => $filepath,
                             ],
                         ],
                     ],
@@ -200,6 +255,8 @@ final class PaymentDownloadDatabaseDouble implements DatabaseInterface
 
     public int $executions = 0;
 
+    public int $affectedRows = 1;
+
     /** @var list<list<object>> */
     private array $results;
 
@@ -229,6 +286,11 @@ final class PaymentDownloadDatabaseDouble implements DatabaseInterface
         return array_shift($this->results) ?? [];
     }
 
+    public function getAffectedRows(): int
+    {
+        return $this->affectedRows;
+    }
+
     public function execute(): bool
     {
         $this->executions++;
@@ -252,8 +314,18 @@ final class PaymentDownloadQueryDouble
         return $this;
     }
 
+    /** @var list<string> */
+    public array $conditions = [];
+
+    public function conditionsInclude(string $needle): bool
+    {
+        return str_contains(implode(' ', $this->conditions), $needle);
+    }
+
     public function where(string $condition): self
     {
+        $this->conditions[] = $condition;
+
         return $this;
     }
 

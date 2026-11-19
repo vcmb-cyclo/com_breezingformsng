@@ -152,6 +152,13 @@ abstract class PackageListController extends AdminController
     {
         $this->checkToken();
 
+        // A copy is a new item: it takes the permission to create one.
+        $user = $this->app->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+
+        if (!$user->authorise('core.create', 'com_breezingformsng')) {
+            throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+        }
+
         $ids = ArrayHelper::toInteger((array) $this->input->get('cid', [], 'array'));
         $model = $this->getModel();
 

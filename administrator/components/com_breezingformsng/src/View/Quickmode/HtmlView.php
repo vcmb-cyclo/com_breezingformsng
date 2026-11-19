@@ -209,6 +209,10 @@ class HtmlView extends BaseHtmlView
         Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
         Text::script('COM_BREEZINGFORMSNG_QM_SOFORT_REMOVED');
         Text::script('COM_BREEZINGFORMSNG_QM_SOFORT_ONLY_UNPUBLISHED');
+        Text::script('COM_BREEZINGFORMSNG_QM_TREE_COPY');
+        Text::script('COM_BREEZINGFORMSNG_QM_TREE_PASTE');
+        Text::script('COM_BREEZINGFORMSNG_QM_TREE_DELETE');
+        Text::script('COM_BREEZINGFORMSNG_QM_TREE_MOVED');
         ToolbarHelper::title($pageTitle, 'logo_left');
 
         parent::display($tpl);
