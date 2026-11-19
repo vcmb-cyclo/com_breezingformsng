@@ -51,6 +51,22 @@ final class ContentBuilderFormMetadataLoaderTest extends TestCase
         self::assertSame([], (new ContentBuilderFormMetadataLoader($database))->loadAssociatedFormIds(7));
     }
 
+    public function testNormalizesStringAssociationIds(): void
+    {
+        $database = new ContentBuilderMetadataDatabaseDouble(['41', '42'], null);
+
+        self::assertSame([41, 42], (new ContentBuilderFormMetadataLoader($database))->loadAssociatedFormIds(7));
+    }
+
+    public function testRejectsInvalidAssociationIds(): void
+    {
+        $database = new ContentBuilderMetadataDatabaseDouble([41, 'not-an-id'], null);
+
+        $this->expectException(\UnexpectedValueException::class);
+
+        (new ContentBuilderFormMetadataLoader($database))->loadAssociatedFormIds(7);
+    }
+
     public function testLoadsThePublishedFormDefinitionWithAnIntegerBinding(): void
     {
         $database = new ContentBuilderMetadataDatabaseDouble(null, [

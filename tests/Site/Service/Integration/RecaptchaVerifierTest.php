@@ -73,6 +73,7 @@ final class RecaptchaVerifierTest extends TestCase
         yield 'google rejects response' => [200, '{"success":false}'];
         yield 'google returns an error status' => [500, '{"success":true}'];
         yield 'google returns malformed JSON' => [200, '{"success":'];
+        yield 'google returns a non-object JSON payload' => [200, 'true'];
     }
 
     #[DataProvider('unsuccessfulVerificationProvider')]

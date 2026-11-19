@@ -97,6 +97,18 @@ final class ContentBuilderPermissionCheckerTest extends TestCase
             ->assertCanCreate([12, 13], false, 'frontend', 'administrator');
     }
 
+    public function testRejectsAnInvalidFormId(): void
+    {
+        $permission = $this->createMock(ContentBuilderPermissionGateway::class);
+        $permission->expects(self::once())->method('setPermissions')->with(12, 0, '_fe');
+        $permission->expects(self::once())->method('authorizeFrontend')->with('new')->willReturn(true);
+
+        $this->expectException(\UnexpectedValueException::class);
+
+        (new ContentBuilderPermissionChecker(static fn(): ContentBuilderPermissionGateway => $permission))
+            ->assertCanCreate([12, 'not-an-id'], true, 'frontend', 'administrator');
+    }
+
     public function testChecksAnExistingFrontendRecord(): void
     {
         $permission = $this->createMock(ContentBuilderPermissionGateway::class);

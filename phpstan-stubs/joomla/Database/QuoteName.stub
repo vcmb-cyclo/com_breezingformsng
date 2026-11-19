@@ -18,6 +18,11 @@ namespace Joomla\Database;
 interface DatabaseInterface
 {
     /**
+     * @return list<mixed>
+     */
+    public function loadColumn(int $offset = 0);
+
+    /**
      * @param string|array<string> $name
      * @param string|array<string>|null $as
      * @return ($name is string ? string : list<string>)
@@ -42,6 +47,13 @@ interface QueryInterface
 
 abstract class DatabaseDriver
 {
+    /**
+     * @return list<mixed>
+     */
+    public function loadColumn(int $offset = 0)
+    {
+    }
+
     /**
      * @param string|array<string> $name
      * @param string|array<string>|null $as

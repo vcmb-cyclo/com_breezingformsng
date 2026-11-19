@@ -43,6 +43,10 @@ final class RecaptchaVerifier
             return false;
         }
 
+        if (!is_array($payload)) {
+            return false;
+        }
+
         return ($payload['success'] ?? false) === true;
     }
 }
