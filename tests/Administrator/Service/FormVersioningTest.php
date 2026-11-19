@@ -73,7 +73,7 @@ final class FormVersioningTest extends TestCase
         // The QuickMode structure save records only when no Options post follows it.
         self::assertStringContainsString("recordVersion: JQuery('#bfOptionsFieldsWrap').length === 0 ? 1 : 0", $app);
         self::assertStringContainsString("if (\$input->getInt('recordVersion', 1) === 1) {", $quickmode);
-        self::assertStringContainsString('(new FormVersioning($db, $this->getFormModel()))->record($formId);', $quickmode);
+        self::assertStringContainsString('$versioning->record($formId);', $quickmode);
         self::assertStringContainsString('->record($id);', $forms);
     }
 

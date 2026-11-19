@@ -81,11 +81,31 @@ final class IntegratorTrashTest extends TestCase
         $model = $this->read(self::ADMIN . '/src/Model/IntegratorModel.php');
         $delete = $this->method($model, 'deleteRules');
 
-        self::assertStringContainsString("'published') . ' = :trashed'", $delete);
+        self::assertStringContainsString('$this->lockRules($ids, self::TRASHED)', $delete);
+        self::assertStringContainsString("'published') . ' = :state'", $this->method($model, 'lockRules'));
         self::assertStringContainsString("'refused'", $delete);
         self::assertStringContainsString('#__facileforms_integrator_criteria_fixed', $delete);
         self::assertStringContainsString('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED', $this->read(self::ADMIN . '/src/Controller/IntegratorController.php'));
         self::assertStringContainsString('public const int TRASHED = -2;', $model);
+    }
+
+    public function testDeletionAndRestorationShareTheRuleLock(): void
+    {
+        $model = $this->read(self::ADMIN . '/src/Model/IntegratorModel.php');
+        $delete = $this->method($model, 'deleteRules');
+        $publish = $this->method($model, 'publishRule');
+        $history = $this->method($this->read(self::ADMIN . '/src/Service/IntegratorVersioning.php'), 'deleteHistory');
+
+        self::assertStringContainsString(' FOR UPDATE', $this->method($model, 'lockRules'));
+        self::assertMatchesRegularExpression(
+            '/transactionStart.*lockRules.*deleteHistory.*->execute.*transactionCommit.*transactionRollback/s',
+            $delete
+        );
+        self::assertMatchesRegularExpression(
+            '/transactionStart.*lockRules.*keepOrigin.*touchRule.*transactionCommit.*transactionRollback/s',
+            $publish
+        );
+        self::assertStringContainsString('$this->db->setQuery($query)->execute()', $history);
     }
 
     public function testAboutTrashBulkDeleteAlsoRequiresCoreDelete(): void

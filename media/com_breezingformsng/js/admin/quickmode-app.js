@@ -1189,6 +1189,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                     chunkIdx: chunki,
                     chunk: chunks[chunki],
                     rndAdd: rndAdd,
+                    formRevision: formRevision,
                     // The Options tab is posted next and records the version
                     // (forms.save); without it, this save records it.
                     recordVersion: JQuery('#bfOptionsFieldsWrap').length === 0 ? 1 : 0
@@ -1199,10 +1200,11 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
                     type: 'POST',
                     url: 'index.php',
                     data: postData,
-                    success: function (data) {
+                    success: function (data, _status, xhr) {
 
                         if (data != '' && data != 0 && !isNaN(data)) {
 
+                            formRevision = xhr.getResponseHeader('X-BFNG-Form-Revision') || '';
                             document.adminForm.form.value = data;
                             var activeTab = JQuery('#menutab > .tab-content > .tab-pane.active').attr('id');
                             var returnUrl = "index.php?option=com_breezingformsng&task=quickmode.display&form=" + encodeURIComponent(data) + "&active_language_code=" + encodeURIComponent(document.adminForm.active_language_code.value)
@@ -1240,7 +1242,14 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
     saveButtonClicked = false;
 }
                     },
-                    error: function () {
+                    error: function (xhr) {
+                        if (xhr.status === 409) {
+                            JQuery('#bfSaveQueue').css({ display: 'none', visibility: 'hidden' });
+                            Joomla.renderMessages({ error: [Joomla.Text._('COM_BREEZINGFORMSNG_QM_SAVE_CONFLICT')] });
+                            saveButtonClicked = false;
+                            return;
+                        }
+
                         JQuery("#bfSaveQueue").get(0).innerHTML = 'connection problem, trying again in 120 seconds, please wait...';
                         var secs = 120;
                         var clear = null;
@@ -1261,6 +1270,7 @@ import { QuickmodeTreeModel } from 'com_breezingformsng.quickmode-tree-model';
             }
 
             var loadedSubmittedScript = {};
+            var formRevision = Joomla.getOptions('com_breezingformsng.quickmode-save', {}).revision || '';
             var chunki = 0;
             var rndAdd = Math.random();
             var chunks = new Array();

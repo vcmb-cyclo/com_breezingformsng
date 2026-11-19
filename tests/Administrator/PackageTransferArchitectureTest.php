@@ -18,6 +18,21 @@ use PHPUnit\Framework\TestCase;
 
 final class PackageTransferArchitectureTest extends TestCase
 {
+    public function testBothExportPathsExcludeTrashedFormsScriptsAndPieces(): void
+    {
+        $source = (string) file_get_contents(
+            __DIR__ . '/../../administrator/components/com_breezingformsng/src/Model/PackageTransferModel.php'
+        );
+
+        foreach (['forms', 'scripts', 'pieces'] as $type) {
+            self::assertStringContainsString("\$this->loadPackageRows('#__facileforms_$type', \$package, true)", $source);
+            $ids = '$' . substr($type, 0, -1) . 'Ids';
+            self::assertStringContainsString("\$this->loadRowsByIds('#__facileforms_$type', $ids, true)", $source);
+        }
+
+        self::assertStringContainsString("\$db->quoteName('published') . ' >= 0'", $source);
+    }
+
     public function testPackageAuditIsCollapsedOnExportAndDissolve(): void
     {
         $component = __DIR__ . '/../../administrator/components/com_breezingformsng';

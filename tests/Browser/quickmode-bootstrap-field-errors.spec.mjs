@@ -77,6 +77,28 @@ test('Bootstrap validation marks fields, gives each one a message and links the 
     await expect(page.locator('.bf-field-error')).toHaveCount(0);
 });
 
+test('the summary preserves unlinked and aggregate-only errors alongside linked fields', async ({ page }) => {
+    await page.setContent(`
+        <form class="bfQuickMode">
+            <div class="bfElemWrap"><input id="visible"></div>
+            <div class="bfErrorMessage"></div>
+        </form>
+    `);
+    await page.addScriptTag({ path: 'media/com_breezingformsng/js/site/quickmode-error-alerts-bootstrap.js' });
+    await page.evaluate(() => {
+        window.bfShowDefaultErrors = true;
+        window.bfErrorPageScoped = false;
+        window.ff_getElementByName = (name) => document.getElementById(name);
+        window.inlineErrorElements = [['visible', 'Value required'], ['unavailable', 'Value required']];
+        window.bfShowErrors('Value requiredValue required\nCheck the form settings');
+    });
+
+    const summary = page.locator('.bfErrorMessage');
+    await expect(summary.locator('li')).toHaveText(['Value required', 'Value required', 'Check the form settings']);
+    await expect(summary.locator('a')).toHaveCount(1);
+    await expect(summary.locator('strong')).toHaveText('3 fields to correct');
+});
+
 test('field and summary errors render untrusted validator text as text', async ({ page }) => {
     await page.setContent(`
         <form class="bfQuickMode">

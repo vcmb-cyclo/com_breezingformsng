@@ -38,13 +38,21 @@ function bfShowErrors(error) {
 
     var fieldErrors = [];
     var validationErrors = typeof inlineErrorElements !== "undefined" ? inlineErrorElements : [];
+    var aggregate = String(error || "");
 
     for (var index = 0; index < validationErrors.length; index++) {
         var fieldName = String(validationErrors[index][0] || "");
-        var message = String(validationErrors[index][1] || "").trim();
+        var rawMessage = String(validationErrors[index][1] || "");
+        var message = rawMessage.trim();
 
         if (fieldName === "" || message === "") {
             continue;
+        }
+
+        // ff_validation concatenates these same messages, sometimes without newlines.
+        var aggregateIndex = aggregate.indexOf(rawMessage);
+        if (aggregateIndex !== -1) {
+            aggregate = aggregate.slice(0, aggregateIndex) + "\n" + aggregate.slice(aggregateIndex + rawMessage.length);
         }
 
         var existing = fieldErrors.find(function (fieldError) {
@@ -122,14 +130,26 @@ function bfShowErrors(error) {
         summary.style.display = "none";
     });
 
-    var fallbackErrors = [];
+    var aggregateErrors = aggregate.split("\n").map(function (message) {
+        return message.trim();
+    }).filter(Boolean);
+    var linkedNames = new Set(linkedErrors.map(function (fieldError) {
+        return fieldError.name;
+    }));
+    var fallbackErrors = fieldErrors.filter(function (fieldError) {
+        return !linkedNames.has(fieldError.name);
+    }).map(function (fieldError) {
+        return fieldError.message;
+    });
 
-    if (linkedErrors.length === 0) {
-        fallbackErrors = String(error || "").split("\n").filter(Boolean);
+    fallbackErrors = fallbackErrors.concat(aggregateErrors);
+
+    var count = linkedErrors.length + fallbackErrors.length;
+    if (count === 0) {
+        return;
     }
 
     summaries.forEach(function (summary) {
-        var count = linkedErrors.length || fallbackErrors.length;
         var title = document.createElement("strong");
         title.className = "bfErrorSummaryTitle";
         var singular = summary.getAttribute("data-title-singular") || "1 field to correct";
