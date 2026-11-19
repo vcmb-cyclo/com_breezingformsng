@@ -39,7 +39,7 @@ trait BootstrapStyleFieldTrait
 
     /**
      * @param array<string, mixed> $mdata
-     * @return BootstrapStyleFieldData
+     * @return array<string, mixed>
      */
     private function normalizeBootstrapStyleFieldData(array $mdata): array
     {
@@ -119,7 +119,7 @@ trait BootstrapStyleFieldTrait
     }
 
     /**
-     * @return BootstrapStyleFieldData
+     * @return array<string, mixed>
      */
     private function validatedBootstrapStyleFieldData(mixed $mdata): array
     {
@@ -129,7 +129,7 @@ trait BootstrapStyleFieldTrait
     }
 
     /**
-     * @phpstan-assert QuickModeTreeNode $dataObject
+     * @phpstan-assert array<string, mixed> $dataObject
      */
     private function assertQuickModeTreeNode(mixed $dataObject): void
     {
@@ -159,7 +159,11 @@ trait BootstrapStyleFieldTrait
     }
 
     /**
-     * @phpstan-assert QuickModeProcessNode $dataObject
+     * @phpstan-assert array{
+     *     properties: array<string, mixed>,
+     *     attributes?: array{id: string},
+     *     children?: list<array<string, mixed>>
+     * } $dataObject
      */
     private function assertQuickModeProcessNode(mixed $dataObject): void
     {
@@ -181,14 +185,21 @@ trait BootstrapStyleFieldTrait
     }
 
     /**
-     * @param QuickModeTreeNode $dataObject
+     * @param array<string, mixed> $dataObject
      * @return list<array<string, mixed>>
      */
     private function quickModeRootChildren(array $dataObject): array
     {
         $this->assertQuickModeTreeNode($dataObject);
 
-        return $dataObject['children'] ?? [];
+        if (!isset($dataObject['children']) || !is_array($dataObject['children'])) {
+            return [];
+        }
+
+        /** @var list<array<string, mixed>> $children */
+        $children = $dataObject['children'];
+
+        return $children;
     }
 
     private function bootstrapStyleString(mixed $value, string $key): string
@@ -255,7 +266,7 @@ trait BootstrapStyleFieldTrait
 
     /**
      * @param mixed $mdata
-     * @phpstan-assert BootstrapStyleFieldData $mdata
+     * @phpstan-assert array<string, mixed> $mdata
      */
     private function assertBootstrapStyleFieldData(mixed $mdata): void
     {
