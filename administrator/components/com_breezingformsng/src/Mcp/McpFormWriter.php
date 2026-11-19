@@ -244,9 +244,11 @@ final class McpFormWriter
         $targetPageCount = count($tree['children']) + $pagesToAdd;
         $pageIntroByNumber = [];
         foreach ($pageUpdates as $pageUpdate) {
-            if (!is_array($pageUpdate) || !is_int($pageUpdate['page'] ?? null)
+            if (
+                !is_array($pageUpdate) || !is_int($pageUpdate['page'] ?? null)
                 || $pageUpdate['page'] < 1 || $pageUpdate['page'] > $targetPageCount
-                || !array_key_exists('intro', $pageUpdate)) {
+                || !array_key_exists('intro', $pageUpdate)
+            ) {
                 throw new ToolException('Each page update must identify an existing or newly added page and provide its intro text.');
             }
             $pageNumber = $pageUpdate['page'];
@@ -262,12 +264,16 @@ final class McpFormWriter
         }
         $updates = $arguments['update'] ?? [];
         $removals = $arguments['remove'] ?? [];
-        if (!is_array($updates) || !array_is_list($updates) || count($updates) > 30
-            || !is_array($removals) || !array_is_list($removals) || count($removals) > 30) {
+        if (
+            !is_array($updates) || !array_is_list($updates) || count($updates) > 30
+            || !is_array($removals) || !array_is_list($removals) || count($removals) > 30
+        ) {
             throw new ToolException('Field updates and removals must be lists of at most 30 items.');
         }
-        if ($add === [] && $updates === [] && $removals === [] && $pagesToAdd === 0
-            && $pagesToRemove === [] && $pageIntroByNumber === []) {
+        if (
+            $add === [] && $updates === [] && $removals === [] && $pagesToAdd === 0
+            && $pagesToRemove === [] && $pageIntroByNumber === []
+        ) {
             throw new ToolException('Give at least one field or page change to make.');
         }
 
@@ -292,8 +298,10 @@ final class McpFormWriter
                     throw new ToolException('A new field name must be text.');
                 }
                 $newName = trim($change['new_name']);
-                if (!preg_match('/^[A-Za-z][A-Za-z0-9_]{0,99}$/D', $newName)
-                    || preg_match('/^bfFakeName(?:[2-4])?$/iD', $newName)) {
+                if (
+                    !preg_match('/^[A-Za-z][A-Za-z0-9_]{0,99}$/D', $newName)
+                    || preg_match('/^bfFakeName(?:[2-4])?$/iD', $newName)
+                ) {
                     throw new ToolException('New field names must be valid and cannot use reserved submit-control names.');
                 }
                 $newKey = strtolower($newName);
@@ -317,17 +325,23 @@ final class McpFormWriter
                 throw new ToolException('Give a new name, type, label, placeholder or field setting for each field update.');
             }
             if (isset($change['type'])) {
-                if (!in_array($change['type'], ['text', 'textarea'], true)
-                    || !in_array($current[$key]['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)) {
+                if (
+                    !in_array($change['type'], ['text', 'textarea'], true)
+                    || !in_array($current[$key]['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)
+                ) {
                     throw new ToolException('Existing fields can only change between text and textarea types.');
                 }
             }
-            if (\Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions::widget($current[$key]) !== ''
-                && array_intersect_key($change, ['type' => 1, 'size' => 1, 'max_length' => 1]) !== []) {
+            if (
+                \Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions::widget($current[$key]) !== ''
+                && array_intersect_key($change, ['type' => 1, 'size' => 1, 'max_length' => 1]) !== []
+            ) {
                 throw new ToolException('A field that uses a widget (phone, date and time, country or address) cannot change type, size or maximum length through MCP; edit it in the QuickMode editor.');
             }
-            if (array_key_exists('page', $change)
-                && (!is_int($change['page']) || $change['page'] < 1 || $change['page'] > $targetPageCount)) {
+            if (
+                array_key_exists('page', $change)
+                && (!is_int($change['page']) || $change['page'] < 1 || $change['page'] > $targetPageCount)
+            ) {
                 throw new ToolException('A field can only be assigned to a page that already exists on the form.');
             }
             if (array_key_exists('options', $change)) {
@@ -346,27 +360,35 @@ final class McpFormWriter
                 if (($current[$key]['bfType'] ?? '') !== 'bfSelect' || !is_bool($change['multiple'])) {
                     throw new ToolException('Only select fields support the multiple setting.');
                 }
-                if (!$change['multiple'] && !array_key_exists('options', $change)
-                    && (bool) ($current[$key]['multiple'] ?? false)) {
+                if (
+                    !$change['multiple'] && !array_key_exists('options', $change)
+                    && (bool) ($current[$key]['multiple'] ?? false)
+                ) {
                     throw new ToolException('When disabling multiple selection, include the options so the single default can be validated.');
                 }
             }
             if (array_key_exists('default_value', $change)) {
-                if (!in_array($current[$key]['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)
-                    || !is_string($change['default_value']) || mb_strlen($change['default_value']) > 4000) {
+                if (
+                    !in_array($current[$key]['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)
+                    || !is_string($change['default_value']) || mb_strlen($change['default_value']) > 4000
+                ) {
                     throw new ToolException('A default value can only be set on text or textarea fields and is limited to 4000 characters.');
                 }
                 $this->assertPlainText($change['default_value']);
             }
             if (array_key_exists('max_length', $change)) {
-                if (!in_array($current[$key]['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)
-                    || !is_int($change['max_length']) || $change['max_length'] < 0 || $change['max_length'] > 10000) {
+                if (
+                    !in_array($current[$key]['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)
+                    || !is_int($change['max_length']) || $change['max_length'] < 0 || $change['max_length'] > 10000
+                ) {
                     throw new ToolException('Maximum length must be from 0 to 10000 and can only be set on text or textarea fields.');
                 }
             }
-            if (array_key_exists('readonly', $change)
+            if (
+                array_key_exists('readonly', $change)
                 && (!in_array($current[$key]['bfType'] ?? '', ['bfTextfield', 'bfTextarea'], true)
-                    || !is_bool($change['readonly']))) {
+                    || !is_bool($change['readonly']))
+            ) {
                 throw new ToolException('Only text and textarea fields support the read-only setting.');
             }
             $currentFieldType = $current[$key]['bfType'] ?? '';
@@ -399,7 +421,8 @@ final class McpFormWriter
                 $change['requiredConfig'] = $this->normalizeRequiredChange($change, $current[$key]);
                 unset($change['required'], $change['required_message']);
             }
-            if (isset($change['type'])
+            if (
+                isset($change['type'])
                 && $change['type'] !== ($current[$key]['bfType'] === 'bfTextfield' ? 'text' : 'textarea')
                 && ((int) ($current[$key]['validationId'] ?? 0) !== 0
                     || (int) ($current[$key]['initId'] ?? 0) !== 0
@@ -408,7 +431,8 @@ final class McpFormWriter
                     || (string) ($current[$key]['initCode'] ?? '') !== ''
                     || (string) ($current[$key]['actionCode'] ?? '') !== ''
                     || !empty($current[$key]['password']) || !empty($current[$key]['mailback'])
-                    || !empty($current[$key]['mailbackAsSender']) || !empty($current[$key]['mailbackfile']))) {
+                    || !empty($current[$key]['mailbackAsSender']) || !empty($current[$key]['mailbackfile']))
+            ) {
                 throw new ToolException('A field with scripts, validation, password or mailback settings cannot change type through MCP.');
             }
             foreach (['label', 'placeholder'] as $property) {
@@ -467,16 +491,20 @@ final class McpFormWriter
                 throw new ToolException('Fields cannot be removed while the form has submissions; existing records are preserved.');
             }
         }
-        if (array_filter($updateByName, static fn (array $change): bool => array_key_exists('options', $change)
+        if (
+            array_filter($updateByName, static fn (array $change): bool => array_key_exists('options', $change)
             || array_key_exists('multiple', $change) || array_key_exists('value', $change)) !== []
-            && $this->submissionCount($id) > 0) {
+            && $this->submissionCount($id) > 0
+        ) {
             throw new ToolException('Choice settings and checkbox values cannot be changed while the form has submissions; historical values are preserved.');
         }
 
         $removePageSet = [];
         foreach ($pagesToRemove as $pageNumber) {
-            if (!is_int($pageNumber) || $pageNumber < 1 || $pageNumber > count($tree['children'])
-                || isset($removePageSet[$pageNumber])) {
+            if (
+                !is_int($pageNumber) || $pageNumber < 1 || $pageNumber > count($tree['children'])
+                || isset($removePageSet[$pageNumber])
+            ) {
                 throw new ToolException('Every removed page must identify a different existing page number.');
             }
             $removePageSet[$pageNumber] = true;
@@ -650,9 +678,11 @@ final class McpFormWriter
         try {
             $lockedForm = $this->options->getForm($id);
             $lockedTree = json_decode($this->quickmode->getTemplateCode($id), true);
-            if ($lockedForm === null || (int) ($lockedForm->version ?? -1) !== (int) ($form->version ?? -2)
+            if (
+                $lockedForm === null || (int) ($lockedForm->version ?? -1) !== (int) ($form->version ?? -2)
                 || (string) ($lockedForm->modified ?? '') !== (string) ($form->modified ?? '')
-                || $lockedTree !== $originalTree) {
+                || $lockedTree !== $originalTree
+            ) {
                 throw new ToolException('The form changed while this request was being prepared; read it again and retry.');
             }
 
@@ -707,8 +737,10 @@ final class McpFormWriter
      */
     public function trashForm(array $arguments, User $user): array
     {
-        if (!$user->authorise('core.delete', 'com_breezingformsng')
-            || !$user->authorise('core.edit.state', 'com_breezingformsng')) {
+        if (
+            !$user->authorise('core.delete', 'com_breezingformsng')
+            || !$user->authorise('core.edit.state', 'com_breezingformsng')
+        ) {
             throw new ToolException('You are not allowed to move forms to the trash.');
         }
 
@@ -798,8 +830,10 @@ final class McpFormWriter
             if (!in_array($type, ['text', 'textarea', 'select', 'radio', 'checkbox_group', 'checkbox'], true)) {
                 throw new ToolException('Supported field types are text, textarea, select, radio, checkbox_group and checkbox.');
             }
-            if (!is_string($defaultValue) || mb_strlen($defaultValue) > 4000
-                || (array_key_exists('default_value', $field) && !in_array($type, ['text', 'textarea'], true))) {
+            if (
+                !is_string($defaultValue) || mb_strlen($defaultValue) > 4000
+                || (array_key_exists('default_value', $field) && !in_array($type, ['text', 'textarea'], true))
+            ) {
                 throw new ToolException('Default values are limited to 4000 characters and are only supported on text or textarea fields.');
             }
             $this->assertPlainText($defaultValue);
@@ -812,8 +846,10 @@ final class McpFormWriter
                 if (!array_key_exists($property, $field)) {
                     continue;
                 }
-                if (($property === 'size' && $type !== 'text')
-                    || (in_array($property, ['width', 'height'], true) && $type !== 'textarea')) {
+                if (
+                    ($property === 'size' && $type !== 'text')
+                    || (in_array($property, ['width', 'height'], true) && $type !== 'textarea')
+                ) {
                     throw new ToolException(sprintf('The %s setting is not supported on this field type.', $property));
                 }
                 $dimension = $this->normalizeCssDimension($dimension, $property);
@@ -825,8 +861,10 @@ final class McpFormWriter
                     $height = $dimension;
                 }
             }
-            if (!is_int($maxLength) || $maxLength < 0 || $maxLength > 10000
-                || (array_key_exists('max_length', $field) && !in_array($type, ['text', 'textarea'], true))) {
+            if (
+                !is_int($maxLength) || $maxLength < 0 || $maxLength > 10000
+                || (array_key_exists('max_length', $field) && !in_array($type, ['text', 'textarea'], true))
+            ) {
                 throw new ToolException('Maximum length must be from 0 to 10000 and can only be set on text or textarea fields.');
             }
             if (!is_bool($readOnly) || (array_key_exists('readonly', $field) && !in_array($type, ['text', 'textarea'], true))) {
@@ -856,8 +894,10 @@ final class McpFormWriter
                 throw new ToolException('Only checkbox fields support a submitted value setting.');
             }
             $required = $field['required'] ?? false;
-            if (!is_bool($required) || ((array_key_exists('required', $field) || array_key_exists('required_message', $field))
-                && !in_array($type, ['text', 'textarea'], true))) {
+            if (
+                !is_bool($required) || ((array_key_exists('required', $field) || array_key_exists('required_message', $field))
+                && !in_array($type, ['text', 'textarea'], true))
+            ) {
                 throw new ToolException('Only text and textarea fields can use the required setting.');
             }
             $requiredMessage = $field['required_message'] ?? '';
@@ -1028,21 +1068,27 @@ final class McpFormWriter
     {
         $form = $this->options->getForm($formId);
         $template = $this->quickmode->getTemplateCode($formId);
-        if ($form === null || (string) ($form->package ?? '') !== 'QuickModeForms'
-            || (string) ($form->template_code_processed ?? '') !== 'QuickMode' || strlen($template) > 500000) {
+        if (
+            $form === null || (string) ($form->package ?? '') !== 'QuickModeForms'
+            || (string) ($form->template_code_processed ?? '') !== 'QuickMode' || strlen($template) > 500000
+        ) {
             throw new ToolException('Only QuickMode forms with a supported simple field structure can be edited here.');
         }
 
         $tree = json_decode($template, true);
-        if (!is_array($tree) || !is_array($tree['attributes'] ?? null)
+        if (
+            !is_array($tree) || !is_array($tree['attributes'] ?? null)
             || ($tree['attributes']['id'] ?? null) !== 'bfQuickModeForm'
             || !is_array($tree['properties'] ?? null) || !is_array($tree['children'] ?? null) || $tree['children'] === []
             || ($tree['properties']['type'] ?? null) !== 'root'
-            || !is_array($tree['children'])) {
+            || !is_array($tree['children'])
+        ) {
             throw new ToolException('This QuickMode form has an unsupported root structure.');
         }
-        if (($tree['properties']['submittedScriptCondidtion'] ?? -1) != -1
-            && !is_string($tree['properties']['submittedScriptCode'] ?? null)) {
+        if (
+            ($tree['properties']['submittedScriptCondidtion'] ?? -1) != -1
+            && !is_string($tree['properties']['submittedScriptCode'] ?? null)
+        ) {
             throw new ToolException('This form has an incomplete submitted script configuration.');
         }
 
@@ -1054,10 +1100,12 @@ final class McpFormWriter
                 throw new ToolException('This form has a malformed page that the MCP field editor cannot safely preserve.');
             }
             $pageId = (string) ($page['attributes']['id'] ?? '');
-            if ($pageId !== 'bfQuickModePage' . ($pageIndex + 1)
+            if (
+                $pageId !== 'bfQuickModePage' . ($pageIndex + 1)
                 || !preg_match('/^bfQuickModePage[1-9][0-9]*$/D', $pageId)
                 || isset($pageIds[$pageId])
-                || ($page['properties']['type'] ?? null) !== 'page' || !is_array($page['children'] ?? null)) {
+                || ($page['properties']['type'] ?? null) !== 'page' || !is_array($page['children'] ?? null)
+            ) {
                 throw new ToolException('This form has a page structure that the MCP field editor cannot safely preserve.');
             }
             $pageIds[$pageId] = true;
@@ -1076,20 +1124,24 @@ final class McpFormWriter
                     'validationId', 'validationCode', 'validationMessage', 'validationFunctionName', 'validationCondition',
                     'initId', 'initCode', 'initFunctionName', 'initCondition', 'actionId', 'actionFunctionName', 'dbId',
                 ];
-                if (!is_string($nodeId) || isset($quickmodeIds[$nodeId])
+                if (
+                    !is_string($nodeId) || isset($quickmodeIds[$nodeId])
                     || ($properties['type'] ?? null) !== 'element'
                     || !in_array($properties['bfType'] ?? null, ['bfTextfield', 'bfTextarea', 'bfSelect', 'bfRadioGroup', 'bfCheckboxGroup', 'bfCheckbox'], true)
                     || array_diff($requiredProperties, array_keys($properties)) !== []
-                    || !is_array($node['children'] ?? null) || $node['children'] !== []) {
+                    || !is_array($node['children'] ?? null) || $node['children'] !== []
+                ) {
                     throw new ToolException('This form contains an unsupported field or nested structure the MCP field editor cannot safely preserve.');
                 }
                 $dbId = (int) ($properties['dbId'] ?? 0);
                 $fieldName = trim((string) ($properties['bfName'] ?? ''));
-                if ($dbId <= 0 || isset($elementIds[$dbId]) || $fieldName === '' || mb_strlen($fieldName) > 255
+                if (
+                    $dbId <= 0 || isset($elementIds[$dbId]) || $fieldName === '' || mb_strlen($fieldName) > 255
                     || preg_match('/[\x00-\x1F\x7F]/u', $fieldName)
                     || !is_string($properties['value']) || !is_string($properties['label'])
                     || mb_strlen((string) ($properties['label'] ?? '')) > 255
-                    || mb_strlen((string) ($properties['placeholder'] ?? '')) > 255) {
+                    || mb_strlen((string) ($properties['placeholder'] ?? '')) > 255
+                ) {
                     throw new ToolException('This form has a field identity or text value that cannot be safely edited through MCP.');
                 }
                 $choiceProperty = match ($properties['bfType']) {
@@ -1097,14 +1149,18 @@ final class McpFormWriter
                     'bfRadioGroup', 'bfCheckboxGroup' => 'group',
                     default => null,
                 };
-                if ($choiceProperty !== null && (!is_string($properties[$choiceProperty] ?? null)
+                if (
+                    $choiceProperty !== null && (!is_string($properties[$choiceProperty] ?? null)
                     || ($properties['bfType'] === 'bfSelect'
-                        && (!is_bool($properties['multiple'] ?? null) || !is_bool($properties['mailback'] ?? null))))) {
+                        && (!is_bool($properties['multiple'] ?? null) || !is_bool($properties['mailback'] ?? null))))
+                ) {
                     throw new ToolException('This form has a malformed choice field that cannot be safely edited through MCP.');
                 }
-                if ($properties['bfType'] === 'bfCheckbox'
+                if (
+                    $properties['bfType'] === 'bfCheckbox'
                     && (!is_bool($properties['checked'] ?? null) || !is_string($properties['mailbackConnectWith'] ?? null)
-                        || !is_bool($properties['mailbackAccept'] ?? null))) {
+                        || !is_bool($properties['mailbackAccept'] ?? null))
+                ) {
                     throw new ToolException('This form has a malformed checkbox that cannot be safely edited through MCP.');
                 }
                 $elementIds[$dbId] = true;
@@ -1337,9 +1393,11 @@ final class McpFormWriter
             return;
         }
 
-        if (($properties['validationFunctionName'] ?? '') === 'ff_valuenotempty'
+        if (
+            ($properties['validationFunctionName'] ?? '') === 'ff_valuenotempty'
             && (int) ($properties['validationCondition'] ?? 0) === 1
-            && (string) ($properties['validationCode'] ?? '') === '') {
+            && (string) ($properties['validationCode'] ?? '') === ''
+        ) {
             $properties['validationId'] = 0;
             $properties['validationCode'] = '';
             $properties['validationFunctionName'] = '';
@@ -1388,25 +1446,30 @@ final class McpFormWriter
                 throw new ToolException('Fields cannot be renamed while the form has custom script code.');
             }
         }
-        foreach ([
+        foreach (
+            [
             'email_custom_template', 'mb_email_custom_template', 'mailchimp_email_field',
             'mailchimp_checkbox_field', 'mailchimp_text_html_mobile_field',
             'mailchimp_unsubscribe_field', 'salesforce_fields',
-        ] as $column) {
+            ] as $column
+        ) {
             if (trim((string) ($form->$column ?? '')) !== '') {
                 throw new ToolException('Fields cannot be renamed while a form template or integration may reference field names.');
             }
         }
 
         $root = $tree['properties'];
-        if (trim((string) ($root['submittedScriptCode'] ?? '')) !== ''
-            || (int) ($root['submittedScriptCondidtion'] ?? -1) !== -1) {
+        if (
+            trim((string) ($root['submittedScriptCode'] ?? '')) !== ''
+            || (int) ($root['submittedScriptCondidtion'] ?? -1) !== -1
+        ) {
             throw new ToolException('Fields cannot be renamed while a submitted script is configured.');
         }
         foreach ($tree['children'] as $page) {
             foreach ($page['children'] as $node) {
                 $properties = $node['properties'];
-                if ((int) ($properties['validationId'] ?? 0) !== 0
+                if (
+                    (int) ($properties['validationId'] ?? 0) !== 0
                     || (int) ($properties['initId'] ?? 0) !== 0
                     || (int) ($properties['actionId'] ?? 0) !== 0
                     || trim((string) ($properties['validationCode'] ?? '')) !== ''
@@ -1417,7 +1480,8 @@ final class McpFormWriter
                     || !empty($properties['actionFunctionName'])
                     || !empty($properties['password']) || !empty($properties['mailback'])
                     || !empty($properties['mailbackAsSender']) || !empty($properties['mailbackfile'])
-                    || !empty($properties['mailbackAccept']) || !empty($properties['mailbackConnectWith'])) {
+                    || !empty($properties['mailbackAccept']) || !empty($properties['mailbackConnectWith'])
+                ) {
                     throw new ToolException('Fields cannot be renamed while any field has scripts, validation, password or mailback settings.');
                 }
             }
