@@ -23,14 +23,24 @@ final class AfterSubmitEvent extends AbstractImmutableEvent
 
     /**
      * @param list<array<int, mixed>> $submitData Submitted values, one row per element value.
+     * @param list<array<int, mixed>> $mailData Values prepared for notifications, one row per element value.
+     * @param list<array<int, mixed>> $salesforceData Values prepared for Salesforce, one row per element value.
      */
-    public function __construct(int $formId, string $formName, int $recordId, array $submitData)
-    {
+    public function __construct(
+        int $formId,
+        string $formName,
+        int $recordId,
+        array $submitData,
+        array $mailData = [],
+        array $salesforceData = []
+    ) {
         parent::__construct(self::NAME, [
             'formId' => $formId,
             'formName' => $formName,
             'recordId' => $recordId,
             'submitData' => $submitData,
+            'mailData' => $mailData,
+            'salesforceData' => $salesforceData,
         ]);
     }
 
@@ -56,5 +66,21 @@ final class AfterSubmitEvent extends AbstractImmutableEvent
     public function getSubmitData(): array
     {
         return $this->getArgument('submitData');
+    }
+
+    /**
+     * @return list<array<int, mixed>>
+     */
+    public function getMailData(): array
+    {
+        return $this->getArgument('mailData');
+    }
+
+    /**
+     * @return list<array<int, mixed>>
+     */
+    public function getSalesforceData(): array
+    {
+        return $this->getArgument('salesforceData');
     }
 }

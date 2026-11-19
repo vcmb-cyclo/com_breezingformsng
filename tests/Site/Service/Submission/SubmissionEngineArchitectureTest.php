@@ -160,8 +160,6 @@ final class SubmissionEngineArchitectureTest extends TestCase
             '$this->exportEngine->randomString(',
             '$this->notificationEngine->sendEmailNotification(',
             '$this->notificationEngine->sendMailbackNotification(',
-            '$this->notificationEngine->sendMailChimpNotification(',
-            '$this->notificationEngine->sendSalesforceNotification(',
             ] as $call
         ) {
             self::assertStringContainsString($call, $source);
@@ -177,12 +175,16 @@ final class SubmissionEngineArchitectureTest extends TestCase
             'random_str',
             'sendEmailNotification',
             'sendMailbackNotification',
-            'sendMailChimpNotification',
-            'sendSalesforceNotification',
             ] as $method
         ) {
             self::assertStringNotContainsString('$this->processor->' . $method . '(', $source);
         }
+
+        self::assertStringContainsString('AfterSubmitEvent::NAME', $source);
+        self::assertStringContainsString('(array) $this->processor->maildata', $source);
+        self::assertStringContainsString('(array) $this->processor->sfdata', $source);
+        self::assertStringNotContainsString('Mailchimp', $source);
+        self::assertStringNotContainsString('Salesforce', $source);
     }
 
     public function testFacadeInjectsSharedEnginesIntoSubmissionOrchestration(): void

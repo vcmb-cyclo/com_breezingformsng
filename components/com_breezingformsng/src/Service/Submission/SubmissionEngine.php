@@ -1342,9 +1342,6 @@ final class SubmissionEngine
                         }
 
 
-                        $this->notificationEngine->sendMailChimpNotification();
-                        $this->notificationEngine->sendSalesforceNotification();
-
                         PluginHelper::importPlugin('breezingforms_addons');
                         $dispatcher = $this->processor->app->getDispatcher();
                         $dispatcher->dispatch(SubmissionArtifactsEvent::NAME, new SubmissionArtifactsEvent(
@@ -1359,7 +1356,9 @@ final class SubmissionEngine
                             (int) $this->processor->form,
                             (string) $this->processor->formrow->name,
                             (int) $this->processor->record_id,
-                            (array) $this->processor->submitdata
+                            array_values((array) $this->processor->submitdata),
+                            array_values((array) $this->processor->maildata),
+                            array_values((array) $this->processor->sfdata)
                         ));
                         $dispatcher->dispatch('onPropertiesExecute', new Event(
                             'onPropertiesExecute',

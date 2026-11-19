@@ -14,6 +14,7 @@ defined('_JEXEC') or die('Direct Access to this location is not allowed.');
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Mail\MailerFactoryInterface;
+use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Environment\Browser;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\CodeToolsRuntime;
@@ -34,6 +35,7 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SubmissionEngine;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadRuntime;
 use Vcmb\Component\BreezingformsNG\Site\Table\FormTable;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
+use Vcmb\Component\BreezingformsNG\Site\Event\AfterSubmitEvent;
 
 $ff_processor = null;
 
@@ -485,7 +487,18 @@ class HTML_facileFormsProcessor
      */
     public function sendSalesforceNotification()
     {
-        return $this->notificationEngine()->sendSalesforceNotification();
+        PluginHelper::importPlugin('breezingforms_addons');
+
+        $this->app->getDispatcher()->dispatch(AfterSubmitEvent::NAME, new AfterSubmitEvent(
+            (int) $this->form,
+            (string) $this->formrow->name,
+            (int) $this->record_id,
+            array_values((array) $this->submitdata),
+            array_values((array) $this->maildata),
+            array_values((array) $this->sfdata)
+        ));
+
+        return null;
     }
 
     /**
@@ -493,7 +506,18 @@ class HTML_facileFormsProcessor
      */
     public function sendMailChimpNotification()
     {
-        return $this->notificationEngine()->sendMailChimpNotification();
+        PluginHelper::importPlugin('breezingforms_addons');
+
+        $this->app->getDispatcher()->dispatch(AfterSubmitEvent::NAME, new AfterSubmitEvent(
+            (int) $this->form,
+            (string) $this->formrow->name,
+            (int) $this->record_id,
+            array_values((array) $this->submitdata),
+            array_values((array) $this->maildata),
+            array_values((array) $this->sfdata)
+        ));
+
+        return null;
     }
 
     private function notificationEngine(): NotificationEngine
