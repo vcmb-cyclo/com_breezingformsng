@@ -16,8 +16,8 @@ body:
     id: bfng-version
     attributes:
       label: BreezingForms NG version
-      description: As shown on the About screen of the component, including a release candidate suffix such as `-RC22`.
-      placeholder: "6.1.0-RC22"
+      description: As shown on the About screen of the component, including a release candidate suffix such as `-RC23`.
+      placeholder: "6.1.0-RC23"
     validations:
       required: true
   - type: input

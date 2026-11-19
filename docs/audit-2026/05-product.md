@@ -1,6 +1,6 @@
 # Audit produit et concurrentiel — BreezingForms NG (BFNG)
 
-Date : 2026-11-19. Version auditée : 6.1.0-RC22 (branche `main`, commit 1faa98d2). Audit en lecture seule ; aucun code applicatif modifié.
+Date : 2026-11-19. Version auditée : 6.1.0-RC23 (branche `main`, commit 1faa98d2). Audit en lecture seule ; aucun code applicatif modifié.
 
 Légende des classes de preuve : **[O]** observé (code lu, fichier:ligne) · **[D]** documenté (README, docs, changelog, site) · **[S]** supposé.
 Les chemins sont relatifs au dépôt ; `ADM` = `administrator/components/com_breezingformsng`, `SITE` = `components/com_breezingformsng`.
@@ -14,10 +14,10 @@ Méthode : lecture ciblée du code (échantillonnage, pas de revue exhaustive de
 | Champs | 18 types QuickMode (texte, zone de texte, nombre/slider, liste, case, groupe de cases, radio, calendrier, fichier, caché, envoi, summarize, captcha image, reCAPTCHA, signature, PayPal, Stripe) | D | `skills/breezingformsng/references/elements.md:5-24` |
 | Champs | Widgets : téléphone international, date/heure, liste de pays, recherche d'adresse | O | `SITE/src/Service/Widget/WidgetOptions.php:24` (`WIDGETS = ['phone','datetime','country','address']`) |
 | Champs | Dépôt de fichiers par glisser-déposer, découpage en morceaux, redimensionnement d'image | O (services) / D (comportement) | `SITE/src/Service/Widget/WidgetFieldBuilder.php:43`, `SITE/src/Service/Upload/FlashChunkAssembler.php`, `ImageResizer.php` |
-| Champs | Adresses : suggestions désactivées par défaut, tiers explicitement choisi | D | `CHANGELOG.md` RC22, « Added » |
+| Champs | Adresses : suggestions désactivées par défaut, tiers explicitement choisi | D | `CHANGELOG.md` RC23, « Added » |
 | Logique | Règles de visibilité « turn on/off … if … is/isnot … » (une règle par ligne, regex possible) | O (parser) / D (syntaxe) | `SITE/src/Service/Rendering/QuickMode/QuickModeToggleFieldsParser.php:22` ; elements.md |
 | Logique | Pas de groupes ET/OU imbriqués, pas de logique sur les e-mails/intégrations | S | Absent de la syntaxe documentée ; non cherché exhaustivement |
-| Calcul | Champ `bfSummarize` (calcul JS) ; estimation dynamique dans les exemples | D | elements.md ; CHANGELOG RC22 (exemples « Event registration », « Quote request ») |
+| Calcul | Champ `bfSummarize` (calcul JS) ; estimation dynamique dans les exemples | D | elements.md ; CHANGELOG RC23 (exemples « Event registration », « Quote request ») |
 | Multi-pages | Pages avec validation, barre de progression, mode une page | D | README.md « Form building » |
 | E-mails | Notification admin + mailback (confirmation) avec pièces jointes, gabarits | O (fichiers) | `ADM/mailtpl/mailtpl.txt.php`, `mailbacktpl.txt.php`, `SITE/src/Service/Notification/NotificationEngine.php` |
 | Paiements | Stripe (Checkout, Klarna, Wero), webhook signé, PayPal, téléchargement payant | O | `SITE/src/Service/Callback/StripeCheckoutWebhook.php:20`, `PayPalCallback.php`, `PaymentDownloadService.php` |
@@ -83,7 +83,7 @@ Constat : aucun appel de modèle de langage dans le produit [O, absence par grep
 
 Pistes (toutes rattachées à l'existant) :
 - Génération de formulaire : déjà possible côté client via `bfng_create_form` (max 30 champs, 6 types, validation `required` uniquement). La limite est le plafond fonctionnel de l'outil, pas l'IA.
-- Aide à la rédaction : libellés/aides/messages dans l'éditeur QuickMode ; nécessite un connecteur à un fournisseur, donc consentement explicite et option désactivée par défaut, sur le modèle des suggestions d'adresse (CHANGELOG RC22).
+- Aide à la rédaction : libellés/aides/messages dans l'éditeur QuickMode ; nécessite un connecteur à un fournisseur, donc consentement explicite et option désactivée par défaut, sur le modèle des suggestions d'adresse (CHANGELOG RC23).
 - Analyse des soumissions : à ne pas offrir via MCP aujourd'hui (le MCP ne lit volontairement pas les soumissions, `docs/maintenance/mcp-read-only.md`). Si ajoutée, exiger agrégats ou pseudonymisation, jamais les champs bruts d'un formulaire contenant du RGPD sensible.
 
 ## 7. MCP
@@ -112,7 +112,7 @@ Pistes (toutes rattachées à l'existant) :
 - Catégorie : IA · Impact : moyen · Confiance : faible
 - Preuves : absence de grep ; WPForms et Fluent Forms annoncent IA native (sources §2).
 - Conséquences : retard perçu face aux acteurs WordPress, mais risque RGPD réel si la fonction envoie des contenus.
-- Recommandation : n'envoyer à un fournisseur que le brouillon de libellé saisi par l'administrateur, jamais de soumission ; option globale désactivée par défaut dans `ADM/config.xml` et message explicite dans l'éditeur, comme pour les suggestions d'adresse (CHANGELOG RC22) ; clé fournisseur dans les paramètres avec ACL.
+- Recommandation : n'envoyer à un fournisseur que le brouillon de libellé saisi par l'administrateur, jamais de soumission ; option globale désactivée par défaut dans `ADM/config.xml` et message explicite dans l'éditeur, comme pour les suggestions d'adresse (CHANGELOG RC23) ; clé fournisseur dans les paramètres avec ACL.
 - Effort : moyen · Risque : faible (fonction additive) · Tests : option désactivée = aucun appel sortant ; absence de fuite de clé dans les journaux ; ACL.
 
 ### PRD-003 — Webhook sortant générique

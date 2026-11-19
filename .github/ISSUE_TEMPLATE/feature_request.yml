@@ -42,7 +42,7 @@ body:
     attributes:
       label: Versions you use
       description: BreezingForms NG, Joomla and PHP, if relevant.
-      placeholder: "BFNG 6.1.0-RC22, Joomla 6.2.0, PHP 8.4"
+      placeholder: "BFNG 6.1.0-RC23, Joomla 6.2.0, PHP 8.4"
   - type: textarea
     id: compatibility
     attributes:

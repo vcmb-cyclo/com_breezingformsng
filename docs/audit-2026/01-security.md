@@ -1,6 +1,6 @@
 # Audit sécurité BreezingForms NG : rapport 01
 
-Audit statique en lecture seule du dépôt, branche `main` (commit `1faa98d2`, RC22), réalisé le 2026-11-19. Cible : Joomla 6.2 / PHP 8.4, compatibilité PHP 8.5. Aucun fichier applicatif n'a été modifié ; ce document est le seul livrable.
+Audit statique en lecture seule du dépôt, branche `main` (commit `1faa98d2`, RC23), réalisé le 2026-11-19. Cible : Joomla 6.2 / PHP 8.4, compatibilité PHP 8.5. Aucun fichier applicatif n'a été modifié ; ce document est le seul livrable.
 
 ## 1. Résumé
 

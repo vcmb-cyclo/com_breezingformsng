@@ -21,7 +21,7 @@ Back up first, especially before an update or before upgrading from Crosstec Bre
 Where to download:
 
 1. Open the [Releases page](https://github.com/vcmb-cyclo/com_breezingformsng/releases) on GitHub.
-2. Download the ZIP of the release you want. The file name looks like `com_breezingformsng-<version>.zip`, for example `com_breezingformsng-6.1.0-RC22.zip`.
+2. Download the ZIP of the release you want. The file name looks like `com_breezingformsng-<version>.zip`, for example `com_breezingformsng-6.1.0-RC23.zip`.
 3. The release notes show the SHA-256 checksum of the ZIP. If you want to check the download, compare it with the checksum of your file.
 4. Versions ending in `-RC<number>` are release candidates. GitHub marks them as pre-releases. The project says that only GitHub Releases are meant for production. Use a stable version on a live site when one is available.
 

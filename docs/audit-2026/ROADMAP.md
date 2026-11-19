@@ -1,6 +1,6 @@
 # ROADMAP — BreezingForms NG, audit 2026
 
-Date : 2026-11-19 · Base : `main` au commit `1faa98d2` (6.1.0-RC22) · Sources : `01` à `06` dans ce dossier.
+Date : 2026-11-19 · Base : `main` au commit `1faa98d2` (6.1.0-RC23) · Sources : `01` à `06` dans ce dossier.
 
 ## Statut au 2026-11-19 (après corrections)
 

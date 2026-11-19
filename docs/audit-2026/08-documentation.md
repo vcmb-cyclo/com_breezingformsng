@@ -1,6 +1,6 @@
 # Audit de la documentation anglaise — BreezingForms NG (BFNG)
 
-Date : 2026-11-19. Version : 6.1.0-RC22 dans le manifeste (RC23 en cours, branche `audit-2026-rc23`). Audit en lecture seule ; seul ce fichier a été créé.
+Date : 2026-11-19. Version : 6.1.0-RC23 dans le manifeste (RC23 en cours, branche `audit-2026-rc23`). Audit en lecture seule ; seul ce fichier a été créé.
 
 Légende des preuves : **[O]** observé dans le code (chemin), **[D]** lu dans un document. Les points que je n'ai pas pu vérifier sont marqués **[À VÉRIFIER]**. Aucune fonctionnalité n'est décrite si elle n'a pas été trouvée dans le code. Les chemins relatifs sont à la racine du dépôt ; `ADM` = `administrator/components/com_breezingformsng`.
 
