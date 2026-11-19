@@ -51,6 +51,8 @@
 - Keep the open or closed sections of the Record screen when going from one record to the next.
 - Tell at once that a configuration export is not a package when it is chosen in the package import, instead of asking to confirm a package of 0 forms.
 - Remove the Export and Import configuration actions: the import never worked and the packages cover the transfers.
+- Redesign the Version information block of the About screen: four framed tiles with the version and its build, the creation date written out in the language of the administrator, the author with the copyright years and the license with a link to its details. The PHP and JavaScript library lists open and close like the other screens.
+- Show the GitHub link of the About screen with its star count in a single link, and flag the library loaded from an external service (reCAPTCHA) with an amber badge in the JavaScript libraries list.
 
 ### Security
 

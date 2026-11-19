@@ -471,7 +471,28 @@
         });
     });
 
+    function initialiseGithubStars() {
+        var button = document.querySelector('[data-bf-github-stars]');
+        var counter = button ? button.querySelector('[data-bf-github-stars-count]') : null;
+        var badge = button ? button.querySelector('.bf-about-github-stars') : null;
+
+        if (!button || !counter || !badge || typeof window.fetch !== 'function') {
+            return;
+        }
+
+        window.fetch('https://api.github.com/repos/' + button.dataset.bfGithubStars, { headers: { Accept: 'application/vnd.github+json' } })
+            .then(function (response) { return response.ok ? response.json() : null; })
+            .then(function (repository) {
+                if (repository && Number.isInteger(repository.stargazers_count)) {
+                    counter.textContent = new Intl.NumberFormat(document.documentElement.lang || undefined).format(repository.stargazers_count);
+                    badge.hidden = false;
+                }
+            })
+            .catch(function () {});
+    }
+
     function initialiseAbout() {
+        initialiseGithubStars();
         initialiseTableInventorySorting();
         initializeEasterEgg();
     }

@@ -326,6 +326,7 @@ if (!function_exists('bf_about_get_javascript_libraries')) {
             'version' => 'v2',
             'assets' => 'JS',
             'source' => $externalSource,
+            'external' => true,
         );
 
         usort($libraries, function ($a, $b) {
@@ -373,6 +374,33 @@ if ($licenseValue === '' || in_array(strtolower($licenseValue), $genericLicenseV
 }
 
 $licenseUrl = 'https://www.gnu.org/licenses/gpl-2.0.html';
+$licenseShortValue = preg_match('/gpl|general public license/i', $licenseValue) === 1
+    ? Text::_('COM_BREEZINGFORMSNG_LICENSE_SHORT')
+    : $licenseValue;
+
+$creationDateDisplay = $creationDateValue;
+
+if ($versionInformation['creationDate'] !== '') {
+    try {
+        $creationDateDisplay = (new \IntlDateFormatter(
+            str_replace('-', '_', Factory::getApplication()->getLanguage()->getTag()),
+            \IntlDateFormatter::NONE,
+            \IntlDateFormatter::NONE,
+            'UTC',
+            \IntlDateFormatter::GREGORIAN,
+            'd MMMM y'
+        ))->format(new \DateTimeImmutable($versionInformation['creationDate'], new \DateTimeZone('UTC'))) ?: $creationDateValue;
+    } catch (\Throwable) {
+        $creationDateDisplay = $creationDateValue;
+    }
+}
+
+$authorDisplay = $authorValue;
+$copyrightLegend = $copyrightValue;
+
+if (preg_match('/(\d{4})(?:\s*[-–]\s*(\d{4}))?/u', $copyrightValue, $copyrightYears) === 1) {
+    $copyrightLegend = '© ' . $copyrightYears[1] . (isset($copyrightYears[2]) && $copyrightYears[2] !== $copyrightYears[1] ? '–' . $copyrightYears[2] : '');
+}
 $vcmbUrl = 'https://breezingforms-ng.vcmb.fr';
 $githubUrl = 'https://github.com/vcmb-cyclo/com_breezingformsng';
 $githubOwner = 'vcmb-cyclo';
@@ -405,91 +433,58 @@ HTMLHelper::_('bootstrap.collapse');
             </p>
             <div class="bf-about-intro-links">
                 <a class="bf-about-intro-link bf-about-intro-link--vcmb" href="<?php echo htmlspecialchars($vcmbUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo Text::_('COM_BREEZINGFORMSNG_VCMB_LINK'); ?></a>
-                <a class="bf-about-intro-link bf-about-intro-link--github" href="<?php echo htmlspecialchars($githubUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo Text::_('COM_BREEZINGFORMSNG_GITHUB_LINK'); ?></a>
-                <iframe
-                    src="<?php echo htmlspecialchars('https://ghbtns.com/github-btn.html?user=' . $githubOwner . '&repo=' . $githubRepo . '&type=star&count=true&size=large', ENT_QUOTES, 'UTF-8'); ?>"
-                    frameborder="0"
-                    scrolling="0"
-                    width="170"
-                    height="30"
-                    title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_GITHUB_STARS'), ENT_QUOTES, 'UTF-8'); ?>"
-                    style="display:block;align-self:center;"
-                    loading="lazy"
-                ></iframe>
-                <a class="bf-about-intro-link bf-about-intro-link--license" href="<?php echo htmlspecialchars($licenseUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo Text::_('COM_BREEZINGFORMSNG_LICENSE_LINK'); ?></a>
+                <a class="bf-about-intro-link bf-about-intro-link--github" data-bf-github-stars="<?php echo htmlspecialchars($githubOwner . '/' . $githubRepo, ENT_QUOTES, 'UTF-8'); ?>" href="<?php echo htmlspecialchars($githubUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo Text::_('COM_BREEZINGFORMSNG_GITHUB_LINK'); ?><span class="bf-about-github-stars" hidden title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_GITHUB_STARS'), ENT_QUOTES, 'UTF-8'); ?>"><span aria-hidden="true">★</span> <span data-bf-github-stars-count></span></span></a>
             </div>
         </div>
     </div>
 
     <div class="card mt-3 bf-about-version-card">
-        <div class="card-body p-3 p-lg-4">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 bf-about-version-header">
-                <h3 class="h5 mb-0 bf-about-version-title"><?php echo Text::_('COM_BREEZINGFORMSNG_VERSION_INFORMATION'); ?></h3>
-                <span class="bf-about-version-meta">
-                    <span class="bf-about-version-badge">BreezingForms NG</span>
-                    <span class="bf-about-version-badge <?php echo $isProductionBuild ? 'bf-about-version-badge--production' : 'bf-about-version-badge--dev'; ?>"><?php echo htmlspecialchars($buildTypeDisplay, ENT_QUOTES, 'UTF-8'); ?></span>
-                    <span class="bf-about-platform-badges" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_BADGES_LABEL'), ENT_QUOTES, 'UTF-8'); ?>">
-                        <span class="bf-about-platform-badge bf-about-platform-badge--joomla">
-                            <span class="icon-joomla" aria-hidden="true"></span>
-                            <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_JOOMLA_6'); ?>
-                        </span>
-                        <span class="bf-about-platform-badge"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_PHP_83'); ?></span>
-                    </span>
+        <div class="bf-about-version-header">
+            <h3 class="h5 mb-0 bf-about-version-title"><?php echo Text::_('COM_BREEZINGFORMSNG_VERSION_INFORMATION'); ?></h3>
+            <span class="bf-about-platform-badges" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_BADGES_LABEL'), ENT_QUOTES, 'UTF-8'); ?>">
+                <span class="bf-about-platform-badge bf-about-platform-badge--joomla">
+                    <span class="icon-joomla" aria-hidden="true"></span>
+                    <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_JOOMLA_6'); ?>
                 </span>
-            </div>
+                <span class="bf-about-platform-badge"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_PHP_83'); ?></span>
+            </span>
+        </div>
 
-            <div class="row g-3">
-                <div class="col-12 col-md-6 col-lg-2">
-                    <div class="bf-about-version-tile bf-about-version-tile--version">
-                        <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_VERSION_LABEL'); ?></span>
-                        <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $versionValue, ENT_QUOTES, 'UTF-8'); ?></p>
-                    </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-2">
-                    <div class="bf-about-version-tile bf-about-version-tile--date">
-                        <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_CREATION_DATE_LABEL'); ?></span>
-                        <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $creationDateValue, ENT_QUOTES, 'UTF-8'); ?></p>
-                    </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="bf-about-version-tile bf-about-version-tile--author">
-                        <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_AUTHOR_LABEL'); ?></span>
-                        <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $copyrightValue, ENT_QUOTES, 'UTF-8'); ?></p>
-                    </div>
-                </div>
-                <div class="col-12 col-md-12 col-lg-4">
-                    <div class="bf-about-version-tile bf-about-version-tile--license">
-                        <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_LICENSE_LABEL'); ?></span>
-                        <a class="bf-about-version-value d-block" href="<?php echo htmlspecialchars($licenseUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars((string) $licenseValue, ENT_QUOTES, 'UTF-8'); ?></a>
-                    </div>
-                </div>
+        <div class="bf-about-version-grid">
+            <div class="bf-about-version-tile bf-about-version-tile--version">
+                <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_VERSION_LABEL'); ?></span>
+                <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $versionValue, ENT_QUOTES, 'UTF-8'); ?></p>
+                <span class="bf-about-version-sub"><?php echo htmlspecialchars($buildTypeDisplay, ENT_QUOTES, 'UTF-8'); ?></span>
+            </div>
+            <div class="bf-about-version-tile bf-about-version-tile--date">
+                <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_CREATION_DATE_LABEL'); ?></span>
+                <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $creationDateDisplay, ENT_QUOTES, 'UTF-8'); ?></p>
+            </div>
+            <div class="bf-about-version-tile bf-about-version-tile--author">
+                <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_AUTHOR_LABEL'); ?></span>
+                <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $authorDisplay, ENT_QUOTES, 'UTF-8'); ?></p>
+                <span class="bf-about-version-sub"><?php echo htmlspecialchars($copyrightLegend, ENT_QUOTES, 'UTF-8'); ?></span>
+            </div>
+            <div class="bf-about-version-tile bf-about-version-tile--license">
+                <span class="bf-about-version-icon"><?php echo Text::_('COM_BREEZINGFORMSNG_LICENSE_LABEL'); ?></span>
+                <p class="bf-about-version-value"><?php echo htmlspecialchars((string) $licenseShortValue, ENT_QUOTES, 'UTF-8'); ?></p>
+                <a class="bf-about-version-sub" href="<?php echo htmlspecialchars($licenseUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer"><?php echo Text::_('COM_BREEZINGFORMSNG_LICENSE_LINK'); ?></a>
             </div>
         </div>
     </div>
 
     <div class="card mt-3">
         <div class="card-body p-0">
-            <div class="accordion accordion-flush" id="bf-about-php-libraries-accordion">
-                <div class="accordion-item">
-                    <h3 class="accordion-header" id="bf-about-php-libraries-heading">
-                        <button
-                            class="accordion-button collapsed fw-semibold"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#bf-about-php-libraries-collapse"
-                            aria-expanded="false"
-                            aria-controls="bf-about-php-libraries-collapse"
-                        >
-                            <?php echo Text::plural('COM_BREEZINGFORMSNG_N_PHP_LIBRARIES', count($phpLibraries)); ?>
-                        </button>
-                    </h3>
-                    <div
-                        id="bf-about-php-libraries-collapse"
-                        class="accordion-collapse collapse"
-                        aria-labelledby="bf-about-php-libraries-heading"
-                        data-bs-parent="#bf-about-php-libraries-accordion"
-                    >
-                        <div class="accordion-body">
+            <div class="bf-about-libraries" id="bf-about-php-libraries">
+                <h3 class="h6 mb-0 bf-about-libraries-title">
+                    <a href="#" id="bf-about-php-libraries-toggle" class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"
+                        data-bs-toggle="collapse" data-bs-target="#bf-about-php-libraries-collapse"
+                        aria-expanded="false" aria-controls="bf-about-php-libraries-collapse">
+                        <span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> <?php echo Text::plural('COM_BREEZINGFORMSNG_N_PHP_LIBRARIES', count($phpLibraries)); ?>
+                    </a>
+                </h3>
+                <div id="bf-about-php-libraries-collapse" class="collapse">
+                    <div class="bf-about-libraries-body">
                         <?php if (empty($phpLibraries)) : ?>
                             <div class="alert alert-info mb-0">
                                 <?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARIES_NOT_AVAILABLE'); ?>
@@ -516,7 +511,6 @@ HTMLHelper::_('bootstrap.collapse');
                                 </table>
                             </div>
                         <?php endif; ?>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -525,27 +519,16 @@ HTMLHelper::_('bootstrap.collapse');
 
     <div class="card mt-3">
         <div class="card-body p-0">
-            <div class="accordion accordion-flush" id="bf-about-js-libraries-accordion">
-                <div class="accordion-item">
-                    <h3 class="accordion-header" id="bf-about-js-libraries-heading">
-                        <button
-                            class="accordion-button collapsed fw-semibold"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#bf-about-js-libraries-collapse"
-                            aria-expanded="false"
-                            aria-controls="bf-about-js-libraries-collapse"
-                        >
-                            <?php echo Text::plural('COM_BREEZINGFORMSNG_N_JS_LIBRARIES', count($javascriptLibraries)); ?>
-                        </button>
-                    </h3>
-                    <div
-                        id="bf-about-js-libraries-collapse"
-                        class="accordion-collapse collapse"
-                        aria-labelledby="bf-about-js-libraries-heading"
-                        data-bs-parent="#bf-about-js-libraries-accordion"
-                    >
-                        <div class="accordion-body">
+            <div class="bf-about-libraries" id="bf-about-js-libraries">
+                <h3 class="h6 mb-0 bf-about-libraries-title">
+                    <a href="#" id="bf-about-js-libraries-toggle" class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"
+                        data-bs-toggle="collapse" data-bs-target="#bf-about-js-libraries-collapse"
+                        aria-expanded="false" aria-controls="bf-about-js-libraries-collapse">
+                        <span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> <?php echo Text::plural('COM_BREEZINGFORMSNG_N_JS_LIBRARIES', count($javascriptLibraries)); ?>
+                    </a>
+                </h3>
+                <div id="bf-about-js-libraries-collapse" class="collapse">
+                    <div class="bf-about-libraries-body">
                         <?php if (empty($javascriptLibraries)) : ?>
                             <div class="alert alert-info mb-0">
                                 <?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARIES_NOT_AVAILABLE'); ?>
@@ -567,14 +550,19 @@ HTMLHelper::_('bootstrap.collapse');
                                             <td><?php echo htmlspecialchars((string) ($library['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td><?php echo htmlspecialchars((string) ($library['version'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td><?php echo htmlspecialchars((string) ($library['assets'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td><?php echo htmlspecialchars((string) ($library['source'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td>
+                                                <?php if (!empty($library['external'])) : ?>
+                                                    <span class="bf-about-source-badge bf-about-source-badge--external"><?php echo htmlspecialchars((string) ($library['source'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></span>
+                                                <?php else : ?>
+                                                    <?php echo htmlspecialchars((string) ($library['source'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?>
+                                                <?php endif; ?>
+                                            </td>
                                         </tr>
                                     <?php endforeach; ?>
                                     </tbody>
                                 </table>
                             </div>
                         <?php endif; ?>
-                        </div>
                     </div>
                 </div>
             </div>
