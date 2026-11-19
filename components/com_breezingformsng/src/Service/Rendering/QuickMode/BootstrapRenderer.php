@@ -28,6 +28,19 @@ use Joomla\CMS\Component\ComponentHelper;
 
 
 
+/**
+ * @phpstan-type QuickModeTreeNode array{
+ *     properties: array<string, mixed>,
+ *     attributes?: array{id: string},
+ *     children: list<array<string, mixed>>
+ * }
+ * @phpstan-type QuickModeProcessNode array{
+ *     properties: array<string, mixed>,
+ *     attributes?: array{id: string},
+ *     children: list<array<string, mixed>>
+ * }
+ * @phpstan-type BootstrapStyleFieldData array<string, mixed>
+ */
 class BootstrapRenderer
 {
     use HiddenFieldTrait;
@@ -39,8 +52,8 @@ class BootstrapRenderer
      * @var HTML_facileFormsProcessor
      */
     private $p = null;
-    /** @var array<string, mixed> */
-    private $dataObject = array();
+    /** @var QuickModeTreeNode */
+    private $dataObject;
     /** @var array<string, mixed> */
     private $rootMdata = array();
     /** @var mixed */
