@@ -1426,6 +1426,8 @@ final class PackageTransferModel extends BaseDatabaseModel
                 continue;
             }
             $previousPublished = $id > 0 && $backendOnly ? $this->publishedState($id) : null;
+            // Without the permission to write code, the elements and payment files of a replaced form keep what they had.
+            $keptCode = !$this->mayWriteCode && $id > 0 ? $this->storedElementCode($id) : ['elements' => [], 'filepaths' => []];
             $action = $id > 0 ? 'replaced' : 'created';
             $replacedElements = null;
             if ($id > 0) {
@@ -1462,6 +1464,15 @@ final class PackageTransferModel extends BaseDatabaseModel
                 $elementData = $this->only($element, $elementColumns, ['id', 'form']);
                 $elementData['form'] = $id;
                 $this->remapReferences($elementData, $scriptIds, $pieceIds);
+                if (!$this->mayWriteCode) {
+                    // An element without a stored twin of the same name starts without code.
+                    $twinName = (string) ($elementData['name'] ?? '');
+                    $twin = null;
+                    if (isset($keptCode['elements'][$twinName])) {
+                        $twin = array_shift($keptCode['elements'][$twinName]);
+                    }
+                    $elementData = (new FormCodeGuard())->applyToElement($elementData, $twin, false)['data'];
+                }
                 $elementObject = (object) $elementData;
                 $db->insertObject('#__facileforms_elements', $elementObject, 'id');
                 $elementId = (int) $db->insertid();
@@ -1477,6 +1488,9 @@ final class PackageTransferModel extends BaseDatabaseModel
             if ($templateCode !== (string) ($data['template_code'] ?? '')) {
                 $object = (object) ['id' => $id, 'template_code' => $templateCode];
                 $db->updateObject('#__facileforms_forms', $object, 'id');
+            }
+            if (!$this->mayWriteCode) {
+                $this->guardImportedForm($id, $keptCode['filepaths']);
             }
             $this->importedFormIds[] = $id;
             $this->importSummary['items']['forms'][] = [
@@ -1495,6 +1509,100 @@ final class PackageTransferModel extends BaseDatabaseModel
         }
 
         return $retiredForms;
+    }
+
+    /**
+     * The code columns of the elements of a form, by name, and the file path of its payment elements,
+     * as stored: what an import without the permission to write code leaves as it is.
+     *
+     * @return array{elements: array<string, list<array<string, mixed>>>, filepaths: array<string, string>}
+     */
+    private function storedElementCode(int $formId): array
+    {
+        $db = $this->getDatabase();
+        $rows = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName(array_merge(['name'], FormCodeGuard::ELEMENT_CODE_COLUMNS)))
+                ->from($db->quoteName('#__facileforms_elements'))
+                ->where($db->quoteName('form') . ' = :form')
+                ->order($db->quoteName('id'))
+                ->bind(':form', $formId, ParameterType::INTEGER)
+        )->loadAssocList() ?: [];
+        $elements = [];
+        foreach ($rows as $row) {
+            $elements[(string) $row['name']][] = $row;
+        }
+
+        $areas = json_decode((string) $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName('template_areas'))
+                ->from($db->quoteName('#__facileforms_forms'))
+                ->where($db->quoteName('id') . ' = :form')
+                ->bind(':form', $formId, ParameterType::INTEGER)
+        )->loadResult(), true);
+        $filepaths = [];
+        foreach (is_array($areas[0]['elements'] ?? null) ? $areas[0]['elements'] : [] as $element) {
+            if (is_array($element) && isset($element['name'], $element['options']['filepath'])) {
+                $filepaths[(string) $element['name']] = (string) $element['options']['filepath'];
+            }
+        }
+
+        return ['elements' => $elements, 'filepaths' => $filepaths];
+    }
+
+    /**
+     * The template code and areas of an imported form come from the file and carry
+     * the code of the elements and the payment file paths: without the permission
+     * to write code they are put back in line with what the elements now hold.
+     *
+     * @param array<string, string> $filepathsByName
+     */
+    private function guardImportedForm(int $formId, array $filepathsByName): void
+    {
+        $db = $this->getDatabase();
+        $guard = new FormCodeGuard();
+        $elements = [];
+        $filepaths = [];
+        $rows = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName(array_merge(['id', 'name'], FormCodeGuard::ELEMENT_CODE_COLUMNS)))
+                ->from($db->quoteName('#__facileforms_elements'))
+                ->where($db->quoteName('form') . ' = :form')
+                ->bind(':form', $formId, ParameterType::INTEGER)
+        )->loadAssocList() ?: [];
+        foreach ($rows as $row) {
+            $elements[(int) $row['id']] = $row;
+            $filepaths[(int) $row['id']] = $filepathsByName[(string) $row['name']] ?? '';
+        }
+        $form = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName(['script2cond', 'script2code', 'template_code', 'template_areas']))
+                ->from($db->quoteName('#__facileforms_forms'))
+                ->where($db->quoteName('id') . ' = :form')
+                ->bind(':form', $formId, ParameterType::INTEGER)
+        )->loadAssoc();
+        if (!is_array($form)) {
+            return;
+        }
+
+        $changes = [];
+        $tree = ($form['template_code'] ?? '') === '' ? false : base64_decode((string) $form['template_code'], true);
+        $tree = $tree === false ? null : json_decode($tree, true);
+        if (is_array($tree)) {
+            $guarded = $guard->applyToTree($tree, $elements, $form, $filepaths, false)['tree'];
+            if ($guarded !== $tree) {
+                $changes['template_code'] = base64_encode((string) json_encode($guarded));
+            }
+        }
+        $areas = $guard->applyToAreas((string) $form['template_areas'], $filepathsByName);
+        if ($areas !== (string) $form['template_areas']) {
+            $changes['template_areas'] = $areas;
+        }
+
+        if ($changes !== []) {
+            $object = (object) ($changes + ['id' => $formId]);
+            $db->updateObject('#__facileforms_forms', $object, 'id');
+        }
     }
 
     private function publishedState(int $formId): int

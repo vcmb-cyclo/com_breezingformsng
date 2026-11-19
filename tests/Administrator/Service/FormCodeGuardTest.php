@@ -91,4 +91,59 @@ final class FormCodeGuardTest extends TestCase
             FormCodeGuard::CODE_COLUMNS
         );
     }
+
+    public function testWhichScriptOrPieceRunsIsNotGuarded(): void
+    {
+        $data   = ['title' => 'T', 'piece1id' => '3', 'script1cond' => '2', 'piece2id' => '8'];
+        $result = (new FormCodeGuard())->apply($data, $this->stored(), false);
+
+        self::assertSame($data, $result['data']);
+        self::assertSame([], $result['ignored']);
+    }
+
+    public function testAnElementKeepsItsStoredCodeWithoutThePermission(): void
+    {
+        $stored = ['script1code' => "a();\n", 'script3id' => '9'];
+        $row = ['name' => 'f', 'script1code' => "a();\r\n", 'script3id' => 4, 'script2code' => 'evil();', 'script3code' => null,
+            'script3msg' => 'Message'];
+        $result = (new FormCodeGuard())->applyToElement($row, $stored, false);
+
+        self::assertSame(['script2code'], $result['ignored']);
+        self::assertSame("a();\n", $result['data']['script1code']);
+        self::assertSame('', $result['data']['script2code']);
+        self::assertSame('', $result['data']['script3code']);
+        // The choice of a library script and the validation message are not code.
+        self::assertSame(4, $result['data']['script3id']);
+        self::assertSame('Message', $result['data']['script3msg']);
+    }
+
+    public function testANewElementStartsWithoutCodeAndAUserWithThePermissionIsNotTouched(): void
+    {
+        $row = ['script1code' => 'x();', 'script3id' => 4];
+        $result = (new FormCodeGuard())->applyToElement($row, null, false);
+
+        self::assertSame(['script1code'], $result['ignored']);
+        self::assertSame(4, $result['data']['script3id']);
+        self::assertSame($row, (new FormCodeGuard())->applyToElement($row, null, true)['data']);
+    }
+
+    public function testEveryElementColumnThatHoldsCodeIsGuarded(): void
+    {
+        self::assertSame(['script1code', 'script2code', 'script3code'], FormCodeGuard::ELEMENT_CODE_COLUMNS);
+    }
+
+    public function testThePaymentFileOfAnImportedFormComesFromTheElementOfTheSameName(): void
+    {
+        $areas = (string) json_encode([['elements' => [
+            ['name' => 'pay', 'options' => ['filepath' => '/etc/passwd']],
+            ['name' => 'new', 'options' => ['filepath' => '/x']],
+            ['name' => 'text', 'options' => ['placeholder' => 'p']],
+        ]]]);
+        $kept = json_decode((new FormCodeGuard())->applyToAreas($areas, ['pay' => '/srv/a.pdf']), true);
+
+        self::assertSame('/srv/a.pdf', $kept[0]['elements'][0]['options']['filepath']);
+        self::assertSame('', $kept[0]['elements'][1]['options']['filepath']);
+        self::assertSame(['placeholder' => 'p'], $kept[0]['elements'][2]['options']);
+        self::assertSame('not json', (new FormCodeGuard())->applyToAreas('not json', []));
+    }
 }

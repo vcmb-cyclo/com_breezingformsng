@@ -49,8 +49,10 @@ class PdfDocument extends Tcpdf
 
     public function setFormName(string $name): void
     {
-
-        $this->form_name = $name;
+        // The name is part of included template paths: only a plain identifier may be used.
+        $this->form_name = $name !== '' && !str_contains($name, '..') && preg_match('/^[A-Za-z0-9_.-]+$/D', $name) === 1
+            ? $name
+            : '';
     }
 
     public function setMailback(bool $mailback): void

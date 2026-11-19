@@ -22,6 +22,7 @@ use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ContentBuilderFormSync;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 
@@ -77,10 +78,11 @@ class FormController extends BaseController
             }
 
             $redirect = 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . $formId;
+            $ignoredCode = [];
             $db->transactionStart();
 
             try {
-                $versioning->restoreOptions($formId, $version['columns']);
+                $versioning->restoreOptions($formId, $version['columns'], AreaAccess::isAllowed($user, AreaAccess::CODE), $ignoredCode);
                 $quickmode->save(
                     $formId,
                     FormVersioning::resetMissingElementIds($version['structure'], $versioning->elementIds($formId))
@@ -93,6 +95,10 @@ class FormController extends BaseController
                 $db->transactionRollback();
 
                 throw $e;
+            }
+
+            if ($ignoredCode !== []) {
+                $this->app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_FORM_CODE_NOT_SAVED'), 'warning');
             }
 
             // The message of the Joomla Restore button (VersionableControllerTrait).

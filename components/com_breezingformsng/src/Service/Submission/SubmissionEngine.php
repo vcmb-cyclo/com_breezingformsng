@@ -890,6 +890,8 @@ final class SubmissionEngine
                                                 $def
                                             );
                                         }
+                                        // Signatures are read from disk (PDF, e-mails, editing), never by URL: deny direct access.
+                                        UploadDirectoryProtection::ensure(JPATH_SITE . '/media/breezingforms/signatures', true);
                                         $sig_decoded = bf_b64dec($value);
                                         if (!(new SignatureImagePolicy())->isStorable($sig_decoded)) {
                                             // Not a PNG of a reasonable size: nothing is written under a ".png" name.

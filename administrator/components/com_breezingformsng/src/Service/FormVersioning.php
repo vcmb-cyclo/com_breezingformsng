@@ -190,10 +190,28 @@ final class FormVersioning
      * has. The structure is restored separately, through QuickMode.
      *
      * @param array<string, mixed> $columns
+     *
+     * @param list<string>         $ignored Filled with the code columns of the version not put back (the user may not write code)
      */
-    public function restoreOptions(int $formId, array $columns): void
+    public function restoreOptions(int $formId, array $columns, bool $mayEditCode = true, array &$ignored = []): void
     {
         $db = $this->db;
+        $ignored = [];
+
+        if (!$mayEditCode) {
+            // The code of the form stays as stored: a version cannot bring back code to a user who may not write it.
+            $stored = $db->setQuery(
+                $db->createQuery()
+                    ->select($db->quoteName(FormCodeGuard::CODE_COLUMNS))
+                    ->from($db->quoteName('#__facileforms_forms'))
+                    ->where($db->quoteName('id') . ' = :id')
+                    ->bind(':id', $formId, ParameterType::INTEGER)
+            )->loadObject();
+            $guarded = (new FormCodeGuard())->apply($columns, $stored instanceof \stdClass ? $stored : null, false);
+            $columns = $guarded['data'];
+            $ignored = $guarded['ignored'];
+        }
+
         $existing = $db->getTableColumns('#__facileforms_forms');
         $query = $db->createQuery()->update($db->quoteName('#__facileforms_forms'));
         $set = 0;

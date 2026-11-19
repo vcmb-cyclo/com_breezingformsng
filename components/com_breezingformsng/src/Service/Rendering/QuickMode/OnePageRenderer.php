@@ -232,6 +232,13 @@ class OnePageRenderer
         $this->dataObject = json_decode(bf_b64dec($this->p->formrow->template_code), true);
 
         $this->rootMdata = $this->dataObject['properties'];
+        if (array_key_exists('themebootstrap', $this->rootMdata)) {
+            $this->rootMdata['themebootstrap'] = QuickModeThemeName::resolve(
+                JPATH_SITE . '/media/breezingforms/themes-bootstrap5',
+                $this->rootMdata['themebootstrap'],
+                ['carte']
+            );
+        }
 
         $this->bsClasses[5] = QuickModeBootstrapClassMapBuilder::build();
 

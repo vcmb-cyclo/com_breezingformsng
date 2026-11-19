@@ -47,4 +47,23 @@ final class PayPalInvalidIpnRegressionTest extends TestCase
             json_decode($output, true, 512, JSON_THROW_ON_ERROR)
         );
     }
+
+    public function testTheSecondConcurrentNotificationRecordsAndNotifiesNothing(): void
+    {
+        $process = proc_open(
+            [PHP_BINARY, __DIR__ . '/fixtures/paypal-ipn.php'],
+            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+            $pipes,
+            null,
+            ['IPN_STALE_READ' => '1']
+        );
+        self::assertIsResource($process);
+        $output = stream_get_contents($pipes[1]);
+        $error = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        self::assertSame(0, proc_close($process), $error);
+        // Both notifications passed the unpaid check; one write and one pair of mails (admin, mailback).
+        self::assertSame([1, 2], json_decode($output, true, 512, JSON_THROW_ON_ERROR));
+    }
 }

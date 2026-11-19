@@ -34,7 +34,7 @@ final class McpFormWriter
 
     /**
      * @param array<string, mixed> $arguments
-     * @return array{id: int, name: string, title: string, published: false, field_count: int, versioned: bool}
+     * @return array{id: int, name: string, title: string, published: false, field_count: int, versioned: bool, warnings?: list<string>}
      * @throws ToolException
      */
     public function create(array $arguments, User $user): array
@@ -52,9 +52,11 @@ final class McpFormWriter
         $description = trim((string) ($arguments['description'] ?? ''));
         $pageIntro = $this->normalizePageIntro($arguments['page_intro'] ?? '');
         $fields = $this->normalizeFields($arguments['fields'] ?? []);
+        $warnings = [];
         $this->db->transactionStart();
         try {
             $id = $this->quickmode->save(0, $this->quickmodeTree($name, $title, $description, $fields, $pageIntro), 0, false);
+            $warnings = $this->codeWarnings();
             $versioned = $this->recordVersion($id);
             $this->db->transactionCommit();
         } catch (\Throwable $e) {
@@ -69,7 +71,7 @@ final class McpFormWriter
             'published' => false,
             'field_count' => count($fields),
             'versioned' => $versioned,
-        ];
+        ] + $warnings;
     }
 
     /**
@@ -192,7 +194,7 @@ final class McpFormWriter
 
     /**
      * @param array<string, mixed> $arguments
-     * @return array{id: int, added: list<string>, updated: list<string>, removed: list<string>, pages_added: int, pages_updated: list<int>, pages_removed: list<int>, field_count: int, versioned: bool, contentbuilder_synced: bool}
+     * @return array{id: int, added: list<string>, updated: list<string>, removed: list<string>, pages_added: int, pages_updated: list<int>, pages_removed: list<int>, field_count: int, versioned: bool, contentbuilder_synced: bool, warnings?: list<string>}
      * @throws ToolException
      */
     public function manageFields(array $arguments, User $user): array
@@ -678,6 +680,7 @@ final class McpFormWriter
         }
 
         $transactionStarted = false;
+        $warnings = [];
 
         try {
             $lockedForm = $this->options->getForm($id);
@@ -702,6 +705,7 @@ final class McpFormWriter
             $versioning = new FormVersioning($this->db, $this->forms);
             $versioning->keepOrigin($id);
             $this->quickmode->save($id, $tree, (int) $form->published, false);
+            $warnings = $this->codeWarnings();
             try {
                 $versioning->record($id);
                 $versioned = true;
@@ -732,7 +736,22 @@ final class McpFormWriter
             'field_count' => count($allFields),
             'versioned' => $versioned,
             'contentbuilder_synced' => $contentBuilderSynced,
-        ];
+        ] + $warnings;
+    }
+
+    /**
+     * What the last QuickMode save left out for lack of the "code" permission: validation scripts, code of
+     * the elements, payment download files. The change is made without them, which the caller is told.
+     *
+     * @return array{warnings?: list<string>}
+     */
+    private function codeWarnings(): array
+    {
+        if ($this->quickmode->getIgnoredCodeColumns() === []) {
+            return [];
+        }
+
+        return ['warnings' => ['Scripts, validation scripts and download file paths need the code permission: they were left as they were stored (none for a new field).']];
     }
 
     /** @param array<string, mixed> $arguments

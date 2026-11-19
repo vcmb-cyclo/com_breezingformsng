@@ -12,6 +12,7 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Callback;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Database\ParameterType;
 use Joomla\Database\DatabaseInterface;
@@ -45,6 +46,15 @@ final class OptCallback
     if (!(new OptLinkPolicy())->isUsable($userSubmitedID, $token)) {
         echo Text::_('JGLOBAL_RESOURCE_NOT_FOUND');
 
+        return;
+    }
+    if (!$this->confirmed(
+        OptConfirmationPage::IN,
+        $userSubmitedID,
+        $token,
+        'COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_CONFIRM_TEXT',
+        'COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_CONFIRM_BUTTON'
+    )) {
         return;
     }
     $optDate = HTMLHelper::date('now', 'Y-m-d H:i:s');
@@ -92,6 +102,15 @@ final class OptCallback
 
         return;
     }
+    if (!$this->confirmed(
+        OptConfirmationPage::OUT,
+        $userSubmitedID,
+        $token,
+        'COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_WITHDRAW_TEXT',
+        'COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_WITHDRAW_BUTTON'
+    )) {
+        return;
+    }
     $optDate = HTMLHelper::date('now', 'Y-m-d H:i:s');
     $query = $database->createQuery()
         ->update($database->quoteName('#__facileforms_records'))
@@ -116,6 +135,35 @@ final class OptCallback
     }
 
     echo Text::_("COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_OUT_EMAIL_THANK_YOU");
+    }
+
+    /**
+     * A link opened with GET only shows the confirmation form and changes nothing; the change is made by the
+     * POST of its button, which carries the Joomla form token.
+     */
+    private function confirmed(string $mode, string $recordId, string $token, string $textKey, string $buttonKey): bool
+    {
+        if ($this->application->getInput()->getMethod() !== 'POST') {
+            echo (new OptConfirmationPage())->render(
+                $mode,
+                Uri::root(true) . '/index.php?option=com_breezingformsng',
+                $recordId,
+                $token,
+                Text::_($textKey),
+                Text::_($buttonKey),
+                HTMLHelper::_('form.token')
+            );
+
+            return false;
+        }
+
+        if (!Session::checkToken('post')) {
+            echo Text::_('JINVALID_TOKEN_NOTICE');
+
+            return false;
+        }
+
+        return true;
     }
 
     private function recordHasToken(int $recordId, string $token): bool

@@ -21,15 +21,15 @@ final class MailTemplateResolver
     public function resolve(string $directory, string $formName, string $suffix, string $defaultName): array
     {
         $candidates = [
-            [$formName . $suffix . '.html.php', true],
-            [$formName . $suffix . '.txt.php', false],
-            [$defaultName . '.html.php', true],
-            [$defaultName . '.txt.php', false],
+            [$formName, $suffix . '.html.php', true],
+            [$formName, $suffix . '.txt.php', false],
+            [$defaultName, '.html.php', true],
+            [$defaultName, '.txt.php', false],
         ];
 
-        foreach ($candidates as [$filename, $isHtml]) {
-            $path = rtrim($directory, '/\\') . '/' . $filename;
-            if (is_file($path) && is_readable($path)) {
+        foreach ($candidates as [$name, $extension, $isHtml]) {
+            $path = TemplateFileResolver::resolve($directory, $name, $extension);
+            if ($path !== '') {
                 return ['file' => $path, 'isHtml' => $isHtml];
             }
         }
