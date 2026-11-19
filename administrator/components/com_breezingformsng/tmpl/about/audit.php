@@ -26,15 +26,44 @@ HTMLHelper::_('bootstrap.collapse');
 /** @psalm-suppress InvalidScope */
 $auditReport = $this->auditReport;
 $auditSummary = (array) ($auditReport['summary'] ?? array());
-$auditMissingTables = (array) ($auditReport['missing_tables'] ?? array());
-$auditUnexpectedTables = (array) ($auditReport['unexpected_tables'] ?? array());
-$auditMissingColumns = (array) ($auditReport['missing_columns'] ?? array());
-$auditDebugForms = (array) ($auditReport['debug_forms'] ?? array());
+$auditStringList = static function (mixed $value): array {
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $items = [];
+    foreach ($value as $item) {
+        if (is_string($item)) {
+            $items[] = $item;
+        }
+    }
+
+    return $items;
+};
+/** @return list<array<string, mixed>> */
+$auditEntryList = static function (mixed $value): array {
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $entries = [];
+    foreach ($value as $entry) {
+        if (is_array($entry)) {
+            $entries[] = $entry;
+        }
+    }
+
+    return $entries;
+};
+$auditMissingTables = $auditStringList($auditReport['missing_tables'] ?? array());
+$auditUnexpectedTables = $auditStringList($auditReport['unexpected_tables'] ?? array());
+$auditMissingColumns = $auditEntryList($auditReport['missing_columns'] ?? array());
+$auditDebugForms = $auditEntryList($auditReport['debug_forms'] ?? array());
 $auditTrashedRecordsTotal = (int) ($auditSummary['trashed_records'] ?? 0);
-$auditStaleLanguageFiles = (array) ($auditReport['stale_language_files'] ?? array());
-$auditStaleInstallerTempDirs = (array) ($auditReport['stale_installer_temp_dirs'] ?? array());
-$auditCollationIssues = (array) ($auditReport['collation_issues'] ?? array());
-$auditColumnCollationIssues = (array) ($auditReport['column_collation_issues'] ?? array());
+$auditStaleLanguageFiles = $auditStringList($auditReport['stale_language_files'] ?? array());
+$auditStaleInstallerTempDirs = $auditStringList($auditReport['stale_installer_temp_dirs'] ?? array());
+$auditCollationIssues = $auditEntryList($auditReport['collation_issues'] ?? array());
+$auditColumnCollationIssues = $auditEntryList($auditReport['column_collation_issues'] ?? array());
 // Orphan references: the stored name of a deleted form (or its id when no
 // name was kept) links to the records list filtered on it, all states. Atum
 // already marks a target="_blank" link with an icon.
@@ -48,10 +77,10 @@ $orphanLink = static fn (bool $linked, array $group, string $text): string => $l
         . Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SHOW_RECORDS') . '</span></a>'
     : $text;
 $auditCollationHistogram = (array) ($auditReport['collation_histogram'] ?? array());
-$auditDuplicateIndexes = (array) ($auditReport['duplicate_indexes'] ?? array());
-$auditMenuIssues = (array) ($auditReport['menu_issues'] ?? array());
-$auditDuplicateForms = (array) ($auditReport['duplicate_forms'] ?? array());
-$auditExtensionDuplicates = (array) ($auditReport['extension_duplicates'] ?? array());
+$auditDuplicateIndexes = $auditEntryList($auditReport['duplicate_indexes'] ?? array());
+$auditMenuIssues = $auditEntryList($auditReport['menu_issues'] ?? array());
+$auditDuplicateForms = $auditEntryList($auditReport['duplicate_forms'] ?? array());
+$auditExtensionDuplicates = $auditEntryList($auditReport['extension_duplicates'] ?? array());
 $auditHelp = static function (string $key): string {
     $text = htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8');
 
@@ -70,10 +99,10 @@ $auditLegacyUrl = static function (array $entry): string {
         default => 'index.php?option=com_installer&view=manage&filter[search]=' . $element,
     };
 };
-$auditExtensionLegacy = (array) ($auditReport['extension_legacy'] ?? array());
-$auditErrors = (array) ($auditReport['errors'] ?? array());
+$auditExtensionLegacy = $auditEntryList($auditReport['extension_legacy'] ?? array());
+$auditErrors = $auditStringList($auditReport['errors'] ?? array());
 $auditOrphanChecks = array_values(array_filter(
-    (array) ($auditReport['orphan_checks'] ?? array()),
+    $auditEntryList($auditReport['orphan_checks'] ?? array()),
     static fn(array $check): bool => (int) ($check['count'] ?? 0) > 0
 ));
 $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
@@ -218,7 +247,7 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                 <li>
                                     <code><?php echo htmlspecialchars((string) ($entry['table'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code>
                                     &mdash;
-                                    <?php foreach ((array) ($entry['columns'] ?? array()) as $column) : ?>
+                                    <?php foreach ($auditStringList($entry['columns'] ?? array()) as $column) : ?>
                                         <code><?php echo htmlspecialchars((string) $column, ENT_QUOTES, 'UTF-8'); ?></code>
                                     <?php endforeach; ?>
                                 </li>
@@ -340,7 +369,7 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                         </td>
                                         <td><code><?php echo htmlspecialchars((string) ($issue['form_name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code></td>
                                         <td>
-                                            <?php foreach ((array) ($issue['issues'] ?? array()) as $code) : ?>
+                                            <?php foreach ($auditStringList($issue['issues'] ?? array()) as $code) : ?>
                                                 <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_' . strtoupper((string) $code)); ?><br />
                                             <?php endforeach; ?>
                                         </td>
@@ -379,7 +408,7 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                         (int) ($group['keep']['record_count'] ?? 0),
                                         (int) ($group['keep']['id'] ?? 0)
                                     ); ?>
-                                    <?php foreach ((array) ($group['drop'] ?? array()) as $entry) : ?>
+                                    <?php foreach ($auditEntryList($group['drop'] ?? array()) as $entry) : ?>
                                         <?php
                                         $dropId = (int) ($entry['id'] ?? 0);
                                         $dropRecordCount = (int) ($entry['record_count'] ?? 0);
@@ -416,7 +445,7 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                         (int) ($group['keep']['extension_id'] ?? 0),
                                         htmlspecialchars(implode(', ', array_map(
                                             static fn(array $entry): string => '#' . (int) ($entry['extension_id'] ?? 0),
-                                            (array) ($group['drop'] ?? array())
+                                            $auditEntryList($group['drop'] ?? array())
                                         )), ENT_QUOTES, 'UTF-8')
                                     ); ?>
                                 </li>
@@ -558,8 +587,8 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                         aria-label="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEX_SELECT_ONE', (int) $index + 1), ENT_QUOTES, 'UTF-8'); ?>"
                                     >
                                     <code><?php echo htmlspecialchars((string) ($issue['table'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code>:
-                                    <?php echo htmlspecialchars(implode(', ', (array) ($issue['indexes'] ?? array())), ENT_QUOTES, 'UTF-8'); ?>
-                                    <?php if (($issue['keep'] ?? '') !== '' && (array) ($issue['drop'] ?? array()) !== array()) : ?>
+                                    <?php echo htmlspecialchars(implode(', ', $auditStringList($issue['indexes'] ?? array())), ENT_QUOTES, 'UTF-8'); ?>
+                                    <?php if (($issue['keep'] ?? '') !== '' && $auditStringList($issue['drop'] ?? array()) !== array()) : ?>
                                         &mdash;
                                         <?php echo Text::sprintf(
                                             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEX_HINT',
@@ -586,7 +615,7 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                         <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES_HELP'); ?></h4>
                         <?php foreach ($auditOrphanChecks as $check) : ?>
                             <?php
-                            $orphanGroups = (array) ($check['groups'] ?? array());
+                            $orphanGroups = $auditEntryList($check['groups'] ?? array());
                             $orphanParent = strtoupper((string) ($check['parent'] ?? ''));
                             $orphanHidden = (int) ($check['parents'] ?? 0) - count($orphanGroups);
                             $orphanHasLabel = array_filter(array_column($orphanGroups, 'label')) !== array();
@@ -661,7 +690,7 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                                     </td>
                                                     <?php if ($orphanValues) : ?>
                                                         <td class="text-nowrap">
-                                                            <?php $orphanCandidates = (array) ($orphanGroup['candidates'] ?? array()); ?>
+                                                            <?php $orphanCandidates = $auditEntryList($orphanGroup['candidates'] ?? array()); ?>
                                                             <?php if ($orphanCandidates === array()) : ?>
                                                                 <span class="text-muted"><span class="fa-solid fa-arrow-right-long me-1" aria-hidden="true"></span><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_TARGET_NONE'); ?></span>
                                                             <?php else : ?>
