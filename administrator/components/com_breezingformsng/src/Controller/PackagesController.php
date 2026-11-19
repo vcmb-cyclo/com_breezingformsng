@@ -141,7 +141,7 @@ final class PackagesController extends BaseController
         }
 
         foreach ($slugs as $slug) {
-            $this->installOneSample($app, (string) $slug);
+            $this->installOneSample($app, $slug);
         }
 
         $app->redirect($home);

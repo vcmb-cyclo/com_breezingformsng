@@ -165,6 +165,8 @@ class QuickmodeController extends BaseController
                 $app->close();
             }
 
+            /** @var array<string, mixed> $dataObject The application closes above when it is not an array. */
+
             $db = Factory::getContainer()->get(DatabaseInterface::class);
 
             // The browser reads the answer as the form id: a PHP notice shown on
