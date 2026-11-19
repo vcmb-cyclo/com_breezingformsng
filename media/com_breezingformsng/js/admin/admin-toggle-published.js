@@ -117,7 +117,7 @@ if (bfDebugToggle) {
 	try {
 		bfPreserveDebug = sessionStorage.getItem('bfqm:preserve-debug:' + bfDebugFormId) === '1';
 		sessionStorage.removeItem('bfqm:preserve-debug:' + bfDebugFormId);
-	} catch (e) {
+	} catch {
 		// Debug is reset when session storage is unavailable.
 	}
 	if (bfDebugToggle.classList.contains('active') && !bfPreserveDebug) {

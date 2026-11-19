@@ -1,6 +1,6 @@
 # 06 — Confrontation des cinq rapports
 
-Date : 2026-11-19 · Référence : `main` au commit `1faa98d2` (RC22) · Coordinateur : session principale.
+Date : 2026-11-19 · Référence : `main` au commit `1faa98d2` (RC23) · Coordinateur : session principale.
 Rapports lus : 01-security (17 constats), 02-architecture (10), 03-testing (15), 04-ux (15), 05-product (9 propositions).
 Aucun constat n'est supprimé : chaque ligne garde son statut et son historique.
 

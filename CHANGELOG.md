@@ -5,6 +5,8 @@
 ### Added
 
 - Reorder the elements of the QuickMode tree from the keyboard with Alt+Up and Alt+Down, and open its context menu with Shift+F10 or the Menu key. The new position is announced to screen readers.
+- Offer the MailChimp, Salesforce and Dropbox integrations as plugins that you can turn on or off. Their tabs in the form options appear only while their plugin is enabled, and the settings already saved are kept.
+- Turn the BreezingForms NG plugins on or off from the Extensions tab of the About screen.
 
 ### Changed
 
@@ -17,6 +19,7 @@
 - Give the fields of the carte theme a visible border and a darker muted text, to reach the contrast that accessibility guidelines ask for.
 - Make the Reset button an explicit button.
 - Translate the default captions and the untitled element label of the QuickMode editor, and the remaining untranslated character counter.
+- Give the content, privacy and MCP plugins clearer names, in all languages.
 
 ### Fixed
 
@@ -30,6 +33,9 @@
 - Stop warning an editor without the Manage Code permission when a save does not touch the code of the form.
 - Compare the token of a double opt-in link with its exact letter case.
 - Apply the same extension check to files sent in chunks as to other uploads.
+- Show the names of the add-on plugins on the About screen instead of their language keys.
+- Stop the Forms screen from reporting a failed check-in when the form was not locked.
+- Remove markup from the status lines of the installation log.
 
 ### Security
 
@@ -54,6 +60,7 @@
 - Refuse as a paid download any file without an extension and any file in the folders of Joomla itself, such as administrator, libraries, plugins, configuration, temporary files and logs, or in system folders.
 - Match the percent and underscore signs typed by a visitor literally in the contains, starts-with and ends-with rules of the Integrator.
 - Keep a Dropbox error from stopping the sending of a form.
+- Name the signature image files with a SHA-256 hash of their content instead of MD5.
 
 ## 6.1.0-RC22
 

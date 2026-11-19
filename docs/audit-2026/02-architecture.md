@@ -1,6 +1,6 @@
 # Audit 02 - Architecture et qualité de code
 
-Périmètre : BreezingForms NG 6.1.0-RC22 (branche `main`, commit `1faa98d2`). Audit en lecture seule : aucun code applicatif modifié, aucune migration, aucune écriture Git.
+Périmètre : BreezingForms NG 6.1.0-RC23 (branche `main`, commit `1faa98d2`). Audit en lecture seule : aucun code applicatif modifié, aucune migration, aucune écriture Git.
 
 Environnement de mesure : PHP hôte 8.5.4 (CLI), PHPStan et PHPUnit du dépôt (`vendor/bin`), conteneur `joomla6-joomla-1` consulté en lecture seule (Joomla 6.2.0, PHP 8.3) pour vérifier la source installée du CMS.
 

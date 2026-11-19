@@ -1,4 +1,4 @@
-# Audit 03 — Stratégie et qualité des tests (BFNG 6.1.0-RC22)
+# Audit 03 — Stratégie et qualité des tests (BFNG 6.1.0-RC23)
 
 Date : 2026-11-19. Audit en lecture seule. Branche `main`, commit `1faa98d2`.
 Sources lues : `AGENTS.md`, `docs/best-practices/testing-quality.md`, `docs/maintenance/tests/*` (état du 2026-11-18), `.github/workflows/*`, `phpunit.xml`, `playwright*.mjs`, `scripts/*`, `tests/`.

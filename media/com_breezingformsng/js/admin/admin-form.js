@@ -1,9 +1,9 @@
 var __bfOpts = Joomla.getOptions('com_breezingformsng.admin-form') || {};
 
-function bfToggle(libId, codeId, value) {
+window.bfToggle = function (libId, codeId, value) {
 	document.getElementById(libId).style.display = (value === '1') ? '' : 'none';
 	document.getElementById(codeId).style.display = (value === '2') ? '' : 'none';
-}
+};
 
 Joomla.submitbutton = function (task) {
 	var form = document.getElementById('adminForm');

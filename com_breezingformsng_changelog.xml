@@ -6,6 +6,8 @@
         <version>6.1.0-RC23</version>
         <addition>
             <item>Reorder the elements of the QuickMode tree from the keyboard with Alt+Up and Alt+Down, and open its context menu with Shift+F10 or the Menu key. The new position is announced to screen readers.</item>
+            <item>Offer the MailChimp, Salesforce and Dropbox integrations as plugins that you can turn on or off. Their tabs in the form options appear only while their plugin is enabled, and the settings already saved are kept.</item>
+            <item>Turn the BreezingForms NG plugins on or off from the Extensions tab of the About screen.</item>
         </addition>
         <change>
             <item>Show the errors of the QuickMode editor as Joomla messages instead of browser pop-ups, all together, with the focus on the first field to correct.</item>
@@ -17,6 +19,7 @@
             <item>Give the fields of the carte theme a visible border and a darker muted text, to reach the contrast that accessibility guidelines ask for.</item>
             <item>Make the Reset button an explicit button.</item>
             <item>Translate the default captions and the untitled element label of the QuickMode editor, and the remaining untranslated character counter.</item>
+            <item>Give the content, privacy and MCP plugins clearer names, in all languages.</item>
         </change>
         <fix>
             <item>Announce required fields to screen readers, with a hidden Required text next to the asterisk and the matching ARIA attribute.</item>
@@ -29,6 +32,9 @@
             <item>Stop warning an editor without the Manage Code permission when a save does not touch the code of the form.</item>
             <item>Compare the token of a double opt-in link with its exact letter case.</item>
             <item>Apply the same extension check to files sent in chunks as to other uploads.</item>
+            <item>Show the names of the add-on plugins on the About screen instead of their language keys.</item>
+            <item>Stop the Forms screen from reporting a failed check-in when the form was not locked.</item>
+            <item>Remove markup from the status lines of the installation log.</item>
         </fix>
         <security>
             <item>Keep the PHP pieces and scripts of a form out of reach of editors who do not hold the Manage Code permission: their changes to code are not saved and a warning says so. This also applies to package imports and to AI assistants (MCP).</item>
@@ -52,6 +58,7 @@
             <item>Refuse as a paid download any file without an extension and any file in the folders of Joomla itself, such as administrator, libraries, plugins, configuration, temporary files and logs, or in system folders.</item>
             <item>Match the percent and underscore signs typed by a visitor literally in the contains, starts-with and ends-with rules of the Integrator.</item>
             <item>Keep a Dropbox error from stopping the sending of a form.</item>
+            <item>Name the signature image files with a SHA-256 hash of their content instead of MD5.</item>
         </security>
     </changelog>
     <changelog>

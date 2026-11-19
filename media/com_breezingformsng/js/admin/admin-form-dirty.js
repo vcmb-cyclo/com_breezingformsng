@@ -1,3 +1,5 @@
+/* global __bfOpts */
+
 var __bfDirtyInitialState = '';
 var __bfDirtySubmitting = false;
 var __bfDirtySubmitbutton = Joomla.submitbutton;
