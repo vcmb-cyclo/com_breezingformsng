@@ -35,7 +35,183 @@ use Joomla\CMS\Uri\Uri;
 
 trait BootstrapStyleFieldTrait
 {
+    /**
+     * @phpstan-type BootstrapStyleFieldData array<string, mixed>&array{
+     *     bfName: string,
+     *     dbId: int,
+     *     value: string,
+     *     format: string,
+     *     size: string,
+     *     icon: string,
+     *     firstDay: string,
+     *     minYear: string,
+     *     maxYear: string,
+     *     emptyMessage: string,
+     *     connectWith: string|list<string>,
+     *     connectType: string,
+     *     hideIfEmpty: bool,
+     *     fieldCalc: string,
+     *     mailbackAsSender: bool,
+     *     mailbackAccept: bool,
+     *     mailbackConnectWith: string,
+     *     list: string,
+     *     width: string,
+     *     height: string,
+     *     multiple: bool,
+     *     src: string,
+     *     actionClick: bool,
+     *     actionFunctionName: string,
+     *     image: string,
+     *     group: string,
+     *     wrap: bool
+     * }
+     */
     private ?QuickModeBootstrapChoiceGroupBuilder $quickModeBootstrapChoiceGroupBuilderService = null;
+
+    /**
+     * @param array<string, mixed> $mdata
+     * @return BootstrapStyleFieldData
+     */
+    private function normalizeBootstrapStyleFieldData(array $mdata): array
+    {
+        $normalized = $mdata;
+        $normalized['bfName'] = $this->bootstrapStyleString($mdata['bfName'] ?? null, 'bfName');
+        $normalized['dbId'] = $this->bootstrapStyleInteger($mdata['dbId'] ?? null, 'dbId');
+        $normalized['value'] = $this->bootstrapStyleString($mdata['value'] ?? null, 'value');
+        $normalized['format'] = $this->bootstrapStyleString($mdata['format'] ?? null, 'format');
+        $normalized['size'] = $this->bootstrapStyleString($mdata['size'] ?? null, 'size');
+        $normalized['icon'] = $this->bootstrapStyleString($mdata['icon'] ?? null, 'icon');
+        $normalized['firstDay'] = $this->bootstrapStyleString($mdata['firstDay'] ?? null, 'firstDay');
+        $normalized['minYear'] = $this->bootstrapStyleString($mdata['minYear'] ?? null, 'minYear');
+        $normalized['maxYear'] = $this->bootstrapStyleString($mdata['maxYear'] ?? null, 'maxYear');
+        $normalized['emptyMessage'] = $this->bootstrapStyleString(
+            $mdata['emptyMessage'] ?? null,
+            'emptyMessage'
+        );
+        $normalized['connectWith'] = $this->bootstrapStyleStringOrList(
+            $mdata['connectWith'] ?? null,
+            'connectWith'
+        );
+        $normalized['connectType'] = $this->bootstrapStyleString($mdata['connectType'] ?? null, 'connectType');
+        $normalized['hideIfEmpty'] = $this->bootstrapStyleBoolean($mdata['hideIfEmpty'] ?? null, 'hideIfEmpty');
+        $normalized['fieldCalc'] = $this->bootstrapStyleString($mdata['fieldCalc'] ?? null, 'fieldCalc');
+        $normalized['mailbackAsSender'] = $this->bootstrapStyleBoolean(
+            $mdata['mailbackAsSender'] ?? null,
+            'mailbackAsSender'
+        );
+        $normalized['mailbackAccept'] = $this->bootstrapStyleBoolean(
+            $mdata['mailbackAccept'] ?? null,
+            'mailbackAccept'
+        );
+        $normalized['mailbackConnectWith'] = $this->bootstrapStyleString(
+            $mdata['mailbackConnectWith'] ?? null,
+            'mailbackConnectWith'
+        );
+        $normalized['list'] = $this->bootstrapStyleString($mdata['list'] ?? null, 'list');
+        $normalized['width'] = $this->bootstrapStyleString($mdata['width'] ?? null, 'width');
+        $normalized['height'] = $this->bootstrapStyleString($mdata['height'] ?? null, 'height');
+        $normalized['multiple'] = $this->bootstrapStyleBoolean($mdata['multiple'] ?? null, 'multiple');
+        $normalized['src'] = $this->bootstrapStyleString($mdata['src'] ?? null, 'src');
+        $normalized['actionClick'] = $this->bootstrapStyleBoolean($mdata['actionClick'] ?? null, 'actionClick');
+        $normalized['actionFunctionName'] = $this->bootstrapStyleString(
+            $mdata['actionFunctionName'] ?? null,
+            'actionFunctionName'
+        );
+        $normalized['image'] = $this->bootstrapStyleString($mdata['image'] ?? null, 'image');
+        $normalized['group'] = $this->bootstrapStyleString($mdata['group'] ?? null, 'group');
+        $normalized['wrap'] = $this->bootstrapStyleBoolean($mdata['wrap'] ?? null, 'wrap');
+
+        $this->assertBootstrapStyleFieldData($normalized);
+
+        return $normalized;
+    }
+
+    private function bootstrapStyleString(mixed $value, string $key): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        if (!is_scalar($value)) {
+            throw new \UnexpectedValueException(sprintf('QuickMode field metadata "%s" must be scalar.', $key));
+        }
+
+        return (string) $value;
+    }
+
+    private function bootstrapStyleInteger(mixed $value, string $key): int
+    {
+        if ($value === null) {
+            return 0;
+        }
+
+        if (!is_scalar($value)) {
+            throw new \UnexpectedValueException(sprintf('QuickMode field metadata "%s" must be scalar.', $key));
+        }
+
+        return (int) $value;
+    }
+
+    /**
+     * @return string|list<string>
+     */
+    private function bootstrapStyleStringOrList(mixed $value, string $key): string|array
+    {
+        if ($value === null || is_scalar($value)) {
+            return $this->bootstrapStyleString($value, $key);
+        }
+
+        if (!is_array($value) || !array_is_list($value)) {
+            throw new \UnexpectedValueException(
+                sprintf('QuickMode field metadata "%s" must be a string or a list.', $key)
+            );
+        }
+
+        $normalized = [];
+        foreach ($value as $index => $item) {
+            $normalized[] = $this->bootstrapStyleString($item, $key . '[' . $index . ']');
+        }
+
+        return $normalized;
+    }
+
+    private function bootstrapStyleBoolean(mixed $value, string $key): bool
+    {
+        if ($value === null) {
+            return false;
+        }
+
+        if (!is_scalar($value)) {
+            throw new \UnexpectedValueException(sprintf('QuickMode field metadata "%s" must be scalar.', $key));
+        }
+
+        return (bool) $value;
+    }
+
+    /**
+     * @param array<string, mixed> $mdata
+     * @phpstan-assert BootstrapStyleFieldData $mdata
+     */
+    private function assertBootstrapStyleFieldData(array $mdata): void
+    {
+        if (!is_string($mdata['bfName']) || !is_int($mdata['dbId']) || !is_string($mdata['value'])) {
+            throw new \UnexpectedValueException('QuickMode field metadata has an invalid normalized shape.');
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $mdata
+     */
+    private function bootstrapStyleTranslation(array $mdata, string $key): ?string
+    {
+        if (!array_key_exists($key, $mdata)) {
+            return null;
+        }
+
+        $value = $this->bootstrapStyleString($mdata[$key], $key);
+
+        return $value !== '' ? $value : null;
+    }
 
     private function quickModeBootstrapChoiceGroupBuilder(): QuickModeBootstrapChoiceGroupBuilder
     {
@@ -50,12 +226,14 @@ trait BootstrapStyleFieldTrait
      */
     private function renderBootstrapStyleSummarizeField(array $mdata, string $label): void
     {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         /* translatables */
-        if (
-            isset($mdata['emptyMessage_translation' . $this->language_tag])
-            && $mdata['emptyMessage_translation' . $this->language_tag] != ''
-        ) {
-            $mdata['emptyMessage'] = $mdata['emptyMessage_translation' . $this->language_tag];
+        $translatedEmptyMessage = $this->bootstrapStyleTranslation(
+            $mdata,
+            'emptyMessage_translation' . $this->language_tag
+        );
+        if ($translatedEmptyMessage !== null) {
+            $mdata['emptyMessage'] = $translatedEmptyMessage;
         }
         /* translatables end */
         echo '<div class="' . $this->bsClass('controls') . ' ' . $this->bsClass('form-inline') . '">';
@@ -93,18 +271,15 @@ trait BootstrapStyleFieldTrait
      */
     private function renderBootstrapStyleCalendarField(array $mdata, string $label): void
     {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         /* translatables */
-        if (
-            isset($mdata['value_translation' . $this->language_tag])
-            && $mdata['value_translation' . $this->language_tag] != ''
-        ) {
-            $mdata['value'] = $mdata['value_translation' . $this->language_tag];
+        $translatedValue = $this->bootstrapStyleTranslation($mdata, 'value_translation' . $this->language_tag);
+        if ($translatedValue !== null) {
+            $mdata['value'] = $translatedValue;
         }
-        if (
-            isset($mdata['format_translation' . $this->language_tag])
-            && $mdata['format_translation' . $this->language_tag] != ''
-        ) {
-            $mdata['format'] = $mdata['format_translation' . $this->language_tag];
+        $translatedFormat = $this->bootstrapStyleTranslation($mdata, 'format_translation' . $this->language_tag);
+        if ($translatedFormat !== null) {
+            $mdata['format'] = $translatedFormat;
         }
         $icon = '';
         if (
@@ -172,18 +347,15 @@ trait BootstrapStyleFieldTrait
      */
     private function renderBootstrapStyleCalendarResponsiveField(array $mdata, string $label): void
     {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         /* translatables */
-        if (
-            isset($mdata['value_translation' . $this->language_tag])
-            && $mdata['value_translation' . $this->language_tag] != ''
-        ) {
-            $mdata['value'] = $mdata['value_translation' . $this->language_tag];
+        $translatedValue = $this->bootstrapStyleTranslation($mdata, 'value_translation' . $this->language_tag);
+        if ($translatedValue !== null) {
+            $mdata['value'] = $translatedValue;
         }
-        if (
-            isset($mdata['format_translation' . $this->language_tag])
-            && $mdata['format_translation' . $this->language_tag] != ''
-        ) {
-            $mdata['format'] = $mdata['format_translation' . $this->language_tag];
+        $translatedFormat = $this->bootstrapStyleTranslation($mdata, 'format_translation' . $this->language_tag);
+        if ($translatedFormat !== null) {
+            $mdata['format'] = $translatedFormat;
         }
         $icon = '';
         if (
@@ -293,6 +465,7 @@ trait BootstrapStyleFieldTrait
         string $onselect,
         string $readonly
     ): void {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         $size = '';
 
         if ($mdata['size'] != '') {
@@ -343,6 +516,7 @@ trait BootstrapStyleFieldTrait
         string $onselect,
         string $readonly
     ): void {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         $icon = '';
         if (
             $this->rootMdata['themebootstrapThemeEngine'] == 'bootstrap'
@@ -396,6 +570,7 @@ trait BootstrapStyleFieldTrait
         string $onselect,
         string $readonly
     ): void {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         echo '<div class="' . $this->bsClass('controls') . ' ' . $this->bsClass('form-inline') . '">';
         echo '<div class="' . $this->bsClass('form-group') . '">';
         echo $label;
@@ -429,12 +604,11 @@ trait BootstrapStyleFieldTrait
         string $onselect,
         string $readonly
     ): void {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         /* translatables */
-        if (
-            isset($mdata['list_translation' . $this->language_tag])
-            && $mdata['list_translation' . $this->language_tag] != ''
-        ) {
-            $mdata['list'] = $mdata['list_translation' . $this->language_tag];
+        $translatedList = $this->bootstrapStyleTranslation($mdata, 'list_translation' . $this->language_tag);
+        if ($translatedList !== null) {
+            $mdata['list'] = $translatedList;
         }
         /* translatables end */
         if ($mdata['list'] != '') {
@@ -482,18 +656,15 @@ trait BootstrapStyleFieldTrait
         string $onselect,
         string $readonly
     ): void {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         /* translatables */
-        if (
-            isset($mdata['src_translation' . $this->language_tag])
-            && $mdata['src_translation' . $this->language_tag] != ''
-        ) {
-            $mdata['src'] = $mdata['src_translation' . $this->language_tag];
+        $translatedSource = $this->bootstrapStyleTranslation($mdata, 'src_translation' . $this->language_tag);
+        if ($translatedSource !== null) {
+            $mdata['src'] = $translatedSource;
         }
-        if (
-            isset($mdata['value_translation' . $this->language_tag])
-            && $mdata['value_translation' . $this->language_tag] != ''
-        ) {
-            $mdata['value'] = $mdata['value_translation' . $this->language_tag];
+        $translatedValue = $this->bootstrapStyleTranslation($mdata, 'value_translation' . $this->language_tag);
+        if ($translatedValue !== null) {
+            $mdata['value'] = $translatedValue;
         }
         /* translatables end */
 
@@ -567,12 +738,11 @@ trait BootstrapStyleFieldTrait
         string $onselect,
         string $readonly
     ): void {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         /* translatables */
-        if (
-            isset($mdata['image_translation' . $this->language_tag])
-            && $mdata['image_translation' . $this->language_tag] != ''
-        ) {
-            $mdata['image'] = $mdata['image_translation' . $this->language_tag];
+        $translatedImage = $this->bootstrapStyleTranslation($mdata, 'image_translation' . $this->language_tag);
+        if ($translatedImage !== null) {
+            $mdata['image'] = $translatedImage;
         }
         /* translatables end */
         echo '<div class="' . $this->bsClass('controls') . ' ' . $this->bsClass('form-inline') . '">';
@@ -615,12 +785,11 @@ trait BootstrapStyleFieldTrait
         string $onselect,
         string $readonly
     ): void {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         /* translatables */
-        if (
-            isset($mdata['image_translation' . $this->language_tag])
-            && $mdata['image_translation' . $this->language_tag] != ''
-        ) {
-            $mdata['image'] = $mdata['image_translation' . $this->language_tag];
+        $translatedImage = $this->bootstrapStyleTranslation($mdata, 'image_translation' . $this->language_tag);
+        if ($translatedImage !== null) {
+            $mdata['image'] = $translatedImage;
         }
         /* translatables end */
         echo '<div class="' . $this->bsClass('controls') . ' ' . $this->bsClass('form-inline') . '">';
@@ -655,6 +824,7 @@ trait BootstrapStyleFieldTrait
      */
     private function renderBootstrapStyleSignatureField(array $mdata, string $label): void
     {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         RuntimeAssetLoader::script(
             $this->p->app,
             Uri::root(true) . '/components/com_breezingformsng/libraries/js/signature.js'
@@ -714,6 +884,7 @@ trait BootstrapStyleFieldTrait
         string $readonly,
         string $wrapClass = ''
     ): void {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         echo $this->quickModeBootstrapChoiceGroupBuilder()->build(
             'radio',
             $mdata,
@@ -741,6 +912,7 @@ trait BootstrapStyleFieldTrait
         string $readonly,
         string $wrapClass = ''
     ): void {
+        $mdata = $this->normalizeBootstrapStyleFieldData($mdata);
         echo $this->quickModeBootstrapChoiceGroupBuilder()->build(
             'checkbox',
             $mdata,
