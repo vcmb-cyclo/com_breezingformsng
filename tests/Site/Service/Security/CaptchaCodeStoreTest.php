@@ -131,4 +131,87 @@ final class CaptchaCodeStoreTest extends TestCase
 
         self::assertTrue($store->matches("blue   sky", false));
     }
+
+    public function testACodeIssuedBeforeTheUpgradeIsStillAccepted(): void
+    {
+        $store = $this->store();
+        $this->data['com_breezingformsng.captcha'] = ['code' => 'bombes', 'time' => time()];
+
+        self::assertFalse($store->matches('wrong', false));
+        self::assertTrue($store->matches('bombes', true));
+        self::assertNull($store->get());
+    }
+
+    public function testTheCodeIsDroppedAfterTheLimitEvenWithAnOldFormatValue(): void
+    {
+        $store = $this->store();
+        $this->data['com_breezingformsng.captcha'] = ['code' => 'bombes', 'time' => time()];
+
+        for ($i = 1; $i < CaptchaCodeStore::MAX_ATTEMPTS; $i++) {
+            self::assertFalse($store->matches('wrong', true));
+            self::assertNotNull($store->get());
+        }
+
+        self::assertFalse($store->matches('wrong', true));
+        self::assertNull($store->get());
+    }
+
+    public function testACorrectCodeBeforeTheLimitSucceedsOnlyOnce(): void
+    {
+        $store = $this->store();
+        $store->store('bombes');
+
+        for ($i = 1; $i < CaptchaCodeStore::MAX_ATTEMPTS; $i++) {
+            self::assertFalse($store->matches('wrong', true));
+        }
+
+        self::assertTrue($store->matches('bombes', true));
+        self::assertFalse($store->matches('bombes', true));
+    }
+
+    public function testANewImageStartsWithAFreshAttemptCount(): void
+    {
+        $store = $this->store();
+        $store->store('bombes');
+        self::assertFalse($store->matches('wrong', false));
+        $store->store('other');
+
+        for ($i = 1; $i < CaptchaCodeStore::MAX_ATTEMPTS; $i++) {
+            self::assertFalse($store->matches('wrong', false));
+        }
+
+        self::assertTrue($store->matches('other', true));
+    }
+
+    public function testImagesAreIssuedAtALimitedPace(): void
+    {
+        $store = $this->store();
+
+        self::assertTrue($store->allowIssue(1000.0));
+        self::assertFalse($store->allowIssue(1000.0 + CaptchaCodeStore::ISSUE_INTERVAL / 2), 'Too soon after the previous image.');
+        self::assertTrue($store->allowIssue(1000.0 + CaptchaCodeStore::ISSUE_INTERVAL));
+    }
+
+    public function testTheIssueCapAppliesPerWindowAndLifts(): void
+    {
+        $store = $this->store();
+        $now = 5000.0;
+
+        for ($i = 0; $i < CaptchaCodeStore::ISSUE_LIMIT; $i++) {
+            self::assertTrue($store->allowIssue($now + $i * 2), 'Issue ' . $i);
+        }
+
+        $late = $now + CaptchaCodeStore::ISSUE_LIMIT * 2;
+        self::assertFalse($store->allowIssue($late), 'Cap reached inside the window.');
+        self::assertFalse($store->allowIssue($late + 5), 'A refused request is not recorded and does not extend the block.');
+        self::assertTrue($store->allowIssue($now + CaptchaCodeStore::ISSUE_WINDOW + 1), 'The oldest issues leave the window.');
+    }
+
+    public function testAMalformedIssueStateDoesNotBlockTheVisitor(): void
+    {
+        $store = $this->store();
+        $this->data['com_breezingformsng.captcha_issues'] = 'garbage';
+
+        self::assertTrue($store->allowIssue(100.0));
+    }
 }

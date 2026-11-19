@@ -45,6 +45,7 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Callback\CaptchaCallback;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\FlashUploadCallback;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\OptCallback;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PayPalCallback;
+use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadFilePolicy;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadPolicy;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadService;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentFormLoader;
@@ -120,7 +121,15 @@ return new class implements ServiceProviderInterface
                     $container->get(PaymentFormLoader::class),
                     $container->get(RedirectHelper::class),
                     $container->get(PaymentDownloadPolicy::class),
+                    $container->get(PaymentDownloadFilePolicy::class),
                 );
+            },
+        );
+
+        $container->share(
+            PaymentDownloadFilePolicy::class,
+            static function () use ($cmsApplication): PaymentDownloadFilePolicy {
+                return PaymentDownloadFilePolicy::forSite($cmsApplication());
             },
         );
 

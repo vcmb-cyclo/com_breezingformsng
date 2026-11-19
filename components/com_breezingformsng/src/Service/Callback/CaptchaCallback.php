@@ -42,6 +42,17 @@ final class CaptchaCallback
     public function image(): void
     {
         $this->clearOutputBuffer();
+
+        // Images are costly to draw and every new one resets the wrong-entry count: issue them at a bounded rate.
+        if (!$this->codeStore()->allowIssue()) {
+            $this->application->setHeader('status', '429', true);
+            $this->application->setHeader('Retry-After', (string) (int) ceil(CaptchaCodeStore::ISSUE_INTERVAL), true);
+            $this->application->sendHeaders();
+            $this->application->close();
+
+            return;
+        }
+
         VendorHelper::load();
 
         $captcha = (new CaptchaImage())->create();

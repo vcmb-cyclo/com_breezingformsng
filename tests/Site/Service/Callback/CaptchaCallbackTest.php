@@ -49,7 +49,7 @@ final class CaptchaCallbackTest extends TestCase
         self::assertStringContainsString("'Content-Type', CaptchaImage::MIME_TYPE", $image);
         // The code is stored before the image is sent, so that the session holds it when the page is shown.
         self::assertLessThan(
-            (int) strpos($image, 'sendHeaders'),
+            (int) strrpos($image, 'sendHeaders'),
             (int) strpos($image, '$this->codeStore()->store(')
         );
         self::assertStringNotContainsString('Securimage', $source);
@@ -74,5 +74,15 @@ final class CaptchaCallbackTest extends TestCase
     public function testEveryOutputBufferIsClearedBeforeTheResponse(): void
     {
         self::assertStringContainsString('while (ob_get_level() > 0)', $this->source());
+    }
+
+    public function testTheImageIsThrottledBeforeItIsDrawn(): void
+    {
+        $source = $this->source();
+        $image = substr($source, (int) strpos($source, 'public function image'));
+
+        self::assertStringContainsString('->allowIssue()', $image);
+        self::assertStringContainsString("'status', '429'", $image);
+        self::assertLessThan((int) strpos($image, 'new CaptchaImage'), (int) strpos($image, '->allowIssue()'));
     }
 }

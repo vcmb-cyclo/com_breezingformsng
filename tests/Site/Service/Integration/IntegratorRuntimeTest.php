@@ -226,6 +226,50 @@ final class IntegratorRuntimeTest extends TestCase
         }
     }
 
+    public function testLikeOperatorsMatchWildcardsOfTheValueLiterally(): void
+    {
+        $runtime = $this->runtimeWithQuotingDatabase();
+        $query = new class {
+            /** @var array<string, mixed> */
+            public array $bound = [];
+
+            public function bind(string $key, mixed $value): void
+            {
+                $this->bound[$key] = $value;
+            }
+        };
+        $bindIndex = 0;
+        $criteria = ['form' => [], 'joomla' => [], 'fixed' => [
+            (object) ['andor' => '', 'reference_column' => 'a', 'operator' => '%...%', 'fixed_value' => '50%_off!'],
+            (object) ['andor' => 'AND', 'reference_column' => 'b', 'operator' => '%...', 'fixed_value' => '%'],
+            (object) ['andor' => 'OR', 'reference_column' => 'c', 'operator' => '...%', 'fixed_value' => "o'_"],
+            (object) ['andor' => 'AND', 'reference_column' => 'd', 'operator' => '=', 'fixed_value' => '100%'],
+        ]];
+
+        $sql = (new ReflectionClass($runtime))->getMethod('buildCriteriaClauses')
+            ->invokeArgs($runtime, [$criteria, $query, &$bindIndex]);
+
+        self::assertSame(
+            "`a` LIKE :criteriaValue0 ESCAPE '!' AND `b` LIKE :criteriaValue1 ESCAPE '!'"
+            . " OR `c` LIKE :criteriaValue2 ESCAPE '!' AND `d` = :criteriaValue3",
+            $sql
+        );
+        self::assertSame('%50!%!_off!!%', $query->bound[':criteriaValue0']);
+        self::assertSame('%!%', $query->bound[':criteriaValue1']);
+        self::assertSame("o'!_%", $query->bound[':criteriaValue2']);
+        self::assertSame('100%', $query->bound[':criteriaValue3']);
+    }
+
+    public function testAFailingUpdateRuleIsLoggedWithoutSubmittedData(): void
+    {
+        $source = (string) file_get_contents(
+            __DIR__ . '/../../../../components/com_breezingformsng/src/Service/Integration/IntegratorRuntime.php'
+        );
+
+        self::assertStringContainsString("' failed while updating or inserting the reference row.'", $source);
+        self::assertStringNotContainsString('catch (\\Throwable $e) {'."\n        }", $source);
+    }
+
     public function testTheCodeOfAnItemChangesTheValueItWrites(): void
     {
         $runtime = (new ReflectionClass(IntegratorRuntime::class))->newInstanceWithoutConstructor();

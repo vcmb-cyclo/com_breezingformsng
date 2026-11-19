@@ -21,6 +21,7 @@ use Joomla\Database\DatabaseInterface;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PayPalCallback;
+use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadFilePolicy;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadPolicy;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadService;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentFormLoader;
@@ -119,7 +120,8 @@ final class PayPalCallbackTest extends TestCase
                 $database,
                 new PaymentFormLoader($database),
                 new RedirectHelper($application),
-                new PaymentDownloadPolicy()
+                new PaymentDownloadPolicy(),
+                new PaymentDownloadFilePolicy()
             ),
             $http
         );

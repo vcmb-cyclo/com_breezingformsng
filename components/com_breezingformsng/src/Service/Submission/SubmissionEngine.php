@@ -2304,11 +2304,16 @@ final class SubmissionEngine
         $folder = trim((string) ($this->processor->formrow->dropbox_folder ?: $this->processor->formrow->name), '/');
         $remotePath = '/' . ($folder !== '' ? $folder . '/' : '') . basename($localFile);
 
-        (new DropboxUploader())->upload(
-            trim((string) $this->processor->formrow->dropbox_email),
-            $remotePath,
-            $localFile
-        );
+        // A Dropbox failure must neither abort the submission nor reach the visitor.
+        try {
+            (new DropboxUploader())->upload(
+                trim((string) $this->processor->formrow->dropbox_email),
+                $remotePath,
+                $localFile
+            );
+        } catch (\Throwable) {
+            Log::add('Dropbox upload failed; the submission continues without it.', Log::WARNING, 'com_breezingformsng');
+        }
     }
 
     private function uploadTimestampFormatter(): SubmissionTimestampFormatter

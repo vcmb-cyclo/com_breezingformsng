@@ -28,7 +28,8 @@ final class PaymentDownloadService
         private readonly DatabaseInterface $database,
         private readonly PaymentFormLoader $paymentFormLoader,
         private readonly RedirectHelper $redirectHelper,
-        private readonly PaymentDownloadPolicy $downloadPolicy
+        private readonly PaymentDownloadPolicy $downloadPolicy,
+        private readonly PaymentDownloadFilePolicy $filePolicy
     ) {
     }
 
@@ -171,7 +172,7 @@ final class PaymentDownloadService
 
                 $file = (string) ($options['filepath'] ?? '');
                 $resolved = realpath($file);
-                if ($resolved === false || !(new PaymentDownloadFilePolicy())->isServable($resolved)) {
+                if ($resolved === false || !$this->filePolicy->isServable($resolved)) {
                     $this->redirectHelper->to(
                         Uri::root(),
                         Text::_('COM_BREEZINGFORMSNG_COULD_NOT_FIND_DOWNLOAD_FILE')
