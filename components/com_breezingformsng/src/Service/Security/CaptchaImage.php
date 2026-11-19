@@ -24,7 +24,7 @@ use Gregwar\Captcha\PhraseBuilder;
  */
 final class CaptchaImage
 {
-    public const CHARACTERS = 'acdefhjkmnprtx34679';
+    public const CHARACTERS = 'acdefhjkmnprtx3479';
     public const LENGTH = 5;
     public const WIDTH = 230;
     public const HEIGHT = 80;
