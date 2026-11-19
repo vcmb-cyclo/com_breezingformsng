@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--~
   ~ @component BreezingForms-ng (transition)
-  ~ @author: XDA/GIL (Joomla! 6, 2026) | Markus Bopp | until FacileForms v1.4.7: Peter Koch
+  ~ @author: XDA+GIL (Joomla! 6, 2026) | Markus Bopp | until FacileForms v1.4.7: Peter Koch
   ~ @copyright Copyright (c) 2004-2026
   ~ @license GNU General Public License version 2, or later
   -->
@@ -11,7 +11,7 @@
 	<name>COM_BREEZINGFORMSNG</name>
 	<element>com_breezingformsng</element>
 	<creationDate>2026-11-18</creationDate>
-	<author>XDA/GIL</author>
+	<author>XDA+GIL</author>
 	<copyright>Copyright 2024 - 2026 by XDA+GIL</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
 	<authorEmail>bf@vcmb.fr</authorEmail>
