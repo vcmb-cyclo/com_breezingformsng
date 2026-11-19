@@ -33,7 +33,7 @@ final class SecurimageSessionAdapter implements AdapterInterface
      * @param string $captchaId
      * @param mixed  $captchaInfo
      */
-    public function store($captchaId, $captchaInfo): bool
+    public function store(mixed $captchaId, mixed $captchaInfo): bool
     {
         if ($captchaInfo instanceof CaptchaObject) {
             $this->store->store((string) $captchaInfo->code);
@@ -47,7 +47,7 @@ final class SecurimageSessionAdapter implements AdapterInterface
      * @param string $captchaId
      * @param mixed  $audioData
      */
-    public function storeAudioData($captchaId, $audioData): bool
+    public function storeAudioData(mixed $captchaId, mixed $audioData): bool
     {
         // The audio captcha is not offered.
         return false;
@@ -58,7 +58,7 @@ final class SecurimageSessionAdapter implements AdapterInterface
      * @param string      $captchaId
      * @param int         $what
      */
-    public function get($captchaId, $what = null): ?CaptchaObject
+    public function get(mixed $captchaId, mixed $what = null): ?CaptchaObject
     {
         $stored = $this->store->get();
 
@@ -77,7 +77,7 @@ final class SecurimageSessionAdapter implements AdapterInterface
 
     #[\Override]
     /** @param string $captchaId */
-    public function delete($captchaId): bool
+    public function delete(mixed $captchaId): bool
     {
         $this->store->clear();
 
