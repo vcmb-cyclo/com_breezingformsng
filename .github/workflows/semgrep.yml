@@ -48,6 +48,22 @@ jobs:
           media/com_breezingformsng/js
           script.php
 
+      # Semgrep keeps a finding marked "nosemgrep" in the SARIF, flagged as suppressed in the source, and
+      # GitHub shows it as an open alert all the same. A suppression is reviewed in the code, with its reason on
+      # the same comment, so those findings are left out of what GitHub receives.
+      - name: Leave out the findings suppressed in the source
+        run: |
+          python3 - <<'PY'
+          import json
+          path = 'semgrep.sarif'
+          with open(path) as handle:
+              sarif = json.load(handle)
+          for run in sarif['runs']:
+              run['results'] = [result for result in run['results'] if not result.get('suppressions')]
+          with open(path, 'w') as handle:
+              json.dump(sarif, handle)
+          PY
+
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v4.39.3
         with:
