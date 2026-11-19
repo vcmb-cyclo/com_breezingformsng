@@ -49,13 +49,16 @@ test('orphan repairs preserve existing records and distinguish element zero from
         expect(noToken.status()).toBe(403);
         expect(rows()).toEqual([ids[0], ids[1], ids[2], ids[4]]);
 
-        await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.runAudit`, {
+        const run = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.runAudit`, {
             form: { [csrf]: '1' },
             maxRedirects: 0,
         });
+        // The audit run answers with a redirect: anything else means it did not run.
+        expect([302, 303]).toContain(run.status());
         await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about&layout=audit`);
         const audit = page.locator('[data-bf-orphan-check="subrecords_without_element"]');
-        await expect(audit).toBeAttached();
+        // The audit report is built on this request: a busy runner needs more than the default 5 s.
+        await expect(audit).toBeAttached({ timeout: 30_000 });
         // Only the deletion must be withheld: reassignment buttons use the same data attribute.
         await expect(audit.locator('[data-bf-orphan-task="about.deleteOrphanValues"][data-bf-orphan-element="1999999990"]')).toHaveCount(0);
         await expect(audit.locator('#bf-audit-delete-all-orphan-values')).toHaveCount(0);
