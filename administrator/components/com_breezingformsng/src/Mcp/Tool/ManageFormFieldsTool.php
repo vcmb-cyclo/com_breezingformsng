@@ -139,6 +139,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
         return $this->writer->manageFields($arguments, $user);
     }
 
+    /** @return array<string, mixed> */
     private static function choiceOptionsSchema(bool $withDefault = true): array
     {
         $schema = [

@@ -105,6 +105,7 @@ final class WidgetValueValidator
     }
 
     /** The format check is the administrator's choice: it is off when the widget does not validate. */
+    /** @param array<string, mixed> $options */
     private function validatesPhone(array $options): bool
     {
         return filter_var($options['validate'] ?? true, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;

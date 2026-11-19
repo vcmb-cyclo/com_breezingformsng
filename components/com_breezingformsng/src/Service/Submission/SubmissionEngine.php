@@ -163,7 +163,7 @@ final class SubmissionEngine
      * Refuses the submission when a QuickMode widget field (phone, date and time, country) holds a malformed
      * value. The submitted value is never logged or put in the message.
      */
-    private function refuseInvalidWidgetValue(object $row): bool
+    private function refuseInvalidWidgetValue(string $elementName): bool
     {
         if (trim((string) $this->processor->formrow->template_code_processed) !== 'QuickMode') {
             return false;
@@ -180,8 +180,8 @@ final class SubmissionEngine
             return false;
         }
 
-        $values = $this->processor->app->getInput()->post->get('ff_nm_' . $row->name, [], 'array');
-        $error = (new WidgetValueValidator())->validateAreas($this->widgetAreas, (string) $row->name, $values);
+        $values = $this->processor->app->getInput()->post->get('ff_nm_' . $elementName, [], 'array');
+        $error = (new WidgetValueValidator())->validateAreas($this->widgetAreas, $elementName, $values);
         if ($error === null) {
             return false;
         }
@@ -796,7 +796,7 @@ final class SubmissionEngine
                         case 'Calendar':
                         case 'Hidden Input':
                         case 'Signature':
-                            if ($row->type === 'Text' && $this->refuseInvalidWidgetValue($row)) {
+                            if ($row->type === 'Text' && $this->refuseInvalidWidgetValue((string) $row->name)) {
                                 return;
                             }
 

@@ -162,7 +162,8 @@ final class McpFormWriter
             $this->syncQuickModeRoot($id, $data);
 
             try {
-                $versioned = $versioning->record($id);
+                $versioning->record($id);
+                $versioned = true;
             } catch (\Throwable) {
                 // The metadata has been saved; report the history failure without
                 // claiming that the mutation itself failed.
@@ -550,9 +551,10 @@ final class McpFormWriter
                         }
                     }
                     if (isset($change['new_name'])) {
-                        preg_match('/^(bfQuickModeElement[1-9][0-9]*)_/', (string) $node['attributes']['id'], $matches);
                         $node['properties']['bfName'] = $change['new_name'];
-                        $node['attributes']['id'] = $matches[1] . '_' . strtolower($change['new_name']);
+                        if (preg_match('/^(bfQuickModeElement[1-9][0-9]*)_/', (string) $node['attributes']['id'], $matches) === 1) {
+                            $node['attributes']['id'] = $matches[1] . '_' . strtolower($change['new_name']);
+                        }
                     }
                     if (isset($change['requiredConfig'])) {
                         $this->applyRequiredConfiguration($node['properties'], $change['requiredConfig']);
@@ -560,10 +562,10 @@ final class McpFormWriter
                     $targetPage = $change['page'] ?? $currentPages[$key];
                     if ($targetPage !== $pageIndex + 1) {
                         $movedFields[$targetPage - 1][] = $node;
-                        $updated[] = $node['properties']['bfName'];
+                        $updated[] = (string) $node['properties']['bfName'];
                         continue;
                     }
-                    $updated[] = $node['properties']['bfName'];
+                    $updated[] = (string) $node['properties']['bfName'];
                 }
                 $result[] = $node;
             }
@@ -667,7 +669,8 @@ final class McpFormWriter
             $versioning->keepOrigin($id);
             $this->quickmode->save($id, $tree, (int) $form->published, false);
             try {
-                $versioned = $versioning->record($id);
+                $versioning->record($id);
+                $versioned = true;
             } catch (\Throwable) {
                 $versioned = false;
             }
@@ -699,6 +702,7 @@ final class McpFormWriter
     }
 
     /** @param array<string, mixed> $arguments
+     *  @return array{id: int, state: string}
      *  @throws ToolException
      */
     public function trashForm(array $arguments, User $user): array
@@ -726,6 +730,7 @@ final class McpFormWriter
     }
 
     /** @param array<string, mixed> $arguments
+     *  @return array{id: int, state: string}
      *  @throws ToolException
      */
     public function restoreForm(array $arguments, User $user): array
@@ -910,7 +915,9 @@ final class McpFormWriter
         return $normalized;
     }
 
-    /** @param list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields */
+    /** @param list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields
+     *  @return array<string, mixed>
+     */
     private function quickmodeTree(string $name, string $title, string $description, array $fields, string $pageIntro): array
     {
         $children = [];
@@ -938,7 +945,9 @@ final class McpFormWriter
         ];
     }
 
-    /** @param array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field */
+    /** @param array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field
+     *  @return array<string, mixed>
+     */
     private function elementNode(array $field, int $order): array
     {
         $type = match ($field['type']) {
@@ -948,6 +957,7 @@ final class McpFormWriter
             'radio' => 'bfRadioGroup',
             'checkbox_group' => 'bfCheckboxGroup',
             'checkbox' => 'bfCheckbox',
+            default => throw new ToolException('Unsupported field type.'),
         };
         $properties = [
             'type' => 'element',
@@ -1010,7 +1020,10 @@ final class McpFormWriter
         ];
     }
 
-    /** @throws ToolException */
+    /**
+     * @return array<string, mixed>
+     * @throws ToolException
+     */
     private function managedTree(int $formId): array
     {
         $form = $this->options->getForm($formId);
@@ -1244,6 +1257,7 @@ final class McpFormWriter
     }
 
     /** Submission counts already read in this request; the checks after the form lock ask for a fresh one. */
+    /** @var array<int, int> */
     private array $submissionCounts = [];
 
     private function submissionCount(int $formId, bool $fresh = false): int
@@ -1340,6 +1354,8 @@ final class McpFormWriter
             return $this->requiredValidationId;
         }
 
+        $scriptType = 'Element Validation';
+        $scriptName = 'ff_valuenotempty';
         $query = $this->db->createQuery()
             ->select($this->db->quoteName('id'))
             ->from($this->db->quoteName('#__facileforms_scripts'))
@@ -1347,8 +1363,8 @@ final class McpFormWriter
             ->where($this->db->quoteName('type') . ' = :type')
             ->where($this->db->quoteName('name') . ' = :name')
             ->order($this->db->quoteName('id') . ' DESC')
-            ->bind(':type', 'Element Validation', ParameterType::STRING)
-            ->bind(':name', 'ff_valuenotempty', ParameterType::STRING);
+            ->bind(':type', $scriptType, ParameterType::STRING)
+            ->bind(':name', $scriptName, ParameterType::STRING);
         $id = (int) $this->db->setQuery($query, 0, 1)->loadResult();
         if ($id <= 0) {
             throw new ToolException('The standard ff_valuenotempty validation is unavailable or unpublished.');
