@@ -33,6 +33,24 @@ use Joomla\CMS\Uri\Uri;
 
 \defined('_JEXEC') or die;
 
+/**
+ * @phpstan-type QuickModeTreeNode array{
+ *     properties?: array<string, mixed>,
+ *     attributes?: array{id: string},
+ *     children?: list<array<string, mixed>>
+ * }
+ * @phpstan-type QuickModeProcessNode array{
+ *     properties: array<string, mixed>,
+ *     attributes?: array{id: string},
+ *     children?: list<array<string, mixed>>
+ * }
+ * @phpstan-type QuickModeRootNode array{
+ *     properties: array<string, mixed>,
+ *     attributes?: array{id: string},
+ *     children: list<array<string, mixed>>
+ * }
+ * @phpstan-type BootstrapStyleFieldData array<string, mixed>
+ */
 trait BootstrapStyleFieldTrait
 {
     private ?QuickModeBootstrapChoiceGroupBuilder $quickModeBootstrapChoiceGroupBuilderService = null;
@@ -171,6 +189,18 @@ trait BootstrapStyleFieldTrait
     }
 
     /**
+     * @phpstan-assert QuickModeRootNode $dataObject
+     */
+    private function assertQuickModeRootNode(mixed $dataObject): void
+    {
+        $this->assertQuickModeProcessNode($dataObject);
+
+        if (!is_array($dataObject['children'] ?? null) || !array_is_list($dataObject['children'])) {
+            throw new \UnexpectedValueException('QuickMode root children must be a list.');
+        }
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function quickModeNodeProperties(mixed $dataObject): array
@@ -181,14 +211,14 @@ trait BootstrapStyleFieldTrait
     }
 
     /**
-     * @param QuickModeTreeNode $dataObject
+     * @param QuickModeRootNode $dataObject
      * @return list<array<string, mixed>>
      */
     private function quickModeRootChildren(array $dataObject): array
     {
         $this->assertQuickModeTreeNode($dataObject);
 
-        return $dataObject['children'] ?? [];
+        return $dataObject['children'];
     }
 
     private function bootstrapStyleString(mixed $value, string $key): string

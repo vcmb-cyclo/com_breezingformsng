@@ -39,6 +39,11 @@ use Joomla\CMS\Component\ComponentHelper;
  *     attributes?: array{id: string},
  *     children: list<array<string, mixed>>
  * }
+ * @phpstan-type QuickModeRootNode array{
+ *     properties: array<string, mixed>,
+ *     attributes?: array{id: string},
+ *     children: list<array<string, mixed>>
+ * }
  * @phpstan-type BootstrapStyleFieldData array<string, mixed>
  */
 class BootstrapRenderer
@@ -52,7 +57,7 @@ class BootstrapRenderer
      * @var HTML_facileFormsProcessor
      */
     private $p = null;
-    /** @var QuickModeTreeNode */
+    /** @var QuickModeRootNode */
     private $dataObject;
     /** @var array<string, mixed> */
     private $rootMdata = array();
@@ -245,7 +250,7 @@ class BootstrapRenderer
         $document->getWebAssetManager()->addInlineScript('<!--');
 
         $dataObject = json_decode(bf_b64dec($this->p->formrow->template_code), true);
-        $this->assertQuickModeProcessNode($dataObject);
+        $this->assertQuickModeRootNode($dataObject);
         $this->dataObject = $dataObject;
 
         $this->rootMdata = $this->normalizeBootstrapStyleFieldData(
