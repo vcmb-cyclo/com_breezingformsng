@@ -27,6 +27,7 @@
 - Put every locally built release ZIP directly in the repository's `build/` directory.
 - Use the local Docker environment `joomla6` for BF tests; its Joomla container is named `joomla6-joomla-1` and serves the site on port 9080 (`http://localhost:9080`).
 - `joomla6-joomla-1` runs PHP 8.3, not the 8.4 target: it does not validate PHP 8.4/8.5 compatibility. Run the PHP 8.4/8.5 checks (`php -l`, PHPStan, PHPUnit) with the host PHP and report the PHP version used for each result.
+- Before pushing to a branch associated with a pull request, run PHPStan and the PHPUnit test suite against the exact current worktree. Both checks must finish successfully (exit code 0); a failed, skipped, stale or not-run check blocks the push. Rerun them after any subsequent code change, and report skipped tests separately.
 - After copying files into `joomla6-joomla-1`, restore the installed files to `www-data:www-data` with normal file permissions so Joomla updates remain writable.
 - For installer/DB changes, verify fresh install, upgrade from the previous schema and rerun idempotence against disposable database copies. For view/form changes, verify relevant frontend and administrator paths, ACL deny/allow, CSRF, translations and dark/mobile layout.
 - Report changed files, functional and migration impact, security considerations, checks run with pass/fail/not-run results, and remaining risks. Never claim a check passed unless executed.
