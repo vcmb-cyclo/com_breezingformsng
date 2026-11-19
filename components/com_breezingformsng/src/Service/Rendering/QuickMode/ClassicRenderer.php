@@ -29,6 +29,91 @@ use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Editor\Editor;
 
 
+/**
+ * @phpstan-type QuickModeTreeNode array{
+ *     properties?: array<string, mixed>,
+ *     attributes?: array{id: string},
+ *     children?: list<array<string, mixed>>
+     * }
+ * @phpstan-type QuickModeProcessNode array{
+ *     properties: array<string, mixed>,
+ *     attributes?: array{id: string},
+ *     children?: list<array<string, mixed>>
+ * }
+     *
+     * @phpstan-type ClassicFieldData array{
+     *     type: string,
+     *     bfType: string,
+     *     bfName: string,
+     *     name: string,
+     *     dbId: int,
+     *     pageNumber: int,
+     *     tabIndex: int,
+     *     pageIntro: string,
+     *     label: string,
+     *     hint: string,
+     *     labelPosition: string,
+     *     title: string,
+     *     description: string,
+     *     actionClick: bool,
+     *     actionBlur: bool,
+     *     actionChange: bool,
+     *     actionFocus: bool,
+     *     actionSelect: bool,
+     *     actionFunctionName: string,
+     *     connectWith: string|array<int, string>,
+     *     connectType: string,
+     *     emptyMessage: string,
+     *     fieldCalc: string,
+     *     format: string,
+     *     firstDay: string,
+     *     minYear: string,
+     *     maxYear: string,
+     *     width: string,
+     *     height: string,
+     *     size: string,
+     *     value: string,
+     *     placeholder: string,
+     *     group: string,
+     *     list: string,
+     *     src: string,
+     *     image: string,
+     *     mailbackConnectWith: string,
+     *     theme: string,
+     *     rolloverColor: string,
+     *     toggleFields: string,
+     *     pagingPrevLabel: string,
+     *     pagingNextLabel: string,
+     *     submitLabel: string,
+     *     cancelLabel: string,
+     *     hideIfEmpty: bool,
+     *     hideLabel: bool,
+     *     off: bool,
+     *     required: bool,
+     *     readonly: bool,
+     *     multiple: bool,
+     *     wrap: bool,
+     *     mailbackAccept: bool,
+     *     mailbackAsSender: bool,
+     *     is_html: bool,
+     *     flashUploader: bool,
+     *     html5: bool,
+     *     invisibleCaptcha: bool,
+     *     showMaxlengthCounter: bool,
+     *     attachToAdminMail: bool,
+     *     attachToUserMail: bool,
+     *     fadeIn: bool,
+     *     useErrorAlerts: bool,
+     *     useDefaultErrors: bool,
+     *     useBalloonErrors: bool,
+     *     rollover: bool,
+     *     lastPageThankYou: bool,
+     *     pagingInclude: bool,
+     *     submitInclude: bool,
+     *     cancelInclude: bool,
+     *     joomlaHint: bool
+     * }
+     */
 class ClassicRenderer
 {
     use HiddenFieldTrait;
@@ -38,10 +123,10 @@ class ClassicRenderer
      * @var HTML_facileFormsProcessor
      */
     private $p = null;
-    /** @var array<string, mixed> */
-    private $dataObject = array();
-    /** @var array<string, mixed> */
-    private $rootMdata = array();
+    /** @var QuickModeTreeNode */
+    private $dataObject;
+    /** @var ClassicFieldData */
+    private $rootMdata;
     /** @var mixed */
     private $fading = true;
     /** @var string */
@@ -54,7 +139,7 @@ class ClassicRenderer
     private $useBalloonErrors = false;
     /** @var mixed */
     private $rollover = false;
-    /** @var mixed */
+    /** @var string */
     private $rolloverColor = '';
     /** @var string */
     private $toggleFields = '';
@@ -315,8 +400,10 @@ float:left;
         $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
         $document->getWebAssetManager()->addInlineScript('<!--');
 
-        $this->dataObject = json_decode(bf_b64dec($this->p->formrow->template_code), true);
-        $this->rootMdata = $this->dataObject['properties'];
+        $dataObject = json_decode(bf_b64dec($this->p->formrow->template_code), true);
+        $this->assertQuickModeProcessNode($dataObject);
+        $this->dataObject = $dataObject;
+        $this->rootMdata = $this->normalizeClassicFieldData($this->quickModeNodeProperties($dataObject));
         if (array_key_exists('theme', $this->rootMdata)) {
             $this->rootMdata['theme'] = QuickModeThemeName::resolve(
                 JPATH_SITE . '/media/breezingforms/themes',
@@ -328,8 +415,12 @@ float:left;
 
         if ($this->p->app->getInput()->getString('ff_applic', '') != 'mod_facileforms' && $this->p->app->getInput()->getString('ff_applic', '') != 'plg_facileforms') {
             /* translatables */
-            if (isset($this->rootMdata['title_translation' . $this->language_tag]) && $this->rootMdata['title_translation' . $this->language_tag] != '') {
-                $this->rootMdata['title'] = $this->rootMdata['title_translation' . $this->language_tag];
+            $translatedTitle = $this->classicTranslation(
+                $this->rootMdata,
+                'title_translation' . $this->language_tag
+            );
+            if ($translatedTitle !== null) {
+                $this->rootMdata['title'] = $translatedTitle;
                 $document->setTitle($this->rootMdata['title']);
             }
             /* translatables end */
@@ -364,9 +455,10 @@ float:left;
      */
     public function process(&$dataObject, $parent = null, $parentPage = null, $index = 0, $childrenLength = 0)
     {
-        $mdata = null;
+        $this->assertQuickModeProcessNode($dataObject);
+        $mdata = $this->normalizeClassicFieldData($this->quickModeNodeProperties($dataObject));
 
-        if (isset($dataObject['attributes']) && isset($dataObject['properties'])) {
+        if (isset($dataObject['properties']['type'])) {
             $options = array('type' => 'normal', 'displayType' => 'breaks');
             if ($parent != null && $parent['type'] == 'section') {
                 $options['type'] = $parent['bfType'];
@@ -379,8 +471,6 @@ float:left;
                 $class = ' class="bfInline' . $this->fadingClass . '"';
                 $wrapper = 'bfWrapperInline';
             }
-
-            $mdata = $dataObject['properties'];
 
             // Sofort was discontinued by Klarna and removed: an element still
             // stored in a form renders nothing until the form is saved again.
@@ -397,7 +487,7 @@ float:left;
                 $display = ' style="display:none;"';
                 if ($this->p->app->getInput()->getInt('ff_form_submitted', 0) == 0 && (int) $this->p->page == $parentPage['pageNumber']) {
                     $display = '';
-                } elseif ($this->p->app->getInput()->getInt('ff_form_submitted', 0) == 1 && $this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->dataObject['children'])) {
+                } elseif ($this->p->app->getInput()->getInt('ff_form_submitted', 0) == 1 && $this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == count($this->quickModeRootChildren())) {
                     $display = '';
                 } elseif ($this->p->app->getInput()->getInt('ff_form_submitted', 0) == 1 && false == $this->rootMdata['lastPageThankYou'] && $parentPage['pageNumber'] == 1) {
                     $display = '';
@@ -406,8 +496,12 @@ float:left;
                 echo '<div id="bfPage' . $parentPage['pageNumber'] . '" class="bfPage"' . $display . '>' . "\n"; // opening current page
 
                 /* translatables */
-                if (isset($mdata['pageIntro_translation' . $this->language_tag]) && $mdata['pageIntro_translation' . $this->language_tag] != '') {
-                    $mdata['pageIntro'] = $mdata['pageIntro_translation' . $this->language_tag];
+                $translatedPageIntro = $this->classicTranslation(
+                    $mdata,
+                    'pageIntro_translation' . $this->language_tag
+                );
+                if ($translatedPageIntro !== null) {
+                    $mdata['pageIntro'] = $translatedPageIntro;
                 }
                 /* translatables end */
 
@@ -427,7 +521,10 @@ float:left;
                         $matcheslist = explode(',', $match[1]);
                         $position = trim($matcheslist[0]);
                         $output = $renderer->render($position, $options, null);
-                        $introtext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
+                        $updatedIntrotext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
+                        if ($updatedIntrotext !== null) {
+                            $introtext = $updatedIntrotext;
+                        }
                     }
 
                     echo $introtext . "\n";
@@ -440,29 +537,37 @@ float:left;
                 }
             } elseif ($mdata['type'] == 'section') {
                 if (isset($dataObject['properties']['name']) && isset($mdata['off']) && $mdata['off']) {
-                    echo $this->quickModeDeactivationScriptBuilder()->section($dataObject['properties']['name']);
+                    echo $this->quickModeDeactivationScriptBuilder()->section($mdata['name']);
                 }
 
                 /* translatables */
-                if (isset($mdata['title_translation' . $this->language_tag]) && $mdata['title_translation' . $this->language_tag] != '') {
-                    $mdata['title'] = $mdata['title_translation' . $this->language_tag];
+                $translatedTitle = $this->classicTranslation(
+                    $mdata,
+                    'title_translation' . $this->language_tag
+                );
+                if ($translatedTitle !== null) {
+                    $mdata['title'] = $translatedTitle;
                 }
                 /* translatables end */
 
                 if ($mdata['bfType'] == 'section') {
-                    echo '<div class="bfFieldset-wrapper ' . $wrapper . ' bfClearfix"><div class="bfFieldset-tl"><div class="bfFieldset-tr"><div class="bfFieldset-t"></div></div></div><div class="bfFieldset-l"><div class="bfFieldset-r"><div class="bfFieldset-m bfClearfix"><fieldset' . (isset($mdata['off']) && $mdata['off'] ? ' style="display:none" ' : '') . '' . (isset($mdata['off']) && $mdata['off'] ? '' : $class) . '' . (isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != "" ? ' id="' . $dataObject['properties']['name'] . '"' : '') . '>' . "\n";
+                    echo '<div class="bfFieldset-wrapper ' . $wrapper . ' bfClearfix"><div class="bfFieldset-tl"><div class="bfFieldset-tr"><div class="bfFieldset-t"></div></div></div><div class="bfFieldset-l"><div class="bfFieldset-r"><div class="bfFieldset-m bfClearfix"><fieldset' . (isset($mdata['off']) && $mdata['off'] ? ' style="display:none" ' : '') . '' . (isset($mdata['off']) && $mdata['off'] ? '' : $class) . '' . ($mdata['name'] != "" ? ' id="' . $mdata['name'] . '"' : '') . '>' . "\n";
                     if (trim($mdata['title']) != '') {
                         echo '<legend><span class="bfLegend-l"><span class="bfLegend-r"><span class="bfLegend-m">' . htmlentities(trim($mdata['title']), ENT_QUOTES, 'UTF-8') . '</span></span></span></legend>' . "\n";
                     }
                 } elseif ($mdata['bfType'] == 'normal') {
                     if (isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != '') {
-                        echo '<div ' . (isset($mdata['off']) && $mdata['off'] ? 'style="display:none" ' : '') . 'class="bfNoSection"' . (isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != "" ? ' id="' . $dataObject['properties']['name'] . '"' : '') . '>' . "\n";
+                        echo '<div ' . (isset($mdata['off']) && $mdata['off'] ? 'style="display:none" ' : '') . 'class="bfNoSection"' . ($mdata['name'] != "" ? ' id="' . $mdata['name'] . '"' : '') . '>' . "\n";
                     }
                 }
 
                 /* translatables */
-                if (isset($mdata['description_translation' . $this->language_tag]) && $mdata['description_translation' . $this->language_tag] != '') {
-                    $mdata['description'] = $mdata['description_translation' . $this->language_tag];
+                $translatedDescription = $this->classicTranslation(
+                    $mdata,
+                    'description_translation' . $this->language_tag
+                );
+                if ($translatedDescription !== null) {
+                    $mdata['description'] = $translatedDescription;
                 }
                 /* translatables end */
 
@@ -482,7 +587,10 @@ float:left;
                         $matcheslist = explode(',', $match[1]);
                         $position = trim($matcheslist[0]);
                         $output = $renderer->render($position, $options, null);
-                        $introtext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
+                        $updatedIntrotext = preg_replace("|$match[0]|", addcslashes($output, '\\'), $introtext, 1);
+                        if ($updatedIntrotext !== null) {
+                            $introtext = $updatedIntrotext;
+                        }
                     }
 
                     echo $introtext . "\n";
@@ -551,11 +659,19 @@ float:left;
                         }
 
                         /* translatables */
-                        if (isset($mdata[ 'label_translation' . $this->language_tag ]) && $mdata[ 'label_translation' . $this->language_tag ] != '') {
-                            $mdata['label'] = $mdata[ 'label_translation' . $this->language_tag ];
+                        $translatedLabel = $this->classicTranslation(
+                            $mdata,
+                            'label_translation' . $this->language_tag
+                        );
+                        if ($translatedLabel !== null) {
+                            $mdata['label'] = $translatedLabel;
                         }
-                        if (isset($mdata[ 'hint_translation' . $this->language_tag ]) && $mdata[ 'hint_translation' . $this->language_tag ] != '') {
-                            $mdata['hint'] = $mdata[ 'hint_translation' . $this->language_tag ];
+                        $translatedHint = $this->classicTranslation(
+                            $mdata,
+                            'hint_translation' . $this->language_tag
+                        );
+                        if ($translatedHint !== null) {
+                            $mdata['hint'] = $translatedHint;
                         }
                         /* translatables end */
 
@@ -631,6 +747,7 @@ float:left;
                 $tabIndex .= $this->quickModeRequiredMarkupBuilder()->ariaRequiredAttribute((string) $mdata['bfType'], !empty($mdata['required']));
 
                 $mdata = QuickModeSubmittedValueHydrator::hydrate($this->p, $mdata, $this->language_tag);
+                $mdata = $this->normalizeClassicFieldData($mdata);
 
                 if (WidgetFieldBuilder::hasWidget($mdata)) {
                     WidgetAssets::register($this->p->app);
@@ -735,7 +852,7 @@ float:left;
         /**
          * Paging and wrapping of inline element containers
          */
-        if (isset($dataObject['properties']) && $dataObject['properties']['type'] == 'section' && $dataObject['properties']['displayType'] == 'inline') {
+        if ($dataObject['properties']['type'] == 'section' && $dataObject['properties']['displayType'] == 'inline') {
             echo '<div class="bfClearfix">' . "\n";
         }
 
@@ -746,19 +863,19 @@ float:left;
             }
         }
 
-        if (isset($dataObject['properties']) && $dataObject['properties']['type'] == 'section' && $dataObject['properties']['displayType'] == 'inline') {
+        if ($dataObject['properties']['type'] == 'section' && $dataObject['properties']['displayType'] == 'inline') {
             echo '</div>' . "\n";
         }
 
-        if (isset($dataObject['properties']) && $dataObject['properties']['type'] == 'section' && $dataObject['properties']['bfType'] == 'section') {
+        if ($dataObject['properties']['type'] == 'section' && $dataObject['properties']['bfType'] == 'section') {
             echo '</fieldset></div></div></div><div class="bfFieldset-bl"><div class="bfFieldset-br"><div class="bfFieldset-b"></div></div></div></div><!-- bfFieldset-wrapper end -->' . "\n";
-        } elseif (isset($dataObject['properties']) && $dataObject['properties']['type'] == 'section' && $dataObject['properties']['bfType'] == 'normal') {
+        } elseif ($dataObject['properties']['type'] == 'section' && $dataObject['properties']['bfType'] == 'normal') {
             if (isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != '') {
                 echo '</div>' . "\n";
             }
-        } elseif (isset($dataObject['properties']) && $dataObject['properties']['type'] == 'page') {
+        } elseif ($dataObject['properties']['type'] == 'page') {
             $isLastPage = false;
-            if ($this->rootMdata['lastPageThankYou'] && $dataObject['properties']['pageNumber'] == count($this->dataObject['children']) && count($this->dataObject['children']) > 1) {
+            if ($this->rootMdata['lastPageThankYou'] && $dataObject['properties']['pageNumber'] == count($this->quickModeRootChildren()) && count($this->quickModeRootChildren()) > 1) {
                 $isLastPage = true;
             }
 
@@ -770,39 +887,60 @@ float:left;
 
                 if ($this->rootMdata['pagingInclude'] && $dataObject['properties']['pageNumber'] > 1) {
                     /* translatables */
-                    if (isset($this->rootMdata['pagingPrevLabel_translation' . $this->language_tag]) && $this->rootMdata['pagingPrevLabel_translation' . $this->language_tag] != '') {
-                        $this->rootMdata['pagingPrevLabel'] = $this->rootMdata['pagingPrevLabel_translation' . $this->language_tag];
+                    $translatedPreviousLabel = $this->classicTranslation(
+                        $this->rootMdata,
+                        'pagingPrevLabel_translation' . $this->language_tag
+                    );
+                    if ($translatedPreviousLabel !== null) {
+                        $this->rootMdata['pagingPrevLabel'] = $translatedPreviousLabel;
                     }
                     /* translatables end */
-                    echo '<button type="button" class="btn btn-primary bfPrevButton button' . $this->fadingClass . '" type="submit" onclick="' . $this->quickModePagingActionBuilder()->previous() . '" value="' . htmlentities(trim($this->rootMdata['pagingPrevLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['pagingPrevLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
+                    $previousLabel = $this->classicRootString('pagingPrevLabel');
+                    echo '<button type="button" class="btn btn-primary bfPrevButton button' . $this->fadingClass . '" type="submit" onclick="' . $this->quickModePagingActionBuilder()->previous() . '" value="' . htmlentities(trim($previousLabel), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($previousLabel), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
                 }
 
-                if ($this->rootMdata['pagingInclude'] && $dataObject['properties']['pageNumber'] < count($this->dataObject['children']) - $last) {
+                if ($this->rootMdata['pagingInclude'] && $dataObject['properties']['pageNumber'] < count($this->quickModeRootChildren()) - $last) {
                     /* translatables */
-                    if (isset($this->rootMdata['pagingNextLabel_translation' . $this->language_tag]) && $this->rootMdata['pagingNextLabel_translation' . $this->language_tag] != '') {
-                        $this->rootMdata['pagingNextLabel'] = $this->rootMdata['pagingNextLabel_translation' . $this->language_tag];
+                    $translatedNextLabel = $this->classicTranslation(
+                        $this->rootMdata,
+                        'pagingNextLabel_translation' . $this->language_tag
+                    );
+                    if ($translatedNextLabel !== null) {
+                        $this->rootMdata['pagingNextLabel'] = $translatedNextLabel;
                     }
                     /* translatables end */
-                    echo '<button type="button" class="btn btn-primary bfNextButton button' . $this->fadingClass . '" type="submit" onclick="' . $this->quickModePagingActionBuilder()->next() . '" value="' . htmlentities(trim($this->rootMdata['pagingNextLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['pagingNextLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
+                    $nextLabel = $this->classicRootString('pagingNextLabel');
+                    echo '<button type="button" class="btn btn-primary bfNextButton button' . $this->fadingClass . '" type="submit" onclick="' . $this->quickModePagingActionBuilder()->next() . '" value="' . htmlentities(trim($nextLabel), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($nextLabel), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
                 }
 
                 $callSubmit = $this->quickModeSubmitActionBuilder()->build(false, $this->hasFlashUpload);
-                if ($this->rootMdata['submitInclude'] && $dataObject['properties']['pageNumber'] + 1 > count($this->dataObject['children']) - $last) {
+                $pageNumber = $mdata['pageNumber'] ?? 0;
+                if ($this->rootMdata['submitInclude'] && $pageNumber + 1 > count($this->quickModeRootChildren()) - $last) {
                     /* translatables */
-                    if (isset($this->rootMdata['submitLabel_translation' . $this->language_tag]) && $this->rootMdata['submitLabel_translation' . $this->language_tag] != '') {
-                        $this->rootMdata['submitLabel'] = $this->rootMdata['submitLabel_translation' . $this->language_tag];
+                    $translatedSubmitLabel = $this->classicTranslation(
+                        $this->rootMdata,
+                        'submitLabel_translation' . $this->language_tag
+                    );
+                    if ($translatedSubmitLabel !== null) {
+                        $this->rootMdata['submitLabel'] = $translatedSubmitLabel;
                     }
                     /* translatables end */
-                    echo '<button type="button" id="bfSubmitButton" class="btn btn-primary bfSubmitButton button' . $this->fadingClass . '" onclick="if(typeof bf_htmltextareainit != \'undefined\'){ bf_htmltextareainit() }if(document.getElementById(\'bfPaymentMethod\')){document.getElementById(\'bfPaymentMethod\').value=\'\';};' . $callSubmit . ';" value="' . htmlentities(trim($this->rootMdata['submitLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['submitLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
+                    $submitLabel = $this->classicRootString('submitLabel');
+                    echo '<button type="button" id="bfSubmitButton" class="btn btn-primary bfSubmitButton button' . $this->fadingClass . '" onclick="if(typeof bf_htmltextareainit != \'undefined\'){ bf_htmltextareainit() }if(document.getElementById(\'bfPaymentMethod\')){document.getElementById(\'bfPaymentMethod\').value=\'\';};' . $callSubmit . ';" value="' . htmlentities(trim($submitLabel), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($submitLabel), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
                 }
 
-                if ($this->rootMdata['cancelInclude'] && $dataObject['properties']['pageNumber'] + 1 > count($this->dataObject['children']) - $last) {
+                if ($this->rootMdata['cancelInclude'] && $pageNumber + 1 > count($this->quickModeRootChildren()) - $last) {
                     /* translatables */
-                    if (isset($this->rootMdata['cancelLabel_translation' . $this->language_tag]) && $this->rootMdata['cancelLabel_translation' . $this->language_tag] != '') {
-                        $this->rootMdata['cancelLabel'] = $this->rootMdata['cancelLabel_translation' . $this->language_tag];
+                    $translatedCancelLabel = $this->classicTranslation(
+                        $this->rootMdata,
+                        'cancelLabel_translation' . $this->language_tag
+                    );
+                    if ($translatedCancelLabel !== null) {
+                        $this->rootMdata['cancelLabel'] = $translatedCancelLabel;
                     }
                     /* translatables end */
-                    echo '<button class="btn btn-primary bfCancelButton button' . $this->fadingClass . '" type="button" onclick="' . $this->quickModePagingActionBuilder()->cancel() . '"  value="' . htmlentities(trim($this->rootMdata['cancelLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['cancelLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
+                    $cancelLabel = $this->classicRootString('cancelLabel');
+                    echo '<button class="btn btn-primary bfCancelButton button' . $this->fadingClass . '" type="button" onclick="' . $this->quickModePagingActionBuilder()->cancel() . '"  value="' . htmlentities(trim($cancelLabel), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($cancelLabel), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
                 }
             }
         }
@@ -821,6 +959,7 @@ float:left;
      */
     private function renderTextfieldField(array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         $size = '';
         if ($mdata['size'] != '') {
             $size = 'style="width:' . htmlentities(strip_tags($mdata['size'])) . '" ';
@@ -842,6 +981,7 @@ float:left;
      */
     private function renderNumberInputField(array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         echo $this->quickModeTextFieldStrategy()->numberInput(
             $mdata,
             $this->language_tag,
@@ -868,18 +1008,24 @@ float:left;
      */
     private function renderTextareaField(array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         /* translatables */
-        if (isset($mdata['placeholder_translation' . $this->language_tag]) && $mdata['placeholder_translation' . $this->language_tag] != '') {
-            $mdata['placeholder'] = $mdata['placeholder_translation' . $this->language_tag];
+        $translatedPlaceholder = $this->classicTranslation(
+            $mdata,
+            'placeholder_translation' . $this->language_tag
+        );
+        if ($translatedPlaceholder !== null) {
+            $mdata['placeholder'] = $translatedPlaceholder;
         }
-        if (isset($mdata['value_translation' . $this->language_tag]) && $mdata['value_translation' . $this->language_tag] != '') {
-            $mdata['value'] = $mdata['value_translation' . $this->language_tag];
+        $translatedValue = $this->classicTranslation($mdata, 'value_translation' . $this->language_tag);
+        if ($translatedValue !== null) {
+            $mdata['value'] = $translatedValue;
         }
         /* translatables end */
 
         if (isset($mdata['is_html']) && $mdata['is_html']) {
             echo '<div style="display: inline-block; vertical-align: top; width: ' . strip_tags($mdata['width']) . ';">';
-            $editor = Editor::getInstance($this->p->app->get('editor'));
+            $editor = Editor::getInstance($this->classicString($this->p->app->get('editor'), 'editor'));
             $this->htmltextareas[] = 'ff_nm_' . $mdata['bfName'] . '[]';
             $this->htmltextareasDbIds[] = 'ff_elem' . $mdata['dbId'];
             echo $editor->display('ff_nm_' . $mdata['bfName'] . '[]', htmlentities(trim($mdata['value']), ENT_QUOTES, 'UTF-8'), strip_tags($mdata['width']), strip_tags($mdata['height']), 75, 20, true, 'ff_elem' . $mdata['dbId']);
@@ -901,9 +1047,11 @@ float:left;
      */
     private function renderChoiceGroupField(string $type, array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         /* translatables */
-        if (isset($mdata['group_translation' . $this->language_tag]) && $mdata['group_translation' . $this->language_tag] != '') {
-            $mdata['group'] = $mdata['group_translation' . $this->language_tag];
+        $translatedGroup = $this->classicTranslation($mdata, 'group_translation' . $this->language_tag);
+        if ($translatedGroup !== null) {
+            $mdata['group'] = $translatedGroup;
         }
         /* translatables end */
         echo $this->classicChoiceGroupBuilder()->build(
@@ -927,6 +1075,7 @@ float:left;
      */
     private function renderCheckboxField(array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         echo $this->quickModeCheckboxStrategy()->build(
             $mdata,
             'ff_elem',
@@ -943,9 +1092,11 @@ float:left;
      */
     private function renderSelectField(array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         /* translatables */
-        if (isset($mdata['list_translation' . $this->language_tag]) && $mdata['list_translation' . $this->language_tag] != '') {
-            $mdata['list'] = $mdata['list_translation' . $this->language_tag];
+        $translatedList = $this->classicTranslation($mdata, 'list_translation' . $this->language_tag);
+        if ($translatedList !== null) {
+            $mdata['list'] = $translatedList;
         }
         /* translatables end */
         if ($mdata['list'] != '') {
@@ -979,12 +1130,15 @@ float:left;
      */
     private function renderSubmitButtonField(array $mdata, string $tabIndex, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         /* translatables */
-        if (isset($mdata['src_translation' . $this->language_tag]) && $mdata['src_translation' . $this->language_tag] != '') {
-            $mdata['src'] = $mdata['src_translation' . $this->language_tag];
+        $translatedSource = $this->classicTranslation($mdata, 'src_translation' . $this->language_tag);
+        if ($translatedSource !== null) {
+            $mdata['src'] = $translatedSource;
         }
-        if (isset($mdata['value_translation' . $this->language_tag]) && $mdata['value_translation' . $this->language_tag] != '') {
-            $mdata['value'] = $mdata['value_translation' . $this->language_tag];
+        $translatedValue = $this->classicTranslation($mdata, 'value_translation' . $this->language_tag);
+        if ($translatedValue !== null) {
+            $mdata['value'] = $translatedValue;
         }
         /* translatables end */
 
@@ -1034,9 +1188,14 @@ float:left;
      */
     private function renderSummarizeField(array $mdata): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         /* translatables */
-        if (isset($mdata['emptyMessage_translation' . $this->language_tag]) && $mdata['emptyMessage_translation' . $this->language_tag] != '') {
-            $mdata['emptyMessage'] = $mdata['emptyMessage_translation' . $this->language_tag];
+        $translatedEmptyMessage = $this->classicTranslation(
+            $mdata,
+            'emptyMessage_translation' . $this->language_tag
+        );
+        if ($translatedEmptyMessage !== null) {
+            $mdata['emptyMessage'] = $translatedEmptyMessage;
         }
         /* translatables end */
 
@@ -1067,6 +1226,7 @@ float:left;
      */
     private function renderReCaptchaField(array $mdata): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         echo $this->quickModeReCaptchaFieldBuilder()->build(
             $mdata,
             $this->p->app,
@@ -1081,6 +1241,7 @@ float:left;
      */
     private function renderCaptchaField(array $mdata): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         $captcha_url = $this->quickModeCaptchaUrlBuilder()->build(
             Uri::root(true),
             $this->p->app->isClient('administrator')
@@ -1113,12 +1274,15 @@ float:left;
      */
     private function renderCalendarField(array $mdata): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         /* translatables */
-        if (isset($mdata['value_translation' . $this->language_tag]) && $mdata['value_translation' . $this->language_tag] != '') {
-            $mdata['value'] = $mdata['value_translation' . $this->language_tag];
+        $translatedValue = $this->classicTranslation($mdata, 'value_translation' . $this->language_tag);
+        if ($translatedValue !== null) {
+            $mdata['value'] = $translatedValue;
         }
-        if (isset($mdata['format_translation' . $this->language_tag]) && $mdata['format_translation' . $this->language_tag] != '') {
-            $mdata['format'] = $mdata['format_translation' . $this->language_tag];
+        $translatedFormat = $this->classicTranslation($mdata, 'format_translation' . $this->language_tag);
+        if ($translatedFormat !== null) {
+            $mdata['format'] = $translatedFormat;
         }
         /* translatables end */
         $exploded = explode('::', trim((string) $mdata['value']));
@@ -1147,7 +1311,10 @@ float:left;
             'firstDay' => (isset($mdata['firstDay']) && $mdata['firstDay'] != '') ? $mdata['firstDay'] : '7',
         ];
 
-        echo HTMLHelper::_('calendar', $left, "ff_nm_" . $mdata['bfName'] . "[]", "ff_elem" . $mdata['dbId'], $mdata['format'], $calAttr);
+        echo $this->classicString(
+            HTMLHelper::_('calendar', $left, "ff_nm_" . $mdata['bfName'] . "[]", "ff_elem" . $mdata['dbId'], $mdata['format'], $calAttr),
+            'calendarMarkup'
+        );
     }
 
     /**
@@ -1155,12 +1322,15 @@ float:left;
      */
     private function renderCalendarResponsiveField(array $mdata): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         /* translatables */
-        if (isset($mdata['value_translation' . $this->language_tag]) && $mdata['value_translation' . $this->language_tag] != '') {
-            $mdata['value'] = $mdata['value_translation' . $this->language_tag];
+        $translatedValue = $this->classicTranslation($mdata, 'value_translation' . $this->language_tag);
+        if ($translatedValue !== null) {
+            $mdata['value'] = $translatedValue;
         }
-        if (isset($mdata['format_translation' . $this->language_tag]) && $mdata['format_translation' . $this->language_tag] != '') {
-            $mdata['format'] = $mdata['format_translation' . $this->language_tag];
+        $translatedFormat = $this->classicTranslation($mdata, 'format_translation' . $this->language_tag);
+        if ($translatedFormat !== null) {
+            $mdata['format'] = $translatedFormat;
         }
         /* translatables end */
         $mdata['format'] = $this->bfCalendarToPickadateFormat($mdata['format']);
@@ -1229,6 +1399,7 @@ float:left;
      */
     private function renderSignatureField(array $mdata): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/components/com_breezingformsng/libraries/js/signature.js');
         RuntimeAssetLoader::script($this->p->app, Uri::root(true) . '/media/com_breezingformsng/js/site/quickmode-signature.js');
         $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
@@ -1256,9 +1427,11 @@ float:left;
      */
     private function renderStripeField(array $mdata, string $tabIndex, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         /* translatables */
-        if (isset($mdata['image_translation' . $this->language_tag]) && $mdata['image_translation' . $this->language_tag] != '') {
-            $mdata['image'] = $mdata['image_translation' . $this->language_tag];
+        $translatedImage = $this->classicTranslation($mdata, 'image_translation' . $this->language_tag);
+        if ($translatedImage !== null) {
+            $mdata['image'] = $translatedImage;
         }
         /* translatables end */
 
@@ -1286,9 +1459,11 @@ float:left;
      */
     private function renderPayPalField(array $mdata, string $tabIndex, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): void
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
         /* translatables */
-        if (isset($mdata['image_translation' . $this->language_tag]) && $mdata['image_translation' . $this->language_tag] != '') {
-            $mdata['image'] = $mdata['image_translation' . $this->language_tag];
+        $translatedImage = $this->classicTranslation($mdata, 'image_translation' . $this->language_tag);
+        if ($translatedImage !== null) {
+            $mdata['image'] = $translatedImage;
         }
         /* translatables end */
 
@@ -1316,8 +1491,9 @@ float:left;
      */
     private function renderFileField(array $mdata, string $tabIndex, string $onclick, string $onblur, string $onchange, string $onfocus, string $onselect, string $readonly): string
     {
+        $mdata = $this->normalizeClassicFieldData($mdata);
                     $flashUploader = '';
-        if (( isset($mdata['flashUploader']) && $mdata['flashUploader'] ) || ( isset($mdata['html5']) && $mdata['html5'] )) {
+        if ($mdata['flashUploader'] || $mdata['html5']) {
             $base = (new QuickModeUploadBasePathBuilder())->build(Uri::base());
 
             echo '<input type="hidden" id="flashUpload' . $mdata['bfName'] . '" name="flashUpload' . $mdata['bfName'] . '" value="bfFlashFileQueue' . $mdata['dbId'] . '"/>' . "\n";
@@ -1394,10 +1570,10 @@ float:left;
                 WidgetFieldBuilder::fileAttributes($mdata)
             );
         }
-        if ($mdata['attachToAdminMail']) {
+        if (!empty($mdata['attachToAdminMail'])) {
             echo '<input type="hidden" name="attachToAdminMail[' . $mdata['bfName'] . ']" value="true"/>' . "\n";
         }
-        if ($mdata['attachToUserMail']) {
+        if (!empty($mdata['attachToUserMail'])) {
             echo '<input type="hidden" name="attachToUserMail[' . $mdata['bfName'] . ']" value="true"/>' . "\n";
         }
 
@@ -1410,7 +1586,8 @@ float:left;
     public function render()
     {
 
-        $this->process($this->dataObject);
+        $dataObject = $this->dataObject;
+        $this->process($dataObject);
         echo '</div>' . "\n"; // closing last page
 
         $this->headers();
@@ -1449,6 +1626,9 @@ float:left;
 
         if ($this->hasFlashUpload) {
             $tickets = $this->p->app->getSession()->get('bfFlashUploadTickets', array());
+            if (!is_array($tickets)) {
+                $tickets = [];
+            }
             $tickets[$this->flashUploadTicket] = array(); // stores file info for later processing
             $this->p->app->getSession()->set('bfFlashUploadTickets', $tickets);
             echo '<input type="hidden" name="bfFlashUploadTicket" value="' . $this->flashUploadTicket . '"/>' . "\n";
@@ -1460,6 +1640,265 @@ float:left;
         echo '<noscript>' . Text::_('COM_BREEZINGFORMSNG_JAVASCRIPT_REQUIRED') . '</noscript>' . "\n";
         $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
         $document->getWebAssetManager()->addInlineScript('//-->');
+    }
+
+    /**
+     * @phpstan-assert QuickModeTreeNode $dataObject
+     */
+    private function assertQuickModeTreeNode(mixed $dataObject): void
+    {
+        if (
+            !is_array($dataObject)
+        ) {
+            throw new \UnexpectedValueException('QuickMode tree node has an invalid shape.');
+        }
+
+        if (array_key_exists('properties', $dataObject) && !is_array($dataObject['properties'])) {
+            throw new \UnexpectedValueException('QuickMode tree node properties have an invalid shape.');
+        }
+
+        if (
+            array_key_exists('attributes', $dataObject)
+            && (!is_array($dataObject['attributes'])
+                || !isset($dataObject['attributes']['id'])
+                || !is_string($dataObject['attributes']['id']))
+        ) {
+            throw new \UnexpectedValueException('QuickMode tree node attributes have an invalid shape.');
+        }
+
+        if (!array_key_exists('children', $dataObject)) {
+            return;
+        }
+
+        if (!is_array($dataObject['children']) || !array_is_list($dataObject['children'])) {
+            throw new \UnexpectedValueException('QuickMode tree children must be a list.');
+        }
+    }
+
+    /**
+     * @phpstan-assert QuickModeProcessNode $dataObject
+     */
+    private function assertQuickModeProcessNode(mixed $dataObject): void
+    {
+        $this->assertQuickModeTreeNode($dataObject);
+
+        if (!isset($dataObject['properties']) || !is_array($dataObject['properties'])) {
+            throw new \UnexpectedValueException('QuickMode process node properties have an invalid shape.');
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function quickModeNodeProperties(mixed $dataObject): array
+    {
+        $this->assertQuickModeProcessNode($dataObject);
+
+        return $dataObject['properties'];
+    }
+
+    /**
+     * @return list<mixed>
+     */
+    private function quickModeRootChildren(): array
+    {
+        $this->assertQuickModeTreeNode($this->dataObject);
+
+        if (!isset($this->dataObject['children']) || !is_array($this->dataObject['children'])) {
+            return [];
+        }
+
+        return $this->dataObject['children'];
+    }
+
+    /**
+     * @param array<string, mixed> $mdata
+     * @return ClassicFieldData
+     */
+    private function normalizeClassicFieldData(array $mdata): array
+    {
+        $normalized = $mdata;
+        foreach (
+            [
+                'type', 'bfType', 'bfName', 'name', 'pageIntro', 'label', 'hint', 'labelPosition', 'title', 'description',
+                'actionFunctionName', 'connectType', 'emptyMessage', 'fieldCalc', 'format', 'firstDay', 'minYear',
+                'maxYear', 'width', 'height', 'size', 'value', 'placeholder', 'group', 'list', 'src', 'image',
+                'mailbackConnectWith', 'theme', 'rolloverColor', 'toggleFields', 'pagingPrevLabel', 'pagingNextLabel',
+                'submitLabel', 'cancelLabel',
+            ] as $key
+        ) {
+            $normalized[$key] = $this->classicString($mdata[$key] ?? null, $key);
+        }
+
+        foreach (['dbId', 'pageNumber', 'tabIndex', 'maxlength'] as $key) {
+            $normalized[$key] = $this->classicInteger($mdata[$key] ?? null, $key);
+        }
+
+        foreach (
+            [
+                'actionClick', 'actionBlur', 'actionChange', 'actionFocus', 'actionSelect', 'hideIfEmpty', 'hideLabel',
+                'off', 'required', 'readonly', 'multiple', 'wrap', 'mailbackAccept', 'mailbackAsSender', 'is_html',
+                'flashUploader', 'html5', 'invisibleCaptcha', 'showMaxlengthCounter', 'attachToAdminMail',
+                'attachToUserMail', 'fadeIn', 'useErrorAlerts',
+                'useDefaultErrors', 'useBalloonErrors', 'rollover', 'lastPageThankYou', 'pagingInclude', 'submitInclude',
+                'cancelInclude', 'joomlaHint',
+            ] as $key
+        ) {
+            $normalized[$key] = $this->classicBoolean($mdata[$key] ?? null, $key);
+        }
+
+        $normalized['connectWith'] = $this->classicStringOrList($mdata['connectWith'] ?? null, 'connectWith');
+
+        return $this->validatedClassicFieldData($normalized);
+    }
+
+    /**
+     * @return ClassicFieldData
+     */
+    private function validatedClassicFieldData(mixed $mdata): array
+    {
+        $this->assertClassicFieldData($mdata);
+
+        return $mdata;
+    }
+
+    /**
+     * @param mixed $mdata
+     * @phpstan-assert ClassicFieldData $mdata
+     */
+    private function assertClassicFieldData(mixed $mdata): void
+    {
+        if (!is_array($mdata)) {
+            throw new \UnexpectedValueException('Classic QuickMode metadata must be an array.');
+        }
+
+        $stringKeys = [
+            'type', 'bfType', 'bfName', 'name', 'pageIntro', 'label', 'hint', 'labelPosition', 'title',
+            'description', 'actionFunctionName', 'connectType', 'emptyMessage', 'fieldCalc', 'format', 'firstDay',
+            'minYear', 'maxYear', 'width', 'height', 'size', 'value', 'placeholder', 'group', 'list', 'src',
+            'image', 'mailbackConnectWith', 'theme', 'rolloverColor', 'toggleFields', 'pagingPrevLabel',
+            'pagingNextLabel', 'submitLabel', 'cancelLabel',
+        ];
+        foreach ($stringKeys as $key) {
+            if (!is_string($mdata[$key] ?? null)) {
+                throw new \UnexpectedValueException(sprintf('Classic QuickMode metadata "%s" must be a string.', $key));
+            }
+        }
+
+        foreach (['dbId', 'pageNumber', 'tabIndex', 'maxlength'] as $key) {
+            if (!is_int($mdata[$key] ?? null)) {
+                throw new \UnexpectedValueException(sprintf('Classic QuickMode metadata "%s" must be an integer.', $key));
+            }
+        }
+
+        foreach (
+            [
+                'actionClick', 'actionBlur', 'actionChange', 'actionFocus', 'actionSelect', 'hideIfEmpty', 'hideLabel',
+                'off', 'required', 'readonly', 'multiple', 'wrap', 'mailbackAccept', 'mailbackAsSender', 'is_html',
+                'flashUploader', 'html5', 'invisibleCaptcha', 'showMaxlengthCounter', 'attachToAdminMail',
+                'attachToUserMail', 'fadeIn', 'useErrorAlerts', 'useDefaultErrors', 'useBalloonErrors', 'rollover',
+                'lastPageThankYou', 'pagingInclude', 'submitInclude', 'cancelInclude', 'joomlaHint',
+            ] as $key
+        ) {
+            if (!is_bool($mdata[$key] ?? null)) {
+                throw new \UnexpectedValueException(sprintf('Classic QuickMode metadata "%s" must be a boolean.', $key));
+            }
+        }
+
+        if (!is_string($mdata['connectWith'] ?? null) && !is_array($mdata['connectWith'] ?? null)) {
+            throw new \UnexpectedValueException('Classic QuickMode metadata "connectWith" has an invalid type.');
+        }
+
+        if (is_array($mdata['connectWith'] ?? null)) {
+            foreach ($mdata['connectWith'] as $value) {
+                if (!is_string($value)) {
+                    throw new \UnexpectedValueException(
+                        'Classic QuickMode metadata "connectWith" must contain only strings.'
+                    );
+                }
+            }
+        }
+    }
+
+    private function classicString(mixed $value, string $key): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        if (!is_scalar($value)) {
+            throw new \UnexpectedValueException(sprintf('Classic QuickMode metadata "%s" must be scalar.', $key));
+        }
+
+        return (string) $value;
+    }
+
+    private function classicInteger(mixed $value, string $key): int
+    {
+        if ($value === null) {
+            return 0;
+        }
+
+        if (!is_scalar($value)) {
+            throw new \UnexpectedValueException(sprintf('Classic QuickMode metadata "%s" must be scalar.', $key));
+        }
+
+        return (int) $value;
+    }
+
+    private function classicBoolean(mixed $value, string $key): bool
+    {
+        if ($value === null) {
+            return false;
+        }
+
+        if (!is_scalar($value)) {
+            throw new \UnexpectedValueException(sprintf('Classic QuickMode metadata "%s" must be scalar.', $key));
+        }
+
+        return (bool) $value;
+    }
+
+    /**
+     * @return string|list<string>
+     */
+    private function classicStringOrList(mixed $value, string $key): string|array
+    {
+        if ($value === null || is_scalar($value)) {
+            return $this->classicString($value, $key);
+        }
+
+        if (!is_array($value) || !array_is_list($value)) {
+            throw new \UnexpectedValueException(
+                sprintf('Classic QuickMode metadata "%s" must be a string or a list.', $key)
+            );
+        }
+
+        $normalized = [];
+        foreach ($value as $index => $item) {
+            $normalized[] = $this->classicString($item, $key . '[' . $index . ']');
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param array<string, mixed> $mdata
+     */
+    private function classicTranslation(array $mdata, string $key): ?string
+    {
+        if (!array_key_exists($key, $mdata)) {
+            return null;
+        }
+
+        $value = $this->classicString($mdata[$key], $key);
+
+        return $value !== '' ? $value : null;
+    }
+
+    private function classicRootString(string $key): string
+    {
+        return $this->classicString($this->rootMdata[$key] ?? null, $key);
     }
 
     /**
@@ -1482,6 +1921,6 @@ float:left;
           ACTION STATE TARGETCATEGORY TARGETNAME if SRCNAME is VALUE
          */
 
-        return (new QuickModeToggleFieldsParser())->parse((string) $code);
+        return (new QuickModeToggleFieldsParser())->parse($this->classicString($code, 'toggleFields'));
     }
 }
