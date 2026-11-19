@@ -477,10 +477,10 @@ $ff_request = array();
             $temporaryUploads = new TemporaryUploadDirectory((string) $this->application->get('tmp_path'));
             $this->uploadFileCleaner->purgeTemporaryUploads($temporaryUploads->path(), '_flashtmp');
             $this->uploadFileCleaner->purgeTemporaryUploads($temporaryUploads->chunksPath(), '_chunktmp');
-            PaymentNotificationCache::fromTemporaryPath(
-                (string) $this->application->get('tmp_path'),
-                JPATH_SITE . '/media/breezingforms/payment_cache/'
-            )->purgeExpired();
+                    PaymentNotificationCache::fromTemporaryPath(
+                        (string) $this->application->get('tmp_path'),
+                        JPATH_SITE . '/media/breezingforms/payment_cache/'
+                    )->purgeExpired();
 
             $ff_processor = new HTML_facileFormsProcessor(
                 $this->application,
