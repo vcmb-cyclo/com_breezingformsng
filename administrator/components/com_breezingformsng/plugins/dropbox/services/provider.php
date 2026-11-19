@@ -20,6 +20,7 @@ use Vcmb\Plugin\BreezingformsAddons\Dropbox\Extension\Dropbox;
 
 return new class implements ServiceProviderInterface
 {
+    #[\Override]
     public function register(Container $container): void
     {
         $container->set(

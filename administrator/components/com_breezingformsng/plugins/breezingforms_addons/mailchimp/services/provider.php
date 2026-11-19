@@ -22,6 +22,7 @@ use Vcmb\Plugin\BreezingformsAddons\Mailchimp\Extension\Mailchimp;
 
 return new class implements ServiceProviderInterface
 {
+    #[\Override]
     public function register(Container $container): void
     {
         $container->set(
