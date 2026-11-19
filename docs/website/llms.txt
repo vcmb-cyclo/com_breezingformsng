@@ -10,6 +10,13 @@ Install from the GitHub releases through Joomla's extension installer. Embed a f
 item, the `mod_breezingforms` module or the content plugin `{BreezingForms:FormName}`.
 Existing BreezingForms (Crosstec) sites upgrade in place: data stays in the `#__facileforms_*` tables.
 
+Historical lineage: BreezingForms NG continues FacileForms, credited to Peter Koch in historical
+2004–2006 copyright headers, followed by BreezingForms under Markus Bopp/Crosstec from around
+2008. Community-led BreezingForms NG modernization began in 2024. The exact first public release
+date is not established; Joomla forum records document FacileForms in public use by August–September
+2005. See the [README history](https://github.com/vcmb-cyclo/com_breezingformsng/blob/main/README.md#historical-lineage)
+for sources and the distinction between copyright evidence and first distribution.
+
 ## Docs
 
 - [Migrating BreezingForms to Joomla 6](https://breezingforms-ng.vcmb.fr/migrating-breezingforms-to-joomla-6): step-by-step upgrade guide for Crosstec BreezingForms sites

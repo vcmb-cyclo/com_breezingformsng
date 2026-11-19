@@ -14,6 +14,26 @@ emails, take payments, and extend each form with PHP and JavaScript.
 - Upgrading from Crosstec BreezingForms: see [Upgrading from BreezingForms](#upgrading-from-breezingforms-crosstec)
 - AI agents: [`llms.txt`](llms.txt) and the agent skill in [`skills/breezingformsng`](skills/breezingformsng/SKILL.md)
 
+## Historical lineage
+
+BreezingForms NG perpetuates a form-builder lineage that predates the NG project:
+
+| Period | Product | Attribution |
+|---|---|---|
+| 2004–2006 | FacileForms | Peter Koch, Switzerland |
+| From around 2008 | BreezingForms | Markus Bopp / Crosstec |
+| Since 2024 | BreezingForms NG | Community-led modernization |
+
+The 2004 date is attested by historical copyright headers, but it is not proof of the
+first public distribution. A Joomla forum discussion from August 2005 credits Peter Koch
+with FacileForms, and a 2 September 2005 discussion refers to `com_facileforms` and forms
+already in operation. The exact date of the first public release has not been established.
+
+Sources: the [BreezingForms 1.8 header](https://github.com/wp-plugins/breezing-forms/blob/master/platform/components/com_breezingforms/breezingforms.php#L4-L7),
+its [FacileForms copyright notice](https://github.com/wp-plugins/breezing-forms/blob/master/platform/components/com_breezingforms/breezingforms.php#L2726-L2733),
+the [August 2005 Joomla forum discussion](https://forum.joomla.org/viewtopic.php?p=19927), and
+[2 September 2005 Joomla forum discussion](https://forum.joomla.org/viewtopic.php?p=908867).
+
 ---
 
 ## Features
