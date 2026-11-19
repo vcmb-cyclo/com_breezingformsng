@@ -26,19 +26,6 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetFieldBuilder;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Component\ComponentHelper;
 
-/**
- * @phpstan-type QuickModeTreeNode array{
- *     properties: array<string, mixed>,
- *     attributes?: array{id: string},
- *     children: list<array<string, mixed>>
- * }
- * @phpstan-type QuickModeProcessNode array{
- *     properties: array<string, mixed>,
- *     attributes?: array{id: string},
- *     children: list<array<string, mixed>>
- * }
- * @phpstan-type BootstrapStyleFieldData array<string, mixed>
- */
 class OnePageRenderer
 {
     use HiddenFieldTrait;
@@ -50,8 +37,8 @@ class OnePageRenderer
      * @var HTML_facileFormsProcessor
      */
     private $p = null;
-    /** @var QuickModeTreeNode */
-    private $dataObject;
+    /** @var array<string, mixed> */
+    private $dataObject = array();
     /** @var array<string, mixed> */
     private $rootMdata = array();
     /** @var mixed */
@@ -448,7 +435,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
     }
 
     /**
-     * @param QuickModeProcessNode $dataObject
+     * @param array<string, mixed> $dataObject
      * @param array<string, mixed>|null $parent
      * @param array<string, mixed>|null $parentPage
      * @param int $index
