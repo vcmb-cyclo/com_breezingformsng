@@ -18,9 +18,11 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 
 /** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Packages\HtmlView $this */
+/** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Packages\HtmlView $view */
 
 /** @psalm-suppress InvalidScope */
-$mcpActive = $this->mcpEnabled && $this->mcpRouted;
+$view = $this;
+$mcpActive = $view->mcpEnabled && $view->mcpRouted;
 $mcpEndpoint = Uri::root() . 'api/index.php/v1/breezingformsng/mcp';
 $logo = Uri::root(true) . '/media/com_breezingformsng/images/mcp/';
 $logoAlt = htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_MCP_STATUS_LOGO_ALT'), ENT_QUOTES, 'UTF-8');
@@ -38,7 +40,7 @@ $maintenanceTiles = [
     ['id' => 'bf-tools-statistics', 'icon' => 'fa-chart-column', 'title' => 'COM_BREEZINGFORMSNG_TOOLS_STATISTICS_TITLE',
         'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_STATISTICS_DESC', 'url' => $aboutUrl('statistics')],
     ['id' => 'bf-tools-trash', 'icon' => 'fa-trash-can', 'title' => 'COM_BREEZINGFORMSNG_TOOLS_TRASH_TITLE',
-        'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_TRASH_DESC', 'url' => $aboutUrl('trash'), 'badge' => $this->trashedTotal],
+        'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_TRASH_DESC', 'url' => $aboutUrl('trash'), 'badge' => $view->trashedTotal],
     ['id' => 'bf-tools-log', 'icon' => 'fa-file-lines', 'title' => 'COM_BREEZINGFORMSNG_TOOLS_LOG_TITLE',
         'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_LOG_DESC', 'url' => $aboutUrl('log')],
 ];
@@ -133,7 +135,7 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
                             <?= Text::_('COM_BREEZINGFORMSNG_MCP_STATUS_DISABLED'); ?>
                         </span>
                     <?php endif; ?>
-                    <?php if ($this->canConfigure) : ?>
+                    <?php if ($view->canConfigure) : ?>
                         <a class="text-body" href="<?= Route::_('index.php?option=com_config&view=component&component=com_breezingformsng'); ?>"
                             title="<?= htmlspecialchars(Text::_('JOPTIONS'), ENT_QUOTES, 'UTF-8'); ?>">
                             <span class="icon-cogs" aria-hidden="true"></span>
@@ -148,7 +150,7 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
                 <p>
                     <?php if ($mcpActive) : ?>
                         <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_MCP_ENABLED_DESC'); ?>
-                    <?php elseif ($this->mcpEnabled) : ?>
+                    <?php elseif ($view->mcpEnabled) : ?>
                         <?= Text::_('COM_BREEZINGFORMSNG_MCP_STATUS_PLUGIN_DISABLED'); ?>
                     <?php else : ?>
                         <?= Text::_('COM_BREEZINGFORMSNG_MCP_STATUS_DISABLED_DESC'); ?>
@@ -168,37 +170,37 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
             </div>
             <form class="card-body" id="bf-tools-sample-form" method="post"
                 action="<?= Route::_('index.php?option=com_breezingformsng&task=packages.installSample'); ?>"
-                data-confirm="<?= $this->escape(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_CONFIRM')); ?>">
+                data-confirm="<?= $view->escape(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_CONFIRM')); ?>">
                 <p class="text-muted small"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_DESC'); ?></p>
-                <?php foreach ($this->sampleGroups as $category => $slugs) : ?>
-                    <fieldset class="mb-3" data-sample-group="<?= $this->escape($category); ?>">
+                <?php foreach ($view->sampleGroups as $category => $slugs) : ?>
+                    <fieldset class="mb-3" data-sample-group="<?= $view->escape($category); ?>">
                         <legend class="h6 text-uppercase text-body-secondary fs-6 mb-2"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_GROUP_' . strtoupper($category)); ?></legend>
                         <?php foreach ($slugs as $slug) : ?>
                             <?php
-                            $sample = $this->samples[$slug];
+                            $sample = $view->samples[$slug];
                             $key = 'COM_BREEZINGFORMSNG_TOOLS_SAMPLE_' . strtoupper($slug);
                             $label = Text::_($key . '_ITEM');
                             $installed = $sample['installedId'] > 0;
-                            $selectable = !$installed && $this->canInstallSample && !$sample['nameTaken'];
+                            $selectable = !$installed && $view->canInstallSample && !$sample['nameTaken'];
                             $inputId = 'bf-tools-sample-' . $slug;
                             ?>
-                            <div class="form-check d-flex align-items-start gap-2 ps-0 py-1" data-sample="<?= $this->escape($slug); ?>">
+                            <div class="form-check d-flex align-items-start gap-2 ps-0 py-1" data-sample="<?= $view->escape($slug); ?>">
                                 <input class="form-check-input mt-1 ms-0 flex-shrink-0" type="checkbox" name="samples[]"
-                                    id="<?= $this->escape($inputId); ?>" value="<?= $this->escape($slug); ?>"
-                                    data-label="<?= $this->escape($label); ?>"
+                                    id="<?= $view->escape($inputId); ?>" value="<?= $view->escape($slug); ?>"
+                                    data-label="<?= $view->escape($label); ?>"
                                     <?= $installed ? 'checked' : ''; ?> <?= $selectable ? '' : 'disabled'; ?>>
-                                <label class="form-check-label flex-grow-1" for="<?= $this->escape($inputId); ?>">
-                                    <strong><?= $this->escape($label); ?></strong>
+                                <label class="form-check-label flex-grow-1" for="<?= $view->escape($inputId); ?>">
+                                    <strong><?= $view->escape($label); ?></strong>
                                     <?php if ($installed) : ?>
                                         <span class="badge bg-success ms-1" data-tools-state="installed"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_INSTALLED'); ?></span>
                                     <?php endif; ?>
                                     <span class="d-block text-muted small"><?= Text::_($key . '_DESC'); ?></span>
                                     <?php if ($sample['nameTaken']) : ?>
-                                        <span class="d-block text-muted small" data-tools-state="name-taken"><?= Text::sprintf('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY', $this->escape($label)); ?></span>
+                                        <span class="d-block text-muted small" data-tools-state="name-taken"><?= Text::sprintf('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY', $view->escape($label)); ?></span>
                                     <?php endif; ?>
                                 </label>
                                 <?php if ($sample['manageId'] > 0) : ?>
-                                    <a class="btn btn-link btn-sm flex-shrink-0" id="bf-tools-sample-manage-<?= $this->escape($slug); ?>"
+                                    <a class="btn btn-link btn-sm flex-shrink-0" id="bf-tools-sample-manage-<?= $view->escape($slug); ?>"
                                         href="<?= Route::_('index.php?option=com_breezingformsng&task=quickmode.display&form=' . $sample['manageId']); ?>">
                                         <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_MANAGE'); ?>
                                     </a>
@@ -207,7 +209,7 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
                         <?php endforeach; ?>
                     </fieldset>
                 <?php endforeach; ?>
-                <?php if ($this->canInstallSample) : ?>
+                <?php if ($view->canInstallSample) : ?>
                     <?= HTMLHelper::_('form.token'); ?>
                     <button type="submit" class="btn btn-primary btn-sm" id="bf-tools-sample-install">
                         <span class="icon-upload" aria-hidden="true"></span>

@@ -25,16 +25,19 @@ final class CheckFormTool implements McpTool
     {
     }
 
+    #[\Override]
     public function name(): string
     {
         return 'bfng_check_form';
     }
 
+    #[\Override]
     public function title(): string
     {
         return 'Check a form';
     }
 
+    #[\Override]
     public function description(): string
     {
         return 'Checks one BreezingForms NG form, by id or by name, and changes nothing. '
@@ -47,6 +50,7 @@ final class CheckFormTool implements McpTool
             . 'At most ' . FormChecker::MAX_ISSUES . ' issues are returned.';
     }
 
+    #[\Override]
     public function inputSchema(): array
     {
         return [
@@ -59,16 +63,19 @@ final class CheckFormTool implements McpTool
         ];
     }
 
+    #[\Override]
     public function readOnly(): bool
     {
         return true;
     }
 
+    #[\Override]
     public function allows(User $user): bool
     {
         return $user->authorise('core.manage', 'com_breezingformsng');
     }
 
+    #[\Override]
     public function call(array $arguments, User $user): array
     {
         $id = $arguments['id'] ?? null;

@@ -26,16 +26,19 @@ final class GetFormTool implements McpTool
     {
     }
 
+    #[\Override]
     public function name(): string
     {
         return 'bfng_get_form';
     }
 
+    #[\Override]
     public function title(): string
     {
         return 'Get a form';
     }
 
+    #[\Override]
     public function description(): string
     {
         return 'Reads one BreezingForms NG form, by id or by name: its title, description, state, settings and record count, '
@@ -48,6 +51,7 @@ final class GetFormTool implements McpTool
             . 'this needs the permission to edit code.';
     }
 
+    #[\Override]
     public function inputSchema(): array
     {
         return [
@@ -61,16 +65,19 @@ final class GetFormTool implements McpTool
         ];
     }
 
+    #[\Override]
     public function readOnly(): bool
     {
         return true;
     }
 
+    #[\Override]
     public function allows(User $user): bool
     {
         return $user->authorise('core.manage', 'com_breezingformsng');
     }
 
+    #[\Override]
     public function call(array $arguments, User $user): array
     {
         $id = $arguments['id'] ?? null;

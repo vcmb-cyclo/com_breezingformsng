@@ -56,14 +56,14 @@ final class ToolsPageTemplateTest extends TestCase
             self::assertStringContainsString("'layout' => '$layout'", $template);
         }
         self::assertStringContainsString('option=com_config&view=component&component=com_breezingformsng', $template);
-        self::assertStringContainsString('$this->canConfigure', $template);
+        self::assertStringContainsString('$view->canConfigure', $template);
     }
 
     public function testTrashTileShowsHowManyRecordsItHolds(): void
     {
         $template = $this->template();
 
-        self::assertStringContainsString("'badge' => \$this->trashedTotal", $template);
+        self::assertStringContainsString("'badge' => \$view->trashedTotal", $template);
         self::assertStringContainsString('data-trash-count', $template);
         self::assertStringContainsString("Text::plural('COM_BREEZINGFORMSNG_TOOLS_TRASH_TOTAL'", $template);
         self::assertStringContainsString("aboutUrl('trash')", $template);

@@ -44,7 +44,7 @@ final class TrashInventoryServiceTest extends TestCase
         self::assertStringContainsString("filter[published]=-2", $template);
         // The number of trashed records is a link too.
         self::assertStringContainsString('class="badge bg-danger text-decoration-none"', $template);
-        self::assertStringContainsString("'badge' => \$this->trashedTotal", $tools);
+        self::assertStringContainsString("'badge' => \$view->trashedTotal", $tools);
     }
 
     public function testEmptyingATypeOnlyTouchesItsTrashedItemsThroughTheirModels(): void

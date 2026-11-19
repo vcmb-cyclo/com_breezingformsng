@@ -21,21 +21,25 @@ final class RestoreFormTool implements McpTool
     {
     }
 
+    #[\Override]
     public function name(): string
     {
         return 'bfng_restore_form';
     }
 
+    #[\Override]
     public function title(): string
     {
         return 'Restore form';
     }
 
+    #[\Override]
     public function description(): string
     {
         return 'Restores a trashed BreezingForms NG form as unpublished. It does not publish the form.';
     }
 
+    #[\Override]
     public function inputSchema(): array
     {
         return [
@@ -46,17 +50,20 @@ final class RestoreFormTool implements McpTool
         ];
     }
 
+    #[\Override]
     public function readOnly(): bool
     {
         return false;
     }
 
+    #[\Override]
     public function allows(User $user): bool
     {
         return $user->authorise('core.manage', 'com_breezingformsng')
             && $user->authorise('core.edit.state', 'com_breezingformsng');
     }
 
+    #[\Override]
     public function call(array $arguments, User $user): array
     {
         return $this->writer->restoreForm($arguments, $user);

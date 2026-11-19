@@ -21,22 +21,26 @@ final class UpdateFormTool implements McpTool
     {
     }
 
+    #[\Override]
     public function name(): string
     {
         return 'bfng_update_form';
     }
 
+    #[\Override]
     public function title(): string
     {
         return 'Update form metadata';
     }
 
+    #[\Override]
     public function description(): string
     {
         return 'Updates one existing BreezingForms NG form by id. Give one or more form metadata or settings changes. '
             . 'It can configure publication, dimensions and administrative email notifications. Publishing requires core.edit.state. It does not change fields, scripts or third-party integrations.';
     }
 
+    #[\Override]
     public function inputSchema(): array
     {
         return [
@@ -60,17 +64,20 @@ final class UpdateFormTool implements McpTool
         ];
     }
 
+    #[\Override]
     public function readOnly(): bool
     {
         return false;
     }
 
+    #[\Override]
     public function allows(User $user): bool
     {
         return $user->authorise('core.manage', 'com_breezingformsng')
             && $user->authorise('core.edit', 'com_breezingformsng');
     }
 
+    #[\Override]
     public function call(array $arguments, User $user): array
     {
         return $this->writer->update($arguments, $user);

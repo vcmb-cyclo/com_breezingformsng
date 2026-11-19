@@ -186,6 +186,7 @@ final class SubmissionEngine
             return false;
         }
 
+        /** @psalm-suppress UndefinedConstant Defined by processor_facade.php at runtime. */
         $this->processor->status = _FF_STATUS_FILE_EXTENSION_NOT_ALLOWED;
         $this->processor->message = Text::_($error);
 

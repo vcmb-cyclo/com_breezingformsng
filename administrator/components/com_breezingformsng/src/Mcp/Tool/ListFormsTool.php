@@ -21,16 +21,19 @@ final class ListFormsTool implements McpTool
     {
     }
 
+    #[\Override]
     public function name(): string
     {
         return 'bfng_list_forms';
     }
 
+    #[\Override]
     public function title(): string
     {
         return 'List forms';
     }
 
+    #[\Override]
     public function description(): string
     {
         return 'Lists the BreezingForms NG forms of the site, in their admin order, with their id, name, title, '
@@ -38,6 +41,7 @@ final class ListFormsTool implements McpTool
             . 'Results are paged: use limit and offset, and total to know how many match.';
     }
 
+    #[\Override]
     public function inputSchema(): array
     {
         return [
@@ -52,16 +56,19 @@ final class ListFormsTool implements McpTool
         ];
     }
 
+    #[\Override]
     public function readOnly(): bool
     {
         return true;
     }
 
+    #[\Override]
     public function allows(User $user): bool
     {
         return $user->authorise('core.manage', 'com_breezingformsng');
     }
 
+    #[\Override]
     public function call(array $arguments, User $user): array
     {
         $published = match ($arguments['state']) {
