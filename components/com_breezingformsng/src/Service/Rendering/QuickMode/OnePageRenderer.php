@@ -571,7 +571,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                 $normal = false;
 
                 if ($mdata['bfType'] == 'section') {
-                    echo '<div' . (isset($mdata['off']) && $mdata['off'] ? ' style="display:none" ' : '') . '' . (isset($mdata['off']) && $mdata['off'] ? '' : ' class="' . $span . ' ' . $this->fadingClass . '"') . (isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != "" ? ' id="' . $dataObject['properties']['name'] . '"' : '') . '>' . "\n";
+                    echo '<fieldset' . (isset($mdata['off']) && $mdata['off'] ? ' style="display:none" ' : '') . '' . (isset($mdata['off']) && $mdata['off'] ? '' : ' class="' . $span . ' ' . $this->fadingClass . '"') . (isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != "" ? ' id="' . $dataObject['properties']['name'] . '"' : '') . '>' . "\n";
 
                     if (trim($mdata['title']) != '') {
                         echo '<legend>' . htmlentities(trim($mdata['title']), ENT_QUOTES, 'UTF-8') . '</legend>' . "\n";
@@ -709,11 +709,9 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                             $mdata['bfType'] == 'bfTextarea' ||
                             $mdata['bfType'] == 'bfCheckbox' ||
                             $mdata['bfType'] == 'bfNumberInput' ||
-                            $mdata['bfType'] == 'bfCheckboxGroup' ||
                             $mdata['bfType'] == 'bfCalendar' ||
                             $mdata['bfType'] == 'bfCalendarResponsive' ||
                             $mdata['bfType'] == 'bfSelect' ||
-                            $mdata['bfType'] == 'bfRadioGroup' ||
                             ($mdata['bfType'] == 'bfFile' && ((!isset($mdata['flashUploader']) && !isset($mdata['html5'])) || (isset($mdata['flashUploader']) && !$mdata['flashUploader']) && (isset($mdata['html5']) && !$mdata['html5'])))
                         ) {
                             $for = 'for="ff_elem' . $mdata['dbId'] . '"';
@@ -728,7 +726,8 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                         if ($mdata['required']) {
                             $required = ' ' . $this->quickModeRequiredMarkupBuilder()->marker('<i class="' . $this->bsClass('icon-asterisk') . '" aria-hidden="true"></i>');
                         }
-                        $label = '<label class="' . $this->bsClass('control-label') . '' . (isset($this->rootMdata['themebootstrapLabelTop']) && $this->rootMdata['themebootstrapLabelTop'] ? ' bfLabelBlock' : '') . '" id="bfLabel' . $mdata['dbId'] . '" ' . $for . '>' . $tipOpen . str_replace("***", "\"", $labelText) . $tipClose . $required . '</label>' . "\n";
+                        $labelTag = in_array($mdata['bfType'], ['bfRadioGroup', 'bfCheckboxGroup'], true) ? 'legend' : 'label';
+                        $label = '<' . $labelTag . ' class="' . $this->bsClass('control-label') . '' . (isset($this->rootMdata['themebootstrapLabelTop']) && $this->rootMdata['themebootstrapLabelTop'] ? ' bfLabelBlock' : '') . '" id="bfLabel' . $mdata['dbId'] . '" ' . $for . '>' . $tipOpen . str_replace("***", "\"", $labelText) . $tipClose . $required . '</' . $labelTag . '>' . "\n";
                     }
                 }
 
@@ -1058,7 +1057,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
 
         if (isset($dataObject['properties']) && $dataObject['properties']['type'] == 'section' && $dataObject['properties']['bfType'] == 'section') {
             echo '</div>'; // row-fluid
-            echo '</div>' . "\n";
+            echo '</fieldset>' . "\n";
         } elseif (isset($dataObject['properties']) && $dataObject['properties']['type'] == 'section' && $dataObject['properties']['bfType'] == 'normal') {
             if (isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != '') {
                 echo '</div>'; // row-fluid
@@ -1116,7 +1115,7 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                         $this->rootMdata['cancelLabel'] = $this->rootMdata['cancelLabel_translation' . $this->language_tag];
                     }
                     /* translatables end */
-                    echo '<button class="bfCancelButton ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-secondary') . ' ' . $this->bsClass('float-end') . ' button' . $this->fadingClass . '" type="submit" onclick="' . $this->quickModePagingActionBuilder()->cancel() . '"  value="' . htmlentities(trim($this->rootMdata['cancelLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['cancelLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
+                    echo '<button class="bfCancelButton ' . $this->bsClass('btn') . ' ' . $this->bsClass('btn-secondary') . ' button' . $this->fadingClass . '" type="button" onclick="' . $this->quickModePagingActionBuilder()->cancel() . '"  value="' . htmlentities(trim($this->rootMdata['cancelLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['cancelLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
                 }
 
                 echo '</div>';

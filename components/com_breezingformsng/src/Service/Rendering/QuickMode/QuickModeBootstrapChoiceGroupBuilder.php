@@ -16,7 +16,12 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering\QuickMode;
 
 use Closure;
 
-/** Builds the Bootstrap/OnePage radio and checkbox group markup. */
+/**
+ * Builds the Bootstrap/OnePage radio and checkbox group markup.
+ *
+ * The group is a fieldset; $label is expected to be its legend (the renderers build it), so
+ * assistive technology announces the question with each choice.
+ */
 final class QuickModeBootstrapChoiceGroupBuilder
 {
     public function __construct(
@@ -49,7 +54,7 @@ final class QuickModeBootstrapChoiceGroupBuilder
 
         $class = $this->bootstrapClass;
         $html = '<div class="' . $class('controls') . ' ' . $class('form-inline') . '">';
-        $html .= '<div class="' . $class('form-group') . ' ' . $class('radio-form-group') . '">';
+        $html .= '<fieldset class="' . $class('form-group') . ' ' . $class('radio-form-group') . '">';
         $html .= $label . '<span class="' . $class('nonform-control') . '">';
         $wrap = (bool) ($field['wrap'] ?? false);
         if ($wrap) {
@@ -85,6 +90,6 @@ final class QuickModeBootstrapChoiceGroupBuilder
             $html .= '</div>';
         }
 
-        return $html . '</span></div></div>';
+        return $html . '</span></fieldset></div>';
     }
 }

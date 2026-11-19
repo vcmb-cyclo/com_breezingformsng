@@ -33,7 +33,8 @@ final class ClassicChoiceGroupBuilder
         string $tabIndex,
         string $eventAttributes,
         bool $readonly,
-        string $newline = "\n"
+        string $newline = "\n",
+        bool $labelledByElementLabel = false
     ): string {
         if ($group === '') {
             return '';
@@ -41,7 +42,10 @@ final class ClassicChoiceGroupBuilder
 
         $group = str_replace("\r", '', $group);
         $wrapperClass = $wrap ? 'bfElementGroup' : 'bfElementGroupNoWrap';
-        $html = '<span class="' . $wrapperClass . '" id="' . $wrapperClass . $elementId . '">'
+        // The group is named by the element label (which carries no `for`: it would only designate
+        // the first choice); the table-like Classic layout keeps the label outside the group.
+        $html = '<span class="' . $wrapperClass . '" id="' . $wrapperClass . $elementId . '" role="group"'
+            . ($labelledByElementLabel ? ' aria-labelledby="bfLabel' . $elementId . '"' : '') . '>'
             . $newline;
 
         foreach (explode("\n", $group) as $index => $line) {

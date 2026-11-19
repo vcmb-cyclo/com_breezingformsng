@@ -589,12 +589,10 @@ float:left;
                             $mdata['bfType'] == 'bfTextfield' ||
                              $mdata['bfType'] == 'bfTextarea' ||
                              $mdata['bfType'] == 'bfCheckbox' ||
-                             $mdata['bfType'] == 'bfCheckboxGroup' ||
                              $mdata['bfType'] == 'bfCalendar' ||
                              $mdata['bfType'] == 'bfNumberInput' ||
                              $mdata['bfType'] == 'bfCalendarResponsive' ||
                              $mdata['bfType'] == 'bfSelect' ||
-                             $mdata['bfType'] == 'bfRadioGroup' ||
                              ( $mdata['bfType'] == 'bfFile' && ( ( ! isset($mdata['flashUploader']) && ! isset($mdata['html5']) ) || ( isset($mdata['flashUploader']) && ! $mdata['flashUploader'] ) && ( isset($mdata['html5']) && ! $mdata['html5'] ) ) )
                         ) {
                             $for = 'for="ff_elem' . $mdata['dbId'] . '"';
@@ -796,7 +794,7 @@ float:left;
                         $this->rootMdata['cancelLabel'] = $this->rootMdata['cancelLabel_translation' . $this->language_tag];
                     }
                     /* translatables end */
-                    echo '<button class="btn btn-primary bfCancelButton button' . $this->fadingClass . '" type="submit" onclick="' . $this->quickModePagingActionBuilder()->cancel() . '"  value="' . htmlentities(trim($this->rootMdata['cancelLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['cancelLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
+                    echo '<button class="btn btn-primary bfCancelButton button' . $this->fadingClass . '" type="button" onclick="' . $this->quickModePagingActionBuilder()->cancel() . '"  value="' . htmlentities(trim($this->rootMdata['cancelLabel']), ENT_QUOTES, 'UTF-8') . '"><span>' . htmlentities(trim($this->rootMdata['cancelLabel']), ENT_QUOTES, 'UTF-8') . '</span></button>' . "\n";
                 }
             }
         }
@@ -909,7 +907,9 @@ float:left;
             (string) $mdata['labelPosition'],
             $tabIndex,
             $onclick . $onblur . $onchange . $onfocus . $onselect,
-            $readonly !== ''
+            $readonly !== '',
+            "\n",
+            empty($mdata['hideLabel'])
         );
     }
 

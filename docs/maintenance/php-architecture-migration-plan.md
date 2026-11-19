@@ -104,7 +104,7 @@
 | Rendu HTML classique — Query List lignes | Boucle de ligne extraite, réutilisant le builder de cellule et conservant l’arrêt `dying` | Commit `58dec7178` |
 | Rendu HTML classique — Query List pied et pagination | Markup du pied de tableau et liens de pagination extrait, avec variantes de navigation et mode compact couverts | Commit `76351beae` |
 | Rendu HTML classique — Query List enveloppe | Ouverture/fermeture du conteneur et du tableau extraite et couverte avec styles, attributs et formatage historiques | Commit `bd59533be` |
-| Rendu HTML classique — orchestration | Les 21 types de nœuds et Query List sont orchestrés par `ClassicFormRenderer`; `RenderingEngine::view()` ne conserve que le branchement et l'arrêt `bury()` | Commit de la Phase 18, `ClassicFormRendererTest` |
+| Rendu HTML classique — orchestration | Les 21 types de nœuds et Query List sont orchestrés par `ClassicFormRenderer`; `RenderingEngine::view()` délègue le rendu des nœuds à ce service et garde l'arrêt `bury()` (la méthode compte encore environ 300 lignes) | Commit de la Phase 18, `ClassicFormRendererTest` |
 | `RenderingEngine::view()` — scripts d'icônes | Extraction committée et trois chemins `bury()` couverts | Commit `0a908143` |
 | `RenderingEngine::view()` — callbacks d'éléments | Extraction committée ; ordre `init` / `action` / `validate` et trois arrêts `bury()` couverts | Commit `413cb1cb` |
 | `RenderingEngine::view()` — métadonnées classiques | Comptage icônes/infobulles et scan `Static Text/HTML` extraits et couverts | Commit `51e86824` |
@@ -131,8 +131,8 @@
 | ContentBuilder — métadonnées de formulaire | Les deux chargeurs de métadonnées sont regroupés dans `ContentBuilderFormMetadataLoader`, avec leurs requêtes association/définition conservées | Phase 34, `ContentBuilderFormMetadataLoaderTest` |
 | ContentBuilder — hydratation des enregistrements | Les scripts d’édition, de fichiers, de signature, de valeurs, de choix, de listes et de lecture seule sont regroupés dans `ContentBuilderHydrationScriptBuilder` | Phase 35, `ContentBuilderHydrationScriptBuilderTest` |
 | PHPCS | Actif sur les services modernes, les builders ContentBuilder, Classic et `HiddenFieldTrait` | `phpcs.xml.dist`, 155 fichiers configurés |
-| PHPStan | Niveau 4 validé sur le composant, sans diagnostic résiduel | `phpstan.neon.dist`, baseline vide |
-| Navigation des enregistrements admin | Les liens précédent/suivant réutilisent le formulaire, la recherche et le tri de la liste courante ; l'état est conservé pendant l'édition | `RecordsModel::getAdjacentRecordId()`, `tests/Administrator/RecordsNavigationTest.php` |
+| PHPStan | Niveau 8 validé sur le composant, sans diagnostic résiduel | `phpstan.neon.dist`, baseline vide |
+| Navigation des enregistrements admin | Les liens précédent/suivant réutilisent le formulaire, la recherche et le tri de la liste courante ; l'état est conservé pendant l'édition | `RecordsModel::getNavigation()`, `tests/Administrator/RecordsNavigationTest.php` |
 
 ## Phase 1 — Terminer la préparation des éléments classiques
 

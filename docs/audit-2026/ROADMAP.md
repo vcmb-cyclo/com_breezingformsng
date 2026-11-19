@@ -2,6 +2,57 @@
 
 Date : 2026-11-19 · Base : `main` au commit `1faa98d2` (6.1.0-RC22) · Sources : `01` à `06` dans ce dossier.
 
+## Statut au 2026-11-19 (après corrections)
+
+Les sections ci-dessous décrivent l'audit tel que remis, avant correction. Ce tableau donne l'état de chaque constat dans la branche `audit-2026-rc23`. « Corrigé » signifie : code modifié et tests PHPUnit verts (PHP 8.5.4 hôte). Les parcours E2E sur installation neuve (PHP 8.4, Joomla 6.1.3) sont indiqués quand ils existent. Aucun constat n'a été reproduit comme vulnérabilité avant correction.
+
+| Constat | Statut | Réserve |
+|---|---|---|
+| SEC-001 code de formulaire sans droit « code » | Corrigé, E2E | Les colonnes de code des éléments (JS) et `piece*id`/`script*id` restent modifiables avec `core.edit` |
+| SEC-002 import de package | Corrigé, E2E | Idem pour le code JS des éléments |
+| SEC-003 destinataire de l'IPN PayPal | Corrigé | Sandbox PayPal non testé |
+| SEC-004 extension de chaque fichier | Corrigé, E2E | Chemin d'envoi par fragments aligné sur la même politique |
+| SEC-005 `..` dans les chemins | Corrigé | |
+| SEC-006 captcha avant écriture | Corrigé | Test d'ordre fondé sur le source |
+| SEC-007 `filepath` des téléchargements | Corrigé en partie | Pas de dossier de base imposé ; champ non réservé au droit « code » |
+| SEC-008 opt-in/opt-out | Corrigé en partie, E2E | Actions toujours en GET, sans page de confirmation |
+| SEC-009 cache de paiement | Corrigé en partie | Reste sous `media/`, protégé par règles d'accès ; format sérialisé conservé |
+| SEC-010 envoi par fragments | Corrigé | Reprise d'un fragment déjà reçu rejetée : à tester en navigateur |
+| SEC-011 HTML des e-mails | **Ouvert** | Décision produit |
+| SEC-012 secrets exportés | **Ouvert** | Décision produit |
+| SEC-013 dossiers d'upload | Corrigé en partie | Dossier par défaut inchangé ; nginx non documenté |
+| SEC-014, SEC-015, SEC-016 | Corrigé | |
+| SEC-017 suppression de l'installateur | **Ouvert** | Autorisation et plan de retour en arrière requis (AGENTS.md) |
+| Nouveau : copie sans `core.create` (formulaires, pièces, scripts) | Corrigé | Trouvé pendant les tests ACL |
+| Nouveau : jeton opt-in insensible à la casse | Corrigé, E2E | Trouvé par les E2E |
+| TST-001 outils MCP d'écriture | Corrigé en grande partie | Chemin de succès de `ManageFormFields` non couvert |
+| TST-002 cœur métier | **Ouvert** | Moteurs de soumission, notification, export toujours peu testés |
+| TST-003, TST-004 tests de forme du source | **Ouvert** | |
+| TST-005 test de migration par `eval` | Corrigé en partie | Warning supprimé ; l'approche reste |
+| TST-006 tests JS en CI | Corrigé | |
+| TST-007 seuil de couverture | Corrigé en partie | Cliquet ajouté ; jamais exécuté en CI |
+| TST-008, TST-010, TST-011, TST-014, TST-015 | **Ouvert** | |
+| TST-009 matrice PHP | Corrigé en partie | PHPStan sur 8.3, 8.4, 8.5 ; non exécuté sur GitHub |
+| TST-012 E2E uploads et RGPD | Corrigé en partie | Fragments (`flashUpload`) non couverts |
+| TST-013 ACL des contrôleurs | Corrigé en partie | 12 contrôleurs couverts ; `About`, `Quickmode`, `Record`, `Display` non |
+| ARC-001 à ARC-005, ARC-007 | **Ouvert** | À faire derrière la façade `HTML_facileFormsProcessor`, après TST-002 |
+| ARC-006 migration des dates | Corrigé | Validé sur MySQL réel (copie jetable) ; jamais joué dans l'installateur |
+| ARC-008 navigation des enregistrements | Corrigé | Requêtes bornées, non jouées sur MySQL réel |
+| ARC-009 documentation | Corrigé | |
+| ARC-010 | Écarté en partie | Pas de coût mesuré ; `JLoader`/`version_compare` à arbitrer par Gilles |
+| UX-001 champs obligatoires | Corrigé | `aria-required` suit un drapeau qui peut n'être qu'un affichage |
+| UX-002 contraste des champs | Corrigé | Non observé en navigateur |
+| UX-003 captcha | Corrigé en partie | Pas d'alternative audio |
+| UX-004 à UX-006, UX-008 éditeur | Corrigé | Non observé en navigateur ni au lecteur d'écran |
+| UX-007 chaînes non traduites | Corrigé | |
+| UX-009, UX-010, UX-011 | **Ouvert** | |
+| UX-012 fieldset/legend | Corrigé | Rendu visuel non observé ; Classic : `role="group"` |
+| UX-013 type e-mail, `autocomplete` | **Ouvert** | Nouvelle option : fonctionnalité |
+| UX-014 bouton Réinitialiser | Corrigé en partie | Reste affiché par défaut (décision produit) |
+| UX-015 jeton de texte atténué | Corrigé | |
+| PRD-001 à PRD-009 | **Ouvert** | Fonctionnalités, hors corrections |
+
+
 ## 1. Résumé exécutif
 
 Le code est syntaxiquement sain et bien outillé : `php -l` propre, PHPStan niveau 8 sans erreur, 1 451 tests PHPUnit verts (PHP 8.5.4 hôte), aucune dépréciation Joomla 6 relevée, `composer audit` sans avis. Les points faibles se concentrent à trois endroits.

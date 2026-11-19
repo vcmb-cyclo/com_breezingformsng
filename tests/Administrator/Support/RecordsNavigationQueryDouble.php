@@ -29,8 +29,17 @@ final class RecordsNavigationQueryDouble implements QueryInterface
 
     public string $order = '';
 
+    /** @var list<string> */
+    public array $select = [];
+
+    public int $limit = 0;
+
     public function select(mixed $columns): self
     {
+        foreach ((array) $columns as $column) {
+            $this->select[] = (string) $column;
+        }
+
         return $this;
     }
 

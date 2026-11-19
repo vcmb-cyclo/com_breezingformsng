@@ -1,6 +1,10 @@
 // Generated from quickmode-elements-js.php — DO NOT EDIT MANUALLY
 // Element factory functions — require BFQMConfig to be defined before this file
-/* global BFQMConfig, JQuery */
+/* global BFQMConfig, JQuery, Joomla */
+
+function untitledLabel() {
+	return Joomla.Text._('COM_BREEZINGFORMSNG_QM_UNTITLED_ELEMENT');
+}
 
 var BFQMElements = (function () {
 	var self = {};
@@ -18,11 +22,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_text-field.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_text-field.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfTextfield',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -83,11 +87,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_text-field.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_text-field.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfNumberInput',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -146,11 +150,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_text-area.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_text-area.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfTextarea',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -208,11 +212,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_radio.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_radio.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfRadioGroup',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -265,11 +269,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_sign.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_sign.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfSignature',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -320,11 +324,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_check-box.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_check-box.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfCheckboxGroup',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -378,11 +382,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_check-box.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_check-box.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfCheckbox',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -437,11 +441,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_select.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_select.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfSelect',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -497,11 +501,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_file.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_file.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfFile',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -572,11 +576,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_submit-button.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_submit-button.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfSubmitButton',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -629,11 +633,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_hidden-input.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_hidden-input.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfHidden',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -685,11 +689,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_captcha.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_captcha.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfCaptcha',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -740,11 +744,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_captcha.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_captcha.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfReCaptcha',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -799,11 +803,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_calendar.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_calendar.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfCalendar',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -865,11 +869,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_calendar.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_calendar.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfCalendarResponsive',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -925,11 +929,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_paypal.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_paypal.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfPayPal',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -999,11 +1003,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_summarize.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_summarize.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfSummarize',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,
@@ -1061,11 +1065,11 @@ var BFQMElements = (function () {
 					}
 				)
 			},
-			data: { title: "untitled element", icon: BFQMConfig.iconBase + 'icon_stripe.png' },
+			data: { title: untitledLabel(), icon: BFQMConfig.iconBase + 'icon_stripe.png' },
 			properties: {
 				type: 'element',
 				bfType: 'bfStripe',
-				label: 'untitled element',
+				label: untitledLabel(),
 				labelPosition: 'left',
 				bfName: id,
 				dbId: 0,

@@ -13,6 +13,10 @@
 - Show the title of a form as plain text: a title that contained HTML tags now displays them as typed.
 - Refuse files that a web server runs as scripts, such as .php files, in every upload field, even when the field accepts any type of file. The list of allowed extensions now applies to every form.
 - Ask for the permission to create when copying a form, a piece or a script.
+- Show the form sections and the groups of choices as fieldsets with a legend, so that screen readers announce the group name.
+- Give the fields of the carte theme a visible border and a darker muted text, to reach the contrast that accessibility guidelines ask for.
+- Make the Reset button an explicit button.
+- Translate the default captions and the untitled element label of the QuickMode editor, and the remaining untranslated character counter.
 
 ### Fixed
 
@@ -22,6 +26,10 @@
 - Translate the Copy, Paste and Delete items of the QuickMode tree menu in all languages.
 - Keep an interrupted update from leaving the modification dates of records half converted: the conversion is done all at once and resumes safely.
 - Stop a double opt-in link without a valid token from confirming or cancelling anything, and say so instead of thanking the visitor.
+- Load the previous and next record of a submission with bounded queries instead of reading every record.
+- Stop warning an editor without the Manage Code permission when a save does not touch the code of the form.
+- Compare the token of a double opt-in link with its exact letter case.
+- Apply the same extension check to files sent in chunks as to other uploads.
 
 ### Security
 

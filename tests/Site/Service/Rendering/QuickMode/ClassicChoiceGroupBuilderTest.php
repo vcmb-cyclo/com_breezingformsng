@@ -34,7 +34,7 @@ final class ClassicChoiceGroupBuilderTest extends TestCase
             false
         );
 
-        self::assertStringContainsString('<span class="bfElementGroup" id="bfElementGroup12">', $html);
+        self::assertStringContainsString('<span class="bfElementGroup" id="bfElementGroup12" role="group">', $html);
         self::assertStringContainsString('checked="checked"', $html);
         self::assertStringContainsString('value="S"', $html);
         self::assertStringContainsString('id="bfGroupLabel12_1"', $html);

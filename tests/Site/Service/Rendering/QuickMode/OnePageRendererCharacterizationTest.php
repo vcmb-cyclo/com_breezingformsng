@@ -29,6 +29,7 @@ if (!class_exists(HTML_facileFormsProcessor::class)) {
     require_once __DIR__ . '/../../../../../components/com_breezingformsng/src/Support/processor_facade.php';
 }
 
+require_once __DIR__ . '/QuickModeDomTrait.php';
 require_once __DIR__ . '/joomla-htmlhelper-stub.php';
 require_once __DIR__ . '/joomla-text-stub.php';
 require_once __DIR__ . '/joomla-uri-stub.php';
@@ -39,6 +40,8 @@ require_once __DIR__ . '/joomla-cmsapplication-stub.php';
  */
 final class OnePageRendererCharacterizationTest extends TestCase
 {
+    use QuickModeDomTrait;
+
     public function testPageNavigationRendersSharedOnePageNextAction(): void
     {
         $renderer = $this->makeRenderer();
@@ -131,6 +134,30 @@ final class OnePageRendererCharacterizationTest extends TestCase
         self::assertStringContainsString('name="ff_nm_message[]"', $html);
         self::assertStringContainsString("Ligne 1\nLigne 2", $html);
         self::assertStringContainsString('<textarea', $html);
+    }
+
+    public function testChoiceGroupsAreFieldsetsNamedByTheirLegend(): void
+    {
+        $radios = $this->renderElement('bfRadioGroup', [
+            'dbId' => 48,
+            'bfName' => 'gender',
+            'label' => 'Civilité',
+            'required' => true,
+            'wrap' => true,
+            'group' => "0;Madame;mme\n1;Monsieur;mr",
+        ]);
+        $this->assertChoiceGroupIsAFieldset($radios, 'Civilité', 2);
+        // The required marker stays readable inside the legend.
+        self::assertStringContainsString('visually-hidden', (string) $this->xpath($radios)->query('//legend')->item(0)->C14N());
+
+        $checkboxes = $this->renderElement('bfCheckboxGroup', [
+            'dbId' => 49,
+            'bfName' => 'interests',
+            'label' => "Centres d'intérêt",
+            'wrap' => false,
+            'group' => "0;Route;road\n1;VTT;mtb\n0;Piste;track",
+        ]);
+        $this->assertChoiceGroupIsAFieldset($checkboxes, "Centres d'intérêt", 3);
     }
 
     public function testRadioGroupElement(): void

@@ -311,6 +311,32 @@ switch ($argv[1] ?? '') {
         $row = $db->query("SELECT paypal_tx_id, paypal_payment_date FROM {$records} WHERE id = {$id}")->fetch_assoc();
         echo json_encode(['first' => $first, 'second' => $second] + $row);
         break;
+    case 'opt-record':
+        // opt-record <form id> <token>: a submission waiting for its double opt-in link; an empty token is a record saved without one. Prints its id.
+        $db->query("INSERT INTO {$config->dbprefix}facileforms_records (submitted, form, title, name, ip, browser, state, opted, opt_token) VALUES ('2026-01-02 03:04:05', {$id}, 'Opt', 'opt', '127.0.0.1', '', 1, 0, '" . $db->real_escape_string($argv[3] ?? '') . "')");
+        echo $db->insert_id;
+        break;
+    case 'opt-state':
+        // opt-state <record id>: what the opt-in or opt-out links did to the record.
+        echo json_encode($db->query("SELECT opted, opt_ip, opt_date, opt_token FROM {$config->dbprefix}facileforms_records WHERE id = {$id}")->fetch_assoc());
+        break;
+    case 'package-code':
+        // package-code <package>: the scripts and pieces of a package, and the code columns of its forms.
+        $package = $db->real_escape_string($argv[2] ?? '');
+        echo json_encode([
+            'scripts' => (int) $db->query("SELECT COUNT(*) c FROM {$config->dbprefix}facileforms_scripts WHERE package = '{$package}'")->fetch_assoc()['c'],
+            'pieces' => (int) $db->query("SELECT COUNT(*) c FROM {$config->dbprefix}facileforms_pieces WHERE package = '{$package}'")->fetch_assoc()['c'],
+            'forms' => $db->query("SELECT name, script1code, script2code, piece1code, piece2code, piece3code, piece4code FROM {$forms} WHERE package = '{$package}'")->fetch_all(MYSQLI_ASSOC),
+        ]);
+        break;
+    case 'set-element':
+        // set-element <form id> <name> <column> <value>: one column of an element of a disposable form.
+        $db->query("UPDATE {$config->dbprefix}facileforms_elements SET `" . $db->real_escape_string($argv[4] ?? '') . "` = '" . $db->real_escape_string($argv[5] ?? '') . "' WHERE form = {$id} AND name = '" . $db->real_escape_string($argv[3] ?? '') . "'");
+        break;
+    case 'element':
+        // element <form id> <name>: one element of a form, as stored.
+        echo json_encode($db->query("SELECT * FROM {$config->dbprefix}facileforms_elements WHERE form = {$id} AND name = '" . $db->real_escape_string($argv[3] ?? '') . "'")->fetch_assoc());
+        break;
     default:
         exit(1);
 }

@@ -46,7 +46,8 @@ final class FormCodeGuard
         foreach (self::CODE_COLUMNS as $column) {
             $stored = $existing === null ? '' : (string) ($existing->$column ?? '');
 
-            if (array_key_exists($column, $data) && $this->normalise((string) $data[$column]) !== $this->normalise($stored)) {
+            // A field the screen did not post arrives as null: that is no change.
+            if (($data[$column] ?? null) !== null && $this->normalise((string) $data[$column]) !== $this->normalise($stored)) {
                 $ignored[] = $column;
             }
 

@@ -621,4 +621,366 @@ test.describe('security, as the site really answers', () => {
             expect(written(payload)).toEqual({ forms: 1, rules: 0 });
         });
     });
+    test.describe('the code of a form, for a user who may edit forms but not code', () => {
+        let page;
+        let csrf;
+        const CODE_WARNING = 'The changes to the form’s code';
+        const CODE = ['script1code', 'script2code', 'piece1code', 'piece2code', 'piece3code', 'piece4code'];
+        const STORED = Object.fromEntries(CODE.map((column) => [column, `// stored ${column}`]));
+        const rules = (code) => JSON.stringify({
+            'core.manage': { [MANAGER_GROUP]: 1 },
+            'core.edit': { [MANAGER_GROUP]: 1 },
+            'breezingformsng.code': { [MANAGER_GROUP]: code },
+        });
+        const codeOf = () => {
+            const form = dbJson('form', String(textForm));
+
+            return Object.fromEntries(CODE.map((column) => [column, form[column]]));
+        };
+        // The save of the options page, as the browser sends it.
+        const saveOptions = (fields) => page.evaluate(async ([url, data]) => {
+            const body = new FormData();
+            Object.entries(data).forEach(([key, value]) => body.append(key, value));
+            const response = await fetch(url, { method: 'POST', body, credentials: 'same-origin' });
+
+            return { status: response.status, text: (await response.text()).slice(0, 300) };
+        }, [`/${ADMIN}?option=com_breezingformsng&task=forms.saveOptions`, {
+            id: String(textForm), title: dbJson('form', String(textForm)).title, [csrf]: '1', ...fields,
+        }]);
+
+        test.beforeAll(async ({ browser }) => {
+            db('create-user', MANAGER, PASSWORD, String(MANAGER_GROUP));
+            page = await browser.newPage();
+            await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
+            await login(page, MANAGER, PASSWORD);
+            csrf = await page.evaluate(() => Joomla.getOptions('csrf.token'));
+        });
+
+        test.beforeEach(() => {
+            for (const [column, code] of Object.entries(STORED)) {
+                db('set', String(textForm), column, code);
+            }
+            db('set', String(textForm), 'checked_out', '0');
+        });
+
+        test.afterAll(async () => {
+            for (const column of CODE) {
+                db('set', String(textForm), column, '');
+            }
+            db('component-rules', '{}');
+            await page.close();
+        });
+
+        test('a changed piece or script is not stored, and the page says so', async () => {
+            db('component-rules', rules(0));
+
+            const answer = await saveOptions({
+                piece1code: '<?php echo "evil";', script1code: 'alert("evil")', title: 'e2e_code_title',
+            });
+
+            expect(answer.status).toBe(200);
+            expect(JSON.parse(answer.text).success).toBe(true);
+            expect(codeOf()).toEqual(STORED);
+            // The rest of the options is saved, and the next page tells what was left out.
+            expect(dbJson('form', String(textForm)).title).toBe('e2e_code_title');
+            await page.goto(`${ADMIN}?option=com_breezingformsng&view=forms`);
+            await expect(page.locator('joomla-alert[type="warning"]', { hasText: CODE_WARNING })).toHaveCount(1);
+            db('set', String(textForm), 'title', 'e2e_sec_text');
+        });
+
+        test('the same code posted again is no change: no warning, nothing lost', async () => {
+            db('component-rules', rules(0));
+
+            // The options page posts the six code fields, as stored.
+            const answer = await saveOptions(STORED);
+
+            expect(answer.status).toBe(200);
+            expect(codeOf()).toEqual(STORED);
+            await page.goto(`${ADMIN}?option=com_breezingformsng&view=forms`);
+            await expect(page.locator('joomla-alert', { hasText: CODE_WARNING })).toHaveCount(0);
+        });
+
+        // FormsController::postedOptions() gives every code field the value null when it is not posted:
+        // FormCodeGuard::apply() must read that as no change, not as a change to "".
+        test('a save that does not post the code at all leaves it alone without a warning', async () => {
+            db('component-rules', rules(0));
+
+            const answer = await saveOptions({});
+
+            expect(answer.status).toBe(200);
+            expect(codeOf()).toEqual(STORED);
+            await page.goto(`${ADMIN}?option=com_breezingformsng&view=forms`);
+            await expect(page.locator('joomla-alert', { hasText: CODE_WARNING })).toHaveCount(0);
+        });
+
+        test('with the permission to edit code, the same request stores it', async () => {
+            db('component-rules', rules(1));
+
+            const answer = await saveOptions({ piece1code: '// changed piece', script1code: '// changed script' });
+
+            expect(answer.status).toBe(200);
+            expect(codeOf()).toEqual({ ...STORED, piece1code: '// changed piece', script1code: '// changed script' });
+            await page.goto(`${ADMIN}?option=com_breezingformsng&view=forms`);
+            await expect(page.locator('joomla-alert', { hasText: CODE_WARNING })).toHaveCount(0);
+        });
+    });
+
+    test.describe('the upload field of a submission', () => {
+        const UPLOADS = '/var/www/html/media/breezingforms/uploads';
+        let api;
+        let form;
+        let createdUploads = false;
+        // The name of a file is stripped of its hyphens when stored: the patterns look for the stem.
+        const stored = (stem) => sh(`find /var/www /tmp -type f -name '*${stem}*' 2>/dev/null | sort`);
+        const send = (file, mimeType = 'application/octet-stream') => api.post(form.action, {
+            multipart: {
+                ff_task: 'submit',
+                ff_form: String(fileForm),
+                [form.token]: '1',
+                bfFlashUploadTicket: form.html.match(/name="bfFlashUploadTicket" value="([0-9a-f]{32})"/)?.[1] ?? '',
+                'ff_nm_attachment[]': { name: file, mimeType, buffer: Buffer.from('e2e payload') },
+            },
+        });
+
+        test.beforeAll(async ({ baseURL }) => {
+            api = await request.newContext({ baseURL });
+            // A new installation has no upload folder yet: the administrator creates the one of {ff_uploads}.
+            createdUploads = sh(`test -d ${UPLOADS} && echo present || (mkdir -p ${UPLOADS} && chown www-data:www-data ${UPLOADS} && echo created)`) === 'created';
+            db('set-element', String(fileForm), 'attachment', 'data2', '');
+        });
+
+        test.afterAll(async () => {
+            sh(`rm -f ${UPLOADS}/e2eshell* ${UPLOADS}/*e2eplain* ${UPLOADS}/*e2eshell*`);
+            if (createdUploads) {
+                sh(`rm -rf ${UPLOADS}`);
+            }
+            await api.dispose();
+        });
+
+        test.beforeEach(async () => {
+            form = await openForm(api, fileForm);
+        });
+
+        test('an ordinary file is accepted when the field allows any type, and is stored', async () => {
+            const before = records(fileForm);
+
+            const response = await send('e2e-plain.txt', 'text/plain');
+
+            expect(response.status()).toBe(200);
+            expect(await response.text()).not.toContain('has an invalid extension');
+            expect(records(fileForm)).toBe(before + 1);
+            expect(stored('e2eplain')).toContain(`${UPLOADS}/`);
+        });
+
+        test('a script, alone or hidden behind a second extension, is refused and nothing is stored', async () => {
+            for (const name of ['e2e-shell.php', 'e2e-shell.php.jpg', 'e2e-shell.phtml', 'e2e-shell.PHP', 'e2e-shell.php5.txt']) {
+                form = await openForm(api, fileForm);
+                const before = records(fileForm);
+
+                const response = await send(name);
+
+                expect(response.status(), name).toBe(200);
+                expect(await response.text(), name).toContain('has an invalid extension');
+                expect(stored('e2eshell'), name).toBe('');
+                expect(sh(`find ${UPLOADS} -type f | sort`), name).not.toMatch(/shell/);
+                expect(records(fileForm), name).toBe(before);
+            }
+        });
+
+        test('a script is also refused when the field lists the extensions it allows', async () => {
+            db('set-element', String(fileForm), 'attachment', 'data2', 'jpg, png');
+            try {
+                for (const name of ['e2e-shell.php', 'e2e-shell.php.jpg']) {
+                    form = await openForm(api, fileForm);
+                    const before = records(fileForm);
+
+                    const response = await send(name, 'image/jpeg');
+
+                    expect(await response.text(), name).toContain('has an invalid extension');
+                    expect(stored('e2eshell'), name).toBe('');
+                    expect(records(fileForm), name).toBe(before);
+                }
+                form = await openForm(api, fileForm);
+                const accepted = await send('e2e-plain.jpg', 'image/jpeg');
+                expect(await accepted.text()).not.toContain('has an invalid extension');
+            } finally {
+                db('set-element', String(fileForm), 'attachment', 'data2', '');
+                sh(`rm -f ${UPLOADS}/*e2eplain*`);
+            }
+        });
+    });
+
+    test.describe('the links of a double opt-in', () => {
+        let api;
+        const TOKEN_OF_THE_MAIL = 'aB3dE5fG7hJ9kL1mN3pQ';
+        const link = (kind, id, token) => `index.php?option=com_breezingformsng&${kind}=true&id=${id}&token=${token}`;
+        const THANKS = {
+            opt_in: 'Thank you for verifying your submission',
+            opt_out: 'Thank you for opting out',
+        };
+
+        test.beforeAll(async ({ baseURL }) => {
+            api = await request.newContext({ baseURL });
+        });
+
+        test.afterAll(async () => {
+            await api.dispose();
+        });
+
+        test('an empty or a wrong token confirms nothing, for a record without a token as for one with a token', async () => {
+            const withoutToken = Number(db('opt-record', String(textForm), ''));
+            const withToken = Number(db('opt-record', String(textForm), TOKEN_OF_THE_MAIL));
+            const pristine = dbJson('opt-state', String(withoutToken));
+            const pristineWithToken = dbJson('opt-state', String(withToken));
+            expect(pristine).toEqual({ opted: '0', opt_ip: '', opt_date: null, opt_token: '' });
+
+            for (const kind of ['opt_in', 'opt_out']) {
+                for (const token of ['', 'wrongwrongwrongwrong', '0', "' OR ''='"]) {
+                    for (const id of [withoutToken, withToken]) {
+                        const response = await api.get(link(kind, id, encodeURIComponent(token)));
+                        const text = await response.text();
+
+                        expect(text, `${kind} ${id} [${token}]`).not.toContain(THANKS[kind]);
+                    }
+                }
+            }
+            // A link without any token parameter at all.
+            for (const kind of ['opt_in', 'opt_out']) {
+                const text = await (await api.get(`index.php?option=com_breezingformsng&${kind}=true&id=${withoutToken}`)).text();
+                expect(text).not.toContain(THANKS[kind]);
+            }
+
+            expect(dbJson('opt-state', String(withoutToken))).toEqual(pristine);
+            expect(dbJson('opt-state', String(withToken))).toEqual(pristineWithToken);
+        });
+
+        // The token is compared in SQL with BINARY: the case insensitive collation of the column must not let the
+        // token of the mail, lower cased, confirm the record. The tokens hold upper and lower case letters.
+        test('a token that differs from the one of the mail by its letter case confirms nothing', async () => {
+            const id = Number(db('opt-record', String(textForm), TOKEN_OF_THE_MAIL));
+
+            const text = await (await api.get(link('opt_in', id, TOKEN_OF_THE_MAIL.toLowerCase()))).text();
+
+            expect(text).not.toContain(THANKS.opt_in);
+            expect(dbJson('opt-state', String(id)).opted).toBe('0');
+        });
+
+        test('the link of the mail confirms the record, and the opt-out link withdraws it', async () => {
+            const id = Number(db('opt-record', String(textForm), TOKEN_OF_THE_MAIL));
+
+            const confirmed = await (await api.get(link('opt_in', id, TOKEN_OF_THE_MAIL))).text();
+
+            expect(confirmed).toContain(THANKS.opt_in);
+            const state = dbJson('opt-state', String(id));
+            expect(state.opted).toBe('1');
+            expect(state.opt_ip).not.toBe('');
+            expect(state.opt_date).not.toBeNull();
+
+            // Another record's token does not withdraw this one.
+            const other = Number(db('opt-record', String(textForm), 'Zz9yX8wV7uT6sR5qP4oN'));
+            expect(await (await api.get(link('opt_out', id, 'Zz9yX8wV7uT6sR5qP4oN'))).text()).not.toContain(THANKS.opt_out);
+            expect(dbJson('opt-state', String(id)).opted).toBe('1');
+            expect(dbJson('opt-state', String(other)).opted).toBe('0');
+
+            const withdrawn = await (await api.get(link('opt_out', id, TOKEN_OF_THE_MAIL))).text();
+
+            expect(withdrawn).toContain(THANKS.opt_out);
+            expect(dbJson('opt-state', String(id)).opted).toBe('0');
+        });
+    });
+
+    test.describe('a package imported by a user who may configure the component but not edit code', () => {
+        let page;
+        const rules = (code) => JSON.stringify({
+            'core.manage': { [MANAGER_GROUP]: 1 },
+            'core.edit': { [MANAGER_GROUP]: 1 },
+            'core.create': { [MANAGER_GROUP]: 1 },
+            'breezingformsng.configuration': { [MANAGER_GROUP]: 1 },
+            'breezingformsng.code': { [MANAGER_GROUP]: code },
+        });
+        const library = (sourceId, name) => ({
+            source_id: sourceId,
+            data: { published: 1, name, title: name, description: '', type: 'Untyped', code: '// e2e code' },
+        });
+        const packageWithCode = (kind) => {
+            const name = `e2e-${kind}-${String(Date.now()).slice(-7)}`;
+
+            return {
+                format: 'breezingformsng-package',
+                version: 3,
+                package: name,
+                scripts: [library(1, `${name}_script`)],
+                pieces: [library(1, `${name}_piece`)],
+                forms: [{
+                    source_id: 1,
+                    data: {
+                        name, title: name, published: 1, pages: 1,
+                        script1cond: 1, script1id: 1, script1code: 'alert("evil")',
+                        piece1cond: 1, piece1id: 1, piece1code: '<?php echo "evil";',
+                        piece3code: '// piece three', script2code: '// script two',
+                    },
+                    elements: [],
+                }],
+            };
+        };
+        // As a script sends it, without the page: the server alone decides.
+        const importAs = async (payload) => {
+            await page.goto(`${ADMIN}?option=com_breezingformsng&view=packages&layout=import`);
+
+            return page.evaluate(async (json) => {
+                const form = document.getElementById('bf-package-import');
+                const data = new FormData(form);
+                data.set('package_file', new File([json], 'code.json', { type: 'application/json' }));
+                const html = await (await fetch(form.action, { method: 'POST', body: data, credentials: 'same-origin' })).text();
+
+                return html.match(/"joomla\.messages":(\[.*?\]),"system\.paths"/s)?.[1] ?? '';
+            }, JSON.stringify(payload));
+        };
+
+        test.beforeAll(async ({ browser }) => {
+            db('create-user', MANAGER, PASSWORD, String(MANAGER_GROUP));
+            page = await browser.newPage();
+            await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
+            await login(page, MANAGER, PASSWORD);
+        });
+
+        test.afterAll(async () => {
+            db('component-rules', '{}');
+            await page.close();
+        });
+
+        test('the scripts, the pieces and the code of the forms of the package are left out', async () => {
+            db('component-rules', rules(0));
+            const payload = packageWithCode('nocode');
+
+            const messages = await importAs(payload);
+
+            expect(messages).toContain('has been imported');
+            const written = dbJson('package-code', payload.package);
+            expect(written.scripts).toBe(0);
+            expect(written.pieces).toBe(0);
+            // The form itself is imported, without any of its code.
+            expect(written.forms).toHaveLength(1);
+            // The columns of a new form hold NULL or an empty string: no code either way.
+            expect(Object.fromEntries(Object.entries(written.forms[0]).map(([column, value]) => [column, value ?? ''])))
+                .toEqual({
+                    name: payload.package, script1code: '', script2code: '', piece1code: '', piece2code: '', piece3code: '', piece4code: '',
+                });
+        });
+
+        test('the same package, imported with the permission to edit code, brings its code', async () => {
+            db('component-rules', rules(1));
+            const payload = packageWithCode('code');
+
+            const messages = await importAs(payload);
+
+            expect(messages).toContain('has been imported');
+            const written = dbJson('package-code', payload.package);
+            expect(written.scripts).toBe(1);
+            expect(written.pieces).toBe(1);
+            expect(written.forms[0]).toEqual(expect.objectContaining({
+                script1code: 'alert("evil")', piece1code: '<?php echo "evil";', piece3code: '// piece three', script2code: '// script two',
+            }));
+        });
+    });
 });
