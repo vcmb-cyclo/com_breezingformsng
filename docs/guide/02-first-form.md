@@ -183,7 +183,7 @@ This is the same kind of menu item the sample form creates.
 
 ### Option B: inside an article (content plugin)
 
-The plugin **Content - BreezingForms NG** is installed and enabled with the component. Type this on its own line in an article:
+The plugin **BreezingForms NG - Content** is installed and enabled with the component. Type this on its own line in an article:
 
 ```
 {BreezingForms:Contact}

@@ -39,8 +39,8 @@ What the installer adds:
 
 - The component **BreezingForms NG** (`com_breezingformsng`), with its database tables.
 - The module **BreezingForms NG** (`mod_breezingforms`). It shows a form in a template position.
-- The plugin **Content - BreezingForms NG**. It lets you put `{BreezingForms:FormName}` in an article.
-- The plugin **Privacy - BreezingForms NG**. It handles Joomla privacy export and removal requests for submissions.
+- The plugin **BreezingForms NG - Content**. It lets you put `{BreezingForms:FormName}` in an article.
+- The plugin **BreezingForms NG - Privacy**. It handles Joomla privacy export and removal requests for submissions.
 - The plugin **BreezingForms NG - MCP**. It adds the MCP endpoint to the Joomla API. The endpoint exists only when MCP is enabled in the component options.
 - The plugin **BreezingForms NG - Compatibility** (system plugin `bfcompat`). See "Compatibility plugin" below.
 - The standard library of scripts and pieces, imported by the installer.

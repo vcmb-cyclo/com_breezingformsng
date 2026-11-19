@@ -48,7 +48,7 @@ Source and releases: https://github.com/vcmb-cyclo/com_breezingformsng
   `username`, `viewed`, `exported`, payment columns `paypal_*`, double opt-in columns `opt_*`);
   each field value in `#__facileforms_subrecords` (`record`, `element`, `name`, `title`, `type`, `value`).
 - Integrator screen: rules that copy submitted values into another table without code.
-- GDPR: enable the "Privacy - BreezingForms NG" plugin; it covers submissions of logged-in users only.
+- GDPR: enable the "BreezingForms NG - Privacy" plugin; it covers submissions of logged-in users only.
 
 ### Move forms between sites
 Configuration → Import/export: forms, scripts, pieces and menus as one JSON package
