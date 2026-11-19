@@ -70,11 +70,11 @@ class ImportModel extends BaseDatabaseModel
 
         $this->db = $this->getDatabase();
         $this->noteBefore = $this->incomingVersion !== ''
-            ? Text::sprintf('COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_BEFORE_STANDARD', $this->incomingVersion)
-            : Text::_('COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_BEFORE_STANDARD_UNVERSIONED');
+            ? $this->note('COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_BEFORE_STANDARD', 'Before the update to the standard library of version %s')
+            : $this->note('COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_BEFORE_STANDARD_UNVERSIONED', 'Before the update to the standard library');
         $this->noteStandard = $this->incomingVersion !== ''
-            ? Text::sprintf('COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_STANDARD', $this->incomingVersion)
-            : Text::_('COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_STANDARD_UNVERSIONED');
+            ? $this->note('COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_STANDARD', 'Standard library of version %s')
+            : $this->note('COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_STANDARD_UNVERSIONED', 'Standard library of the update');
 
         if (!is_file($filename)) {
             throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_IMPORT_FILE_NOT_FOUND', $filename));
@@ -119,6 +119,23 @@ class ImportModel extends BaseDatabaseModel
 
             throw new \RuntimeException($e->getMessage(), 0, $e);
         }
+    }
+
+    /**
+     * A note of the history, in the language of the installation; English when the key is not translated yet,
+     * so that a note never holds a raw language key.
+     */
+    private function note(string $key, string $fallback): string
+    {
+        $text = $this->incomingVersion !== '' && str_contains($fallback, '%s')
+            ? Text::sprintf($key, $this->incomingVersion)
+            : Text::_($key);
+
+        if ($text === $key) {
+            return str_contains($fallback, '%s') ? sprintf($fallback, $this->incomingVersion) : $fallback;
+        }
+
+        return $text;
     }
 
     /**

@@ -845,6 +845,14 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         require_once $admPath . '/src/Model/ImportModel.php';
         require_once $admPath . '/src/Service/LibraryImportSummary.php';
 
+        // The language files of this version are copied by now, but the strings read earlier in the request are
+        // those of the previous one: read them again, or the notes and the summary would show raw language keys.
+        try {
+            Factory::getApplication()->getLanguage()->load('com_breezingformsng', JPATH_ADMINISTRATOR, null, true);
+        } catch (\Throwable $e) {
+            $this->log('The language file of the component could not be read again: ' . $e->getMessage(), Log::WARNING);
+        }
+
         $importer = new \Vcmb\Component\BreezingformsNG\Administrator\Model\ImportModel();
         $importer->reinstallOnlyIfChanged = true;
         $importer->incomingVersion = $this->incomingPackageVersion;
@@ -863,13 +871,6 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             count($importer->pieces) . ' piece(s).'
         );
 
-        if (!empty($importer->replacedCustomPieces)) {
-            $this->log(
-                'Custom standard pieces replaced by the standard version, their previous code kept in their history: '
-                . implode(', ', $importer->replacedCustomPieces)
-            );
-        }
-
         $this->announceImportedLibraryChanges($importer);
     }
 
@@ -877,18 +878,22 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     {
         $parts = LibraryImportSummary::parts(
             $importer,
-            static fn(string $key, int $count, string $names): string => Text::sprintf($key, $count, $names)
+            fn(string $key, int $count, string $names): string => $this->installerText(
+                $key,
+                LibraryImportSummary::FALLBACKS[$key] ?? $key,
+                $count,
+                $names
+            )
         );
 
         if ($parts === []) {
             return;
         }
 
+        $changes = 'COM_BREEZINGFORMSNG_INSTALL_STANDARD_LIBRARY_CHANGES';
+
         $this->announce(
-            Text::sprintf(
-                'COM_BREEZINGFORMSNG_INSTALL_STANDARD_LIBRARY_CHANGES',
-                implode(' | ', $parts)
-            ),
+            $this->installerText($changes, LibraryImportSummary::FALLBACKS[$changes], implode(' | ', $parts)),
             'warning',
             Log::INFO
         );
