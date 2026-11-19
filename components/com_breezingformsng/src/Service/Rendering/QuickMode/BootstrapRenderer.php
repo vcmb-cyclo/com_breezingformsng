@@ -28,6 +28,19 @@ use Joomla\CMS\Component\ComponentHelper;
 
 
 
+/**
+ * @phpstan-type QuickModeTreeNode array{
+ *     properties: array<string, mixed>,
+ *     attributes?: array{id: string},
+ *     children: list<array<string, mixed>>
+ * }
+ * @phpstan-type QuickModeProcessNode array{
+ *     properties: array<string, mixed>,
+ *     attributes?: array{id: string},
+ *     children: list<array<string, mixed>>
+ * }
+ * @phpstan-type BootstrapStyleFieldData array<string, mixed>
+ */
 class BootstrapRenderer
 {
     use HiddenFieldTrait;
@@ -39,8 +52,8 @@ class BootstrapRenderer
      * @var HTML_facileFormsProcessor
      */
     private $p = null;
-    /** @var array<string, mixed> */
-    private $dataObject = array();
+    /** @var QuickModeTreeNode */
+    private $dataObject;
     /** @var array<string, mixed> */
     private $rootMdata = array();
     /** @var mixed */
@@ -231,9 +244,13 @@ class BootstrapRenderer
         $document = $this->p->app->getDocument() ?? throw new \RuntimeException('The document is not available.');
         $document->getWebAssetManager()->addInlineScript('<!--');
 
-        $this->dataObject = json_decode(bf_b64dec($this->p->formrow->template_code), true);
+        $dataObject = json_decode(bf_b64dec($this->p->formrow->template_code), true);
+        $this->assertQuickModeProcessNode($dataObject);
+        $this->dataObject = $dataObject;
 
-        $this->rootMdata = $this->dataObject['properties'];
+        $this->rootMdata = $this->normalizeBootstrapStyleFieldData(
+            $this->quickModeNodeProperties($dataObject)
+        );
         if (array_key_exists('themebootstrap', $this->rootMdata)) {
             $this->rootMdata['themebootstrap'] = QuickModeThemeName::resolve(
                 JPATH_SITE . '/media/breezingforms/themes-bootstrap5',
@@ -308,7 +325,8 @@ class BootstrapRenderer
             );
         }
 
-        $this->process($this->dataObject);
+        $dataObject = $this->dataObject;
+        $this->process($dataObject);
         echo '</div>' . "\n"; // closing last page
 
         $this->headers();
@@ -364,7 +382,7 @@ class BootstrapRenderer
     }
 
     /**
-     * @param array<string, mixed> $dataObject
+     * @param QuickModeProcessNode $dataObject
      * @param array<string, mixed>|null $parent
      * @param array<string, mixed>|null $parentPage
      * @param int $index
@@ -377,6 +395,8 @@ class BootstrapRenderer
         $mdata = null;
 
         if (isset($dataObject['attributes']) && isset($dataObject['properties'])) {
+            $this->assertQuickModeProcessNode($dataObject);
+            $mdata = $this->normalizeBootstrapStyleFieldData($this->quickModeNodeProperties($dataObject));
             HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
 
             $options = array('type' => 'normal', 'displayType' => 'breaks');
@@ -396,6 +416,7 @@ class BootstrapRenderer
             $parentFullChildrenLength = 0;
 
             if ($parentFull != null && isset($parentFull['children'])) {
+                $this->assertQuickModeTreeNode($parentFull);
                 $parentFullChildrenLength = count($parentFull['children']);
                 foreach ($parentFull['children'] as $child) {
                     if (!isset($child['properties']) || (isset($child['properties']) && isset($child['properties']['bfType']) && $child['properties']['bfType'] == 'bfHidden') || (isset($child['properties']) && $child['properties']['type'] != 'element' && $child['properties']['type'] != 'section')) {
@@ -427,8 +448,6 @@ class BootstrapRenderer
                         break;
                 }
             }
-
-            $mdata = $dataObject['properties'];
 
             // Sofort was discontinued by Klarna and removed: an element still
             // stored in a form renders nothing until the form is saved again.
