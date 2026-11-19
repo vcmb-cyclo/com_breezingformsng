@@ -40,7 +40,7 @@ final class ContentBuilderPermissionChecker
         $authorized = true;
 
         foreach ($formIds as $formId) {
-            $permissionService->setPermissions((int) $formId, 0, $frontend ? '_fe' : '');
+            $permissionService->setPermissions($this->normalizeFormId($formId), 0, $frontend ? '_fe' : '');
             $authorized = $frontend
                 ? $permissionService->authorizeFrontend('new')
                 : $permissionService->authorize('new');
@@ -80,5 +80,18 @@ final class ContentBuilderPermissionChecker
         return $frontend
             ? $permissionService->authorizeFrontend('fullarticle')
             : $permissionService->authorize('fullarticle');
+    }
+
+    private function normalizeFormId(mixed $formId): int
+    {
+        if (is_int($formId) && $formId > 0) {
+            return $formId;
+        }
+
+        if (is_string($formId) && ctype_digit($formId) && (int) $formId > 0) {
+            return (int) $formId;
+        }
+
+        throw new \UnexpectedValueException('ContentBuilder returned an invalid form id.');
     }
 }

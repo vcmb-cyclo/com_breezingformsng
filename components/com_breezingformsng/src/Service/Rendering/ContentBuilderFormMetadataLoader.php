@@ -25,7 +25,7 @@ final class ContentBuilderFormMetadataLoader
     {
     }
 
-    /** @return array<int, mixed> */
+    /** @return list<int> */
     public function loadAssociatedFormIds(int $breezingFormsFormId): array
     {
         $query = $this->formsQuery($this->database->quoteName('id'))
@@ -34,8 +34,26 @@ final class ContentBuilderFormMetadataLoader
             ->where($this->publishedCondition())
             ->bind(':referenceId', $breezingFormsFormId, ParameterType::INTEGER);
         $this->database->setQuery($query);
+        $rawIds = $this->database->loadColumn();
+        $ids = [];
 
-        return (array) $this->database->loadColumn();
+        foreach ($rawIds as $rawId) {
+            if (is_int($rawId) && $rawId > 0) {
+                $ids[] = $rawId;
+
+                continue;
+            }
+
+            if (is_string($rawId) && ctype_digit($rawId) && (int) $rawId > 0) {
+                $ids[] = (int) $rawId;
+
+                continue;
+            }
+
+            throw new \UnexpectedValueException('ContentBuilder returned an invalid associated form id.');
+        }
+
+        return $ids;
     }
 
     /** @return array<string, mixed>|null */
@@ -48,7 +66,21 @@ final class ContentBuilderFormMetadataLoader
         $this->database->setQuery($query);
         $data = $this->database->loadAssoc();
 
-        return is_array($data) ? $data : null;
+        if (!is_array($data)) {
+            return null;
+        }
+
+        $validated = [];
+
+        foreach ($data as $key => $value) {
+            if (!is_string($key)) {
+                return null;
+            }
+
+            $validated[$key] = $value;
+        }
+
+        return $validated;
     }
 
     /**
