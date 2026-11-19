@@ -156,6 +156,9 @@ final class SubmissionEngine
         return ['default' => $result->path, 'server' => $result->serverPath];
     }
 
+    /** @var array<int|string, mixed>|null The template areas, decoded once for the widget checks of a submission. */
+    private ?array $widgetAreas = null;
+
     /**
      * Refuses the submission when a QuickMode widget field (phone, date and time, country) holds a malformed
      * value. The submitted value is never logged or put in the message.
@@ -166,13 +169,19 @@ final class SubmissionEngine
             return false;
         }
 
-        $areas = json_decode((string) $this->processor->formrow->template_areas, true);
-        if (!is_array($areas)) {
+        $templateAreas = (string) $this->processor->formrow->template_areas;
+        // Most forms hold no widget: they skip the decoding altogether.
+        if (!str_contains($templateAreas, '"widget"')) {
+            return false;
+        }
+
+        $this->widgetAreas ??= json_decode($templateAreas, true);
+        if (!is_array($this->widgetAreas)) {
             return false;
         }
 
         $values = $this->processor->app->getInput()->post->get('ff_nm_' . $row->name, [], 'array');
-        $error = (new WidgetValueValidator())->validateAreas($areas, (string) $row->name, $values);
+        $error = (new WidgetValueValidator())->validateAreas($this->widgetAreas, (string) $row->name, $values);
         if ($error === null) {
             return false;
         }

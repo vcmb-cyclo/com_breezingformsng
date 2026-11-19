@@ -286,6 +286,10 @@ final class FormCatalog
                 $element['quickmode_settings']['size'] = self::text(
                     is_string($properties['size'] ?? null) ? $properties['size'] : ''
                 );
+                $widget = \Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions::widget($properties);
+                if ($widget !== '') {
+                    $element['quickmode_settings']['widget'] = $widget;
+                }
             } elseif ($type === 'bfTextarea') {
                 $element['quickmode_settings']['width'] = self::text(
                     is_string($properties['width'] ?? null) ? $properties['width'] : ''

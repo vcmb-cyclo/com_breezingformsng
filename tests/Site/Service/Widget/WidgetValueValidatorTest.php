@@ -105,6 +105,14 @@ final class WidgetValueValidatorTest extends TestCase
         self::assertNull($this->validate('datetime', $value, ['mode' => $mode]));
     }
 
+    public function testAPhoneIsNotCheckedWhenTheWidgetDoesNotValidate(): void
+    {
+        self::assertNull($this->validate('phone', '06 12 34 56 78', ['validate' => false]));
+        self::assertNull($this->validate('phone', '06 12 34 56 78', ['validate' => '0']));
+        self::assertSame(self::PHONE, $this->validate('phone', '06 12 34 56 78', ['validate' => true]));
+        self::assertSame(self::PHONE, $this->validate('phone', '06 12 34 56 78'));
+    }
+
     public function testTheModeDefaultsToDatetime(): void
     {
         self::assertNull($this->validate('datetime', '2026-11-18T14:30'));

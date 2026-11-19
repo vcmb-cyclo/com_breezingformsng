@@ -119,10 +119,17 @@ final class PackagesController extends BaseController
         $this->checkToken();
         $home = Route::_('index.php?option=com_breezingformsng&view=packages', false);
         $input = $app->getInput();
-        $slugs = array_unique(array_map('strval', (array) $input->get('samples', [], 'array')));
+        // Only plain names count: a nested value in the request is ignored.
+        $slugs = array_values(array_unique(array_filter(
+            (array) $input->get('samples', [], 'array'),
+            'is_string'
+        )));
 
         if ($slugs === []) {
-            $slugs = [$input->getCmd('sample', SampleFormService::DEFAULT_SAMPLE)];
+            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_NONE'), 'warning');
+            $app->redirect($home);
+
+            return;
         }
 
         // The layout of a form is template code: writing it takes the Configure permission.

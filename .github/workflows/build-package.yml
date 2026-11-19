@@ -260,6 +260,8 @@ jobs:
           archive="$RUNNER_TEMP/joomla.zip"
           curl -fsSL -o "$archive" \
             https://github.com/joomla/joomla-cms/releases/download/6.2.0/Joomla_6.2.0-Stable-Full_Package.zip
+          # Pinned: the archive is refused when it is not the one the suite was written against.
+          echo "eaafc68b5990d7b9dd9156656d4c3c3547743d1d7a85682a92e2f9121b58f018  $archive" | sha256sum --check --strict -
           mkdir -p "$RUNNER_TEMP/joomla"
           unzip -q "$archive" 'libraries/*' -d "$RUNNER_TEMP/joomla"
           echo "BFNG_JOOMLA_LIBRARIES=$RUNNER_TEMP/joomla/libraries" >> "$GITHUB_ENV"
