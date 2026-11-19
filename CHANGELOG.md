@@ -42,6 +42,13 @@
 - Protect the upload folders and the folder of the payment emails waiting to be sent with access rules and an empty index page, and stop reading objects from that queue.
 - Escape the title of a form wherever it is displayed.
 - Check the server name of a Mailchimp API key before contacting Mailchimp.
+- Ask for one click on a confirmation page before a double opt-in link confirms or withdraws a consent, so that mail scanners that open links cannot do it.
+- Keep the queue of payment emails waiting to be sent as JSON in the temporary folder of Joomla, outside the web root; the entries of the previous version are still sent.
+- Keep the code of the QuickMode elements and the file path of a paid download out of reach of editors who do not hold the Manage Code permission, also when a version is restored, a legacy form is converted or a package is imported.
+- Refuse a theme name or a form name that points outside its folder when loading themes and the custom mail and PDF templates.
+- Stop a QuickMode save from taking over an element that belongs to another form.
+- Record a PayPal payment once, and notify once, even when PayPal sends the same notification twice at the same moment.
+- Protect the folder of the signature images with an access rule.
 
 ## 6.1.0-RC22
 

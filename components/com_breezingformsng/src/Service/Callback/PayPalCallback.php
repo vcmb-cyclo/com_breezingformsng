@@ -115,22 +115,27 @@ final class PayPalCallback
                             $paypalTxId = 'PayPal: ' . $tx_token . ' (VALID)';
                             $paymentDate = date('Y-m-d H:i:s');
                             $testaccount = $options['testaccount'] ? 1 : 0;
-                            $this->paymentRecordService->storeTransaction(
+
+                            // Atomic: of two simultaneous notifications only one records the
+                            // payment and runs the success script and the notifications.
+                            $stored = $this->paymentRecordService->storeTransactionOnce(
                                 $recordId,
                                 $paypalTxId,
                                 $paymentDate,
                                 $testaccount
                             );
 
-                            // trigger a script after succeeded payment?
-                            if (file_exists(JPATH_SITE . '/bf_paypalipn_success.php')) {
-                                require_once(JPATH_SITE . '/bf_paypalipn_success.php');
-                            }
+                            if ($stored) {
+                                // trigger a script after succeeded payment?
+                                if (file_exists(JPATH_SITE . '/bf_paypalipn_success.php')) {
+                                    require_once(JPATH_SITE . '/bf_paypalipn_success.php');
+                                }
 
-                            // send mail after succeeded payment?
-                            if (isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
-                                bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $recordId, 'admin');
-                                bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $recordId, 'mailback');
+                                // send mail after succeeded payment?
+                                if (isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
+                                    bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $recordId, 'admin');
+                                    bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $recordId, 'mailback');
+                                }
                             }
                         } elseif ($record !== null && $record->paypal_tx_id === '' && $input->post->getString('payment_status', '') === 'Completed') {
                             Log::add(

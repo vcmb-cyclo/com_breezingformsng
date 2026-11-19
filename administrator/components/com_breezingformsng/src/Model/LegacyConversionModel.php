@@ -13,6 +13,8 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\ParameterType;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormCodeGuard;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\LegacyFormConverter;
 
 /** Creates an unpublished QuickMode copy; the source and its submissions stay untouched. */
@@ -151,6 +153,11 @@ class LegacyConversionModel extends BaseDatabaseModel
             $copy->modified = $copy->created;
             $copy->created_by = (string) $this->getCurrentUser()->username;
             $copy->modified_by = $copy->created_by;
+
+            if (!AreaAccess::isAllowed($this->getCurrentUser(), AreaAccess::CODE)) {
+                // The copy is a new form: without the permission to write code, it starts without the code of the source.
+                $copy = (object) (new FormCodeGuard())->apply((array) $copy, null, false)['data'];
+            }
 
             if (!$db->insertObject('#__facileforms_forms', $copy, 'id')) {
                 throw new \RuntimeException('Could not create form copy');

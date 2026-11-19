@@ -53,6 +53,25 @@ Les sections ci-dessous décrivent l'audit tel que remis, avant correction. Ce t
 | PRD-001 à PRD-009 | **Ouvert** | Fonctionnalités, hors corrections |
 
 
+### Seconde passe de sécurité (rapport `07-security-round2.md`)
+
+| Constat | Statut | Réserve |
+|---|---|---|
+| SEC-R2-001 jeton opt-in rejeté par ma regex | Corrigé, E2E | Régression de l'un de mes correctifs du jour : le jeton réel est un base64 de 28 caractères. Trouvée par la relecture, puis fixée dans les tests avec le vrai générateur |
+| SEC-R2-002 `UPDATE` d'élément d'un autre formulaire (F-10) | Corrigé | Non joué sur MySQL réel |
+| SEC-R2-003 nom de thème dans un `require_once` | Corrigé | |
+| SEC-R2-004 nom de formulaire dans les gabarits PHP | Corrigé à l'usage | Non imposé à l'enregistrement : un nom atypique perd son gabarit personnalisé |
+| SEC-R2-005 restauration de version (F-19) | Corrigé | |
+| SEC-R2-006 captcha sans limitation de débit | **Ouvert** | |
+| SEC-R2-007 IPN PayPal non atomique | Corrigé | Pas de test en vraie concurrence |
+| SEC-R2-008 `filepath` sans dossier de base | Corrigé en partie | Un fichier sans extension (ex. `/etc/passwd`) passe encore la politique |
+| SEC-R2-009 dossier des signatures | Corrigé en partie | Règle Apache seulement ; nginx non couvert |
+| SEC-R2-010 à SEC-R2-015 | **Ouvert** | Jokers `LIKE`, erreur Dropbox, validation de fichiers, installateur, code mort, bibliothèques JS embarquées (avis non vérifiables) |
+
+Mises à jour des lignes précédentes : SEC-001 et SEC-002 couvrent maintenant le code des éléments, l'import, la restauration et la conversion legacy ; les sélecteurs de bibliothèque (`cond`/`id`) restent volontairement libres pour ne pas empêcher un éditeur de poser une validation standard. SEC-007 : le champ `filepath` exige le droit « code ». SEC-008 : confirmation en POST. SEC-009 : cache en JSON hors racine web, anciennes entrées toujours consommées.
+
+Fiches F-xx revérifiées : F-25, F-28, F-38 corrigées ; F-10 et F-19 corrigées depuis ; F-18, F-27, F-29, F-31, F-32, F-35, F-36 toujours présentes (gravité faible).
+
 ## 1. Résumé exécutif
 
 Le code est syntaxiquement sain et bien outillé : `php -l` propre, PHPStan niveau 8 sans erreur, 1 451 tests PHPUnit verts (PHP 8.5.4 hôte), aucune dépréciation Joomla 6 relevée, `composer audit` sans avis. Les points faibles se concentrent à trois endroits.

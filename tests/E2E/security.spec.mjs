@@ -812,11 +812,31 @@ test.describe('security, as the site really answers', () => {
 
     test.describe('the links of a double opt-in', () => {
         let api;
-        const TOKEN_OF_THE_MAIL = 'aB3dE5fG7hJ9kL1mN3pQ';
+        // The mail carries the base64 of a 20 character token, as SubmissionEngine builds it.
+        const TOKEN_OF_THE_MAIL = Buffer.from('aB3dE5fG7hJ9kL1mN3pQ').toString('base64');
+        const OTHER_TOKEN = 'Zz9yX8wV7uT6sR5qP4oN';
         const link = (kind, id, token) => `index.php?option=com_breezingformsng&${kind}=true&id=${id}&token=${token}`;
         const THANKS = {
             opt_in: 'Thank you for verifying your submission',
             opt_out: 'Thank you for opting out',
+        };
+        const NOT_FOUND = 'Resource not found';
+        const BUTTON = {
+            opt_in: 'Verify my submission',
+            opt_out: 'Withdraw my verification',
+        };
+
+        // The form token Joomla puts in the confirmation form: a hidden field named by 32 hexadecimal characters.
+        const formToken = (html) => /<input[^>]*type="hidden"[^>]*name="([0-9a-f]{32})"[^>]*value="1"/.exec(html)?.[1] ?? null;
+
+        // The button of the confirmation page: the POST a browser sends, with the fields of the form it was given.
+        const press = async (kind, id, token, html, withFormToken = true) => {
+            const fields = { [kind]: 'true', id: String(id), token };
+            const csrf = formToken(html);
+            if (withFormToken && csrf) {
+                fields[csrf] = '1';
+            }
+            return (await api.post('index.php?option=com_breezingformsng', { form: fields })).text();
         };
 
         test.beforeAll(async ({ baseURL }) => {
@@ -827,7 +847,7 @@ test.describe('security, as the site really answers', () => {
             await api.dispose();
         });
 
-        test('an empty or a wrong token confirms nothing, for a record without a token as for one with a token', async () => {
+        test('an empty or a malformed token shows no form and confirms nothing, for a record without a token as for one with a token', async () => {
             const withoutToken = Number(db('opt-record', String(textForm), ''));
             const withToken = Number(db('opt-record', String(textForm), TOKEN_OF_THE_MAIL));
             const pristine = dbJson('opt-state', String(withoutToken));
@@ -835,12 +855,13 @@ test.describe('security, as the site really answers', () => {
             expect(pristine).toEqual({ opted: '0', opt_ip: '', opt_date: null, opt_token: '' });
 
             for (const kind of ['opt_in', 'opt_out']) {
-                for (const token of ['', 'wrongwrongwrongwrong', '0', "' OR ''='"]) {
+                for (const token of ['', 'wrongwrong', '0', "' OR ''='"]) {
                     for (const id of [withoutToken, withToken]) {
-                        const response = await api.get(link(kind, id, encodeURIComponent(token)));
-                        const text = await response.text();
+                        const text = await (await api.get(link(kind, id, encodeURIComponent(token)))).text();
 
                         expect(text, `${kind} ${id} [${token}]`).not.toContain(THANKS[kind]);
+                        expect(text, `${kind} ${id} [${token}]`).not.toContain(BUTTON[kind]);
+                        expect(text, `${kind} ${id} [${token}]`).toContain(NOT_FOUND);
                     }
                 }
             }
@@ -848,27 +869,66 @@ test.describe('security, as the site really answers', () => {
             for (const kind of ['opt_in', 'opt_out']) {
                 const text = await (await api.get(`index.php?option=com_breezingformsng&${kind}=true&id=${withoutToken}`)).text();
                 expect(text).not.toContain(THANKS[kind]);
+                expect(text).not.toContain(BUTTON[kind]);
             }
 
             expect(dbJson('opt-state', String(withoutToken))).toEqual(pristine);
             expect(dbJson('opt-state', String(withToken))).toEqual(pristineWithToken);
         });
 
+        test('opening the link only shows the confirmation page: nothing changes until its button is pressed', async () => {
+            const id = Number(db('opt-record', String(textForm), TOKEN_OF_THE_MAIL));
+            const pristine = dbJson('opt-state', String(id));
+            const unknownId = id + 100000;
+
+            for (const kind of ['opt_in', 'opt_out']) {
+                const page = await (await api.get(link(kind, id, TOKEN_OF_THE_MAIL))).text();
+
+                expect(page, kind).toContain(BUTTON[kind]);
+                expect(page, kind).toContain('method="post"');
+                expect(page, kind).not.toContain(THANKS[kind]);
+                expect(formToken(page), kind).not.toBeNull();
+                expect(dbJson('opt-state', String(id)), kind).toEqual(pristine);
+
+                // The page does not tell whether the record exists: a well-formed link to nothing shows the same form.
+                const unknown = await (await api.get(link(kind, unknownId, OTHER_TOKEN))).text();
+                expect(unknown, kind).toContain(BUTTON[kind]);
+                expect(unknown, kind).not.toContain(NOT_FOUND);
+            }
+        });
+
+        test('pressing the button without the form token of the page changes nothing', async () => {
+            const id = Number(db('opt-record', String(textForm), TOKEN_OF_THE_MAIL));
+            const pristine = dbJson('opt-state', String(id));
+            const page = await (await api.get(link('opt_in', id, TOKEN_OF_THE_MAIL))).text();
+
+            const answer = await press('opt_in', id, TOKEN_OF_THE_MAIL, page, false);
+
+            expect(answer).not.toContain(THANKS.opt_in);
+            expect(dbJson('opt-state', String(id))).toEqual(pristine);
+        });
+
         // The token is compared in SQL with BINARY: the case insensitive collation of the column must not let the
         // token of the mail, lower cased, confirm the record. The tokens hold upper and lower case letters.
         test('a token that differs from the one of the mail by its letter case confirms nothing', async () => {
             const id = Number(db('opt-record', String(textForm), TOKEN_OF_THE_MAIL));
+            const wrong = TOKEN_OF_THE_MAIL.toLowerCase();
+            const page = await (await api.get(link('opt_in', id, wrong))).text();
 
-            const text = await (await api.get(link('opt_in', id, TOKEN_OF_THE_MAIL.toLowerCase()))).text();
+            const answer = await press('opt_in', id, wrong, page);
 
-            expect(text).not.toContain(THANKS.opt_in);
+            expect(answer).not.toContain(THANKS.opt_in);
+            expect(answer).toContain(NOT_FOUND);
             expect(dbJson('opt-state', String(id)).opted).toBe('0');
         });
 
-        test('the link of the mail confirms the record, and the opt-out link withdraws it', async () => {
+        test('the button of the mail link confirms the record, and the one of the opt-out link withdraws it', async () => {
             const id = Number(db('opt-record', String(textForm), TOKEN_OF_THE_MAIL));
+            const other = Number(db('opt-record', String(textForm), OTHER_TOKEN));
 
-            const confirmed = await (await api.get(link('opt_in', id, TOKEN_OF_THE_MAIL))).text();
+            const inPage = await (await api.get(link('opt_in', id, TOKEN_OF_THE_MAIL))).text();
+            expect(dbJson('opt-state', String(id)).opted).toBe('0');
+            const confirmed = await press('opt_in', id, TOKEN_OF_THE_MAIL, inPage);
 
             expect(confirmed).toContain(THANKS.opt_in);
             const state = dbJson('opt-state', String(id));
@@ -877,12 +937,16 @@ test.describe('security, as the site really answers', () => {
             expect(state.opt_date).not.toBeNull();
 
             // Another record's token does not withdraw this one.
-            const other = Number(db('opt-record', String(textForm), 'Zz9yX8wV7uT6sR5qP4oN'));
-            expect(await (await api.get(link('opt_out', id, 'Zz9yX8wV7uT6sR5qP4oN'))).text()).not.toContain(THANKS.opt_out);
+            const wrongPage = await (await api.get(link('opt_out', id, OTHER_TOKEN))).text();
+            expect(await press('opt_out', id, OTHER_TOKEN, wrongPage)).not.toContain(THANKS.opt_out);
             expect(dbJson('opt-state', String(id)).opted).toBe('1');
             expect(dbJson('opt-state', String(other)).opted).toBe('0');
 
-            const withdrawn = await (await api.get(link('opt_out', id, TOKEN_OF_THE_MAIL))).text();
+            // Opening the opt-out link changes nothing either.
+            const outPage = await (await api.get(link('opt_out', id, TOKEN_OF_THE_MAIL))).text();
+            expect(dbJson('opt-state', String(id)).opted).toBe('1');
+
+            const withdrawn = await press('opt_out', id, TOKEN_OF_THE_MAIL, outPage);
 
             expect(withdrawn).toContain(THANKS.opt_out);
             expect(dbJson('opt-state', String(id)).opted).toBe('0');

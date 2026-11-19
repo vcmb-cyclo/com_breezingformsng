@@ -177,6 +177,7 @@ class QuickmodeController extends BaseController
             $status = 200;
             $formId = 0;
             $revision = '';
+            $codeIgnored = false;
             try {
                 $db->transactionStart();
                 try {
@@ -203,7 +204,10 @@ class QuickmodeController extends BaseController
                             $versioning->keepOrigin($form);
                         }
 
-                        $formId = $this->getQuickmodeModel()->save($form, $dataObject);
+                        $quickmode = $this->getQuickmodeModel();
+                        $formId    = $quickmode->save($form, $dataObject);
+                        // Code of the elements left as stored for a user without the code permission.
+                        $codeIgnored = $quickmode->getIgnoredCodeColumns() !== [];
 
                         if ($input->getInt('recordVersion', 1) === 1) {
                             try {
@@ -225,6 +229,12 @@ class QuickmodeController extends BaseController
 
                 if ($status === 200) {
                     (new ContentBuilderFormSync($app, $db))->sync($formId);
+
+                    if ($codeIgnored) {
+                        // The editor reloads after this request: the warning waits in the session.
+                        $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_FORM_CODE_NOT_SAVED'), 'warning');
+                        $app->getSession()->set('application.queue', $app->getMessageQueue());
+                    }
                 }
             } catch (\Throwable $e) {
                 Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');

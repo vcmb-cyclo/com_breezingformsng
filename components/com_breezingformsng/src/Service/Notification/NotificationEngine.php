@@ -16,7 +16,6 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Notification;
 
 \defined('_JEXEC') or die;
 
-use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadDirectoryProtection;
 use HTML_facileFormsProcessor;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Event\Event;
@@ -589,34 +588,21 @@ final class NotificationEngine
             }
         } else {
 
-            $paymentCache = JPATH_SITE . '/media/breezingforms/payment_cache/';
-            $paymentFile = $this->processor->form . '_' . $this->processor->record_id . '_admin_' . bin2hex(random_bytes(16)) . '.txt';
-            $i = 0;
-            while (file_exists($paymentCache . $paymentFile)) {
-                if ($i > 1000) {
-                    break;
-                }
-                $paymentFile = $this->processor->form . '_' . $this->processor->record_id . '_admin_' . bin2hex(random_bytes(16)) . '.txt';
-                $i++;
-            }
-
-            if (!file_exists($paymentCache . $paymentFile)) {
-                $later_content = serialize(
-                    array(
-                        'from' => $from,
-                        'fromname' => $fromname,
-                        'recipients' => $recipients,
-                        'subject' => $subject,
-                        'body' => $body,
-                        'attachment' => $attachment,
-                        'isHtml' => $isHtml,
-                        'alt_sender' => $alt_sender
-                    )
-                );
-                File::write($paymentCache . $paymentFile, $later_content);
-                // The queued message holds what the visitor typed: the folder must not be listed or served.
-                UploadDirectoryProtection::ensure($paymentCache, true);
-            }
+            $this->paymentCache()->store(
+                (int) $this->processor->form,
+                (int) $this->processor->record_id,
+                'admin',
+                array(
+                    'from' => $from,
+                    'fromname' => $fromname,
+                    'recipients' => $recipients,
+                    'subject' => $subject,
+                    'body' => $body,
+                    'attachment' => $attachment,
+                    'isHtml' => $isHtml,
+                    'alt_sender' => $alt_sender
+                )
+            );
         }
     }
 
@@ -688,6 +674,11 @@ final class NotificationEngine
         if ($translation !== null) {
             $res = $translation;
         }
+    }
+
+    private function paymentCache(): PaymentNotificationCache
+    {
+        return PaymentNotificationCache::fromTemporaryPath((string) $this->processor->app->get('tmp_path'));
     }
 
     private function quickModeTranslationResolver(): TranslationResolver
@@ -1219,56 +1210,42 @@ final class NotificationEngine
             }
         } else {
 
-            $paymentCache = JPATH_SITE . '/media/breezingforms/payment_cache/';
-            $paymentFile = $this->processor->form . '_' . $this->processor->record_id . '_mailback_' . bin2hex(random_bytes(16)) . '.txt';
-            $i = 0;
-            while (file_exists($paymentCache . $paymentFile)) {
-                if ($i > 1000) {
-                    break;
-                }
-                $paymentFile = $this->processor->form . '_' . $this->processor->record_id . '_mailback_' . bin2hex(random_bytes(16)) . '.txt';
-                $i++;
-            }
-
-            if (!file_exists($paymentCache . $paymentFile)) {
-
-                for ($i = 0; $i < $recipientsSize; $i++) {
-                    if (isset($mailbackfiles[$recipients[$i]])) {
-                        if (!is_array($attachment) && $attachment != '') {
-                            $attachment = array_merge($mailbackfiles[$recipients[$i]], array($attachment));
-                        } else if (is_array($attachment)) {
-                            $attachment = array_merge($mailbackfiles[$recipients[$i]], $attachment);
-                        } else {
-                            $attachment = $mailbackfiles[$recipients[$i]];
-                        }
+            for ($i = 0; $i < $recipientsSize; $i++) {
+                if (isset($mailbackfiles[$recipients[$i]])) {
+                    if (!is_array($attachment) && $attachment != '') {
+                        $attachment = array_merge($mailbackfiles[$recipients[$i]], array($attachment));
+                    } else if (is_array($attachment)) {
+                        $attachment = array_merge($mailbackfiles[$recipients[$i]], $attachment);
+                    } else {
+                        $attachment = $mailbackfiles[$recipients[$i]];
                     }
                 }
-
-                if (is_array($attachment) && count($signatures) > 0) {
-
-                    $attachment = array_merge($attachment, $signatures);
-                } else if (!is_array($attachment) && count($signatures) > 0) {
-                    $attachment = array_merge(array($attachment), $signatures);
-                } else if (count($signatures) > 0) {
-                    $attachment = $signatures;
-                }
-
-                $later_content = serialize(
-                    array(
-                        'from' => $from,
-                        'fromname' => $fromname,
-                        'recipients' => $recipients,
-                        'subject' => $subject,
-                        'body' => $body,
-                        'attachment' => $attachment,
-                        'isHtml' => $isHtml,
-                        'alt_sender' => $alt_sender
-                    )
-                );
-                File::write($paymentCache . $paymentFile, $later_content);
-                // The queued message holds what the visitor typed: the folder must not be listed or served.
-                UploadDirectoryProtection::ensure($paymentCache, true);
             }
+
+            if (is_array($attachment) && count($signatures) > 0) {
+
+                $attachment = array_merge($attachment, $signatures);
+            } else if (!is_array($attachment) && count($signatures) > 0) {
+                $attachment = array_merge(array($attachment), $signatures);
+            } else if (count($signatures) > 0) {
+                $attachment = $signatures;
+            }
+
+            $this->paymentCache()->store(
+                (int) $this->processor->form,
+                (int) $this->processor->record_id,
+                'mailback',
+                array(
+                    'from' => $from,
+                    'fromname' => $fromname,
+                    'recipients' => $recipients,
+                    'subject' => $subject,
+                    'body' => $body,
+                    'attachment' => $attachment,
+                    'isHtml' => $isHtml,
+                    'alt_sender' => $alt_sender
+                )
+            );
         }
 
         $this->processor->mailbackRecipients = $recipients;

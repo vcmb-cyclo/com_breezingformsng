@@ -1,11 +1,15 @@
 # BreezingForms NG
 
+[![Test and Build Package](https://github.com/vcmb-cyclo/com_breezingformsng/actions/workflows/build-package.yml/badge.svg)](https://github.com/vcmb-cyclo/com_breezingformsng/actions/workflows/build-package.yml)
+[![PHPStan level 8](https://img.shields.io/badge/PHPStan-level%208-brightgreen?logo=php)](phpstan.neon.dist)
+
 **Form builder for Joomla 6.** BreezingForms NG ("new generation") is the community-maintained
 continuation of BreezingForms by Crosstec, rebuilt on the native Joomla 6 MVC for PHP 8.3+.
 It lets you build multi-page forms visually, store and export submissions, send notification
 emails, take payments, and extend each form with PHP and JavaScript.
 
 - Website: <https://breezingforms-ng.vcmb.fr>
+- Code quality: the component's own PHP code is analysed with PHPStan 2.x at level 8 with an empty baseline (bundled libraries and `vendor/` excluded), by the CI workflow above, together with PHPUnit and Playwright tests
 - Releases: <https://github.com/vcmb-cyclo/com_breezingformsng/releases>
 - Upgrading from Crosstec BreezingForms: see [Upgrading from BreezingForms](#upgrading-from-breezingforms-crosstec)
 - AI agents: [`llms.txt`](llms.txt) and the agent skill in [`skills/breezingformsng`](skills/breezingformsng/SKILL.md)

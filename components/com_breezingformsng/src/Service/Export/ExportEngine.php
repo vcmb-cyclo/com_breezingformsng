@@ -29,6 +29,7 @@ use Joomla\Event\Event;
 use Joomla\Event\EventInterface;
 use Joomla\CMS\Uri\Uri;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\IntegratorRuntime;
+use Vcmb\Component\BreezingformsNG\Site\Service\Notification\TemplateFileResolver;
 use Joomla\Filesystem\Folder;
 use Joomla\Filesystem\File;
 use Joomla\CMS\Router\Route;
@@ -767,16 +768,17 @@ final class ExportEngine
         $tz = 'UTC';
         $tz = new DateTimeZone($this->processor->app->get('offset'));
 
-        $file = JPATH_SITE . '/media/breezingforms/pdftpl/' . $this->processor->formrow->name . '_pdf_attachment.php';
-        if (!file_exists($file)) {
+        $pdfTemplateDirectory = JPATH_SITE . '/media/breezingforms/pdftpl';
+        $pdfFormName = (string) ($this->processor->formrow->name ?? '');
+
+        $file = TemplateFileResolver::resolve($pdfTemplateDirectory, $pdfFormName, '_pdf_attachment.php');
+        if ($file === '') {
             $file = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/pdftpl/pdf_attachment.php';
         }
 
         if ($mailback) {
-            $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/'
-                . $this->processor->formrow->name
-                . '_pdf_mailback_attachment.php';
-            if (file_exists($mb_file)) {
+            $mb_file = TemplateFileResolver::resolve($pdfTemplateDirectory, $pdfFormName, '_pdf_mailback_attachment.php');
+            if ($mb_file !== '') {
                 $file = $mb_file;
             } else {
                 $mb_file = JPATH_SITE . '/media/breezingforms/pdftpl/pdf_mailback_attachment.php';

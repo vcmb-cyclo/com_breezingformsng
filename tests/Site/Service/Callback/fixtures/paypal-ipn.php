@@ -88,7 +88,7 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Callback {
         {
             return [['elements' => [[
                 'internalType' => 'bfPayPal',
-                'options' => ['token' => '', 'business' => 'shop@example.com', 'testaccount' => false, 'sendNotificationAfterPayment' => false],
+                'options' => ['token' => '', 'business' => 'shop@example.com', 'testaccount' => false, 'sendNotificationAfterPayment' => getenv('IPN_STALE_READ') !== false],
             ]]]];
         }
     }
@@ -102,12 +102,18 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Callback {
         }
         public function find(int $recordId): object
         {
-            return $this->record;
+            // IPN_STALE_READ: the check of a concurrent notification ran before the other one stored.
+            return getenv('IPN_STALE_READ') !== false ? (object) ['paypal_tx_id' => ''] : $this->record;
         }
-        public function storeTransaction(int $recordId, string $transaction, string $date, int $test): void
+        public function storeTransactionOnce(int $recordId, string $transaction, string $date, int $test): bool
         {
+            if ($this->record->paypal_tx_id !== '') {
+                return false;
+            }
             $this->writes++;
             $this->record->paypal_tx_id = $transaction;
+
+            return true;
         }
     }
     final class PaymentDownloadService
@@ -117,6 +123,11 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Callback {
 
 namespace {
     define('_JEXEC', 1);
+    $notifications = 0;
+    function bf_sendNotificationByPaymentCache(int $form, int $record, string $target): void
+    {
+        $GLOBALS['notifications']++;
+    }
     define('JPATH_SITE', sys_get_temp_dir() . '/bf-no-paypal-hook-' . bin2hex(random_bytes(8)));
     final class SyntheticInput
     {
@@ -163,5 +174,10 @@ namespace {
     $http->result = 'VERIFIED';
     $callback->confirmIpn();
     $callback->confirmIpn();
-    echo json_encode([$afterInvalid, $records->writes, $records->record->paypal_tx_id], JSON_THROW_ON_ERROR);
+    echo json_encode(
+        getenv('IPN_STALE_READ') !== false
+            ? [$records->writes, $notifications]
+            : [$afterInvalid, $records->writes, $records->record->paypal_tx_id],
+        JSON_THROW_ON_ERROR
+    );
 }

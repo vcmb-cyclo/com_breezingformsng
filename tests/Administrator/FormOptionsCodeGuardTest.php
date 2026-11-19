@@ -56,6 +56,26 @@ final class FormOptionsCodeGuardTest extends TestCase
         self::assertSame(['script2code', 'piece1code'], $result['ignored']);
     }
 
+    public function testAnEditorWithoutTheCodeRightCanStillChooseWhichLibraryScriptOrPieceRuns(): void
+    {
+        $result = $this->save(7, 'core.edit', ['title' => 'T', 'script1id' => '4', 'piece2id' => '12', 'script2cond' => '2', 'piece2code' => 'evil();']);
+
+        self::assertNull($result['error']);
+        self::assertSame('4', $result['written']['script1id']);
+        self::assertSame('12', $result['written']['piece2id']);
+        self::assertSame('2', $result['written']['script2cond']);
+        self::assertArrayNotHasKey('piece2code', $result['written']);
+        self::assertSame(['piece2code'], $result['ignored']);
+    }
+
+    public function testAnEditorWithTheCodeRightChangesTheCodeAndThePiece(): void
+    {
+        $result = $this->save(7, 'core.edit,breezingformsng.code', ['title' => 'T', 'piece2id' => '12']);
+
+        self::assertSame('12', $result['written']['piece2id']);
+        self::assertSame([], $result['ignored']);
+    }
+
     public function testAnEditorWithTheCodeRightChangesTheCode(): void
     {
         $result = $this->save(7, 'core.edit,breezingformsng.code', ['title' => 'T', 'piece1code' => 'echo 1;']);

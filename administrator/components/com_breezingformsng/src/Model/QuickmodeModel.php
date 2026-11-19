@@ -16,6 +16,8 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\Filesystem\File;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormCodeGuard;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\QuickmodeThemePath;
 use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
 use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions;
@@ -23,6 +25,17 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions;
 class QuickmodeModel extends BaseDatabaseModel
 {
     private DatabaseInterface $db;
+
+    /** @var list<string> The code columns of the last save whose change was not kept for lack of the code permission. */
+    private array $ignoredCodeColumns = [];
+
+    /**
+     * The code columns of the stored elements of the form being saved, by element id,
+     * when the user may not write code; null when the user may.
+     *
+     * @var array<int, array<string, mixed>>|null
+     */
+    private ?array $storedElementCode = null;
 
     /**
      * @param array<string, mixed> $config
@@ -52,6 +65,8 @@ class QuickmodeModel extends BaseDatabaseModel
                 $dataObject['properties']['themeusebootstraplegacy']
             );
         }
+
+        $this->guardCode($form, $dataObject);
 
         $areas = new \stdClass();
         $areas->container    = [];
@@ -95,6 +110,76 @@ class QuickmodeModel extends BaseDatabaseModel
             count($dataObject['children'] ?? []),
             $published
         );
+    }
+
+    /**
+     * The code columns of the last save that were left as stored because the user
+     * may edit forms but not code (the editor tree, the elements and the file path of a payment).
+     *
+     * @return list<string>
+     */
+    public function getIgnoredCodeColumns(): array
+    {
+        return $this->ignoredCodeColumns;
+    }
+
+    /**
+     * A user without the code permission keeps the code of the elements, the file
+     * path of a payment download and the script run after the submission as they
+     * are stored; a new form or element starts without any. The tree is corrected
+     * too: it is saved with the form and read back by the editor.
+     *
+     * @param array<string, mixed> $dataObject
+     */
+    private function guardCode(int $form, array &$dataObject): void
+    {
+        $this->ignoredCodeColumns = [];
+        $this->storedElementCode  = null;
+
+        if (AreaAccess::isAllowed($this->getCurrentUser(), AreaAccess::CODE)) {
+            return;
+        }
+
+        $elements  = [];
+        $filepaths = [];
+        $stored    = null;
+
+        if ($form > 0) {
+            $db    = $this->db;
+            $query = $db->createQuery()
+                ->select($db->quoteName(array_merge(['id'], FormCodeGuard::ELEMENT_CODE_COLUMNS)))
+                ->from($db->quoteName('#__facileforms_elements'))
+                ->where($db->quoteName('form') . ' = :form')
+                ->bind(':form', $form, ParameterType::INTEGER);
+
+            foreach ($db->setQuery($query)->loadAssocList() ?: [] as $row) {
+                $elements[(int) $row['id']] = $row;
+            }
+
+            $query = $db->createQuery()
+                ->select($db->quoteName(['script2cond', 'script2code', 'template_areas']))
+                ->from($db->quoteName('#__facileforms_forms'))
+                ->where($db->quoteName('id') . ' = :form')
+                ->bind(':form', $form, ParameterType::INTEGER);
+            $row = $db->setQuery($query)->loadAssoc();
+
+            if (is_array($row)) {
+                $stored = $row;
+                $areas  = json_decode((string) $row['template_areas'], true);
+
+                foreach (is_array($areas[0]['elements'] ?? null) ? $areas[0]['elements'] : [] as $element) {
+                    if (is_array($element) && isset($element['dbId'], $element['options']['filepath'])) {
+                        $filepaths[(int) $element['dbId']] = (string) $element['options']['filepath'];
+                    }
+                }
+            }
+        }
+
+        $guarded = (new FormCodeGuard())->applyToTree($dataObject, $elements, $stored, $filepaths, false);
+
+        $dataObject               = $guarded['tree'];
+        $this->ignoredCodeColumns = $guarded['ignored'];
+        $this->storedElementCode  = $elements;
     }
 
     public function getFormOptions(int $form): ?\stdClass
@@ -682,9 +767,47 @@ class QuickmodeModel extends BaseDatabaseModel
         $keepIds      = [];
         $elementCount = 0;
 
+        // Elements this form owns: an id outside this set (another form's element) is never updated.
+        $ownedQuery = $this->db->createQuery()
+            ->select($this->db->quoteName('id'))
+            ->from($this->db->quoteName('#__facileforms_elements'))
+            ->where($this->db->quoteName('form') . ' = :form')
+            ->bind(':form', $form, ParameterType::INTEGER);
+        $ownedIds = array_map('intval', (array) $this->db->setQuery($ownedQuery)->loadColumn());
+
         foreach ($areas[0]['elements'] as $element) {
             $elementId = -1;
             $fields = $this->elementFields($element, $form, $elementCount);
+
+            if ($element['dbId'] != 0) {
+                // Fix ids of copied elements
+                $elementName = (string) $element['name'];
+                $checkQuery = $this->db->createQuery()
+                    ->select('id')
+                    ->from($this->db->quoteName('#__facileforms_elements'))
+                    ->where($this->db->quoteName('name') . ' = :name')
+                    ->where($this->db->quoteName('form') . ' = :form')
+                    ->bind(':name', $elementName, ParameterType::STRING)
+                    ->bind(':form', $form, ParameterType::INTEGER);
+                $this->db->setQuery($checkQuery);
+
+                $elementCheck = $this->db->loadObjectList();
+
+                foreach ($elementCheck as $check) {
+                    if ((int) $check->id !== (int) $element['dbId']) {
+                        $element['dbId'] = (int) $check->id;
+                        $areas[0]['elements'][$elementCount]['dbId'] = (int) $check->id;
+                        $this->updateDbId($dataObject, $areas[0]['elements'][$elementCount]['qId'], (int) $check->id);
+                        $fields = $this->elementFields($element, $form, $elementCount);
+                    }
+                }
+
+                if (!in_array((int) $element['dbId'], $ownedIds, true)) {
+                    // Not an element of this form: treated as a new element, the other form's row is untouched.
+                    $element['dbId'] = 0;
+                    $areas[0]['elements'][$elementCount]['dbId'] = 0;
+                }
+            }
 
             if ($element['dbId'] == 0) {
                 $columns = array_keys($fields);
@@ -708,35 +831,21 @@ class QuickmodeModel extends BaseDatabaseModel
                     $this->updateDbId($dataObject, $areas[0]['elements'][$elementCount]['qId'], $elementId);
                 }
             } else {
-                // Fix ids of copied elements
-                $elementName = (string) $element['name'];
-                $checkQuery = $this->db->createQuery()
-                    ->select('id')
-                    ->from($this->db->quoteName('#__facileforms_elements'))
-                    ->where($this->db->quoteName('name') . ' = :name')
-                    ->where($this->db->quoteName('form') . ' = :form')
-                    ->bind(':name', $elementName, ParameterType::STRING)
-                    ->bind(':form', $form, ParameterType::INTEGER);
-                $this->db->setQuery($checkQuery);
+                $dbId = (int) $element['dbId'];
 
-                $elementCheck = $this->db->loadObjectList();
-
-                foreach ($elementCheck as $check) {
-                    if ((int) $check->id !== (int) $element['dbId']) {
-                        $element['dbId'] = (int) $check->id;
-                        $areas[0]['elements'][$elementCount]['dbId'] = (int) $check->id;
-                        $this->updateDbId($dataObject, $areas[0]['elements'][$elementCount]['qId'], (int) $check->id);
-                        $fields = $this->elementFields($element, $form, $elementCount);
-                    }
+                if ($this->storedElementCode !== null) {
+                    // The element found by its name may differ from the one of the tree: it keeps its own code.
+                    $fields = (new FormCodeGuard())->applyToElement($fields, $this->storedElementCode[$dbId] ?? null, false)['data'];
                 }
 
-                $dbId = (int) $element['dbId'];
                 $query = $this->db->createQuery()->update($this->db->quoteName('#__facileforms_elements'));
                 foreach (array_keys($fields) as $col) {
                     $query->set($this->db->quoteName($col) . ' = :' . $col);
                 }
                 $query->where($this->db->quoteName('id') . ' = :dbId')
-                    ->bind(':dbId', $dbId, ParameterType::INTEGER);
+                    ->where($this->db->quoteName('form') . ' = :ownerForm')
+                    ->bind(':dbId', $dbId, ParameterType::INTEGER)
+                    ->bind(':ownerForm', $form, ParameterType::INTEGER);
                 $this->bindFields($query, $fields);
 
                 try {

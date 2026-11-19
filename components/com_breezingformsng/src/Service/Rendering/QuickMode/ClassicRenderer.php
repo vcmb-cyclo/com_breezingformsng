@@ -317,6 +317,14 @@ float:left;
 
         $this->dataObject = json_decode(bf_b64dec($this->p->formrow->template_code), true);
         $this->rootMdata = $this->dataObject['properties'];
+        if (array_key_exists('theme', $this->rootMdata)) {
+            $this->rootMdata['theme'] = QuickModeThemeName::resolve(
+                JPATH_SITE . '/media/breezingforms/themes',
+                $this->rootMdata['theme'],
+                [],
+                'none'
+            );
+        }
 
         if ($this->p->app->getInput()->getString('ff_applic', '') != 'mod_facileforms' && $this->p->app->getInput()->getString('ff_applic', '') != 'plg_facileforms') {
             /* translatables */

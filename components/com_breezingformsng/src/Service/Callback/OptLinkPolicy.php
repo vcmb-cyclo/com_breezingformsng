@@ -23,8 +23,11 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Callback;
  */
 final class OptLinkPolicy
 {
-    /** The tokens are made of letters and digits, 20 of them: a shorter one is not one of ours. */
-    private const TOKEN = '/^[A-Za-z0-9]{16,64}$/';
+    /**
+     * The mail carries the base64 of 20 letters and digits: 28 letters and digits ending with "=".
+     * Base64 of letters and digits never holds "+" or "/". A shorter token is not one of ours.
+     */
+    private const TOKEN = '/^[A-Za-z0-9]{16,64}={0,2}$/D';
 
     public function isUsable(string $recordId, string $token): bool
     {

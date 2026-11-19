@@ -21,6 +21,7 @@ use Joomla\String\StringHelper;
 use Joomla\CMS\Filter\OutputFilter;
 use Joomla\CMS\Mail\MailerFactoryInterface;
 use Joomla\CMS\Mail\MailerInterface;
+use Vcmb\Component\BreezingformsNG\Site\Service\Notification\PaymentNotificationCache;
 
 function bf_sanitizeFilename($fileName, $defaultIfEmpty = 'upload', $separator = '_', $lowerCase = true)
 {
@@ -396,22 +397,12 @@ function bf_sendNotificationBySession($session)
 
 function bf_sendNotificationByPaymentCache($formId, $recordId, $type = 'admin')
 {
-	$sourcePath = JPATH_SITE . '/media/breezingforms/payment_cache/';
-	$cacheFile = null;
-	if (@file_exists($sourcePath) && @is_readable($sourcePath) && @is_dir($sourcePath) && $handle = @opendir($sourcePath)) {
-		while (false !== ($file = @readdir($handle))) {
-			if ($file != "." && $file != "..") {
-				$parts = explode('_', $file);
-				if (count($parts) == 4) {
-					if ($parts[0] == intval($formId) && $parts[1] == intval($recordId) && $parts[2] == $type) {
-						$cacheFile = $sourcePath . $file;
-						break;
-					}
-				}
-			}
-		}
-		@closedir($handle);
-	}
+	// Current queue under the Joomla tmp path; the legacy media folder is read for one release only.
+	$queue = PaymentNotificationCache::fromTemporaryPath(
+		(string) Factory::getApplication()->get('tmp_path'),
+		JPATH_SITE . '/media/breezingforms/payment_cache/'
+	);
+	$cacheFile = $queue->find((int) $formId, (int) $recordId, (string) $type);
 
 	if ($cacheFile === null) {
 		return true;
@@ -432,9 +423,9 @@ function bf_sendNotificationByPaymentCache($formId, $recordId, $type = 'admin')
 			return true;
 		}
 
-		// The queue holds only arrays and strings: no object is ever rebuilt from the file.
-		$contents = unserialize((string) stream_get_contents($cacheHandle), ['allowed_classes' => false]);
-		if (!is_array($contents) || $contents === []) {
+		// JSON (or, for legacy files, serialized data without classes) validated to the expected keys and types.
+		$contents = $queue->decode($cacheFile, (string) stream_get_contents($cacheHandle));
+		if ($contents === null) {
 			return false;
 		}
 
