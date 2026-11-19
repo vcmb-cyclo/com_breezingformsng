@@ -165,16 +165,32 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
         </section>
 
         <section class="card" id="bf-tools-sample" aria-labelledby="bf-tools-sample-title">
-            <div class="card-header">
+            <?php
+            $selectableSamples = 0;
+            foreach ($view->samples as $candidate) {
+                $selectableSamples += ($candidate['installedId'] <= 0 && $view->canInstallSample && !$candidate['nameTaken']) ? 1 : 0;
+            }
+            ?>
+            <div class="card-header d-flex justify-content-between align-items-center gap-3">
                 <h2 class="h5 mb-0" id="bf-tools-sample-title"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_TITLE'); ?></h2>
+                <?php if ($selectableSamples > 0) : ?>
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" id="bf-tools-sample-all" name="checkall-toggle" form="bf-tools-sample-form"
+                            autocomplete="off" onclick="Joomla.checkAll(this, 'bf-sample-cb-')">
+                        <label class="form-check-label" for="bf-tools-sample-all">
+                            <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_SELECT_ALL'); ?>
+                            <span class="text-body-secondary small"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_SELECT_ALL_HINT'); ?></span>
+                        </label>
+                    </div>
+                <?php endif; ?>
             </div>
-            <form class="card-body" id="bf-tools-sample-form" method="post"
+            <form class="card-body pt-2" id="bf-tools-sample-form" method="post"
                 action="<?= Route::_('index.php?option=com_breezingformsng&task=packages.installSample'); ?>"
                 data-confirm="<?= $view->escape(Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_CONFIRM')); ?>">
-                <p class="text-muted small"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_DESC'); ?></p>
+                <p class="text-body-secondary small mb-3"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_DESC'); ?></p>
                 <?php foreach ($view->sampleGroups as $category => $slugs) : ?>
                     <fieldset class="mb-3" data-sample-group="<?= $view->escape($category); ?>">
-                        <legend class="h6 text-uppercase text-body-secondary fs-6 mb-2"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_GROUP_' . strtoupper($category)); ?></legend>
+                        <legend class="bf-sample-group small text-uppercase text-body-secondary fw-semibold border-bottom pb-2 mb-0"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_GROUP_' . strtoupper($category)); ?></legend>
                         <?php foreach ($slugs as $slug) : ?>
                             <?php
                             $sample = $view->samples[$slug];
@@ -182,21 +198,23 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
                             $label = Text::_($key . '_ITEM');
                             $installed = $sample['installedId'] > 0;
                             $selectable = !$installed && $view->canInstallSample && !$sample['nameTaken'];
-                            $inputId = 'bf-tools-sample-' . $slug;
+                            // Joomla.checkAll only touches the ids with this prefix: an installed sample stays ticked.
+                            $inputId = ($selectable ? 'bf-sample-cb-' : 'bf-sample-installed-') . $slug;
                             ?>
-                            <div class="form-check d-flex align-items-start gap-2 ps-0 py-1" data-sample="<?= $view->escape($slug); ?>">
-                                <input class="form-check-input mt-1 ms-0 flex-shrink-0" type="checkbox" name="samples[]"
+                            <div class="bf-sample-row position-relative d-flex align-items-start gap-3 px-2 py-3 border-bottom<?= $selectable ? '' : ' is-fixed'; ?>" data-sample="<?= $view->escape($slug); ?>">
+                                <input class="form-check-input position-relative z-2 mt-1 ms-0 flex-shrink-0" type="checkbox" name="samples[]"
                                     id="<?= $view->escape($inputId); ?>" value="<?= $view->escape($slug); ?>"
                                     data-label="<?= $view->escape($label); ?>"
                                     <?= $installed ? 'checked' : ''; ?> <?= $selectable ? '' : 'disabled'; ?>>
-                                <label class="form-check-label flex-grow-1" for="<?= $view->escape($inputId); ?>">
-                                    <strong><?= $view->escape($label); ?></strong>
-                                    <?php if ($installed) : ?>
-                                        <span class="badge bg-success ms-1" data-tools-state="installed"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_INSTALLED'); ?></span>
-                                    <?php endif; ?>
-                                    <span class="d-block text-muted small"><?= Text::_($key . '_DESC'); ?></span>
+                                <label class="bf-sample-text flex-grow-1<?= $selectable ? ' stretched-link' : ''; ?>" for="<?= $view->escape($inputId); ?>">
+                                    <span class="bf-sample-name d-block fw-medium"><?= $view->escape($label); ?>
+                                        <?php if ($installed) : ?>
+                                            <span class="badge bg-success-subtle text-success-emphasis ms-1" data-tools-state="installed"><span class="icon-check" aria-hidden="true"></span> <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_INSTALLED'); ?></span>
+                                        <?php endif; ?>
+                                    </span>
+                                    <span class="bf-sample-desc d-block text-body-secondary"><?= Text::_($key . '_DESC'); ?></span>
                                     <?php if ($sample['nameTaken']) : ?>
-                                        <span class="d-block text-muted small" data-tools-state="name-taken"><?= Text::sprintf('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY', $view->escape($label)); ?></span>
+                                        <span class="d-block text-body-secondary small" data-tools-state="name-taken"><?= Text::sprintf('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_ALREADY', $view->escape($label)); ?></span>
                                     <?php endif; ?>
                                 </label>
                                 <?php if ($sample['manageId'] > 0) : ?>
@@ -211,10 +229,15 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
                 <?php endforeach; ?>
                 <?php if ($view->canInstallSample) : ?>
                     <?= HTMLHelper::_('form.token'); ?>
-                    <button type="submit" class="btn btn-primary btn-sm" id="bf-tools-sample-install">
-                        <span class="icon-upload" aria-hidden="true"></span>
-                        <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_INSTALL'); ?>
-                    </button>
+                    <input type="hidden" name="boxchecked" value="0">
+                    <div class="position-sticky bottom-0 bg-body border-top d-flex align-items-center flex-wrap gap-3 py-3">
+                        <button type="submit" class="btn btn-primary" id="bf-tools-sample-install">
+                            <span class="icon-upload" aria-hidden="true"></span>
+                            <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_INSTALL_SELECTION'); ?>
+                            <span id="bf-tools-sample-count"></span>
+                        </button>
+                        <span class="text-body-secondary small" id="bf-tools-sample-summary" aria-live="polite"><?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_HELP_NONE'); ?></span>
+                    </div>
                 <?php endif; ?>
             </form>
         </section>

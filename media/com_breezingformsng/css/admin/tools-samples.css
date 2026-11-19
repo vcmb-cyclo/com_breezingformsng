@@ -1,0 +1,29 @@
+/* Tools page, "Sample data" card: the rhythm of the list and the focus of a row. The colours are the
+   Bootstrap and Atum variables, so that the dark scheme and a customised template keep working. */
+.bf-sample-group {
+    font-size: .75rem;
+    letter-spacing: .08em;
+}
+
+.bf-sample-name {
+    font-size: .9375rem;
+}
+
+.bf-sample-desc {
+    font-size: .8125rem;
+    max-width: 60ch;
+}
+
+/* A sample that can be installed is ticked by a click anywhere on its row. */
+.bf-sample-row:not(.is-fixed) .bf-sample-text {
+    cursor: pointer;
+}
+
+.bf-sample-row:not(.is-fixed):not(.row-selected):hover {
+    background-color: var(--bs-tertiary-bg);
+}
+
+.bf-sample-row:focus-within {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: -2px;
+}

@@ -349,6 +349,13 @@
     },
 
     {
+      "name": "com_breezingformsng.tools-samples-style",
+      "type": "style",
+      "uri": "media/com_breezingformsng/css/admin/tools-samples.css",
+      "version": "auto"
+    },
+
+    {
       "name": "com_breezingformsng.mcp-status",
       "type": "style",
       "uri": "media/com_breezingformsng/css/admin/mcp-status.css",
