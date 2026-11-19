@@ -217,6 +217,40 @@ test.describe('forms', () => {
         expect(row.prevwidth).toBe('1234');
     });
 
+    test('the tabs of the add-ons follow their plugin: a disabled plugin has no tab, and its settings are kept', async () => {
+        const optionsUrl = `${ADMIN}?option=com_breezingformsng&view=forms&layout=edit&id=${formId}&advanced=1`;
+        const addons = ['mailchimp', 'salesforce', 'dropbox'];
+        const enabled = (element) => JSON.parse(db('plugin', 'breezingforms_addons', element)).enabled;
+        const before = Object.fromEntries(addons.map((element) => [element, enabled(element)]));
+
+        try {
+            for (const element of addons) {
+                db('plugin', 'breezingforms_addons', element, '1');
+            }
+            db('set', String(formId), 'mailchimp_list_id', 'list-e2e');
+
+            await page.goto(optionsUrl);
+            for (const element of addons) {
+                await expect(page.locator(`#tab-${element}`)).toHaveCount(1);
+            }
+
+            db('plugin', 'breezingforms_addons', 'mailchimp', '0');
+            await page.goto(optionsUrl);
+            await expect(page.locator('#tab-mailchimp')).toHaveCount(0);
+            await expect(page.locator('#pane-mailchimp')).toHaveCount(0);
+            await expect(page.locator('#tab-salesforce')).toHaveCount(1);
+            await expect(page.locator('#tab-dropbox')).toHaveCount(1);
+
+            // Saving with the tab hidden must not erase what it holds.
+            await Promise.all([page.waitForNavigation(), page.evaluate(() => window.Joomla.submitbutton('forms.save'))]);
+            expect(formRow(formId).mailchimp_list_id).toBe('list-e2e');
+        } finally {
+            for (const element of addons) {
+                db('plugin', 'breezingforms_addons', element, String(before[element]));
+            }
+        }
+    });
+
     test('a QuickMode save keeps the email settings', async () => {
         await openQuickMode();
         await saveQuickMode();
