@@ -52,8 +52,15 @@
             <errorLevel type="suppress">
                 <referencedFunction name="bf_tooltipText"/>
                 <referencedFunction name="bf_sendNotificationByPaymentCache"/>
+                <referencedFunction name="bf_b64dec"/>
             </errorLevel>
         </UndefinedFunction>
+        <UndefinedConstant>
+            <errorLevel type="suppress">
+                <file name="components/com_breezingformsng/src/Service/Runtime/CodeToolsRuntime.php"/>
+                <file name="components/com_breezingformsng/src/Service/Runtime/TraceRuntime.php"/>
+            </errorLevel>
+        </UndefinedConstant>
     </issueHandlers>
 
     <stubs>

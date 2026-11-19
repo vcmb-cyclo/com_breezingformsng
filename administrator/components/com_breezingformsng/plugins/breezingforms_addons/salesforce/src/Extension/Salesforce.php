@@ -28,6 +28,7 @@ final class Salesforce extends CMSPlugin implements SubscriberInterface
     protected $autoloadLanguage = true;
 
     /** @return array<string, string> */
+    #[\Override]
     public static function getSubscribedEvents(): array
     {
         return [AfterSubmitEvent::NAME => 'onAfterSubmit'];

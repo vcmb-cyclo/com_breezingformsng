@@ -550,14 +550,19 @@ float:left;
                 }
                 /* translatables end */
 
+                $escapedName = htmlspecialchars(
+                    (string) ($mdata['name'] ?? ''),
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                );
                 if ($mdata['bfType'] == 'section') {
-                    echo '<div class="bfFieldset-wrapper ' . $wrapper . ' bfClearfix"><div class="bfFieldset-tl"><div class="bfFieldset-tr"><div class="bfFieldset-t"></div></div></div><div class="bfFieldset-l"><div class="bfFieldset-r"><div class="bfFieldset-m bfClearfix"><fieldset' . (isset($mdata['off']) && $mdata['off'] ? ' style="display:none" ' : '') . '' . (isset($mdata['off']) && $mdata['off'] ? '' : $class) . '' . ($mdata['name'] != "" ? ' id="' . $mdata['name'] . '"' : '') . '>' . "\n";
+                    echo '<div class="bfFieldset-wrapper ' . $wrapper . ' bfClearfix"><div class="bfFieldset-tl"><div class="bfFieldset-tr"><div class="bfFieldset-t"></div></div></div><div class="bfFieldset-l"><div class="bfFieldset-r"><div class="bfFieldset-m bfClearfix"><fieldset' . (isset($mdata['off']) && $mdata['off'] ? ' style="display:none" ' : '') . '' . (isset($mdata['off']) && $mdata['off'] ? '' : $class) . '' . ($escapedName !== '' ? ' id="' . $escapedName . '"' : '') . '>' . "\n";
                     if (trim($mdata['title']) != '') {
                         echo '<legend><span class="bfLegend-l"><span class="bfLegend-r"><span class="bfLegend-m">' . htmlentities(trim($mdata['title']), ENT_QUOTES, 'UTF-8') . '</span></span></span></legend>' . "\n";
                     }
                 } elseif ($mdata['bfType'] == 'normal') {
                     if (isset($dataObject['properties']['name']) && $dataObject['properties']['name'] != '') {
-                        echo '<div ' . (isset($mdata['off']) && $mdata['off'] ? 'style="display:none" ' : '') . 'class="bfNoSection"' . ($mdata['name'] != "" ? ' id="' . $mdata['name'] . '"' : '') . '>' . "\n";
+                        echo '<div ' . (isset($mdata['off']) && $mdata['off'] ? 'style="display:none" ' : '') . 'class="bfNoSection"' . ($escapedName !== '' ? ' id="' . $escapedName . '"' : '') . '>' . "\n";
                     }
                 }
 

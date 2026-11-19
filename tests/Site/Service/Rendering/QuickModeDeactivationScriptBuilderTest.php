@@ -31,7 +31,7 @@ final class QuickModeDeactivationScriptBuilderTest extends TestCase
     {
         $script = (new QuickModeDeactivationScriptBuilder())->section('billing"\nsection');
 
-        self::assertStringContainsString('billing\\"', $script);
+        self::assertStringContainsString('billing\\u0022', $script);
         self::assertStringContainsString('section', $script);
     }
 

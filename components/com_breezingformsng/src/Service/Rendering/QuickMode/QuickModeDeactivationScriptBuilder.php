@@ -20,14 +20,20 @@ final class QuickModeDeactivationScriptBuilder
     public function section(string $name, string $newline = "\n"): string
     {
         return '<script type="text/javascript">bfRegisterDeactivatedSection('
-            . json_encode($name)
+            . json_encode(
+                $name,
+                JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR
+            )
             . ');</script>' . $newline;
     }
 
     public function field(string $name, string $newline = "\n"): string
     {
         return '<script type="text/javascript">bfRegisterDeactivatedField('
-            . json_encode($name)
+            . json_encode(
+                $name,
+                JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR
+            )
             . ');</script>' . $newline;
     }
 }
