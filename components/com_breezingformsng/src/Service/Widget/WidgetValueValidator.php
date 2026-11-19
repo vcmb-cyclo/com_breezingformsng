@@ -169,7 +169,7 @@ final class WidgetValueValidator
         }
 
         $allowed = array_map(
-            static fn ($code): string => strtoupper((string) $code),
+            static fn (mixed $code): string => strtoupper((string) $code),
             \is_array($options['countries'] ?? null) ? $options['countries'] : []
         );
 

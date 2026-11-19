@@ -619,13 +619,15 @@ final class McpFormWriter
         }
 
         $pagesUpdated = [];
-        foreach ($pageIntroByNumber as $pageNumber => $intro) {
+        foreach ($pageIntroByNumber as $introPage => $intro) {
+            $pageNumber = (int) $introPage;
             $resultPages[$pageNumber - 1]['properties']['pageIntro'] = $intro;
             $resultPages[$pageNumber - 1]['properties']['pageNumber'] = $pageNumber;
             $pagesUpdated[] = $pageNumber;
         }
 
-        foreach ($resultPages as $pageIndex => &$page) {
+        foreach ($resultPages as $pageKey => &$page) {
+            $pageIndex = (int) $pageKey;
             foreach ($movedFields[$pageIndex] ?? [] as $node) {
                 $page['children'][] = $node;
             }
@@ -635,7 +637,7 @@ final class McpFormWriter
                 }
             }
             foreach ($page['children'] as $index => &$node) {
-                $node['properties']['orderNumber'] = $index + 1;
+                $node['properties']['orderNumber'] = (int) $index + 1;
                 $allFields[] = $node['properties']['bfName'];
             }
             unset($node);
@@ -643,7 +645,8 @@ final class McpFormWriter
         unset($page);
 
         $pagesRemoved = [];
-        foreach ($resultPages as $pageIndex => $page) {
+        foreach ($resultPages as $pageKey => $page) {
+            $pageIndex = (int) $pageKey;
             $pageNumber = $pageIndex + 1;
             if (!isset($removePageSet[$pageNumber])) {
                 continue;
@@ -656,7 +659,8 @@ final class McpFormWriter
         }
         if ($pagesRemoved !== []) {
             $resultPages = array_values($resultPages);
-            foreach ($resultPages as $pageIndex => &$page) {
+            foreach ($resultPages as $pageKey => &$page) {
+                $pageIndex = (int) $pageKey;
                 $page['attributes']['id'] = 'bfQuickModePage' . ($pageIndex + 1);
                 $page['properties']['pageNumber'] = $pageIndex + 1;
             }
@@ -1101,7 +1105,7 @@ final class McpFormWriter
             }
             $pageId = (string) ($page['attributes']['id'] ?? '');
             if (
-                $pageId !== 'bfQuickModePage' . ($pageIndex + 1)
+                $pageId !== 'bfQuickModePage' . ((int) $pageIndex + 1)
                 || !preg_match('/^bfQuickModePage[1-9][0-9]*$/D', $pageId)
                 || isset($pageIds[$pageId])
                 || ($page['properties']['type'] ?? null) !== 'page' || !is_array($page['children'] ?? null)
@@ -1139,7 +1143,7 @@ final class McpFormWriter
                     $dbId <= 0 || isset($elementIds[$dbId]) || $fieldName === '' || mb_strlen($fieldName) > 255
                     || preg_match('/[\x00-\x1F\x7F]/u', $fieldName)
                     || !is_string($properties['value']) || !is_string($properties['label'])
-                    || mb_strlen((string) ($properties['label'] ?? '')) > 255
+                    || mb_strlen($properties['label']) > 255
                     || mb_strlen((string) ($properties['placeholder'] ?? '')) > 255
                 ) {
                     throw new ToolException('This form has a field identity or text value that cannot be safely edited through MCP.');
@@ -1289,7 +1293,7 @@ final class McpFormWriter
             $tree['properties']['mailNotification'] = (int) $data['emailntf'] > 0;
         }
 
-        $encoded = base64_encode((string) json_encode($tree, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+        $encoded = base64_encode(json_encode($tree, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
         $column = $this->db->quoteName('template_code');
         $this->db->setQuery(
             $this->db->createQuery()

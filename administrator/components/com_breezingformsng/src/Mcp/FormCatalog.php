@@ -229,7 +229,8 @@ final class FormCatalog
                 continue;
             }
             $pageProperties = is_array($page['properties'] ?? null) ? $page['properties'] : [];
-            $pageIntro = is_string($pageProperties['pageIntro'] ?? null) ? trim($pageProperties['pageIntro']) : '';
+            $rawPageIntro = $pageProperties['pageIntro'] ?? null;
+            $pageIntro = is_string($rawPageIntro) ? trim($rawPageIntro) : '';
             $introHasMarkup = strpbrk($pageIntro, '<>{}') !== false;
             $quickModePages[] = [
                 'page' => (int) $pageIndex + 1,

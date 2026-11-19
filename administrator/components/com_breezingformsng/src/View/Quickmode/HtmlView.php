@@ -120,7 +120,7 @@ class HtmlView extends BaseHtmlView
         }
 
         $this->formId          = $formId;
-        $this->templateCode    = (string) base64_decode((string) ($options->template_code ?? ''));
+        $this->templateCode    = (string) base64_decode($options->template_code ?? '');
         $this->elementScripts  = $model->getElementScripts();
         $this->themes          = $model->getThemes();
         $this->themesBootstrap = $model->getThemesBootstrap();
