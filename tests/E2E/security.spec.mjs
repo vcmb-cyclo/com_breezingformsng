@@ -114,6 +114,34 @@ test.describe('security, as the site really answers', () => {
         await admin.close();
     });
 
+    test('QuickMode refuses a save after another edit and rolls back its checkout', async () => {
+        const formId = String(textForm);
+        const url = `${ADMIN}?option=com_breezingformsng&task=quickmode.display&form=${formId}`;
+        await admin.goto(url);
+        await admin.waitForFunction(() => window.BFQMApp && window.BFQMApp.selectedTreeElement);
+        const before = dbJson('form', formId);
+        const newTitle = 'e2e_sec_text_current';
+
+        // Simulate a newer revision already saved and checked in.
+        db('set', formId, 'title', newTitle);
+        try {
+            await admin.fill('#bfFormTitle', 'e2e_sec_text_stale');
+            const response = admin.waitForResponse((answer) => answer.request().method() === 'POST'
+                && answer.request().postData()?.includes('task=quickmode.doAjaxSave')
+                && answer.status() === 409);
+            await admin.locator('#toolbar-apply').click();
+            await response;
+
+            const current = dbJson('form', formId);
+            expect(current.title).toBe(newTitle);
+            expect(current.template_code).toBe(before.template_code);
+            expect(current.version).toBe(before.version);
+            expect(Number(current.checked_out ?? 0)).toBe(0);
+        } finally {
+            db('set', formId, 'title', before.title);
+        }
+    });
+
     test.describe('the CSRF token of the site submission', () => {
         let api;
 

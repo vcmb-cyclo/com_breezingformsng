@@ -91,7 +91,7 @@ class HtmlView extends BaseHtmlView
         $model  = $this->getQuickmodeModel();
         $formId = $input->getInt('form', 0);
 
-        $options = $formId > 0 ? $model->getFormOptions($formId) : null;
+        $options = $formId > 0 ? $this->getFormModel()->getForm($formId) : null;
 
         if ($options === null) {
             $this->formName  = 'QuickForm' . mt_rand(0, mt_getrandmax());
@@ -120,14 +120,14 @@ class HtmlView extends BaseHtmlView
         }
 
         $this->formId          = $formId;
-        $this->templateCode    = $formId > 0 ? $model->getTemplateCode($formId) : '';
+        $this->templateCode    = (string) base64_decode((string) ($options->template_code ?? ''));
         $this->elementScripts  = $model->getElementScripts();
         $this->themes          = $model->getThemes();
         $this->themesBootstrap = $model->getThemesBootstrap();
 
         if ($formId > 0) {
             $listModel = $this->getFormsModel();
-            $this->advancedOptionsForm = $this->getFormModel()->getForm($formId);
+            $this->advancedOptionsForm = $options;
 
             if ($this->advancedOptionsForm !== null) {
                 $this->advancedOptionsEditor           = Editor::getInstance('codemirror');
@@ -198,6 +198,10 @@ class HtmlView extends BaseHtmlView
         $doc->addScriptOptions('com_breezingformsng.admin-toggle-published', [
             'csrfToken' => Session::getFormToken(),
         ]);
+        $doc->addScriptOptions('com_breezingformsng.quickmode-save', [
+            'revision' => $options === null ? '' : FormOptionsModel::quickmodeRevision($options),
+        ]);
+        Text::script('COM_BREEZINGFORMSNG_QM_SAVE_CONFLICT');
         Text::script('JPUBLISHED');
         Text::script('JUNPUBLISHED');
         Text::script('COM_BREEZINGFORMSNG_DEBUG_MODE_ENABLED');

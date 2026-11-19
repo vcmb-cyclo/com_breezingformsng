@@ -121,7 +121,12 @@ final class IntegratorVersioning
 
     public function deleteHistory(int $ruleId): void
     {
-        Versioning::delete(self::TYPE_ALIAS, $ruleId);
+        $itemId = self::TYPE_ALIAS . '.' . $ruleId;
+        $query = $this->db->createQuery()
+            ->delete($this->db->quoteName('#__history'))
+            ->where($this->db->quoteName('item_id') . ' = :itemId')
+            ->bind(':itemId', $itemId, ParameterType::STRING);
+        $this->db->setQuery($query)->execute();
     }
 
     /**

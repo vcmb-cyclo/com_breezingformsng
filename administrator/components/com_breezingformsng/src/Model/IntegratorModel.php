@@ -182,9 +182,6 @@ class IntegratorModel extends BaseDatabaseModel
     }
 
     /**
-     * @param array<mixed> $ids
-     */
-    /**
      * Permanently deletes the trashed rules among the ids, with their items
      * and criteria. A rule that is not in the trash is never deleted.
      *
@@ -199,38 +196,64 @@ class IntegratorModel extends BaseDatabaseModel
             return ['deleted' => [], 'refused' => []];
         }
         $db = $this->db();
-        $trashed = self::TRASHED;
+        $db->transactionStart();
+
+        try {
+            $trashedIds = $this->lockRules($ids, self::TRASHED);
+
+            if ($trashedIds !== []) {
+                $versions = $this->versions();
+                foreach ($trashedIds as $id) {
+                    $versions->deleteHistory($id);
+                }
+
+                $tables = [
+                    ['#__facileforms_integrator_items', 'rule_id'],
+                    ['#__facileforms_integrator_criteria_form', 'rule_id'],
+                    ['#__facileforms_integrator_criteria_joomla', 'rule_id'],
+                    ['#__facileforms_integrator_criteria_fixed', 'rule_id'],
+                    ['#__facileforms_integrator_rules', 'id'],
+                ];
+                foreach ($tables as [$table, $column]) {
+                    $query = $db->createQuery()
+                        ->delete($db->quoteName($table))
+                        ->whereIn($db->quoteName($column), $trashedIds, ParameterType::INTEGER);
+                    $db->setQuery($query)->execute();
+                }
+            }
+
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+
+            throw $exception;
+        }
+
+        return ['deleted' => $trashedIds, 'refused' => array_values(array_diff($ids, $trashedIds))];
+    }
+
+    /**
+     * @param list<int> $ids
+     * @return list<int>
+     */
+    private function lockRules(array $ids, ?int $state = null): array
+    {
+        $db = $this->db();
         $query = $db->createQuery()
             ->select($db->quoteName('id'))
             ->from($db->quoteName('#__facileforms_integrator_rules'))
             ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER)
-            ->where($db->quoteName('published') . ' = :trashed')
-            ->bind(':trashed', $trashed, ParameterType::INTEGER);
-        $trashedIds = array_map('intval', $db->setQuery($query)->loadColumn() ?: []);
-        $refused = array_values(array_diff($ids, $trashedIds));
-        $ids = $trashedIds;
+            ->order($db->quoteName('id'));
 
-        if (empty($ids)) {
-            return ['deleted' => [], 'refused' => $refused];
+        if ($state !== null) {
+            $query->where($db->quoteName('published') . ' = :state')
+                ->bind(':state', $state, ParameterType::INTEGER);
         }
 
-        foreach ($ids as $id) {
-            $this->versions()->deleteHistory($id);
-        }
-        foreach ([
-            ['#__facileforms_integrator_rules', 'id'],
-            ['#__facileforms_integrator_items', 'rule_id'],
-            ['#__facileforms_integrator_criteria_form', 'rule_id'],
-            ['#__facileforms_integrator_criteria_joomla', 'rule_id'],
-            ['#__facileforms_integrator_criteria_fixed', 'rule_id'],
-        ] as [$tbl, $col]) {
-            $query = $db->createQuery()
-                ->delete($db->quoteName($tbl))
-                ->whereIn($db->quoteName($col), $ids, ParameterType::INTEGER);
-            $db->setQuery($query)->execute();
-        }
+        // Set the raw SQL on the query object so the bound values are retained.
+        $query->setQuery((string) $query . ' FOR UPDATE');
 
-        return ['deleted' => array_values($ids), 'refused' => $refused];
+        return array_values(array_map('intval', $db->setQuery($query)->loadColumn() ?: []));
     }
 
     /**
@@ -253,16 +276,29 @@ class IntegratorModel extends BaseDatabaseModel
 
     public function publishRule(int $id, int $state): void
     {
-        $this->versions()->keepOrigin($id);
-        $db    = $this->db();
-        $query = $db->createQuery()
-            ->update($db->quoteName('#__facileforms_integrator_rules'))
-            ->set($db->quoteName('published') . ' = :state')
-            ->where($db->quoteName('id') . ' = :id')
-            ->bind(':state', $state, ParameterType::INTEGER)
-            ->bind(':id', $id, ParameterType::INTEGER);
-        $db->setQuery($query)->execute();
-        $this->touchRule($id);
+        $db = $this->db();
+        $db->transactionStart();
+
+        try {
+            // Serialize restoration with deletion before touching version history.
+            if ($this->lockRules([$id]) !== []) {
+                $this->versions()->keepOrigin($id);
+                $query = $db->createQuery()
+                    ->update($db->quoteName('#__facileforms_integrator_rules'))
+                    ->set($db->quoteName('published') . ' = :state')
+                    ->where($db->quoteName('id') . ' = :id')
+                    ->bind(':state', $state, ParameterType::INTEGER)
+                    ->bind(':id', $id, ParameterType::INTEGER);
+                $db->setQuery($query)->execute();
+                $this->touchRule($id);
+            }
+
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+
+            throw $exception;
+        }
     }
 
     /**

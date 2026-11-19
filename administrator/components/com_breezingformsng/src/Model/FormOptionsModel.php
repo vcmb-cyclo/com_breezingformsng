@@ -15,6 +15,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 use Joomla\Event\Event;
 use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
 
@@ -28,7 +29,7 @@ class FormOptionsModel extends BaseDatabaseModel
         return $this->getDatabase();
     }
 
-    public function getForm(int $id): ?\stdClass
+    public function getForm(int $id, bool $forUpdate = false): ?\stdClass
     {
         if ($id <= 0) {
             return null;
@@ -38,9 +39,23 @@ class FormOptionsModel extends BaseDatabaseModel
         $q  = $db->createQuery()
             ->select('*')
             ->from($db->quoteName('#__facileforms_forms'))
-            ->where($db->quoteName('id') . ' = ' . (int) $id);
+            ->where($db->quoteName('id') . ' = :id')
+            ->bind(':id', $id, ParameterType::INTEGER);
+
+        if ($forUpdate) {
+            $q->setQuery((string) $q . ' FOR UPDATE');
+        }
 
         return $db->setQuery($q)->loadObject() ?: null;
+    }
+
+    /** The editor's revision includes the tree and options even when version history is disabled. */
+    public static function quickmodeRevision(\stdClass $form): string
+    {
+        $data = (array) $form;
+        unset($data['checked_out'], $data['checked_out_time'], $data['debug_mode'], $data['ordering']);
+
+        return hash('sha256', serialize($data));
     }
 
     public function getDefaultForm(string $pkg): \stdClass

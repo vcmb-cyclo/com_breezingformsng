@@ -165,13 +165,6 @@ class QuickmodeController extends BaseController
                 $app->close();
             }
 
-            if ($form > 0 && !$this->getFormModel()->checkout($form)) {
-                $app->setHeader('status', '409', true);
-                $app->close();
-
-                return;
-            }
-
             $db = Factory::getContainer()->get(DatabaseInterface::class);
 
             // The browser reads the answer as the form id: a PHP notice shown on
@@ -179,30 +172,61 @@ class QuickmodeController extends BaseController
             // request, without the options, the version or the reload.
             ob_start();
 
+            $status = 200;
+            $formId = 0;
+            $revision = '';
             try {
-                if ($form > 0) {
-                    try {
-                        // A form without versions keeps the state it had before this save.
-                        (new FormVersioning($db, $this->getFormModel()))->keepOrigin($form);
-                    } catch (\Throwable $e) {
-                        Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
-                        $app->setHeader('status', '500', true);
-                        ob_end_clean();
-                        $app->close();
+                $db->transactionStart();
+                try {
+                    if ($form > 0) {
+                        // Serialize the checkout and save, including simultaneous requests by the same user.
+                        $lockedForm = $this->getOptionsModel()->getForm($form, true);
+                        $expectedRevision = $input->post->getString('formRevision', '');
+                        if ($lockedForm === null || (int) $lockedForm->published === -2) {
+                            $status = 403;
+                        } elseif (
+                            !$this->getFormModel()->checkout($form)
+                            || !hash_equals(FormOptionsModel::quickmodeRevision($lockedForm), $expectedRevision)
+                        ) {
+                            $status = 409;
+                        }
                     }
+
+                    if ($status !== 200) {
+                        $db->transactionRollback();
+                    } else {
+                        $versioning = new FormVersioning($db, $this->getFormModel());
+                        if ($form > 0) {
+                            // A form without versions keeps the state it had before this save.
+                            $versioning->keepOrigin($form);
+                        }
+
+                        $formId = $this->getQuickmodeModel()->save($form, $dataObject);
+
+                        if ($input->getInt('recordVersion', 1) === 1) {
+                            try {
+                                $versioning->record($formId);
+                            } catch (\Throwable $e) {
+                                // The form save can still be committed if history could not be written.
+                                Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
+                            }
+                        }
+
+                        $savedForm = $this->getOptionsModel()->getForm($formId);
+                        $revision = $savedForm === null ? '' : FormOptionsModel::quickmodeRevision($savedForm);
+                        $db->transactionCommit();
+                    }
+                } catch (\Throwable $e) {
+                    $db->transactionRollback();
+                    throw $e;
                 }
 
-                $formId = $this->getQuickmodeModel()->save($form, $dataObject);
-                (new ContentBuilderFormSync($app, $db))->sync($formId);
-
-                if ($input->getInt('recordVersion', 1) === 1) {
-                    try {
-                        (new FormVersioning($db, $this->getFormModel()))->record($formId);
-                    } catch (\Throwable $e) {
-                        // The save stays; this request only answers with the form id.
-                        Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
-                    }
+                if ($status === 200) {
+                    (new ContentBuilderFormSync($app, $db))->sync($formId);
                 }
+            } catch (\Throwable $e) {
+                Log::add($e->getMessage(), Log::WARNING, 'com_breezingformsng');
+                $status = 500;
             } finally {
                 $notices = trim((string) ob_get_clean());
 
@@ -211,7 +235,16 @@ class QuickmodeController extends BaseController
                 }
             }
 
+            if ($status !== 200) {
+                $app->setHeader('status', (string) $status, true);
+                $app->sendHeaders();
+                $app->close();
+
+                return;
+            }
+
             $app->setHeader('Content-Type', 'text/plain; charset=UTF-8', true);
+            $app->setHeader('X-BFNG-Form-Revision', $revision, true);
             $app->sendHeaders();
             echo $formId;
             $app->close();

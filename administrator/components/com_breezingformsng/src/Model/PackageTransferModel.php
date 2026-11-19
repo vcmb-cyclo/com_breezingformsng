@@ -320,7 +320,7 @@ final class PackageTransferModel extends BaseDatabaseModel
 
         return $this->buildPayload(
             $package,
-            $this->loadPackageRows('#__facileforms_forms', $package),
+            $this->loadPackageRows('#__facileforms_forms', $package, true),
             $this->loadPackageRows('#__facileforms_scripts', $package, true),
             $this->loadPackageRows('#__facileforms_pieces', $package, true),
             $this->includeMenuAncestors($this->loadPackageRows('#__facileforms_compmenus', $package)),
@@ -962,9 +962,9 @@ final class PackageTransferModel extends BaseDatabaseModel
 
         return $this->buildPayload(
             $package,
-            $this->loadRowsByIds('#__facileforms_forms', $formIds),
-            $this->loadRowsByIds('#__facileforms_scripts', $scriptIds),
-            $this->loadRowsByIds('#__facileforms_pieces', $pieceIds),
+            $this->loadRowsByIds('#__facileforms_forms', $formIds, true),
+            $this->loadRowsByIds('#__facileforms_scripts', $scriptIds, true),
+            $this->loadRowsByIds('#__facileforms_pieces', $pieceIds, true),
             $this->includeMenuAncestors($this->loadRowsByIds('#__facileforms_compmenus', $menuIds)),
             $metadata,
             $withTemplates,
@@ -1267,7 +1267,7 @@ final class PackageTransferModel extends BaseDatabaseModel
      * @param array<mixed> $ids
      * @return list<array<string, mixed>>
      */
-    private function loadRowsByIds(string $table, array $ids): array
+    private function loadRowsByIds(string $table, array $ids, bool $withoutTrashed = false): array
     {
         $ids = array_values(array_unique(array_filter(array_map("intval", $ids), static fn(int $id): bool => $id > 0)));
 
@@ -1281,6 +1281,10 @@ final class PackageTransferModel extends BaseDatabaseModel
             ->from($db->quoteName($table))
             ->whereIn($db->quoteName("id"), $ids)
             ->order($db->quoteName("id"));
+
+        if ($withoutTrashed) {
+            $query->where($db->quoteName('published') . ' >= 0');
+        }
 
         return $db->setQuery($query)->loadAssocList() ?: [];
     }

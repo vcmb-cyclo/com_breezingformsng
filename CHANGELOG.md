@@ -22,6 +22,10 @@
 - Let a form with a file field be sent: it no longer stops with a technical error.
 - Send a form whose confirmation email field is left out without an error.
 - Install a sample form again when another form already has its name: the Install check box is disabled with an explanation, the Manage link opens the existing form, and the message is a notice instead of an error.
+- Prevent QuickMode saves from overwriting a form changed since the editor was opened.
+- Exclude forms, scripts and pieces in the trash from package exports.
+- Show validation messages without a field link alongside field errors in Bootstrap forms.
+- Keep restored Integrator rules out of permanent deletion when restoration and emptying the trash overlap.
 
 ### Security
 
