@@ -251,6 +251,27 @@ test.describe('forms', () => {
         }
     });
 
+    // Leaving a form that was not modified takes no lock back: Joomla's check-in answers 0, which is not a
+    // failure. The list used to show "Check-in failed with the following error:" followed by nothing (issue #224).
+    const failureMessages = () => page.locator('#system-message-container joomla-alert[type="danger"], #system-message-container .alert-danger');
+
+    test('closing the QuickMode editor of a form that was not modified shows no error', async () => {
+        await openQuickMode();
+        // The Close button of the editor is the toolbar button of the task "close".
+        await Promise.all([page.waitForNavigation(), page.locator('joomla-toolbar-button[task="close"]').click()]);
+
+        await expect(page).toHaveURL(/view=forms/);
+        await expect(failureMessages()).toHaveCount(0);
+    });
+
+    test('closing the options page of a form that was not modified shows no error', async () => {
+        await page.goto(`${ADMIN}?option=com_breezingformsng&view=forms&layout=edit&id=${formId}&advanced=1`);
+        await Promise.all([page.waitForNavigation(), page.locator('#toolbar-cancel').click()]);
+
+        await expect(page).toHaveURL(/view=forms/);
+        await expect(failureMessages()).toHaveCount(0);
+    });
+
     test('a QuickMode save keeps the email settings', async () => {
         await openQuickMode();
         await saveQuickMode();
