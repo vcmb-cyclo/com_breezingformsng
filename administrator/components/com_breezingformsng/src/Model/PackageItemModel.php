@@ -79,7 +79,7 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
      * Stores the current state of the item as its version of origin, kept
      * forever, when it has no version yet.
      */
-    public function keepOrigin(int $id): void
+    public function keepOrigin(int $id, string $note = ''): void
     {
         $db = $this->getDatabase();
 
@@ -87,24 +87,87 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
             return;
         }
 
-        $this->recordVersion($id);
+        $this->recordVersion($id, $note);
         VersionOrigin::keepForever($db, $this->typeAlias . '.' . $id);
     }
 
     /**
-     * Stores the current state of an item written without save(), by an import.
+     * Stores the current state of the item, kept forever, before an update
+     * replaces its code. It is stored even when the version history is
+     * disabled: the replaced code must never be lost.
      */
-    public function recordVersion(int $id): void
+    public function keepVersionBeforeReplacement(int $id, string $note): void
     {
-        if (!FormVersioning::isEnabled()) {
+        $this->recordVersion($id, $note, true);
+        VersionOrigin::keepForever($this->getDatabase(), $this->typeAlias . '.' . $id);
+    }
+
+    /**
+     * Stores the current state of an item written without save(), by an import.
+     * A note is given to the version stored; a state already in the history
+     * adds no version, and keeps its note.
+     *
+     * @param bool $always Store the version even when the version history is disabled
+     */
+    public function recordVersion(int $id, string $note = '', bool $always = false): void
+    {
+        if (!$always && !FormVersioning::isEnabled()) {
             return;
         }
 
         $this->setState($this->getName() . '.id', $id);
+        $itemId = $this->typeAlias . '.' . $id;
+        $last = $this->lastHistoryId($itemId);
 
-        if (!$this->saveHistory([], $this->typeAlias)) {
+        if (!$always ? !$this->saveHistory([], $this->typeAlias) : !$this->storeCurrentState($id)) {
             throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
         }
+
+        $version = $this->lastHistoryId($itemId);
+
+        if ($note !== '' && $version > $last) {
+            $db = $this->getDatabase();
+            // The note column of the history holds 255 characters.
+            $note = mb_substr($note, 0, 255);
+            $db->setQuery(
+                $db->createQuery()
+                    ->update($db->quoteName('#__history'))
+                    ->set($db->quoteName('version_note') . ' = :note')
+                    ->where($db->quoteName('version_id') . ' = :versionId')
+                    ->bind(':note', $note)
+                    ->bind(':versionId', $version, ParameterType::INTEGER)
+            )->execute();
+        }
+    }
+
+    /**
+     * The history store of the model refuses when the option is off: this
+     * stores the same data, as VersionableModelTrait::saveHistory() does.
+     */
+    private function storeCurrentState(int $id): bool
+    {
+        $table = $this->getTable();
+        $table->load($id);
+        $data = ArrayHelper::fromObject($table);
+
+        foreach ($this->ignoreChanges as $ignore) {
+            unset($data[$ignore]);
+        }
+
+        return (bool) $this->storeHistory($this->typeAlias, $id, ArrayHelper::toObject($data));
+    }
+
+    private function lastHistoryId(string $itemId): int
+    {
+        $db = $this->getDatabase();
+
+        return (int) $db->setQuery(
+            $db->createQuery()
+                ->select('MAX(' . $db->quoteName('version_id') . ')')
+                ->from($db->quoteName('#__history'))
+                ->where($db->quoteName('item_id') . ' = :itemId')
+                ->bind(':itemId', $itemId)
+        )->loadResult();
     }
 
     /**

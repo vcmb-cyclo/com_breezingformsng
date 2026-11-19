@@ -11,7 +11,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\ImportModel;
 final class StandardLibraryUpgradeTest extends TestCase
 {
     #[RunInSeparateProcess]
-    public function testAutomaticUpgradePreservesCustomCodeAndMetadata(): void
+    public function testAnItemOfTheStandardLibraryIsReplacedAfterItsCurrentVersionIsStored(): void
     {
         class_alias(StandardLibraryDatabaseInterface::class, 'Joomla\\Database\\DatabaseInterface');
         class_alias(StandardLibraryModelStub::class, 'Joomla\\CMS\\MVC\\Model\\BaseDatabaseModel');
@@ -21,6 +21,7 @@ final class StandardLibraryUpgradeTest extends TestCase
 
         $model = new ImportModel();
         $model->reinstallOnlyIfChanged = true;
+        $model->incomingVersion = '6.2.0';
         $db = new StandardLibraryDatabaseStub();
         (new \ReflectionProperty($model, 'db'))->setValue($model, $db);
         $itemModel = new StandardLibraryItemStub();
@@ -30,42 +31,69 @@ final class StandardLibraryUpgradeTest extends TestCase
         $run = static function () use ($model, $import, $node, $itemModel, &$touched, &$created, &$updated): void {
             $import->invokeArgs($model, [$node, '#__facileforms_pieces', $itemModel, &$touched, &$created, &$updated]);
         };
+        // Set as import() does, from the version being installed.
+        $notes = new \ReflectionProperty($model, 'noteBefore');
+        $notes->setValue($model, 'before 6.2.0');
+        (new \ReflectionProperty($model, 'noteStandard'))->setValue($model, 'standard 6.2.0');
 
-        // Source from the last distributed XML, decoded exactly as the importer does.
-        $old = base64_decode('ZnVuY3Rpb24gZmZfcXVlcnkoJHNxbCwgJGluc2VydD1mYWxzZSwgJGVycm9yPUZGX0RJRSkNCnsNCiAgICBnbG9iYWwgJGZmX3Byb2Nlc3NvcjsNCiAgICAkZGF0YWJhc2UgPSBCRkZhY3Rvcnk6OmdldERCTygpOw0KICAgIGlmICgkZmZfcHJvY2Vzc29yLT5keWluZyAmJiAkZXJyb3IhPUZGX0lHTk9SRURJRSkgcmV0dXJuIC0xOw0KICAgICRkYXRhYmFzZS0+c2V0UXVlcnkoJHNxbCk7DQoNCiAgICB0cnkgew0KICAgICAgICAkZGF0YWJhc2UtPnF1ZXJ5KCk7DQogICAgICAgICRlcnJvciA9IG51bGw7DQogICAgICAgIGlmICgkaW5zZXJ0KQ0KICAgICAgICAgICAgIHJldHVybiAkZGF0YWJhc2UtPmluc2VydGlkKCk7DQogICAgfSBjYXRjaCAoXFJ1bnRpbWVFeGNlcHRpb24gJGUpIHsNCiAgICAgICAgJGRpZW5vdyA9ICRlcnJvcj09RkZfRElFOw0KICAgICAgICAkZXJyb3IgPSAkZS0+Z2V0TWVzc2FnZSgpOw0KICAgICAgICBpZiAoJGRpZW5vdykgZmZfZGllKCRlcnJvcik7DQogICAgfQ0KICANCiAgICByZXR1cm4gMDsNCn0gLy8gZmZfcXVlcnk=', true);
-        self::assertIsString($old);
-        $db->existing = ['id' => 7, 'name' => 'ff_query', 'package' => 'FF', 'title' => 'My title', 'published' => 0, 'code' => $old];
-        $run();
-        self::assertSame('new code', $db->existing['code']);
-        self::assertSame('My title', $db->existing['title']);
-        self::assertSame(0, $db->existing['published']);
-        self::assertSame([7], $itemModel->origins);
-        self::assertSame([7], $itemModel->versions);
-        self::assertSame(['ff_query'], $updated);
-
-        $run();
-        self::assertCount(1, $db->updates, 'A repeated upgrade is a no-op.');
-        self::assertSame([], $model->warnings);
-
-        $db->existing['code'] = $old . "\n// customised";
-        $customised = $db->existing;
-        $run();
-        self::assertSame($customised, $db->existing);
-        self::assertSame(['ff_query'], $model->warnings);
-        self::assertCount(1, $db->updates);
-
-        // An explicit import keeps its existing overwrite behaviour.
-        $model->reinstallOnlyIfChanged = false;
+        // A piece changed on the site, or distributed earlier: its code is stored, then replaced, then the standard version is stored.
+        $db->existing = ['id' => 7, 'name' => 'ff_query', 'package' => 'FF', 'title' => 'My title', 'published' => 0, 'code' => 'custom code'];
         $run();
         self::assertSame('new code', $db->existing['code']);
         self::assertSame('Incoming', $db->existing['title']);
+        self::assertSame(['before:7:before 6.2.0', 'write', 'record:7:standard 6.2.0'], StandardLibraryItemStub::$log);
+        self::assertSame(['ff_query'], $updated);
 
-        // A missing item is created using the ordinary installation path.
+        // The same standard code again: nothing is stored or written.
+        StandardLibraryItemStub::$log = [];
+        $run();
+        self::assertSame([], StandardLibraryItemStub::$log);
+        self::assertCount(1, $db->updates);
+
+        // A missing item is created, without any extra version beyond its first.
         $db->existing = null;
-        $model->reinstallOnlyIfChanged = true;
+        StandardLibraryItemStub::$log = [];
+        $updated = [];
         $run();
         self::assertSame('new code', $db->existing['code']);
         self::assertSame(['ff_query'], $created);
+        self::assertSame([], $updated);
+        self::assertSame(['record:8:'], StandardLibraryItemStub::$log);
+
+        // An explicit import keeps its overwrite behaviour, with the same history.
+        $db->existing = ['id' => 7, 'name' => 'ff_query', 'package' => 'FF', 'title' => 'T', 'published' => 1, 'code' => 'new code'];
+        $model->reinstallOnlyIfChanged = false;
+        StandardLibraryItemStub::$log = [];
+        $run();
+        self::assertSame('before:7:before 6.2.0', StandardLibraryItemStub::$log[0]);
+    }
+
+    #[RunInSeparateProcess]
+    public function testTheNotesNameTheIncomingVersion(): void
+    {
+        class_alias(StandardLibraryDatabaseInterface::class, 'Joomla\\Database\\DatabaseInterface');
+        class_alias(StandardLibraryModelStub::class, 'Joomla\\CMS\\MVC\\Model\\BaseDatabaseModel');
+        class_alias(StandardLibraryTextStub::class, 'Joomla\\CMS\\Language\\Text');
+        class_alias(StandardLibraryItemStub::class, 'Vcmb\\Component\\BreezingformsNG\\Administrator\\Model\\PackageItemModel');
+
+        $model = new ImportModel();
+        $notes = static function () use ($model): array {
+            try {
+                $model->import('/nonexistent.xml', new StandardLibraryItemStub(), new StandardLibraryItemStub());
+            } catch (\RuntimeException) {
+            }
+
+            return [
+                (new \ReflectionProperty($model, 'noteBefore'))->getValue($model),
+                (new \ReflectionProperty($model, 'noteStandard'))->getValue($model),
+            ];
+        };
+
+        $model->incomingVersion = '6.2.0';
+        self::assertSame(['COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_BEFORE_STANDARD|6.2.0', 'COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_STANDARD|6.2.0'], $notes());
+
+        $model->incomingVersion = '';
+        self::assertSame(['COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_BEFORE_STANDARD_UNVERSIONED', 'COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_STANDARD_UNVERSIONED'], $notes());
     }
 }
 
@@ -77,6 +105,11 @@ interface StandardLibraryDatabaseInterface
 
 class StandardLibraryModelStub
 {
+    public function getDatabase(): StandardLibraryDatabaseStub
+    {
+        return new StandardLibraryDatabaseStub();
+    }
+
     public function getCurrentUser(): object
     {
         return (object) ['username' => 'test'];
@@ -88,6 +121,10 @@ final class StandardLibraryTextStub
     public static function _(string $key): string
     {
         return $key;
+    }
+    public static function sprintf(string $key, string ...$arguments): string
+    {
+        return $key . '|' . implode('|', $arguments);
     }
 }
 
@@ -101,15 +138,15 @@ final class StandardLibraryDateStub
 
 final class StandardLibraryItemStub
 {
-    public array $origins = [];
-    public array $versions = [];
-    public function keepOrigin(int $id): void
+    /** @var list<string> What was asked of the model, in order, with the writes of the database. */
+    public static array $log = [];
+    public function keepVersionBeforeReplacement(int $id, string $note): void
     {
-        $this->origins[] = $id;
+        self::$log[] = 'before:' . $id . ':' . $note;
     }
-    public function recordVersion(int $id): void
+    public function recordVersion(int $id, string $note = ''): void
     {
-        $this->versions[] = $id;
+        self::$log[] = 'record:' . $id . ':' . $note;
     }
 }
 
@@ -135,6 +172,7 @@ final class StandardLibraryDatabaseStub implements StandardLibraryDatabaseInterf
     }
     public function updateObject(string $table, object $row, string $key): void
     {
+        StandardLibraryItemStub::$log[] = 'write';
         $this->updates[] = (array) $row;
         $this->existing = array_replace($this->existing, (array) $row);
     }

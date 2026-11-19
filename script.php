@@ -27,6 +27,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\Filesystem\Folder;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Table\Menu;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\LibraryImportSummary;
 
 Log::addLogger(
     [
@@ -842,9 +843,11 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         require_once $admPath . '/src/Model/ImportModel.php';
+        require_once $admPath . '/src/Service/LibraryImportSummary.php';
 
         $importer = new \Vcmb\Component\BreezingformsNG\Administrator\Model\ImportModel();
         $importer->reinstallOnlyIfChanged = true;
+        $importer->incomingVersion = $this->incomingPackageVersion;
 
         try {
             $importer->import($xmlFile, $this->packageItemModel('Script'), $this->packageItemModel('Piece'));
@@ -860,10 +863,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             count($importer->pieces) . ' piece(s).'
         );
 
-        if ($importer->warnings !== []) {
+        if (!empty($importer->replacedCustomPieces)) {
             $this->log(
-                'Custom standard pieces preserved without replacing their code: ' . implode(', ', $importer->warnings),
-                Log::WARNING
+                'Custom standard pieces replaced by the standard version, their previous code kept in their history: '
+                . implode(', ', $importer->replacedCustomPieces)
             );
         }
 
@@ -872,47 +875,13 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function announceImportedLibraryChanges(object $importer): void
     {
-        $createdScripts = $this->normalizeImportedItemNames($importer->createdScripts ?? []);
-        $createdPieces = $this->normalizeImportedItemNames($importer->createdPieces ?? []);
-        $updatedScripts = $this->normalizeImportedItemNames($importer->updatedScripts ?? []);
-        $updatedPieces = $this->normalizeImportedItemNames($importer->updatedPieces ?? []);
+        $parts = LibraryImportSummary::parts(
+            $importer,
+            static fn(string $key, int $count, string $names): string => Text::sprintf($key, $count, $names)
+        );
 
-        if (empty($createdScripts) && empty($createdPieces) && empty($updatedScripts) && empty($updatedPieces)) {
+        if ($parts === []) {
             return;
-        }
-
-        $parts = [];
-
-        if (!empty($createdScripts)) {
-            $parts[] = Text::sprintf(
-                'COM_BREEZINGFORMSNG_INSTALL_STANDARD_LIBRARY_CREATED_SCRIPTS',
-                count($createdScripts),
-                implode(', ', $createdScripts)
-            );
-        }
-
-        if (!empty($createdPieces)) {
-            $parts[] = Text::sprintf(
-                'COM_BREEZINGFORMSNG_INSTALL_STANDARD_LIBRARY_CREATED_PIECES',
-                count($createdPieces),
-                implode(', ', $createdPieces)
-            );
-        }
-
-        if (!empty($updatedScripts)) {
-            $parts[] = Text::sprintf(
-                'COM_BREEZINGFORMSNG_INSTALL_STANDARD_LIBRARY_UPDATED_SCRIPTS',
-                count($updatedScripts),
-                implode(', ', $updatedScripts)
-            );
-        }
-
-        if (!empty($updatedPieces)) {
-            $parts[] = Text::sprintf(
-                'COM_BREEZINGFORMSNG_INSTALL_STANDARD_LIBRARY_UPDATED_PIECES',
-                count($updatedPieces),
-                implode(', ', $updatedPieces)
-            );
         }
 
         $this->announce(
@@ -923,27 +892,6 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             'warning',
             Log::INFO
         );
-    }
-
-    /**
-     * @param mixed $items
-     * @return list<string>
-     */
-    private function normalizeImportedItemNames($items): array
-    {
-        if (!is_array($items)) {
-            return [];
-        }
-
-        $items = array_map(
-            static fn($item): string => trim((string) $item),
-            $items
-        );
-        $items = array_values(array_filter($items, static fn(string $item): bool => $item !== ''));
-        $items = array_values(array_unique($items));
-        sort($items, SORT_NATURAL | SORT_FLAG_CASE);
-
-        return $items;
     }
 
     /**

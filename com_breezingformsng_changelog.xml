@@ -3,6 +3,14 @@
     <changelog>
         <element>com_breezingformsng</element>
         <type>component</type>
+        <version>6.1.0-RC24</version>
+        <change>
+            <item>Replace the standard scripts and pieces of the library by the new standard version when updating, after keeping the version of the site in the history of each item (Versions) with a note that says so; the installation summary lists what was replaced.</item>
+        </change>
+    </changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
         <version>6.1.0-RC23</version>
         <addition>
             <item>Reorder the elements of the QuickMode tree from the keyboard with Alt+Up and Alt+Down, and open its context menu with Shift+F10 or the Menu key. The new position is announced to screen readers.</item>
