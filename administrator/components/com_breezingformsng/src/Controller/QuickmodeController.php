@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package BreezingFormsNG
  * @copyright Copyright (C) 2024-2026 by XDA+GIL
@@ -70,12 +71,27 @@ class QuickmodeController extends BaseController
         $formId = $this->app->getInput()->getInt('form', 0);
 
         if ($formId > 0) {
-            $model = $this->getFormModel();
+            $form = $this->getOptionsModel()->getForm($formId);
+            $checkinSucceeded = true;
 
-            // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
-            if (!$model->checkin($formId)) {
-                $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()), 'error');
-            } elseif (($user = $this->app->getIdentity()) !== null && $user->authorise('core.edit.state', 'com_breezingformsng')) {
+            // QuickMode does not lock on GET. Joomla returns 0 (falsey) when
+            // checkin() is called for a form that is not locked.
+            if ($form === null || (int) ($form->checked_out ?? 0) > 0) {
+                $model = $this->getFormModel();
+
+                // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
+                $checkinSucceeded = $model->checkin($formId) !== false;
+
+                if (!$checkinSucceeded) {
+                    $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()), 'error');
+                }
+            }
+
+            if (
+                $checkinSucceeded
+                && ($user = $this->app->getIdentity()) !== null
+                && $user->authorise('core.edit.state', 'com_breezingformsng')
+            ) {
                 $this->getOptionsModel()->setDebugMode($formId, 0);
             }
         }
