@@ -18,8 +18,6 @@ require_once __DIR__ . '/../Rendering/QuickMode/joomla-cmsapplication-stub.php';
 require_once __DIR__ . '/../Rendering/QuickMode/joomla-text-stub.php';
 require_once __DIR__ . '/../Rendering/QuickMode/joomla-uri-stub.php';
 
-use Joomla\CMS\Application\CMSApplication;
-use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use PHPUnit\Framework\TestCase;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadFilePolicy;
@@ -33,7 +31,12 @@ if (!interface_exists(DatabaseInterface::class)) {
 }
 
 if (!class_exists(ParameterType::class)) {
-    eval('namespace Joomla\\Database; final class ParameterType { public const INTEGER = 1; public const STRING = 2; }');
+    eval(
+        'namespace Joomla\\Database;'
+        . ' final class ParameterType {'
+        . ' public const INTEGER = 1; public const STRING = 2;'
+        . ' }'
+    );
 }
 
 final class PaymentDownloadServiceTest extends TestCase
@@ -256,131 +259,5 @@ final class PaymentDownloadServiceTest extends TestCase
                 ],
             ], JSON_THROW_ON_ERROR),
         ];
-    }
-}
-
-final class PaymentDownloadApplicationDouble extends CMSApplication
-{
-    /** @var list<string> */
-    public array $messages = [];
-
-    public bool $closed = false;
-
-    public function enqueueMessage(string $message, string $type = 'message'): void
-    {
-        $this->messages[] = $message;
-    }
-
-    public function redirect(string $url, int $status = 303, bool $moved = true): void
-    {
-    }
-
-    public function close(): void
-    {
-        $this->closed = true;
-    }
-}
-
-final class PaymentDownloadDatabaseDouble implements DatabaseInterface
-{
-    /** @var list<PaymentDownloadQueryDouble> */
-    public array $queries = [];
-
-    public int $executions = 0;
-
-    public int $affectedRows = 1;
-
-    /** @var list<list<object>> */
-    private array $results;
-
-    /** @param list<list<object>> $results */
-    public function __construct(array $results)
-    {
-        $this->results = $results;
-    }
-
-    public function createQuery(): PaymentDownloadQueryDouble
-    {
-        return $this->queries[] = new PaymentDownloadQueryDouble();
-    }
-
-    public function quoteName(string|array $name): string|array
-    {
-        return $name;
-    }
-
-    public function setQuery(object $query, int $offset = 0, int $limit = 0): void
-    {
-    }
-
-    /** @return list<object> */
-    public function loadObjectList(): array
-    {
-        return array_shift($this->results) ?? [];
-    }
-
-    public function getAffectedRows(): int
-    {
-        return $this->affectedRows;
-    }
-
-    public function execute(): bool
-    {
-        $this->executions++;
-
-        return true;
-    }
-}
-
-final class PaymentDownloadQueryDouble
-{
-    /** @var array<string, string> */
-    public array $bindings = [];
-
-    public function select(mixed $columns): self
-    {
-        return $this;
-    }
-
-    public function from(string $table): self
-    {
-        return $this;
-    }
-
-    /** @var list<string> */
-    public array $conditions = [];
-
-    public function conditionsInclude(string $needle): bool
-    {
-        return str_contains(implode(' ', $this->conditions), $needle);
-    }
-
-    public function where(string $condition): self
-    {
-        $this->conditions[] = $condition;
-
-        return $this;
-    }
-
-    public function extendWhere(string $outerGlue, array $conditions, string $innerGlue): self
-    {
-        return $this;
-    }
-
-    public function bind(string $key, mixed $value, mixed $type): self
-    {
-        $this->bindings[$key] = (string) $value;
-
-        return $this;
-    }
-
-    public function update(string $table): self
-    {
-        return $this;
-    }
-
-    public function set(string $condition): self
-    {
-        return $this;
     }
 }
