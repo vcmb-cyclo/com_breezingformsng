@@ -177,4 +177,20 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringNotContainsString('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS_MANAGE_PLUGINS', $template);
         self::assertStringNotContainsString('HELP_BACK_TO_ABOUT', $template);
     }
+
+    public function testExtensionsUseTheJoomlaStateToggle(): void
+    {
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $controller = (string) file_get_contents($base . '/src/Controller/AboutController.php');
+        $view = (string) file_get_contents($base . '/src/View/About/HtmlView.php');
+        $template = (string) file_get_contents($base . '/tmpl/about/extensions.php');
+
+        self::assertStringContainsString('function setPluginState(): void', $controller);
+        self::assertStringContainsString("checkToken('post', false)", $controller);
+        self::assertStringContainsString("authorise('core.edit.state', 'com_plugins')", $controller);
+        self::assertStringContainsString('data-item-task="about.setPluginState"', $template);
+        self::assertStringContainsString('icon-publish', $template);
+        self::assertStringContainsString('icon-unpublish', $template);
+        self::assertStringContainsString('admin-toggle-published', $view);
+    }
 }

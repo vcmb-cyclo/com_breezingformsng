@@ -58,4 +58,19 @@ final class AboutModel extends BaseDatabaseModel
 
         return $db->setQuery($query)->loadAssocList() ?: [];
     }
+
+    public function isInstalledPlugin(int $extensionId): bool
+    {
+        if ($extensionId <= 0) {
+            return false;
+        }
+
+        foreach ($this->getInstalledPluginRows() as $row) {
+            if ((int) ($row['extension_id'] ?? 0) === $extensionId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

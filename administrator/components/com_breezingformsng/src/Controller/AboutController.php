@@ -21,10 +21,12 @@ use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\AboutModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\IntegratorModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\RecordModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AjaxStateService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseAuditService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseRepairService;
@@ -50,6 +52,70 @@ class AboutController extends BaseController
         $application->getInput()->set('view', 'about');
 
         return parent::display($cachable, $urlparams);
+    }
+
+    public function setPluginState(): void
+    {
+        if (!$this->checkToken('post', false)) {
+            $this->sendJson(403, Text::_('JINVALID_TOKEN'));
+
+            return;
+        }
+
+        $id = $this->input->post->getInt('id', 0);
+        $state = AjaxStateService::normalizeState($this->input->post->getInt('state', 0));
+
+        try {
+            $application = $this->getAuthorizedApplication();
+            $user = $application->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+
+            if (!$user->authorise('core.edit.state', 'com_plugins')) {
+                $this->sendJson(403, Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'));
+
+                return;
+            }
+
+            $aboutModel = $this->getMVCFactoryOf($application)
+                ->createModel('About', 'Administrator', ['ignore_request' => true]);
+
+            if (!$aboutModel instanceof AboutModel || !$aboutModel->isInstalledPlugin($id)) {
+                $this->sendJson(400, Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+
+                return;
+            }
+
+            $pluginsComponent = $application->bootComponent('com_plugins');
+
+            if (!$pluginsComponent instanceof MVCFactoryServiceInterface) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            $pluginModel = $pluginsComponent->getMVCFactory()
+                ->createModel('Plugin', 'Administrator', ['ignore_request' => true]);
+
+            if (!$pluginModel instanceof AdminModel) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            $pks = [$id];
+
+            if (!$pluginModel->publish($pks, $state)) {
+                $this->sendJson(400, (string) $pluginModel->getError());
+
+                return;
+            }
+
+            $this->sendJson(
+                200,
+                '',
+                AjaxStateService::success($state)
+            );
+        } catch (\Throwable $exception) {
+            $this->sendJson(
+                $exception->getCode() === 403 ? 403 : 500,
+                $exception->getMessage()
+            );
+        }
     }
 
     public function runAudit(): void
