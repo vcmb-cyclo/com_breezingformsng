@@ -17,8 +17,13 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering\QuickMode;
 /** Builds the native file/placeholder input shared by QuickMode upload flows. */
 final class QuickModeFileInputBuilder
 {
-    public static function build(string $attributes, string $type, string $fieldName, int $elementId, string $extraAttributes = ''): string
-    {
+    public static function build(
+        string $attributes,
+        string $type,
+        string $fieldName,
+        int $elementId,
+        string $extraAttributes = ''
+    ): string {
         $escapedType = htmlspecialchars($type, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $escapedFieldName = htmlspecialchars($fieldName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 

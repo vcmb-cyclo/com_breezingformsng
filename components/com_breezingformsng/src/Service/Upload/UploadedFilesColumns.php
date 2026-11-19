@@ -25,7 +25,13 @@ final class UploadedFilesColumns
 
     /**
      * @param array<mixed>|null $files What Joomla's files input returns for a field.
-     * @return array{name: list<mixed>, type: list<mixed>, tmp_name: list<mixed>, error: list<mixed>, size: list<mixed>}|null
+     * @return array{
+     *     name: list<mixed>,
+     *     type: list<mixed>,
+     *     tmp_name: list<mixed>,
+     *     error: list<mixed>,
+     *     size: list<mixed>
+     * }|null
      */
     public static function fromJoomla(?array $files): ?array
     {
