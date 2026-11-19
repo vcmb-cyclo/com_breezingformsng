@@ -43,8 +43,13 @@ final class ContentBuilderRecordLoader
         $ownerId = $ownOnly ? $userId : -1;
         $publishedOnly = (bool) ($formData['published_only'] ?? false);
         $showAllLanguages = $frontend ? (bool) ($formData['show_all_languages_fe'] ?? false) : true;
+        $referenceId = $formData['reference_id'] ?? null;
+        if (!is_int($referenceId) && !is_string($referenceId)) {
+            throw new \UnexpectedValueException('ContentBuilder returned an invalid form reference id.');
+        }
+
         $record = ($this->recordLoader)(
-            (string) $formData['reference_id'],
+            (string) $referenceId,
             $recordId,
             $publishedOnly,
             $ownerId,

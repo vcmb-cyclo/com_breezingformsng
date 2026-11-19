@@ -99,4 +99,12 @@ final class ContentBuilderRecordLoaderTest extends TestCase
         $this->expectExceptionMessage('not found');
         $loader->load(['reference_id' => 19], 44, true, 7, false, 'not found');
     }
+
+    public function testRejectsAnInvalidReferenceIdFromContentBuilder(): void
+    {
+        $loader = new ContentBuilderRecordLoader(static fn(): array => ['record']);
+
+        $this->expectException(\UnexpectedValueException::class);
+        $loader->load(['reference_id' => ['19']], 44, true, 7, false, 'not found');
+    }
 }
