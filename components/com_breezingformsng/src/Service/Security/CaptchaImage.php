@@ -18,7 +18,7 @@ use Gregwar\Captcha\CaptchaBuilder;
 use Gregwar\Captcha\PhraseBuilder;
 
 /**
- * The security code image: a few characters on a light background, with no distortion
+ * The security code image: a few characters on a light background, with a slight distortion
  * and only faint lines behind them, so that a person reads it at once. Characters
  * that look alike (i, l, o, 0, 1, u, v, w, y, s, z, 2, 5, g, q, b, 6) are left out.
  */
@@ -40,7 +40,7 @@ final class CaptchaImage
             ->setTextColor(32, 31, 29)
             ->setMaxBehindLines(2)
             ->setMaxFrontLines(0)
-            ->setDistortion(false)
+            ->setDistortion(true)
             ->build(self::WIDTH, self::HEIGHT);
 
         return ['phrase' => (string) $builder->getPhrase(), 'image' => $builder->get(self::QUALITY)];
