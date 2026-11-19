@@ -18,6 +18,7 @@ require_once __DIR__ . '/../Rendering/QuickMode/joomla-cmsapplication-stub.php';
 require_once __DIR__ . '/../Rendering/QuickMode/joomla-text-stub.php';
 require_once __DIR__ . '/../Rendering/QuickMode/joomla-uri-stub.php';
 
+use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use PHPUnit\Framework\TestCase;
 use Vcmb\Component\BreezingformsNG\Site\Service\Callback\PaymentDownloadFilePolicy;
