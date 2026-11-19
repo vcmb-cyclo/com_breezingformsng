@@ -38,10 +38,12 @@ final class PaymentNotificationCacheTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->root, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST
-        ) as $item) {
+        foreach (
+            new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($this->root, \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST
+            ) as $item
+        ) {
             $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
         }
         rmdir($this->root);
@@ -114,7 +116,17 @@ final class PaymentNotificationCacheTest extends TestCase
         $wrongHtml = $this->message();
         $wrongHtml['isHtml'] = 'yes';
 
-        foreach (['', '{not json', 'null', '"text"', '[]', json_encode($incomplete), json_encode($wrongType), json_encode($wrongHtml)] as $payload) {
+        $invalidPayloads = [
+            '',
+            '{not json',
+            'null',
+            '"text"',
+            '[]',
+            json_encode($incomplete),
+            json_encode($wrongType),
+            json_encode($wrongHtml),
+        ];
+        foreach ($invalidPayloads as $payload) {
             self::assertNull($cache->decode($json, (string) $payload), (string) $payload);
         }
 
@@ -155,13 +167,5 @@ final class PaymentNotificationCacheTest extends TestCase
         self::assertFileDoesNotExist($legacy);
         self::assertFileExists($this->root . '/tmp/bfng_payment_cache/.htaccess');
         self::assertFileExists($this->root . '/tmp/bfng_payment_cache/index.html');
-    }
-}
-
-final class PaymentCacheProbe
-{
-    public function __wakeup(): void
-    {
-        $GLOBALS['bfng_payment_probe'] = true;
     }
 }

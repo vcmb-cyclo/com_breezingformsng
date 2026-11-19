@@ -48,15 +48,17 @@ final class OptCallback
 
         return;
     }
-    if (!$this->confirmed(
-        OptConfirmationPage::IN,
-        $userSubmitedID,
-        $token,
-        'COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_CONFIRM_TEXT',
-        'COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_CONFIRM_BUTTON'
-    )) {
-        return;
-    }
+        if (
+            !$this->confirmed(
+                OptConfirmationPage::IN,
+                $userSubmitedID,
+                $token,
+                'COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_CONFIRM_TEXT',
+                'COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_CONFIRM_BUTTON'
+            )
+        ) {
+            return;
+        }
     $optDate = HTMLHelper::date('now', 'Y-m-d H:i:s');
     $query = $database->createQuery()
         ->update($database->quoteName('#__facileforms_records'))
@@ -102,15 +104,17 @@ final class OptCallback
 
         return;
     }
-    if (!$this->confirmed(
-        OptConfirmationPage::OUT,
-        $userSubmitedID,
-        $token,
-        'COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_WITHDRAW_TEXT',
-        'COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_WITHDRAW_BUTTON'
-    )) {
-        return;
-    }
+        if (
+            !$this->confirmed(
+                OptConfirmationPage::OUT,
+                $userSubmitedID,
+                $token,
+                'COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_WITHDRAW_TEXT',
+                'COM_BREEZINGFORMSNG_FORMS_DOUBLE_OPT_WITHDRAW_BUTTON'
+            )
+        ) {
+            return;
+        }
     $optDate = HTMLHelper::date('now', 'Y-m-d H:i:s');
     $query = $database->createQuery()
         ->update($database->quoteName('#__facileforms_records'))
