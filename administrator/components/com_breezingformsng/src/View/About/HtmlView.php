@@ -217,7 +217,10 @@ class HtmlView extends BaseHtmlView
             $group = (string) ($row['folder'] ?? '');
             $element = (string) ($row['element'] ?? '');
             $languageExtension = 'plg_' . $group . '_' . $element;
-            $language->load($languageExtension, JPATH_ADMINISTRATOR) || $language->load($languageExtension, JPATH_SITE);
+            // The name and the description of a plugin live in its .sys.ini file; the other strings in its .ini.
+            foreach ([$languageExtension . '.sys', $languageExtension] as $languageFile) {
+                $language->load($languageFile, JPATH_ADMINISTRATOR) || $language->load($languageFile, JPATH_SITE);
+            }
 
             $name = trim((string) ($manifest['name'] ?? $row['name'] ?? ''));
             $description = trim((string) ($manifest['description'] ?? ''));
