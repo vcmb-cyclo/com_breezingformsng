@@ -38,11 +38,18 @@ final class FlashChunkAssembler
         int $offset,
         int $maxBytes
     ): string {
+        if (
+            !$this->isWithinDirectory($chunkFile, $targetDirectory)
+            || !$this->isWithinDirectory($finalFile, $targetDirectory)
+        ) {
+            return self::FAILED;
+        }
+
         clearstatcache();
         $chunkSize = is_file($chunkFile) ? filesize($chunkFile) : false;
 
         if ($chunkSize === false) {
-            return $this->reject($chunkFile, $finalFile, self::FAILED);
+            return $this->reject($chunkFile, $finalFile, $targetDirectory, self::FAILED);
         }
 
         if ($offset === 0 && is_file($finalFile)) {
@@ -52,15 +59,15 @@ final class FlashChunkAssembler
         $current = is_file($finalFile) ? (int) filesize($finalFile) : 0;
 
         if ($offset < 0 || $current !== $offset) {
-            return $this->reject($chunkFile, $finalFile, self::OUT_OF_ORDER);
+            return $this->reject($chunkFile, $finalFile, $targetDirectory, self::OUT_OF_ORDER);
         }
 
         if ($maxBytes > 0 && $current + $chunkSize > $maxBytes) {
-            return $this->reject($chunkFile, $finalFile, self::TOO_LARGE);
+            return $this->reject($chunkFile, $finalFile, $targetDirectory, self::TOO_LARGE);
         }
 
         if (!$this->append($chunkFile, $finalFile, $targetDirectory)) {
-            return $this->reject($chunkFile, $finalFile, self::FAILED);
+            return $this->reject($chunkFile, $finalFile, $targetDirectory, self::FAILED);
         }
 
         return self::OK;
@@ -70,10 +77,10 @@ final class FlashChunkAssembler
      * @param self::FAILED|self::TOO_LARGE|self::OUT_OF_ORDER $status
      * @return self::FAILED|self::TOO_LARGE|self::OUT_OF_ORDER
      */
-    private function reject(string $chunkFile, string $finalFile, string $status): string
+    private function reject(string $chunkFile, string $finalFile, string $targetDirectory, string $status): string
     {
         foreach ([$chunkFile, $finalFile] as $file) {
-            if (is_file($file)) {
+            if ($this->isWithinDirectory($file, $targetDirectory) && is_file($file)) {
                 unlink($file);
             }
         }
@@ -83,7 +90,12 @@ final class FlashChunkAssembler
 
     public function append(string $chunkFile, string $finalFile, string $targetDirectory): bool
     {
-        if (!is_file($chunkFile) || !is_readable($chunkFile)) {
+        if (
+            !$this->isWithinDirectory($chunkFile, $targetDirectory)
+            || !$this->isWithinDirectory($finalFile, $targetDirectory)
+            || !is_file($chunkFile)
+            || !is_readable($chunkFile)
+        ) {
             return false;
         }
 
@@ -105,5 +117,30 @@ final class FlashChunkAssembler
         }
 
         return File::write($finalFile, $existing . $chunk);
+    }
+
+    private function isWithinDirectory(string $file, string $directory): bool
+    {
+        if (str_contains($file, "\0")) {
+            return false;
+        }
+
+        $root = realpath($directory);
+        $resolvedFile = realpath($file);
+        if ($root === false) {
+            return false;
+        }
+
+        if ($resolvedFile === false) {
+            $parent = realpath(dirname($file));
+            if ($parent === false) {
+                return false;
+            }
+            $resolvedFile = $parent . DIRECTORY_SEPARATOR . basename($file);
+        }
+
+        $root = rtrim($root, '/\\') . DIRECTORY_SEPARATOR;
+
+        return str_starts_with($resolvedFile, $root);
     }
 }

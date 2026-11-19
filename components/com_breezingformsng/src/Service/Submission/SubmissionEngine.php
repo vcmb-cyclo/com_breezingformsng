@@ -898,8 +898,7 @@ final class SubmissionEngine
                                             $value = '';
                                         } else {
                                             $sig_file = JPATH_SITE . '/media/breezingforms/signatures/'
-                                                // nosemgrep: php.lang.security.weak-crypto.weak-crypto -- MD5 names the signature file after its content, not a secret.
-                                                . $row->name . '-' . md5($value) . '.png';
+                                                . $row->name . '-' . hash('sha256', $value) . '.png';
                                             File::write($sig_file, $sig_decoded);
                                             $value = basename($sig_file);
 
