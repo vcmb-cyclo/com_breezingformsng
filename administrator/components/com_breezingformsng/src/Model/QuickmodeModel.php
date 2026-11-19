@@ -621,9 +621,17 @@ class QuickmodeModel extends BaseDatabaseModel
 
     private function updateDbId(mixed &$dataObject, mixed $id, int $dbId): void
     {
-        $this->assertQuickModeTreeNode($dataObject);
+        if (!is_array($dataObject)
+            || !isset($dataObject['attributes'], $dataObject['properties'])
+            || !is_array($dataObject['attributes'])
+            || !is_array($dataObject['properties'])
+        ) {
+            return;
+        }
 
-        if ($dataObject['properties']['type'] === 'element' && $dataObject['attributes']['id'] === $id) {
+        if (($dataObject['properties']['type'] ?? null) === 'element'
+            && ($dataObject['attributes']['id'] ?? null) === $id
+        ) {
             $dataObject['properties']['dbId'] = $dbId;
             return;
         }

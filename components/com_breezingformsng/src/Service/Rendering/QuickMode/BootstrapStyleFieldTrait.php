@@ -35,42 +35,11 @@ use Joomla\CMS\Uri\Uri;
 
 trait BootstrapStyleFieldTrait
 {
-    /**
-     * @phpstan-type BootstrapStyleFieldData array<string, mixed>&array{
-     *     bfName: string,
-     *     dbId: int,
-     *     value: string,
-     *     format: string,
-     *     size: string,
-     *     icon: string,
-     *     firstDay: string,
-     *     minYear: string,
-     *     maxYear: string,
-     *     emptyMessage: string,
-     *     connectWith: string|list<string>,
-     *     connectType: string,
-     *     hideIfEmpty: bool,
-     *     fieldCalc: string,
-     *     mailbackAsSender: bool,
-     *     mailbackAccept: bool,
-     *     mailbackConnectWith: string,
-     *     list: string,
-     *     width: string,
-     *     height: string,
-     *     multiple: bool,
-     *     src: string,
-     *     actionClick: bool,
-     *     actionFunctionName: string,
-     *     image: string,
-     *     group: string,
-     *     wrap: bool
-     * }
-     */
     private ?QuickModeBootstrapChoiceGroupBuilder $quickModeBootstrapChoiceGroupBuilderService = null;
 
     /**
      * @param array<string, mixed> $mdata
-     * @return BootstrapStyleFieldData
+     * @return array<string, mixed>
      */
     private function normalizeBootstrapStyleFieldData(array $mdata): array
     {
@@ -190,7 +159,6 @@ trait BootstrapStyleFieldTrait
 
     /**
      * @param array<string, mixed> $mdata
-     * @phpstan-assert BootstrapStyleFieldData $mdata
      */
     private function assertBootstrapStyleFieldData(array $mdata): void
     {
