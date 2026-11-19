@@ -79,6 +79,22 @@ foreach (['mailchimp', 'salesforce', 'dropbox'] as $addon) {
     $addonEnabled[$addon] = PluginHelper::isEnabled('breezingforms_addons', $addon);
 }
 /**
+ * The tabs after Scripts: the pieces, then the add-ons whose plugin is enabled.
+ *
+ * @var array<string, string> $optionTabs
+ */
+$optionTabs = array_filter(
+    [
+        'form-pieces' => Text::_('COM_BREEZINGFORMSNG_FORMS_FORMPIECES'),
+        'submit-pieces' => Text::_('COM_BREEZINGFORMSNG_FORMS_SUBMPIECES'),
+        'mailchimp' => 'MailChimp®',
+        'salesforce' => 'Salesforce®',
+        'dropbox' => 'Dropbox®',
+    ],
+    static fn(string $label, string $pane): bool => !isset($addonEnabled[$pane]) || $addonEnabled[$pane],
+    ARRAY_FILTER_USE_BOTH
+);
+/**
  * @var \Joomla\CMS\Editor\Editor $formEditor
  * @psalm-suppress UndefinedGlobalVariable
  */
@@ -160,14 +176,7 @@ $paneErrors = [
       <button class="nav-link" id="tab-scripts" data-bs-toggle="tab" data-bs-target="#pane-scripts"
               type="button" role="tab"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_TAB_SCRIPTS'); ?><?php if ($entryCounts['scripts'] > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts['scripts']; ?></span><?php endif; ?></button>
     </li>
-    <?php foreach ([
-        'form-pieces' => Text::_('COM_BREEZINGFORMSNG_FORMS_FORMPIECES'),
-        'submit-pieces' => Text::_('COM_BREEZINGFORMSNG_FORMS_SUBMPIECES'),
-        'mailchimp' => 'MailChimp®',
-        'salesforce' => 'Salesforce®',
-        'dropbox' => 'Dropbox®',
-    ] as $pane => $label): ?>
-    <?php if (isset($addonEnabled[$pane]) && !$addonEnabled[$pane]) { continue; } ?>
+    <?php foreach ($optionTabs as $pane => $label): ?>
     <li class="nav-item" role="presentation">
       <button class="nav-link" id="tab-<?= $pane; ?>" data-bs-toggle="tab" data-bs-target="#pane-<?= $pane; ?>"
               type="button" role="tab"><?= $label; ?><?php if (($entryCounts[$pane] ?? 0) > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts[$pane] ?? 0; ?></span><?php endif; ?><?php if (!empty($paneErrors[$pane])): ?> <span class="icon-warning text-danger" title="<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'), ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></span><span class="visually-hidden"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PIECE_MISSING'); ?></span><?php endif; ?></button>
@@ -628,78 +637,78 @@ $paneErrors = [
     <?php endforeach; ?>
 
     <?php if ($addonEnabled['mailchimp']) : ?>
-    <div class="tab-pane fade" id="pane-mailchimp" role="tabpanel">
-      <?php foreach ([
-          'mailchimp_api_key' => 'COM_BREEZINGFORMSNG_API_KEY',
-          'mailchimp_list_id' => 'COM_BREEZINGFORMSNG_LIST_ID',
-          'mailchimp_email_field' => 'COM_BREEZINGFORMSNG_EMAIL_FIELD',
-          'mailchimp_checkbox_field' => 'COM_BREEZINGFORMSNG_CHECKBOX_FIELD',
-          'mailchimp_unsubscribe_field' => 'COM_BREEZINGFORMSNG_UNSUBSCRIBE_FIELD',
-          'mailchimp_text_html_mobile_field' => 'COM_BREEZINGFORMSNG_TEXT_HTML_MOBILE_FIELD',
-          'mailchimp_mergevars' => 'COM_BREEZINGFORMSNG_MERGE_VARS',
-      ] as $name => $label): ?>
-      <div class="row mb-3">
-        <label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label>
-        <div class="col-sm-9"><input class="form-control" id="jf_<?= $name; ?>" name="<?= $name; ?>" value="<?= htmlspecialchars($formOptions->$name ?? ''); ?>"></div>
+      <div class="tab-pane fade" id="pane-mailchimp" role="tabpanel">
+        <?php foreach ([
+            'mailchimp_api_key' => 'COM_BREEZINGFORMSNG_API_KEY',
+            'mailchimp_list_id' => 'COM_BREEZINGFORMSNG_LIST_ID',
+            'mailchimp_email_field' => 'COM_BREEZINGFORMSNG_EMAIL_FIELD',
+            'mailchimp_checkbox_field' => 'COM_BREEZINGFORMSNG_CHECKBOX_FIELD',
+            'mailchimp_unsubscribe_field' => 'COM_BREEZINGFORMSNG_UNSUBSCRIBE_FIELD',
+            'mailchimp_text_html_mobile_field' => 'COM_BREEZINGFORMSNG_TEXT_HTML_MOBILE_FIELD',
+            'mailchimp_mergevars' => 'COM_BREEZINGFORMSNG_MERGE_VARS',
+        ] as $name => $label): ?>
+        <div class="row mb-3">
+          <label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label>
+          <div class="col-sm-9"><input class="form-control" id="jf_<?= $name; ?>" name="<?= $name; ?>" value="<?= htmlspecialchars($formOptions->$name ?? ''); ?>"></div>
+        </div>
+        <?php endforeach; ?>
+        <div class="row mb-3">
+          <label class="col-sm-3 col-form-label" for="jf_mailchimp_default_type"<?= $labelTip('COM_BREEZINGFORMSNG_DEFAULT_TYPE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DEFAULT_TYPE'); ?></label>
+          <div class="col-sm-9"><select class="form-select" id="jf_mailchimp_default_type" name="mailchimp_default_type">
+            <?php foreach (['text' => 'Text', 'html' => 'HTML', 'mobile' => 'Mobile'] as $value => $label): ?>
+            <option value="<?= $value; ?>"<?= ($formOptions->mailchimp_default_type ?? 'text') === $value ? ' selected' : ''; ?>><?= $label; ?></option>
+            <?php endforeach; ?>
+          </select></div>
+        </div>
+        <?php foreach ([
+            'mailchimp_double_optin' => 'COM_BREEZINGFORMSNG_DOUBLE_OPTIN',
+            'mailchimp_delete_member' => 'COM_BREEZINGFORMSNG_UNSUBSCRIBE_DELETE_MEMBER',
+            'mailchimp_send_errors' => 'COM_BREEZINGFORMSNG_SEND_ERRORS',
+        ] as $name => $label): ?>
+        <div class="row mb-3">
+          <label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label>
+          <div class="col-sm-9 form-check form-switch"><input type="hidden" name="<?= $name; ?>" value="0"><input class="form-check-input" id="jf_<?= $name; ?>" type="checkbox" name="<?= $name; ?>" value="1"<?= !empty($formOptions->$name) ? ' checked' : ''; ?>></div>
+        </div>
+        <?php endforeach; ?>
       </div>
-      <?php endforeach; ?>
-      <div class="row mb-3">
-        <label class="col-sm-3 col-form-label" for="jf_mailchimp_default_type"<?= $labelTip('COM_BREEZINGFORMSNG_DEFAULT_TYPE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DEFAULT_TYPE'); ?></label>
-        <div class="col-sm-9"><select class="form-select" id="jf_mailchimp_default_type" name="mailchimp_default_type">
-          <?php foreach (['text' => 'Text', 'html' => 'HTML', 'mobile' => 'Mobile'] as $value => $label): ?>
-          <option value="<?= $value; ?>"<?= ($formOptions->mailchimp_default_type ?? 'text') === $value ? ' selected' : ''; ?>><?= $label; ?></option>
-          <?php endforeach; ?>
-        </select></div>
-      </div>
-      <?php foreach ([
-          'mailchimp_double_optin' => 'COM_BREEZINGFORMSNG_DOUBLE_OPTIN',
-          'mailchimp_delete_member' => 'COM_BREEZINGFORMSNG_UNSUBSCRIBE_DELETE_MEMBER',
-          'mailchimp_send_errors' => 'COM_BREEZINGFORMSNG_SEND_ERRORS',
-      ] as $name => $label): ?>
-      <div class="row mb-3">
-        <label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label>
-        <div class="col-sm-9 form-check form-switch"><input type="hidden" name="<?= $name; ?>" value="0"><input class="form-check-input" id="jf_<?= $name; ?>" type="checkbox" name="<?= $name; ?>" value="1"<?= !empty($formOptions->$name) ? ' checked' : ''; ?>></div>
-      </div>
-      <?php endforeach; ?>
-    </div>
     <?php endif; ?>
 
     <?php if ($addonEnabled['salesforce']) : ?>
-    <div class="tab-pane fade" id="pane-salesforce" role="tabpanel">
-      <div class="row mb-3">
-        <label class="col-sm-3 col-form-label" for="jf_salesforce_enabled"<?= $labelTip('COM_BREEZINGFORMSNG_SF_ENABLED_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_ENABLED'); ?></label>
-        <div class="col-sm-9 form-check form-switch"><input type="hidden" name="salesforce_enabled" value="0"><input class="form-check-input" id="jf_salesforce_enabled" type="checkbox" name="salesforce_enabled" value="1"<?= !empty($formOptions->salesforce_enabled) ? ' checked' : ''; ?>></div>
+      <div class="tab-pane fade" id="pane-salesforce" role="tabpanel">
+        <div class="row mb-3">
+          <label class="col-sm-3 col-form-label" for="jf_salesforce_enabled"<?= $labelTip('COM_BREEZINGFORMSNG_SF_ENABLED_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_ENABLED'); ?></label>
+          <div class="col-sm-9 form-check form-switch"><input type="hidden" name="salesforce_enabled" value="0"><input class="form-check-input" id="jf_salesforce_enabled" type="checkbox" name="salesforce_enabled" value="1"<?= !empty($formOptions->salesforce_enabled) ? ' checked' : ''; ?>></div>
+        </div>
+        <?php foreach ([
+            'salesforce_token' => 'COM_BREEZINGFORMSNG_SF_TOKEN',
+            'salesforce_username' => 'COM_BREEZINGFORMSNG_SF_USERNAME',
+            'salesforce_type' => 'COM_BREEZINGFORMSNG_SF_TYPE',
+        ] as $name => $label): ?>
+        <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label><div class="col-sm-9"><input class="form-control" id="jf_<?= $name; ?>" name="<?= $name; ?>" value="<?= htmlspecialchars($formOptions->$name ?? ''); ?>"></div></div>
+        <?php endforeach; ?>
+        <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_salesforce_password"<?= $labelTip('COM_BREEZINGFORMSNG_SF_PASSWORD_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_PASSWORD'); ?></label><div class="col-sm-9"><input type="password" class="form-control" id="jf_salesforce_password" name="salesforce_password" autocomplete="new-password"></div></div>
+        <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_salesforce_fields"<?= $labelTip('COM_BREEZINGFORMSNG_SF_FIELDS_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_FIELDS'); ?></label><div class="col-sm-9"><input class="form-control" id="jf_salesforce_fields" name="salesforce_fields[]" value="<?= htmlspecialchars($formOptions->salesforce_fields ?? ''); ?>"></div></div>
       </div>
-      <?php foreach ([
-          'salesforce_token' => 'COM_BREEZINGFORMSNG_SF_TOKEN',
-          'salesforce_username' => 'COM_BREEZINGFORMSNG_SF_USERNAME',
-          'salesforce_type' => 'COM_BREEZINGFORMSNG_SF_TYPE',
-      ] as $name => $label): ?>
-      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label><div class="col-sm-9"><input class="form-control" id="jf_<?= $name; ?>" name="<?= $name; ?>" value="<?= htmlspecialchars($formOptions->$name ?? ''); ?>"></div></div>
-      <?php endforeach; ?>
-      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_salesforce_password"<?= $labelTip('COM_BREEZINGFORMSNG_SF_PASSWORD_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_PASSWORD'); ?></label><div class="col-sm-9"><input type="password" class="form-control" id="jf_salesforce_password" name="salesforce_password" autocomplete="new-password"></div></div>
-      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_salesforce_fields"<?= $labelTip('COM_BREEZINGFORMSNG_SF_FIELDS_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_SF_FIELDS'); ?></label><div class="col-sm-9"><input class="form-control" id="jf_salesforce_fields" name="salesforce_fields[]" value="<?= htmlspecialchars($formOptions->salesforce_fields ?? ''); ?>"></div></div>
-    </div>
     <?php endif; ?>
 
     <?php if ($addonEnabled['dropbox']) : ?>
-    <div class="tab-pane fade" id="pane-dropbox" role="tabpanel">
-      <?php foreach ([
-          'dropbox_email' => 'COM_BREEZINGFORMSNG_DROPBOX_ACCESS_TOKEN',
-          'dropbox_password' => 'COM_BREEZINGFORMSNG_DROPBOX_AUTH_CODE',
-          'dropbox_folder' => 'COM_BREEZINGFORMSNG_DROPBOX_FOLDER',
-      ] as $name => $label): ?>
-      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label><div class="col-sm-9"><input class="form-control" id="jf_<?= $name; ?>" name="<?= $name; ?>" value="<?= htmlspecialchars($formOptions->$name ?? ''); ?>"></div></div>
-      <?php endforeach; ?>
-      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_dropbox_submission_enabled"<?= $labelTip('COM_BREEZINGFORMSNG_DROPBOX_UPLOAD_SUBMISSION_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DROPBOX_UPLOAD_SUBMISSION'); ?></label><div class="col-sm-9 form-check form-switch"><input type="hidden" name="dropbox_submission_enabled" value="0"><input class="form-check-input" id="jf_dropbox_submission_enabled" type="checkbox" name="dropbox_submission_enabled" value="1"<?= !empty($formOptions->dropbox_submission_enabled) ? ' checked' : ''; ?>></div></div>
-      <div class="row mb-3"><span class="col-sm-3 col-form-label"<?= $labelTip('COM_BREEZINGFORMSNG_DROPBOX_SUBMISSION_TYPES_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DROPBOX_SUBMISSION_TYPES'); ?></span><div class="col-sm-9 d-flex gap-3">
-        <input type="hidden" name="dropbox_submission_types[]" value="">
-        <?php $dropboxTypes = explode(',', (string) ($formOptions->dropbox_submission_types ?? 'pdf')); foreach (['pdf', 'csv', 'xml'] as $type): ?>
-        <label class="form-check"><input class="form-check-input" type="checkbox" name="dropbox_submission_types[]" value="<?= $type; ?>"<?= in_array($type, $dropboxTypes, true) ? ' checked' : ''; ?>> <?= strtoupper($type); ?></label>
+      <div class="tab-pane fade" id="pane-dropbox" role="tabpanel">
+        <?php foreach ([
+            'dropbox_email' => 'COM_BREEZINGFORMSNG_DROPBOX_ACCESS_TOKEN',
+            'dropbox_password' => 'COM_BREEZINGFORMSNG_DROPBOX_AUTH_CODE',
+            'dropbox_folder' => 'COM_BREEZINGFORMSNG_DROPBOX_FOLDER',
+        ] as $name => $label): ?>
+        <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_<?= $name; ?>"<?= $labelTip($label . '_TIP'); ?>><?= Text::_($label); ?></label><div class="col-sm-9"><input class="form-control" id="jf_<?= $name; ?>" name="<?= $name; ?>" value="<?= htmlspecialchars($formOptions->$name ?? ''); ?>"></div></div>
         <?php endforeach; ?>
-      </div></div>
-      <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_dropbox_reset_auth"<?= $labelTip('COM_BREEZINGFORMSNG_DROPBOX_RESET_AUTH_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DROPBOX_RESET_AUTH'); ?></label><div class="col-sm-9 form-check"><input class="form-check-input" id="jf_dropbox_reset_auth" type="checkbox" name="dropbox_reset_auth" value="1"></div></div>
-    </div>
+        <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_dropbox_submission_enabled"<?= $labelTip('COM_BREEZINGFORMSNG_DROPBOX_UPLOAD_SUBMISSION_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DROPBOX_UPLOAD_SUBMISSION'); ?></label><div class="col-sm-9 form-check form-switch"><input type="hidden" name="dropbox_submission_enabled" value="0"><input class="form-check-input" id="jf_dropbox_submission_enabled" type="checkbox" name="dropbox_submission_enabled" value="1"<?= !empty($formOptions->dropbox_submission_enabled) ? ' checked' : ''; ?>></div></div>
+        <div class="row mb-3"><span class="col-sm-3 col-form-label"<?= $labelTip('COM_BREEZINGFORMSNG_DROPBOX_SUBMISSION_TYPES_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DROPBOX_SUBMISSION_TYPES'); ?></span><div class="col-sm-9 d-flex gap-3">
+          <input type="hidden" name="dropbox_submission_types[]" value="">
+          <?php $dropboxTypes = explode(',', (string) ($formOptions->dropbox_submission_types ?? 'pdf')); foreach (['pdf', 'csv', 'xml'] as $type): ?>
+          <label class="form-check"><input class="form-check-input" type="checkbox" name="dropbox_submission_types[]" value="<?= $type; ?>"<?= in_array($type, $dropboxTypes, true) ? ' checked' : ''; ?>> <?= strtoupper($type); ?></label>
+          <?php endforeach; ?>
+        </div></div>
+        <div class="row mb-3"><label class="col-sm-3 col-form-label" for="jf_dropbox_reset_auth"<?= $labelTip('COM_BREEZINGFORMSNG_DROPBOX_RESET_AUTH_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_DROPBOX_RESET_AUTH'); ?></label><div class="col-sm-9 form-check"><input class="form-check-input" id="jf_dropbox_reset_auth" type="checkbox" name="dropbox_reset_auth" value="1"></div></div>
+      </div>
     <?php endif; ?>
 
   </div><!-- /.tab-content -->
