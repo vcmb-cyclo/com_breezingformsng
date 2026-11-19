@@ -133,8 +133,8 @@ final class PayPalCallback
 
                                 // send mail after succeeded payment?
                                 if (isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
-                                    bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $recordId, 'admin');
-                                    bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $recordId, 'mailback');
+                                    \bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $recordId, 'admin');
+                                    \bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $recordId, 'mailback');
                                 }
                             }
                         } elseif ($record !== null && $record->paypal_tx_id === '' && $input->post->getString('payment_status', '') === 'Completed') {
@@ -257,8 +257,8 @@ final class PayPalCallback
 
                                 // send mail after succeeded payment?
                                 if (isset($options['sendNotificationAfterPayment']) && $options['sendNotificationAfterPayment']) {
-                                    bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'admin');
-                                    bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'mailback');
+                                    \bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'admin');
+                                    \bf_sendNotificationByPaymentCache($input->getInt('form_id', -1), $input->getInt('record_id', -1), 'mailback');
                                 }
 
                                 if ($options['downloadableFile']) {

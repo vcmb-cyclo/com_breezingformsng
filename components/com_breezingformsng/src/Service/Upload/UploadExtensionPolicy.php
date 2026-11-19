@@ -90,7 +90,10 @@ final class UploadExtensionPolicy
     public function isAccepted(string $fileName, array $allowed): bool
     {
         // NUL, controls, zero width / bidi format characters, spaces of any script and streams.
-        if (preg_match('/[\x00-\x1F\x7F:]|[\p{Cc}\p{Cf}]/u', $fileName) === 1 || !mb_check_encoding($fileName, 'UTF-8')) {
+        if (
+            preg_match('/[\x00-\x1F\x7F:]|[\p{Cc}\p{Cf}]/u', $fileName) === 1
+            || !mb_check_encoding($fileName, 'UTF-8')
+        ) {
             return false;
         }
 

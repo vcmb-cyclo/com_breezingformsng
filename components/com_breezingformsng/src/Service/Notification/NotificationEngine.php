@@ -517,6 +517,7 @@ final class NotificationEngine
             }
         }
 
+        /** @var list<string> $signatures */
         $signatures = array();
 
         $attachToAdminMail = $this->processor->app->getInput()->get('attachToAdminMail', array(), 'string');
@@ -578,8 +579,6 @@ final class NotificationEngine
             $attachment = array_merge($attachment, $signatures);
         } else if (!is_array($attachment) && count($signatures) > 0) {
             $attachment = array_merge(array($attachment), $signatures);
-        } else if (count($signatures) > 0) {
-            $attachment = $signatures;
         }
 
         if (!$this->processor->sendNotificationAfterPayment) {
@@ -706,6 +705,7 @@ final class NotificationEngine
     {
         global $ff_config;
 
+        /** @var list<string> $signatures */
         $signatures = array();
 
         if ($this->processor->dying)
@@ -1202,8 +1202,6 @@ final class NotificationEngine
                     $attachment = array_merge($attachment, $signatures);
                 } else if (!is_array($attachment) && count($signatures) > 0) {
                     $attachment = array_merge(array($attachment), $signatures);
-                } else if (count($signatures) > 0) {
-                    $attachment = $signatures;
                 }
 
                 $this->exportEngine->sendMail($from, $fromname, $recipients[$i], $subject, $body, $attachment, $isHtml, null, null, $alt_sender);
@@ -1227,8 +1225,6 @@ final class NotificationEngine
                 $attachment = array_merge($attachment, $signatures);
             } else if (!is_array($attachment) && count($signatures) > 0) {
                 $attachment = array_merge(array($attachment), $signatures);
-            } else if (count($signatures) > 0) {
-                $attachment = $signatures;
             }
 
             $this->paymentCache()->store(

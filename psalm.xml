@@ -51,6 +51,7 @@
         <UndefinedFunction>
             <errorLevel type="suppress">
                 <referencedFunction name="bf_tooltipText"/>
+                <referencedFunction name="bf_sendNotificationByPaymentCache"/>
             </errorLevel>
         </UndefinedFunction>
     </issueHandlers>
