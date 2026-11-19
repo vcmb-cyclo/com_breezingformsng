@@ -28,6 +28,7 @@ if (!class_exists(HTML_facileFormsProcessor::class)) {
     require_once __DIR__ . '/../../../../../components/com_breezingformsng/src/Support/processor_facade.php';
 }
 
+require_once __DIR__ . '/QuickModeDomTrait.php';
 require_once __DIR__ . '/joomla-htmlhelper-stub.php';
 require_once __DIR__ . '/joomla-text-stub.php';
 require_once __DIR__ . '/joomla-uri-stub.php';
@@ -47,6 +48,8 @@ require_once __DIR__ . '/joomla-cmsapplication-stub.php';
  */
 final class BootstrapRendererCharacterizationTest extends TestCase
 {
+    use QuickModeDomTrait;
+
     public function testPageNavigationRendersSharedPreviousAndNextActions(): void
     {
         $renderer = $this->makeRenderer();
@@ -176,6 +179,84 @@ final class BootstrapRendererCharacterizationTest extends TestCase
         ]));
 
         $this->assertMatchesSnapshot('bootstrap_bfTextarea.html', $html);
+    }
+
+    public function testChoiceGroupsAreFieldsetsNamedByTheirLegend(): void
+    {
+        $renderer = $this->makeRenderer();
+
+        $radios = $this->render($renderer, $this->elementNode('bfRadioGroup', [
+            'dbId' => 48,
+            'bfName' => 'gender',
+            'label' => 'Civilité',
+            'required' => true,
+            'wrap' => true,
+            'group' => "0;Madame;mme\n1;Monsieur;mr",
+        ]));
+        $this->assertChoiceGroupIsAFieldset($radios, 'Civilité', 2);
+        // The required marker stays readable inside the legend.
+        self::assertStringContainsString('visually-hidden', (string) $this->xpath($radios)->query('//legend')->item(0)->C14N());
+
+        $checkboxes = $this->render($renderer, $this->elementNode('bfCheckboxGroup', [
+            'dbId' => 49,
+            'bfName' => 'interests',
+            'label' => "Centres d'intérêt",
+            'wrap' => false,
+            'group' => "0;Route;road\n1;VTT;mtb\n0;Piste;track",
+        ]));
+        $this->assertChoiceGroupIsAFieldset($checkboxes, "Centres d'intérêt", 3);
+    }
+
+    public function testSectionIsAFieldsetWithItsLegend(): void
+    {
+        $renderer = $this->makeRenderer();
+        $this->setPrivate($renderer, 'rootMdata', ['useErrorAlerts' => true]);
+        $this->setPrivate($renderer, 'dataObject', ['children' => []]);
+
+        $html = $this->render($renderer, [
+            'attributes' => ['id' => 'section1'],
+            'properties' => [
+                'type' => 'section',
+                'bfType' => 'section',
+                'displayType' => 'block',
+                'name' => 'Section_details',
+                'title' => 'Your details',
+                'description' => '',
+                'off' => false,
+            ],
+        ]);
+
+        $xpath = $this->xpath($html);
+        self::assertSame(1, $xpath->query('//fieldset[@id="Section_details"]/legend[normalize-space()="Your details"]')->length);
+        self::assertSame(0, $xpath->query('//div[@id="Section_details"]')->length);
+        self::assertSame(0, $xpath->query('//legend[not(parent::fieldset)]')->length);
+    }
+
+    public function testResetButtonIsAnExplicitButtonWithoutFloat(): void
+    {
+        $renderer = $this->makeRenderer();
+        $this->setPrivate($renderer, 'bsClasses', [5 => self::BS_CLASSES + ['btn-secondary' => 'btn-secondary']]);
+        $this->setPrivate($renderer, 'rootMdata', [
+            'useErrorAlerts' => true,
+            'lastPageThankYou' => false,
+            'pagingInclude' => false,
+            'submitInclude' => false,
+            'cancelInclude' => true,
+            'cancelLabel' => 'Reset',
+        ]);
+        $this->setPrivate($renderer, 'dataObject', ['children' => [[]]]);
+
+        $html = $this->render($renderer, [
+            'attributes' => ['id' => 'page1'],
+            'properties' => ['type' => 'page', 'pageNumber' => 1, 'pageIntro' => ''],
+        ]);
+
+        $buttons = $this->xpath($html)->query('//button[contains(concat(" ", @class, " "), " bfCancelButton ")]');
+        self::assertSame(1, $buttons->length);
+        $button = $buttons->item(0);
+        self::assertSame('button', $button->getAttribute('type'));
+        self::assertStringContainsString('ff_resetForm', $button->getAttribute('onclick'));
+        self::assertStringNotContainsString('float-end', $button->getAttribute('class'));
     }
 
     public function testRadioGroupElement(): void

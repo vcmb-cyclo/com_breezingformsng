@@ -16,32 +16,99 @@ namespace Vcmb\Component\BreezingformsNG\Tests\Administrator\Support;
 
 use Joomla\Database\DatabaseInterface;
 
+/**
+ * Records every query the model builds and answers them from an ordered list
+ * of ids (the filtered list, in list order), without loading the whole list:
+ * the current row, the list size, the rows ahead and the two neighbours, in
+ * the order getNavigation() runs them (previous before next).
+ */
 final class RecordsNavigationDatabaseDouble implements DatabaseInterface
 {
-    public RecordsNavigationQueryDouble $query;
+    /** @var list<RecordsNavigationQueryDouble> */
+    public array $queries = [];
 
-    /** @param list<int> $recordIds */
-    public function __construct(private readonly array $recordIds)
+    private ?RecordsNavigationQueryDouble $pending = null;
+
+    private int $neighbourCalls = 0;
+
+    /**
+     * @param list<int>          $recordIds  Ids of the filtered list, in list order.
+     * @param array<int, ?string> $sortValues Sort value per id (default: the id).
+     */
+    public function __construct(private readonly array $recordIds, private readonly array $sortValues = [])
     {
     }
 
     public function createQuery(): RecordsNavigationQueryDouble
     {
-        return $this->query = new RecordsNavigationQueryDouble();
+        return $this->queries[] = new RecordsNavigationQueryDouble();
     }
 
-    public function quoteName(string|array $name): string|array
+    /** The count query that only carries the list filters. */
+    public function filterQuery(): RecordsNavigationQueryDouble
     {
-        return $name;
+        return $this->queries[1];
     }
 
-    public function setQuery(object $query, int $offset = 0, int $limit = 0): void
+    public function lastQuery(): RecordsNavigationQueryDouble
     {
+        return $this->queries[array_key_last($this->queries)];
     }
 
-    /** @return list<int> */
-    public function loadColumn(): array
+    public function quoteName(string|array $name, ?string $as = null): string|array
     {
-        return $this->recordIds;
+        return $as === null ? $name : $name . ' AS ' . $as;
+    }
+
+    public function setQuery(object $query, int $offset = 0, int $limit = 0): self
+    {
+        \assert($query instanceof RecordsNavigationQueryDouble);
+        $query->limit = $limit;
+        $this->pending = $query;
+
+        return $this;
+    }
+
+    /** @return ?array{id: int, nav_value: ?string} */
+    public function loadAssoc(): ?array
+    {
+        $index = array_search($this->boundId(), $this->recordIds, true);
+
+        if ($index === false) {
+            return null;
+        }
+
+        $id = $this->recordIds[$index];
+
+        return ['id' => $id, 'nav_value' => array_key_exists($id, $this->sortValues) ? $this->sortValues[$id] : (string) $id];
+    }
+
+    public function loadResult(): int|string|null
+    {
+        $query = $this->pending;
+        $index = array_search($this->boundId(), $this->recordIds, true);
+
+        if ($query === null) {
+            return null;
+        }
+
+        if (in_array('COUNT(*)', $query->select, true)) {
+            return $index === false ? count($this->recordIds) : $index;
+        }
+
+        $offset = $this->neighbourCalls++ === 0 ? -1 : 1;
+
+        return $index === false ? null : ($this->recordIds[$index + $offset] ?? null);
+    }
+
+    private function boundId(): ?int
+    {
+        foreach ($this->pending->bindings ?? [] as [$key, $value]) {
+            if ($key === ':navId') {
+                return $value;
+            }
+        }
+
+        return null;
     }
 }

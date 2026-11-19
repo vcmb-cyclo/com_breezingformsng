@@ -51,7 +51,7 @@ final class RecordsNavigationTest extends TestCase
         ])->getNavigation(30)['next'];
 
         self::assertSame(20, $next);
-        self::assertSame('records.submitted DESC, records.id DESC', $database->query->order);
+        self::assertSame('records.submitted DESC, records.id DESC', $database->lastQuery()->order);
         self::assertSame(
             [
                 'records.form = :formId',
@@ -65,7 +65,7 @@ final class RecordsNavigationTest extends TestCase
                 'records.title LIKE :searchLike7',
                 'records.name LIKE :searchLike8',
             ],
-            $database->query->where
+            $database->filterQuery()->where
         );
         self::assertSame(
             [
@@ -79,9 +79,9 @@ final class RecordsNavigationTest extends TestCase
                 [':searchLike7', '%alice%', 2],
                 [':searchLike8', '%alice%', 2],
             ],
-            $database->query->bindings
+            $database->filterQuery()->bindings
         );
-        self::assertSame(['AND', 'AND', 'AND', 'OR'], $database->query->whereGlue);
+        self::assertSame(['AND', 'AND', 'AND', 'OR'], $database->filterQuery()->whereGlue);
     }
 
     public function testANumberSearchesTheIdBoundAsAnIntegerOrTheTexts(): void
@@ -90,9 +90,9 @@ final class RecordsNavigationTest extends TestCase
 
         $this->model($database, ['filter.search' => '42'])->getNavigation(30);
 
-        self::assertContains('records.id = :searchId', $database->query->where);
-        self::assertContains([':searchId', 42, 1], $database->query->bindings);
-        self::assertContains('records.ip LIKE :searchLike1', $database->query->where);
+        self::assertContains('records.id = :searchId', $database->filterQuery()->where);
+        self::assertContains([':searchId', 42, 1], $database->filterQuery()->bindings);
+        self::assertContains('records.ip LIKE :searchLike1', $database->filterQuery()->where);
     }
 
     public function testAnIdPrefixSearchesTheIdOnly(): void
@@ -101,8 +101,8 @@ final class RecordsNavigationTest extends TestCase
 
         $this->model($database, ['filter.search' => 'ID: 42'])->getNavigation(30);
 
-        self::assertSame(['records.state IN (1)', 'records.id = :searchId'], $database->query->where);
-        self::assertSame([[':searchId', 42, 1]], $database->query->bindings);
+        self::assertSame(['records.state IN (1)', 'records.id = :searchId'], $database->filterQuery()->where);
+        self::assertSame([[':searchId', 42, 1]], $database->filterQuery()->bindings);
     }
 
     public function testTextAfterANumberIsNotTakenForAnId(): void
@@ -111,7 +111,7 @@ final class RecordsNavigationTest extends TestCase
 
         $this->model($database, ['filter.search' => '5abc'])->getNavigation(30);
 
-        self::assertNotContains('records.id = :searchId', $database->query->where);
+        self::assertNotContains('records.id = :searchId', $database->filterQuery()->where);
     }
 
     public function testPreviousRecordFollowsAscendingListOrderAcrossForms(): void
@@ -123,19 +123,19 @@ final class RecordsNavigationTest extends TestCase
             $this->model($database, ['list.ordering' => 'records.id', 'list.direction' => 'ASC'])
                 ->getNavigation(30)['prev']
         );
-        self::assertSame('records.id ASC', $database->query->order);
-        self::assertSame(['records.state IN (1)'], $database->query->where);
+        self::assertSame('records.id ASC', $database->lastQuery()->order);
+        self::assertSame(['records.state IN (1)'], $database->filterQuery()->where);
     }
 
     public function testNavigationFollowsTheStateFilterOfTheList(): void
     {
         $trash = new RecordsNavigationDatabaseDouble([20, 30]);
         $this->model($trash, ['filter.state' => '-2'])->getNavigation(30)['prev'];
-        self::assertSame(['records.state IN (-2)'], $trash->query->where);
+        self::assertSame(['records.state IN (-2)'], $trash->filterQuery()->where);
 
         $all = new RecordsNavigationDatabaseDouble([20, 30]);
         $this->model($all, ['filter.state' => '*'])->getNavigation(30)['prev'];
-        self::assertSame([], $all->query->where);
+        self::assertSame([], $all->filterQuery()->where);
     }
 
     public function testAnUnknownSortColumnFallsBackToTheSubmissionDate(): void
@@ -144,7 +144,7 @@ final class RecordsNavigationTest extends TestCase
         $this->model($database, ['list.ordering' => 'records.id; DROP TABLE x', 'list.direction' => 'up'])
             ->getNavigation(30)['prev'];
 
-        self::assertSame('records.submitted DESC, records.id DESC', $database->query->order);
+        self::assertSame('records.submitted DESC, records.id DESC', $database->lastQuery()->order);
     }
 
     public function testReturnsNoAdjacentRecordWhenCurrentRecordIsOutsideTheFilteredList(): void
@@ -168,6 +168,115 @@ final class RecordsNavigationTest extends TestCase
             ['prev' => null, 'next' => null, 'position' => null, 'total' => 3],
             $this->model(new RecordsNavigationDatabaseDouble([50, 30, 20]))->getNavigation(99)
         );
+    }
+
+    public function testNavigationNeverLoadsTheWholeList(): void
+    {
+        $database = new RecordsNavigationDatabaseDouble([50, 40, 30, 20, 10]);
+
+        $this->model($database)->getNavigation(30);
+
+        self::assertCount(5, $database->queries);
+
+        foreach ($database->queries as $query) {
+            if ($query->select === ['records.id']) {
+                self::assertSame(1, $query->limit, 'an unbounded id list query was run');
+            }
+        }
+
+        $neighbours = array_slice($database->queries, 3);
+        self::assertSame([1, 1], array_map(static fn ($query) => $query->limit, $neighbours));
+    }
+
+    public function testFirstAndLastRecordsHaveOnlyOneNeighbour(): void
+    {
+        self::assertSame(
+            ['prev' => null, 'next' => 40, 'position' => 1, 'total' => 3],
+            $this->model(new RecordsNavigationDatabaseDouble([50, 40, 30]))->getNavigation(50)
+        );
+        self::assertSame(
+            ['prev' => 40, 'next' => null, 'position' => 3, 'total' => 3],
+            $this->model(new RecordsNavigationDatabaseDouble([50, 40, 30]))->getNavigation(30)
+        );
+    }
+
+    public function testAnUnknownRecordOnlyCountsTheList(): void
+    {
+        $database = new RecordsNavigationDatabaseDouble([50, 40]);
+
+        self::assertSame(
+            ['prev' => null, 'next' => null, 'position' => null, 'total' => 2],
+            $this->model($database)->getNavigation(99)
+        );
+        self::assertCount(2, $database->queries);
+    }
+
+    public function testNeighboursUseAKeysetConditionOnTheListOrdering(): void
+    {
+        $database = new RecordsNavigationDatabaseDouble([50, 30, 20], [30 => '2026-01-02 10:00:00']);
+
+        $this->model($database, ['list.ordering' => 'records.submitted', 'list.direction' => 'DESC'])
+            ->getNavigation(30);
+
+        [, , $position, $prev, $next] = $database->queries;
+        $ahead = '(records.submitted > :navValue OR (records.submitted = :navValue AND records.id > :navId))';
+        $behind = '(records.submitted IS NULL OR records.submitted < :navValue OR '
+            . '(records.submitted = :navValue AND records.id < :navId))';
+
+        self::assertContains($ahead, $position->where);
+        self::assertContains($ahead, $prev->where);
+        self::assertSame('records.submitted ASC, records.id ASC', $prev->order);
+        self::assertContains($behind, $next->where);
+        self::assertSame('records.submitted DESC, records.id DESC', $next->order);
+        self::assertContains([':navValue', '2026-01-02 10:00:00', 2], $next->bindings);
+        self::assertContains([':navId', 30, 1], $next->bindings);
+    }
+
+    public function testAscendingIdOrderingComparesTheIdOnly(): void
+    {
+        $database = new RecordsNavigationDatabaseDouble([20, 30, 50]);
+
+        $this->model($database, ['list.ordering' => 'records.id', 'list.direction' => 'ASC'])->getNavigation(30);
+
+        [, , $position, $prev, $next] = $database->queries;
+
+        self::assertContains('records.id < :navId', $position->where);
+        self::assertContains('records.id < :navId', $prev->where);
+        self::assertSame('records.id DESC', $prev->order);
+        self::assertContains('records.id > :navId', $next->where);
+        self::assertSame('records.id ASC', $next->order);
+    }
+
+    public function testANullSortValueIsComparedWithIsNullInBothDirections(): void
+    {
+        $ascending = new RecordsNavigationDatabaseDouble([20, 30, 50], [30 => null]);
+        $this->model($ascending, ['list.ordering' => 'records.modified', 'list.direction' => 'ASC'])
+            ->getNavigation(30);
+
+        self::assertContains('(records.modified IS NULL AND records.id < :navId)', $ascending->queries[3]->where);
+        self::assertContains(
+            '(records.modified IS NOT NULL OR (records.modified IS NULL AND records.id > :navId))',
+            $ascending->queries[4]->where
+        );
+
+        $descending = new RecordsNavigationDatabaseDouble([20, 30, 50], [30 => null]);
+        $this->model($descending, ['list.ordering' => 'records.modified', 'list.direction' => 'DESC'])
+            ->getNavigation(30);
+
+        self::assertContains(
+            '(records.modified IS NOT NULL OR (records.modified IS NULL AND records.id > :navId))',
+            $descending->queries[3]->where
+        );
+        self::assertContains('(records.modified IS NULL AND records.id < :navId)', $descending->queries[4]->where);
+    }
+
+    public function testNumericSortColumnsBindTheirValueAsIntegers(): void
+    {
+        $database = new RecordsNavigationDatabaseDouble([20, 30], [30 => '1']);
+
+        $this->model($database, ['list.ordering' => 'records.state'])->getNavigation(30);
+
+        self::assertContains([':navValue', 1, 1], $database->queries[4]->bindings);
     }
 
     public function testTheListStateStaysInTheSessionNotInTheLinks(): void

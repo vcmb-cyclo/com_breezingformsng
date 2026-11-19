@@ -11,6 +11,21 @@
     vertical-align: middle !important;
 }
 
+/* Sections and choice groups are fieldsets (named by their legend): no frame, same look as the former divs */
+.bfQuickMode fieldset {
+    border: 0;
+    margin: 0;
+    min-width: 0;
+    padding: 0;
+}
+
+.bfQuickMode fieldset.bf-form-group > legend.form-label {
+    float: none;
+    font-size: inherit;
+    line-height: inherit;
+    width: auto;
+}
+
 /* fixing if a template has the idea to change that (e.g. T3) */
 .bfQuickMode fieldset .bf-form-group {
     margin-left: 0;

@@ -62,6 +62,16 @@ final class FormCodeGuardTest extends TestCase
         self::assertSame([], $result['ignored']);
     }
 
+    public function testAFieldTheScreenDidNotPostIsNoChange(): void
+    {
+        // The controller sets every code field it did not receive to null.
+        $data   = ['title' => 'T', 'piece1code' => null, 'script1code' => null, 'piece2code' => 'evil();'];
+        $result = (new FormCodeGuard())->apply($data, $this->stored(), false);
+
+        self::assertSame(['piece2code'], $result['ignored']);
+        self::assertSame(['title' => 'T'], $result['data']);
+    }
+
     public function testANewFormWithoutThePermissionStartsWithoutCode(): void
     {
         $result = (new FormCodeGuard())->apply(['title' => 'T', 'piece3code' => 'evil();'], null, false);

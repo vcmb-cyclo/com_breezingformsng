@@ -34,6 +34,7 @@ if (!class_exists(HTML_facileFormsProcessor::class)) {
     require_once __DIR__ . '/../../../../../components/com_breezingformsng/src/Support/processor_facade.php';
 }
 
+require_once __DIR__ . '/QuickModeDomTrait.php';
 require_once __DIR__ . '/joomla-htmlhelper-stub.php';
 require_once __DIR__ . '/joomla-text-stub.php';
 require_once __DIR__ . '/joomla-uri-stub.php';
@@ -64,6 +65,8 @@ require_once __DIR__ . '/joomla-cmsapplication-stub.php';
  */
 final class ClassicRendererCharacterizationTest extends TestCase
 {
+    use QuickModeDomTrait;
+
     private const SNAPSHOT_DIR = __DIR__ . '/__snapshots__';
 
     public function testTextfieldElement(): void
@@ -269,6 +272,31 @@ final class ClassicRendererCharacterizationTest extends TestCase
         ]));
 
         $this->assertMatchesSnapshot('classic_bfSelect.html', $html);
+    }
+
+    public function testChoiceGroupsAreNamedByTheirElementLabel(): void
+    {
+        $renderer = $this->makeRenderer();
+
+        $html = $this->render($renderer, $this->elementNode('bfRadioGroup', [
+            'dbId' => 48,
+            'bfName' => 'gender',
+            'label' => 'Civilité',
+            'hint' => '',
+            'required' => true,
+            'wrap' => true,
+            'group' => "0;Madame;mme\n1;Monsieur;mr",
+        ]));
+
+        $xpath = $this->xpath($html);
+        $group = $xpath->query('//span[@role="group"]');
+        self::assertSame(1, $group->length);
+        self::assertSame('bfLabel48', $group->item(0)->getAttribute('aria-labelledby'));
+        $label = $xpath->query('//label[@id="bfLabel48"]');
+        self::assertSame(1, $label->length);
+        // The label no longer designates the first choice alone.
+        self::assertFalse($label->item(0)->hasAttribute('for'));
+        self::assertSame(2, $xpath->query('//span[@role="group"]//input[@type="radio"]')->length);
     }
 
     public function testRadioGroupElement(): void

@@ -26,7 +26,7 @@
   /* text */
   --bfng-text:            var(--bs-body-color, #1f2933);
   --bfng-text-2:          #4b5763;
-  --bfng-text-muted:      var(--bs-secondary-color, #7b8794);
+  --bfng-text-muted:      var(--bs-secondary-color, #5f6b7a);
 
   /* accent - a single hue */
   --bfng-accent-500:      var(--template-link-color, #2f70b9);

@@ -546,18 +546,19 @@ final class SubmissionEngine
                                                 unlink($path);
                                             }
 
-                                            $ext = strtolower(substr($userfile_name, strrpos($userfile_name, '.') + 1));
-                                            $allowedExtensions = explode(
+                                            $allowedExtensions = array_values(array_filter(explode(
                                                 ',',
-                                                strtolower(str_replace(' ', '', trim($row->data2)))
-                                            );
+                                                strtolower(str_replace(' ', '', trim((string) $row->data2)))
+                                            ), static fn(string $extension): bool => $extension !== ''));
 
-                                            if (!in_array($ext, $allowedExtensions)) {
+                                            if (!(new UploadExtensionPolicy())->isAccepted($userfile_name, $allowedExtensions)) {
                                                 $this->processor->status = _FF_STATUS_FILE_EXTENSION_NOT_ALLOWED;
                                                 $this->processor->message = Text::sprintf(
                                                     'COM_BREEZINGFORMSNG_UPLOAD_EXTENSION_NOT_ALLOWED_DETAIL',
                                                     basename(str_replace('\\', '/', $userfile_name)),
-                                                    implode(', ', $allowedExtensions)
+                                                    $allowedExtensions !== []
+                                                        ? implode(', ', $allowedExtensions)
+                                                        : Text::_('COM_BREEZINGFORMSNG_UPLOAD_EXTENSION_EXECUTABLE_FILES')
                                                 );
                                             }
 

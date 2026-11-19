@@ -212,6 +212,7 @@ class HtmlView extends BaseHtmlView
         Text::script('COM_BREEZINGFORMSNG_QM_TREE_COPY');
         Text::script('COM_BREEZINGFORMSNG_QM_TREE_PASTE');
         Text::script('COM_BREEZINGFORMSNG_QM_TREE_DELETE');
+        Text::script('COM_BREEZINGFORMSNG_QM_UNTITLED_ELEMENT');
         Text::script('COM_BREEZINGFORMSNG_QM_TREE_MOVED');
         ToolbarHelper::title($pageTitle, 'logo_left');
 

@@ -19,7 +19,7 @@ Les corrections implémentées sont limitées à des changements locaux à faibl
 
 **Code concerné :**
 
-`getAdjacentRecordId()` sélectionne tous les identifiants du jeu filtré, les convertit en tableau PHP, puis utilise `array_search()`. La vue d’édition l’appelle deux fois, pour le précédent et le suivant (`administrator/components/com_breezingformsng/src/View/Records/HtmlView.php:L196-L211`).
+Statut : cette méthode a été remplacée par `RecordsModel::getNavigation()`, qui n'exécute plus que des requêtes bornées (valeur de tri courante, comptes et deux voisins `LIMIT 1`). Description initiale : `getAdjacentRecordId()` sélectionne tous les identifiants du jeu filtré, les convertit en tableau PHP, puis utilise `array_search()`. La vue d’édition l’appelle deux fois, pour le précédent et le suivant (`administrator/components/com_breezingformsng/src/View/Records/HtmlView.php:L196-L211`).
 
 **Problème :**
 

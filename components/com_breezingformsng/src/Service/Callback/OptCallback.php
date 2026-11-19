@@ -53,7 +53,7 @@ final class OptCallback
         ->set($database->quoteName('opted') . ' = 1')
         ->set($database->quoteName('opt_ip') . ' = :ip')
         ->set($database->quoteName('opt_date') . ' = :optDate')
-        ->where($database->quoteName('opt_token') . ' = :token')
+        ->where('BINARY ' . $database->quoteName('opt_token') . ' = :token')
         ->where($database->quoteName('id') . ' = :userSubmitedID')
         ->where($database->quoteName('opted') . ' = 0')
         ->bind(':ip', $ip, ParameterType::STRING)
@@ -98,7 +98,7 @@ final class OptCallback
         ->set($database->quoteName('opted') . ' = 0')
         ->set($database->quoteName('opt_ip') . ' = :ip')
         ->set($database->quoteName('opt_date') . ' = :optDate')
-        ->where($database->quoteName('opt_token') . ' = :token')
+        ->where('BINARY ' . $database->quoteName('opt_token') . ' = :token')
         ->where($database->quoteName('id') . ' = :userSubmitedID')
         ->where($database->quoteName('opted') . ' = 1')
         ->bind(':ip', $ip, ParameterType::STRING)
@@ -125,7 +125,7 @@ final class OptCallback
             ->select('1')
             ->from($database->quoteName('#__facileforms_records'))
             ->where($database->quoteName('id') . ' = :recordId')
-            ->where($database->quoteName('opt_token') . ' = :token')
+            ->where('BINARY ' . $database->quoteName('opt_token') . ' = :token')
             ->bind(':recordId', $recordId, ParameterType::INTEGER)
             ->bind(':token', $token, ParameterType::STRING);
 

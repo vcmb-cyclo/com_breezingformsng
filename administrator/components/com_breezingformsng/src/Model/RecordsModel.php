@@ -89,26 +89,53 @@ class RecordsModel extends ListModel
      * 1-based position, in the same ordered result set as the records list.
      * Position and neighbours are null when the record is outside that list.
      *
+     * Bounded queries only (no id list is loaded): the sort value of the
+     * current record, the size of the list, the rows ahead of it and the two
+     * neighbours found with a keyset condition on the list ordering.
+     *
      * @return array{prev: ?int, next: ?int, position: ?int, total: int}
      */
     public function getNavigation(int $recordId): array
     {
         $db = $this->getDatabase();
-        $db->setQuery($this->getOrderedIdsQuery());
+        [$orderCol, $dir] = $this->getOrdering();
 
-        $recordIds = array_values(array_map('intval', $db->loadColumn()));
-        $position = array_search($recordId, $recordIds, true);
+        $current = $this->getOrderedIdsQuery(false)
+            ->select($db->quoteName($orderCol, 'nav_value'))
+            ->where($db->quoteName('records.id') . ' = :navId')
+            ->bind(':navId', $recordId, ParameterType::INTEGER);
+        $currentRow = $db->setQuery($current, 0, 1)->loadAssoc();
 
-        $total = count($recordIds);
+        $total = (int) $db->setQuery($this->getOrderedIdsQuery(false, 'COUNT(*)'))->loadResult();
 
-        if ($position === false) {
+        if (!\is_array($currentRow)) {
             return ['prev' => null, 'next' => null, 'position' => null, 'total' => $total];
         }
 
+        $value = $currentRow['nav_value'] ?? null;
+        $value = $value === null ? null : (string) $value;
+        $ascending = $dir === 'ASC';
+        $before = $ascending ? 'below' : 'above';
+        $after = $ascending ? 'above' : 'below';
+
+        $position = $this->getOrderedIdsQuery(false, 'COUNT(*)');
+        $this->whereRelativeTo($position, $orderCol, $value, $recordId, $before);
+        $ahead = (int) $db->setQuery($position)->loadResult();
+
+        $reverse = $ascending ? 'DESC' : 'ASC';
+        $prev = $this->getOrderedIdsQuery(false);
+        $this->whereRelativeTo($prev, $orderCol, $value, $recordId, $before);
+        $prev->order($orderCol . ' ' . $reverse . ($orderCol !== 'records.id' ? ', records.id ' . $reverse : ''));
+        $prevId = $db->setQuery($prev, 0, 1)->loadResult();
+
+        $next = $this->getOrderedIdsQuery();
+        $this->whereRelativeTo($next, $orderCol, $value, $recordId, $after);
+        $nextId = $db->setQuery($next, 0, 1)->loadResult();
+
         return [
-            'prev' => $recordIds[$position - 1] ?? null,
-            'next' => $recordIds[$position + 1] ?? null,
-            'position' => $position + 1,
+            'prev' => $prevId !== null ? (int) $prevId : null,
+            'next' => $nextId !== null ? (int) $nextId : null,
+            'position' => $ahead + 1,
             'total' => $total,
         ];
     }
@@ -128,24 +155,80 @@ class RecordsModel extends ListModel
         return $id !== null ? (int) $id : null;
     }
 
-    private function getOrderedIdsQuery(): QueryInterface
+    private function getOrderedIdsQuery(bool $ordered = true, string $select = 'records.id'): QueryInterface
     {
         $db = $this->getDatabase();
         $query = $db->createQuery()
-            ->select($db->quoteName('records.id'))
+            ->select($select === 'records.id' ? $db->quoteName('records.id') : $select)
             ->from($db->quoteName('#__facileforms_records', 'records'))
             ->join('LEFT', $db->quoteName('#__facileforms_forms', 'forms') . ' ON forms.id = records.form');
 
         $this->applyFilters($query);
 
-        return $query->order($this->getOrderSql());
+        return $ordered ? $query->order($this->getOrderSql()) : $query;
     }
 
-    private function getOrderSql(): string
+    /**
+     * Restricts a list query to the rows strictly below (ascending order, NULL
+     * first) or above the given sort value, ties being broken by the id in the
+     * direction of the list, as in getOrderSql().
+     *
+     * @param 'below'|'above' $side
+     */
+    private function whereRelativeTo(
+        QueryInterface $query,
+        string $orderCol,
+        ?string $value,
+        int $recordId,
+        string $side
+    ): void
+    {
+        $db = $this->getDatabase();
+        $id = $db->quoteName('records.id');
+        $below = $side === 'below';
+        $idCompare = $id . ($below ? ' < ' : ' > ') . ':navId';
+        $query->bind(':navId', $recordId, ParameterType::INTEGER);
+
+        if ($orderCol === 'records.id') {
+            $query->where($idCompare);
+
+            return;
+        }
+
+        $col = $db->quoteName($orderCol);
+
+        if ($value === null) {
+            // NULL sorts first in ascending order: below it only the NULL rows with a smaller id.
+            $query->where($below
+                ? '(' . $col . ' IS NULL AND ' . $idCompare . ')'
+                : '(' . $col . ' IS NOT NULL OR (' . $col . ' IS NULL AND ' . $idCompare . '))');
+
+            return;
+        }
+
+        $type = \in_array($orderCol, ['records.viewed', 'records.exported', 'records.state'], true)
+            ? ParameterType::INTEGER
+            : ParameterType::STRING;
+        $bound = $type === ParameterType::INTEGER ? (int) $value : $value;
+        $query->bind(':navValue', $bound, $type);
+        $query->where($below
+            ? '(' . $col . ' IS NULL OR ' . $col . ' < :navValue OR (' . $col . ' = :navValue AND ' . $idCompare . '))'
+            : '(' . $col . ' > :navValue OR (' . $col . ' = :navValue AND ' . $idCompare . '))');
+    }
+
+    /** @return array{0: string, 1: 'ASC'|'DESC'} */
+    private function getOrdering(): array
     {
         $orderCol = (string) $this->getState('list.ordering', self::DEFAULT_ORDERING);
         $orderCol = in_array($orderCol, self::SORTS, true) ? $orderCol : self::DEFAULT_ORDERING;
         $dir = strtoupper((string) $this->getState('list.direction', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
+
+        return [$orderCol, $dir];
+    }
+
+    private function getOrderSql(): string
+    {
+        [$orderCol, $dir] = $this->getOrdering();
 
         return $orderCol . ' ' . $dir . ($orderCol !== 'records.id' ? ', records.id ' . $dir : '');
     }

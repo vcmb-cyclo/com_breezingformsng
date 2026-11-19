@@ -30,6 +30,7 @@
     --bf-text: #201f1d;
     --bf-muted: #5b5853;
     --bf-line: #d9d6d1;
+    --bf-field-border: #85817b;
     --bf-accent: #b68235;
     --bf-accent-ink: #7a5413;
     --bf-accent-tint: #f3e9d6;
@@ -48,6 +49,7 @@
     --bf-text: #f2f2f0;
     --bf-muted: #b8b8b3;
     --bf-line: #454b54;
+    --bf-field-border: #7a838f;
     --bf-accent: #e4b665;
     --bf-accent-ink: #f1ca83;
     --bf-accent-tint: #493a22;
@@ -66,6 +68,7 @@
         --bf-text: #f2f2f0;
         --bf-muted: #b8b8b3;
         --bf-line: #454b54;
+        --bf-field-border: #7a838f;
         --bf-accent: #e4b665;
         --bf-accent-ink: #f1ca83;
         --bf-accent-tint: #493a22;
@@ -162,6 +165,16 @@
     width: auto;
 }
 
+/* The legend of a choice group is the label of the group, not a section title */
+.bfFormDiv fieldset legend.form-label {
+    color: var(--bf-text);
+    font-size: 0.9rem;
+    font-weight: inherit;
+    letter-spacing: normal;
+    margin: 0 0 0.4rem;
+    text-transform: none;
+}
+
 /* Labels; the required asterisk follows the accent */
 .bfFormDiv .form-label {
     color: var(--bf-text);
@@ -180,7 +193,7 @@
 .bfFormDiv .form-control,
 .bfFormDiv .form-select {
     background-color: var(--bf-field);
-    border: 1px solid transparent;
+    border: 1px solid var(--bf-field-border);
     border-radius: 8px;
     box-shadow: none;
     color: var(--bf-text);
@@ -205,7 +218,7 @@
 
 .bfFormDiv .form-control:hover,
 .bfFormDiv .form-select:hover {
-    border-color: var(--bf-line);
+    border-color: var(--bf-text);
 }
 
 .bfFormDiv .form-control:focus,

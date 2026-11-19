@@ -8,6 +8,7 @@
 \defined('_JEXEC') or die;
 
 /** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Quickmode\HtmlView $this */
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Uri\Uri;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\QuickmodeHtml;
@@ -36,12 +37,12 @@ if ($this->formId === 0 || $this->templateCode === '') {
             mailNotification: false,
             mailRecipient: "",
             submitInclude: true,
-            submitLabel: "submit",
+            submitLabel: ' . json_encode(Text::_('COM_BREEZINGFORMSNG_QM_DEFAULT_SUBMIT'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) . ',
             cancelInclude: false,
-            cancelLabel: "reset",
+            cancelLabel: ' . json_encode(Text::_('COM_BREEZINGFORMSNG_QM_DEFAULT_RESET'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) . ',
             pagingInclude: true,
-            pagingNextLabel: "next",
-            pagingPrevLabel: "back",
+            pagingNextLabel: ' . json_encode(Text::_('COM_BREEZINGFORMSNG_PROCESS_PAGENEXT'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) . ',
+            pagingPrevLabel: ' . json_encode(Text::_('COM_BREEZINGFORMSNG_PROCESS_PAGEPREV'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) . ',
             theme: "default",
             themebootstrap: "",
             themebootstrapbefore: "",

@@ -1,4 +1,4 @@
-# Guides Joomla 6 / PHP 8.3 pour agents IA
+# Guides Joomla 6 / PHP 8.4 pour agents IA
 
 Pack de recommandations **proposé pour BFNG/CBNG**, non officiel Joomla. Date: 2026-10-30.
 
