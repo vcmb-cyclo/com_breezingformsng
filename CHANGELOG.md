@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.1.0-RC24
+
+### Changed
+
+- Replace the standard scripts and pieces of the library by the new standard version when updating, after keeping the version of the site in the history of each item (Versions) with a note that says so; the installation summary lists what was replaced.
+
 ## 6.1.0-RC23
 
 ### Added

@@ -26,14 +26,6 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\SqlDate;
  */
 class ImportModel extends BaseDatabaseModel
 {
-    /** SHA-256 of the last distributed source, after the XML import decoding. */
-    private const STANDARD_PIECE_ORIGINS = [
-        'ff_databaseToSelect' => '06f1ebfd9f73101fc9811d5e7ca04ec09ab59e82a08bf0e1e04c10e61c7fa823',
-        'ff_query' => 'f0bea1ddaf306c72a741eeb129fe037e160cd7bb56f4f3fdb0b3006e9673ef92',
-        'ff_select' => 'dd72b5709a74844225772bcfb78ce124e40987aba9e8377738021a8dff58646d',
-        'ff_selectValue' => '7209aea2e5a77c9455f1c61b7c2847455f1ff4fc95633793e874bd57df9789f0',
-    ];
-
     public bool $reinstallOnlyIfChanged = false;
 
     /** @var int[] Ids of scripts inserted or updated */
@@ -54,10 +46,14 @@ class ImportModel extends BaseDatabaseModel
     /** @var string[] */
     public array $updatedPieces = [];
 
-    /** @var string[] */
-    public array $warnings = [];
+    /** The version of the component being installed, named in the notes of the history versions. */
+    public string $incomingVersion = '';
 
     private DatabaseInterface $db;
+
+    private string $noteBefore = '';
+
+    private string $noteStandard = '';
 
     /**
      * Import a package file. As the package import of the Packages screen, an
@@ -71,9 +67,14 @@ class ImportModel extends BaseDatabaseModel
         $this->scripts = $this->pieces = [];
         $this->createdScripts = $this->updatedScripts = [];
         $this->createdPieces = $this->updatedPieces = [];
-        $this->warnings = [];
 
         $this->db = $this->getDatabase();
+        $this->noteBefore = $this->incomingVersion !== ''
+            ? Text::sprintf('COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_BEFORE_STANDARD', $this->incomingVersion)
+            : Text::_('COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_BEFORE_STANDARD_UNVERSIONED');
+        $this->noteStandard = $this->incomingVersion !== ''
+            ? Text::sprintf('COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_STANDARD', $this->incomingVersion)
+            : Text::_('COM_BREEZINGFORMSNG_LIBRARY_VERSION_NOTE_STANDARD_UNVERSIONED');
 
         if (!is_file($filename)) {
             throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_IMPORT_FILE_NOT_FOUND', $filename));
@@ -160,25 +161,6 @@ class ImportModel extends BaseDatabaseModel
             ->bind(':package', $item['package']);
         $existing = $this->db->setQuery($query, 0, 1)->loadAssoc();
 
-        // Automatic upgrades must never overwrite a site's customised piece.
-        // Only the exact previously distributed source can be upgraded safely;
-        // leave its other fields untouched, including publication and metadata.
-        if (
-            $existing !== null && $this->reinstallOnlyIfChanged
-            && $table === '#__facileforms_pieces' && $item['package'] === 'FF'
-            && isset(self::STANDARD_PIECE_ORIGINS[$item['name']])
-        ) {
-            $existingCode = (string) ($existing['code'] ?? '');
-            if ($existingCode === $item['code']) {
-                return;
-            }
-            if (!hash_equals(self::STANDARD_PIECE_ORIGINS[$item['name']], hash('sha256', $existingCode))) {
-                $this->warnings[] = $item['name'];
-                return;
-            }
-            $item = ['code' => $item['code']];
-        }
-
         if ($existing !== null && $this->reinstallOnlyIfChanged && $this->isUnchanged($item, $existing)) {
             return;
         }
@@ -190,11 +172,12 @@ class ImportModel extends BaseDatabaseModel
             $item['modified'] = $now;
             $item['modified_by'] = $userName;
 
-            $items->keepOrigin((int) $existing['id']);
+            // The code of the site is stored in the history before the standard one replaces it.
+            $items->keepVersionBeforeReplacement((int) $existing['id'], $this->noteBefore);
 
             $row = (object) ($item + ['id' => (int) $existing['id']]);
             $this->db->updateObject($table, $row, 'id');
-            $items->recordVersion((int) $existing['id']);
+            $items->recordVersion((int) $existing['id'], $this->noteStandard);
 
             $touched[] = (int) $existing['id'];
 
