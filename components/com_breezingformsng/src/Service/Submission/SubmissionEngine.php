@@ -38,7 +38,7 @@ use Joomla\CMS\Log\Log;
 use Joomla\CMS\Mail\Mail;
 use Joomla\CMS\Mail\MailerFactoryInterface;
 use Vcmb\Component\BreezingformsNG\Site\Event\AfterSubmitEvent;
-use Vcmb\Component\BreezingformsNG\Site\Service\Integration\DropboxUploader;
+use Vcmb\Component\BreezingformsNG\Site\Event\SubmissionArtifactsEvent;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\RecaptchaVerifier;
 use Vcmb\Component\BreezingformsNG\Site\Service\Export\ExportEngine;
 use Vcmb\Component\BreezingformsNG\Site\Service\Notification\NotificationEngine;
@@ -70,6 +70,8 @@ final class SubmissionEngine
     private ?HtmlSanitizer $htmlSanitizerService = null;
     private ?FlashUploadFileMatcher $flashUploadFileMatcherService = null;
     private ?UploadRuntime $uploadRuntimeService = null;
+    /** @var list<array{path: string, name: string}> */
+    private array $submissionArtifacts = [];
 
     public function __construct(
         private readonly HTML_facileFormsProcessor $processor,
@@ -636,12 +638,10 @@ final class SubmissionEngine
                             }
                             if ($row->logging == 1) {
                                 // db and attachment
-                                // DROPBOX SUPPORT request v2 API
 
                                 foreach ($serverPaths as $serverPath) {
-                                    // DROPBOX File Upload
-                                    if ($this->processor->formrow->dropbox_email) {
-                                        $this->uploadFileToDropbox($serverPath);
+                                    if (trim((string) $this->processor->formrow->dropbox_email) !== '') {
+                                        $this->registerSubmissionArtifact($serverPath);
                                     }
 
                                     // CONTENTBUILDER: to keep the relative path with prefix
@@ -904,10 +904,8 @@ final class SubmissionEngine
 
                                             $sigValues .= $value;
 
-                                            // DROPBOX SUPPORT request v2 API
-                                            // DROPBOX Signature upload
-                                            if ($this->processor->formrow->dropbox_email) {
-                                                $this->uploadFileToDropbox($sig_file);
+                                            if (trim((string) $this->processor->formrow->dropbox_email) !== '') {
+                                                $this->registerSubmissionArtifact($sig_file);
                                             }
                                         }
                                     }
@@ -1144,6 +1142,7 @@ final class SubmissionEngine
         $this->processor->status = _FF_STATUS_OK;
         $this->processor->message = '';
         $this->processor->sendNotificationAfterPayment = false;
+        $this->submissionArtifacts = [];
 
         // The captcha is checked before anything is written: a robot that fails it leaves no file behind.
             $elementRows = $this->processor->rows ?? [];
@@ -1312,29 +1311,29 @@ final class SubmissionEngine
                             $this->notificationEngine->sendMailbackNotification();
                         }
 
-                        // DROPBOX request v2 API and PDF,CSV, XML upload
+                        // Generate configured submission exports for integration listeners.
                         if ($this->processor->formrow->dropbox_submission_enabled) {
                             if ($this->processor->formrow->dropbox_email) {
                                 try {
-                                    $dropbox_types = explode(
+                                    $submissionExportTypes = explode(
                                         ',',
                                         (string) $this->processor->formrow->dropbox_submission_types
                                     );
-                                    foreach ($dropbox_types as $dropbox_type) {
-                                        $dropbox_file = '';
-                                        switch ($dropbox_type) {
+                                    foreach ($submissionExportTypes as $submissionExportType) {
+                                        $submissionExportFile = '';
+                                        switch ($submissionExportType) {
                                             case 'pdf':
-                                                $dropbox_file = $this->exportEngine->exppdf();
+                                                $submissionExportFile = $this->exportEngine->exppdf();
                                                 break;
                                             case 'csv':
-                                                $dropbox_file = $this->exportEngine->expcsv();
+                                                $submissionExportFile = $this->exportEngine->expcsv();
                                                 break;
                                             case 'xml':
-                                                $dropbox_file = $this->exportEngine->expxml();
+                                                $submissionExportFile = $this->exportEngine->expxml();
                                                 break;
                                         }
-                                        if ($dropbox_file != '') {
-                                            $this->uploadFileToDropbox($dropbox_file);
+                                        if ($submissionExportFile != '') {
+                                            $this->registerSubmissionArtifact($submissionExportFile);
                                         }
                                     }
                                 } catch (Exception $e) {
@@ -1348,6 +1347,14 @@ final class SubmissionEngine
 
                         PluginHelper::importPlugin('breezingforms_addons');
                         $dispatcher = $this->processor->app->getDispatcher();
+                        $dispatcher->dispatch(SubmissionArtifactsEvent::NAME, new SubmissionArtifactsEvent(
+                            (int) $this->processor->form,
+                            (string) $this->processor->formrow->name,
+                            (int) $this->processor->record_id,
+                            $this->submissionArtifacts
+                        ));
+
+                        PluginHelper::importPlugin('breezingforms_addons');
                         $dispatcher->dispatch(AfterSubmitEvent::NAME, new AfterSubmitEvent(
                             (int) $this->processor->form,
                             (string) $this->processor->formrow->name,
@@ -2298,20 +2305,13 @@ final class SubmissionEngine
         return false;
     }
 
-    private function uploadFileToDropbox(string $localFile): void
+    private function registerSubmissionArtifact(string $localFile): void
     {
-        $folder = trim((string) ($this->processor->formrow->dropbox_folder ?: $this->processor->formrow->name), '/');
-        $remotePath = '/' . ($folder !== '' ? $folder . '/' : '') . basename($localFile);
-
-        // A Dropbox failure must neither abort the submission nor reach the visitor.
-        try {
-            (new DropboxUploader())->upload(
-                trim((string) $this->processor->formrow->dropbox_email),
-                $remotePath,
-                $localFile
-            );
-        } catch (\Throwable) {
-            Log::add('Dropbox upload failed; the submission continues without it.', Log::WARNING, 'com_breezingformsng');
+        if (is_file($localFile) && is_readable($localFile)) {
+            $this->submissionArtifacts[] = [
+                'path' => $localFile,
+                'name' => basename($localFile),
+            ];
         }
     }
 

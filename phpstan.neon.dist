@@ -18,6 +18,8 @@ parameters:
         - administrator/components/com_breezingformsng/plugins/bfcompat/services
         - administrator/components/com_breezingformsng/plugins/breezingforms/src
         - administrator/components/com_breezingformsng/plugins/breezingforms/services
+        - administrator/components/com_breezingformsng/plugins/dropbox/src
+        - administrator/components/com_breezingformsng/plugins/dropbox/services
         - administrator/components/com_breezingformsng/plugins/privacy/src
         - administrator/components/com_breezingformsng/plugins/privacy/services
         - administrator/components/com_breezingformsng/plugins/webservices/src
