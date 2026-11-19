@@ -99,6 +99,8 @@ final class CheckOutArchitectureTest extends TestCase
 
         self::assertStringNotContainsString('$model->checkout($formId)', substr($controller, 0, strpos($controller, 'public function close')));
         self::assertMatchesRegularExpression('/public function doAjaxSave\(\): void.*?checkout\(\$form\)/s', $controller);
+        self::assertStringContainsString('$form = $this->getOptionsModel()->getForm($formId);', $controller);
+        self::assertStringContainsString('(int) ($form->checked_out ?? 0) > 0', $controller);
         self::assertMatchesRegularExpression(
             '/public function close\(\): void\s+\{\s+\$this->checkToken\(\'get\'\);.*?->checkin\(\$formId\)/s',
             $controller
@@ -120,22 +122,30 @@ final class CheckOutArchitectureTest extends TestCase
     public function testCheckInGoesThroughTheModelAndReportsARefusal(): void
     {
         $controllers = [
-            'QuickmodeController' => '$this->setMessage('
-                . "Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
-            'FormsController' => '$this->app->enqueueMessage('
-                . "Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
+            'QuickmodeController' => [
+                '$this->setMessage('
+                    . "Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
+                '/\$checkinSucceeded = \$model->checkin\(\$formId\) !== false;\s+if \(!\$checkinSucceeded\) \{/',
+            ],
+            'FormsController' => [
+                '$this->app->enqueueMessage('
+                    . "Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
+                '/if \(\$model->checkin\(\$id\) === false\) \{/',
+            ],
         ];
 
-        foreach ($controllers as $controller => $message) {
+        foreach ($controllers as $controller => [$message, $checkinPattern]) {
             $source = $this->read(
                 'administrator/components/com_breezingformsng/src/Controller/' . $controller . '.php'
             );
 
             self::assertMatchesRegularExpression(
-                '/if \(!\$model->checkin\(\$(formId|id)\)\) \{/',
+                $checkinPattern,
                 $source,
                 $controller
             );
+            self::assertStringContainsString('$form = $this->getOptionsModel()->getForm(', $source, $controller);
+            self::assertStringContainsString('(int) ($form->checked_out ?? 0) > 0', $source, $controller);
             self::assertStringContainsString($message, $source, $controller);
         }
 

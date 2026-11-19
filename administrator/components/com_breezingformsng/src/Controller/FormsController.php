@@ -340,11 +340,17 @@ class FormsController extends AdminController
         $id = $this->input->getInt('id', 0);
 
         if ($id > 0) {
-            $model = $this->getFormModel();
+            $form = $this->getOptionsModel()->getForm($id);
 
-            // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
-            if (!$model->checkin($id)) {
-                $this->app->enqueueMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()), 'error');
+            // The advanced options page locks only when it saves. Joomla
+            // returns 0 (falsey) when checkin() sees no lock.
+            if ($form === null || (int) ($form->checked_out ?? 0) > 0) {
+                $model = $this->getFormModel();
+
+                // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
+                if ($model->checkin($id) === false) {
+                    $this->app->enqueueMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()), 'error');
+                }
             }
         }
 
