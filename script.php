@@ -1339,14 +1339,33 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $existingPlugins[$plugin->folder][$plugin->element] = (int) $plugin->enabled;
         }
 
-        $folders = Folder::folders($basePath);
-        if (empty($folders)) {
+        $pluginDirectories = [];
+        foreach (Folder::folders($basePath) as $folder) {
+            $folderPath = $basePath . '/' . $folder;
+            $manifests = glob($folderPath . '/*.xml');
+            if ($manifests !== false && $manifests !== []) {
+                $pluginDirectories[] = ['folder' => $folder, 'path' => $folderPath];
+                continue;
+            }
+
+            // Addon groups may contain several plugin directories.
+            foreach (Folder::folders($folderPath) as $plugin) {
+                $pluginPath = $folderPath . '/' . $plugin;
+                $manifests = glob($pluginPath . '/*.xml');
+                if ($manifests !== false && $manifests !== []) {
+                    $pluginDirectories[] = ['folder' => $plugin, 'path' => $pluginPath];
+                }
+            }
+        }
+
+        if ($pluginDirectories === []) {
             return;
         }
 
         $installedFolders = [];
 
-        foreach ($folders as $folder) {
+        foreach ($pluginDirectories as $pluginDirectory) {
+            $folder = $pluginDirectory['folder'];
             $this->log("Installing plugin from folder: {$folder}");
 
             // Installer keeps manifest state; use a fresh instance for every
@@ -1354,7 +1373,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $installer = new Installer();
             $installer->setDatabase(Factory::getContainer()->get(DatabaseInterface::class));
 
-            if ($installer->install($basePath . '/' . $folder)) {
+            if ($installer->install($pluginDirectory['path'])) {
                 $installedFolders[] = $folder;
                 $this->log("Plugin {$folder} installed successfully.", Log::INFO);
             } else {
@@ -3398,6 +3417,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             JPATH_SITE . '/components/com_breezingformsng/legacy/tables.php',
             JPATH_SITE . '/components/com_breezingformsng/legacy/functions.php',
             JPATH_SITE . '/components/com_breezingformsng/src/Table/RuntimeTables.php',
+            JPATH_SITE . '/components/com_breezingformsng/src/Service/Integration/DropboxUploader.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/crosstec/classes/BFFactory.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/crosstec/classes/BFIntegrate.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/crosstec/classes/BFJoomlaConfig.php',
@@ -4433,6 +4453,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $plugins['system'] = array();
         $plugins['system'][] = 'bfcompat';
         $plugins['content'] = ['breezingforms'];
+        $plugins['breezingforms_addons'] = ['dropbox'];
         $plugins['privacy'] = ['breezingformsng'];
         $plugins['webservices'] = ['breezingformsng'];
         return $plugins;

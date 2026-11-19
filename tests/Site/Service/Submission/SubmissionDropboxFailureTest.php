@@ -16,7 +16,10 @@ namespace Vcmb\Component\BreezingformsNG\Tests\Site\Service\Submission;
 
 use Joomla\Http\Http;
 use PHPUnit\Framework\TestCase;
-use Vcmb\Component\BreezingformsNG\Site\Service\Integration\DropboxUploader;
+use Vcmb\Plugin\BreezingformsAddons\Dropbox\Service\DropboxUploader;
+
+require_once dirname(__DIR__, 4)
+    . '/administrator/components/com_breezingformsng/plugins/dropbox/src/Service/DropboxUploader.php';
 
 if (!class_exists(Http::class)) {
     eval('namespace Joomla\\Http; class Http { public function post($url, $data, array $headers = [], $timeout = null) {} }');
@@ -24,7 +27,7 @@ if (!class_exists(Http::class)) {
 
 /**
  * A Dropbox failure must never abort a submission (SEC-R2-011): the uploader reports errors by
- * exception, and the single SubmissionEngine entry point turns them into a generic log entry.
+ * exception, and the addon plugin turns them into a generic log entry.
  */
 final class SubmissionDropboxFailureTest extends TestCase
 {
@@ -59,16 +62,14 @@ final class SubmissionDropboxFailureTest extends TestCase
         }
     }
 
-    public function testEveryDropboxCallGoesThroughTheCatchingMethodWithAGenericLogMessage(): void
+    public function testSubmissionEnginePublishesArtifactsWithoutOwningDropboxCalls(): void
     {
         $source = (string) file_get_contents(
             dirname(__DIR__, 4) . '/components/com_breezingformsng/src/Service/Submission/SubmissionEngine.php'
         );
 
-        self::assertSame(1, substr_count($source, '(new DropboxUploader())->upload('));
-        self::assertMatchesRegularExpression(
-            "/try \\{\\s*\\(new DropboxUploader\\(\\)\\)->upload\\(.*?\\} catch \\(\\\\Throwable\\) \\{\\s*Log::add\\('Dropbox upload failed; the submission continues without it\\.'/s",
-            $source
-        );
+        self::assertStringNotContainsString('DropboxUploader', $source);
+        self::assertStringContainsString('SubmissionArtifactsEvent::NAME', $source);
+        self::assertStringContainsString('registerSubmissionArtifact(', $source);
     }
 }
