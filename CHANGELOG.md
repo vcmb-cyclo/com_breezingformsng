@@ -15,6 +15,7 @@
 
 - Show a short summary at the end of an installation or an update, with the versions, the plugins and the changes made, instead of every internal step. The whole detail stays in the installation log.
 - Enrich the sample contact form with required fields and hints, a consent check box, a security code, an optional international phone, an email to the site with a copy to the sender, and a thank-you page.
+- Draw the security code with a maintained library, as a clearer image of dark characters on a light background, without the characters that look alike.
 
 ### Fixed
 
