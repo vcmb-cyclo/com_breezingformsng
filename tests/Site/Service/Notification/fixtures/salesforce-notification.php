@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Isolated process doubles deliberately share this fixture and the legacy processor name.
+// Isolated process doubles deliberately share this fixture.
 // phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses, Squiz.Classes.ValidClassName.NotPascalCase
 
 namespace Joomla\CMS\Log {
@@ -40,38 +40,23 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Integration {
     }
 }
 
-namespace Vcmb\Component\BreezingformsNG\Site\Service\Export {
-    final class ExportEngine
-    {
-    }
-}
-
 namespace {
     define('_JEXEC', 1);
     define('SITE_ROOT', $argv[1]);
     define('JPATH_SITE', SITE_ROOT);
     define('FAIL_REQUEST', $argv[2] === 'failure');
 
-    class HTML_facileFormsProcessor
-    {
-        public object $formrow;
-        public array $sfdata = [];
-    }
+    require dirname(__DIR__, 5)
+        . '/administrator/components/com_breezingformsng/plugins/breezingforms_addons/salesforce/src/Service/'
+        . 'SalesforceSubmissionHandler.php';
 
-    require dirname(__DIR__, 5) . '/components/com_breezingformsng/src/Service/Notification/NotificationEngine.php';
-
-    $processor = new HTML_facileFormsProcessor();
-    $processor->formrow = (object) [
+    $handler = new \Vcmb\Plugin\BreezingformsAddons\Salesforce\Service\SalesforceSubmissionHandler();
+    $handler->handle([
         'salesforce_enabled' => 1,
         'salesforce_fields' => '',
         'salesforce_username' => 'user',
         'salesforce_password' => 'password',
         'salesforce_token' => 'token',
         'salesforce_type' => 'Contact',
-    ];
-    $engine = new \Vcmb\Component\BreezingformsNG\Site\Service\Notification\NotificationEngine(
-        $processor,
-        new \Vcmb\Component\BreezingformsNG\Site\Service\Export\ExportEngine()
-    );
-    $engine->sendSalesforceNotification();
+    ], []);
 }

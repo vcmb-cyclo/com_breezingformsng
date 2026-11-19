@@ -30,11 +30,8 @@ use Joomla\CMS\Language\LanguageHelper;
 use Joomla\Filesystem\Path;
 use Joomla\CMS\Environment\Browser;
 use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Log\Log;
 use Vcmb\Component\BreezingformsNG\Site\Service\Export\ExportEngine;
-use Vcmb\Component\BreezingformsNG\Site\Service\Integration\MailchimpClient;
-use Vcmb\Component\BreezingformsNG\Site\Service\Integration\SalesforceClient;
 use Vcmb\Component\BreezingformsNG\Site\Service\QuickMode\TranslationResolver;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\SubmissionTimestampFormatter;
 use CB\Component\Contentbuilderng\Administrator\Helper\ContentbuilderngHelper;
@@ -44,7 +41,7 @@ use CB\Component\Contentbuilderng\Administrator\Service\ListSupportService;
 use CB\Component\Contentbuilderng\Administrator\Service\PermissionService;
 
 /**
- * Admin/mailback/Salesforce/MailChimp notifications and translations.
+ * Admin/mailback notifications and translations.
  */
 final class NotificationEngine
 {
@@ -1245,135 +1242,6 @@ final class NotificationEngine
         }
 
         $this->processor->mailbackRecipients = $recipients;
-    }
-
-    /**
-     * @return null|void
-     */
-    function sendSalesforceNotification()
-    {
-
-        if ($this->processor->formrow->salesforce_enabled != 1) {
-            return;
-        }
-
-        try {
-            $fields = array();
-            $salesforceFields = $this->processor->formrow->salesforce_fields;
-            $this->processor->formrow->salesforce_fields = is_array($salesforceFields) ? $salesforceFields : explode(',', (string) $salesforceFields);
-
-            foreach ($this->processor->formrow->salesforce_fields as $sfields) {
-                foreach ($this->processor->sfdata ?? [] as $savedata) {
-                    $sfield = explode('::', $sfields);
-                    if ($sfield[0] == $savedata[1]) {
-                        $fields[$sfield[1]] = $savedata[4];
-                        break;
-                    }
-                }
-            }
-
-            (new SalesforceClient())->createRecord(
-                trim((string) $this->processor->formrow->salesforce_username),
-                (string) $this->processor->formrow->salesforce_password . (string) $this->processor->formrow->salesforce_token,
-                trim((string) $this->processor->formrow->salesforce_type),
-                $fields
-            );
-        } catch (\Throwable $e) {
-            Log::add('Salesforce notification failed.', Log::ERROR, 'com_breezingformsng');
-            echo Text::_('JERROR_AN_ERROR_HAS_OCCURRED');
-            session_write_close();
-            exit;
-        }
-    }
-
-    /**
-     * @return null|void
-     */
-    function sendMailChimpNotification()
-    {
-
-        if (trim((string) $this->processor->formrow->mailchimp_email_field) != '' && trim((string) $this->processor->formrow->mailchimp_api_key) != '' && trim((string) $this->processor->formrow->mailchimp_list_id) != '' && count($this->processor->maildata ?? [])) {
-
-            $email = '';
-            $htmlTextMobile = 'text';
-            $checked = true;
-            $unsubscribe = false;
-            $mergeVars = array();
-            $htmlTextMobileField = trim((string) $this->processor->formrow->mailchimp_text_html_mobile_field);
-            $checkboxField = trim((string) $this->processor->formrow->mailchimp_checkbox_field);
-            $unsubscribeField = trim((string) $this->processor->formrow->mailchimp_unsubscribe_field);
-            $emailField = trim((string) $this->processor->formrow->mailchimp_email_field);
-            $mergeVarFields = explode(',', str_replace(' ', '', (string) $this->processor->formrow->mailchimp_mergevars));
-            $api = new MailchimpClient();
-            $apiKey = trim((string) $this->processor->formrow->mailchimp_api_key);
-            $list_ids = explode(',', trim((string) $this->processor->formrow->mailchimp_list_id));
-
-            if ($checkboxField != '') {
-                $box = $this->processor->app->getInput()->get('ff_nm_' . $checkboxField, array(''), 'string');
-                if (isset($box[0]) && $box[0] != '') {
-                    $checked = true;
-                } else {
-                    $checked = false;
-                }
-            }
-
-            if ($unsubscribeField != '') {
-                $box = $this->processor->app->getInput()->get('ff_nm_' . $unsubscribeField, array(''), 'string');
-                if (isset($box[0]) && $box[0] != '') {
-                    $unsubscribe = true;
-                }
-            }
-
-            if ($htmlTextMobileField != '') {
-                $selection = $this->processor->app->getInput()->get('ff_nm_' . $htmlTextMobileField, array(''), 'string');
-                if (isset($selection[0]) && $selection[0] != '') {
-                    $htmlTextMobile = $selection[0];
-                }
-            } else {
-                $htmlTextMobile = $this->processor->formrow->mailchimp_default_type;
-            }
-
-            foreach ($this->processor->maildata ?? [] as $data) {
-                switch ($data[_FF_DATA_NAME]) {
-                    case $emailField:
-                        $email = bf_is_email(trim($data[_FF_DATA_VALUE])) ? trim($data[_FF_DATA_VALUE]) : '';
-                        break;
-                    default:
-                        if (in_array($data[_FF_DATA_NAME], $mergeVarFields)) {
-                            $mergeVars[$data[_FF_DATA_NAME]] = $data[_FF_DATA_VALUE];
-                        }
-                }
-            }
-
-            // MailChimp API v3 update
-            foreach ($list_ids as $list_id) {
-                // nosemgrep: php.lang.security.weak-crypto.weak-crypto -- Mailchimp identifies members by the MD5 of their lowercase email.
-                $resource = 'lists/' . rawurlencode(trim($list_id)) . '/members/' . md5(strtolower($email));
-
-                try {
-                    if ($email != '' && $checked) {
-                        $api->request($apiKey, 'PUT', $resource, [
-                            'email_address' => $email,
-                            'merge_fields' => (object) $mergeVars,
-                            'status_if_new' => ($this->processor->formrow->mailchimp_double_optin ? 'pending' : 'subscribed'),
-                            'status' => ($this->processor->formrow->mailchimp_double_optin ? 'pending' : 'subscribed'),
-                            'email_type' => $htmlTextMobile,
-                        ]);
-                    } else if ($email != '' && $unsubscribe) {
-                        $api->request($apiKey, 'PUT', $resource, ['status' => 'unsubscribed']);
-                        if ($this->processor->formrow->mailchimp_delete_member) {
-                            $api->request($apiKey, 'DELETE', $resource);
-                        }
-                    }
-                } catch (\Throwable $exception) {
-                    if ($this->processor->formrow->mailchimp_send_errors) {
-                        $from = $this->processor->formrow->alt_mailfrom != '' ? $this->processor->formrow->alt_mailfrom : $this->processor->app->get('mailfrom');
-                        $fromname = $this->processor->formrow->alt_fromname != '' ? $this->processor->formrow->alt_fromname : $this->processor->app->get('fromname');
-                        $this->exportEngine->sendMail($from, $fromname, $from, 'MailChimp API Error', 'Could not send data to MailChimp for email: ' . $email . "\n\nReason: " . $exception->getMessage());
-                    }
-                }
-            }
-        }
     }
 
     private function mailTemplateResolver(): MailTemplateResolver

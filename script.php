@@ -4453,7 +4453,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $plugins['system'] = array();
         $plugins['system'][] = 'bfcompat';
         $plugins['content'] = ['breezingforms'];
-        $plugins['breezingforms_addons'] = ['dropbox'];
+        $plugins['breezingforms_addons'] = ['mailchimp', 'salesforce', 'dropbox'];
         $plugins['privacy'] = ['breezingformsng'];
         $plugins['webservices'] = ['breezingformsng'];
         return $plugins;
