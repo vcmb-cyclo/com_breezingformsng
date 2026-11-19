@@ -50,6 +50,36 @@ final class McpFormWriter
     ) {
     }
 
+    private function stringValue(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value) || is_bool($value)) {
+            return (string) $value;
+        }
+
+        if ($value === null) {
+            return '';
+        }
+
+        throw new ToolException('Expected a scalar text value.');
+    }
+
+    private function intValue(mixed $value): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_string($value) && preg_match('/^-?[0-9]+$/D', $value)) {
+            return (int) $value;
+        }
+
+        throw new ToolException('Expected an integer value.');
+    }
+
     /**
      * @param array<string, mixed> $arguments
      * @return array{id: int, name: string, title: string, published: false, field_count: int, versioned: bool, warnings?: list<string>}
@@ -61,13 +91,13 @@ final class McpFormWriter
             throw new ToolException('You are not allowed to create forms.');
         }
 
-        $name = trim((string) $arguments['name']);
-        $title = trim((string) $arguments['title']);
+        $name = trim($this->stringValue($arguments['name'] ?? null));
+        $title = trim($this->stringValue($arguments['title'] ?? null));
         if ($name === '' || $title === '') {
             throw new ToolException('Form name and title must not be empty.');
         }
 
-        $description = trim((string) ($arguments['description'] ?? ''));
+        $description = trim($this->stringValue($arguments['description'] ?? ''));
         $pageIntro = $this->normalizePageIntro($arguments['page_intro'] ?? '');
         $fields = $this->normalizeFields($arguments['fields'] ?? []);
         $warnings = [];
@@ -103,7 +133,7 @@ final class McpFormWriter
             throw new ToolException('You are not allowed to edit forms.');
         }
 
-        $id = (int) $arguments['id'];
+        $id = $this->intValue($arguments['id'] ?? null);
         $form = $this->options->getForm($id);
         if ($form === null || (int) $form->published === -2) {
             throw new ToolException('Form not found or cannot be edited.');
@@ -115,7 +145,7 @@ final class McpFormWriter
                 continue;
             }
 
-            $value = trim((string) $arguments[$field]);
+            $value = trim($this->stringValue($arguments[$field]));
             if ($field !== 'description' && $value === '') {
                 throw new ToolException(sprintf('Form %s must not be empty.', $field));
             }
@@ -132,7 +162,7 @@ final class McpFormWriter
             $data['emailntf'] = $arguments['email_notifications'] ? 1 : 0;
         }
         if (array_key_exists('notification_recipient', $arguments)) {
-            $recipient = trim((string) $arguments['notification_recipient']);
+            $recipient = trim($this->stringValue($arguments['notification_recipient']));
             if ($recipient !== '' && filter_var($recipient, FILTER_VALIDATE_EMAIL) === false) {
                 throw new ToolException('The notification recipient must be one valid email address.');
             }
@@ -140,7 +170,7 @@ final class McpFormWriter
         }
         if (array_key_exists('email_notifications', $arguments) || array_key_exists('notification_recipient', $arguments)) {
             $notificationsEnabled = (bool) ($data['emailntf'] ?? $form->emailntf);
-            $recipient = (string) ($data['emailadr'] ?? $form->emailadr);
+            $recipient = $this->stringValue($data['emailadr'] ?? $form->emailadr);
             if ($notificationsEnabled && filter_var($recipient, FILTER_VALIDATE_EMAIL) === false) {
                 throw new ToolException('Set one valid notification recipient before enabling administrator notification emails.');
             }
@@ -154,8 +184,8 @@ final class McpFormWriter
         }
 
         if (array_key_exists('width', $data) || array_key_exists('widthmode', $data)) {
-            $width = (int) ($data['width'] ?? $form->width);
-            $widthMode = (int) ($data['widthmode'] ?? $form->widthmode);
+            $width = $this->intValue($data['width'] ?? $form->width);
+            $widthMode = $this->intValue($data['widthmode'] ?? $form->widthmode);
             $minimumWidth = $widthMode === 1 ? 1 : 100;
             $maximumWidth = $widthMode === 1 ? 100 : 2000;
             if ($width < $minimumWidth || $width > $maximumWidth) {
@@ -221,7 +251,7 @@ final class McpFormWriter
             throw new ToolException('You are not allowed to edit forms.');
         }
 
-        $id = (int) $arguments['id'];
+        $id = $this->intValue($arguments['id'] ?? null);
         $pagesToAdd = $arguments['add_pages'] ?? 0;
         if (!is_int($pagesToAdd) || $pagesToAdd < 0 || $pagesToAdd > 10) {
             throw new ToolException('At most 10 QuickMode pages can be added per call.');
@@ -250,13 +280,13 @@ final class McpFormWriter
         foreach ($tree['children'] as $pageIndex => $page) {
             foreach ($page['children'] as $node) {
                 $properties = $node['properties'];
-                $key = strtolower($properties['bfName']);
+                $key = strtolower($this->stringValue($properties['bfName'] ?? null));
                 if (isset($current[$key])) {
                     throw new ToolException('This form has duplicate field names and cannot be safely edited through MCP.');
                 }
                 $current[$key] = $properties;
                 $currentPages[$key] = $pageIndex + 1;
-                $currentNodeIds[$key] = (string) $node['attributes']['id'];
+                $currentNodeIds[$key] = $this->stringValue($node['attributes']['id'] ?? null);
             }
         }
 
@@ -304,7 +334,7 @@ final class McpFormWriter
             if (!is_array($change)) {
                 throw new ToolException('Each field update must be an object.');
             }
-            $name = trim((string) ($change['name'] ?? ''));
+            $name = trim($this->stringValue($change['name'] ?? ''));
             $key = strtolower($name);
             if (!preg_match('/^[A-Za-z][A-Za-z0-9_]{0,99}$/D', $name) || !isset($current[$key])) {
                 throw new ToolException('Every updated field must identify an existing field by name.');
@@ -328,7 +358,7 @@ final class McpFormWriter
                 if (($newKey !== $key && isset($current[$newKey])) || isset($addedNameKeys[$newKey])) {
                     throw new ToolException('A field with that new name already exists.');
                 }
-                if ($newName !== (string) $current[$key]['bfName']) {
+                if ($newName !== $this->stringValue($current[$key]['bfName'] ?? null)) {
                     if (isset($renameTargets[$newKey]) && $renameTargets[$newKey] !== $key) {
                         throw new ToolException('Each field must have a different new name.');
                     }
@@ -444,12 +474,12 @@ final class McpFormWriter
             if (
                 isset($change['type'])
                 && $change['type'] !== ($current[$key]['bfType'] === 'bfTextfield' ? 'text' : 'textarea')
-                && ((int) ($current[$key]['validationId'] ?? 0) !== 0
-                    || (int) ($current[$key]['initId'] ?? 0) !== 0
-                    || (int) ($current[$key]['actionId'] ?? 0) !== 0
-                    || (string) ($current[$key]['validationCode'] ?? '') !== ''
-                    || (string) ($current[$key]['initCode'] ?? '') !== ''
-                    || (string) ($current[$key]['actionCode'] ?? '') !== ''
+                    && ($this->intValue($current[$key]['validationId'] ?? 0) !== 0
+                    || $this->intValue($current[$key]['initId'] ?? 0) !== 0
+                    || $this->intValue($current[$key]['actionId'] ?? 0) !== 0
+                    || $this->stringValue($current[$key]['validationCode'] ?? '') !== ''
+                    || $this->stringValue($current[$key]['initCode'] ?? '') !== ''
+                    || $this->stringValue($current[$key]['actionCode'] ?? '') !== ''
                     || !empty($current[$key]['password']) || !empty($current[$key]['mailback'])
                     || !empty($current[$key]['mailbackAsSender']) || !empty($current[$key]['mailbackfile']))
             ) {
@@ -457,7 +487,7 @@ final class McpFormWriter
             }
             foreach (['label', 'placeholder'] as $property) {
                 if (array_key_exists($property, $change)) {
-                    $change[$property] = trim((string) $change[$property]);
+                    $change[$property] = trim($this->stringValue($change[$property]));
                     if (($property === 'label' && $change[$property] === '') || mb_strlen($change[$property]) > 255) {
                         throw new ToolException('Field labels are required and field text is limited to 255 characters.');
                     }
@@ -538,17 +568,22 @@ final class McpFormWriter
             throw new ToolException('Pages cannot be removed while the form has submissions; historical page structure is preserved.');
         }
 
+        /** @var list<QuickModePage> $resultPages */
         $resultPages = [];
+        /** @var array<int, list<QuickModeElement>> $movedFields */
         $movedFields = [];
+        /** @var list<string> $allFields */
         $allFields = [];
+        /** @var list<string> $updated */
         $updated = [];
+        /** @var list<string> $removed */
         $removed = [];
         foreach ($tree['children'] as $pageIndex => $page) {
             $result = [];
             foreach ($page['children'] as $node) {
-                $key = strtolower($node['properties']['bfName']);
+                $key = strtolower($this->stringValue($node['properties']['bfName'] ?? null));
                 if (isset($removeByName[$key])) {
-                    $removed[] = $node['properties']['bfName'];
+                    $removed[] = $this->stringValue($node['properties']['bfName'] ?? null);
                     continue;
                 }
                 if (isset($updateByName[$key])) {
@@ -578,7 +613,7 @@ final class McpFormWriter
                     if (array_key_exists('max_length', $change) || isset($change['type'])) {
                         $oldType = $current[$key]['bfType'];
                         $newType = $change['type'] ?? ($oldType === 'bfTextfield' ? 'text' : 'textarea');
-                        $length = $change['max_length'] ?? (int) ($node['properties'][$oldType === 'bfTextfield' ? 'maxLength' : 'maxlength'] ?? 0);
+                        $length = $change['max_length'] ?? $this->intValue($node['properties'][$oldType === 'bfTextfield' ? 'maxLength' : 'maxlength'] ?? 0);
                         if ($newType === 'text') {
                             $node['properties']['maxLength'] = $length > 0 ? $length : '';
                             unset($node['properties']['maxlength']);
@@ -599,7 +634,7 @@ final class McpFormWriter
                     }
                     if (isset($change['new_name'])) {
                         $node['properties']['bfName'] = $change['new_name'];
-                        if (preg_match('/^(bfQuickModeElement[1-9][0-9]*)_/', (string) $node['attributes']['id'], $matches) === 1) {
+                        if (preg_match('/^(bfQuickModeElement[1-9][0-9]*)_/', $this->stringValue($node['attributes']['id'] ?? null), $matches) === 1) {
                             $node['attributes']['id'] = $matches[1] . '_' . strtolower($change['new_name']);
                         }
                     }
@@ -609,10 +644,10 @@ final class McpFormWriter
                     $targetPage = $change['page'] ?? $currentPages[$key];
                     if ($targetPage !== $pageIndex + 1) {
                         $movedFields[$targetPage - 1][] = $node;
-                        $updated[] = (string) $node['properties']['bfName'];
+                        $updated[] = $this->stringValue($node['properties']['bfName'] ?? null);
                         continue;
                     }
-                    $updated[] = (string) $node['properties']['bfName'];
+                    $updated[] = $this->stringValue($node['properties']['bfName'] ?? null);
                 }
                 $result[] = $node;
             }
@@ -622,7 +657,7 @@ final class McpFormWriter
 
         $highestPageId = 0;
         foreach ($resultPages as $page) {
-            preg_match('/^bfQuickModePage([1-9][0-9]*)$/D', (string) $page['attributes']['id'], $matches);
+            preg_match('/^bfQuickModePage([1-9][0-9]*)$/D', $this->stringValue($page['attributes']['id'] ?? null), $matches);
             $highestPageId = max($highestPageId, (int) ($matches[1] ?? 0));
         }
         for ($pageIndex = 0; $pageIndex < $pagesToAdd; $pageIndex++) {
@@ -655,9 +690,15 @@ final class McpFormWriter
                     $page['children'][] = $this->elementNode($field, count($page['children'] ?? []) + 1);
                 }
             }
-            foreach ($page['children'] ?? [] as $index => &$node) {
-                $node['properties']['orderNumber'] = (int) $index + 1;
-                $allFields[] = $node['properties']['bfName'];
+            if (!isset($page['children']) || !is_array($page['children'])) {
+                throw new ToolException('This form has a malformed page that cannot be safely saved.');
+            }
+            foreach ($page['children'] as $index => &$node) {
+                if (!is_array($node) || !is_array($node['properties'] ?? null)) {
+                    throw new ToolException('This form has a malformed field that cannot be safely saved.');
+                }
+                $node['properties']['orderNumber'] = $index + 1;
+                $allFields[] = $this->stringValue($node['properties']['bfName'] ?? null);
             }
             unset($node);
         }
@@ -784,7 +825,7 @@ final class McpFormWriter
             throw new ToolException('You are not allowed to move forms to the trash.');
         }
 
-        $id = (int) $arguments['id'];
+        $id = $this->intValue($arguments['id'] ?? null);
         $form = $this->options->getForm($id);
         if ($form === null || (int) $form->published === -2) {
             throw new ToolException('Form not found or already in the trash.');
@@ -811,7 +852,7 @@ final class McpFormWriter
             throw new ToolException('You are not allowed to restore forms.');
         }
 
-        $id = (int) $arguments['id'];
+        $id = $this->intValue($arguments['id'] ?? null);
         $form = $this->options->getForm($id);
         if ($form === null || (int) $form->published !== -2) {
             throw new ToolException('No trashed form has this id.');
@@ -856,28 +897,28 @@ final class McpFormWriter
                 throw new ToolException('Each field must be an object.');
             }
 
-            $type = (string) ($field['type'] ?? '');
-            $name = trim((string) ($field['name'] ?? ''));
-            $label = trim((string) ($field['label'] ?? ''));
-            $placeholder = trim((string) ($field['placeholder'] ?? ''));
-            $hint = $field['hint'] ?? '';
-            $size = $field['size'] ?? '';
-            $width = $field['width'] ?? '';
-            $height = $field['height'] ?? '';
-            $defaultValue = $field['default_value'] ?? '';
+            $type = $this->stringValue($field['type'] ?? '');
+            $name = trim($this->stringValue($field['name'] ?? ''));
+            $label = trim($this->stringValue($field['label'] ?? ''));
+            $placeholder = trim($this->stringValue($field['placeholder'] ?? ''));
+            $hint = $this->stringValue($field['hint'] ?? '');
+            $size = $this->stringValue($field['size'] ?? '');
+            $width = $this->stringValue($field['width'] ?? '');
+            $height = $this->stringValue($field['height'] ?? '');
+            $defaultValue = $this->stringValue($field['default_value'] ?? '');
             $maxLength = $field['max_length'] ?? 0;
             $readOnly = $field['readonly'] ?? false;
             if (!in_array($type, ['text', 'textarea', 'select', 'radio', 'checkbox_group', 'checkbox'], true)) {
                 throw new ToolException('Supported field types are text, textarea, select, radio, checkbox_group and checkbox.');
             }
             if (
-                !is_string($defaultValue) || mb_strlen($defaultValue) > 4000
+                mb_strlen($defaultValue) > 4000
                 || (array_key_exists('default_value', $field) && !in_array($type, ['text', 'textarea'], true))
             ) {
                 throw new ToolException('Default values are limited to 4000 characters and are only supported on text or textarea fields.');
             }
             $this->assertPlainText($defaultValue);
-            if (!is_string($hint) || mb_strlen($hint) > 1000) {
+            if (mb_strlen($hint) > 1000) {
                 throw new ToolException('Field hints must be plain text limited to 1000 characters.');
             }
             $hint = trim($hint);
@@ -1139,7 +1180,7 @@ final class McpFormWriter
             if (!is_array($page) || !is_array($page['attributes'] ?? null) || !is_array($page['properties'] ?? null)) {
                 throw new ToolException('This form has a malformed page that the MCP field editor cannot safely preserve.');
             }
-            $pageId = (string) ($page['attributes']['id'] ?? '');
+            $pageId = $this->stringValue($page['attributes']['id'] ?? '');
             if (
                 $pageId !== 'bfQuickModePage' . ((int) $pageIndex + 1)
                 || !preg_match('/^bfQuickModePage[1-9][0-9]*$/D', $pageId)
@@ -1173,14 +1214,14 @@ final class McpFormWriter
                 ) {
                     throw new ToolException('This form contains an unsupported field or nested structure the MCP field editor cannot safely preserve.');
                 }
-                $dbId = (int) ($properties['dbId'] ?? 0);
-                $fieldName = trim((string) ($properties['bfName'] ?? ''));
+                $dbId = $this->intValue($properties['dbId'] ?? 0);
+                $fieldName = trim($this->stringValue($properties['bfName'] ?? ''));
                 if (
                     $dbId <= 0 || isset($elementIds[$dbId]) || $fieldName === '' || mb_strlen($fieldName) > 255
                     || preg_match('/[\x00-\x1F\x7F]/u', $fieldName)
                     || !is_string($properties['value']) || !is_string($properties['label'])
                     || mb_strlen($properties['label']) > 255
-                    || mb_strlen((string) ($properties['placeholder'] ?? '')) > 255
+                    || mb_strlen($this->stringValue($properties['placeholder'] ?? '')) > 255
                 ) {
                     throw new ToolException('This form has a field identity or text value that cannot be safely edited through MCP.');
                 }
@@ -1306,8 +1347,8 @@ final class McpFormWriter
             if (!is_array($choice)) {
                 throw new ToolException('Each choice option must be an object.');
             }
-            $label = trim((string) ($choice['label'] ?? ''));
-            $value = trim((string) ($choice['value'] ?? ''));
+            $label = trim($this->stringValue($choice['label'] ?? ''));
+            $value = trim($this->stringValue($choice['value'] ?? ''));
             $selected = $choice['selected'] ?? false;
             if (!is_bool($selected)) {
                 throw new ToolException('Choice selected flags must be boolean.');
@@ -1368,11 +1409,11 @@ final class McpFormWriter
         $map = ['name' => 'name', 'title' => 'title', 'description' => 'description', 'emailadr' => 'mailRecipient'];
         foreach ($map as $column => $property) {
             if (array_key_exists($column, $data)) {
-                $tree['properties'][$property] = (string) $data[$column];
+                $tree['properties'][$property] = $this->stringValue($data[$column]);
             }
         }
         if (array_key_exists('emailntf', $data)) {
-            $tree['properties']['mailNotification'] = (int) $data['emailntf'] > 0;
+            $tree['properties']['mailNotification'] = $this->intValue($data['emailntf']) > 0;
         }
 
         $encoded = base64_encode(json_encode($tree, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
@@ -1408,13 +1449,13 @@ final class McpFormWriter
             return $this->submissionCounts[$formId];
         }
 
-        return $this->submissionCounts[$formId] = (int) $this->db->setQuery(
+        return $this->submissionCounts[$formId] = $this->intValue($this->db->setQuery(
             $this->db->createQuery()
                 ->select('COUNT(*)')
                 ->from($this->db->quoteName('#__facileforms_records'))
                 ->where($this->db->quoteName('form') . ' = :form')
                 ->bind(':form', $formId, ParameterType::INTEGER)
-        )->loadResult();
+        )->loadResult());
     }
 
     /** @param array<string, mixed> $change
@@ -1427,14 +1468,14 @@ final class McpFormWriter
             throw new ToolException('Only text and textarea fields can use the required setting.');
         }
 
-        $validationFunction = (string) ($current['validationFunctionName'] ?? '');
+        $validationFunction = $this->stringValue($current['validationFunctionName'] ?? '');
         $isRequired = $validationFunction === 'ff_valuenotempty'
-            && (int) ($current['validationCondition'] ?? 0) === 1
-            && (string) ($current['validationCode'] ?? '') === '';
-        $hasValidation = (int) ($current['validationId'] ?? 0) !== 0
-            || (string) ($current['validationCode'] ?? '') !== ''
+            && $this->intValue($current['validationCondition'] ?? 0) === 1
+            && $this->stringValue($current['validationCode'] ?? '') === '';
+        $hasValidation = $this->intValue($current['validationId'] ?? 0) !== 0
+            || $this->stringValue($current['validationCode'] ?? '') !== ''
             || $validationFunction !== ''
-            || (int) ($current['validationCondition'] ?? 0) !== 0;
+            || $this->intValue($current['validationCondition'] ?? 0) !== 0;
 
         if (array_key_exists('required', $change) && !is_bool($change['required'])) {
             throw new ToolException('A required setting must be boolean.');
@@ -1445,7 +1486,7 @@ final class McpFormWriter
         }
         $message = array_key_exists('required_message', $change)
             ? trim($change['required_message'])
-            : ($isRequired ? (string) ($current['validationMessage'] ?? '') : '');
+            : ($isRequired ? $this->stringValue($current['validationMessage'] ?? '') : '');
         if (mb_strlen($message) > 255) {
             throw new ToolException('A required message must be plain text of at most 255 characters.');
         }
@@ -1481,8 +1522,8 @@ final class McpFormWriter
 
         if (
             ($properties['validationFunctionName'] ?? '') === 'ff_valuenotempty'
-            && (int) ($properties['validationCondition'] ?? 0) === 1
-            && (string) ($properties['validationCode'] ?? '') === ''
+            && $this->intValue($properties['validationCondition'] ?? 0) === 1
+            && $this->stringValue($properties['validationCode'] ?? '') === ''
         ) {
             $properties['validationId'] = 0;
             $properties['validationCode'] = '';
@@ -1509,7 +1550,7 @@ final class McpFormWriter
             ->order($this->db->quoteName('id') . ' DESC')
             ->bind(':type', $scriptType, ParameterType::STRING)
             ->bind(':name', $scriptName, ParameterType::STRING);
-        $id = (int) $this->db->setQuery($query, 0, 1)->loadResult();
+        $id = $this->intValue($this->db->setQuery($query, 0, 1)->loadResult());
         if ($id <= 0) {
             throw new ToolException('The standard ff_valuenotempty validation is unavailable or unpublished.');
         }
@@ -1518,7 +1559,7 @@ final class McpFormWriter
         return $id;
     }
 
-    /** @param array<string, mixed> $tree
+    /** @param QuickModeTree $tree
      */
     private function assertFieldsCanBeRenamed(\stdClass $form, array $tree): void
     {
@@ -1546,8 +1587,8 @@ final class McpFormWriter
 
         $root = $tree['properties'];
         if (
-            trim((string) ($root['submittedScriptCode'] ?? '')) !== ''
-            || (int) ($root['submittedScriptCondidtion'] ?? -1) !== -1
+            trim($this->stringValue($root['submittedScriptCode'] ?? '')) !== ''
+            || $this->intValue($root['submittedScriptCondidtion'] ?? -1) !== -1
         ) {
             throw new ToolException('Fields cannot be renamed while a submitted script is configured.');
         }
@@ -1555,12 +1596,12 @@ final class McpFormWriter
             foreach ($page['children'] as $node) {
                 $properties = $node['properties'];
                 if (
-                    (int) ($properties['validationId'] ?? 0) !== 0
-                    || (int) ($properties['initId'] ?? 0) !== 0
-                    || (int) ($properties['actionId'] ?? 0) !== 0
-                    || trim((string) ($properties['validationCode'] ?? '')) !== ''
-                    || trim((string) ($properties['initCode'] ?? '')) !== ''
-                    || trim((string) ($properties['actionCode'] ?? '')) !== ''
+                    $this->intValue($properties['validationId'] ?? 0) !== 0
+                    || $this->intValue($properties['initId'] ?? 0) !== 0
+                    || $this->intValue($properties['actionId'] ?? 0) !== 0
+                    || trim($this->stringValue($properties['validationCode'] ?? '')) !== ''
+                    || trim($this->stringValue($properties['initCode'] ?? '')) !== ''
+                    || trim($this->stringValue($properties['actionCode'] ?? '')) !== ''
                     || !empty($properties['validationFunctionName'])
                     || !empty($properties['initFunctionName'])
                     || !empty($properties['actionFunctionName'])
