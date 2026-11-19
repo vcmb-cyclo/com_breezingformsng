@@ -124,6 +124,29 @@ final class FlashChunkAssemblerTest extends TestCase
         self::assertFileDoesNotExist($final);
     }
 
+    public function testRejectsPathsOutsideTheTargetDirectoryWithoutDeletingThem(): void
+    {
+        $outside = tempnam(sys_get_temp_dir(), 'bfng-outside-');
+        self::assertIsString($outside);
+        self::assertSame(4, file_put_contents($outside, 'safe'));
+
+        try {
+            self::assertSame(
+                FlashChunkAssembler::FAILED,
+                (new FlashChunkAssembler())->appendAt(
+                    $this->chunk('abc'),
+                    $outside,
+                    $this->directory,
+                    0,
+                    100
+                )
+            );
+            self::assertSame('safe', file_get_contents($outside));
+        } finally {
+            unlink($outside);
+        }
+    }
+
     private function chunk(string $content): string
     {
         $path = $this->directory . '/chunk_' . bin2hex(random_bytes(4));
