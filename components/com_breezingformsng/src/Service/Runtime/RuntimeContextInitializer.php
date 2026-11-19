@@ -89,12 +89,12 @@ final class RuntimeContextInitializer
         return $result;
     }
 
-    /** @param array<string, mixed> $parameters */
+    /** @param array<string, string> $parameters */
     private function saveParameter(array &$parameters, string $name): ?string
     {
         $value = $this->application->getInput()->get($name, null, 'string');
 
-        if ($value === null || is_array($value)) {
+        if (!is_string($value)) {
             return null;
         }
 

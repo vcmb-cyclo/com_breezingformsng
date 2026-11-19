@@ -37,13 +37,23 @@ final class CodeToolsRuntime
 
     public function dispTraceMode(mixed $mode): string
     {
-        return $this->traceModeFormatter()->format($mode);
+        if (!is_int($mode) && !is_string($mode)) {
+            return '';
+        }
+
+        $formatted = $this->traceModeFormatter()->format($mode);
+
+        return is_string($formatted) ? $formatted : '';
     }
 
     // dispTraceMode
 
     public function trim(mixed &$code): mixed
     {
+        if (!is_string($code)) {
+            return false;
+        }
+
         return $this->codeStringTools()->trimInPlace($code);
     }
 
@@ -51,15 +61,23 @@ final class CodeToolsRuntime
 
     public function nonblank(mixed &$code): int
     {
-        return $this->codeStringTools()->containsNonWhitespace((string) $code) ? 1 : 0;
+        $string = $this->legacyString($code);
+
+        return $string !== null && $this->codeStringTools()->containsNonWhitespace($string) ? 1 : 0;
     }
 
     // nonblank
 
     public function getClassName(mixed $classdef): string
     {
+        $definition = $this->legacyString($classdef);
+
+        if ($definition === null) {
+            return '';
+        }
+
         return $this->classNameResolver()->resolve(
-            (string) $classdef,
+            $definition,
             (int) $this->processor->template,
             (string) $this->processor->suffix
         );
@@ -69,14 +87,16 @@ final class CodeToolsRuntime
 
     public function expJsValue(mixed $mixed, string $indent = ''): string
     {
-        return $this->javascriptValueExporter()->exportValue($mixed, (string) $indent);
+        return $this->javascriptValueExporter()->exportValue($mixed, $indent);
     }
 
     // expJsValue
 
     public function expJsVar(mixed $name, mixed $mixed): string
     {
-        return $this->javascriptValueExporter()->exportVariable((string) $name, $mixed);
+        $variableName = $this->legacyString($name);
+
+        return $this->javascriptValueExporter()->exportVariable($variableName ?? '', $mixed);
     }
 
     // expJsVar
@@ -111,24 +131,47 @@ final class CodeToolsRuntime
 
     public function findToken(mixed &$code, mixed &$spos, mixed &$offs): string
     {
+        if (!is_string($code) || !is_int($spos) || !is_int($offs)) {
+            return '';
+        }
+
+        return $this->findTokenValue($code, $spos, $offs);
+    }
+
+    // findToken
+
+    private function findTokenValue(string $code, int &$spos, int &$offs): string
+    {
         $srch = '#(\bfunction\b|return[^a-zA-Z_-]|_ff_trace|ff_trace[ \\t]*\\(|//|/\*|\*/|\\\\"|\\\\\'|{|}|\(|\)|;|"|\'|\n)#si';
         $match = array();
         if (!preg_match($srch, $code, $match, PREG_OFFSET_CAPTURE, $spos))
             return '';
+
         $token = strtolower($match[0][0]);
         $offs = $match[0][1];
         $spos = $offs + strlen($token);
         return $token;
     }
 
-    // findToken
+    // findTokenValue
 
     public function findRealToken(mixed &$code, mixed &$spos, mixed &$offs, mixed &$line): string
+    {
+        if (!is_string($code) || !is_int($spos) || !is_int($offs) || !is_int($line)) {
+            return '';
+        }
+
+        return $this->findRealTokenValue($code, $spos, $offs, $line);
+    }
+
+    // findRealToken
+
+    private function findRealTokenValue(string $code, int &$spos, int &$offs, int &$line): string
     {
         $linecmt = $blockcmt = false;
         $quote = null;
         for (; ; ) {
-            $token = preg_replace('/[ \\t]*/', '', $this->findToken($code, $spos, $offs));
+            $token = preg_replace('/[ \\t]*/', '', $this->findTokenValue($code, $spos, $offs));
             switch ($token) {
                 case '':
                     return '';
@@ -177,20 +220,40 @@ final class CodeToolsRuntime
 
     public function patchCode(mixed $mode, mixed $code, mixed $name, mixed $type, mixed $id, mixed $pane): string
     {
+        $modeString = $this->legacyString($mode);
+        $codeString = $this->legacyString($code);
+        $nameString = $this->legacyString($name);
+        $typeString = $this->legacyString($type);
+        $idString = $this->legacyString($id);
+        $paneString = $this->legacyString($pane);
+
+        if (
+            $modeString === null
+            || $codeString === null
+            || $nameString === null
+            || $typeString === null
+            || $idString === null
+            || $paneString === null
+        ) {
+            return '';
+        }
+
         $flevel = $cpos = $spos = $offs = 0;
         $bye = false;
         $fstack = array();
         $line = 1;
-        if ($type && $id) {
-            $type = "'$type'";
-            if (!$pane)
-                $pane = 'null';
+        if ($typeString && $idString) {
+            $typeCode = "'$typeString'";
+            $idCode = $idString;
+            $paneCode = $paneString;
+            if (!$paneCode)
+                $paneCode = 'null';
         } else
-            $type = $id = $pane = 'null';
-        $name = str_replace("'", "\\'", $name);
-        $dst = "_ff_tracePiece($mode,'$name',$line,$type,$id,$pane);";
+            $typeCode = $idCode = $paneCode = 'null';
+        $escapedName = str_replace("'", "\\'", $nameString);
+        $dst = "_ff_tracePiece($modeString,'$escapedName',$line,$typeCode,$idCode,$paneCode);";
         while (!$bye) {
-            switch ($this->findRealToken($code, $spos, $offs, $line)) {
+            switch ($this->findRealTokenValue($codeString, $spos, $offs, $line)) {
                 case '':
                     $bye = true;
                     break;
@@ -198,14 +261,14 @@ final class CodeToolsRuntime
                     $brk = false;
                     while (!$brk) {
                         // consume tokens until finding the opening bracket
-                        switch ($this->findRealToken($code, $spos, $offs, $line)) {
+                        switch ($this->findRealTokenValue($codeString, $spos, $offs, $line)) {
                             case '':
                                 $bye = $brk = true;
                                 break;
                             case '{':
-                                $dst .= substr($code, $cpos, $spos - $cpos) .
+                                $dst .= substr($codeString, $cpos, $spos - $cpos) .
                                     '$_ff_traceArgs = func_get_args();' .
-                                    '_ff_traceFunction(' . $mode . ',__FUNCTION__,' . $line . ',' . $type . ',' . $id . ',' . $pane . ',$_ff_traceArgs);' .
+                                    '_ff_traceFunction(' . $modeString . ',__FUNCTION__,' . $line . ',' . $typeCode . ',' . $idCode . ',' . $paneCode . ',$_ff_traceArgs);' .
                                     '$_ff_traceArgs=null;';
                                 $cpos = $spos;
                                 if ($flevel)
@@ -219,18 +282,19 @@ final class CodeToolsRuntime
                     } // while
                     break;
                 case 'return':
-                    $dst .= substr($code, $cpos, $spos - $cpos);
+                    $dst .= substr($codeString, $cpos, $spos - $cpos);
                     $cpos = $spos;
                     $brk = false;
                     while (!$brk) {
                         // consume tokens until semicolon found
-                        switch ($this->findRealToken($code, $spos, $offs, $line)) {
+                        switch ($this->findRealTokenValue($codeString, $spos, $offs, $line)) {
                             case '':
                                 $bye = $brk = true;
                                 break;
                             case ';':
-                                $arg = substr($code, $cpos, $offs - $cpos);
-                                if ($this->nonblank($arg))
+                                $arg = substr($codeString, $cpos, $offs - $cpos);
+                                $argIsNonblank = $this->codeStringTools()->containsNonWhitespace($arg);
+                                if ($argIsNonblank)
                                     $dst .= ' _ff_traceExit(' . $line . ',' . $arg . ');';
                                 else
                                     $dst .= ' _ff_traceExit(' . $line . ');';
@@ -243,13 +307,13 @@ final class CodeToolsRuntime
                     } // while
                     break;
                 case 'ff_trace(':
-                    $dst .= substr($code, $cpos, $offs - $cpos);
+                    $dst .= substr($codeString, $cpos, $offs - $cpos);
                     $cpos = $spos;
                     $brk = false;
                     $lvl = 0;
                     while (!$brk) {
                         // consume tokens until finding the closing bracket
-                        switch ($this->findRealToken($code, $spos, $offs, $line)) {
+                        switch ($this->findRealTokenValue($codeString, $spos, $offs, $line)) {
                             case '':
                                 $bye = $brk = true;
                                 break;
@@ -266,7 +330,7 @@ final class CodeToolsRuntime
                                 ;
                         } // switch
                     } // while
-                    $par = $offs == $cpos ? '' : substr($code, $cpos, $offs - $cpos);
+                    $par = $offs == $cpos ? '' : substr($codeString, $cpos, $offs - $cpos);
                     $dst .= " _ff_trace($line";
                     if ($this->nonblank($par))
                         $dst .= ',';
@@ -279,7 +343,7 @@ final class CodeToolsRuntime
                     if ($flevel > 0) {
                         $flevel--;
                         if (!$flevel) {
-                            $dst .= substr($code, $cpos, $offs - $cpos) . ' _ff_traceExit(' . $line . ');}';
+                            $dst .= substr($codeString, $cpos, $offs - $cpos) . ' _ff_traceExit(' . $line . ');}';
                             $cpos = $spos;
                             if (count($fstack))
                                 $flevel = array_pop($fstack);
@@ -289,9 +353,9 @@ final class CodeToolsRuntime
                 default:
             } // switch
         } // while
-        $spos = strlen($code);
+        $spos = strlen($codeString);
         if ($cpos < $spos)
-            $dst .= substr($code, $cpos, $spos - $cpos);
+            $dst .= substr($codeString, $cpos, $spos - $cpos);
         $line--;
         $dst .= "_ff_traceExit($line);";
         return $dst;
@@ -301,11 +365,27 @@ final class CodeToolsRuntime
 
     public function prepareEvalCode(mixed &$code, mixed $name, mixed $type, mixed $id, mixed $pane): bool
     {
+        if (!is_string($code)) {
+            return false;
+        }
+
+        $nameString = $this->legacyString($name);
+        if ($nameString === null) {
+            return false;
+        }
+
+        $evalCode = $this->legacyString($code);
+        if ($evalCode === null) {
+            return false;
+        }
+
+        $evalName = $nameString;
+
         if ($this->processor->dying)
             return false;
-        if (!$this->nonblank($code))
+        if (!$this->codeStringTools()->containsNonWhitespace($evalCode))
             return false;
-        $code .= "\n/*'/*\"/**/;"; // closes all comments and strings that my be open
+        $evalCode .= "\n/*'/*\"/**/;"; // closes all comments and strings that my be open
         $disable = ($this->processor->traceMode & _FF_TRACEMODE_DISABLE) ? true : false;
         if (!$disable) {
             $mode = 'null';
@@ -320,7 +400,7 @@ final class CodeToolsRuntime
                 '[ \\t]*(\\*/|\\r\\n)?' .
                 '#';
             $match = array();
-            if (preg_match($srch, $code, $match)) {
+            if (preg_match($srch, $evalCode, $match)) {
                 $mode = 2;
                 $append = $direct = $xeval = $piece = $func = $msg = false;
                 $local = $def = true;
@@ -442,15 +522,16 @@ final class CodeToolsRuntime
                     $disable = false;
             } // if trace directive
             if (!$disable) {
-                if (!$name) {
-                    $name = preg_replace('/([\\s]+)/si', ' ', $code);
-                    if (strlen($name ?? '') > _FF_TRACE_NAMELIMIT)
-                        $name = substr($code, 0, _FF_TRACE_NAMELIMIT - 3) . '...';
+                if (!$evalName) {
+                    $normalizedName = preg_replace('/([\\s]+)/si', ' ', $evalCode);
+                    $evalName = is_string($normalizedName) ? $normalizedName : '';
+                    if (strlen($evalName) > _FF_TRACE_NAMELIMIT)
+                        $evalName = substr($evalCode, 0, _FF_TRACE_NAMELIMIT - 3) . '...';
                 } // if
-                $code = $this->patchCode($mode, $code, $name, $type, $id, $pane);
+                $evalCode = $this->patchCode($mode, $evalCode, $evalName, $type, $id, $pane);
             } // if
         } // if trace not disabled
-        $code = str_replace($this->processor->findtags ?? [], $this->processor->replacetags ?? [], $code);
+        $code = str_replace($this->processor->findtags ?? [], $this->processor->replacetags ?? [], $evalCode);
         return true;
     }
 
@@ -477,6 +558,27 @@ final class CodeToolsRuntime
     private function traceRuntime(): TraceRuntime
     {
         return $this->traceRuntimeService ??= new TraceRuntime($this->processor);
+    }
+
+    private function legacyString(mixed $value): ?string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value) || is_bool($value)) {
+            return (string) $value;
+        }
+
+        if ($value === null) {
+            return '';
+        }
+
+        if ($value instanceof \Stringable) {
+            return (string) $value;
+        }
+
+        return null;
     }
 
     // prepareEvalCode

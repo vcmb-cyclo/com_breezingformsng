@@ -502,7 +502,6 @@ final class McpFormWriter
             if (isset($current[$key])) {
                 throw new ToolException('A field with that name already exists.');
             }
-            $current[$key] = true;
         }
 
         if ($removeByName !== []) {
@@ -653,10 +652,10 @@ final class McpFormWriter
             }
             foreach ($add as $field) {
                 if ($field['page'] === $pageIndex + 1) {
-                    $page['children'][] = $this->elementNode($field, count($page['children']) + 1);
+                    $page['children'][] = $this->elementNode($field, count($page['children'] ?? []) + 1);
                 }
             }
-            foreach ($page['children'] as $index => &$node) {
+            foreach ($page['children'] ?? [] as $index => &$node) {
                 $node['properties']['orderNumber'] = (int) $index + 1;
                 $allFields[] = $node['properties']['bfName'];
             }
@@ -671,7 +670,7 @@ final class McpFormWriter
             if (!isset($removePageSet[$pageNumber])) {
                 continue;
             }
-            if ($page['children'] !== []) {
+            if (($page['children'] ?? []) !== []) {
                 throw new ToolException(sprintf('Page %d still has fields; move or remove them before deleting the page.', $pageNumber));
             }
             $pagesRemoved[] = $pageNumber;
