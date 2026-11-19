@@ -39,7 +39,7 @@ final class CaptchaImageTest extends TestCase
     {
         $captcha = (new CaptchaImage())->create();
 
-        self::assertMatchesRegularExpression('/^[abcdefghjkmnpqrstuvwxyz23456789]{5}$/', $captcha['phrase']);
+        self::assertMatchesRegularExpression('/^[acdefhjkmnprtx34679]{5}$/', $captcha['phrase']);
         self::assertStringStartsWith("\xFF\xD8\xFF", $captcha['image']);
         $size = getimagesizefromstring($captcha['image']);
         self::assertIsArray($size);
@@ -77,7 +77,7 @@ final class CaptchaImageTest extends TestCase
 
     public function testTheCharactersLeaveOutTheOnesThatAreEasyToConfuse(): void
     {
-        foreach (['i', 'l', 'o', '0', '1'] as $character) {
+        foreach (['i', 'l', 'o', '0', '1', 'u', 'v', 'w', 'y', 's', 'z', '2', '5', 'g', 'q', 'b', '6'] as $character) {
             self::assertStringNotContainsString($character, CaptchaImage::CHARACTERS);
         }
     }
