@@ -854,6 +854,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         require_once $admPath . '/src/Model/ImportModel.php';
+        /** @psalm-suppress MissingFile The installer resolves this path from JPATH_ADMINISTRATOR at runtime. */
         require_once $admPath . '/src/Service/LibraryImportSummary.php';
 
         // The language files of this version are copied by now, but the strings read earlier in the request are
