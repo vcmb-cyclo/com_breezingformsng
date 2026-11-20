@@ -27,6 +27,7 @@ use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AuditUserNames;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\ItemName;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\VersionOrigin;
 
 /**
@@ -70,9 +71,25 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
      */
     public function save($data)
     {
+        $nameProblem = $this->namedByIdentifier() ? ItemName::problem((string) ($data['name'] ?? ''), 30) : null;
+        if ($nameProblem !== null) {
+            $this->setError(Text::_($nameProblem));
+
+            return false;
+        }
+
         $this->keepOrigin((int) ($data['id'] ?? $this->getState($this->getName() . '.id')));
 
         return parent::save($data);
+    }
+
+    /**
+     * Whether the name of the item is an identifier (letters, digits, underscores). Pieces and
+     * scripts are, the other items are free.
+     */
+    protected function namedByIdentifier(): bool
+    {
+        return false;
     }
 
     /**

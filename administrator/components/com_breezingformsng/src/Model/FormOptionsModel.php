@@ -19,6 +19,7 @@ use Joomla\Database\ParameterType;
 use Joomla\Event\Event;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormCodeGuard;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\ItemName;
 use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
 
 /**
@@ -214,6 +215,12 @@ class FormOptionsModel extends BaseDatabaseModel
         $title = trim((string) ($data['title'] ?? ''));
         if ($title === '') {
             throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORMS_TITLEEMPTY'));
+        }
+
+        // A partial update that leaves the name out keeps the stored one.
+        $nameProblem = $id === 0 || array_key_exists('name', $data) ? ItemName::problem((string) ($data['name'] ?? '')) : null;
+        if ($nameProblem !== null) {
+            throw new \RuntimeException(Text::_($nameProblem));
         }
 
         $cols = [
