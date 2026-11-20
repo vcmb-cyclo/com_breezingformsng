@@ -106,6 +106,9 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertStringContainsString('$model->metadataDiffers($package, $metadata)', $controller);
         self::assertStringContainsString('task" value="packages.update"', $layout);
         self::assertStringContainsString('task" value="packages.remove"', $layout);
+        // A multiple list cannot be emptied with a plain click: the buttons select all or clear it.
+        self::assertStringContainsString('data-select-all="bf-update-<?= $section; ?>"', $layout);
+        self::assertStringContainsString('data-clear-selection="bf-update-<?= $section; ?>"', $layout);
         self::assertStringNotContainsString('delete_select', $layout);
         self::assertStringNotContainsString('attach_select', $layout);
         self::assertStringContainsString("(string) \$item['package'] === ''", $layout);
@@ -197,6 +200,26 @@ final class PackageTransferArchitectureTest extends TestCase
         $this->assertStringContainsString("\$this->draft['select'][\$section]", $template);
         $this->assertStringContainsString("\$this->draft['package']", $template);
         $this->assertStringContainsString("\$this->draft['metadata'][\$field]", $template);
+    }
+
+    public function testTheFormListsShowHowManyIntegratorRulesEachFormHas(): void
+    {
+        $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $model = (string) file_get_contents($component . '/src/Model/PackageTransferModel.php');
+
+        self::assertStringContainsString('$this->withIntegratorRuleCounts($this->loadChoices("#__facileforms_forms", true))', $model);
+        self::assertStringContainsString("'COUNT(*) AS '", $model);
+        self::assertStringContainsString("\$db->quoteName('published') . ' > -2'", $model);
+
+        foreach (['update', 'export'] as $layout) {
+            $template = (string) file_get_contents($component . '/tmpl/packages/' . $layout . '.php');
+            self::assertMatchesRegularExpression('/PACKAGE_TRANSFER_INTEGRATOR_RULES_COUNT/', $template);
+        }
+
+        foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $tag) {
+            $ini = (string) file_get_contents($component . '/language/' . $tag . '/com_breezingformsng.ini');
+            self::assertStringContainsString('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INTEGRATOR_RULES_COUNT="', $ini, $tag);
+        }
     }
 
     public function testTheExportScreenOnlyDownloadsAFile(): void

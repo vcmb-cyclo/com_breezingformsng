@@ -1047,7 +1047,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     public function getExportChoices(): array
     {
         return [
-            "forms" => $this->loadChoices("#__facileforms_forms", true),
+            "forms" => $this->withIntegratorRuleCounts($this->loadChoices("#__facileforms_forms", true)),
             "scripts" => $this->loadChoices("#__facileforms_scripts", true),
             "pieces" => $this->loadChoices("#__facileforms_pieces", true),
             "menus" => $this->loadChoices("#__facileforms_compmenus"),
@@ -1395,6 +1395,35 @@ final class PackageTransferModel extends BaseDatabaseModel
             ->bind(':parent', $parent);
 
         return (int) $db->setQuery($query, 0, 1)->loadResult();
+    }
+
+    /**
+     * Adds to each form the number of its Integrator rules (`rules`), counted as
+     * the export does: the rules that are not trashed.
+     *
+     * @param list<array<string, mixed>> $forms
+     * @return list<array<string, mixed>>
+     */
+    private function withIntegratorRuleCounts(array $forms): array
+    {
+        $db = $this->getDatabase();
+        $query = $db->createQuery()
+            ->select([$db->quoteName('form_id'), 'COUNT(*) AS ' . $db->quoteName('total')])
+            ->from($db->quoteName('#__facileforms_integrator_rules'))
+            ->where($db->quoteName('published') . ' > -2')
+            ->group($db->quoteName('form_id'));
+        $counts = [];
+
+        foreach ($db->setQuery($query)->loadAssocList() ?: [] as $row) {
+            $counts[(int) $row['form_id']] = (int) $row['total'];
+        }
+
+        foreach ($forms as &$form) {
+            $form['rules'] = $counts[(int) $form['id']] ?? 0;
+        }
+        unset($form);
+
+        return $forms;
     }
 
     /**

@@ -132,11 +132,16 @@ $metadataFields = [
                                             <optgroup label="<?= htmlspecialchars(Text::_($group), ENT_QUOTES, 'UTF-8'); ?>">
                                                 <?php foreach ($items as $item) : ?>
                                                     <?php $title = (string) ($item['title'] ?: $item['name']); ?>
-                                                    <option value="<?= (int) $item['id']; ?>"<?= (isset($this->draft['select'][$section]) ? in_array((int) $item['id'], $this->draft['select'][$section], true) : $items === $members) ? ' selected' : ''; ?>><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></option>
+                                                    <?php $rules = (int) ($item['rules'] ?? 0); ?>
+                                                    <option value="<?= (int) $item['id']; ?>"<?= (isset($this->draft['select'][$section]) ? in_array((int) $item['id'], $this->draft['select'][$section], true) : $items === $members) ? ' selected' : ''; ?>><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . ($rules > 0 ? htmlspecialchars(' (' . Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INTEGRATOR_RULES_COUNT', $rules) . ')', ENT_QUOTES, 'UTF-8') : ''); ?></option>
                                                 <?php endforeach; ?>
                                             </optgroup>
                                         <?php endforeach; ?>
                                     </select>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-secondary" data-select-all="bf-update-<?= $section; ?>" type="button"><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_SELECTALL'); ?></button>
+                                        <button class="btn btn-sm btn-secondary" data-clear-selection="bf-update-<?= $section; ?>" type="button"><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_CLRSELECTION'); ?></button>
+                                    </div>
                                     <input type="hidden" name="update_parts[]" value="<?= $section; ?>">
                                 </div>
                             <?php endforeach; ?>
@@ -170,3 +175,16 @@ $metadataFields = [
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-select-all], button[data-clear-selection]');
+    if (!button) {
+        return;
+    }
+
+    const select = document.getElementById(button.dataset.selectAll || button.dataset.clearSelection);
+    for (const option of select.options) {
+        option.selected = Boolean(button.dataset.selectAll);
+    }
+});
+</script>

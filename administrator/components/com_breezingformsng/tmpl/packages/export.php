@@ -108,7 +108,8 @@ $auditModified = static function (mixed $date, mixed $author) use ($auditDate, $
                                     <select class="form-select" id="bf-<?= $section; ?>" name="<?= $section; ?>[]" multiple size="14">
                                         <?php foreach ($this->choices[$section] as $item) : ?>
                                             <?php $name = (string) ($item["title"] ?: $item["name"]); ?>
-                                            <option value="<?= (int) $item["id"]; ?>"><?= htmlspecialchars((string) $item["package"] . " :: " . $name, ENT_QUOTES, "UTF-8"); ?></option>
+                                            <?php $rules = (int) ($item["rules"] ?? 0); ?>
+                                            <option value="<?= (int) $item["id"]; ?>"><?= htmlspecialchars((string) $item["package"] . " :: " . $name . ($rules > 0 ? " (" . Text::sprintf("COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INTEGRATOR_RULES_COUNT", $rules) . ")" : ""), ENT_QUOTES, "UTF-8"); ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                     <div class="mt-2">
