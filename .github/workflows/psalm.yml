@@ -34,10 +34,10 @@ jobs:
         uses: actions/checkout@v7
 
       # Psalm 6 crashes on PHP 8.5 (deprecated SplObjectStorage::attach()).
-      - name: Setup PHP 8.3
+      - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           tools: composer:v2
           coverage: none
 
@@ -49,8 +49,8 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-psalm-8.3-${{ hashFiles('composer.json', 'administrator/components/com_breezingformsng/composer.lock') }}
-          restore-keys: composer-psalm-8.3-
+          key: composer-psalm-8.4-${{ hashFiles('composer.json', 'administrator/components/com_breezingformsng/composer.lock') }}
+          restore-keys: composer-psalm-8.4-
 
       - name: Install analysis dependencies
         run: |
@@ -68,12 +68,12 @@ jobs:
         uses: actions/cache@v6
         with:
           path: joomla-stubs
-          key: joomla-stubs-6.1.2-php8.3
+          key: joomla-stubs-6.1.2-php8.4
 
       - name: Extract Joomla core for class discovery
         if: steps.joomla-stubs-cache.outputs.cache-hit != 'true'
         run: |
-          container="$(docker create joomla:6.2.0-php8.3-apache)"
+          container="$(docker create joomla:6.2.0-php8.4-apache)"
           mkdir -p joomla-stubs
           docker cp "${container}:/usr/src/joomla/libraries" joomla-stubs/libraries
           docker rm "${container}"

@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.3', '8.4', '8.5']
+        php-version: ['8.4', '8.5']
 
     steps:
       - name: Checkout repository
@@ -58,10 +58,10 @@ jobs:
           # The PHPCS check of a pull request compares with its base branch.
           fetch-depth: 0
 
-      - name: Setup PHP 8.3
+      - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           tools: composer:v2
           coverage: none
 
@@ -158,7 +158,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.3', '8.4', '8.5']
+        php-version: ['8.4', '8.5']
 
     steps:
       - name: Checkout repository
@@ -196,12 +196,12 @@ jobs:
         uses: actions/cache@v6
         with:
           path: joomla-stubs
-          key: joomla-stubs-6.1.2-php8.3
+          key: joomla-stubs-6.1.2-php8.4
 
       - name: Extract Joomla core for class discovery
         if: steps.joomla-stubs-cache.outputs.cache-hit != 'true'
         run: |
-          container="$(docker create joomla:6.2.0-php8.3-apache)"
+          container="$(docker create joomla:6.2.0-php8.4-apache)"
           mkdir -p joomla-stubs
           docker cp "${container}:/usr/src/joomla/libraries" joomla-stubs/libraries
           docker rm "${container}"
@@ -216,7 +216,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.3', '8.4', '8.5']
+        php-version: ['8.4', '8.5']
 
     steps:
       - name: Checkout repository
@@ -227,7 +227,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           tools: composer:v2
-          coverage: ${{ matrix.php-version == '8.3' && 'pcov' || 'none' }}
+          coverage: ${{ matrix.php-version == '8.4' && 'pcov' || 'none' }}
 
       - name: Get Composer cache directory
         id: composer-cache
@@ -266,11 +266,11 @@ jobs:
 
       # A skipped test is a missing guarantee: the integration suite must run.
       - name: Run unit tests
-        if: matrix.php-version != '8.3'
+        if: matrix.php-version != '8.4'
         run: vendor/bin/phpunit --fail-on-skipped
 
       - name: Run unit tests and generate coverage reports
-        if: matrix.php-version == '8.3'
+        if: matrix.php-version == '8.4'
         run: |
           vendor/bin/phpunit \
             --fail-on-skipped \
@@ -279,11 +279,11 @@ jobs:
             --coverage-text
 
       - name: Enforce coverage threshold
-        if: matrix.php-version == '8.3'
+        if: matrix.php-version == '8.4'
         run: php scripts/check-coverage.php coverage/clover.xml 30 coverage-baseline.txt
 
       - name: Upload coverage reports
-        if: matrix.php-version == '8.3'
+        if: matrix.php-version == '8.4'
         uses: actions/upload-artifact@v7
         with:
           name: phpunit-coverage
@@ -300,10 +300,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Setup PHP 8.3
+      - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           tools: composer:v2
           coverage: none
 
@@ -316,8 +316,8 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-package-8.3-${{ hashFiles('administrator/components/com_breezingformsng/composer.lock') }}
-          restore-keys: composer-package-8.3-
+          key: composer-package-8.4-${{ hashFiles('administrator/components/com_breezingformsng/composer.lock') }}
+          restore-keys: composer-package-8.4-
 
       - name: Set package creation date
         run: |
@@ -393,10 +393,10 @@ jobs:
           name: installation-package
           path: build
 
-      - name: Setup PHP 8.3
+      - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           coverage: none
 
       - name: Resolve release metadata
