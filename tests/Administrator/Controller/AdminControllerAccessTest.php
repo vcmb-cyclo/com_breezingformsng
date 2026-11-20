@@ -234,7 +234,7 @@ final class AdminControllerAccessTest extends TestCase
     /** @return iterable<string, array{string, string, array<string, mixed>}> */
     public static function otherTokenGuardedTasks(): iterable
     {
-        foreach (['save', 'export', 'installSample', 'import', 'preview', 'update', 'remove'] as $task) {
+        foreach (['export', 'installSample', 'import', 'preview', 'update', 'remove'] as $task) {
             yield 'packages ' . $task => ['packages', $task, ['package' => 'demo', 'samples' => ['contact'], 'update_select' => ['forms' => ['3']], 'update_parts' => ['forms']]];
         }
 
@@ -290,7 +290,6 @@ final class AdminControllerAccessTest extends TestCase
     /** @return iterable<string, array{string, array<string, mixed>}> */
     public static function packageTasks(): iterable
     {
-        yield 'save' => ['save', ['package' => 'demo']];
         yield 'export' => ['export', ['package' => 'demo']];
         yield 'installSample' => ['installSample', []];
         yield 'import' => ['import', []];
@@ -327,11 +326,12 @@ final class AdminControllerAccessTest extends TestCase
         self::assertSame(self::NOT_ALLOWED, $refused['stopped']);
     }
 
-    public function testSavingAPackageWithTheRightReachesTheModel(): void
+    public function testCreatingAPackageWithTheRightSavesItsDetails(): void
     {
-        $allowed = $this->runTask('packages', 'save', 'valid', 'breezingformsng.configuration', ['package' => 'demo']);
+        $allowed = $this->runTask('packages', 'update', 'valid', 'breezingformsng.configuration', ['package' => 'demo', 'package_new' => 1, 'update_parts' => []]);
 
-        self::assertSame(['PackageTransfer', 'PackageTransfer::savePackage'], self::models($allowed['events']));
+        self::assertContains('PackageTransfer::assertNewPackageId', self::models($allowed['events']));
+        self::assertContains('PackageTransfer::savePackage', self::models($allowed['events']));
     }
 
     public function testUpdatingAPackageWithTheRightReachesTheModel(): void

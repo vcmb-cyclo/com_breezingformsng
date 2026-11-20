@@ -99,6 +99,14 @@ final class PackageTransferArchitectureTest extends TestCase
         // One list per kind holds the items of the package, selected, and the free ones; the content above it is read-only.
         self::assertStringContainsString('name="update_select[<?= $section; ?>][]"', $layout);
         self::assertStringContainsString('name="update_parts[]"', $layout);
+        // A new package is created from this screen: its identifier, then the details and the items in one save.
+        self::assertStringContainsString('PackageTransferModel::NEW_PACKAGE', $layout);
+        self::assertStringContainsString('name="package_new" value="1"', $layout);
+        // With no package selected, the free items are not taken for its members.
+        self::assertStringContainsString("if (\$existing && (string) \$item['package'] === \$this->selectedPackage) {", $layout);
+        self::assertStringContainsString('name="metadata[<?= $field; ?>]"', $layout);
+        self::assertStringContainsString('$model->assertNewPackageId($package)', $controller);
+        self::assertStringContainsString('$model->metadataDiffers($package, $metadata)', $controller);
         self::assertStringContainsString('task" value="packages.update"', $layout);
         self::assertStringContainsString('task" value="packages.remove"', $layout);
         self::assertStringContainsString('id="bf-package-content-body" class="collapse show"', $layout);
@@ -149,7 +157,8 @@ final class PackageTransferArchitectureTest extends TestCase
         $controller = (string) file_get_contents($component . '/src/Controller/PackagesController.php');
         self::assertStringContainsString("'layout' => 'export', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_EXPORT'", $tools);
         self::assertStringContainsString("standardButton('download', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_EXPORT_PACKAGE', 'packages.export')", $view);
-        self::assertSame(1, substr_count($controller, '$this->model()->savePackage($package,'));
+        // The details are saved from the management screen only: when a package is created and when they changed.
+        self::assertSame(2, substr_count($controller, '$model->savePackage($package,'));
 
         foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $language) {
             $ini = (string) file_get_contents($component . '/language/' . $language . '/com_breezingformsng.ini');
@@ -178,6 +187,23 @@ final class PackageTransferArchitectureTest extends TestCase
 
             self::assertMatchesRegularExpression('/^COM_BREEZINGFORMSNG_FORMS_PACKAGE_HINT="[^"]+"\\s*$/m', $ini, $language);
         }
+    }
+
+    public function testTheExportScreenOnlyDownloadsAFile(): void
+    {
+        $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $view = (string) file_get_contents($component . '/src/View/Packages/HtmlView.php');
+        $controller = (string) file_get_contents($component . '/src/Controller/PackagesController.php');
+        $layout = (string) file_get_contents($component . '/tmpl/packages/export.php');
+
+        // Packages are created and edited from the management screen; exporting creates nothing on the site.
+        self::assertStringNotContainsString('packages.save', $view . $layout);
+        self::assertStringNotContainsString('public function save(', $controller);
+        self::assertStringContainsString("'packages.export'", $view);
+        self::assertStringContainsString("'export' => Text::_('COM_BREEZINGFORMSNG_TOOLS_TILE_EXPORT')", $view);
+        self::assertStringContainsString('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_EXPORT', $layout);
+        $export = substr($controller, (int) strpos($controller, 'public function export('), 2500);
+        self::assertStringNotContainsString('savePackage', $export);
     }
 
     public function testAnExportCarriesTheActiveScriptsAndPiecesItsFormsCall(): void

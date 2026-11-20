@@ -84,6 +84,9 @@ final class PackageTransferModel extends BaseDatabaseModel
     /** Parts of a package the user can choose from on import, by key of the file. */
     public const SELECTABLE_PARTS = ['forms', 'scripts', 'pieces', 'menus'];
 
+    /** Value of the package choice that opens a new, empty package. */
+    public const NEW_PACKAGE = '__new__';
+
     /**
      * @var array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>, skipped: list<string>, conflicts: list<string>, unresolved: list<string>, items: array<string, list<array<string, mixed>>>}
      *      skipped: the optional parts left out, as the user may not write them.
@@ -214,6 +217,50 @@ final class PackageTransferModel extends BaseDatabaseModel
         }
 
         $this->savePackageMetadata($package, $this->metadataForExport($package, $metadata));
+    }
+
+    /**
+     * The identifier of a package to create: it must be free, at most 30 characters,
+     * and not the value that stands for "new package".
+     */
+    public function assertNewPackageId(string $package): string
+    {
+        $package = trim($package);
+
+        if ($package === '') {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SAVED_PACKAGE_REQUIRED'));
+        }
+
+        if (mb_strlen($package) > 30 || $package === self::NEW_PACKAGE) {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_INVALID'));
+        }
+
+        if (in_array($package, $this->getPackages(), true)) {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_EXISTS'));
+        }
+
+        return $package;
+    }
+
+    /**
+     * Whether the submitted details differ from the stored ones, so that a save
+     * which changes nothing does not stamp a new modification date.
+     *
+     * @param array<string, mixed> $submitted
+     */
+    public function metadataDiffers(string $package, array $submitted): bool
+    {
+        $stored = $this->getPackageProfiles()[$package] ?? [];
+
+        foreach (['name', 'version', 'title', 'author', 'email', 'url', 'description', 'copyright'] as $field) {
+            $value = $submitted[$field] ?? null;
+
+            if (is_string($value) && trim($value) !== (string) ($stored[$field] ?? '')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

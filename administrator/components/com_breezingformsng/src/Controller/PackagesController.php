@@ -42,26 +42,9 @@ final class PackagesController extends BaseController
     /**
      * Stores the package details and returns to the Create Package screen.
      */
-    public function save(): void
-    {
-        /** @var CMSApplication $app */
-        $app = Factory::getApplication();
-        $this->assertAuthorised();
-        $this->checkToken();
-        $package = $this->submittedPackage();
-
-        try {
-            $this->model()->savePackage($package, $app->getInput()->get('metadata', [], 'array'));
-            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SAVED'), 'message');
-        } catch (\Throwable $exception) {
-            $app->enqueueMessage($exception->getMessage(), 'error');
-        }
-        $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . rawurlencode($package), false));
-    }
-
     /**
-     * Saves the package details, then downloads the package: the selected
-     * items when there are any, else the items assigned to the package.
+     * Downloads the package file without creating or changing anything on this site:
+     * the selected items when there are any, else the items assigned to the package.
      */
     public function export(): void
     {
@@ -359,7 +342,10 @@ final class PackagesController extends BaseController
         $app->close();
     }
 
-    /** Attaches the selected free items to the package and detaches the items it no longer selects. */
+    /**
+     * Creates the package when asked, saves its details when they changed, attaches the selected
+     * free items and detaches the items it no longer selects.
+     */
     public function update(): void
     {
         /** @var CMSApplication $app */
@@ -367,15 +353,30 @@ final class PackagesController extends BaseController
         $this->assertAuthorised();
         $this->checkToken();
         $package = $this->submittedPackage();
+        $isNew = $app->getInput()->getInt('package_new', 0) === 1;
 
         try {
+            $model = $this->model();
+            $metadata = $app->getInput()->get('metadata', [], 'array');
             $submitted = $app->getInput()->get('update_parts', [], 'array');
             $parts = array_values(array_intersect(
                 PackageTransferModel::SELECTABLE_PARTS,
                 array_filter($submitted, 'is_string')
             ));
+            $changed = false;
 
-            if (!$this->model()->updatePackage($package, $this->submittedItemSelection('update_select'), $parts)) {
+            if ($isNew) {
+                $package = $model->assertNewPackageId($package);
+                $model->savePackage($package, $metadata);
+                $changed = true;
+            } elseif ($model->metadataDiffers($package, $metadata)) {
+                $model->savePackage($package, $metadata);
+                $changed = true;
+            }
+
+            $changed = $model->updatePackage($package, $this->submittedItemSelection('update_select'), $parts) || $changed;
+
+            if (!$changed) {
                 $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_NOTHING_CHANGED'), 'notice');
             } else {
                 (new ActionLogger($app))->log(ActionLogger::SAVED, ActionLogger::PACKAGE, [], $package);
@@ -384,7 +385,7 @@ final class PackagesController extends BaseController
             $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update&package=' . rawurlencode($package), false));
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update', false));
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update' . ($isNew ? '&package=' . PackageTransferModel::NEW_PACKAGE : ''), false));
         }
     }
 

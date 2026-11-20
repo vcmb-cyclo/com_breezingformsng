@@ -43,6 +43,9 @@ final class HtmlView extends BaseHtmlView
     public array $contents = [];
     /** Package preselected in the list, after a save. */
     public string $selectedPackage = '';
+
+    /** The management screen is creating a package: nothing is selected, the identifier is asked. */
+    public bool $isNewPackage = false;
     /** Time zone the audit dates are shown in. */
     public \DateTimeZone $timezone;
     /** Template files hold PHP code: exporting them takes the Configure permission, as the controller checks. */
@@ -102,6 +105,10 @@ final class HtmlView extends BaseHtmlView
             }
             $this->packages = $model->getPackages();
             $this->selectedPackage = $app->getInput()->getString('package', '');
+            if ($this->getLayout() === 'update' && $this->selectedPackage === PackageTransferModel::NEW_PACKAGE) {
+                $this->isNewPackage = true;
+                $this->selectedPackage = '';
+            }
             $this->profiles = $model->getPackageProfiles();
             $this->profiles = $model->resolveProfileAuditNames($this->profiles);
             $this->timezone = $this->getCurrentUser()->getTimezone();
@@ -178,7 +185,7 @@ final class HtmlView extends BaseHtmlView
     protected function getDetailLabel(): ?string
     {
         return match ($this->getLayout()) {
-            'export' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_CREATEPKG'),
+            'export' => Text::_('COM_BREEZINGFORMSNG_TOOLS_TILE_EXPORT'),
             'update' => Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_MANAGE_TITLE'),
             'import' => Text::_('COM_BREEZINGFORMSNG_INSTALLER'),
             default => null,
@@ -239,9 +246,6 @@ final class HtmlView extends BaseHtmlView
 
         switch ($this->getLayout()) {
             case 'export':
-                $toolbar->apply('packages.save')
-                    ->form('bf-package-export')
-                    ->formValidation(true);
                 $toolbar->standardButton('download', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_EXPORT_PACKAGE', 'packages.export')
                     ->form('bf-package-export')
                     ->formValidation(true);
@@ -249,10 +253,12 @@ final class HtmlView extends BaseHtmlView
                 break;
 
             case 'update':
-                if ($this->selectedPackage !== '') {
-                    $toolbar->standardButton('apply', 'JSAVE', 'packages.update')
+                if ($this->selectedPackage !== '' || $this->isNewPackage) {
+                    $toolbar->standardButton('apply', 'JTOOLBAR_APPLY', 'packages.update')
                         ->form('bf-package-update')
                         ->icon('icon-check');
+                }
+                if ($this->selectedPackage !== '') {
                     $toolbar->confirmButton('delete', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE', 'packages.remove')
                         ->form('bf-package-remove')
                         ->message('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE_CONFIRM')

@@ -46,6 +46,34 @@ final class PackageDissolveTest extends TestCase
     }
 
     #[RunInSeparateProcess]
+    public function testANewPackageNeedsAFreeValidIdentifier(): void
+    {
+        class_alias(DissolveModelStub::class, 'Joomla\\CMS\\MVC\\Model\\BaseDatabaseModel');
+        class_alias(DissolveParameterTypeStub::class, 'Joomla\\Database\\ParameterType');
+        class_alias(DissolveTextStub::class, 'Joomla\\CMS\\Language\\Text');
+        DissolveModelStub::$database = new DissolveDatabaseStub();
+        $model = new PackageTransferModel();
+
+        self::assertSame('fresh', $model->assertNewPackageId('  fresh '));
+
+        $refused = [
+            '' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SAVED_PACKAGE_REQUIRED',
+            '__new__' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_INVALID',
+            str_repeat('x', 31) => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_INVALID',
+            'alpha' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_EXISTS',
+        ];
+        foreach ($refused as $id => $message) {
+            try {
+                $model->assertNewPackageId((string) $id);
+                self::fail('"' . $id . '" was accepted');
+            } catch (\RuntimeException $exception) {
+                self::assertSame($message, $exception->getMessage());
+            }
+        }
+        self::assertSame(str_repeat('x', 30), $model->assertNewPackageId(str_repeat('x', 30)));
+    }
+
+    #[RunInSeparateProcess]
     public function testUpdatingAnUnknownPackageIsRefused(): void
     {
         class_alias(DissolveModelStub::class, 'Joomla\\CMS\\MVC\\Model\\BaseDatabaseModel');

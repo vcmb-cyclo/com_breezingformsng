@@ -76,7 +76,7 @@ $auditModified = static function (mixed $date, mixed $author) use ($auditDate, $
                             <label class="form-label" for="bf-package-choice"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_CHOICE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE'); ?></label>
                             <select class="form-select" id="bf-package-choice" name="selected_package">
                                 <option value=""><?= Text::_('JGLOBAL_SELECT_AN_OPTION'); ?></option>
-                                <option value="" data-new><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE'); ?></option>
+                                <option value="" data-new><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_EXPORT'); ?></option>
                                 <?php foreach ($this->profiles as $id => $profile) : ?>
                                     <option value="<?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?>"<?= (string) $id === $this->selectedPackage ? ' selected' : ''; ?>><?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?></option>
                                 <?php endforeach; ?>

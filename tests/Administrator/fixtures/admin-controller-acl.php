@@ -378,6 +378,8 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model {
                 'removePackage' => true,
                 'getImportSummary' => ['package' => 'p', 'items' => [], 'templates' => 0, 'rules' => 0, 'unlinked' => 0, 'unresolved' => [], 'skipped' => []],
                 'savePackage' => null,
+                'assertNewPackageId' => 'demo',
+                'metadataDiffers' => false,
                 default => [],
             };
         }
