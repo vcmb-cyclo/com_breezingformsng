@@ -193,11 +193,15 @@ final class PackagesController extends BaseController
                 return;
             }
 
+            // A sample holds code (the live price of the event form, for one). It is imported with the
+            // same rule as an uploaded package: the code is written only for a user who holds the code
+            // permission. A hard-coded false stripped it for everyone and left the sample inert.
+            $user = $app->getIdentity();
             $this->model()->import(
                 SampleFormService::packagePath($slug),
                 true,
                 basename(SampleFormService::packagePath($slug)),
-                false,
+                $user !== null && AreaAccess::isAllowed($user, AreaAccess::CODE),
                 null
             );
             $sample->ensureMenu();
