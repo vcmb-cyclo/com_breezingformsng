@@ -446,7 +446,7 @@ HTMLHelper::_('bootstrap.collapse');
                     <span class="icon-joomla" aria-hidden="true"></span>
                     <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_JOOMLA_6'); ?>
                 </span>
-                <span class="bf-about-platform-badge"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_PHP_83'); ?></span>
+                <span class="bf-about-platform-badge"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_PLATFORM_PHP_84'); ?></span>
             </span>
         </div>
 

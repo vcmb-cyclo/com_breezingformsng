@@ -1,7 +1,7 @@
 # Upgrading from legacy BreezingForms (Crosstec) to BreezingForms NG
 
 ## Requirements
-- Joomla 6 and PHP 8.3+. There is no Joomla 4/5 build.
+- Joomla 6 and PHP 8.4+. There is no Joomla 4/5 build.
 - Back up files and database first.
 
 ## What the installer does

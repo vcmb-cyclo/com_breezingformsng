@@ -5,6 +5,7 @@
 ### Changed
 
 - Replace the standard scripts and pieces of the library by the new standard version when updating, after keeping the version of the site in the history of each item (Versions) with a note that says so; the installation summary lists what was replaced.
+- Require PHP 8.4 or later: the installer refuses to install on older PHP versions, and the update manifest, the About screen and the documentation now announce PHP 8.4+. Sites still running PHP 8.3 stay on the previous release until PHP is upgraded.
 
 ## 6.1.0-RC23
 

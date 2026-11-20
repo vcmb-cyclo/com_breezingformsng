@@ -49,7 +49,7 @@ Log::add('User Agent: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'CLI') . '.', Log::INF
 class com_breezingformsngInstallerScript implements InstallerScriptInterface
 {
     private const TARGET_COMPONENT = 'com_breezingformsng';
-    private const MINIMUM_PHP = '8.3';
+    private const MINIMUM_PHP = '8.4';
     private const MINIMUM_JOOMLA = '6.0';
     // SHA-256 of every shipped version of the generic PDF templates that
     // media/breezingforms/pdftpl no longer uses, line endings normalised to

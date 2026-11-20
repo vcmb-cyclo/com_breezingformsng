@@ -13,7 +13,7 @@ receive them, so upgrade to the latest release.
 | 6.1.x, including its latest release candidate | :white_check_mark: |
 | < 6.1                                         | :x:                |
 
-The supported versions require Joomla 6 and PHP 8.3 or later.
+The supported versions require Joomla 6 and PHP 8.4 or later.
 
 ## Reporting a Vulnerability
 

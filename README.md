@@ -4,7 +4,7 @@
 [![PHPStan level 8](https://img.shields.io/badge/PHPStan-level%208-brightgreen?logo=php)](phpstan.neon.dist)
 
 **Form builder for Joomla 6.** BreezingForms NG ("new generation") is the community-maintained
-continuation of BreezingForms by Crosstec, rebuilt on the native Joomla 6 MVC for PHP 8.3+.
+continuation of BreezingForms by Crosstec, rebuilt on the native Joomla 6 MVC for PHP 8.4+.
 It lets you build multi-page forms visually, store and export submissions, send notification
 emails, take payments, and extend each form with PHP and JavaScript.
 
@@ -86,7 +86,7 @@ the [August 2005 Joomla forum discussion](https://forum.joomla.org/viewtopic.php
 ## Requirements
 
 - Joomla 6.x
-- PHP 8.3 or later
+- PHP 8.4 or later
 - MySQL 8.0.13+ or MariaDB 10.4+
 
 ## Installation

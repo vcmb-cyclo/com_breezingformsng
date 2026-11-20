@@ -88,8 +88,8 @@ nécessaires au PHP stocké dans les formulaires restent conservées volontairem
 | PostgreSQL | 17.6 | 14.0 | 12.0 |
 
 Source : [exigences techniques officielles de Joomla 6.x](https://manual.joomla.org/docs/next/get-started/technical-requirements/).
-Le composant conserve PHP 8.3+ comme minimum ; PHP 8.4 est recommandé par
-Joomla, sans être obligatoire pour cette migration.
+Depuis la version 6.1.0-RC24, le composant exige PHP 8.4 au minimum (Joomla 6
+accepte PHP 8.3, mais ce composant ne le prend plus en charge).
 
 ### Travaux restants
 
@@ -141,7 +141,7 @@ La clôture du chantier dépend des vérifications et corrections suivantes :
   tests unitaires et navigateur passent en CI, mais ces parcours réels restent
   à valider.
 
-Décision du 2026-10-15 : conserver PHP 8.3+ comme exigence minimale. Le
+Décision du 2026-10-15 (remplacée le 2026-11-20 par un minimum PHP 8.4) : conserver PHP 8.3+ comme exigence minimale. Le
 relèvement à PHP 8.4 initialement proposé dans la
 [PR #102](https://github.com/vcmb-cyclo/com_breezingformsng/pull/102) a été
 annulé ; son diff ne contient plus que les corrections d’en-têtes de copyright.
