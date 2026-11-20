@@ -87,17 +87,17 @@ final class DatabaseAuditService
                 $this->addError('Unable to inspect table ' . $alias . ': ' . $exception->getMessage());
                 continue;
             }
-            $rows = (int) ($status['TABLE_ROWS'] ?? 0);
-            $collation = (string) ($status['TABLE_COLLATION'] ?? '');
-            $dataBytes = (int) ($status['DATA_LENGTH'] ?? 0);
-            $indexBytes = (int) ($status['INDEX_LENGTH'] ?? 0);
+            $rows = self::intValue($status['TABLE_ROWS'] ?? 0);
+            $collation = self::stringValue($status['TABLE_COLLATION'] ?? '');
+            $dataBytes = self::intValue($status['DATA_LENGTH'] ?? 0);
+            $indexBytes = self::intValue($status['INDEX_LENGTH'] ?? 0);
             $totalRows += $rows;
             $totalDataBytes += $dataBytes;
             $totalIndexBytes += $indexBytes;
             $tables[] = [
                 'table' => $alias,
                 'rows' => $rows,
-                'engine' => (string) ($status['ENGINE'] ?? ''),
+                'engine' => self::stringValue($status['ENGINE'] ?? ''),
                 'collation' => $collation,
                 'size_bytes' => $dataBytes + $indexBytes,
             ];
@@ -253,7 +253,7 @@ final class DatabaseAuditService
                 ->where($this->db->quoteName('COLLATION_NAME') . ' IS NOT NULL')
                 ->bind(':table', $physicalTable);
             $this->db->setQuery($query);
-            $columns = $this->db->loadAssocList() ?: [];
+            $columns = $this->loadAssocRows();
         } catch (\Throwable $exception) {
             $this->addError('Unable to inspect column encoding for ' . $alias . ': ' . $exception->getMessage());
 
@@ -262,15 +262,15 @@ final class DatabaseAuditService
 
         $issues = [];
         foreach ($columns as $column) {
-            $charset = (string) ($column['CHARACTER_SET_NAME'] ?? '');
-            $collation = (string) ($column['COLLATION_NAME'] ?? '');
+            $charset = self::stringValue($column['CHARACTER_SET_NAME'] ?? '');
+            $collation = self::stringValue($column['COLLATION_NAME'] ?? '');
             if (
                 ($charset !== '' && strcasecmp($charset, self::TARGET_CHARSET) !== 0)
                 || ($collation !== '' && strcasecmp($collation, $targetCollation) !== 0)
             ) {
                 $issues[] = [
                     'table' => $alias,
-                    'column' => (string) ($column['COLUMN_NAME'] ?? ''),
+                    'column' => self::stringValue($column['COLUMN_NAME'] ?? ''),
                     'charset' => $charset,
                     'collation' => $collation,
                     'expected_charset' => self::TARGET_CHARSET,
@@ -290,7 +290,7 @@ final class DatabaseAuditService
     {
         $histogram = [];
         foreach ($tables as $table) {
-            $collation = (string) ($table['collation'] ?? '');
+            $collation = self::stringValue($table['collation'] ?? '');
             if ($collation === '') {
                 continue;
             }
@@ -314,7 +314,7 @@ final class DatabaseAuditService
             ->bind(':table', $physicalTable);
         $this->db->setQuery($query);
 
-        return (array) ($this->db->loadAssoc() ?: []);
+        return $this->loadAssocRow();
     }
 
     /**
@@ -324,7 +324,7 @@ final class DatabaseAuditService
     {
         try {
             $this->db->setQuery('SHOW INDEX FROM ' . $this->db->quoteName($physicalTable));
-            $rows = $this->db->loadAssocList() ?: [];
+            $rows = $this->loadAssocRows();
         } catch (\Throwable $exception) {
             $this->addError('Unable to inspect indexes for ' . $alias . ': ' . $exception->getMessage());
 
@@ -333,26 +333,26 @@ final class DatabaseAuditService
         $indexes = [];
 
         foreach ($rows as $row) {
-            $name = (string) ($row['Key_name'] ?? '');
+            $name = self::stringValue($row['Key_name'] ?? '');
             if ($name === '' || strtoupper($name) === 'PRIMARY') {
                 continue;
             }
 
-            $sequence = (int) ($row['Seq_in_index'] ?? 0);
+            $sequence = self::intValue($row['Seq_in_index'] ?? 0);
             $indexes[$name]['meta'] = implode(':', [
-                (string) ($row['Non_unique'] ?? '1'),
-                strtoupper((string) ($row['Index_type'] ?? 'BTREE')),
+                self::stringValue($row['Non_unique'] ?? '1'),
+                strtoupper(self::stringValue($row['Index_type'] ?? 'BTREE')),
             ]);
             $indexes[$name][$sequence] = implode(':', [
-                strtolower((string) ($row['Column_name'] ?? '')),
-                (string) ($row['Sub_part'] ?? ''),
-                strtoupper((string) ($row['Collation'] ?? 'A')),
+                strtolower(self::stringValue($row['Column_name'] ?? '')),
+                self::stringValue($row['Sub_part'] ?? ''),
+                strtoupper(self::stringValue($row['Collation'] ?? 'A')),
             ]);
         }
 
         $bySignature = [];
         foreach ($indexes as $name => $definition) {
-            $meta = (string) ($definition['meta'] ?? '1:BTREE');
+            $meta = self::stringValue($definition['meta'] ?? '1:BTREE');
             unset($definition['meta']);
             $columns = $definition;
             ksort($columns, SORT_NUMERIC);
@@ -457,11 +457,12 @@ final class DatabaseAuditService
             )
             ->where($this->db->quoteName('parent.id') . ' IS NULL');
 
-        $totals = $this->db->setQuery(
+        $this->db->setQuery(
             $orphans()->select(['COUNT(*) AS ' . $this->db->quoteName('total'), 'COUNT(DISTINCT ' . $key . ') AS '
                 . $this->db->quoteName('parents')])
-        )->loadAssoc() ?? [];
-        $count = (int) ($totals['total'] ?? 0);
+        );
+        $totals = $this->loadAssocRow();
+        $count = self::intValue($totals['total'] ?? 0);
 
         if ($count === 0) {
             return ['count' => 0, 'parents' => 0, 'groups' => []];
@@ -491,17 +492,18 @@ final class DatabaseAuditService
 
         $groups = [];
 
-        foreach ($this->db->setQuery($query)->loadAssocList() as $row) {
+        $this->db->setQuery($query);
+        foreach ($this->loadAssocRows() as $row) {
             $groups[] = [
-                'parent_id' => (int) $row['parent_id'],
-                'count' => (int) $row['total'],
-                'label' => (string) ($row['label'] ?? ''),
-                'first' => (string) ($row['first'] ?? ''),
-                'last' => (string) ($row['last'] ?? ''),
+                'parent_id' => self::intValue($row['parent_id'] ?? 0),
+                'count' => self::intValue($row['total'] ?? 0),
+                'label' => self::stringValue($row['label'] ?? ''),
+                'first' => self::stringValue($row['first'] ?? ''),
+                'last' => self::stringValue($row['last'] ?? ''),
             ];
         }
 
-        return ['count' => $count, 'parents' => (int) ($totals['parents'] ?? 0), 'groups' => $groups];
+        return ['count' => $count, 'parents' => self::intValue($totals['parents'] ?? 0), 'groups' => $groups];
     }
 
     /**
@@ -514,7 +516,7 @@ final class DatabaseAuditService
      */
     private function addFormOfOrphanValues(array $groups): array
     {
-        $ids = array_values(array_map(static fn (array $group): int => (int) $group['parent_id'], $groups));
+        $ids = array_values(array_map(static fn (array $group): int => self::intValue($group['parent_id'] ?? 0), $groups));
 
         if ($ids === []) {
             return $groups;
@@ -537,8 +539,9 @@ final class DatabaseAuditService
             ->order($element . ' ASC, ' . $db->quoteName('records.form') . ' ASC');
         $forms = [];
 
-        foreach ($db->setQuery($query)->loadAssocList() as $row) {
-            $id = (int) $row['element_id'];
+        $db->setQuery($query);
+        foreach ($this->loadAssocRows() as $row) {
+            $id = self::intValue($row['element_id'] ?? 0);
             if (!isset($forms[$id])) {
                 $row['forms'] = 0;
                 $forms[$id] = $row;
@@ -547,12 +550,12 @@ final class DatabaseAuditService
         }
 
         foreach ($groups as &$group) {
-            $row = $forms[(int) $group['parent_id']] ?? null;
+            $row = $forms[self::intValue($group['parent_id'] ?? 0)] ?? null;
 
             if ($row !== null) {
-                $group['form_id'] = (int) $row['form_id'];
-                $group['form_title'] = (string) $row['form_title'];
-                $group['forms'] = (int) $row['forms'];
+                $group['form_id'] = self::intValue($row['form_id'] ?? 0);
+                $group['form_title'] = self::stringValue($row['form_title'] ?? '');
+                $group['forms'] = self::intValue($row['forms']);
             }
         }
         unset($group);
@@ -576,8 +579,9 @@ final class DatabaseAuditService
             ->where('elements.id IS NULL')
             ->where('records.id IS NULL');
 
-        $summary['deletable'] = (int) $db->setQuery($orphans()->select('COUNT(*)'))->loadResult();
-        $ids = array_map(static fn (array $group): int => (int) $group['parent_id'], $summary['groups']);
+        $db->setQuery($orphans()->select('COUNT(*)'));
+        $summary['deletable'] = self::intValue($db->loadResult());
+        $ids = array_map(static fn (array $group): int => self::intValue($group['parent_id'] ?? 0), $summary['groups']);
         $counts = [];
 
         if ($ids !== []) {
@@ -586,13 +590,14 @@ final class DatabaseAuditService
                 ->whereIn($db->quoteName('child.element'), $ids)
                 ->group($db->quoteName('child.element'));
 
-            foreach ($db->setQuery($query)->loadAssocList() as $row) {
-                $counts[(int) $row['element_id']] = (int) $row['total'];
+            $db->setQuery($query);
+            foreach ($this->loadAssocRows() as $row) {
+                $counts[self::intValue($row['element_id'] ?? 0)] = self::intValue($row['total'] ?? 0);
             }
         }
 
         foreach ($summary['groups'] as &$group) {
-            $group['deletable'] = $counts[(int) $group['parent_id']] ?? 0;
+            $group['deletable'] = $counts[self::intValue($group['parent_id'] ?? 0)] ?? 0;
         }
         unset($group);
 
@@ -609,7 +614,7 @@ final class DatabaseAuditService
     private function addOrphanValueRecordCounts(array $summary): array
     {
         $db = $this->db;
-        $ids = array_map(static fn (array $group): int => (int) $group['parent_id'], $summary['groups']);
+        $ids = array_map(static fn (array $group): int => self::intValue($group['parent_id'] ?? 0), $summary['groups']);
         $counts = [];
 
         if ($ids !== []) {
@@ -627,13 +632,14 @@ final class DatabaseAuditService
                 ->whereIn($db->quoteName('child.element'), $ids)
                 ->group($db->quoteName('child.element'));
 
-            foreach ($db->setQuery($query)->loadAssocList() as $row) {
-                $counts[(int) $row['element_id']] = (int) $row['total'];
+            $db->setQuery($query);
+            foreach ($this->loadAssocRows() as $row) {
+                $counts[self::intValue($row['element_id'] ?? 0)] = self::intValue($row['total'] ?? 0);
             }
         }
 
         foreach ($summary['groups'] as &$group) {
-            $group['records'] = $counts[(int) $group['parent_id']] ?? 0;
+            $group['records'] = $counts[self::intValue($group['parent_id'] ?? 0)] ?? 0;
         }
         unset($group);
 
@@ -651,10 +657,9 @@ final class DatabaseAuditService
     private function addReassignableOrphanValues(array $summary): array
     {
         $db = $this->db;
-        $summary['reassignable'] = (int) $db->setQuery(
-            OrphanValueMatcher::query($db)->select('COUNT(*)')->where('x.id IS NULL')
-        )->loadResult();
-        $ids = array_map(static fn (array $group): int => (int) $group['parent_id'], $summary['groups']);
+        $db->setQuery(OrphanValueMatcher::query($db)->select('COUNT(*)')->where('x.id IS NULL'));
+        $summary['reassignable'] = self::intValue($db->loadResult());
+        $ids = array_map(static fn (array $group): int => self::intValue($group['parent_id'] ?? 0), $summary['groups']);
         $matches = [];
 
         if ($ids !== []) {
@@ -669,24 +674,25 @@ final class DatabaseAuditService
                 ->group([$db->quoteName('s.element'), $db->quoteName('e.id'), $db->quoteName('e.name')])
                 ->order($db->quoteName('free') . ' DESC, ' . $db->quoteName('e.id') . ' ASC');
 
-            foreach ($db->setQuery($query)->loadAssocList() as $row) {
-                $old = (int) $row['old_id'];
+            $db->setQuery($query);
+            foreach ($this->loadAssocRows() as $row) {
+                $old = self::intValue($row['old_id'] ?? 0);
                 $matches[$old] ??= [
-                    'target_id' => (int) $row['target_id'],
-                    'target_name' => (string) $row['target_name'],
+                    'target_id' => self::intValue($row['target_id'] ?? 0),
+                    'target_name' => self::stringValue($row['target_name'] ?? ''),
                     'matched' => 0,
                     'free' => 0,
                 ];
-                $matches[$old]['matched'] += (int) $row['total'];
-                $matches[$old]['free'] += (int) $row['free'];
+                $matches[$old]['matched'] += self::intValue($row['total'] ?? 0);
+                $matches[$old]['free'] += self::intValue($row['free'] ?? 0);
             }
         }
 
         $candidates = OrphanValueMatcher::candidates($db, $ids);
 
         foreach ($summary['groups'] as &$group) {
-            $group['candidates'] = $candidates[(int) $group['parent_id']] ?? [];
-            $match = $matches[(int) $group['parent_id']] ?? null;
+            $group['candidates'] = $candidates[self::intValue($group['parent_id'] ?? 0)] ?? [];
+            $match = $matches[self::intValue($group['parent_id'] ?? 0)] ?? null;
             $group['target_id'] = $match['target_id'] ?? 0;
             $group['target_name'] = $match['target_name'] ?? '';
             $group['matched'] = $match['matched'] ?? 0;
@@ -714,9 +720,20 @@ final class DatabaseAuditService
                 continue;
             }
 
-            foreach ($check['groups'] as $group) {
-                if ($group['label'] !== '') {
-                    $names[$group['parent_id']] = $group['label'];
+            $groups = $check['groups'] ?? [];
+
+            if (!is_array($groups)) {
+                continue;
+            }
+
+            foreach ($groups as $group) {
+                if (!is_array($group)) {
+                    continue;
+                }
+
+                $label = self::stringValue($group['label'] ?? '');
+                if ($label !== '') {
+                    $names[self::intValue($group['parent_id'] ?? 0)] = $label;
                 }
             }
         }
@@ -726,11 +743,22 @@ final class DatabaseAuditService
                 continue;
             }
 
-            foreach ($check['groups'] as &$group) {
-                if ($group['label'] === '') {
-                    $group['label'] = $names[$group['parent_id']] ?? '';
+            $groups = $check['groups'] ?? [];
+
+            if (!is_array($groups)) {
+                continue;
+            }
+
+            foreach ($groups as &$group) {
+                if (!is_array($group)) {
+                    continue;
+                }
+
+                if (self::stringValue($group['label'] ?? '') === '') {
+                    $group['label'] = $names[self::intValue($group['parent_id'] ?? 0)] ?? '';
                 }
             }
+            $check['groups'] = $groups;
             unset($group);
         }
         unset($check);
@@ -879,13 +907,13 @@ final class DatabaseAuditService
                 ->where($this->db->quoteName('link') . ' LIKE ' . $this->db->quote('%option=com_breezingforms%'))
                 ->order($this->db->quoteName('id') . ' ASC');
             $this->db->setQuery($query);
-            $menus = $this->db->loadAssocList() ?: [];
+            $menus = $this->loadAssocRows();
 
             $query = $this->db->createQuery()
                 ->select($this->db->quoteName(['name', 'published']))
                 ->from($this->db->quoteName('#__facileforms_forms'));
             $this->db->setQuery($query);
-            $formRows = $this->db->loadAssocList() ?: [];
+            $formRows = $this->loadAssocRows();
         } catch (\Throwable $exception) {
             $this->addError('Unable to inspect BreezingForms menu items: ' . $exception->getMessage());
             return [];
@@ -893,17 +921,17 @@ final class DatabaseAuditService
 
         $publishedByName = [];
         foreach ($formRows as $formRow) {
-            $name = trim((string) ($formRow['name'] ?? ''));
+            $name = trim(self::stringValue($formRow['name'] ?? ''));
             if ($name === '') {
                 continue;
             }
-            $publishedByName[$name] = ($publishedByName[$name] ?? false) || (int) ($formRow['published'] ?? 0) === 1;
+            $publishedByName[$name] = ($publishedByName[$name] ?? false) || self::intValue($formRow['published'] ?? 0) === 1;
         }
 
         foreach ($menus as $menu) {
-            $link = trim((string) ($menu['link'] ?? ''));
+            $link = trim(self::stringValue($menu['link'] ?? ''));
             $linkQuery = [];
-            parse_str((string) parse_url($link, PHP_URL_QUERY), $linkQuery);
+            parse_str(self::stringValue(parse_url($link, PHP_URL_QUERY)), $linkQuery);
             $option = is_string($linkQuery['option'] ?? null) ? $linkQuery['option'] : '';
             $menuIssues = [];
             $formName = '';
@@ -911,8 +939,8 @@ final class DatabaseAuditService
             if ($option === 'com_breezingforms') {
                 $menuIssues[] = 'legacy_component_link';
             } elseif ($option === 'com_breezingformsng') {
-                $params = json_decode((string) ($menu['params'] ?? ''), true);
-                $formName = trim((string) (is_array($params) ? ($params['ff_com_name'] ?? '') : ''));
+                $params = json_decode(self::stringValue($menu['params'] ?? ''), true);
+                $formName = trim(self::stringValue(is_array($params) ? ($params['ff_com_name'] ?? '') : ''));
 
                 if ($formName === '') {
                     $menuIssues[] = 'no_form_configured';
@@ -925,9 +953,9 @@ final class DatabaseAuditService
 
             if ($menuIssues !== []) {
                 $issues[] = [
-                    'menu_id' => (int) ($menu['id'] ?? 0),
-                    'title' => trim((string) ($menu['title'] ?? '')),
-                    'published' => (int) ($menu['published'] ?? 0),
+                    'menu_id' => self::intValue($menu['id'] ?? 0),
+                    'title' => trim(self::stringValue($menu['title'] ?? '')),
+                    'published' => self::intValue($menu['published'] ?? 0),
                     'link' => $link,
                     'form_name' => $formName,
                     'issues' => $menuIssues,
@@ -962,7 +990,7 @@ final class DatabaseAuditService
                 ->where($this->db->quoteName('element') . ' LIKE ' . $this->db->quote('%breezingforms%'))
                 ->order($this->db->quoteName('extension_id') . ' ASC');
             $this->db->setQuery($query);
-            $rows = $this->db->loadAssocList() ?: [];
+            $rows = $this->loadAssocRows();
         } catch (\Throwable $exception) {
             $this->addError('Unable to inspect BreezingForms extension registrations: ' . $exception->getMessage());
             return ['duplicates' => [], 'legacy' => []];
@@ -972,15 +1000,15 @@ final class DatabaseAuditService
         $legacy = [];
 
         foreach ($rows as $row) {
-            $element = strtolower(trim((string) ($row['element'] ?? '')));
+            $element = strtolower(trim(self::stringValue($row['element'] ?? '')));
             $entry = [
-                'extension_id' => (int) ($row['extension_id'] ?? 0),
-                'name' => (string) ($row['name'] ?? ''),
-                'type' => (string) ($row['type'] ?? ''),
-                'element' => (string) ($row['element'] ?? ''),
-                'folder' => (string) ($row['folder'] ?? ''),
-                'client_id' => (int) ($row['client_id'] ?? 0),
-                'enabled' => (int) ($row['enabled'] ?? 0),
+                'extension_id' => self::intValue($row['extension_id'] ?? 0),
+                'name' => self::stringValue($row['name'] ?? ''),
+                'type' => self::stringValue($row['type'] ?? ''),
+                'element' => self::stringValue($row['element'] ?? ''),
+                'folder' => self::stringValue($row['folder'] ?? ''),
+                'client_id' => self::intValue($row['client_id'] ?? 0),
+                'enabled' => self::intValue($row['enabled'] ?? 0),
             ];
 
             // The NG component and its compatibility plugin are the expected rows.
@@ -995,7 +1023,7 @@ final class DatabaseAuditService
                 $entry['type'],
                 $element,
                 strtolower($entry['folder']),
-                (int) ($row['client_id'] ?? 0),
+                self::intValue($row['client_id'] ?? 0),
             ]);
             $byKey[$key][] = $entry;
         }
@@ -1034,7 +1062,7 @@ final class DatabaseAuditService
                 ->group($this->db->quoteName('f.id'))
                 ->order($this->db->quoteName('f.id') . ' ASC');
             $this->db->setQuery($query);
-            $rows = $this->db->loadAssocList() ?: [];
+            $rows = $this->loadAssocRows();
         } catch (\Throwable $exception) {
             $this->addError('Unable to inspect duplicate forms: ' . $exception->getMessage());
             return [];
@@ -1042,16 +1070,16 @@ final class DatabaseAuditService
 
         $byKey = [];
         foreach ($rows as $row) {
-            $name = trim((string) ($row['name'] ?? ''));
+            $name = trim(self::stringValue($row['name'] ?? ''));
             if ($name === '') {
                 continue;
             }
-            $byKey[$name . '|' . trim((string) ($row['package'] ?? ''))][] = [
-                'id' => (int) ($row['id'] ?? 0),
+            $byKey[$name . '|' . trim(self::stringValue($row['package'] ?? ''))][] = [
+                'id' => self::intValue($row['id'] ?? 0),
                 'name' => $name,
-                'package' => trim((string) ($row['package'] ?? '')),
-                'published' => (int) ($row['published'] ?? 0),
-                'record_count' => (int) ($row['record_count'] ?? 0),
+                'package' => trim(self::stringValue($row['package'] ?? '')),
+                'published' => self::intValue($row['published'] ?? 0),
+                'record_count' => self::intValue($row['record_count'] ?? 0),
             ];
         }
 
@@ -1161,7 +1189,7 @@ final class DatabaseAuditService
                 ->where($this->db->quoteName('debug_mode') . ' = 1')
                 ->order($this->db->quoteName('id') . ' ASC');
             $this->db->setQuery($query);
-            $rows = $this->db->loadAssocList() ?: [];
+            $rows = $this->loadAssocRows();
         } catch (\Throwable $exception) {
             $this->addError('Unable to inspect forms with debug mode enabled: ' . $exception->getMessage());
 
@@ -1169,11 +1197,11 @@ final class DatabaseAuditService
         }
 
         return array_values(array_map(static fn (array $row): array => [
-            'id' => (int) ($row['id'] ?? 0),
-            'name' => trim((string) ($row['name'] ?? '')),
-            'title' => trim((string) ($row['title'] ?? '')),
-            'package' => trim((string) ($row['package'] ?? '')),
-            'published' => (int) ($row['published'] ?? 0),
+            'id' => self::intValue($row['id'] ?? 0),
+            'name' => trim(self::stringValue($row['name'] ?? '')),
+            'title' => trim(self::stringValue($row['title'] ?? '')),
+            'package' => trim(self::stringValue($row['package'] ?? '')),
+            'published' => self::intValue($row['published'] ?? 0),
         ], $rows));
     }
 
@@ -1209,7 +1237,7 @@ final class DatabaseAuditService
                 ->order($this->db->quoteName('r.form') . ' ASC')
                 ->bind(':trashed', $trashed, ParameterType::INTEGER);
             $this->db->setQuery($query);
-            $rows = $this->db->loadAssocList() ?: [];
+            $rows = $this->loadAssocRows();
         } catch (\Throwable $exception) {
             $this->addError('Unable to inspect trashed records: ' . $exception->getMessage());
 
@@ -1217,10 +1245,85 @@ final class DatabaseAuditService
         }
 
         return array_values(array_map(static fn (array $row): array => [
-            'form' => (int) ($row['form'] ?? 0),
-            'name' => trim((string) ($row['name'] ?? '')),
-            'count' => (int) ($row['record_count'] ?? 0),
+            'form' => self::intValue($row['form'] ?? 0),
+            'name' => trim(self::stringValue($row['name'] ?? '')),
+            'count' => self::intValue($row['record_count'] ?? 0),
         ], $rows));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function loadAssocRows(): array
+    {
+        $rows = $this->db->loadAssocList();
+
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                $normalized[] = self::normalizeAssocRow($row);
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param array<mixed, mixed> $row
+     * @return array<string, mixed>
+     */
+    private static function normalizeAssocRow(array $row): array
+    {
+        $normalized = [];
+
+        foreach ($row as $key => $value) {
+            if (is_string($key)) {
+                $normalized[$key] = $value;
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function loadAssocRow(): array
+    {
+        $row = $this->db->loadAssoc();
+
+        return is_array($row) ? $row : [];
+    }
+
+    private static function intValue(mixed $value): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+
+        if (is_float($value)) {
+            return (int) $value;
+        }
+
+        return is_string($value) && is_numeric($value) ? (int) $value : 0;
+    }
+
+    private static function stringValue(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return is_int($value) || is_float($value) || is_bool($value) ? (string) $value : '';
     }
 
     private function addError(string $message): void

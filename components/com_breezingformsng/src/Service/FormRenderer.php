@@ -19,6 +19,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Mail\MailerFactoryInterface;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Registry\Registry;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\RuntimeAssetLoader;
 use Joomla\Database\ParameterType;
 use Joomla\Database\DatabaseInterface;
@@ -52,11 +53,11 @@ final class FormRenderer
 
         $document = $this->application->getDocument() ?? throw new \RuntimeException('The document is not available.');
 
-        $ff_applic = (string) ($context['ff_applic'] ?? '');
-        $xModuleId = (int) ($context['module_id'] ?? 0);
-        $params = $context['params'] ?? null;
-        $plg_editable = (int) ($context['plg_editable'] ?? 0);
-        $plg_editable_override = (int) ($context['plg_editable_override'] ?? 0);
+        $ff_applic = self::stringValue($context['ff_applic'] ?? '');
+        $xModuleId = self::intValue($context['module_id'] ?? 0);
+        $params = $context['params'] instanceof Registry ? $context['params'] : null;
+        $plg_editable = self::intValue($context['plg_editable'] ?? 0);
+        $plg_editable_override = self::intValue($context['plg_editable_override'] ?? 0);
 
 // declare local vars
 // (1) only used in component space and not plain form)
@@ -103,23 +104,23 @@ $ff_request = array();
     if ($ff_applic == 'mod_facileforms') {
 
         // get the module parameters
-        $formname = $params->get('ff_mod_name');
-        $page = intval($params->get('ff_mod_page', $page));
-        $inframe = intval($params->get('ff_mod_frame', $inframe));
-        $border = intval($params->get('ff_mod_border', $border));
-        $align = intval($params->get('ff_mod_align', $align));
-        $left = intval($params->get('ff_mod_left', $left));
-        $top = intval($params->get('ff_mod_top', $top));
-        $suffix = $params->get('ff_mod_suffix', '');
-        $parprv = $params->get('ff_mod_parprv', '');
+        $formname = self::stringValue($params?->get('ff_mod_name', ''));
+        $page = self::intValue($params?->get('ff_mod_page', $page));
+        $inframe = self::intValue($params?->get('ff_mod_frame', $inframe));
+        $border = self::intValue($params?->get('ff_mod_border', $border));
+        $align = self::intValue($params?->get('ff_mod_align', $align));
+        $left = self::intValue($params?->get('ff_mod_left', $left));
+        $top = self::intValue($params?->get('ff_mod_top', $top));
+        $suffix = self::stringValue($params?->get('ff_mod_suffix', ''));
+        $parprv = self::stringValue($params?->get('ff_mod_parprv', ''));
         $ff_request = array_replace(
             $ff_request,
-            $this->requestParameterParser->parse((string) $params->get('ff_mod_parpub', ''))
+            $this->requestParameterParser->parse(self::stringValue($params?->get('ff_mod_parpub', '')))
         );
         $pagetitle = false;
 
-        $this->application->getSession()->set('ff_editableMod' . $xModuleId . $formname, intval($params->get('ff_mod_editable', $editable)));
-        $this->application->getSession()->set('ff_editable_overrideMod' . $xModuleId . $formname, intval($params->get('ff_mod_editable_override', $editable_override)));
+        $this->application->getSession()->set('ff_editableMod' . $xModuleId . $formname, self::intValue($params?->get('ff_mod_editable', $editable)));
+        $this->application->getSession()->set('ff_editable_overrideMod' . $xModuleId . $formname, self::intValue($params?->get('ff_mod_editable_override', $editable_override)));
     } else if ($ff_applic == 'plg_facileforms') {
 
         $formname = htmlentities($this->application->getInput()->getString('ff_name', ''), ENT_QUOTES, 'UTF-8');
@@ -144,13 +145,13 @@ $ff_request = array();
 
             if ($params !== null) {
 
-                $menu_item_title = $params->get('page_title', '');
-                $menu_item_show_page_heading = $params->get('show_page_heading', 0);
-                $menu_item_page_heading = $params->get('page_heading', '');
+                $menu_item_title = self::stringValue($params->get('page_title', ''));
+                $menu_item_show_page_heading = self::intValue($params->get('show_page_heading', 0));
+                $menu_item_page_heading = self::stringValue($params->get('page_heading', ''));
 
-                $menu_item_meta_description = $params->get('menu-meta_description', '');
-                $menu_item_meta_keywords = $params->get('menu-meta_keywords', '');
-                $menu_item_robots = $params->get('robots', '');
+                $menu_item_meta_description = self::stringValue($params->get('menu-meta_description', ''));
+                $menu_item_meta_keywords = self::stringValue($params->get('menu-meta_keywords', ''));
+                $menu_item_robots = self::stringValue($params->get('robots', ''));
 
                 if ($menu_item_meta_description) {
                     $document->setMetaData('description', $menu_item_meta_description);
@@ -164,20 +165,20 @@ $ff_request = array();
                     $document->setMetaData('robots', $menu_item_robots);
                 }
 
-                $formname = $params->get('ff_com_name');
-                $page = intval($params->get('ff_com_page', $page));
-                $inframe = intval($params->get('ff_com_frame', $inframe));
-                $border = intval($params->get('ff_com_border', $border));
-                $align = intval($params->get('ff_com_align', $align));
-                $left = intval($params->get('ff_com_left', $left));
-                $top = intval($params->get('ff_com_top', $top));
-                $editable = intval($params->get('ff_com_editable', $editable));
-                $editable_override = intval($params->get('ff_com_editable_override', $editable_override));
-                $suffix = $params->get('ff_com_suffix', '');
-                $parprv = $params->get('ff_com_parprv', '');
+                $formname = self::stringValue($params->get('ff_com_name', ''));
+                $page = self::intValue($params->get('ff_com_page', $page));
+                $inframe = self::intValue($params->get('ff_com_frame', $inframe));
+                $border = self::intValue($params->get('ff_com_border', $border));
+                $align = self::intValue($params->get('ff_com_align', $align));
+                $left = self::intValue($params->get('ff_com_left', $left));
+                $top = self::intValue($params->get('ff_com_top', $top));
+                $editable = self::intValue($params->get('ff_com_editable', $editable));
+                $editable_override = self::intValue($params->get('ff_com_editable_override', $editable_override));
+                $suffix = self::stringValue($params->get('ff_com_suffix', ''));
+                $parprv = self::stringValue($params->get('ff_com_parprv', ''));
                 $ff_request = array_replace(
                     $ff_request,
-                    $this->requestParameterParser->parse((string) $params->get('ff_com_parpub', ''))
+            $this->requestParameterParser->parse(self::stringValue($params->get('ff_com_parpub', '')))
                 );
             }
         } // if
@@ -220,7 +221,7 @@ $ff_request = array();
             ->where($this->database->quoteName('published') . ' = 1')
             ->bind(':formIdInt', $formIdInt, ParameterType::INTEGER);
         $this->database->setQuery($query);
-        $forms = $this->database->loadObjectList();
+        $forms = $this->loadFormRows();
         if (count($forms) < 1) {
             echo '[Form ' . intval($formid) . ' not found!]';
             $ok = false;
@@ -236,9 +237,9 @@ $ff_request = array();
                 ->order([$this->database->quoteName('ordering'), $this->database->quoteName('id')])
                 ->bind(':formname', $formname, ParameterType::STRING);
             $this->database->setQuery($query);
-            $forms = $this->database->loadObjectList();
+            $forms = $this->loadFormRows();
             if (count($forms) < 1) {
-                echo '[Form ' . htmlentities((string) $formname, ENT_QUOTES, 'UTF-8') . ' not found!]';
+                echo '[Form ' . htmlentities(self::stringValue($formname), ENT_QUOTES, 'UTF-8') . ' not found!]';
                 $ok = false;
             } else
                 $form = $forms[0];
@@ -257,52 +258,58 @@ $ff_request = array();
 
         $session = $this->application->getSession();
         $contentId = $this->application->getInput()->getInt('ff_contentid', 0);
-        $pluginEditableKey = 'ff_editablePlg' . $contentId . $form->name;
-        $pluginEditableOverrideKey = 'ff_editable_overridePlg' . $contentId . $form->name;
+        $formName = self::formString($form, 'name');
+        $formTitle = self::formString($form, 'title');
+        $pluginEditableKey = 'ff_editablePlg' . $contentId . $formName;
+        $pluginEditableOverrideKey = 'ff_editable_overridePlg' . $contentId . $formName;
 
         // set by plugin
         if ($session->get($pluginEditableKey, 0) != 0 && ($this->application->getInput()->getString('ff_applic', '') == 'plg_facileforms' || $ff_applic == 'plg_facileforms')) {
-            $editable = $session->get($pluginEditableKey, 0);
+            $editable = self::intValue($session->get($pluginEditableKey, 0));
         }
 
         // set by plugin
         if ($session->get($pluginEditableOverrideKey, 0) != 0 && ($this->application->getInput()->getString('ff_applic', '') == 'plg_facileforms' || $ff_applic == 'plg_facileforms')) {
-            $editable_override = $session->get($pluginEditableOverrideKey, 0);
+            $editable_override = self::intValue($session->get($pluginEditableOverrideKey, 0));
         }
 
         // set by module
         if (($this->application->getInput()->getString('ff_applic', '') == 'mod_facileforms' || $ff_applic == 'mod_facileforms')) {
-            if ($this->application->getSession()->get('ff_editableMod' . $xModuleId . $form->name, 0) != 0) {
-                $editable = $this->application->getSession()->get('ff_editableMod' . $xModuleId . $form->name, 0);
-            } else if ($this->application->getSession()->get('ff_editableMod' . $this->application->getInput()->getInt('ff_module_id', 0) . $form->name, 0) != 0) {
-                $editable = $this->application->getSession()->get('ff_editableMod' . $this->application->getInput()->getInt('ff_module_id', 0) . $form->name, 0);
+            if ($this->application->getSession()->get('ff_editableMod' . $xModuleId . $formName, 0) != 0) {
+                $editable = self::intValue($this->application->getSession()->get('ff_editableMod' . $xModuleId . $formName, 0));
+            } else if ($this->application->getSession()->get('ff_editableMod' . $this->application->getInput()->getInt('ff_module_id', 0) . $formName, 0) != 0) {
+                $editable = self::intValue($this->application->getSession()->get('ff_editableMod' . $this->application->getInput()->getInt('ff_module_id', 0) . $formName, 0));
             }
         }
 
         // set by module
         if (($this->application->getInput()->getString('ff_applic', '') == 'mod_facileforms' || $ff_applic == 'mod_facileforms')) {
-            if ($this->application->getSession()->get('ff_editable_overrideMod' . $xModuleId . $form->name, 0) != 0) {
-                $editable_override = $this->application->getSession()->get('ff_editable_overrideMod' . $xModuleId . $form->name, 0);
-            } else if ($this->application->getSession()->get('ff_editable_overrideMod' . $this->application->getInput()->getInt('ff_module_id', 0) . $form->name, 0) != 0) {
-                $editable_override = $this->application->getSession()->get('ff_editable_overrideMod' . $this->application->getInput()->getInt('ff_module_id', 0) . $form->name, 0);
+            if ($this->application->getSession()->get('ff_editable_overrideMod' . $xModuleId . $formName, 0) != 0) {
+                $editable_override = self::intValue($this->application->getSession()->get('ff_editable_overrideMod' . $xModuleId . $formName, 0));
+            } else if ($this->application->getSession()->get('ff_editable_overrideMod' . $this->application->getInput()->getInt('ff_module_id', 0) . $formName, 0) != 0) {
+                $editable_override = self::intValue($this->application->getSession()->get('ff_editable_overrideMod' . $this->application->getInput()->getInt('ff_module_id', 0) . $formName, 0));
             }
         }
 
-        if ($ff_applic != 'plg_facileforms' && $pagetitle && $form->title != '' && !($this->application->getInput()->getInt('cb_form_id', 0) || $this->application->getInput()->getCmd('cb_record_id', ''))) {
+        if ($ff_applic != 'plg_facileforms' && $pagetitle && $formTitle != '' && !($this->application->getInput()->getInt('cb_form_id', 0) || $this->application->getInput()->getCmd('cb_record_id', ''))) {
             if ($menu_item_title != '') {
                 $document->setTitle($menu_item_title);
             } else { // being set by module, false implies no change at all
-                $document->setTitle($form->title);
+                $document->setTitle($formTitle);
             }
         }
 
-        if ($form->name == $formname)
+        if ($formName == $formname)
             $ff_request = array_replace(
                 $ff_request,
                 $this->requestParameterParser->parse((string) $parprv)
             );
         if ($my_ff_params) {
-            foreach (array_keys($this->application->getInput()->getArray()) as $prop) {
+            $inputValues = $this->application->getInput()->getArray();
+            if (!is_array($inputValues)) {
+                $inputValues = [];
+            }
+            foreach (array_keys($inputValues) as $prop) {
                 if (str_starts_with((string) $prop, 'ff_param_')) {
                     $ff_request[$prop] = $this->application->getInput()->getString($prop);
                 }
@@ -332,14 +339,17 @@ $ff_request = array();
             } // switch
             if ($top > 0)
                 $divstyle .= 'padding-top:' . htmlentities((string) $top, ENT_QUOTES, 'UTF-8') . 'px;';
-            $framewidth = 'width="' . htmlentities((string) ($form->width . ($form->widthmode ? '%' : '')), ENT_QUOTES, 'UTF-8') . '" ';
+            $formWidth = self::formString($form, 'width');
+            $formWidthMode = self::formInt($form, 'widthmode');
+            $formHeightMode = self::formInt($form, 'heightmode');
+            $framewidth = 'width="' . htmlentities($formWidth . ($formWidthMode ? '%' : ''), ENT_QUOTES, 'UTF-8') . '" ';
             $frameheight = '';
-            if (!$form->heightmode)
-                $frameheight = 'height="' . htmlentities((string) $form->height, ENT_QUOTES, 'UTF-8') . '" ';
+            if (!$formHeightMode)
+                $frameheight = 'height="' . htmlentities(self::formString($form, 'height'), ENT_QUOTES, 'UTF-8') . '" ';
             $url = rtrim(Uri::root(), '/') . '/index.php'
                 . '?option=com_breezingformsng'
                 . '&amp;Itemid=' . (($this->application->getInput()->getInt('Itemid', 0) > 0 && $this->application->getInput()->getInt('Itemid', 0) < 99999999) ? $this->application->getInput()->getInt('Itemid', 0) : 0)
-                . '&amp;ff_form=' . htmlentities((string) $form->id, ENT_QUOTES, 'UTF-8')
+                . '&amp;ff_form=' . htmlentities((string) self::formInt($form, 'id'), ENT_QUOTES, 'UTF-8')
                 . '&amp;ff_applic=' . htmlentities((string) $ff_applic, ENT_QUOTES, 'UTF-8')
                 . '&amp;ff_module_id=' . htmlentities((string) $xModuleId, ENT_QUOTES, 'UTF-8')
                 . '&amp;format=html'
@@ -356,14 +366,15 @@ $ff_request = array();
             foreach ($ff_request as $prop => $val)
                 $url .= '&amp;' . htmlentities((string) $prop, ENT_QUOTES, 'UTF-8') . '=' . htmlentities(urlencode((string) $val), ENT_QUOTES, 'UTF-8');
 
-            $params = 'id="ff_frame' . $form->id . '" ' .
+            $formId = self::formInt($form, 'id');
+            $params = 'id="ff_frame' . $formId . '" ' .
                 'src="' . $url . '" ' .
                 $framewidth .
                 $frameheight .
                 'frameborder="' . htmlentities((string) $border, ENT_QUOTES, 'UTF-8') . '" ' .
                 'allowtransparency="true" ' .
                 'scrolling="no" ';
-            if ($form->autoheight == 1) {
+            if (self::formInt($form, 'autoheight') === 1) {
                 $document->getWebAssetManager()->useScript('jquery');
                 RuntimeAssetLoader::script($this->application, Uri::root(true) . '/components/com_breezingformsng/libraries/jquery/jq.iframeautoheight.js');
                 $document->getWebAssetManager()->addInlineScript("<!--
@@ -391,7 +402,7 @@ $ff_request = array();
                 echo \Vcmb\Component\BreezingformsNG\Site\Service\Support\PageHeading::html(
                     (string) $menu_item_title,
                     (string) $menu_item_page_heading,
-                    (string) $form->title
+                    $formTitle
                 ) . "\n";
             }
 
@@ -399,7 +410,7 @@ $ff_request = array();
             $myUser = $this->application->getIdentity()
                     ?? throw new \RuntimeException('The current user is not loaded.');
 
-            $username = (string) $myUser->get('username', '');
+            $username = self::stringValue($myUser->get('username', ''));
             $query = $this->database->createQuery()
                 ->select($this->database->quoteName('id'))
                 ->from($this->database->quoteName('#__users'))
@@ -410,18 +421,25 @@ $ff_request = array();
             if ($id)
                 $myUser->get('id', -1);
             require_once JPATH_SITE . '/components/com_breezingformsng/src/Support/processor_facade.php';
+            $templateCode = self::formString($form, 'template_code');
+            $templateCodeProcessed = self::formString($form, 'template_code_processed');
+            $formWidth = self::formString($form, 'width');
+            $formWidthMode = self::formInt($form, 'widthmode');
+            $formHeightMode = self::formInt($form, 'heightmode');
+            $formHeight = self::formString($form, 'height');
+            $formId = self::formInt($form, 'id');
             if ($task == 'view') {
                 $div1style = '';
                 $div2style = '';
-                if ($form->template_code == '') {
-                    $fullwidth = $form->widthmode && $form->width >= 100;
-                    if ($form->widthmode) {
+                if ($templateCode == '') {
+                    $fullwidth = $formWidthMode && self::intValue($formWidth) >= 100;
+                    if ($formWidthMode) {
                         $div1style .= 'min-width:10px;';
                         $div2style .= 'min-width:10px;';
                     } // if
-                    $div2style .= 'width:' . htmlentities(($fullwidth ? '100' : $form->width) . ($form->widthmode ? '%' : 'px'), ENT_QUOTES, 'UTF-8') . ';';
-                    if (!$form->heightmode)
-                        $div2style .= 'height:' . htmlentities((string) $form->height, ENT_QUOTES, 'UTF-8') . 'px;';
+                    $div2style .= 'width:' . htmlentities(($fullwidth ? '100' : $formWidth) . ($formWidthMode ? '%' : 'px'), ENT_QUOTES, 'UTF-8') . ';';
+                    if (!$formHeightMode)
+                        $div2style .= 'height:' . htmlentities($formHeight, ENT_QUOTES, 'UTF-8') . 'px;';
                     if ($plainform) {
                         $div2style .= 'position:absolute;top:0px;left:0px;margin:0px;';
                     } else {
@@ -456,29 +474,27 @@ $ff_request = array();
                 // http://www.gnu.org/copyleft/gpl.html
                 echo "\n<!-- BreezingForms V" . $ff_version . " Copyright(c) 2008-2013 by Markus Bopp | FacileForms Copyright 2004-2006 by Peter Koch, Chur, Switzerland.  All rights reserved. -->\n";
                 // END OF COPYRIGHT
-                if (trim((string) $form->template_code_processed) !== 'QuickMode') {
+                if (trim($templateCodeProcessed) !== 'QuickMode') {
                     echo '<div class="alert alert-warning">' . Text::_('COM_BREEZINGFORMSNG_QUICKMODE_ONLY') . '</div>';
                     return;
                 }
 
                 $bfStyle = '';
-                if ($form->template_code == '') {
+                if ($templateCode == '') {
                     $bfStyle = ' style="' . $div1style . '"';
                 }
                 if (!$plainform)
                     echo '<div class="bfClearfix"' . $bfStyle . '>' . "\n";
-                if (trim($form->template_code_processed) == '') {
-                    echo '<div class="bfClearfix" style="' . $div2style . '">' . "\n";
-                }
             } // if task = view
             if ($left > 3)
                 $align = $left;
             // remove temporary flash and chunked upload files if any
-            $temporaryUploads = new TemporaryUploadDirectory((string) $this->application->get('tmp_path'));
+            $temporaryPath = self::stringValue($this->application->get('tmp_path'));
+            $temporaryUploads = new TemporaryUploadDirectory($temporaryPath);
             $this->uploadFileCleaner->purgeTemporaryUploads($temporaryUploads->path(), '_flashtmp');
             $this->uploadFileCleaner->purgeTemporaryUploads($temporaryUploads->chunksPath(), '_chunktmp');
                     PaymentNotificationCache::fromTemporaryPath(
-                        (string) $this->application->get('tmp_path'),
+                        $temporaryPath,
                         JPATH_SITE . '/media/breezingforms/payment_cache/'
                     )->purgeExpired();
 
@@ -489,7 +505,7 @@ $ff_request = array();
                 $this->cacheControllerFactory,
                 $runmode,
                 $inframe,
-                $form->id,
+                $formId,
                 $page,
                 $border,
                 $align,
@@ -506,7 +522,7 @@ $ff_request = array();
 
                 $ff_processor->view();
 
-                if (trim($form->template_code_processed) == '') {
+                if (trim($templateCodeProcessed) == '') {
                     echo "</div>\n";
                 }
                 if (!$plainform)
@@ -518,4 +534,71 @@ $ff_request = array();
     } // if
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function loadFormRows(): array
+    {
+        $rows = $this->database->loadAssocList();
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $forms = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $form = [];
+            foreach ($row as $key => $value) {
+                if (is_string($key)) {
+                    $form[$key] = $value;
+                }
+            }
+            $forms[] = $form;
+        }
+
+        return $forms;
+    }
+
+    /**
+     * @param array<string, mixed> $form
+     */
+    private static function formString(array $form, string $key): string
+    {
+        return self::stringValue($form[$key] ?? '');
+    }
+
+    /**
+     * @param array<string, mixed> $form
+     */
+    private static function formInt(array $form, string $key): int
+    {
+        return self::intValue($form[$key] ?? 0);
+    }
+
+    private static function intValue(mixed $value): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+        if (is_float($value)) {
+            return (int) $value;
+        }
+
+        return is_string($value) && is_numeric($value) ? (int) $value : 0;
+    }
+
+    private static function stringValue(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return is_int($value) || is_float($value) || is_bool($value) ? (string) $value : '';
+    }
 }

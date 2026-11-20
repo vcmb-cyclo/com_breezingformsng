@@ -136,6 +136,17 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
     }
 
+    private static function getDatabase(): DatabaseInterface
+    {
+        $database = Factory::getContainer()->get(DatabaseInterface::class);
+
+        if (!$database instanceof DatabaseInterface) {
+            throw new \UnexpectedValueException('The Joomla database service is unavailable.');
+        }
+
+        return $database;
+    }
+
     /**
      * Translated installer message with an untranslated-fallback sprintf,
      * matching this project's rule of routing user-facing strings through
@@ -297,7 +308,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             return;
         }
 
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
 
         try {
             $db->setQuery("SHOW CHARACTER SET LIKE 'utf8mb4'");
@@ -584,7 +595,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             @set_time_limit(300);
         }
 
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $tables = $this->getBreezingFormsTables($db);
 
         if (empty($tables)) {
@@ -648,7 +659,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function migrateLegacyComponentOptionReferences(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $prefix = $db->getPrefix();
         $tables = self::getTableFields($db->getTableList());
 
@@ -1082,10 +1093,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     private function getDatabaseRuntimeLabel(): string
     {
         try {
-            $db = Factory::getContainer()->get(DatabaseInterface::class);
-            $serverType = $db instanceof DatabaseInterface ? (string) $db->getServerType() : 'database';
-            $version = $db instanceof DatabaseInterface ? trim((string) $db->getVersion()) : '';
-            $prefix = $db instanceof DatabaseInterface ? (string) $db->getPrefix() : '';
+            $db = self::getDatabase();
+            $serverType = (string) $db->getServerType();
+            $version = trim((string) $db->getVersion());
+            $prefix = (string) $db->getPrefix();
 
             $this->checkDatabaseSessionCharset($db);
 
@@ -1243,7 +1254,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function getCurrentInstalledVersion()
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $query = $db->createQuery()
             ->select($db->quoteName('manifest_cache'))
             ->from($db->quoteName('#__extensions'))
@@ -1266,7 +1277,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     {
         $path = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/modules/mod_breezingforms';
         $installer = new Installer();
-        $installer->setDatabase(Factory::getContainer()->get(DatabaseInterface::class));
+        $installer->setDatabase(self::getDatabase());
 
         if (!$installer->install($path)) {
             $this->announce('Failed to install BreezingForms NG module.', 'error', Log::ERROR);
@@ -1282,7 +1293,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             return;
         }
 
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $query = $db->createQuery()
             ->select(['folder', 'element', 'enabled'])
             ->from($db->quoteName('#__extensions'))
@@ -1324,7 +1335,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             // Installer keeps manifest state; use a fresh instance for every
             // bundled extension so each plugin receives its own database row.
             $installer = new Installer();
-            $installer->setDatabase(Factory::getContainer()->get(DatabaseInterface::class));
+            $installer->setDatabase(self::getDatabase());
 
             if ($installer->install($pluginDirectory['path'])) {
                 $installedFolders[] = $folder;
@@ -1341,7 +1352,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
 
         // Preserve existing plugin states; enable newly installed plugins only.
-        $standardDb = Factory::getContainer()->get(DatabaseInterface::class);
+        $standardDb = self::getDatabase();
 
         foreach ($this->getPlugins() as $folder => $plugins) {
             foreach ($plugins as $plugin) {
@@ -1362,7 +1373,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function removeOldUpdateSite(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
 
         $query = $db->createQuery()
             ->select('update_site_id')
@@ -1491,7 +1502,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function registerActionLogExtension(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $extension = 'com_breezingformsng';
 
         $query = $db->createQuery()
@@ -1524,7 +1535,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
             $query = $db->createQuery()
                 ->update($db->quoteName('#__extensions'))
-                ->set($db->quoteName('params') . ' = ' . $db->quote(json_encode($params)))
+                ->set($db->quoteName('params') . ' = ' . $db->quote(json_encode($params, JSON_THROW_ON_ERROR)))
                 ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
                 ->where($db->quoteName('element') . ' = ' . $db->quote('com_actionlogs'));
             $db->setQuery($query)->execute();
@@ -1535,7 +1546,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function unregisterActionLogExtension(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
 
         $query = $db->createQuery()
             ->delete($db->quoteName('#__action_logs_extensions'))
@@ -1549,7 +1560,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function registerContentTypes(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $common = [
             'dbtable' => '#__ucm_content',
             'key' => 'ucm_id',
@@ -1663,7 +1674,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function setVersionHistoryDefaults(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $query = $db->createQuery()
             ->select($db->quoteName('params'))
             ->from($db->quoteName('#__extensions'))
@@ -1706,7 +1717,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function keepVersionOrigins(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
 
         try {
             $tables = [
@@ -1790,7 +1801,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function unregisterContentTypes(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $aliases = [
             'com_breezingformsng.form',
             'com_breezingformsng.script',
@@ -1815,7 +1826,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function removeBreezingFormsMenuEntries(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $conditions = [];
 
         foreach (self::LEGACY_COMPONENT_ALIASES as $alias) {
@@ -1853,7 +1864,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             return;
         }
 
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $ids = implode(',', $extensionIds);
 
         foreach (['#__schemas', '#__update_sites_extensions'] as $table) {
@@ -1875,7 +1886,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function getComponentExtensionId(string $element): int
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
 
         try {
             $db->setQuery(
@@ -1901,7 +1912,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function repairRepeatedMenuComponentSuffix(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $pattern = 'option=' . self::TARGET_COMPONENT . '(ng)+';
         $replacement = 'option=' . self::TARGET_COMPONENT;
 
@@ -1932,7 +1943,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function normalizeJoomlaComponentReferences(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $targetElement = self::TARGET_COMPONENT;
         $this->repairRepeatedMenuComponentSuffix();
         $targetId = $this->getComponentExtensionId($targetElement);
@@ -2019,7 +2030,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function normalizeJoomlaMenuIdentity(int $targetId): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $oldTitleBase = 'COM_' . 'BREEZINGFORMS';
         $newTitleBase = 'COM_BREEZINGFORMSNG';
         $oldAliasBase = 'com-breezingforms';
@@ -2226,7 +2237,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function normalizeComponentAssetName(string $legacyElement, string $targetElement): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
 
         try {
             $db->setQuery(
@@ -2260,7 +2271,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function resolveMenuAlias(int $parentId, string $preferredAlias): string
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $alias = $preferredAlias;
         $suffix = 2;
 
@@ -2293,7 +2304,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     private function ensureAdminMenuRootNodeExists(): bool
     {
         try {
-            $db = Factory::getContainer()->get(DatabaseInterface::class);
+            $db = self::getDatabase();
             $db->setQuery(
                 $db->createQuery()
                     ->select($db->quoteName(['id', 'lft', 'rgt']))
@@ -2328,7 +2339,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function ensureAdministrationMainMenuEntry(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $componentId = $this->getComponentExtensionId(self::TARGET_COMPONENT);
 
         if ($componentId <= 0) {
@@ -2487,7 +2498,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function ensureAdministrationSubmenuEntries(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $componentId = $this->getComponentExtensionId(self::TARGET_COMPONENT);
 
         if ($componentId <= 0) {
@@ -2661,7 +2672,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             return;
         }
 
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
 
         foreach (['com_breezingforms', 'breezingforms'] as $legacyElement) {
             $legacyId = $this->getComponentExtensionId($legacyElement);
@@ -2699,7 +2710,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function deduplicateBreezingFormsComponentRows(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
 
         try {
             $db->setQuery(
@@ -2871,7 +2882,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function removeLegacyBreezingFormsComponentRows(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $targetId = $this->getComponentExtensionId(self::TARGET_COMPONENT);
 
         if ($targetId <= 0) {
@@ -2954,7 +2965,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function migrateStaleMenuLinks(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
 
         $replacements = [
             'index.php?option=' . self::TARGET_COMPONENT . '&act=about'
@@ -2997,7 +3008,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function removeAdminRunMenuEntries(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $linkPattern = 'index.php?option=' . self::TARGET_COMPONENT . '&act=run%';
 
         try {
@@ -3032,7 +3043,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function retireBackendOnlyForms(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
 
         try {
             $query = $db->createQuery()
@@ -3167,7 +3178,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     /** @return list<string> */
     private function findStoredCodeUsingBfpdf(): array
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $tables = $db->getTableList();
         $prefix = $db->getPrefix();
         $sources = [
@@ -3333,7 +3344,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function removeObsoleteSystemPlugin(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $query = $db->createQuery()
             ->select($db->quoteName('extension_id'))
             ->from($db->quoteName('#__extensions'))
@@ -3608,7 +3619,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function getInstalledSchemaVersion(): string
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $component = self::TARGET_COMPONENT;
         $query = $db->createQuery()
             ->select($db->quoteName('schemas.version_id'))
@@ -3646,7 +3657,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $siteTimezone = new \DateTimeZone((string) Factory::getApplication()->get('offset', 'UTC'));
         $converter = new \Vcmb\Component\BreezingformsNG\Administrator\Service\RecordModifiedDateConverter(
             new \Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseRecordModifiedDateStore(
-                Factory::getContainer()->get(DatabaseInterface::class)
+                self::getDatabase()
             )
         );
         $count = $converter->convert(
@@ -3664,7 +3675,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function migrateDatabase(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $textCollationClause = $this->getTextCollationClause();
         $auditCollation = $this->utf8mb4Supported ? $this->utf8mb4Collation : null;
         $tables = self::getTableFields($db->getTableList());
@@ -4026,7 +4037,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function migrateQuickmodeIconPaths(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $formsTable = $db->getPrefix() . 'facileforms_forms';
 
         if (!in_array($formsTable, $db->getTableList(), true)) {
@@ -4095,7 +4106,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     private function migrateQuickmodeFunctionNames(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $formsTable = $db->getPrefix() . 'facileforms_forms';
 
         if (!in_array($formsTable, $db->getTableList(), true)) {
@@ -4154,7 +4165,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function migrateElementData1FunctionNames(): void
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
         $elementsTable = $db->getPrefix() . 'facileforms_elements';
 
         if (!in_array($elementsTable, $db->getTableList(), true)) {
@@ -4209,7 +4220,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
      */
     public function uninstall(InstallerAdapter $adapter): bool
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
 
         $installer = new Installer();
         $installer->setDatabase($db);
@@ -4422,7 +4433,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $results = array();
         settype($tables, 'array');
 
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $db = self::getDatabase();
 
         foreach ($tables as $table) {
             $results[$table] = $db->getTableColumns($table, $typeOnly);

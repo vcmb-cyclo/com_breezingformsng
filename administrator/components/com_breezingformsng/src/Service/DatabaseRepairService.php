@@ -29,13 +29,13 @@ final class DatabaseRepairService
     public static function getDuplicateIndexSelectionToken(array $group): string
     {
         $drop = array_values(array_map(
-            static fn($value): string => trim((string) $value),
+            static fn(mixed $value): string => trim(self::stringValue($value)),
             (array) ($group['drop'] ?? [])
         ));
 
         return hash('sha256', implode("\0", [
-            trim((string) ($group['table'] ?? '')),
-            trim((string) ($group['keep'] ?? '')),
+            trim(self::stringValue($group['table'] ?? '')),
+            trim(self::stringValue($group['keep'] ?? '')),
             implode("\0", $drop),
         ]));
     }
@@ -46,12 +46,12 @@ final class DatabaseRepairService
     public static function getColumnCollationSelectionToken(array $issue): string
     {
         return hash('sha256', implode("\0", [
-            trim((string) ($issue['table'] ?? '')),
-            trim((string) ($issue['column'] ?? '')),
-            trim((string) ($issue['charset'] ?? '')),
-            trim((string) ($issue['collation'] ?? '')),
-            trim((string) ($issue['expected_charset'] ?? '')),
-            trim((string) ($issue['expected'] ?? '')),
+            trim(self::stringValue($issue['table'] ?? '')),
+            trim(self::stringValue($issue['column'] ?? '')),
+            trim(self::stringValue($issue['charset'] ?? '')),
+            trim(self::stringValue($issue['collation'] ?? '')),
+            trim(self::stringValue($issue['expected_charset'] ?? '')),
+            trim(self::stringValue($issue['expected'] ?? '')),
         ]));
     }
 
@@ -61,9 +61,9 @@ final class DatabaseRepairService
     public static function getTableCollationSelectionToken(array $issue): string
     {
         return hash('sha256', implode("\0", [
-            trim((string) ($issue['table'] ?? '')),
-            trim((string) ($issue['collation'] ?? '')),
-            trim((string) ($issue['expected'] ?? '')),
+            trim(self::stringValue($issue['table'] ?? '')),
+            trim(self::stringValue($issue['collation'] ?? '')),
+            trim(self::stringValue($issue['expected'] ?? '')),
         ]));
     }
 
@@ -74,20 +74,20 @@ final class DatabaseRepairService
     public function repairTableCollations(array $selectedTokens): array
     {
         $selectedTokens = array_values(array_unique(array_filter(
-            array_map(static fn($value): string => trim((string) $value), $selectedTokens),
+            array_map(static fn(mixed $value): string => trim(self::stringValue($value)), $selectedTokens),
             static fn(string $value): bool => $value !== ''
         )));
         $report = (new DatabaseAuditService($this->db, $this->temporaryPath))->run();
         $selectedIssues = array_values(array_filter(
-            (array) ($report['collation_issues'] ?? []),
+            self::assocRows($report['collation_issues'] ?? []),
             static fn(array $issue): bool => in_array(self::getTableCollationSelectionToken($issue), $selectedTokens, true)
         ));
         $errors = [];
         $repairedTables = 0;
 
         foreach ($selectedIssues as $issue) {
-            $tableAlias = trim((string) ($issue['table'] ?? ''));
-            $targetCollation = trim((string) ($issue['expected'] ?? ''));
+            $tableAlias = trim(self::stringValue($issue['table'] ?? ''));
+            $targetCollation = trim(self::stringValue($issue['expected'] ?? ''));
             $tableName = str_starts_with($tableAlias, '#__')
                 ? $this->db->getPrefix() . substr($tableAlias, 3)
                 : '';
@@ -125,11 +125,11 @@ final class DatabaseRepairService
     public function repairColumnCollations(array $selectedTokens): array
     {
         $selectedTokens = array_values(array_unique(array_filter(
-            array_map(static fn($value): string => trim((string) $value), $selectedTokens),
+            array_map(static fn(mixed $value): string => trim(self::stringValue($value)), $selectedTokens),
             static fn(string $value): bool => $value !== ''
         )));
         $report = (new DatabaseAuditService($this->db, $this->temporaryPath))->run();
-        $issues = array_values((array) ($report['column_collation_issues'] ?? []));
+        $issues = self::assocRows($report['column_collation_issues'] ?? []);
         $selectedIssues = array_values(array_filter(
             $issues,
             static fn(array $issue): bool => in_array(self::getColumnCollationSelectionToken($issue), $selectedTokens, true)
@@ -138,10 +138,10 @@ final class DatabaseRepairService
         $repairedColumns = 0;
 
         foreach ($selectedIssues as $issue) {
-            $tableAlias = trim((string) ($issue['table'] ?? ''));
-            $columnName = trim((string) ($issue['column'] ?? ''));
-            $targetCharset = trim((string) ($issue['expected_charset'] ?? ''));
-            $targetCollation = trim((string) ($issue['expected'] ?? ''));
+            $tableAlias = trim(self::stringValue($issue['table'] ?? ''));
+            $columnName = trim(self::stringValue($issue['column'] ?? ''));
+            $targetCharset = trim(self::stringValue($issue['expected_charset'] ?? ''));
+            $targetCollation = trim(self::stringValue($issue['expected'] ?? ''));
             $tableName = str_starts_with($tableAlias, '#__')
                 ? $this->db->getPrefix() . substr($tableAlias, 3)
                 : '';
@@ -159,8 +159,8 @@ final class DatabaseRepairService
                     'SHOW FULL COLUMNS FROM ' . $this->db->quoteName($tableName)
                     . ' WHERE Field = ' . $this->db->quote($columnName)
                 );
-                $definition = (array) ($this->db->loadAssoc() ?: []);
-                $type = trim((string) ($definition['Type'] ?? ''));
+                $definition = $this->loadAssocRow();
+                $type = trim(self::stringValue($definition['Type'] ?? ''));
 
                 if ($type === '') {
                     throw new \RuntimeException('Column not found.');
@@ -171,16 +171,16 @@ final class DatabaseRepairService
                     . ' ' . $type
                     . ' CHARACTER SET ' . $targetCharset
                     . ' COLLATE ' . $targetCollation
-                    . ((string) ($definition['Null'] ?? '') === 'YES' ? ' NULL' : ' NOT NULL');
+                    . (self::stringValue($definition['Null'] ?? '') === 'YES' ? ' NULL' : ' NOT NULL');
 
                 if (array_key_exists('Default', $definition) && $definition['Default'] !== null) {
-                    $sql .= ' DEFAULT ' . $this->db->quote((string) $definition['Default']);
-                } elseif ((string) ($definition['Null'] ?? '') === 'YES') {
+                    $sql .= ' DEFAULT ' . $this->db->quote(self::stringValue($definition['Default']));
+                } elseif (self::stringValue($definition['Null'] ?? '') === 'YES') {
                     $sql .= ' DEFAULT NULL';
                 }
 
-                if ((string) ($definition['Comment'] ?? '') !== '') {
-                    $sql .= ' COMMENT ' . $this->db->quote((string) $definition['Comment']);
+                if (self::stringValue($definition['Comment'] ?? '') !== '') {
+                    $sql .= ' COMMENT ' . $this->db->quote(self::stringValue($definition['Comment']));
                 }
 
                 $this->db->setQuery($sql);
@@ -214,11 +214,11 @@ final class DatabaseRepairService
     public function repairDuplicateIndexes(array $selectedTokens): array
     {
         $selectedTokens = array_values(array_unique(array_filter(
-            array_map(static fn($value): string => trim((string) $value), $selectedTokens),
+            array_map(static fn(mixed $value): string => trim(self::stringValue($value)), $selectedTokens),
             static fn(string $value): bool => $value !== ''
         )));
         $report = (new DatabaseAuditService($this->db, $this->temporaryPath))->run();
-        $groups = array_values((array) ($report['duplicate_indexes'] ?? []));
+        $groups = self::assocRows($report['duplicate_indexes'] ?? []);
         $selectedGroups = [];
         $errors = [];
         $removedIndexes = 0;
@@ -231,7 +231,7 @@ final class DatabaseRepairService
             }
 
             $selectedGroups[] = $group;
-            $tableAlias = trim((string) ($group['table'] ?? ''));
+            $tableAlias = trim(self::stringValue($group['table'] ?? ''));
             $tableName = str_starts_with($tableAlias, '#__')
                 ? $this->db->getPrefix() . substr($tableAlias, 3)
                 : '';
@@ -245,7 +245,7 @@ final class DatabaseRepairService
             $groupRemovedIndexes = 0;
 
             foreach ((array) ($group['drop'] ?? []) as $indexName) {
-                $indexName = trim((string) $indexName);
+                $indexName = trim(self::stringValue($indexName));
 
                 if ($indexName === '') {
                     continue;
@@ -395,17 +395,21 @@ final class DatabaseRepairService
         $byTarget = [];
         $taken = [];
 
-        foreach ($db->setQuery($query)->loadAssocList() as $row) {
-            $slot = (int) $row['record_id'] . ':' . (int) $row['target_id'];
+        $db->setQuery($query);
+        foreach ($this->loadAssocRows() as $row) {
+            $recordId = self::intValue($row['record_id'] ?? 0);
+            $targetId = self::intValue($row['target_id'] ?? 0);
+            $oldId = self::intValue($row['old_id'] ?? 0);
+            $slot = $recordId . ':' . $targetId;
 
             // A multi-valued field has several rows per record and element: they move together.
             // Two different missing elements may carry the same name: the first one wins the target.
-            if (($taken[$slot] ?? (int) $row['old_id']) !== (int) $row['old_id']) {
+            if (($taken[$slot] ?? $oldId) !== $oldId) {
                 continue;
             }
 
-            $taken[$slot] = (int) $row['old_id'];
-            $byTarget[(int) $row['target_id']][] = (int) $row['sub_id'];
+            $taken[$slot] = $oldId;
+            $byTarget[$targetId][] = self::intValue($row['sub_id'] ?? 0);
         }
 
         $reassigned = 0;
@@ -457,20 +461,17 @@ final class DatabaseRepairService
         }
 
         $db = $this->db;
-        $target = $db->setQuery(
+        $db->setQuery(
             $db->createQuery()
                 ->select($db->quoteName(['id', 'form', 'type']))
                 ->from($db->quoteName('#__facileforms_elements'))
                 ->where($db->quoteName('id') . ' = :id')
                 ->bind(':id', $targetElementId, ParameterType::INTEGER)
-        )->loadAssoc();
+        );
+        $target = $this->loadAssocRow();
 
-        if (!is_array($target)) {
-            throw new \InvalidArgumentException('The target field does not exist.');
-        }
-
-        $targetForm = (int) $target['form'];
-        $targetClass = OrphanValueMatcher::typeClass((string) $target['type']);
+        $targetForm = self::intValue($target['form'] ?? 0);
+        $targetClass = OrphanValueMatcher::typeClass(self::stringValue($target['type'] ?? ''));
         $query = $db->createQuery()
             ->select($db->quoteName('s.id'))
             ->from($db->quoteName('#__facileforms_subrecords', 's'))
@@ -489,7 +490,8 @@ final class DatabaseRepairService
             ->bind(':old', $oldElementId, ParameterType::INTEGER)
             ->bind(':form', $targetForm, ParameterType::INTEGER)
             ->bind(':class', $targetClass);
-        $subIds = array_map('intval', $db->setQuery($query)->loadColumn() ?: []);
+        $db->setQuery($query);
+        $subIds = $this->intList($db->loadColumn());
 
         // Orphan values the target already holds, byte for byte (a different
         // value is never touched): they are duplicates, nothing is lost.
@@ -512,10 +514,11 @@ final class DatabaseRepairService
             ->bind(':old', $oldElementId, ParameterType::INTEGER)
             ->bind(':form', $targetForm, ParameterType::INTEGER)
             ->bind(':class', $targetClass);
-        $duplicateIds = array_map('intval', $db->setQuery($duplicateQuery)->loadColumn() ?: []);
+        $db->setQuery($duplicateQuery);
+        $duplicateIds = $this->intList($db->loadColumn());
 
         if ($selectedValueIds !== null) {
-            $selectedValueIds = array_map('intval', $selectedValueIds);
+            $selectedValueIds = $this->intList($selectedValueIds);
             $subIds = array_values(array_intersect($subIds, $selectedValueIds));
             $duplicateIds = array_values(array_intersect($duplicateIds, $selectedValueIds));
         }
@@ -570,20 +573,17 @@ final class DatabaseRepairService
         }
 
         $db = $this->db;
-        $target = $db->setQuery(
+        $db->setQuery(
             $db->createQuery()
                 ->select($db->quoteName(['id', 'form', 'type', 'name']))
                 ->from($db->quoteName('#__facileforms_elements'))
                 ->where($db->quoteName('id') . ' = :id')
                 ->bind(':id', $targetElementId, ParameterType::INTEGER)
-        )->loadAssoc();
+        );
+        $target = $this->loadAssocRow();
 
-        if (!is_array($target)) {
-            throw new \InvalidArgumentException('The target field does not exist.');
-        }
-
-        $targetForm = (int) $target['form'];
-        $targetClass = OrphanValueMatcher::typeClass((string) $target['type']);
+        $targetForm = self::intValue($target['form'] ?? 0);
+        $targetClass = OrphanValueMatcher::typeClass(self::stringValue($target['type'] ?? ''));
         $query = $db->createQuery()
             ->select($db->quoteName(['s.id', 's.record', 's.name', 's.value']))
             ->from($db->quoteName('#__facileforms_subrecords', 's'))
@@ -597,10 +597,14 @@ final class DatabaseRepairService
             ->bind(':old', $oldElementId, ParameterType::INTEGER)
             ->bind(':form', $targetForm, ParameterType::INTEGER)
             ->bind(':class', $targetClass);
-        $values = $db->setQuery($query, 0, $limit + 1)->loadAssocList();
+        $db->setQuery($query, 0, $limit + 1);
+        $values = $this->loadAssocRows();
         $truncated = count($values) > $limit;
         $values = array_slice($values, 0, $limit);
-        $records = array_values(array_unique(array_map(static fn (array $row): int => (int) $row['record'], $values)));
+        $records = array_values(array_unique(array_map(
+            static fn (array $row): int => self::intValue($row['record'] ?? 0),
+            $values
+        )));
         $held = [];
 
         if ($records !== []) {
@@ -611,8 +615,9 @@ final class DatabaseRepairService
                 ->whereIn($db->quoteName('record'), $records)
                 ->bind(':target', $targetElementId, ParameterType::INTEGER);
 
-            foreach ($db->setQuery($heldQuery)->loadAssocList() as $row) {
-                $held[(int) $row['record']][] = (string) $row['value'];
+            $db->setQuery($heldQuery);
+            foreach ($this->loadAssocRows() as $row) {
+                $held[self::intValue($row['record'] ?? 0)][] = self::stringValue($row['value'] ?? '');
             }
         }
 
@@ -620,9 +625,9 @@ final class DatabaseRepairService
         $from = '';
 
         foreach ($values as $row) {
-            $from = $from !== '' ? $from : (string) $row['name'];
-            $record = (int) $row['record'];
-            $value = (string) $row['value'];
+            $from = $from !== '' ? $from : self::stringValue($row['name'] ?? '');
+            $record = self::intValue($row['record'] ?? 0);
+            $value = self::stringValue($row['value'] ?? '');
             $action = match (true) {
                 !isset($held[$record]) => 'move',
                 in_array($value, $held[$record], true) => 'duplicate',
@@ -630,7 +635,7 @@ final class DatabaseRepairService
             };
             $current = implode("\n", $held[$record] ?? []);
             $rows[] = [
-                'id' => (int) $row['id'],
+                'id' => self::intValue($row['id'] ?? 0),
                 'record' => $record,
                 'value' => mb_strlen($value) > 160 ? mb_substr($value, 0, 160) . '…' : $value,
                 // What the target element already holds for this record, if anything.
@@ -639,7 +644,7 @@ final class DatabaseRepairService
             ];
         }
 
-        return ['from' => $from, 'to' => (string) $target['name'], 'truncated' => $truncated, 'rows' => $rows];
+        return ['from' => $from, 'to' => self::stringValue($target['name'] ?? ''), 'truncated' => $truncated, 'rows' => $rows];
     }
 
     /**
@@ -651,14 +656,14 @@ final class DatabaseRepairService
     public function deleteStaleInstallerTemp(array $selectedPaths): array
     {
         $selectedPaths = array_values(array_unique(array_filter(
-            array_map(static fn($value): string => trim((string) $value), $selectedPaths),
+            array_map(static fn(mixed $value): string => trim(self::stringValue($value)), $selectedPaths),
             static fn(string $value): bool => $value !== ''
         )));
         $report = (new DatabaseAuditService($this->db, $this->temporaryPath))->run();
         $stalePaths = array_values(array_filter(
             array_map(
-                static fn($value): string => realpath((string) $value) ?: '',
-                (array) ($report['stale_installer_temp_dirs'] ?? [])
+                static fn(mixed $value): string => realpath(self::stringValue($value)) ?: '',
+                is_array($report['stale_installer_temp_dirs'] ?? null) ? $report['stale_installer_temp_dirs'] : []
             ),
             static fn(string $value): bool => $value !== ''
         ));
@@ -699,14 +704,14 @@ final class DatabaseRepairService
     public function removeLegacyExtensions(array $selectedIds): array
     {
         $selectedIds = array_values(array_unique(array_filter(
-            array_map('intval', $selectedIds),
+            self::intList($selectedIds),
             static fn(int $id): bool => $id > 0
         )));
         $report = (new DatabaseAuditService($this->db, $this->temporaryPath))->run();
         $legacy = [];
 
-        foreach ((array) ($report['extension_legacy'] ?? []) as $entry) {
-            $legacy[(int) ($entry['extension_id'] ?? 0)] = (array) $entry;
+        foreach (self::assocRows($report['extension_legacy'] ?? []) as $entry) {
+            $legacy[self::intValue($entry['extension_id'] ?? 0)] = $entry;
         }
 
         $errors = [];
@@ -715,13 +720,13 @@ final class DatabaseRepairService
 
         foreach ($selected as $extensionId) {
             $entry = $legacy[$extensionId];
-            $label = $entry['type'] . '/' . $entry['element'] . ' (#' . $extensionId . ')';
+            $label = self::stringValue($entry['type'] ?? '') . '/' . self::stringValue($entry['element'] ?? '') . ' (#' . $extensionId . ')';
 
             try {
                 $uninstalled = false;
 
                 try {
-                    $uninstalled = (bool) Installer::getInstance()->uninstall((string) $entry['type'], $extensionId);
+                    $uninstalled = (bool) Installer::getInstance()->uninstall(self::stringValue($entry['type'] ?? ''), $extensionId);
                 } catch (\Throwable) {
                     $uninstalled = false;
                 }
@@ -762,10 +767,10 @@ final class DatabaseRepairService
      */
     private function isOrphanRegistration(array $entry): bool
     {
-        $type = (string) ($entry['type'] ?? '');
-        $element = (string) ($entry['element'] ?? '');
-        $folder = (string) ($entry['folder'] ?? '');
-        $base = (int) ($entry['client_id'] ?? 0) === 1 ? JPATH_ADMINISTRATOR : JPATH_SITE;
+        $type = self::stringValue($entry['type'] ?? '');
+        $element = self::stringValue($entry['element'] ?? '');
+        $folder = self::stringValue($entry['folder'] ?? '');
+        $base = self::intValue($entry['client_id'] ?? 0) === 1 ? JPATH_ADMINISTRATOR : JPATH_SITE;
 
         if ($element === '' || preg_match('/^[A-Za-z0-9_.-]+$/', $element) !== 1 || preg_match('/^[A-Za-z0-9_.-]*$/', $folder) !== 1) {
             return false;
@@ -801,7 +806,7 @@ final class DatabaseRepairService
             ->where($this->db->quoteName('extension_id') . ' = :id')
             ->bind(':id', $extensionId, ParameterType::INTEGER);
 
-        return (int) $this->db->setQuery($query)->loadResult() > 0;
+        return self::intValue($this->db->setQuery($query)->loadResult()) > 0;
     }
 
     /**
@@ -809,8 +814,8 @@ final class DatabaseRepairService
      */
     private function deleteExtensionRow(int $extensionId, array $entry): void
     {
-        if ((string) ($entry['type'] ?? '') === 'template') {
-            $this->deleteTemplateStyles((string) ($entry['element'] ?? ''), (int) ($entry['client_id'] ?? 0));
+        if (self::stringValue($entry['type'] ?? '') === 'template') {
+            $this->deleteTemplateStyles(self::stringValue($entry['element'] ?? ''), self::intValue($entry['client_id'] ?? 0));
         }
 
         $query = $this->db->createQuery()
@@ -829,7 +834,7 @@ final class DatabaseRepairService
     private function deleteTemplateStyles(string $template, int $client): void
     {
         $db = $this->db;
-        $styles = $db->setQuery(
+        $db->setQuery(
             $db->createQuery()
                 ->select($db->quoteName(['id', 'home']))
                 ->from($db->quoteName('#__template_styles'))
@@ -837,15 +842,19 @@ final class DatabaseRepairService
                 ->where($db->quoteName('client_id') . ' = :client')
                 ->bind(':template', $template)
                 ->bind(':client', $client, ParameterType::INTEGER)
-        )->loadAssocList();
+        );
+        $styles = $this->loadAssocRows();
 
         if ($styles === []) {
             return;
         }
 
-        $styleIds = array_map(static fn (array $style): int => (int) $style['id'], $styles);
+        $styleIds = array_map(
+            static fn (array $style): int => self::intValue($style['id'] ?? 0),
+            $styles
+        );
         $homes = array_values(array_unique(array_filter(
-            array_map(static fn (array $style): string => (string) $style['home'], $styles),
+            array_map(static fn (array $style): string => self::stringValue($style['home'] ?? ''), $styles),
             static fn (string $home): bool => $home !== '0' && $home !== ''
         )));
 
@@ -858,16 +867,17 @@ final class DatabaseRepairService
         try {
             if ($homes !== []) {
                 $coreTemplate = $client === 1 ? 'atum' : 'cassiopeia';
-                $heir = (int) $db->setQuery(
+                $coreTemplateForQuery = $coreTemplate;
+                $heir = self::intValue($db->setQuery(
                     $db->createQuery()
                         ->select('MIN(' . $db->quoteName('id') . ')')
                         ->from($db->quoteName('#__template_styles'))
                         ->where($db->quoteName('template') . ' = :core')
                         ->where($db->quoteName('client_id') . ' = :client')
                         ->where($db->quoteName('home') . ' = ' . $db->quote('0'))
-                        ->bind(':core', $coreTemplate)
+                        ->bind(':core', $coreTemplateForQuery)
                         ->bind(':client', $client, ParameterType::INTEGER)
-                )->loadResult();
+                )->loadResult());
 
                 if ($heir < 1) {
                     throw new \RuntimeException('No ' . $coreTemplate . ' style is available to become the default.');
@@ -902,5 +912,117 @@ final class DatabaseRepairService
 
             throw $exception;
         }
+    }
+
+    /**
+     * @param mixed $rows
+     * @return list<array<string, mixed>>
+     */
+    private static function assocRows(mixed $rows): array
+    {
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                $normalized[] = self::normalizeAssocRow($row);
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function loadAssocRows(): array
+    {
+        $rows = $this->db->loadAssocList();
+
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                $normalized[] = self::normalizeAssocRow($row);
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function loadAssocRow(): array
+    {
+        $row = $this->db->loadAssoc();
+
+        return is_array($row) ? self::normalizeAssocRow($row) : [];
+    }
+
+    /**
+     * @param array<mixed, mixed> $row
+     * @return array<string, mixed>
+     */
+    private static function normalizeAssocRow(array $row): array
+    {
+        $normalized = [];
+
+        foreach ($row as $key => $value) {
+            if (is_string($key)) {
+                $normalized[$key] = $value;
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param mixed $values
+     * @return list<int>
+     */
+    private static function intList(mixed $values): array
+    {
+        if (!is_array($values)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($values as $value) {
+            $result[] = self::intValue($value);
+        }
+
+        return $result;
+    }
+
+    private static function intValue(mixed $value): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+
+        if (is_float($value)) {
+            return (int) $value;
+        }
+
+        return is_string($value) && is_numeric($value) ? (int) $value : 0;
+    }
+
+    private static function stringValue(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return is_int($value) || is_float($value) || is_bool($value) ? (string) $value : '';
     }
 }

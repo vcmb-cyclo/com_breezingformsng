@@ -310,7 +310,37 @@ final class PackageTransferModel extends BaseDatabaseModel
             ->order([$db->quoteName('name'), $db->quoteName('id')])
             ->bind(':package', $package);
 
-        return $db->setQuery($query)->loadAssocList() ?: [];
+        return $this->assocRows($db->setQuery($query)->loadAssocList());
+    }
+
+    /**
+     * Keeps the associative rows returned by Joomla's database driver in a
+     * shape the model can safely expose to its callers.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function assocRows(mixed $rows): array
+    {
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $normalized = [];
+            foreach ($row as $key => $value) {
+                if (is_string($key)) {
+                    $normalized[$key] = $value;
+                }
+            }
+            $result[] = $normalized;
+        }
+
+        return $result;
     }
 
     /**
@@ -1275,7 +1305,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             $query->where($db->quoteName("published") . " >= 0");
         }
 
-        return $db->setQuery($query)->loadAssocList() ?: [];
+        return $this->assocRows($db->setQuery($query)->loadAssocList());
     }
 
     /**
@@ -1301,7 +1331,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             $query->where($db->quoteName('published') . ' >= 0');
         }
 
-        return $db->setQuery($query)->loadAssocList() ?: [];
+        return $this->assocRows($db->setQuery($query)->loadAssocList());
     }
 
     /**
@@ -1733,7 +1763,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             $query->where($db->quoteName('published') . ' >= 0');
         }
 
-        return $db->setQuery($query)->loadAssocList() ?: [];
+        return $this->assocRows($db->setQuery($query)->loadAssocList());
     }
 
     /**
@@ -1744,7 +1774,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     {
         $db = $this->getDatabase();
         $query = $db->createQuery()->select('*')->from($db->quoteName('#__facileforms_elements'))->whereIn($db->quoteName('form'), $formIds)->order([$db->quoteName('form'), $db->quoteName('ordering'), $db->quoteName('id')]);
-        return $db->setQuery($query)->loadAssocList() ?: [];
+        return $this->assocRows($db->setQuery($query)->loadAssocList());
     }
 
     /**

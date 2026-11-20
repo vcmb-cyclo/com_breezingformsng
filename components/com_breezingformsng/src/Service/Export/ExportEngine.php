@@ -102,14 +102,34 @@ final class ExportEngine
                 ->bind(':editableFormValue', $editableFormValue, ParameterType::STRING)
                 ->bind(':editableUserId', $editableUserId, ParameterType::INTEGER);
             $this->processor->database->setQuery($recordsQuery);
-            $records = $this->processor->database->loadObjectList();
+            $records = [];
+            $rawRecords = $this->processor->database->loadObjectList();
+            if (is_array($rawRecords)) {
+                foreach ($rawRecords as $record) {
+                    if (!is_object($record)) {
+                        continue;
+                    }
+
+                    $recordData = get_object_vars($record);
+                    $recordId = $recordData['id'] ?? null;
+                    if (is_int($recordId)) {
+                        $records[] = ['id' => $recordId];
+                        continue;
+                    }
+
+                    if (is_string($recordId) && is_numeric($recordId)) {
+                        $records[] = ['id' => (int) $recordId];
+                    }
+                }
+            }
+
             (new ContentBuilderRecordCleanup(
                 $this->processor->database,
                 $this->processor->app,
                 $this->cacheControllerFactory
             ))->remove((int) $editableFormValue, array_column($records, 'id'));
             foreach ($records as $record) {
-                $recordIdToDelete = (int) $record->id;
+                $recordIdToDelete = $record['id'];
                 $delSubrecordsQuery = $this->processor->database->createQuery()
                     ->delete($this->processor->database->quoteName('#__facileforms_subrecords'))
                     ->where($this->processor->database->quoteName('record') . ' = :recordIdToDelete')

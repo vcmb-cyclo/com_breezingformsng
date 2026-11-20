@@ -26,7 +26,7 @@ final class FormRendererArchitectureTest extends TestCase
 
         self::assertIsString($source);
         self::assertStringContainsString(
-            '$ff_applic = (string) ($context[\'ff_applic\'] ?? \'\');',
+            '$ff_applic = self::stringValue($context[\'ff_applic\'] ?? \'\');',
             $source
         );
         self::assertStringNotContainsString('isset($ff_applic)', $source);

@@ -454,12 +454,12 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
     }
 
     /**
-     * @param array<string, mixed> $dataObject
+     * @param QuickModeProcessNode $dataObject
      * @param array<string, mixed>|null $parent
      * @param array<string, mixed>|null $parentPage
      * @param int $index
      * @param int $childrenLength
-     * @param array<string, mixed>|null $parentFull
+     * @param QuickModeTreeNode|null $parentFull
      * @return void
      */
     public function process(&$dataObject, $parent = null, $parentPage = null, $index = 0, $childrenLength = 0, $parentFull = null)
@@ -1078,7 +1078,8 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
         if (isset($dataObject['children']) && count($dataObject['children']) != 0) {
             $childrenAmount = count($dataObject['children']);
             for ($i = 0; $i < $childrenAmount; $i++) {
-                $this->process($dataObject['children'][$i], $mdata, $parentPage, $i, $childrenAmount, $dataObject);
+                $child = $this->normalizedQuickModeProcessNode($dataObject['children'][$i]);
+                $this->process($child, $mdata, $parentPage, $i, $childrenAmount, $dataObject);
             }
         }
 
@@ -1153,6 +1154,20 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
                 echo '</div>';
             }
         }
+    }
+
+    /**
+     * @param mixed $dataObject
+     * @return QuickModeProcessNode
+     */
+    private function normalizedQuickModeProcessNode(mixed $dataObject): array
+    {
+        $this->assertQuickModeProcessNode($dataObject);
+        if (!array_key_exists('children', $dataObject)) {
+            $dataObject['children'] = [];
+        }
+
+        return $dataObject;
     }
 
     /** @return void */
