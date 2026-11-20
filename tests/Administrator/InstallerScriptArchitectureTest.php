@@ -102,6 +102,24 @@ final class InstallerScriptArchitectureTest extends TestCase
         );
     }
 
+    public function testPackageLayoutRenameCleansTheOldTemplateOnUpdate(): void
+    {
+        $root = __DIR__ . '/../..';
+        $source = file_get_contents($root . '/script.php');
+
+        self::assertIsString($source);
+        self::assertStringContainsString(
+            "JPATH_ADMINISTRATOR . '/components/com_breezingformsng/tmpl/packages/delete.php',",
+            $source
+        );
+        self::assertFileDoesNotExist(
+            $root . '/administrator/components/com_breezingformsng/tmpl/packages/delete.php'
+        );
+        self::assertFileExists(
+            $root . '/administrator/components/com_breezingformsng/tmpl/packages/update.php'
+        );
+    }
+
     public function testPostflightReportsLegacyPdfCustomisations(): void
     {
         $source = file_get_contents(__DIR__ . '/../../script.php');

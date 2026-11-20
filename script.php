@@ -3433,6 +3433,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src/View/Pieces/Renderer.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src/View/Scripts/Renderer.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/tmpl/menus/edit.php',
+            // Renamed package-management layout. Joomla leaves the old file in
+            // place during updates although the replacement is shipped as update.php.
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/tmpl/packages/delete.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/tmpl/records/csvimport.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/tmpl/records/edit.php',
             // Libraries removed from the administration.
