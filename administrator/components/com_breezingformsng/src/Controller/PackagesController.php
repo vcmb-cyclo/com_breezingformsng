@@ -91,7 +91,6 @@ final class PackagesController extends BaseController
             $json = $formIds === [] && $scriptIds === [] && $pieceIds === [] && $menuIds === []
                 ? $this->model()->export($package, $metadata, $withTemplates, $withIntegrator)
                 : $this->model()->exportSelection($package, $formIds, $scriptIds, $pieceIds, $menuIds, $metadata, $withTemplates, $withIntegrator);
-            $this->model()->savePackage($package, $metadata);
             $fileName = 'breezingformsng-' . preg_replace('/[^A-Za-z0-9._-]/', '-', $package) . '.json';
             while (ob_get_level() > 0) {
                 ob_end_clean();
@@ -369,25 +368,7 @@ final class PackagesController extends BaseController
         $package = $this->submittedPackage();
 
         try {
-            $submitted = $app->getInput()->get('delete_select', [], 'array');
-            $selection = [];
-
-            foreach (['forms', 'scripts', 'pieces', 'menus'] as $part) {
-                $selection[$part] = [];
-                $values = is_array($submitted[$part] ?? null) ? $submitted[$part] : [];
-
-                foreach ($values as $value) {
-                    if (!is_string($value) && !is_int($value)) {
-                        continue;
-                    }
-
-                    $id = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-
-                    if ($id !== false) {
-                        $selection[$part][] = $id;
-                    }
-                }
-            }
+            $selection = $this->submittedItemSelection('delete_select');
 
             $model = $this->model();
 
@@ -401,15 +382,51 @@ final class PackagesController extends BaseController
                 return;
             }
 
-            $packageExists = in_array($package, $model->getPackages(), true);
-            $action = $packageExists ? ActionLogger::SAVED : ActionLogger::DELETED;
-            (new ActionLogger($app))->log($action, ActionLogger::PACKAGE, [], $package);
-            $app->enqueueMessage(Text::sprintf(
-                $packageExists
-                    ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETED_NAMED'
-                    : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DISSOLVED_NAMED',
-                htmlspecialchars($package, ENT_QUOTES, 'UTF-8')
-            ), 'message');
+            (new ActionLogger($app))->log(ActionLogger::SAVED, ActionLogger::PACKAGE, [], $package);
+            $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DETACHED_NAMED', htmlspecialchars($package, ENT_QUOTES, 'UTF-8')), 'message');
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete&package=' . rawurlencode($package), false));
+        } catch (\Throwable $exception) {
+            $app->enqueueMessage($exception->getMessage(), 'error');
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete', false));
+        }
+    }
+
+    /** Attaches selected existing items to the chosen package. */
+    public function attach(): void
+    {
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
+        $this->assertAuthorised();
+        $this->checkToken();
+        $package = $this->submittedPackage();
+
+        try {
+            if (!$this->model()->attachToPackage($package, $this->submittedItemSelection('attach_select'))) {
+                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_ATTACH_NOTHING_SELECTED'), 'warning');
+            } else {
+                (new ActionLogger($app))->log(ActionLogger::SAVED, ActionLogger::PACKAGE, [], $package);
+                $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_ATTACHED_NAMED', htmlspecialchars($package, ENT_QUOTES, 'UTF-8')), 'message');
+            }
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete&package=' . rawurlencode($package), false));
+        } catch (\Throwable $exception) {
+            $app->enqueueMessage($exception->getMessage(), 'error');
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete', false));
+        }
+    }
+
+    /** Removes the selected package while retaining every attached item. */
+    public function remove(): void
+    {
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
+        $this->assertAuthorised();
+        $this->checkToken();
+        $package = $this->submittedPackage();
+
+        try {
+            $this->model()->removePackage($package);
+            (new ActionLogger($app))->log(ActionLogger::DELETED, ActionLogger::PACKAGE, [], $package);
+            $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVED_NAMED', htmlspecialchars($package, ENT_QUOTES, 'UTF-8')), 'message');
             $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages', false));
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
@@ -438,6 +455,33 @@ final class PackagesController extends BaseController
                 array_map('intval', $positions),
                 static fn (int $position): bool => $position >= 0
             )));
+        }
+
+        return $selection;
+    }
+
+    /**
+     * @return array<string, list<int>>
+     */
+    private function submittedItemSelection(string $field): array
+    {
+        $submitted = Factory::getApplication()->getInput()->get($field, [], 'array');
+        $selection = [];
+
+        foreach (PackageTransferModel::SELECTABLE_PARTS as $part) {
+            $values = is_array($submitted[$part] ?? null) ? $submitted[$part] : [];
+            $selection[$part] = [];
+
+            foreach ($values as $value) {
+                if (!is_string($value) && !is_int($value)) {
+                    continue;
+                }
+
+                $id = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+                if ($id !== false) {
+                    $selection[$part][] = $id;
+                }
+            }
         }
 
         return $selection;

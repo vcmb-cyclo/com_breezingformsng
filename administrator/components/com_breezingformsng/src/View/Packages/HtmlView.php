@@ -113,9 +113,8 @@ final class HtmlView extends BaseHtmlView
                     }
                     $this->contents = $model->getPackageContents($this->selectedPackage);
                 }
-            } else {
-                $this->choices = $model->getExportChoices();
             }
+            $this->choices = $model->getExportChoices();
         }
 
         if ($this->getLayout() === 'import') {
@@ -179,7 +178,7 @@ final class HtmlView extends BaseHtmlView
     {
         return match ($this->getLayout()) {
             'export' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_CREATEPKG'),
-            'delete' => Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE_CONFIRM_TITLE'),
+            'delete' => Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_MANAGE_TITLE'),
             'import' => Text::_('COM_BREEZINGFORMSNG_INSTALLER'),
             default => null,
         };
@@ -250,8 +249,14 @@ final class HtmlView extends BaseHtmlView
 
             case 'delete':
                 if ($this->selectedPackage !== '') {
-                    $toolbar->standardButton('delete', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE', 'packages.delete')
+                    $toolbar->standardButton('new', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_ATTACH', 'packages.attach')
+                        ->form('bf-package-attach')
+                        ->icon('icon-plus');
+                    $toolbar->standardButton('unpublish', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DETACH', 'packages.delete')
                         ->form('bf-package-delete')
+                        ->icon('icon-unpublish');
+                    $toolbar->standardButton('delete', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE', 'packages.remove')
+                        ->form('bf-package-remove')
                         ->icon('icon-trash');
                 }
                 $toolbar->linkButton('close', 'JTOOLBAR_CANCEL')->url($home)->icon('icon-times');

@@ -241,7 +241,6 @@ final class PackageTransferModel extends BaseDatabaseModel
                 'pieces' => '#__facileforms_pieces',
                 'menus' => '#__facileforms_compmenus',
             ];
-            $hadContents = array_filter($this->getPackageContents($package)) !== [];
             $changed = false;
 
             foreach ($tables as $part => $table) {
@@ -264,13 +263,57 @@ final class PackageTransferModel extends BaseDatabaseModel
                 $changed = $db->getAffectedRows() > 0 || $changed;
             }
 
-            if ((!$hadContents || $changed) && array_filter($this->getPackageContents($package)) === []) {
+            $db->transactionCommit();
+
+            return $changed;
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+            throw $exception;
+        }
+    }
+
+    /**
+     * Attaches the selected items to a package. Their records and submitted
+     * data stay untouched; only the package column is changed.
+     *
+     * @param array<string, list<int>> $selection
+     */
+    public function attachToPackage(string $package, array $selection): bool
+    {
+        $package = trim($package);
+
+        if ($package === '' || !in_array($package, $this->getPackages(), true)) {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'));
+        }
+
+        $db = $this->getDatabase();
+        $tables = [
+            'forms' => '#__facileforms_forms',
+            'scripts' => '#__facileforms_scripts',
+            'pieces' => '#__facileforms_pieces',
+            'menus' => '#__facileforms_compmenus',
+        ];
+        $changed = false;
+        $db->transactionStart();
+
+        try {
+            foreach ($tables as $part => $table) {
+                $ids = array_values(array_unique(array_filter(
+                    $selection[$part] ?? [],
+                    static fn (mixed $id): bool => is_int($id) && $id > 0
+                )));
+
+                if ($ids === []) {
+                    continue;
+                }
+
                 $query = $db->createQuery()
-                    ->delete($db->quoteName('#__facileforms_packages'))
-                    ->where($db->quoteName('id') . ' = :package')
+                    ->update($db->quoteName($table))
+                    ->set($db->quoteName('package') . ' = :package')
+                    ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER)
                     ->bind(':package', $package);
                 $db->setQuery($query)->execute();
-                $changed = true;
+                $changed = $db->getAffectedRows() > 0 || $changed;
             }
 
             $db->transactionCommit();
@@ -280,6 +323,44 @@ final class PackageTransferModel extends BaseDatabaseModel
             $db->transactionRollback();
             throw $exception;
         }
+    }
+
+    /**
+     * Removes a package and its assignments. The attached records remain.
+     */
+    public function removePackage(string $package): bool
+    {
+        $package = trim($package);
+
+        if ($package === '' || !in_array($package, $this->getPackages(), true)) {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'));
+        }
+
+        $db = $this->getDatabase();
+        $db->transactionStart();
+
+        try {
+            foreach (['#__facileforms_forms', '#__facileforms_scripts', '#__facileforms_pieces', '#__facileforms_compmenus'] as $table) {
+                $query = $db->createQuery()
+                    ->update($db->quoteName($table))
+                    ->set($db->quoteName('package') . ' = ' . $db->quote(''))
+                    ->where($db->quoteName('package') . ' = :package')
+                    ->bind(':package', $package);
+                $db->setQuery($query)->execute();
+            }
+
+            $query = $db->createQuery()
+                ->delete($db->quoteName('#__facileforms_packages'))
+                ->where($db->quoteName('id') . ' = :package')
+                ->bind(':package', $package);
+            $db->setQuery($query)->execute();
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+            throw $exception;
+        }
+
+        return true;
     }
 
     /**

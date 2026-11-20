@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * The Tools page (packages view, default layout) shows its actions in Atum-style
- * cards, not in the toolbar, and keeps every action it offered before.
+ * cards, not in the toolbar.
  */
 final class ToolsPageTemplateTest extends TestCase
 {
@@ -40,12 +40,11 @@ final class ToolsPageTemplateTest extends TestCase
         foreach (
             [
             'bf-tools-audit', 'bf-tools-statistics', 'bf-tools-trash', 'bf-tools-log',
-            'bf-tools-install', 'bf-tools-create', 'bf-tools-dissolve',
+            'bf-tools-install', 'bf-tools-export', 'bf-tools-manage',
             ] as $tile
         ) {
             self::assertStringContainsString("'id' => '" . $tile . "'", $template);
         }
-        self::assertStringContainsString('bf-tile--danger', $template);
     }
 
     public function testPackageActionsAndOptionsLinkAreKept(): void

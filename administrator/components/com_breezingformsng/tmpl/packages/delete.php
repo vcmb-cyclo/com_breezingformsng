@@ -55,7 +55,7 @@ $metadataFields = [
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <p class="alert alert-info"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE_HINT'); ?></p>
+                <p class="alert alert-info"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_MANAGE_HINT'); ?></p>
                 <form action="index.php" method="get" id="bf-package-delete-choice">
                     <input type="hidden" name="option" value="com_breezingformsng">
                     <input type="hidden" name="view" value="packages">
@@ -75,17 +75,10 @@ $metadataFields = [
                 </form>
 
                 <?php if ($this->selectedPackage !== '') : ?>
-                    <p class="alert alert-warning mt-4">
-                        <?= htmlspecialchars(
-                            Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE_CONFIRM', $this->selectedPackage),
-                            ENT_QUOTES,
-                            'UTF-8'
-                        ); ?>
-                    </p>
                     <?php if ($hasContents) : ?>
-                        <p class="alert alert-warning"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE_REIMPORT'); ?></p>
+                        <p class="text-body-secondary mt-4"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_MANAGE_CONTENT_HINT'); ?></p>
                     <?php else : ?>
-                        <p><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE_EMPTY'); ?></p>
+                        <p class="text-body-secondary mt-4"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE_EMPTY'); ?></p>
                     <?php endif; ?>
                     <form action="index.php?option=com_breezingformsng" method="post" id="bf-package-delete">
                     <?php foreach ($sections as $section => $label) : ?>
@@ -140,6 +133,34 @@ $metadataFields = [
                         <input type="hidden" name="package"
                             value="<?= htmlspecialchars($this->selectedPackage, ENT_QUOTES, 'UTF-8'); ?>">
                         <input type="hidden" name="task" value="packages.delete">
+                        <?= HTMLHelper::_('form.token'); ?>
+                    </form>
+                    <form action="index.php?option=com_breezingformsng" method="post" id="bf-package-attach" class="mt-4">
+                        <h3 class="h5"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_ATTACH_TITLE'); ?></h3>
+                        <p class="alert alert-info"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_ATTACH_HINT'); ?></p>
+                        <div class="row g-4">
+                            <?php foreach ($sections as $section => $label) : ?>
+                                <div class="col-12 col-lg-6">
+                                    <label class="form-label" for="bf-attach-<?= $section; ?>"><?= Text::_($label); ?></label>
+                                    <select class="form-select" id="bf-attach-<?= $section; ?>" name="attach_select[<?= $section; ?>][]" multiple size="8">
+                                        <?php foreach ($this->choices[$section] as $item) : ?>
+                                            <?php if ((string) $item['package'] === $this->selectedPackage) : ?>
+                                                <?php continue; ?>
+                                            <?php endif; ?>
+                                            <?php $title = (string) ($item['title'] ?: $item['name']); ?>
+                                            <option value="<?= (int) $item['id']; ?>"><?= htmlspecialchars((string) $item['package'] . ' :: ' . $title, ENT_QUOTES, 'UTF-8'); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <input type="hidden" name="package" value="<?= htmlspecialchars($this->selectedPackage, ENT_QUOTES, 'UTF-8'); ?>">
+                        <input type="hidden" name="task" value="packages.attach">
+                        <?= HTMLHelper::_('form.token'); ?>
+                    </form>
+                    <form action="index.php?option=com_breezingformsng" method="post" id="bf-package-remove" class="mt-4" onsubmit="return confirm('<?= htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE_CONFIRM'), ENT_QUOTES, 'UTF-8'); ?>');">
+                        <input type="hidden" name="package" value="<?= htmlspecialchars($this->selectedPackage, ENT_QUOTES, 'UTF-8'); ?>">
+                        <input type="hidden" name="task" value="packages.remove">
                         <?= HTMLHelper::_('form.token'); ?>
                     </form>
                     <table class="table table-striped mt-4" id="bf-package-info">

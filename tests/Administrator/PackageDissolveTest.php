@@ -25,11 +25,16 @@ final class PackageDissolveTest extends TestCase
         self::assertSame('alpha', $db->rows['forms'][2]);
         self::assertSame('other', $db->rows['forms'][3]);
         self::assertSame('', $db->rows['scripts'][4]);
+        self::assertTrue($model->attachToPackage('alpha', ['forms' => [3]]));
+        self::assertSame('alpha', $db->rows['forms'][3]);
         self::assertContains('alpha', $db->packages);
         self::assertTrue($model->deletePackage('alpha', ['forms' => [2]]));
+        self::assertContains('alpha', $db->packages);
+        self::assertTrue($model->removePackage('alpha'));
+        self::assertSame('', $db->rows['forms'][3]);
         self::assertNotContains('alpha', $db->packages);
-        self::assertTrue($model->deletePackage('empty', []));
-        self::assertNotContains('empty', $db->packages);
+        self::assertFalse($model->deletePackage('empty', []));
+        self::assertContains('empty', $db->packages);
     }
 }
 
@@ -115,9 +120,13 @@ final class DissolveDatabaseStub
             $this->packages = array_values(array_diff($this->packages, [$this->query->package]));
             return;
         }
-        foreach ($this->query->ids as $id) {
-            if (($this->rows[$this->query->table][$id] ?? null) === $this->query->package) {
-                $this->rows[$this->query->table][$id] = '';
+        $ids = $this->query->ids !== [] ? $this->query->ids : array_keys($this->rows[$this->query->table]);
+        foreach ($ids as $id) {
+            if (
+                isset($this->rows[$this->query->table][$id])
+                && (!$this->query->filterPackage || $this->rows[$this->query->table][$id] === $this->query->package)
+            ) {
+                $this->rows[$this->query->table][$id] = $this->query->clearPackage ? '' : $this->query->package;
                 ++$this->affected;
             }
         }
@@ -129,6 +138,8 @@ final class DissolveQueryStub
     public string $table = '';
     public string $package = '';
     public array $ids = [];
+    public bool $clearPackage = false;
+    public bool $filterPackage = false;
     public function select(mixed $columns): self
     {
         return $this;
@@ -148,10 +159,12 @@ final class DissolveQueryStub
     }
     public function set(string $set): self
     {
+        $this->clearPackage = str_contains($set, "''");
         return $this;
     }
     public function where(string $where): self
     {
+        $this->filterPackage = str_contains($where, ':package');
         return $this;
     }
     public function whereIn(string $column, array $ids, mixed $type): self

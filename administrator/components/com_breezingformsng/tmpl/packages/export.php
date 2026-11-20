@@ -219,7 +219,7 @@ const bfShowProfile = () => {
     bfPackageDetails.classList.toggle('d-none', id === '' && !isNew);
     bfPackageNew.classList.toggle('d-none', !isNew);
     bfPackage.value = isNew && !bfPackageProfiles[bfPackage.value] ? bfPackage.value : id;
-    bfSelections.classList.toggle('d-none', assigned);
+    bfSelections.classList.remove('d-none');
     const contents = document.getElementById('bf-package-contents');
     contents.classList.toggle('d-none', !assigned);
     for (const section of contents.querySelectorAll('[data-bf-content-section]')) {
@@ -260,7 +260,7 @@ const bfShowProfile = () => {
 
     if (assigned) {
         for (const option of bfSelections.querySelectorAll('option')) {
-            option.selected = false;
+            option.selected = option.textContent.startsWith(id + ' :: ');
         }
     }
 
