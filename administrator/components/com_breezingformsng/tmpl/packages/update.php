@@ -109,7 +109,7 @@ $metadataFields = [
                             </td></tr></tbody>
                         </table>
                         <p class="alert alert-info"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_HINT'); ?></p>
-                        <div class="row g-4">
+                        <div class="row g-4" id="bf-package-sections">
                             <?php foreach ($sections as $section => $label) : ?>
                                 <?php
                                 $members = [];
@@ -121,30 +121,60 @@ $metadataFields = [
                                         $free[] = $item;
                                     }
                                 }
+                                $rows = array_merge($members, $free);
+                                $memberIds = array_map(static fn (array $item): int => (int) $item['id'], $members);
                                 ?>
                                 <div class="col-12 col-lg-6">
-                                    <label class="form-label" for="bf-update-<?= $section; ?>"><?= Text::_($label); ?></label>
-                                    <select class="form-select" id="bf-update-<?= $section; ?>" name="update_select[<?= $section; ?>][]" multiple size="8">
-                                        <?php foreach (['COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_GROUP_MEMBERS' => $members, 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_GROUP_FREE' => $free] as $group => $items) : ?>
-                                            <?php if ($items === []) : ?>
-                                                <?php continue; ?>
+                                    <fieldset class="card h-100<?= $rows === [] ? ' opacity-50' : ''; ?>" data-bf-section="<?= $section; ?>">
+                                        <legend class="card-header d-flex flex-wrap align-items-center gap-2 float-none w-100 mb-0 fs-5">
+                                            <?= Text::_($label); ?>
+                                            <span class="badge bg-secondary" data-bf-count></span>
+                                            <span class="small text-body-secondary" data-bf-delta></span>
+                                            <?php if ($rows !== []) : ?>
+                                                <span class="ms-auto">
+                                                    <button class="btn btn-sm btn-link" type="button" data-bf-all><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_ALL'); ?></button>
+                                                    <button class="btn btn-sm btn-link" type="button" data-bf-none><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_NONE'); ?></button>
+                                                </span>
                                             <?php endif; ?>
-                                            <optgroup label="<?= htmlspecialchars(Text::_($group), ENT_QUOTES, 'UTF-8'); ?>">
-                                                <?php foreach ($items as $item) : ?>
-                                                    <?php $title = (string) ($item['title'] ?: $item['name']); ?>
-                                                    <?php $rules = (int) ($item['rules'] ?? 0); ?>
-                                                    <option value="<?= (int) $item['id']; ?>"<?= (isset($this->draft['select'][$section]) ? in_array((int) $item['id'], $this->draft['select'][$section], true) : $items === $members) ? ' selected' : ''; ?>><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . ($rules > 0 ? htmlspecialchars(' (' . Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INTEGRATOR_RULES_COUNT', $rules) . ')', ENT_QUOTES, 'UTF-8') : ''); ?></option>
+                                        </legend>
+                                        <?php if ($rows === []) : ?>
+                                            <p class="card-body fst-italic text-body-secondary mb-0"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_NO_ITEMS'); ?></p>
+                                        <?php else : ?>
+                                            <?php if (count($rows) > 15) : ?>
+                                                <div class="card-body border-bottom py-2">
+                                                    <input type="search" class="form-control form-control-sm" data-bf-filter
+                                                        aria-label="<?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_FILTER'); ?>"
+                                                        placeholder="<?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_FILTER'); ?>">
+                                                </div>
+                                            <?php endif; ?>
+                                            <div class="list-group list-group-flush overflow-auto bf-package-list">
+                                                <?php foreach ($rows as $item) : ?>
+                                                    <?php
+                                                    $id = (int) $item['id'];
+                                                    $title = (string) ($item['title'] ?: $item['name']);
+                                                    $rules = (int) ($item['rules'] ?? 0);
+                                                    $saved = in_array($id, $memberIds, true);
+                                                    $checked = isset($this->draft['select'][$section]) ? in_array($id, $this->draft['select'][$section], true) : $saved;
+                                                    ?>
+                                                    <label class="list-group-item d-flex align-items-center gap-2 py-2 bf-package-row<?= $checked ? ' row-selected' : ''; ?>" data-bf-row>
+                                                        <input class="form-check-input m-0 flex-shrink-0" type="checkbox"
+                                                            name="update_select[<?= $section; ?>][]" value="<?= $id; ?>"
+                                                            data-bf-saved="<?= $saved ? '1' : '0'; ?>"<?= $checked ? ' checked' : ''; ?>>
+                                                        <span class="flex-grow-1 text-break" data-bf-title><?= htmlspecialchars($title . ($rules > 0 ? ' (' . Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INTEGRATOR_RULES_COUNT', $rules) . ')' : ''), ENT_QUOTES, 'UTF-8'); ?></span>
+                                                        <span class="badge bg-success d-none" data-bf-flag="attach"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_TO_ATTACH'); ?></span>
+                                                        <span class="badge bg-warning text-dark d-none" data-bf-flag="detach"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_TO_DETACH'); ?></span>
+                                                    </label>
                                                 <?php endforeach; ?>
-                                            </optgroup>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <div class="mt-2">
-                                        <button class="btn btn-sm btn-secondary" data-select-all="bf-update-<?= $section; ?>" type="button"><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_SELECTALL'); ?></button>
-                                        <button class="btn btn-sm btn-secondary" data-clear-selection="bf-update-<?= $section; ?>" type="button"><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_CLRSELECTION'); ?></button>
-                                    </div>
+                                            </div>
+                                        <?php endif; ?>
+                                    </fieldset>
                                     <input type="hidden" name="update_parts[]" value="<?= $section; ?>">
                                 </div>
                             <?php endforeach; ?>
+                        </div>
+                        <div class="position-sticky bottom-0 bg-body border-top d-flex align-items-center flex-wrap gap-3 py-3 mt-4">
+                            <span class="small text-body-secondary" id="bf-package-summary" aria-live="polite"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_NO_CHANGES'); ?></span>
+                            <button class="btn btn-sm btn-secondary" type="button" id="bf-package-reset" hidden><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_RESET'); ?></button>
                         </div>
                         <input type="hidden" name="task" value="packages.update">
                         <?= HTMLHelper::_('form.token'); ?>
@@ -175,16 +205,3 @@ $metadataFields = [
         </div>
     </div>
 </div>
-<script>
-document.addEventListener('click', (event) => {
-    const button = event.target.closest('button[data-select-all], button[data-clear-selection]');
-    if (!button) {
-        return;
-    }
-
-    const select = document.getElementById(button.dataset.selectAll || button.dataset.clearSelection);
-    for (const option of select.options) {
-        option.selected = Boolean(button.dataset.selectAll);
-    }
-});
-</script>

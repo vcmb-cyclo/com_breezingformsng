@@ -106,9 +106,17 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertStringContainsString('$model->metadataDiffers($package, $metadata)', $controller);
         self::assertStringContainsString('task" value="packages.update"', $layout);
         self::assertStringContainsString('task" value="packages.remove"', $layout);
-        // A multiple list cannot be emptied with a plain click: the buttons select all or clear it.
-        self::assertStringContainsString('data-select-all="bf-update-<?= $section; ?>"', $layout);
-        self::assertStringContainsString('data-clear-selection="bf-update-<?= $section; ?>"', $layout);
+        // One checkbox per item, in a fieldset per kind: a click changes that row only, All and None act on the list.
+        self::assertStringContainsString('<fieldset class="card h-100', $layout);
+        self::assertStringContainsString('type="checkbox"', $layout);
+        self::assertStringNotContainsString(' multiple', $layout);
+        self::assertStringContainsString('data-bf-all', $layout);
+        self::assertStringContainsString('data-bf-none', $layout);
+        self::assertStringContainsString('aria-live="polite"', $layout);
+        self::assertStringContainsString('data-bf-saved=', $layout);
+        self::assertStringContainsString('count($rows) > 15', $layout);
+        self::assertStringContainsString("useScript('com_breezingformsng.package-update')", $view);
+        self::assertFileExists(__DIR__ . '/../../media/com_breezingformsng/js/admin/package-update.js');
         self::assertStringNotContainsString('delete_select', $layout);
         self::assertStringNotContainsString('attach_select', $layout);
         self::assertStringContainsString("(string) \$item['package'] === ''", $layout);

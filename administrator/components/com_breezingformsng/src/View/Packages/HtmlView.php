@@ -133,6 +133,12 @@ final class HtmlView extends BaseHtmlView
                 $draft = $app->getUserState(PackagesController::UPDATE_DRAFT_STATE, []);
                 $this->draft = is_array($draft) ? $draft : [];
                 $app->setUserState(PackagesController::UPDATE_DRAFT_STATE, null);
+                $this->getDocument()->getWebAssetManager()
+                    ->useStyle('com_breezingformsng.package-update-style')
+                    ->useScript('com_breezingformsng.package-update');
+                foreach (['NO_CHANGES', 'PENDING_CHANGES'] as $key) {
+                    Text::script('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_' . $key);
+                }
             }
         }
 

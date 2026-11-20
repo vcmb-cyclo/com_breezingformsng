@@ -1,0 +1,19 @@
+/* Manage a package: the lists of items are scrollable and the rows are easy to hit. The colours
+   are the Bootstrap and Atum variables, so that the dark scheme keeps working. */
+.bf-package-list {
+    max-height: 260px;
+}
+
+.bf-package-row {
+    min-height: 44px;
+    cursor: pointer;
+}
+
+.bf-package-row:not(.row-selected):hover {
+    background-color: var(--bs-tertiary-bg);
+}
+
+.bf-package-row:focus-within {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: -2px;
+}

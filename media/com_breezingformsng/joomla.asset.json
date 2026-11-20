@@ -198,6 +198,22 @@
     },
 
     {
+      "name": "com_breezingformsng.package-update",
+      "type": "script",
+      "uri": "media/com_breezingformsng/js/admin/package-update.js",
+      "dependencies": ["core"],
+      "attributes": { "defer": true },
+      "version": "auto"
+    },
+
+    {
+      "name": "com_breezingformsng.package-update-style",
+      "type": "style",
+      "uri": "media/com_breezingformsng/css/admin/package-update.css",
+      "version": "auto"
+    },
+
+    {
       "name": "com_breezingformsng.tools-samples",
       "type": "script",
       "uri": "media/com_breezingformsng/js/admin/tools-samples.js",
