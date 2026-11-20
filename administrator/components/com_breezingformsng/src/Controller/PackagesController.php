@@ -26,6 +26,7 @@ use Joomla\Database\DatabaseInterface;
 final class PackagesController extends BaseController
 {
     /** User state holding the report of the last import, shown once by the import page. */
+    public const UPDATE_DRAFT_STATE = 'com_breezingformsng.packages.update_draft';
     public const REPORT_STATE = 'com_breezingformsng.packages.import_report';
 
     /**
@@ -385,7 +386,13 @@ final class PackagesController extends BaseController
             $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update&package=' . rawurlencode($package), false));
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update' . ($isNew ? '&package=' . PackageTransferModel::NEW_PACKAGE : ''), false));
+            // Keep what was typed and selected: the screen is shown again with it.
+            $app->setUserState(self::UPDATE_DRAFT_STATE, [
+                'package' => $package,
+                'metadata' => array_map(static fn (mixed $value): string => is_scalar($value) ? (string) $value : '', (array) ($metadata ?? [])),
+                'select' => $this->submittedItemSelection('update_select'),
+            ]);
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update&package=' . ($isNew ? PackageTransferModel::NEW_PACKAGE : rawurlencode($package)), false));
         }
     }
 

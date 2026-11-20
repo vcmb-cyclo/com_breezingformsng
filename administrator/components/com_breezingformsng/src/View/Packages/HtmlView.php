@@ -39,13 +39,18 @@ final class HtmlView extends BaseHtmlView
     public array $choices = [];
     /** @var array<array<string, mixed>> */
     public array $profiles = [];
-    /** @var array<string, list<array<string, mixed>>> What is attached to the selected package. */
-    public array $contents = [];
     /** Package preselected in the list, after a save. */
     public string $selectedPackage = '';
 
     /** The management screen is creating a package: nothing is selected, the identifier is asked. */
     public bool $isNewPackage = false;
+
+    /**
+     * What the user typed and selected when a save was refused, to show it again.
+     *
+     * @var array{package?: string, metadata?: array<string, string>, select?: array<string, list<int>>}
+     */
+    public array $draft = [];
     /** Time zone the audit dates are shown in. */
     public \DateTimeZone $timezone;
     /** Template files hold PHP code: exporting them takes the Configure permission, as the controller checks. */
@@ -118,10 +123,17 @@ final class HtmlView extends BaseHtmlView
                     if (!in_array($this->selectedPackage, $this->packages, true)) {
                         throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'), 404);
                     }
-                    $this->contents = $model->getPackageContents($this->selectedPackage);
                 }
             }
             $this->choices = $model->getExportChoices();
+
+            if ($this->getLayout() === 'update') {
+                /** @var CMSApplication $app */
+                $app = Factory::getApplication();
+                $draft = $app->getUserState(PackagesController::UPDATE_DRAFT_STATE, []);
+                $this->draft = is_array($draft) ? $draft : [];
+                $app->setUserState(PackagesController::UPDATE_DRAFT_STATE, null);
+            }
         }
 
         if ($this->getLayout() === 'import') {

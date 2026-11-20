@@ -20,7 +20,6 @@ $sections = [
     'pieces' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONTENT_PIECES',
     'menus' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONTENT_MENUS',
 ];
-$hasContents = array_filter($this->contents) !== [];
 $profile = $this->profiles[$this->selectedPackage] ?? [];
 $timezone = $this->timezone;
 $auditDate = static fn (mixed $utc): string => $utc === null || $utc === '' ? '' : sprintf(
@@ -78,66 +77,12 @@ $metadataFields = [
 
                 <?php if ($this->selectedPackage !== '' || $this->isNewPackage) : ?>
                     <?php $existing = $this->selectedPackage !== ''; ?>
-                    <?php if ($existing) : ?>
-                        <table class="table table-striped mt-4" id="bf-package-content">
-                            <tbody><tr class="table-primary"><th colspan="2">
-                                <a href="#" id="bf-package-content-toggle" class="bf-collapse-toggle d-block text-decoration-none text-reset"
-                                    data-bs-toggle="collapse" data-bs-target="#bf-package-content-body"
-                                    aria-expanded="true" aria-controls="bf-package-content-body">
-                                    <span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> <?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_CONTENT'); ?>
-                                </a>
-                            </th></tr></tbody>
-                            <tbody id="bf-package-content-body" class="collapse show"><tr><td>
-                                <?php if (!$hasContents) : ?>
-                                    <p class="mb-0"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE_EMPTY'); ?></p>
-                                <?php endif; ?>
-                                <?php foreach ($sections as $section => $label) : ?>
-                                    <?php if (($this->contents[$section] ?? []) !== []) : ?>
-                                        <h3 class="h5 mt-3"><?= Text::_($label); ?> <span class="badge bg-secondary"><?= count($this->contents[$section]); ?></span></h3>
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th scope="col"><?= Text::_('JGLOBAL_TITLE'); ?></th>
-                                                        <th scope="col"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_NAME'); ?></th>
-                                                        <th scope="col"><?= Text::_('JPUBLISHED'); ?></th>
-                                                        <th scope="col"><?= Text::_('JGRID_HEADING_ID'); ?></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php foreach ($this->contents[$section] as $item) : ?>
-                                                        <?php $title = (string) ($item['title'] ?: $item['name']); ?>
-                                                        <?php $editUrl = match ($section) {
-                                                            'forms' => 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . (int) $item['id'] . '&pkg=' . rawurlencode($this->selectedPackage),
-                                                            'scripts' => 'index.php?option=com_breezingformsng&task=script.edit&id=' . (int) $item['id'],
-                                                            'pieces' => 'index.php?option=com_breezingformsng&task=piece.edit&id=' . (int) $item['id'],
-                                                            'menus' => 'index.php?option=com_breezingformsng&task=menu.edit&id=' . (int) $item['id'],
-                                                        }; ?>
-                                                        <tr>
-                                                            <td>
-                                                                <a target="_blank" rel="noopener"
-                                                                    href="<?= htmlspecialchars($editUrl, ENT_QUOTES, 'UTF-8'); ?>"
-                                                                    aria-label="<?= htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_OPEN_EXISTING_LABEL', $title), ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></a>
-                                                            </td>
-                                                            <td><?= htmlspecialchars((string) $item['name'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                                            <td><?= Text::_((int) $item['published'] === 1 ? 'JYES' : 'JNO'); ?></td>
-                                                            <td><?= (int) $item['id']; ?></td>
-                                                        </tr>
-                                                    <?php endforeach; ?>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
-                            </td></tr></tbody>
-                        </table>
-                    <?php endif; ?>
                     <form action="index.php?option=com_breezingformsng" method="post" id="bf-package-update" class="mt-4">
                         <?php if ($this->isNewPackage) : ?>
                             <div class="row g-3 mb-4">
                                 <div class="col-12 col-md-6">
                                     <label class="form-label" for="bf-package"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_ID'); ?><span class="star" aria-hidden="true">&#160;*</span></label>
-                                    <input class="form-control" id="bf-package" name="package" maxlength="30" required>
+                                    <input class="form-control" id="bf-package" name="package" maxlength="30" value="<?= htmlspecialchars((string) ($this->draft['package'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" required>
                                     <input type="hidden" name="package_new" value="1">
                                 </div>
                             </div>
@@ -157,7 +102,7 @@ $metadataFields = [
                                     <?php foreach ($metadataFields as $field => $label) : ?>
                                         <div class="col-12 col-md-6 d-flex flex-column">
                                             <label class="form-label" for="bf-meta-<?= $field; ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?></label>
-                                            <input class="form-control mt-auto" id="bf-meta-<?= $field; ?>" name="metadata[<?= $field; ?>]" value="<?= $auditText($profile[$field] ?? ''); ?>">
+                                            <input class="form-control mt-auto" id="bf-meta-<?= $field; ?>" name="metadata[<?= $field; ?>]" value="<?= $auditText($this->draft['metadata'][$field] ?? $profile[$field] ?? ''); ?>">
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
@@ -187,7 +132,7 @@ $metadataFields = [
                                             <optgroup label="<?= htmlspecialchars(Text::_($group), ENT_QUOTES, 'UTF-8'); ?>">
                                                 <?php foreach ($items as $item) : ?>
                                                     <?php $title = (string) ($item['title'] ?: $item['name']); ?>
-                                                    <option value="<?= (int) $item['id']; ?>"<?= $items === $members ? ' selected' : ''; ?>><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></option>
+                                                    <option value="<?= (int) $item['id']; ?>"<?= (isset($this->draft['select'][$section]) ? in_array((int) $item['id'], $this->draft['select'][$section], true) : $items === $members) ? ' selected' : ''; ?>><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></option>
                                                 <?php endforeach; ?>
                                             </optgroup>
                                         <?php endforeach; ?>

@@ -91,12 +91,9 @@ final class PackageTransferArchitectureTest extends TestCase
         $tools = (string) file_get_contents($component . '/tmpl/packages/default.php');
         self::assertStringContainsString("'layout' => 'update', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_MANAGE'", $tools);
         self::assertStringNotContainsString('confirmDelete', $view . $controller);
-        self::assertStringContainsString('$model->getPackageContents($this->selectedPackage)', $view);
-
-        foreach (['forms', 'scripts', 'pieces', 'menus'] as $section) {
-            self::assertStringContainsString("'" . $section . "' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONTENT_", $layout);
-        }
-        // One list per kind holds the items of the package, selected, and the free ones; the content above it is read-only.
+        // No read-only content table: the lists hold the items of the package, selected, and the free ones.
+        self::assertStringNotContainsString('getPackageContents', $view);
+        self::assertStringNotContainsString('bf-package-content', $layout . (string) file_get_contents($component . '/tmpl/packages/export.php'));
         self::assertStringContainsString('name="update_select[<?= $section; ?>][]"', $layout);
         self::assertStringContainsString('name="update_parts[]"', $layout);
         // A new package is created from this screen: its identifier, then the details and the items in one save.
@@ -109,7 +106,6 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertStringContainsString('$model->metadataDiffers($package, $metadata)', $controller);
         self::assertStringContainsString('task" value="packages.update"', $layout);
         self::assertStringContainsString('task" value="packages.remove"', $layout);
-        self::assertStringContainsString('id="bf-package-content-body" class="collapse show"', $layout);
         self::assertStringNotContainsString('delete_select', $layout);
         self::assertStringNotContainsString('attach_select', $layout);
         self::assertStringContainsString("(string) \$item['package'] === ''", $layout);
@@ -187,6 +183,20 @@ final class PackageTransferArchitectureTest extends TestCase
 
             self::assertMatchesRegularExpression('/^COM_BREEZINGFORMSNG_FORMS_PACKAGE_HINT="[^"]+"\\s*$/m', $ini, $language);
         }
+    }
+
+    public function testARefusedSaveShowsTheScreenAgainWithTheUserInput(): void
+    {
+        $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $controller = (string) file_get_contents($component . '/src/Controller/PackagesController.php');
+        $view = (string) file_get_contents($component . '/src/View/Packages/HtmlView.php');
+        $template = (string) file_get_contents($component . '/tmpl/packages/update.php');
+
+        $this->assertStringContainsString('setUserState(self::UPDATE_DRAFT_STATE', $controller);
+        $this->assertStringContainsString('getUserState(PackagesController::UPDATE_DRAFT_STATE', $view);
+        $this->assertStringContainsString("\$this->draft['select'][\$section]", $template);
+        $this->assertStringContainsString("\$this->draft['package']", $template);
+        $this->assertStringContainsString("\$this->draft['metadata'][\$field]", $template);
     }
 
     public function testTheExportScreenOnlyDownloadsAFile(): void

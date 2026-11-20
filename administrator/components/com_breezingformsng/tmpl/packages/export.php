@@ -23,12 +23,6 @@ $sections = [
     "pieces" => "COM_BREEZINGFORMSNG_INSTALLER_PIECESEL",
     "menus" => "COM_BREEZINGFORMSNG_INSTALLER_MENUSEL",
 ];
-$contentSections = [
-    'forms' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONTENT_FORMS',
-    'scripts' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONTENT_SCRIPTS',
-    'pieces' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONTENT_PIECES',
-    'menus' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONTENT_MENUS',
-];
 
 // Each field explains itself in the tooltip of its label.
 $labelTip = static fn (string $key): string => ' title="' . htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8') . '"';
@@ -107,44 +101,6 @@ $auditModified = static function (mixed $date, mixed $author) use ($auditDate, $
                             </div>
                             </td></tr></tbody>
                         </table>
-                        <div id="bf-package-contents" class="d-none">
-                            <?php foreach ($contentSections as $section => $label) : ?>
-                                <section data-bf-content-section class="d-none">
-                                    <h3 class="h5 mt-4"><?= Text::_($label); ?> <span class="badge bg-secondary" data-bf-count></span></h3>
-                                    <div class="table-responsive">
-                                        <table class="table table-sm table-striped">
-                                            <thead><tr>
-                                                <th scope="col"><?= Text::_('JGLOBAL_TITLE'); ?></th>
-                                                <th scope="col"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_NAME'); ?></th>
-                                                <th scope="col"><?= Text::_('JGRID_HEADING_ID'); ?></th>
-                                            </tr></thead>
-                                            <tbody>
-                                                <?php foreach ($this->choices[$section] as $item) : ?>
-                                                    <?php if ((string) $item['package'] === '') : ?>
-                                                        <?php continue; ?>
-                                                    <?php endif; ?>
-                                                    <?php
-                                                    $title = (string) ($item['title'] ?: $item['name']);
-                                                    $editUrl = match ($section) {
-                                                        'forms' => 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . (int) $item['id'] . '&pkg=' . rawurlencode((string) $item['package']),
-                                                        'scripts' => 'index.php?option=com_breezingformsng&task=script.edit&id=' . (int) $item['id'],
-                                                        'pieces' => 'index.php?option=com_breezingformsng&task=piece.edit&id=' . (int) $item['id'],
-                                                        'menus' => 'index.php?option=com_breezingformsng&task=menu.edit&id=' . (int) $item['id'],
-                                                    };
-    ?>
-                                                    <tr class="d-none" data-bf-package="<?= htmlspecialchars((string) $item['package'], ENT_QUOTES, 'UTF-8'); ?>">
-                                                        <td><a href="<?= htmlspecialchars($editUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener"
-                                                            aria-label="<?= htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_OPEN_EXISTING_LABEL', $title), ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></a></td>
-                                                        <td><?= htmlspecialchars((string) $item['name'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                                        <td><?= (int) $item['id']; ?></td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </section>
-                            <?php endforeach; ?>
-                        </div>
                         <div class="row g-4" id="bf-selections">
                             <?php foreach ($sections as $section => $label) : ?>
                                 <div class="col-12 col-lg-6">
@@ -220,18 +176,6 @@ const bfShowProfile = () => {
     bfPackageNew.classList.toggle('d-none', !isNew);
     bfPackage.value = isNew && !bfPackageProfiles[bfPackage.value] ? bfPackage.value : id;
     bfSelections.classList.remove('d-none');
-    const contents = document.getElementById('bf-package-contents');
-    contents.classList.toggle('d-none', !assigned);
-    for (const section of contents.querySelectorAll('[data-bf-content-section]')) {
-        let count = 0;
-        for (const row of section.querySelectorAll('[data-bf-package]')) {
-            const shown = assigned && row.dataset.bfPackage === id;
-            row.classList.toggle('d-none', !shown);
-            count += Number(shown);
-        }
-        section.classList.toggle('d-none', count === 0);
-        section.querySelector('[data-bf-count]').textContent = String(count);
-    }
 
     if (isNew) {
         const openPackageInfo = () => {
