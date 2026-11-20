@@ -60,6 +60,7 @@ the [August 2005 Joomla forum discussion](https://forum.joomla.org/viewtopic.php
 - **Stripe and PayPal**, Stripe with Klarna and Wero as options, with notifications sent only once the payment succeeds, and paid file downloads.
 - Dropbox upload, Mailchimp, Salesforce.
 - [ContentBuilder NG](https://github.com/vcmb-cyclo/com_contentbuilderng) integration, to turn submissions into Joomla articles and lists.
+- **AI assistants (MCP)**: let Claude Code, Codex and others read, check and create forms, with Joomla permissions ([details](#ai-assistants-mcp)).
 
 ### Scripting
 - Per-form and per-element **JavaScript** hooks (init, action, validation, after submit) and
@@ -97,12 +98,11 @@ the [August 2005 Joomla forum discussion](https://forum.joomla.org/viewtopic.php
 
 Updates are then offered by the Joomla update manager.
 
-### Stripe webhook
+### Payment webhook
 
-Each form with a Stripe element needs its own webhook endpoint, so that a payment is
-recorded, and its notifications sent, even when the customer does not come back to the site.
-Without it, the payment is only recorded on the return, as before, and the component log
-(`administrator/logs/com_breezingformsng.php`) warns about it at each payment.
+A Stripe element needs a webhook on its form, so that a payment is recorded and its
+notifications sent even when the customer does not come back to the site. Without it, the
+payment is only recorded on the return, and the component log warns about it.
 
 1. In QuickMode, select the Stripe element and copy its **Webhook endpoint URL**
    (save a new form first: the URL contains its number).
@@ -111,10 +111,23 @@ Without it, the payment is only recorded on the return, as before, and the compo
 3. Copy the endpoint's signing secret (`whsec_…`) into the element's **Webhook signing
    secret**, then save the form.
 
-Checkout sessions opened before this version have no record reference and cannot safely
-confirm a record on return. Reconcile any such paid sessions manually in Stripe.
 If `bf_stripe_success.php` performs external actions, make them idempotent by the Stripe
 PaymentIntent ID: a failed request can run the script again when the webhook retries.
+Paid Checkout sessions opened before this version must be reconciled manually in Stripe.
+
+### AI assistants (MCP)
+
+BreezingForms NG exposes an [MCP](https://modelcontextprotocol.io) endpoint in the Joomla API,
+so that assistants such as Claude Code or Codex can read, check and build your forms. It is
+**off by default**: turn on **Enable MCP** in the component options, then authenticate with a
+Joomla API token. Every action follows the permissions of the account that owns the token.
+
+- Endpoint: `POST <your-site>/api/index.php/v1/breezingformsng/mcp`
+- Tools: list and read forms, check a form for inconsistencies, audit the database
+  (read-only); create a form, update its settings, add, change, move or remove fields and
+  pages, and trash or restore a form.
+- PHP code stays out of reach without the `breezingformsng.code` permission.
+- **System → Tools** shows the status and the address. See [`llms.txt`](llms.txt) for agents.
 
 ## Upgrading from BreezingForms (Crosstec)
 
