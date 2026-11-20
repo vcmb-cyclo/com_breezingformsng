@@ -87,7 +87,12 @@ final class FormOptionsCodeGuardTest extends TestCase
 
     public function testANewFormCreatedWithoutTheCodeRightStartsWithoutAnyCode(): void
     {
-        $result = $this->save(0, 'core.create', ['title' => 'T', 'piece2code' => 'evil();', 'script1code' => 'x();']);
+        $result = $this->save(0, 'core.create', [
+            'name' => 'guard_test',
+            'title' => 'T',
+            'piece2code' => 'evil();',
+            'script1code' => 'x();',
+        ]);
 
         self::assertNull($result['error']);
         foreach (['script1code', 'script2code', 'piece1code', 'piece2code', 'piece3code', 'piece4code'] as $column) {
@@ -98,7 +103,11 @@ final class FormOptionsCodeGuardTest extends TestCase
 
     public function testANewFormKeepsItsCodeWhenTheUserMayEditCode(): void
     {
-        $result = $this->save(0, 'core.create,breezingformsng.code', ['title' => 'T', 'piece2code' => 'echo 2;']);
+        $result = $this->save(0, 'core.create,breezingformsng.code', [
+            'name' => 'guard_test',
+            'title' => 'T',
+            'piece2code' => 'echo 2;',
+        ]);
 
         self::assertSame('echo 2;', $result['written']['piece2code']);
     }
