@@ -43,13 +43,21 @@ final class PackageTransferArchitectureTest extends TestCase
 
         foreach (['export', 'update'] as $layout) {
             $template = (string) file_get_contents($component . '/tmpl/packages/' . $layout . '.php');
+            self::assertStringContainsString("LayoutHelper::render('packages.audit'", $template);
+            self::assertStringContainsString("LayoutHelper::render('packages.item-lists'", $template);
+        }
+
+        // Both screens share the same audit and info accordions.
+        $template = (string) file_get_contents($component . '/layouts/packages/audit.php')
+            . (string) file_get_contents($component . '/layouts/packages/metadata.php');
+        {
             self::assertStringContainsString('class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"', $template);
             self::assertStringContainsString('id="bf-package-audit-content" class="collapse"', $template);
             self::assertStringContainsString('id="bf-package-info-content" class="collapse"', $template);
             self::assertStringContainsString('class="table-primary"', $template);
             self::assertStringContainsString('COM_BREEZINGFORMSNG_RECORDS_AUDITINFO', $template);
             foreach (['created', 'created_by', 'modified', 'modified_by'] as $field) {
-                self::assertStringContainsString("\$profile['" . $field . "']", $template);
+                self::assertStringContainsString("'" . $field . "'", $template);
             }
         }
     }
@@ -86,7 +94,9 @@ final class PackageTransferArchitectureTest extends TestCase
         $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
         $view = (string) file_get_contents($component . '/src/View/Packages/HtmlView.php');
         $controller = (string) file_get_contents($component . '/src/Controller/PackagesController.php');
-        $layout = (string) file_get_contents($component . '/tmpl/packages/update.php');
+        $page = (string) file_get_contents($component . '/tmpl/packages/update.php');
+        $layout = $page . (string) file_get_contents($component . '/layouts/packages/item-lists.php')
+            . (string) file_get_contents($component . '/layouts/packages/metadata.php');
 
         $tools = (string) file_get_contents($component . '/tmpl/packages/default.php');
         self::assertStringContainsString("'layout' => 'update', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_MANAGE'", $tools);
@@ -94,13 +104,13 @@ final class PackageTransferArchitectureTest extends TestCase
         // No read-only content table: the lists hold the items of the package, selected, and the free ones.
         self::assertStringNotContainsString('getPackageContents', $view);
         self::assertStringNotContainsString('bf-package-content', $layout . (string) file_get_contents($component . '/tmpl/packages/export.php'));
-        self::assertStringContainsString('name="update_select[<?= $section; ?>][]"', $layout);
+        self::assertStringContainsString("'fieldName' => 'update_select[%s][]'", $page);
         self::assertStringContainsString('name="update_parts[]"', $layout);
         // A new package is created from this screen: its identifier, then the details and the items in one save.
         self::assertStringContainsString('PackageTransferModel::NEW_PACKAGE', $layout);
         self::assertStringContainsString('name="package_new" value="1"', $layout);
         // With no package selected, the free items are not taken for its members.
-        self::assertStringContainsString("if (\$existing && (string) \$item['package'] === \$this->selectedPackage) {", $layout);
+        self::assertStringContainsString("if (\$selectedPackage !== '' && \$package === \$selectedPackage) {", (string) file_get_contents($component . '/src/Service/PackageListRows.php'));
         self::assertStringContainsString('name="metadata[<?= $field; ?>]"', $layout);
         self::assertStringContainsString('$model->assertNewPackageId($package)', $controller);
         self::assertStringContainsString('$model->metadataDiffers($package, $metadata)', $controller);
@@ -119,7 +129,6 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertFileExists(__DIR__ . '/../../media/com_breezingformsng/js/admin/package-update.js');
         self::assertStringNotContainsString('delete_select', $layout);
         self::assertStringNotContainsString('attach_select', $layout);
-        self::assertStringContainsString("(string) \$item['package'] === ''", $layout);
         self::assertStringContainsString("'packages.update'", $view);
         self::assertStringContainsString("'packages.remove'", $view);
         self::assertStringNotContainsString("case 'delete':", $view);
@@ -205,9 +214,9 @@ final class PackageTransferArchitectureTest extends TestCase
 
         $this->assertStringContainsString('setUserState(self::UPDATE_DRAFT_STATE', $controller);
         $this->assertStringContainsString('getUserState(PackagesController::UPDATE_DRAFT_STATE', $view);
-        $this->assertStringContainsString("\$this->draft['select'][\$section]", $template);
+        $this->assertStringContainsString("\$this->draft['select']", $view);
         $this->assertStringContainsString("\$this->draft['package']", $template);
-        $this->assertStringContainsString("\$this->draft['metadata'][\$field]", $template);
+        $this->assertStringContainsString("\$this->draft['metadata']", $template);
     }
 
     public function testTheFormListsShowHowManyIntegratorRulesEachFormHas(): void
@@ -219,10 +228,8 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertStringContainsString("'COUNT(*) AS '", $model);
         self::assertStringContainsString("\$db->quoteName('published') . ' > -2'", $model);
 
-        foreach (['update', 'export'] as $layout) {
-            $template = (string) file_get_contents($component . '/tmpl/packages/' . $layout . '.php');
-            self::assertMatchesRegularExpression('/PACKAGE_TRANSFER_INTEGRATOR_RULES_COUNT/', $template);
-        }
+        // The shared list layout shows the count on both screens.
+        self::assertStringContainsString('PACKAGE_TRANSFER_INTEGRATOR_RULES_COUNT', (string) file_get_contents($component . '/layouts/packages/item-lists.php'));
 
         foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $tag) {
             $ini = (string) file_get_contents($component . '/language/' . $tag . '/com_breezingformsng.ini');
@@ -237,19 +244,22 @@ final class PackageTransferArchitectureTest extends TestCase
         $update = (string) file_get_contents($component . '/tmpl/packages/update.php');
         $view = (string) file_get_contents($component . '/src/View/Packages/HtmlView.php');
 
-        self::assertStringContainsString('name="<?= $section; ?>[]"', $export);
-        self::assertStringContainsString('data-bf-lists', $export);
-        self::assertStringNotContainsString(' multiple', $export);
-        self::assertStringNotContainsString('data-select-all', $export);
+        $lists = (string) file_get_contents($component . '/layouts/packages/item-lists.php');
+        $rows = (string) file_get_contents($component . '/src/Service/PackageListRows.php');
 
-        foreach ([$export, $update] as $layout) {
-            // Each item opens its own editor in a new tab, by its kind.
-            self::assertStringContainsString('target="_blank" rel="noopener"', $layout);
-            self::assertStringContainsString("'forms' => 'index.php?option=com_breezingformsng&task=quickmode.display&form='", $layout);
-            self::assertStringContainsString('task=script.edit&id=', $layout);
-            self::assertStringContainsString('task=piece.edit&id=', $layout);
-            self::assertStringContainsString('task=menu.edit&id=', $layout);
-        }
+        // Both screens render the same shared list layout, with their own field names.
+        self::assertStringContainsString("'fieldName' => '%s[]'", $export);
+        self::assertStringContainsString("LayoutHelper::render('packages.item-lists'", $update);
+        self::assertStringContainsString('data-bf-lists', $lists);
+        self::assertStringNotContainsString(' multiple', $lists);
+        self::assertStringNotContainsString('data-select-all', $export . $lists);
+
+        // Each item opens its own editor in a new tab, by its kind.
+        self::assertStringContainsString('target="_blank" rel="noopener"', $lists);
+        self::assertStringContainsString('task=quickmode.display&form=', $rows);
+        self::assertStringContainsString('task=script.edit&id=', $rows);
+        self::assertStringContainsString('task=piece.edit&id=', $rows);
+        self::assertStringContainsString('task=menu.edit&id=', $rows);
 
         self::assertStringContainsString("useScript('com_breezingformsng.package-update')", $view);
     }

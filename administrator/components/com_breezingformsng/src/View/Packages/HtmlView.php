@@ -23,6 +23,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Controller\PackagesController;
 use Vcmb\Component\BreezingformsNG\Administrator\Mcp\McpAvailability;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\PackageListRows;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordInventoryService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\SampleFormService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\TrashInventoryService;
@@ -45,6 +46,13 @@ final class HtmlView extends BaseHtmlView
 
     /** The management screen is creating a package: nothing is selected, the identifier is asked. */
     public bool $isNewPackage = false;
+
+    /**
+     * The rows of the checkbox lists, by kind of item.
+     *
+     * @var array<string, list<array<string, mixed>>>
+     */
+    public array $listRows = [];
 
     /** Items attached to the selected package, to say what removing it detaches. */
     public int $attachedCount = 0;
@@ -144,6 +152,9 @@ final class HtmlView extends BaseHtmlView
                 $draft = $app->getUserState(PackagesController::UPDATE_DRAFT_STATE, []);
                 $this->draft = is_array($draft) ? $draft : [];
                 $app->setUserState(PackagesController::UPDATE_DRAFT_STATE, null);
+                $this->listRows = PackageListRows::forUpdate($this->choices, $this->selectedPackage, $this->draft['select'] ?? []);
+            } else {
+                $this->listRows = PackageListRows::forExport($this->choices);
             }
         }
 

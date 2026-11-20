@@ -26,7 +26,7 @@ Optional but recommended: build and try the package yourself first (the same ste
 ```bash
 scripts/build-package.sh                        # writes build/com_breezingformsng-<version>.zip
 scripts/validate-package.sh build/com_breezingformsng-<version>.zip
-JOOMLA_IMAGE=joomla:6.1.3-php8.4-apache \
+JOOMLA_IMAGE=joomla:6.2.0-php8.4-apache \
   scripts/joomla-e2e.sh build/com_breezingformsng-<version>.zip   # throwaway Joomla in Docker
 ```
 
