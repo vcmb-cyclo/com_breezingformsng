@@ -41,7 +41,7 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertStringContainsString('$this->profiles = $model->getPackageProfiles();', $view);
         self::assertStringContainsString('$this->timezone = $this->getCurrentUser()->getTimezone();', $view);
 
-        foreach (['export', 'delete'] as $layout) {
+        foreach (['export', 'update'] as $layout) {
             $template = (string) file_get_contents($component . '/tmpl/packages/' . $layout . '.php');
             self::assertStringContainsString('class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"', $template);
             self::assertStringContainsString('id="bf-package-audit-content" class="collapse"', $template);
@@ -86,24 +86,40 @@ final class PackageTransferArchitectureTest extends TestCase
         $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
         $view = (string) file_get_contents($component . '/src/View/Packages/HtmlView.php');
         $controller = (string) file_get_contents($component . '/src/Controller/PackagesController.php');
-        $layout = (string) file_get_contents($component . '/tmpl/packages/delete.php');
+        $layout = (string) file_get_contents($component . '/tmpl/packages/update.php');
 
         $tools = (string) file_get_contents($component . '/tmpl/packages/default.php');
-        self::assertStringContainsString("'layout' => 'delete', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_MANAGE'", $tools);
+        self::assertStringContainsString("'layout' => 'update', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_MANAGE'", $tools);
         self::assertStringNotContainsString('confirmDelete', $view . $controller);
         self::assertStringContainsString('$model->getPackageContents($this->selectedPackage)', $view);
 
         foreach (['forms', 'scripts', 'pieces', 'menus'] as $section) {
             self::assertStringContainsString("'" . $section . "' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONTENT_", $layout);
         }
-        self::assertStringContainsString('name="attach_select[<?= $section; ?>][]"', $layout);
+        // One list per kind holds the items of the package, selected, and the free ones; the content above it is read-only.
+        self::assertStringContainsString('name="update_select[<?= $section; ?>][]"', $layout);
+        self::assertStringContainsString('name="update_parts[]"', $layout);
+        self::assertStringContainsString('task" value="packages.update"', $layout);
         self::assertStringContainsString('task" value="packages.remove"', $layout);
+        self::assertStringContainsString('id="bf-package-content-body" class="collapse show"', $layout);
+        self::assertStringNotContainsString('delete_select', $layout);
+        self::assertStringNotContainsString('attach_select', $layout);
+        self::assertStringContainsString("(string) \$item['package'] === ''", $layout);
+        self::assertStringContainsString("'packages.update'", $view);
+        self::assertStringContainsString("'packages.remove'", $view);
+        self::assertStringNotContainsString("case 'delete':", $view);
+        foreach (['delete', 'attach'] as $task) {
+            self::assertStringNotContainsString('public function ' . $task . '(', $controller);
+        }
+        self::assertStringContainsString('public function update(', $controller);
+        self::assertStringContainsString('layout=update', $controller);
+        self::assertStringNotContainsString('layout=delete', $controller);
     }
 
     public function testPackageManagementExplainsThatContentsAreKeptInEveryLanguage(): void
     {
         $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
-        $layout = (string) file_get_contents($component . '/tmpl/packages/delete.php');
+        $layout = (string) file_get_contents($component . '/tmpl/packages/update.php');
 
         self::assertStringContainsString("Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_MANAGE_HINT')", $layout);
 
@@ -162,6 +178,22 @@ final class PackageTransferArchitectureTest extends TestCase
 
             self::assertMatchesRegularExpression('/^COM_BREEZINGFORMSNG_FORMS_PACKAGE_HINT="[^"]+"\\s*$/m', $ini, $language);
         }
+    }
+
+    public function testAnExportCarriesTheActiveScriptsAndPiecesItsFormsCall(): void
+    {
+        $model = (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Model/PackageTransferModel.php');
+
+        // Both exports go through buildPayload(), which adds the libraries the forms and elements call.
+        self::assertSame(2, substr_count($model, 'return $this->buildPayload('));
+        self::assertStringContainsString('[$scripts, $pieces] = $this->withReferencedLibraries($forms, $elements, $scripts, $pieces);', $model);
+        // Only active references, from non-trashed items, and before the names are checked.
+        self::assertStringContainsString("(int) (\$row[\$kind . \$number . 'cond'] ?? 0) === 1", $model);
+        self::assertStringContainsString("loadRowsByIds('#__facileforms_scripts', \$missingScripts, true)", $model);
+        self::assertLessThan(
+            strpos($model, "\$this->assertImportableNames('#__facileforms_scripts', \$scripts, true);"),
+            strpos($model, '$this->withReferencedLibraries($forms')
+        );
     }
 
     public function testAPackageRefusesItemsItCouldNotImportByName(): void

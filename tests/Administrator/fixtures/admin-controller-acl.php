@@ -374,7 +374,8 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model {
         {
             return match ($method) {
                 'export', 'exportSelection' => '{}',
-                'deletePackage' => true,
+                'updatePackage' => true,
+                'removePackage' => true,
                 'getImportSummary' => ['package' => 'p', 'items' => [], 'templates' => 0, 'rules' => 0, 'unlinked' => 0, 'unresolved' => [], 'skipped' => []],
                 'savePackage' => null,
                 default => [],

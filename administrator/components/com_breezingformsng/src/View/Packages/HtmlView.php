@@ -68,7 +68,7 @@ final class HtmlView extends BaseHtmlView
      * form already uses its name (it cannot be installed, and is left as it is), and the form the Manage
      * button opens: the installed sample, else the form already using its name.
      *
-     * @var array<string, array{installedId: int, nameTaken: bool, manageId: int}>
+     * @var array<string, array{name: string, installedId: int, nameTaken: bool, manageId: int}>
      */
     public array $samples = [];
     /**
@@ -88,7 +88,7 @@ final class HtmlView extends BaseHtmlView
         $this->mayTransferTemplates = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
         $this->mayTransferIntegrator = AreaAccess::isAllowed($this->getCurrentUser(), AreaAccess::CODE);
 
-        if (in_array($this->getLayout(), ['export', 'delete'], true)) {
+        if (in_array($this->getLayout(), ['export', 'update'], true)) {
             HTMLHelper::_('bootstrap.collapse');
             $this->getDocument()->getWebAssetManager()->useStyle('com_breezingformsng.admin-style');
             $app = Factory::getApplication();
@@ -106,7 +106,7 @@ final class HtmlView extends BaseHtmlView
             $this->profiles = $model->resolveProfileAuditNames($this->profiles);
             $this->timezone = $this->getCurrentUser()->getTimezone();
 
-            if ($this->getLayout() === 'delete') {
+            if ($this->getLayout() === 'update') {
                 if ($this->selectedPackage !== '') {
                     if (!in_array($this->selectedPackage, $this->packages, true)) {
                         throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'), 404);
@@ -136,6 +136,7 @@ final class HtmlView extends BaseHtmlView
                 $installedId = $sampleService->getInstalledFormId();
                 $nameTaken = $installedId === 0 && $sampleService->getFormNameCount() > 0;
                 $this->samples[$slug] = [
+                    'name' => $sampleService->formName(),
                     'installedId' => $installedId,
                     'nameTaken' => $nameTaken,
                     'manageId' => $installedId > 0
@@ -178,7 +179,7 @@ final class HtmlView extends BaseHtmlView
     {
         return match ($this->getLayout()) {
             'export' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_CREATEPKG'),
-            'delete' => Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_MANAGE_TITLE'),
+            'update' => Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_MANAGE_TITLE'),
             'import' => Text::_('COM_BREEZINGFORMSNG_INSTALLER'),
             default => null,
         };
@@ -247,16 +248,14 @@ final class HtmlView extends BaseHtmlView
                 $toolbar->linkButton('close', 'JTOOLBAR_CLOSE')->url($home)->icon('icon-times');
                 break;
 
-            case 'delete':
+            case 'update':
                 if ($this->selectedPackage !== '') {
-                    $toolbar->standardButton('new', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_ATTACH', 'packages.attach')
-                        ->form('bf-package-attach')
-                        ->icon('icon-plus');
-                    $toolbar->standardButton('unpublish', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DETACH', 'packages.delete')
-                        ->form('bf-package-delete')
-                        ->icon('icon-unpublish');
-                    $toolbar->standardButton('delete', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE', 'packages.remove')
+                    $toolbar->standardButton('apply', 'JSAVE', 'packages.update')
+                        ->form('bf-package-update')
+                        ->icon('icon-check');
+                    $toolbar->confirmButton('delete', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE', 'packages.remove')
                         ->form('bf-package-remove')
+                        ->message('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE_CONFIRM')
                         ->icon('icon-trash');
                 }
                 $toolbar->linkButton('close', 'JTOOLBAR_CANCEL')->url($home)->icon('icon-times');

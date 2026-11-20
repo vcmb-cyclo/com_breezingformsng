@@ -25,7 +25,9 @@ use Joomla\Database\ParameterType;
 final class SampleFormService
 {
     public const FORM_NAME = 'Sample_Contact';
-    public const FORM_PACKAGE_NAME = 'QuickModeForms';
+    public const FORM_PACKAGE_NAME = 'Sample';
+    /** Package of the samples installed by the earlier versions, which are still recognised. */
+    public const LEGACY_FORM_PACKAGE_NAME = 'QuickModeForms';
     public const FORM_TITLE = 'Sample contact form';
     public const MENU_PARENT_TITLE = 'Tests';
     public const DEFAULT_SAMPLE = 'contact';
@@ -109,13 +111,17 @@ final class SampleFormService
     {
         $name = $this->formName();
         $package = self::FORM_PACKAGE_NAME;
+        $legacyPackage = self::LEGACY_FORM_PACKAGE_NAME;
         $query = $this->db->createQuery()
             ->select($this->db->quoteName('id'))
             ->from($this->db->quoteName('#__facileforms_forms'))
             ->where($this->db->quoteName('name') . ' = :name')
-            ->where($this->db->quoteName('package') . ' = :package')
+            ->where($this->db->quoteName('package') . ' IN (:package, :legacyPackage)')
+            ->order($this->db->quoteName('id') . ' ASC')
             ->bind(':name', $name, ParameterType::STRING)
-            ->bind(':package', $package, ParameterType::STRING);
+            ->bind(':package', $package, ParameterType::STRING)
+            ->bind(':legacyPackage', $legacyPackage, ParameterType::STRING)
+            ->setLimit(1);
 
         return (int) $this->db->setQuery($query)->loadResult();
     }

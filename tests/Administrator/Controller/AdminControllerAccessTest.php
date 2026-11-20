@@ -234,8 +234,8 @@ final class AdminControllerAccessTest extends TestCase
     /** @return iterable<string, array{string, string, array<string, mixed>}> */
     public static function otherTokenGuardedTasks(): iterable
     {
-        foreach (['save', 'export', 'installSample', 'import', 'preview', 'delete'] as $task) {
-            yield 'packages ' . $task => ['packages', $task, ['package' => 'demo', 'samples' => ['contact'], 'delete_select' => ['forms' => ['3']]]];
+        foreach (['save', 'export', 'installSample', 'import', 'preview', 'update', 'remove'] as $task) {
+            yield 'packages ' . $task => ['packages', $task, ['package' => 'demo', 'samples' => ['contact'], 'update_select' => ['forms' => ['3']], 'update_parts' => ['forms']]];
         }
 
         foreach (
@@ -295,7 +295,8 @@ final class AdminControllerAccessTest extends TestCase
         yield 'installSample' => ['installSample', []];
         yield 'import' => ['import', []];
         yield 'preview' => ['preview', []];
-        yield 'delete' => ['delete', ['package' => 'demo', 'delete_select' => ['forms' => ['3']]]];
+        yield 'update' => ['update', ['package' => 'demo', 'update_select' => ['forms' => ['3']], 'update_parts' => ['forms']]];
+        yield 'remove' => ['remove', ['package' => 'demo']];
     }
 
     /** @param array<string, mixed> $post */
@@ -333,11 +334,11 @@ final class AdminControllerAccessTest extends TestCase
         self::assertSame(['PackageTransfer', 'PackageTransfer::savePackage'], self::models($allowed['events']));
     }
 
-    public function testDeletingFromAPackageWithTheRightReachesTheModel(): void
+    public function testUpdatingAPackageWithTheRightReachesTheModel(): void
     {
-        $allowed = $this->runTask('packages', 'delete', 'valid', 'breezingformsng.configuration', ['package' => 'demo', 'delete_select' => ['forms' => ['3']]]);
+        $allowed = $this->runTask('packages', 'update', 'valid', 'breezingformsng.configuration', ['package' => 'demo', 'update_select' => ['forms' => ['3']], 'update_parts' => ['forms']]);
 
-        self::assertContains('PackageTransfer::deletePackage', self::models($allowed['events']));
+        self::assertContains('PackageTransfer::updatePackage', self::models($allowed['events']));
     }
 
     public function testExportingTheIntegratorNeedsTheCodeRight(): void

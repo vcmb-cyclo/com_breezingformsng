@@ -82,15 +82,16 @@ final class SamplePackagesTest extends TestCase
     }
 
     #[DataProvider('samples')]
-    public function testItIsAPackageOfOneFormInTheQuickModePackage(string $slug, string $name, string $file): void
+    public function testItIsAPackageOfOneFormInTheSamplePackage(string $slug, string $name, string $file): void
     {
         $package = $this->package($file);
 
         self::assertSame('breezingformsng-package', $package['format']);
-        self::assertSame('QuickModeForms', $package['package']);
+        self::assertSame('Sample', $package['package']);
+        self::assertSame('Sample', $package['metadata']['name']);
         self::assertCount(1, $package['forms']);
         self::assertSame($name, $package['forms'][0]['data']['name']);
-        self::assertSame('QuickModeForms', $package['forms'][0]['data']['package']);
+        self::assertSame('Sample', $package['forms'][0]['data']['package']);
         self::assertSame($name, $package['forms'][0]['data']['template_code']['properties']['name']);
         self::assertSame([], $package['pieces']);
         self::assertSame([], $package['menus']);

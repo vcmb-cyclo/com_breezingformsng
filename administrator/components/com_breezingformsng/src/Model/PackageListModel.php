@@ -77,12 +77,7 @@ abstract class PackageListModel extends ListModel implements ListPositionInterfa
             ->select('(' . $editor . ') AS ' . $db->quoteName('editor'))
             ->from($db->quoteName($this->getTableName()));
 
-        $package = (string) $this->getState('filter.package');
-
-        if ($package !== '') {
-            $query->where($db->quoteName('package') . ' = :package')
-                ->bind(':package', $package);
-        }
+        PackageFilter::apply($db, $query, 'package', (string) $this->getState('filter.package'));
 
         $published = (string) $this->getState('filter.published');
 

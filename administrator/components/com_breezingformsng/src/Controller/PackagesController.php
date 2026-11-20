@@ -359,7 +359,8 @@ final class PackagesController extends BaseController
         $app->close();
     }
 
-    public function delete(): void
+    /** Attaches the selected free items to the package and detaches the items it no longer selects. */
+    public function update(): void
     {
         /** @var CMSApplication $app */
         $app = Factory::getApplication();
@@ -368,49 +369,22 @@ final class PackagesController extends BaseController
         $package = $this->submittedPackage();
 
         try {
-            $selection = $this->submittedItemSelection('delete_select');
+            $submitted = $app->getInput()->get('update_parts', [], 'array');
+            $parts = array_values(array_intersect(
+                PackageTransferModel::SELECTABLE_PARTS,
+                array_filter($submitted, 'is_string')
+            ));
 
-            $model = $this->model();
-
-            if (!$model->deletePackage($package, $selection)) {
-                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE_NOTHING_SELECTED'), 'warning');
-                $app->redirect(Route::_(
-                    'index.php?option=com_breezingformsng&view=packages&layout=delete&package=' . rawurlencode($package),
-                    false
-                ));
-
-                return;
-            }
-
-            (new ActionLogger($app))->log(ActionLogger::SAVED, ActionLogger::PACKAGE, [], $package);
-            $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DETACHED_NAMED', htmlspecialchars($package, ENT_QUOTES, 'UTF-8')), 'message');
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete&package=' . rawurlencode($package), false));
-        } catch (\Throwable $exception) {
-            $app->enqueueMessage($exception->getMessage(), 'error');
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete', false));
-        }
-    }
-
-    /** Attaches selected existing items to the chosen package. */
-    public function attach(): void
-    {
-        /** @var CMSApplication $app */
-        $app = Factory::getApplication();
-        $this->assertAuthorised();
-        $this->checkToken();
-        $package = $this->submittedPackage();
-
-        try {
-            if (!$this->model()->attachToPackage($package, $this->submittedItemSelection('attach_select'))) {
-                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_ATTACH_NOTHING_SELECTED'), 'warning');
+            if (!$this->model()->updatePackage($package, $this->submittedItemSelection('update_select'), $parts)) {
+                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_NOTHING_CHANGED'), 'notice');
             } else {
                 (new ActionLogger($app))->log(ActionLogger::SAVED, ActionLogger::PACKAGE, [], $package);
-                $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_ATTACHED_NAMED', htmlspecialchars($package, ENT_QUOTES, 'UTF-8')), 'message');
+                $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATED_NAMED', htmlspecialchars($package, ENT_QUOTES, 'UTF-8')), 'message');
             }
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete&package=' . rawurlencode($package), false));
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update&package=' . rawurlencode($package), false));
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete', false));
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update', false));
         }
     }
 
@@ -430,7 +404,7 @@ final class PackagesController extends BaseController
             $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages', false));
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete', false));
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update', false));
         }
     }
 

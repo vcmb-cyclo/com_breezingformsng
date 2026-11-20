@@ -1,7 +1,7 @@
 {
     "format": "breezingformsng-package",
     "version": 3,
-    "package": "QuickModeForms",
+    "package": "Sample",
     "exported_at": "2026-11-18 00:00:00",
     "scripts": [
         {
@@ -129,7 +129,7 @@
                 "dropbox_submission_enabled": 0,
                 "dropbox_submission_types": "pdf",
                 "autoheight": 0,
-                "package": "QuickModeForms",
+                "package": "Sample",
                 "template_code": {
                     "attributes": {
                         "class": "bfQuickModeRootClass",
@@ -2142,7 +2142,7 @@
     ],
     "metadata": {
         "created": "2026-11-18 00:00:00",
-        "name": "QuickModeForms",
+        "name": "Sample",
         "version": "",
         "title": "",
         "author": "",
