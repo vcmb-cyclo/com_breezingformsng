@@ -8,7 +8,7 @@
 -->
 <psalm
     errorLevel="8"
-    phpVersion="8.3"
+    phpVersion="8.4"
     autoloader="psalm-bootstrap.php"
     findUnusedBaselineEntry="false"
     findUnusedCode="false"
