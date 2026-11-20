@@ -33,8 +33,8 @@ final class RecordNameMatchingRulesTest extends TestCase
         $matcher = substr($matcher, 0, (int) strpos($matcher, 'public function getEditableRows'));
 
         self::assertStringContainsString("(\$nameCounts[\$element['name']] ?? 0) === 1", $matcher);
-        self::assertStringContainsString("(string) \$sub['type'] === \$element['type']", $matcher);
-        self::assertStringContainsString('isset($existing[(int) $sub[\'element\']])', $matcher);
+        self::assertStringContainsString("self::stringValue(\$sub['type'] ?? '') === \$element['type']", $matcher);
+        self::assertStringContainsString('isset($existing[$elementId])', $matcher);
     }
 
     public function testSavingUsesTheSameRules(): void

@@ -178,13 +178,21 @@ final class SubmissionEngine
             return false;
         }
 
-        $this->widgetAreas ??= json_decode($templateAreas, true);
-        if (!is_array($this->widgetAreas)) {
-            return false;
+        $areas = $this->widgetAreas;
+        if ($areas === null) {
+            $decodedAreas = json_decode($templateAreas, true);
+
+            if (!is_array($decodedAreas)) {
+                return false;
+            }
+
+            $this->widgetAreas = $decodedAreas;
+            $areas = $decodedAreas;
         }
 
-        $values = $this->processor->app->getInput()->post->get('ff_nm_' . $elementName, [], 'array');
-        $error = (new WidgetValueValidator())->validateAreas($this->widgetAreas, $elementName, $values);
+        $rawValues = $this->processor->app->getInput()->post->get('ff_nm_' . $elementName, [], 'array');
+        $values = is_array($rawValues) ? $rawValues : [];
+        $error = (new WidgetValueValidator())->validateAreas($areas, $elementName, $values);
         if ($error === null) {
             return false;
         }
@@ -259,26 +267,32 @@ final class SubmissionEngine
                                 && is_array($areas)
                             ) {
                                 foreach ($areas as $area) { // don't worry, size is only 1 in QM
-                                    if (isset($area['elements'])) {
-                                        foreach ($area['elements'] as $element) {
-                                            if (
-                                                isset($element['options'])
-                                                && isset($element['options']['useUrl'])
-                                                && isset($element['name'])
-                                                && trim($element['name']) == trim($row->name)
-                                                && isset($element['internalType'])
-                                                && $element['internalType'] == 'bfFile'
-                                            ) {
-                                                $useUrl = $element['options']['useUrl'];
-                                                $useUrlDownloadDirectory =
-                                                    $element['options']['useUrlDownloadDirectory'];
-                                                $resize_target_width = $element['options']['resize_target_width'];
-                                                $resize_target_height = $element['options']['resize_target_height'];
-                                                $resize_type = $element['options']['resize_type'];
-                                                $resize_bgcolor = $element['options']['resize_bgcolor'];
-                                                break;
-                                            }
+                                    if (!is_array($area) || !is_array($area['elements'] ?? null)) {
+                                        continue;
+                                    }
+
+                                    foreach ($area['elements'] as $element) {
+                                        if (
+                                            !is_array($element)
+                                            || !is_array($element['options'] ?? null)
+                                            || !is_string($element['name'] ?? null)
+                                            || trim($element['name']) !== trim($row->name)
+                                            || ($element['internalType'] ?? null) !== 'bfFile'
+                                        ) {
+                                            continue;
                                         }
+
+                                        $options = $element['options'];
+                                        $useUrl = is_bool($options['useUrl'] ?? null) && $options['useUrl'];
+                                        $useUrlDownloadDirectory = is_string($options['useUrlDownloadDirectory'] ?? null)
+                                            ? $options['useUrlDownloadDirectory'] : '';
+                                        $resize_target_width = $options['resize_target_width'] ?? 0;
+                                        $resize_target_height = $options['resize_target_height'] ?? 0;
+                                        $resize_type = is_string($options['resize_type'] ?? null)
+                                            ? $options['resize_type'] : '';
+                                        $resize_bgcolor = is_string($options['resize_bgcolor'] ?? null)
+                                            ? $options['resize_bgcolor'] : '#ffffff';
+                                        break;
                                     }
                                     break; // just in case
                                 }
@@ -1114,21 +1128,22 @@ final class SubmissionEngine
         $cbEmailNotifications = false;
         $cbEmailUpdateNotifications = false;
         $cbResult = $this->processor->cbCheckPermissions();
-        if ($cbResult['data'] !== null && $cbResult['data']['email_notifications']) {
+        $cbData = $cbResult['data'] ?? null;
+        if (is_array($cbData) && self::booleanValue($cbData['email_notifications'] ?? false)) {
             if (!$this->processor->app->getInput()->getInt('cb_record_id', 0)) {
                 $cbEmailNotifications = true;
             } else {
                 $cbEmailNotifications = false;
             }
         }
-        if ($cbResult['data'] !== null && $cbResult['data']['email_update_notifications']) {
+        if (is_array($cbData) && self::booleanValue($cbData['email_update_notifications'] ?? false)) {
             if ($this->processor->app->getInput()->getInt('cb_record_id', 0)) {
                 $cbEmailUpdateNotifications = true;
             } else {
                 $cbEmailUpdateNotifications = false;
             }
         }
-        if ($cbResult['data'] === null) {
+        if ($cbData === null) {
             $cbEmailNotifications = true;
             $cbEmailUpdateNotifications = true;
         }
@@ -1159,31 +1174,35 @@ final class SubmissionEngine
                     $areas = json_decode((string) $this->processor->formrow->template_areas, true);
 
                 foreach ($areas as $area) {
+                    if (!is_array($area) || !is_array($area['elements'] ?? null)) {
+                        continue;
+                    }
+
                     foreach ($area['elements'] as $element) {
-                        if ($element['bfType'] == 'ReCaptcha') {
-                            try {
-                                $verified = $this->recaptchaVerifier->verify(
-                                    (string) $element['privkey'],
-                                    $this->processor->app->getInput()->getString('g-recaptcha-response', ''),
-                                    $this->processor->app->getInput()->server->getString('REMOTE_ADDR', '')
-                                );
-                            } catch (\Throwable) {
-                                $verified = false;
-                            }
-
-                            if ($verified) {
-                                // all good
-                            } else {
-                                $this->processor->status = _FF_STATUS_CAPTCHA_FAILED;
-                                exit;
-                            }
-
-                                break;
+                        if (!is_array($element) || ($element['bfType'] ?? null) !== 'ReCaptcha') {
+                            continue;
                         }
+
+                        try {
+                            $verified = $this->recaptchaVerifier->verify(
+                                is_string($element['privkey'] ?? null) ? $element['privkey'] : '',
+                                $this->processor->app->getInput()->getString('g-recaptcha-response', ''),
+                                $this->processor->app->getInput()->server->getString('REMOTE_ADDR', '')
+                            );
+                        } catch (\Throwable) {
+                            $verified = false;
+                        }
+
+                        if (!$verified) {
+                            $this->processor->status = _FF_STATUS_CAPTCHA_FAILED;
+                            exit;
+                        }
+
+                        break;
                     }
                 }
 
-                    break;
+                break;
             }
         }
 
@@ -1200,16 +1219,26 @@ final class SubmissionEngine
                 case 'Stripe':
                 case 'PayPal':
                     foreach ($areas as $area) {
+                        if (!is_array($area) || !is_array($area['elements'] ?? null)) {
+                            continue;
+                        }
+
                         foreach ($area['elements'] as $element) {
-                            if ($element['internalType'] == 'bfStripe' || $element['internalType'] == 'bfPayPal') {
-                                $options = $element['options'];
+                            if (
+                                !is_array($element)
+                                || !in_array($element['internalType'] ?? null, ['bfStripe', 'bfPayPal'], true)
+                                || !is_array($element['options'] ?? null)
+                            ) {
+                                continue;
+                            }
+
+                            $options = $element['options'];
                                 if (
                                     isset($options['sendNotificationAfterPayment'])
                                     && $options['sendNotificationAfterPayment']
                                 ) {
                                     $this->processor->sendNotificationAfterPayment = true;
                                 }
-                            }
                         }
                     }
             }
@@ -1567,17 +1596,32 @@ final class SubmissionEngine
                 switch ($this->processor->app->getInput()->getString('ff_payment_method', '')) {
                     case 'Stripe':
                         foreach ($areas as $area) {
-                            foreach ($area['elements'] as $element) {
-                                if ($element['internalType'] == 'bfStripe') {
-                                    $options = $element['options'];
+                            if (!is_array($area) || !is_array($area['elements'] ?? null)) {
+                                continue;
+                            }
 
-                                    $ppselect = $this->processor->app->getInput()->get(
+                            foreach ($area['elements'] as $element) {
+                                if (
+                                    !is_array($element)
+                                    || ($element['internalType'] ?? null) !== 'bfStripe'
+                                    || !is_array($element['options'] ?? null)
+                                ) {
+                                    continue;
+                                }
+
+                                $options = $element['options'];
+
+                                    $rawPpselect = $this->processor->app->getInput()->get(
                                         'ff_nm_bfPaymentSelect',
                                         [],
                                         'string'
                                     );
+                                    $ppselect = is_array($rawPpselect) ? $rawPpselect : [];
                                     if (count($ppselect) != 0) {
-                                        $ppselected = explode('|', $ppselect[0]);
+                                        $ppselected = explode(
+                                            '|',
+                                            is_string($ppselect[0] ?? null) ? $ppselect[0] : ''
+                                        );
                                         if (count($ppselected) == 4) {
                                             // XDA - BUG : useless with normal itemname
                                             // Replace item name for Stripe button field with TEXT1 TEXT2 values
@@ -1836,7 +1880,6 @@ final class SubmissionEngine
                                     echo $html;
                                     // Return and webhook use this same first Stripe element.
                                         break 2;
-                                }
                             }
                         }
 
@@ -2177,21 +2220,48 @@ final class SubmissionEngine
         return new StripeAmount();
     }
 
+    private static function booleanValue(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return $value !== 0;
+        }
+
+        return is_string($value) && $value !== '' && $value !== '0';
+    }
+
     /** @return mixed */
     private function stripeFieldValue(string $field)
     {
         return $this->processor->app->getInput()->get('ff_nm_' . $field, [], 'array');
     }
 
-    /** @return list<array<mixed>> */
+    /** @return list<array<string, mixed>> */
     private function formElements(): array
     {
         $areas = json_decode((string) $this->processor->formrow->template_areas, true);
         $elements = [];
 
         foreach (is_array($areas) ? $areas : [] as $area) {
-            foreach ((array) ($area['elements'] ?? []) as $element) {
-                $elements[] = (array) $element;
+            if (!is_array($area) || !is_array($area['elements'] ?? null)) {
+                continue;
+            }
+
+            foreach ($area['elements'] as $element) {
+                if (!is_array($element)) {
+                    continue;
+                }
+
+                $normalized = [];
+                foreach ($element as $key => $value) {
+                    if (is_string($key)) {
+                        $normalized[$key] = $value;
+                    }
+                }
+                $elements[] = $normalized;
             }
         }
 

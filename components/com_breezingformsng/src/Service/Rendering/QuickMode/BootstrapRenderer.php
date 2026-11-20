@@ -287,11 +287,26 @@ class BootstrapRenderer
         $this->flashUploadTicket = bin2hex(random_bytes(16));
 
         $this->cancelImagePath = Uri::root(true) . '/components/com_breezingformsng/themes/quickmode-bootstrap' . '5' . '/cancel.png';
-        if (isset($this->rootMdata['themebootstrap']) && is_file(JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $this->rootMdata['themebootstrap'] . '/images/cancel.png')) {
-            $this->cancelImagePath = Uri::root(true) . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $this->rootMdata['themebootstrap'] . '/images/cancel.png';
+        if (isset($this->rootMdata['themebootstrap'])) {
+            $themeBootstrap = $this->quickModeThemeName();
+            if (is_file(JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $themeBootstrap . '/images/cancel.png')) {
+                $this->cancelImagePath = Uri::root(true) . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $themeBootstrap . '/images/cancel.png';
+            }
         }
-        if (isset($this->rootMdata['themebootstrap']) && is_file(JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $this->rootMdata['themebootstrap'] . '/images/upload.png')) {
+        if (isset($this->rootMdata['themebootstrap'])) {
+            $themeBootstrap = $this->quickModeThemeName();
+            if (is_file(JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $themeBootstrap . '/images/upload.png')) {
+            }
         }
+    }
+
+    private function quickModeThemeName(): string
+    {
+        return QuickModeThemeName::resolve(
+            JPATH_SITE . '/media/breezingforms/themes-bootstrap5',
+            $this->rootMdata['themebootstrap'] ?? null,
+            ['carte']
+        );
     }
 
     /**
@@ -1149,7 +1164,8 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
         // loading system css
             // loading theme
             RuntimeAssetLoader::style($this->p->app, Uri::root(true) . '/components/com_breezingformsng/themes/quickmode-bootstrap' . '5' . '/system.css');
-            RuntimeAssetLoader::shippedTheme($this->p->app, (string) ($this->rootMdata['themebootstrap'] ?? ''));
+            $themeBootstrap = $this->quickModeThemeName();
+            RuntimeAssetLoader::shippedTheme($this->p->app, $themeBootstrap);
 
         if (isset($this->rootMdata['themebootstrap'])) {
             $vars = '';
@@ -1157,12 +1173,12 @@ var toggleFieldsArray = ' . $this->toggleFields . ';
             $scriptjs = '';
             $scriptphp = '';
 
-            $themecss_path = JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $this->rootMdata['themebootstrap'] . '/theme.css';
-            $vars_path = JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $this->rootMdata['themebootstrap'] . '/vars.txt';
-            $scriptjs_path = JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $this->rootMdata['themebootstrap'] . '/script.js';
-            $scriptphp_path = JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $this->rootMdata['themebootstrap'] . '/script.php';
+            $themecss_path = JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $themeBootstrap . '/theme.css';
+            $vars_path = JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $themeBootstrap . '/vars.txt';
+            $scriptjs_path = JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $themeBootstrap . '/script.js';
+            $scriptphp_path = JPATH_SITE . '/media/breezingforms/themes-bootstrap' . '5' . '/' . $themeBootstrap . '/script.php';
 
-            if ($this->rootMdata['themebootstrap'] != '' && $this->rootMdata['themebootstrap'] != 'none' && file_exists($themecss_path)) {
+            if ($themeBootstrap != '' && $themeBootstrap != 'none' && file_exists($themecss_path)) {
                 if (file_exists($vars_path)) {
                     $vars = (string) file_get_contents($vars_path);
                 }

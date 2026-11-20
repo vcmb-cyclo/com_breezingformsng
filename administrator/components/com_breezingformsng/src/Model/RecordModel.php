@@ -41,7 +41,7 @@ class RecordModel extends AdminModel
      */
     public function getItem($pk = null)
     {
-        $pk = (int) ($pk ?: $this->getState($this->getName() . '.id'));
+        $pk = self::intValue($pk ?: $this->getState($this->getName() . '.id'));
 
         if (isset($this->items[$pk])) {
             return $this->items[$pk];
@@ -49,12 +49,12 @@ class RecordModel extends AdminModel
 
         $item = $pk > 0 ? parent::getItem($pk) : false;
 
-        if ($item === false) {
+        if (!$item instanceof \stdClass) {
             return false;
         }
 
         $db = $this->getDatabase();
-        $formId = (int) $item->form;
+        $formId = self::intValue($item->form);
         $query = $db->createQuery()
             ->select($db->quoteName(['title', 'name']))
             ->from($db->quoteName('#__facileforms_forms'))
@@ -63,20 +63,20 @@ class RecordModel extends AdminModel
         $form = $db->setQuery($query)->loadObject();
 
         // A deleted form keeps the title and name the record stored.
-        $item->form_title = (string) ($form->title ?? $item->title);
-        $item->form_name = (string) ($form->name ?? $item->name);
+        $item->form_title = self::stringValue($form instanceof \stdClass ? ($form->title ?? $item->title) : $item->title);
+        $item->form_name = self::stringValue($form instanceof \stdClass ? ($form->name ?? $item->name) : $item->name);
 
         // modified_by keeps the editor as stored at the time; show the current
         // name of the Joomla account while it exists.
-        $modifiedBy = (string) $item->modified_by;
-        $item->modified_by_name = $this->getUserName((int) $item->modified_user_id)
+        $modifiedBy = self::stringValue($item->modified_by);
+        $item->modified_by_name = $this->getUserName(self::intValue($item->modified_user_id))
             ?? (AuditUserNames::resolve($db, [$modifiedBy], true)[$modifiedBy] ?? $modifiedBy);
-        $item->checked_out_name = $this->getUserName((int) $item->checked_out) ?? '';
+        $item->checked_out_name = $this->getUserName(self::intValue($item->checked_out)) ?? '';
         $item->{self::ELEMENT_GROUP} = [];
 
         $item->name_matched = [];
 
-        foreach ($this->getEditableRows($pk, $formId, (string) $item->name) as $row) {
+        foreach ($this->getEditableRows($pk, self::intValue($item->form), self::stringValue($item->name)) as $row) {
             $item->{self::ELEMENT_GROUP}[self::ELEMENT_PREFIX . $row['element_id']] = $row['value'];
 
             if ($row['matched_from'] !== []) {
@@ -84,7 +84,7 @@ class RecordModel extends AdminModel
             }
         }
 
-        $item->orphan_values = $this->getOrphanRows($pk, $formId);
+        $item->orphan_values = $this->getOrphanRows($pk, self::intValue($item->form));
 
         return $this->items[$pk] = $item;
     }
@@ -104,7 +104,18 @@ class RecordModel extends AdminModel
             ->order($db->quoteName('ordering'))
             ->bind(':formId', $formId, ParameterType::INTEGER);
         $db->setQuery($query);
-        return $db->loadAssocList();
+        $elements = [];
+
+        foreach ($this->loadAssocRows() as $row) {
+            $elements[] = [
+                'id' => self::intValue($row['id'] ?? 0),
+                'name' => self::stringValue($row['name'] ?? ''),
+                'title' => self::stringValue($row['title'] ?? ''),
+                'type' => self::stringValue($row['type'] ?? ''),
+            ];
+        }
+
+        return $elements;
     }
 
     /**
@@ -127,18 +138,23 @@ class RecordModel extends AdminModel
             ->where($db->quoteName('record') . ' = :recordId')
             ->order($db->quoteName('id'))
             ->bind(':recordId', $recordId, ParameterType::INTEGER);
-        $subrecords = $db->setQuery($query)->loadAssocList();
+        $db->setQuery($query);
+        $subrecords = $this->loadAssocRows();
 
-        $elementIds = array_values(array_unique(array_map(static fn (array $sub): int => (int) $sub['element'], $subrecords)));
+        $elementIds = array_values(array_unique(array_map(
+            static fn (array $sub): int => self::intValue($sub['element'] ?? 0),
+            $subrecords
+        )));
         $existing = [];
 
         if ($elementIds !== []) {
-            $existing = array_flip(array_map('intval', $db->setQuery(
+            $db->setQuery(
                 $db->createQuery()
                     ->select($db->quoteName('id'))
                     ->from($db->quoteName('#__facileforms_elements'))
                     ->whereIn($db->quoteName('id'), $elementIds)
-            )->loadColumn()));
+            );
+            $existing = array_flip(self::intList($db->loadColumn()));
         }
 
         $nameCounts = [];
@@ -150,18 +166,20 @@ class RecordModel extends AdminModel
             ->group($db->quoteName('name'))
             ->bind(':formId', $formId, ParameterType::INTEGER);
 
-        foreach ($db->setQuery($countQuery)->loadAssocList() as $row) {
-            $nameCounts[(string) $row['name']] = (int) $row['total'];
+        $db->setQuery($countQuery);
+        foreach ($this->loadAssocRows() as $row) {
+            $nameCounts[self::stringValue($row['name'] ?? '')] = self::intValue($row['total'] ?? 0);
         }
 
         $byElement = [];
         $missingByName = [];
 
         foreach ($subrecords as $sub) {
-            $byElement[(int) $sub['element']][] = $sub;
+            $elementId = self::intValue($sub['element'] ?? 0);
+            $byElement[$elementId][] = $sub;
 
-            if (!isset($existing[(int) $sub['element']])) {
-                $missingByName[(string) $sub['name']][] = $sub;
+            if (!isset($existing[$elementId])) {
+                $missingByName[self::stringValue($sub['name'] ?? '')][] = $sub;
             }
         }
 
@@ -175,13 +193,13 @@ class RecordModel extends AdminModel
             if ($subs === [] && ($nameCounts[$element['name']] ?? 0) === 1) {
                 $subs = array_values(array_filter(
                     $missingByName[$element['name']] ?? [],
-                    static fn (array $sub): bool => (string) $sub['type'] === $element['type']
+                    static fn (array $sub): bool => self::stringValue($sub['type'] ?? '') === $element['type']
                 ));
                 $byName = $subs !== [];
             }
 
             foreach ($subs as $sub) {
-                $shown[(int) $sub['id']] = true;
+                $shown[self::intValue($sub['id'] ?? 0)] = true;
             }
 
             $matches[] = ['element' => $element, 'subs' => $subs, 'byName' => $byName];
@@ -199,22 +217,25 @@ class RecordModel extends AdminModel
 
         foreach ($this->matchSubrecords($recordId, $formId)['matches'] as $match) {
             $element = $match['element'];
-            $name = (string) $element['name'];
-            $values = array_map(static fn (array $sub): string => (string) $sub['value'], $match['subs']);
+            $name = self::stringValue($element['name']);
+            $values = array_map(static fn (array $sub): string => self::stringValue($sub['value'] ?? ''), $match['subs']);
 
             if ($values === [] && $name === 'Formulaire') {
                 $values[] = $recordName;
             }
 
             $rows[] = [
-                'element_id'   => (int) $element['id'],
-                'title'        => (string) $element['title'],
+                'element_id'   => self::intValue($element['id']),
+                'title'        => self::stringValue($element['title']),
                 'name'         => $name,
-                'type'         => (string) $element['type'],
+                'type'         => self::stringValue($element['type']),
                 'value'        => implode("\n", $values),
                 // Deleted elements whose values are attached to this one by name.
                 'matched_from' => $match['byName']
-                    ? array_values(array_unique(array_map(static fn (array $sub): int => (int) $sub['element'], $match['subs'])))
+                    ? array_values(array_unique(array_map(
+                        static fn (array $sub): int => self::intValue($sub['element'] ?? 0),
+                        $match['subs']
+                    )))
                     : [],
             ];
         }
@@ -236,12 +257,12 @@ class RecordModel extends AdminModel
         $orphans = [];
 
         foreach ($matched['subrecords'] as $sub) {
-            if (!isset($matched['shown'][(int) $sub['id']])) {
+            if (!isset($matched['shown'][self::intValue($sub['id'] ?? 0)])) {
                 $orphans[] = [
-                    'element_id' => (int) $sub['element'],
-                    'name' => (string) $sub['name'],
-                    'title' => (string) $sub['title'],
-                    'value' => (string) $sub['value'],
+                    'element_id' => self::intValue($sub['element'] ?? 0),
+                    'name' => self::stringValue($sub['name'] ?? ''),
+                    'title' => self::stringValue($sub['title'] ?? ''),
+                    'value' => self::stringValue($sub['value'] ?? ''),
                 ];
             }
         }
@@ -261,7 +282,7 @@ class RecordModel extends AdminModel
             ->where($db->quoteName('id') . ' = :recordId')
             ->bind(':recordId', $recordId, ParameterType::INTEGER);
         $db->setQuery($query);
-        $formId = (int) $db->loadResult();
+        $formId = self::intValue($db->loadResult());
 
         if ($formId < 1) {
             return;
@@ -272,7 +293,7 @@ class RecordModel extends AdminModel
             if (!array_key_exists($elementId, $values)) {
                 continue;
             }
-            $this->saveElementValue($recordId, $element, (string) $values[$elementId]);
+            $this->saveElementValue(self::intValue($recordId), $element, self::stringValue($values[$elementId]));
         }
 
         $user = $this->getCurrentUser();
@@ -314,10 +335,11 @@ class RecordModel extends AdminModel
             ->order($db->quoteName('id'))
             ->bind(':recordId', $recordId, ParameterType::INTEGER)
             ->bind(':elementId', $elementId, ParameterType::INTEGER);
-        $subrecordIds = array_map('intval', $db->setQuery($query)->loadColumn());
+        $db->setQuery($query);
+        $subrecordIds = self::intList($db->loadColumn());
 
         if ($subrecordIds === []) {
-            $subrecordIds = $this->getNameMatchedSubrecordIds($recordId, $elementId, $name, $type);
+            $subrecordIds = $this->getNameMatchedSubrecordIds(self::intValue($recordId), self::intValue($elementId), $name, $type);
         }
 
         $values = $this->splitValue($value, $type) ?: [''];
@@ -375,19 +397,19 @@ class RecordModel extends AdminModel
     private function getNameMatchedSubrecordIds(int $recordId, int $elementId, string $name, string $type): array
     {
         $db = $this->getDatabase();
-        $formId = (int) $db->setQuery(
+        $formId = self::intValue($db->setQuery(
             $db->createQuery()
                 ->select($db->quoteName('form'))
                 ->from($db->quoteName('#__facileforms_elements'))
                 ->where($db->quoteName('id') . ' = :elementId')
                 ->bind(':elementId', $elementId, ParameterType::INTEGER)
-        )->loadResult();
+        )->loadResult());
 
         if ($formId < 1) {
             return [];
         }
 
-        $sameName = (int) $db->setQuery(
+        $sameName = self::intValue($db->setQuery(
             $db->createQuery()
                 ->select('COUNT(*)')
                 ->from($db->quoteName('#__facileforms_elements'))
@@ -395,7 +417,7 @@ class RecordModel extends AdminModel
                 ->where($db->quoteName('name') . ' = :name')
                 ->bind(':formId', $formId, ParameterType::INTEGER)
                 ->bind(':name', $name, ParameterType::STRING)
-        )->loadResult();
+        )->loadResult());
 
         if ($sameName !== 1) {
             return [];
@@ -417,7 +439,8 @@ class RecordModel extends AdminModel
             ->bind(':name', $name, ParameterType::STRING)
             ->bind(':type', $type, ParameterType::STRING);
 
-        return array_values(array_map('intval', $db->setQuery($query)->loadColumn()));
+        $db->setQuery($query);
+        return self::intList($db->loadColumn());
     }
 
     /**
@@ -452,8 +475,8 @@ class RecordModel extends AdminModel
     public function getForm($data = [], $loadData = true)
     {
         // The fields depend on the record: keep the id of the submitted one.
-        if ((int) ($data['id'] ?? 0) > 0) {
-            $this->setState($this->getName() . '.id', (int) $data['id']);
+        if (self::intValue($data['id'] ?? 0) > 0) {
+            $this->setState($this->getName() . '.id', self::intValue($data['id']));
         }
 
         return $this->loadForm('com_breezingformsng.record', 'record', ['control' => 'jform', 'load_data' => $loadData]);
@@ -472,7 +495,7 @@ class RecordModel extends AdminModel
 
         $this->preprocessData('com_breezingformsng.record', $data);
 
-        return $data;
+        return is_array($data) || is_object($data) || $data === false ? $data : [];
     }
 
     private function getUserName(int $userId): ?string
@@ -490,7 +513,7 @@ class RecordModel extends AdminModel
                 ->bind(':userId', $userId, ParameterType::INTEGER)
         )->loadResult();
 
-        return $name !== null ? (string) $name : null;
+        return $name === null ? null : self::stringValue($name);
     }
 
     /**
@@ -499,16 +522,16 @@ class RecordModel extends AdminModel
     protected function preprocessForm(Form $form, $data, $group = 'content')
     {
         $record = (array) $data;
-        $recordId = (int) ($record['id'] ?? 0) ?: (int) $this->getState($this->getName() . '.id');
-        $formId = $this->getFormIds([$recordId])[$recordId] ?? 0;
+        $recordId = self::intValue($record['id'] ?? 0) ?: self::intValue($this->getState($this->getName() . '.id'));
+        $formId = self::intValue($this->getFormIds([$recordId])[$recordId] ?? 0);
         $values = (array) ($record[self::ELEMENT_GROUP] ?? []);
 
         $xml = new \SimpleXMLElement('<form><fields name="' . self::ELEMENT_GROUP . '"><fieldset name="values"/></fields></form>');
         $fieldset = $xml->fields->fieldset;
 
         foreach ($this->getEditableElements($formId) as $element) {
-            $name = self::ELEMENT_PREFIX . (int) $element['id'];
-            $lines = substr_count((string) ($values[$name] ?? ''), "\n");
+            $name = self::ELEMENT_PREFIX . self::intValue($element['id']);
+            $lines = substr_count(self::stringValue($values[$name] ?? ''), "\n");
 
             $field = $fieldset->addChild('field');
             $field->addAttribute('name', $name);
@@ -516,14 +539,14 @@ class RecordModel extends AdminModel
             // Joomla prints labels as HTML, like its own language strings: escape the
             // titles and names of the elements. The code of the element is shown under
             // the title, in the label.
-            $from = array_map('intval', (array) (((array) ($record['name_matched'] ?? []))[(int) $element['id']] ?? []));
+            $from = self::intList(((array) ($record['name_matched'] ?? []))[self::intValue($element['id'])] ?? []);
             $note = $from === [] ? '' : '<small class="d-block form-text text-warning-emphasis">'
                 . htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_RECORD_NAME_MATCHED', '#' . implode(', #', $from)), ENT_QUOTES, 'UTF-8')
                 . '</small>';
             $field->addAttribute(
                 'label',
-                htmlspecialchars($element['title'], ENT_QUOTES, 'UTF-8')
-                . '<small class="d-block form-text">' . htmlspecialchars($element['name'], ENT_QUOTES, 'UTF-8') . '</small>'
+                htmlspecialchars(self::stringValue($element['title']), ENT_QUOTES, 'UTF-8')
+                . '<small class="d-block form-text">' . htmlspecialchars(self::stringValue($element['name']), ENT_QUOTES, 'UTF-8') . '</small>'
                 . $note
             );
             $field->addAttribute('translateLabel', 'false');
@@ -543,12 +566,12 @@ class RecordModel extends AdminModel
      */
     public function save($data)
     {
-        $recordId = (int) ($data['id'] ?? 0);
+        $recordId = self::intValue($data['id'] ?? 0);
 
         $values = [];
 
         foreach ((array) ($data[self::ELEMENT_GROUP] ?? []) as $name => $value) {
-            $values[(int) substr((string) $name, strlen(self::ELEMENT_PREFIX))] = (string) $value;
+            $values[self::intValue(substr(self::stringValue($name), strlen(self::ELEMENT_PREFIX)))] = self::stringValue($value);
         }
 
         $db = $this->getDatabase();
@@ -685,10 +708,13 @@ class RecordModel extends AdminModel
             ->from($db->quoteName('#__facileforms_records'))
             ->where($db->quoteName('state') . ' = :trashed')
             ->bind(':trashed', $trashed, ParameterType::INTEGER);
-        $trashedIds = array_map('intval', $db->setQuery($query)->loadColumn());
+        $db->setQuery($query);
+        $trashedIds = self::intList($db->loadColumn());
 
         if ($trashedIds !== []) {
-            $this->delete($trashedIds);
+            $idsToDelete = $trashedIds;
+            $this->delete($idsToDelete);
+            $trashedIds = self::intList($idsToDelete);
         }
 
         return $trashedIds;
@@ -732,10 +758,18 @@ class RecordModel extends AdminModel
             ->from($db->quoteName('#__facileforms_records'))
             ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
 
-        return array_values(array_map(
-            static fn (array $row): array => ['id' => (int) $row['id'], 'form' => (int) $row['form'], 'state' => (int) $row['state']],
-            $db->setQuery($query)->loadAssocList()
-        ));
+        $db->setQuery($query);
+        $records = [];
+
+        foreach ($this->loadAssocRows() as $row) {
+            $records[] = [
+                'id' => self::intValue($row['id'] ?? 0),
+                'form' => self::intValue($row['form'] ?? 0),
+                'state' => self::intValue($row['state'] ?? 0),
+            ];
+        }
+
+        return $records;
     }
 
     /**
@@ -756,7 +790,7 @@ class RecordModel extends AdminModel
         if (!in_array($column, ['viewed', 'exported'], true)) {
             return;
         }
-        $ids = array_values(array_filter(array_map('intval', $ids)));
+        $ids = array_values(array_filter(self::intList($ids)));
         if (!$ids) {
             return;
         }
@@ -790,13 +824,13 @@ class RecordModel extends AdminModel
         $db->setQuery($query)->execute();
 
         // An unchanged flag counts no affected row: check that the record exists.
-        return $db->getAffectedRows() > 0 || (int) $db->setQuery(
+        return $db->getAffectedRows() > 0 || self::intValue($db->setQuery(
             $db->createQuery()
                 ->select('COUNT(*)')
                 ->from($db->quoteName('#__facileforms_records'))
                 ->where($db->quoteName('id') . ' = :recordId')
                 ->bind(':recordId', $recordId, ParameterType::INTEGER)
-        )->loadResult() > 0;
+        )->loadResult()) > 0;
     }
 
     public function getExportConfig(): \stdClass
@@ -806,7 +840,7 @@ class RecordModel extends AdminModel
         $config = new \stdClass();
         $config->csvdelimiter = $params->get('csvdelimiter', ';');
         $config->csvquote     = $params->get('csvquote', '"');
-        $config->cellnewline  = (int) $params->get('cellnewline', 1);
+        $config->cellnewline  = self::intValue($params->get('cellnewline', 1));
         $config->csvinverted  = false;
 
         return $config;
@@ -829,7 +863,7 @@ class RecordModel extends AdminModel
     public function getSubrecordsByRecordIds(array $recordIds): array
     {
         $recordIds = array_values(array_filter(
-            array_map('intval', $recordIds),
+            self::intList($recordIds),
             static fn (int $recordId): bool => $recordId > 0
         ));
 
@@ -855,8 +889,8 @@ class RecordModel extends AdminModel
         $db->setQuery($query);
         $subrecordsByRecord = [];
 
-        foreach ($db->loadObjectList() as $subrecord) {
-            $subrecordsByRecord[(int) $subrecord->record][] = $subrecord;
+        foreach ($this->loadObjectRows() as $subrecord) {
+            $subrecordsByRecord[self::intValue($subrecord->record ?? 0)][] = $subrecord;
         }
 
         return $subrecordsByRecord;
@@ -867,7 +901,7 @@ class RecordModel extends AdminModel
      */
     public function markExported(array $ids): void
     {
-        $ids = array_values(array_filter(array_map('intval', $ids)));
+        $ids = array_values(array_filter(self::intList($ids)));
         if (!$ids) {
             return;
         }
@@ -880,5 +914,104 @@ class RecordModel extends AdminModel
                 ->whereIn($db->quoteName('id'), $idBatch, ParameterType::INTEGER);
             $db->setQuery($query)->execute();
         }
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function loadAssocRows(): array
+    {
+        $rows = $this->getDatabase()->loadAssocList();
+
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $normalizedRow = [];
+            foreach ($row as $key => $value) {
+                if (is_string($key)) {
+                    $normalizedRow[$key] = $value;
+                }
+            }
+            $normalized[] = $normalizedRow;
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @return list<\stdClass>
+     */
+    private function loadObjectRows(): array
+    {
+        $rows = $this->getDatabase()->loadObjectList();
+
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $objects = [];
+        foreach ($rows as $row) {
+            if ($row instanceof \stdClass) {
+                $objects[] = $row;
+            }
+        }
+
+        return $objects;
+    }
+
+    /**
+     * @param mixed $values
+     * @return list<int>
+     */
+    private static function intList(mixed $values): array
+    {
+        if (!is_array($values)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($values as $value) {
+            $result[] = self::intValue($value);
+        }
+
+        return $result;
+    }
+
+    private static function intValue(mixed $value): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+
+        if (is_float($value)) {
+            return (int) $value;
+        }
+
+        return is_string($value) && is_numeric($value) ? (int) $value : 0;
+    }
+
+    private static function stringValue(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value) || is_bool($value)) {
+            return (string) $value;
+        }
+
+        return '';
     }
 }

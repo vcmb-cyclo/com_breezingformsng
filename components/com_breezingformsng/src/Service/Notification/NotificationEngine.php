@@ -124,7 +124,13 @@ final class NotificationEngine
 
                 if (count($this->processor->maildata ?? [])) {
                     foreach ($this->processor->maildata ?? [] as $DATA) {
-                        if (strtolower($DATA[_FF_DATA_NAME]) == strtolower($field)) {
+                        $dataName = $DATA[_FF_DATA_NAME] ?? null;
+                        $dataValue = $DATA[_FF_DATA_VALUE] ?? null;
+                        if (!is_string($dataName) || !is_string($dataValue)) {
+                            continue;
+                        }
+
+                        if (strtolower($dataName) == strtolower($field)) {
                             if (isset($froms[1])) {
                                 $valuepairs = explode(',', $froms[1]);
                                 foreach ($valuepairs as $valuepair) {
@@ -136,7 +142,7 @@ final class NotificationEngine
 
                                         if ($DATA[_FF_DATA_TYPE] == 'Checkbox Group') {
 
-                                            $data_value = explode(', ', strtolower($DATA[_FF_DATA_VALUE]));
+                                            $data_value = explode(', ', strtolower($dataValue));
 
                                             if (in_array(strtolower($key), $data_value)) {
                                                 foreach ($value_exploded as $value2) {
@@ -146,7 +152,7 @@ final class NotificationEngine
                                             }
                                         } else {
 
-                                            if (strtolower($key) == strtolower($DATA[_FF_DATA_VALUE])) {
+                                            if (strtolower($key) == strtolower($dataValue)) {
                                                 foreach ($value_exploded as $value2) {
                                                     $all_recipients[] = trim($value2);
                                                     unset($recipients[$i]);
@@ -157,7 +163,7 @@ final class NotificationEngine
                                     }
                                 }
                             } else {
-                                $all_recipients[] = $DATA[_FF_DATA_VALUE];
+                                $all_recipients[] = $dataValue;
                                 unset($recipients[$i]);
                             }
                             break;

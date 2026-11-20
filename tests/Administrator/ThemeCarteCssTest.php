@@ -134,7 +134,7 @@ final class ThemeCarteCssTest extends TestCase
         self::assertStringContainsString('"com_breezingformsng.theme-carte"', $assets);
         self::assertStringContainsString('media/com_breezingformsng/css/theme-carte.css', $assets);
         self::assertStringContainsString("SHIPPED_THEMES = ['carte']", $loader);
-        self::assertStringContainsString("RuntimeAssetLoader::shippedTheme(\$this->p->app, (string) (\$this->rootMdata['themebootstrap']", $renderer);
+        self::assertStringContainsString('RuntimeAssetLoader::shippedTheme($this->p->app, $themeBootstrap);', $renderer);
         self::assertStringContainsString("['carte', ...", $model);
     }
 

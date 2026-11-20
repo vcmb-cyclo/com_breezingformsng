@@ -68,7 +68,7 @@ final class FormCatalog
         }
 
         $count = clone $query;
-        $total = (int) $db->setQuery($count->select('COUNT(*)'))->loadResult();
+        $total = self::intValue($db->setQuery($count->select('COUNT(*)'))->loadResult());
 
         $columns = array_map(static fn (string $column): string => 'f.' . $column, ['id', 'name', 'title', 'published', 'package', 'pages', 'modified']);
         $query->select($db->quoteName($columns))
@@ -76,25 +76,26 @@ final class FormCatalog
             ->order($db->quoteName('f.ordering') . ', ' . $db->quoteName('f.id'));
         $query->setLimit($limit, $offset);
 
-        $rows = $db->setQuery($query)->loadAssocList();
-        $ids = array_values(array_map(static fn (array $row): int => (int) $row['id'], $rows));
+        $db->setQuery($query);
+        $rows = $this->loadAssocRows();
+        $ids = array_values(array_map(static fn (array $row): int => self::intValue($row['id'] ?? null), $rows));
         $elements = $this->countBy('#__facileforms_elements', $ids);
         $records = $this->countBy('#__facileforms_records', $ids);
 
         $forms = [];
         foreach ($rows as $row) {
-            $id = (int) $row['id'];
+            $id = self::intValue($row['id'] ?? null);
             $forms[] = [
                 'id' => $id,
-                'name' => (string) $row['name'],
-                'title' => (string) $row['title'],
-                'published' => (int) $row['published'] === 1,
-                'package' => (string) $row['package'],
-                'pages' => (int) $row['pages'],
-                'editor' => (int) $row['quickmode'] === 1 ? 'quickmode' : 'classic',
+                'name' => self::stringValue($row['name'] ?? null),
+                'title' => self::stringValue($row['title'] ?? null),
+                'published' => self::intValue($row['published'] ?? null) === 1,
+                'package' => self::stringValue($row['package'] ?? null),
+                'pages' => self::intValue($row['pages'] ?? null),
+                'editor' => self::intValue($row['quickmode'] ?? null) === 1 ? 'quickmode' : 'classic',
                 'element_count' => $elements[$id] ?? 0,
                 'record_count' => $records[$id] ?? 0,
-                'modified' => $row['modified'] === null ? null : (string) $row['modified'],
+                'modified' => $row['modified'] === null ? null : self::stringValue($row['modified']),
             ];
         }
 
@@ -125,7 +126,8 @@ final class FormCatalog
         // Names are unique only within a package. Never return an arbitrary
         // form if the same name identifies several forms on the site.
         $query->setLimit($id === null ? 2 : 1);
-        $rows = $db->setQuery($query)->loadAssocList();
+        $db->setQuery($query);
+        $rows = $this->loadAssocRows();
         if ($id === null && count($rows) > 1) {
             throw new ToolException(Text::_('COM_BREEZINGFORMSNG_MCP_FORM_NAME_AMBIGUOUS'));
         }
@@ -135,28 +137,28 @@ final class FormCatalog
         }
 
         $form = [
-            'id' => (int) $row['id'],
-            'name' => (string) $row['name'],
-            'title' => (string) $row['title'],
+            'id' => self::intValue($row['id'] ?? null),
+            'name' => self::stringValue($row['name'] ?? null),
+            'title' => self::stringValue($row['title'] ?? null),
             'description' => self::text($row['description']),
-            'published' => (int) $row['published'] === 1,
-            'package' => (string) $row['package'],
-            'pages' => (int) $row['pages'],
-            'editor' => (int) $row['quickmode'] === 1 ? 'quickmode' : 'classic',
-            'created' => $row['created'] === null ? null : (string) $row['created'],
-            'modified' => $row['modified'] === null ? null : (string) $row['modified'],
+            'published' => self::intValue($row['published'] ?? null) === 1,
+            'package' => self::stringValue($row['package'] ?? null),
+            'pages' => self::intValue($row['pages'] ?? null),
+            'editor' => self::intValue($row['quickmode'] ?? null) === 1 ? 'quickmode' : 'classic',
+            'created' => $row['created'] === null ? null : self::stringValue($row['created']),
+            'modified' => $row['modified'] === null ? null : self::stringValue($row['modified']),
             'settings' => [],
-            'record_count' => $this->countBy('#__facileforms_records', [(int) $row['id']])[(int) $row['id']] ?? 0,
+            'record_count' => $this->countBy('#__facileforms_records', [self::intValue($row['id'] ?? null)])[self::intValue($row['id'] ?? null)] ?? 0,
         ];
         foreach (self::FORM_SETTINGS as $setting) {
-            $form['settings'][$setting] = $row[$setting] === null ? null : (int) $row[$setting];
+            $form['settings'][$setting] = $row[$setting] === null ? null : self::intValue($row[$setting]);
         }
-        $form['settings']['notification_address_set'] = (int) $row['has_notification_address'] === 1;
+        $form['settings']['notification_address_set'] = self::intValue($row['has_notification_address'] ?? null) === 1;
         if ($withCode) {
             $form['code'] = self::code($row, self::FORM_CODE);
         }
-        $form['elements'] = $this->elements((int) $row['id'], $withCode);
-        if ((int) $row['quickmode'] === 1) {
+        $form['elements'] = $this->elements(self::intValue($row['id'] ?? null), $withCode);
+        if (self::intValue($row['quickmode'] ?? null) === 1) {
             $form['quickmode_pages'] = $this->appendQuickModeSettings($form['elements'], $row['template_code']);
         }
 
@@ -177,22 +179,23 @@ final class FormCatalog
             ->order($db->quoteName('page') . ', ' . $db->quoteName('ordering') . ', ' . $db->quoteName('id'));
 
         $elements = [];
-        foreach ($db->setQuery($query)->loadAssocList() as $row) {
+        $db->setQuery($query);
+        foreach ($this->loadAssocRows() as $row) {
             $element = [
-                'id' => (int) $row['id'],
-                'name' => (string) $row['name'],
-                'title' => (string) $row['title'],
-                'type' => (string) $row['type'],
-                'page' => (int) $row['page'],
-                'ordering' => (int) $row['ordering'],
-                'published' => (int) $row['published'] === 1,
-                'logging' => (int) $row['logging'] === 1,
-                'flag1' => (int) $row['flag1'],
-                'flag2' => (int) $row['flag2'],
+                'id' => self::intValue($row['id'] ?? null),
+                'name' => self::stringValue($row['name'] ?? null),
+                'title' => self::stringValue($row['title'] ?? null),
+                'type' => self::stringValue($row['type'] ?? null),
+                'page' => self::intValue($row['page'] ?? null),
+                'ordering' => self::intValue($row['ordering'] ?? null),
+                'published' => self::intValue($row['published'] ?? null) === 1,
+                'logging' => self::intValue($row['logging'] ?? null) === 1,
+                'flag1' => self::intValue($row['flag1'] ?? null),
+                'flag2' => self::intValue($row['flag2'] ?? null),
                 'data1' => self::text($row['data1']),
                 'data2' => self::text($row['data2']),
                 'data3' => self::text($row['data3']),
-                'mailback' => (int) $row['mailback'] === 1,
+                'mailback' => self::intValue($row['mailback'] ?? null) === 1,
             ];
             if ($withCode) {
                 $element['code'] = self::code($row, self::ELEMENT_CODE);
@@ -238,6 +241,9 @@ final class FormCatalog
                 'intro_is_rich' => $introHasMarkup,
             ];
             foreach ($page['children'] as $node) {
+                if (!is_array($node)) {
+                    continue;
+                }
                 $properties = $node['properties'] ?? null;
                 if (!is_array($properties) || ($properties['type'] ?? '') !== 'element') {
                     continue;
@@ -251,7 +257,7 @@ final class FormCatalog
         }
 
         foreach ($elements as &$element) {
-            $properties = $byId[(int) ($element['id'] ?? 0)] ?? null;
+            $properties = $byId[self::intValue($element['id'] ?? null)] ?? null;
             if (!is_array($properties)) {
                 continue;
             }
@@ -326,8 +332,9 @@ final class FormCatalog
             ->group($db->quoteName('form'));
 
         $counts = [];
-        foreach ($db->setQuery($query)->loadAssocList() as $row) {
-            $counts[(int) $row['form']] = (int) $row['total'];
+        $db->setQuery($query);
+        foreach ($this->loadAssocRows() as $row) {
+            $counts[self::intValue($row['form'] ?? null)] = self::intValue($row['total'] ?? null);
         }
 
         return $counts;
@@ -342,8 +349,10 @@ final class FormCatalog
     {
         $code = [];
         foreach ($columns as $column) {
-            $value = $row[$column];
-            $code[$column] = str_ends_with($column, 'code') || $column === 'script3msg' ? (string) $value : ($value === null ? null : (int) $value);
+            $value = $row[$column] ?? null;
+            $code[$column] = str_ends_with($column, 'code') || $column === 'script3msg'
+                ? self::stringValue($value)
+                : ($value === null ? null : self::intValue($value));
         }
 
         return $code;
@@ -352,8 +361,74 @@ final class FormCatalog
     /** A text of the database, cut to MAX_TEXT characters with a marker. */
     public static function text(mixed $value): string
     {
-        $text = (string) $value;
+        $text = self::stringValue($value);
 
         return mb_strlen($text) > self::MAX_TEXT ? mb_substr($text, 0, self::MAX_TEXT) . ' [truncated]' : $text;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function loadAssocRows(): array
+    {
+        $rows = $this->db->loadAssocList();
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                $normalized[] = self::normalizeRow($row);
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param array<mixed, mixed> $row
+     * @return array<string, mixed>
+     */
+    private static function normalizeRow(array $row): array
+    {
+        $normalized = [];
+        foreach ($row as $key => $value) {
+            if (is_string($key)) {
+                $normalized[$key] = $value;
+            }
+        }
+
+        return $normalized;
+    }
+
+    private static function intValue(mixed $value): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+        if (is_float($value)) {
+            return (int) $value;
+        }
+        if (is_string($value) && is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return 0;
+    }
+
+    private static function stringValue(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+        if (is_int($value) || is_float($value) || is_bool($value)) {
+            return (string) $value;
+        }
+
+        return '';
     }
 }
