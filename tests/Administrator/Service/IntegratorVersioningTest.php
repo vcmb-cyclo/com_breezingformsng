@@ -25,6 +25,16 @@ final class IntegratorVersioningTest extends TestCase
         self::assertStringContainsString('$this->db->transactionRollback(true);', $service);
     }
 
+    public function testVersioningReceivesAnObjectForJoomlaContentHistoryHashing(): void
+    {
+        $service = $this->read();
+
+        self::assertStringContainsString(
+            'Versioning::store(self::TYPE_ALIAS, $ruleId, (object) $data,',
+            $service
+        );
+    }
+
     public function testIntegratorHistoryResolvesToAValidJoomlaTable(): void
     {
         $tablePath = __DIR__ . '/../../../components/com_breezingformsng/src/Table/IntegratorTable.php';
@@ -35,5 +45,15 @@ final class IntegratorVersioningTest extends TestCase
             'parent::__construct(\'#__facileforms_integrator_rules\', \'id\', $db);',
             $table
         );
+    }
+
+    private function read(): string
+    {
+        $path = __DIR__ . '/../../../administrator/components/com_breezingformsng/src/Service/IntegratorVersioning.php';
+        $source = file_get_contents($path);
+
+        self::assertIsString($source);
+
+        return $source;
     }
 }

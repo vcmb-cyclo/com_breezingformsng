@@ -65,7 +65,9 @@ final class IntegratorVersioning
         $this->db->transactionStart(true);
 
         try {
-            if (!Versioning::store(self::TYPE_ALIAS, $ruleId, $data, mb_substr($note, 0, 255))) {
+            // Joomla 6.2's ContentHistory::getSha1() accepts an object or JSON
+            // string; passing the array reaches json_decode() with the wrong type.
+            if (!Versioning::store(self::TYPE_ALIAS, $ruleId, (object) $data, mb_substr($note, 0, 255))) {
                 throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_STORED'));
             }
 
