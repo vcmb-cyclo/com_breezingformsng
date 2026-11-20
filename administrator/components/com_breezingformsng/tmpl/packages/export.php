@@ -17,6 +17,7 @@ defined("_JEXEC") or die;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 
 
 // Each field explains itself in the tooltip of its label.
@@ -28,37 +29,38 @@ $mayTransferTemplates = $this->mayTransferTemplates;
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <form action="index.php?option=com_breezingformsng" method="post" id="bf-package-export">
+                <form action="index.php?option=com_breezingformsng" method="post" id="bf-package-export"<?= $this->draft !== [] ? ' data-bf-draft' : ''; ?>>
                     <p class="alert alert-info"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_EXPORT_HINT'); ?></p>
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-md-6">
                             <label class="form-label" for="bf-package-choice"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_CHOICE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE'); ?></label>
                             <select class="form-select" id="bf-package-choice" name="selected_package">
-                                <option value=""><?= Text::_('JGLOBAL_SELECT_AN_OPTION'); ?></option>
-                                <option value="" data-new><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_EXPORT'); ?></option>
+                                <option value=""<?= $this->selectedPackage === '' && !$this->isNewPackage ? ' selected' : ''; ?>><?= Text::_('JGLOBAL_SELECT_AN_OPTION'); ?></option>
+                                <option value="<?= PackageTransferModel::NEW_PACKAGE; ?>" data-new<?= $this->isNewPackage ? ' selected' : ''; ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_EXPORT'); ?></option>
                                 <?php foreach ($this->profiles as $id => $profile) : ?>
                                     <option value="<?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?>"<?= (string) $id === $this->selectedPackage ? ' selected' : ''; ?>><?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <input type="hidden" id="bf-package-new-flag" name="package_new" value="<?= $this->isNewPackage ? '1' : '0'; ?>">
                         </div>
                         <div class="col-12 col-md-6 d-none" id="bf-package-new">
                             <label class="form-label" for="bf-package"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_ID'); ?><span class="star" aria-hidden="true">&#160;*</span></label>
-                            <input class="form-control" id="bf-package" name="package" maxlength="30" required value="<?= htmlspecialchars($this->selectedPackage, ENT_QUOTES, 'UTF-8'); ?>">
+                            <input class="form-control" id="bf-package" name="package" maxlength="30" required value="<?= htmlspecialchars((string) ($this->draft['package'] ?? $this->selectedPackage), ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
                     </div>
-                    <div<?= $this->selectedPackage === '' ? ' class="d-none"' : ''; ?> id="bf-package-details">
-                        <?= LayoutHelper::render('packages.metadata', ['values' => [], 'tips' => true]); ?>
+                    <div<?= $this->selectedPackage === '' && !$this->isNewPackage ? ' class="d-none"' : ''; ?> id="bf-package-details">
+                        <?= LayoutHelper::render('packages.metadata', ['values' => $this->draft['metadata'] ?? [], 'tips' => true]); ?>
                         <?= LayoutHelper::render('packages.item-lists', ['id' => 'bf-selections', 'fieldName' => '%s[]', 'rows' => $this->listRows, 'tracked' => false, 'showPackage' => true, 'tips' => true]); ?>
                         <fieldset class="mt-4" id="bf-package-options">
                             <legend class="form-label fs-6"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_EXPORT_OPTIONS'); ?></legend>
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="bf-include-templates" name="include_templates" value="1"<?= $mayTransferTemplates ? '' : ' disabled'; ?>>
+                                <input class="form-check-input" type="checkbox" role="switch" id="bf-include-templates" name="include_templates" value="1"<?= !empty($this->draft['include_templates']) && $mayTransferTemplates ? ' checked' : ''; ?><?= $mayTransferTemplates ? '' : ' disabled'; ?>>
                                 <label class="form-check-label" for="bf-include-templates"<?= $mayTransferTemplates
                                     ? $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_TEMPLATES_TIP')
                                     : ' title="' . htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_TEMPLATES_DENIED', Text::_('JACTION_ADMIN')), ENT_QUOTES, 'UTF-8') . '"'; ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_TEMPLATES'); ?></label>
                             </div>
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="bf-include-integrator" name="include_integrator" value="1"<?= $this->mayTransferIntegrator ? '' : ' disabled'; ?>>
+                                <input class="form-check-input" type="checkbox" role="switch" id="bf-include-integrator" name="include_integrator" value="1"<?= !empty($this->draft['include_integrator']) && $this->mayTransferIntegrator ? ' checked' : ''; ?><?= $this->mayTransferIntegrator ? '' : ' disabled'; ?>>
                                 <label class="form-check-label" for="bf-include-integrator"<?= $labelTip($this->mayTransferIntegrator ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR_TIP' : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR_DENIED'); ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR'); ?></label>
                             </div>
                         </fieldset>
@@ -78,19 +80,23 @@ const bfSelections = document.getElementById('bf-selections');
 
 const bfPackageChoice = document.getElementById('bf-package-choice');
 const bfPackageNew = document.getElementById('bf-package-new');
+const bfPackageNewFlag = document.getElementById('bf-package-new-flag');
 
 const bfPackageDetails = document.getElementById('bf-package-details');
 
 // Nothing shows until the list picks a package. An existing one fills in its
 // details, and one with assigned items lists only those items, all ticked. "New package" shows the ID field.
-const bfShowProfile = () => {
+const bfShowProfile = (preserveValues = false) => {
     const isNew = 'new' in bfPackageChoice.selectedOptions[0].dataset;
-    const id = bfPackageChoice.value;
+    const id = isNew ? '' : bfPackageChoice.value;
     const profile = bfPackageProfiles[id] || {};
     const assigned = Boolean(profile.assigned);
+    bfPackageNewFlag.value = isNew ? '1' : '0';
     bfPackageDetails.classList.toggle('d-none', id === '' && !isNew);
     bfPackageNew.classList.toggle('d-none', !isNew);
-    bfPackage.value = isNew && !bfPackageProfiles[bfPackage.value] ? bfPackage.value : id;
+    if (!preserveValues) {
+        bfPackage.value = isNew && !bfPackageProfiles[bfPackage.value] ? bfPackage.value : id;
+    }
     bfSelections.classList.remove('d-none');
 
     if (isNew) {
@@ -124,7 +130,7 @@ const bfShowProfile = () => {
         const outside = assigned && box.dataset.bfPackage !== id;
         box.disabled = outside;
         box.closest('[data-bf-row]').classList.toggle('d-none', outside);
-        if (assigned) {
+        if (assigned && !preserveValues) {
             box.checked = !outside;
         }
     }
@@ -133,14 +139,17 @@ const bfShowProfile = () => {
         section.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
-    for (const field of ['name', 'version', 'title', 'author', 'email', 'url', 'description', 'copyright']) {
-        document.getElementById('bf-meta-' + field).value = profile[field] || '';
+    if (!preserveValues) {
+        for (const field of ['name', 'version', 'title', 'author', 'email', 'url', 'description', 'copyright']) {
+            document.getElementById('bf-meta-' + field).value = profile[field] || '';
+        }
     }
 };
 
 // Unsaved changes guard, as on the record screen (admin-form-dirty.js): the
 // form is compared with its last loaded or submitted state, without `task`.
 const bfExportForm = document.getElementById('bf-package-export');
+const bfHasExportDraft = 'bfDraft' in bfExportForm.dataset;
 const bfFormState = () => {
     const params = new URLSearchParams(new FormData(bfExportForm));
     params.delete('task');
@@ -157,8 +166,8 @@ let bfSavedState = '';
 let bfChoice = 0;
 let bfSubmitting = false;
 
-const bfLoadProfile = () => {
-    bfShowProfile();
+const bfLoadProfile = (preserveValues = false) => {
+    bfShowProfile(preserveValues);
     bfChoice = bfPackageChoice.selectedIndex;
     bfSavedState = bfFormState();
 };
@@ -231,5 +240,5 @@ window.addEventListener('beforeunload', (event) => {
     }
 });
 
-bfLoadProfile();
+bfLoadProfile(bfHasExportDraft);
 </script>

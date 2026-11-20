@@ -219,6 +219,27 @@ final class PackageTransferArchitectureTest extends TestCase
         $this->assertStringContainsString("\$this->draft['metadata']", $template);
     }
 
+    public function testARefusedExportShowsTheScreenAgainWithTheUserInput(): void
+    {
+        $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $controller = (string) file_get_contents($component . '/src/Controller/PackagesController.php');
+        $view = (string) file_get_contents($component . '/src/View/Packages/HtmlView.php');
+        $template = (string) file_get_contents($component . '/tmpl/packages/export.php');
+
+        self::assertStringContainsString('setUserState(self::EXPORT_DRAFT_STATE', $controller);
+        self::assertStringContainsString('getUserState(PackagesController::EXPORT_DRAFT_STATE', $view);
+        self::assertStringContainsString("\$this->draft['select']", $view);
+        self::assertStringContainsString("\$this->draft['package']", $template);
+        self::assertStringContainsString("\$this->draft['metadata']", $template);
+        self::assertStringContainsString('bfLoadProfile(bfHasExportDraft)', $template);
+        self::assertStringContainsString('PackageTransferModel::NEW_PACKAGE', $template);
+
+        foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $tag) {
+            $ini = (string) file_get_contents($component . '/language/' . $tag . '/com_breezingformsng.ini');
+            self::assertStringContainsString('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_ID_REQUIRED="', $ini, $tag);
+        }
+    }
+
     public function testTheFormListsShowHowManyIntegratorRulesEachFormHas(): void
     {
         $component = __DIR__ . '/../../administrator/components/com_breezingformsng';

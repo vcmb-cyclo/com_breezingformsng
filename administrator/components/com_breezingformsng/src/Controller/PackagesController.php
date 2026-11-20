@@ -25,6 +25,8 @@ use Joomla\Database\DatabaseInterface;
 
 final class PackagesController extends BaseController
 {
+    /** User state holding an export form rejected by server-side validation, shown once. */
+    public const EXPORT_DRAFT_STATE = 'com_breezingformsng.packages.export_draft';
     /** User state holding the report of the last import, shown once by the import page. */
     public const UPDATE_DRAFT_STATE = 'com_breezingformsng.packages.update_draft';
     public const REPORT_STATE = 'com_breezingformsng.packages.import_report';
@@ -55,23 +57,38 @@ final class PackagesController extends BaseController
         $this->checkToken();
         $input = $app->getInput();
         $package = $this->submittedPackage();
+        $formIds = $input->get('forms', [], 'array');
+        $scriptIds = $input->get('scripts', [], 'array');
+        $pieceIds = $input->get('pieces', [], 'array');
+        $menuIds = $input->get('menus', [], 'array');
+        $metadata = $input->get('metadata', [], 'array');
+        // An unchecked switch is not posted: Input returns the default as it is.
+        $withTemplates = $input->getBool('include_templates', false);
+        $withIntegrator = $input->getBool('include_integrator', false);
+        $isNew = $input->getInt('package_new', 0) === 1
+            || $input->getString('selected_package', '') === PackageTransferModel::NEW_PACKAGE;
+        $draft = [
+            'package' => $package,
+            'new' => $isNew,
+            'metadata' => array_map(static fn (mixed $value): string => is_scalar($value) ? (string) $value : '', (array) $metadata),
+            'select' => $this->submittedExportSelection(),
+            'include_templates' => $withTemplates,
+            'include_integrator' => $withIntegrator,
+        ];
 
         if ($package === '') {
-            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED'), 'error');
-            $app->redirect('index.php?option=com_breezingformsng&view=packages&layout=export&package=');
+            $message = $draft['new']
+                ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_ID_REQUIRED'
+                : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED';
+            $app->enqueueMessage(Text::_($message), 'error');
+            $app->setUserState(self::EXPORT_DRAFT_STATE, $draft);
+            $redirectPackage = $draft['new'] ? PackageTransferModel::NEW_PACKAGE : '';
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . $redirectPackage, false));
 
             return;
         }
 
         try {
-            $formIds = $input->get("forms", [], "array");
-            $scriptIds = $input->get("scripts", [], "array");
-            $pieceIds = $input->get("pieces", [], "array");
-            $menuIds = $input->get("menus", [], "array");
-            $metadata = $input->get('metadata', [], 'array');
-            // An unchecked switch is not posted: Input returns the default as it is.
-            $withTemplates = $input->getBool('include_templates', false);
-            $withIntegrator = $input->getBool('include_integrator', false);
             // Template files are PHP code run by the site.
             if ($withTemplates && !$this->mayTransferTemplates()) {
                 throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_TEMPLATES_NOT_ALLOWED', Text::_('JACTION_ADMIN')));
@@ -93,7 +110,9 @@ final class PackagesController extends BaseController
             $app->close();
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . rawurlencode($package), false));
+            $app->setUserState(self::EXPORT_DRAFT_STATE, $draft);
+            $redirectPackage = $draft['new'] ? PackageTransferModel::NEW_PACKAGE : rawurlencode($package);
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . $redirectPackage, false));
         }
     }
 
@@ -479,6 +498,34 @@ final class PackagesController extends BaseController
     private function submittedPackage(): string
     {
         return trim(Factory::getApplication()->getInput()->getString('package', ''));
+    }
+
+    /**
+     * The item identifiers posted by the export form, normalised for redisplay after an error.
+     *
+     * @return array<string, list<int>>
+     */
+    private function submittedExportSelection(): array
+    {
+        $input = Factory::getApplication()->getInput();
+        $selection = [];
+
+        foreach (PackageTransferModel::SELECTABLE_PARTS as $part) {
+            $selection[$part] = [];
+
+            foreach ((array) $input->get($part, [], 'array') as $value) {
+                if (!is_string($value) && !is_int($value)) {
+                    continue;
+                }
+
+                $id = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+                if ($id !== false) {
+                    $selection[$part][] = $id;
+                }
+            }
+        }
+
+        return $selection;
     }
 
     private function assertAuthorised(): void

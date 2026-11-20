@@ -44,7 +44,7 @@ final class HtmlView extends BaseHtmlView
     /** Package preselected in the list, after a save. */
     public string $selectedPackage = '';
 
-    /** The management screen is creating a package: nothing is selected, the identifier is asked. */
+    /** The current screen is creating a package: nothing is selected, the identifier is asked. */
     public bool $isNewPackage = false;
 
     /**
@@ -58,9 +58,9 @@ final class HtmlView extends BaseHtmlView
     public int $attachedCount = 0;
 
     /**
-     * What the user typed and selected when a save was refused, to show it again.
+     * What the user typed and selected when an update or export was refused, to show it again.
      *
-     * @var array{package?: string, metadata?: array<string, string>, select?: array<string, list<int>>}
+     * @var array{package?: string, new?: bool, metadata?: array<string, string>, select?: array<string, list<int>>, include_templates?: bool, include_integrator?: bool}
      */
     public array $draft = [];
     /** Time zone the audit dates are shown in. */
@@ -122,7 +122,7 @@ final class HtmlView extends BaseHtmlView
             }
             $this->packages = $model->getPackages();
             $this->selectedPackage = $app->getInput()->getString('package', '');
-            if ($this->getLayout() === 'update' && $this->selectedPackage === PackageTransferModel::NEW_PACKAGE) {
+            if ($this->selectedPackage === PackageTransferModel::NEW_PACKAGE) {
                 $this->isNewPackage = true;
                 $this->selectedPackage = '';
             }
@@ -154,7 +154,13 @@ final class HtmlView extends BaseHtmlView
                 $app->setUserState(PackagesController::UPDATE_DRAFT_STATE, null);
                 $this->listRows = PackageListRows::forUpdate($this->choices, $this->selectedPackage, $this->draft['select'] ?? []);
             } else {
-                $this->listRows = PackageListRows::forExport($this->choices);
+                /** @var CMSApplication $app */
+                $app = Factory::getApplication();
+                $draft = $app->getUserState(PackagesController::EXPORT_DRAFT_STATE, []);
+                $this->draft = is_array($draft) ? $draft : [];
+                $app->setUserState(PackagesController::EXPORT_DRAFT_STATE, null);
+                $this->isNewPackage = ($this->draft['new'] ?? $this->isNewPackage) === true;
+                $this->listRows = PackageListRows::forExport($this->choices, $this->draft['select'] ?? []);
             }
         }
 

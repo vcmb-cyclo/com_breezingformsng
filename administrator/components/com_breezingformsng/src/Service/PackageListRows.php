@@ -58,18 +58,19 @@ final class PackageListRows
 
     /**
      * Export screen: every item, whatever its package, none ticked (the script ticks those of
-     * the chosen package).
+     * the chosen package), unless a rejected export is being shown again.
      *
      * @param array<string, list<array<string, mixed>>> $choices
+     * @param array<string, list<int>>                    $draftSelect Ticked items of a refused export, by kind.
      * @return array<string, list<Row>>
      */
-    public static function forExport(array $choices): array
+    public static function forExport(array $choices, array $draftSelect = []): array
     {
         $rows = [];
 
         foreach (self::SECTIONS as $section) {
             $rows[$section] = array_map(
-                static fn (array $item): array => self::row($section, $item, false, false, null),
+                static fn (array $item): array => self::row($section, $item, false, null, $draftSelect[$section] ?? null),
                 $choices[$section] ?? []
             );
         }
@@ -85,6 +86,7 @@ final class PackageListRows
             'scripts' => 'index.php?option=com_breezingformsng&task=script.edit&id=' . $id,
             'pieces' => 'index.php?option=com_breezingformsng&task=piece.edit&id=' . $id,
             'menus' => 'index.php?option=com_breezingformsng&task=menu.edit&id=' . $id,
+            default => throw new \InvalidArgumentException('Unknown package item section: ' . $section),
         };
     }
 

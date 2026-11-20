@@ -363,6 +363,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model {
 
     class PackageTransferModel extends RecordingModel
     {
+        public const NEW_PACKAGE = '__new__';
         public const SELECTABLE_PARTS = ['forms', 'scripts', 'pieces', 'menus'];
 
         protected function label(): string
@@ -624,6 +625,7 @@ namespace Fixture {
 
         public function setUserState(string $key, mixed $value): void
         {
+            $GLOBALS['events'][] = ['state' => $key, 'value' => $value];
         }
 
         public function setBody(string $body): void

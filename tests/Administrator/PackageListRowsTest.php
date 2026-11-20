@@ -88,6 +88,15 @@ final class PackageListRowsTest extends TestCase
         }
     }
 
+    public function testARefusedExportRestoresItsTickedItems(): void
+    {
+        $rows = PackageListRows::forExport($this->choices(), ['forms' => [2, 3], 'scripts' => []]);
+
+        self::assertSame([false, true, true], array_column($rows['forms'], 'checked'));
+        self::assertFalse($rows['scripts'][0]['checked']);
+        self::assertFalse($rows['menus'][0]['checked']);
+    }
+
     public function testEachItemLinksToItsOwnEditor(): void
     {
         self::assertSame(
@@ -101,5 +110,12 @@ final class PackageListRowsTest extends TestCase
         self::assertSame('index.php?option=com_breezingformsng&task=script.edit&id=7', PackageListRows::editUrl('scripts', 7, ''));
         self::assertSame('index.php?option=com_breezingformsng&task=piece.edit&id=4', PackageListRows::editUrl('pieces', 4, ''));
         self::assertSame('index.php?option=com_breezingformsng&task=menu.edit&id=9', PackageListRows::editUrl('menus', 9, 'alpha'));
+    }
+
+    public function testAnUnknownItemSectionHasNoEditorUrl(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        PackageListRows::editUrl('unknown', 1, '');
     }
 }
