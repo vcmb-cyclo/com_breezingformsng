@@ -56,6 +56,13 @@ final class PackagesController extends BaseController
         $input = $app->getInput();
         $package = $this->submittedPackage();
 
+        if ($package === '') {
+            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED'), 'error');
+            $app->redirect('index.php?option=com_breezingformsng&view=packages&layout=export&package=');
+
+            return;
+        }
+
         try {
             $formIds = $input->get("forms", [], "array");
             $scriptIds = $input->get("scripts", [], "array");

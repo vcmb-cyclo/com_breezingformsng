@@ -47,6 +47,18 @@ final class QuickmodeOptionsSaveTest extends TestCase
         self::assertStringContainsString("rndAdd = Math.random();\n                            chunki = 0;", $app);
     }
 
+    public function testAnEmptyFormNameFallsBackToTheSanitizedTitle(): void
+    {
+        $model = $this->read('administrator/components/com_breezingformsng/src/Model/QuickmodeModel.php');
+        $properties = $this->read('administrator/components/com_breezingformsng/layouts/quickmode/properties_form.php');
+        $app = $this->read('media/com_breezingformsng/js/admin/quickmode-app.js');
+
+        self::assertStringContainsString('$formName = self::normaliseFormName($formTitle);', $model);
+        self::assertStringContainsString("replace(/[^a-zA-Z0-9]+/g, '_')", $app);
+        self::assertStringContainsString(".toLowerCase()", $app);
+        self::assertStringContainsString('id="bfFormName" required', $properties);
+    }
+
     private function read(string $path): string
     {
         $contents = file_get_contents(__DIR__ . '/../../' . $path);

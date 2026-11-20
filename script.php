@@ -3616,6 +3616,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->migrateLegacyComponentOptionReferences();
 
         $this->migrateDatabase();
+        $this->migrateMissingFormNames();
         $this->convertRecordModifiedDatesToUtc();
 
         return true;
@@ -4039,6 +4040,61 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             && ($collation === null || $column->Collation === $collation);
     }
 
+    /** Fill the technical form name from its title when older data left it empty. */
+    private function migrateMissingFormNames(): void
+    {
+        $db = self::getDatabase();
+        $query = $db->createQuery()
+            ->select($db->quoteName(['id', 'name', 'title', 'package']))
+            ->from($db->quoteName('#__facileforms_forms'))
+            ->order($db->quoteName('id'));
+        $rows = $db->setQuery($query)->loadAssocList() ?: [];
+        $used = [];
+        $count = 0;
+
+        foreach ($rows as $row) {
+            $package = (string) ($row['package'] ?? '');
+            $name = trim((string) ($row['name'] ?? ''));
+            if ($name !== '') {
+                $used[strtolower($package) . "\0" . strtolower($name)] = true;
+            }
+        }
+
+        foreach ($rows as $row) {
+            if (trim((string) ($row['name'] ?? '')) !== '') {
+                continue;
+            }
+
+            $id = (int) ($row['id'] ?? 0);
+            $name = strtolower(trim((string) preg_replace('/[^A-Za-z0-9]+/', '_', trim((string) ($row['title'] ?? ''))), '_'));
+            if ($name === '') {
+                continue;
+            }
+
+            $package = (string) ($row['package'] ?? '');
+            $base = $name;
+            $suffix = 0;
+            while (isset($used[strtolower($package) . "\0" . $name])) {
+                $suffix++;
+                $name = $base . '_' . $suffix;
+            }
+
+            $update = $db->createQuery()
+                ->update($db->quoteName('#__facileforms_forms'))
+                ->set($db->quoteName('name') . ' = :name')
+                ->where($db->quoteName('id') . ' = :id')
+                ->bind(':name', $name, ParameterType::STRING)
+                ->bind(':id', $id, ParameterType::INTEGER);
+            $db->setQuery($update)->execute();
+            $used[strtolower($package) . "\0" . $name] = true;
+            $count++;
+        }
+
+        if ($count > 0) {
+            $this->log('Filled the name of ' . $count . ' form(s) from their title.');
+        }
+    }
+
     private function migrateQuickmodeIconPaths(): void
     {
         $db = self::getDatabase();
@@ -4345,6 +4401,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             if ($type !== 'update') {
                 $this->migrateDatabase();
             }
+            $this->migrateMissingFormNames();
             $this->migrateLegacyConfig();
             $this->retireBackendOnlyForms();
             // The forms, scripts and pieces taken over keep their state as

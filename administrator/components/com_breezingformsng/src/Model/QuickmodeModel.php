@@ -13,6 +13,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
@@ -110,17 +111,38 @@ class QuickmodeModel extends BaseDatabaseModel
         }
 
         $mdata = $this->quickModeNodeProperties($dataObject);
+        $formName = trim((string) ($mdata['name'] ?? ''));
+        $formTitle = trim((string) ($mdata['title'] ?? ''));
+
+        if ($formName === '') {
+            $formName = self::normaliseFormName($formTitle);
+        }
+
+        if ($formName === '') {
+            throw new \InvalidArgumentException(Text::_('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME'));
+        }
+
+        if (preg_match('/^[A-Za-z0-9_]+$/', $formName) !== 1) {
+            throw new \InvalidArgumentException(Text::_('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS'));
+        }
 
         return $this->save2(
             $form,
-            (string) ($mdata['name'] ?? ''),
-            (string) ($mdata['title'] ?? ''),
+            $formName,
+            $formTitle,
             (string) ($mdata['description'] ?? ''),
             base64_encode((string) json_encode($dataObject)),
             $areas->container,
             count($dataObject['children'] ?? []),
             $published
         );
+    }
+
+    private static function normaliseFormName(string $title): string
+    {
+        $name = preg_replace('/[^A-Za-z0-9]+/', '_', trim($title));
+
+        return strtolower(trim((string) $name, '_'));
     }
 
     /**

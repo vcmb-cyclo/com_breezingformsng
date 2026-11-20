@@ -302,6 +302,8 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertStringContainsString('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_EXPORT', $layout);
         $export = substr($controller, (int) strpos($controller, 'public function export('), 2500);
         self::assertStringNotContainsString('savePackage', $export);
+        self::assertStringContainsString("if (\$package === '')", $export);
+        self::assertStringContainsString('view=packages&layout=export&package=', $export);
     }
 
     public function testAnExportCarriesTheActiveScriptsAndPiecesItsFormsCall(): void
