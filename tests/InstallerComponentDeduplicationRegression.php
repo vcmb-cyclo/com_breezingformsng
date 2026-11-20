@@ -12,7 +12,7 @@ foreach (['deduplicateBreezingFormsComponentRows', 'verifyInstalledExtensionCons
     $method = substr($source, $start, $end - $start);
     $method = preg_replace('/\n    \/\*\*.*$/s', '', $method);
     $method = str_replace('private function', 'public function', $method);
-    $method = str_replace('Factory::getContainer()->get(DatabaseInterface::class)', '$this->db', $method);
+    $method = str_replace(['Factory::getContainer()->get(DatabaseInterface::class)', 'self::getDatabase()'], '$this->db', $method);
     $method = str_replace(['Log::ERROR', 'Log::WARNING', 'ParameterType::INTEGER'], ['3', '4', '1'], $method);
     $methods .= $method;
 }
