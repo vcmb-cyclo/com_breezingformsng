@@ -82,8 +82,7 @@ const bfPackageNew = document.getElementById('bf-package-new');
 const bfPackageDetails = document.getElementById('bf-package-details');
 
 // Nothing shows until the list picks a package. An existing one fills in its
-// details, and one with assigned items exports them, so its selection is
-// hidden and cleared. "New package" shows the ID field.
+// details, and one with assigned items lists only those items, all ticked. "New package" shows the ID field.
 const bfShowProfile = () => {
     const isNew = 'new' in bfPackageChoice.selectedOptions[0].dataset;
     const id = bfPackageChoice.value;
@@ -119,14 +118,19 @@ const bfShowProfile = () => {
     }
     document.getElementById('bf-package-audit').classList.toggle('d-none', !hasAudit);
 
-    if (assigned) {
-        for (const box of bfSelections.querySelectorAll('input[type="checkbox"]')) {
-            box.checked = box.dataset.bfPackage === id;
+    // A package that already has items exports them: they can be unticked, and the items of
+    // other packages are out of reach. Any other choice leaves every item selectable.
+    for (const box of bfSelections.querySelectorAll('input[type="checkbox"]')) {
+        const outside = assigned && box.dataset.bfPackage !== id;
+        box.disabled = outside;
+        box.closest('[data-bf-row]').classList.toggle('d-none', outside);
+        if (assigned) {
+            box.checked = !outside;
         }
-        // The lists (package-update.js) refresh their counters on this event.
-        for (const section of bfSelections.querySelectorAll('[data-bf-section]')) {
-            section.dispatchEvent(new Event('change', { bubbles: true }));
-        }
+    }
+    // The lists (package-update.js) refresh their counters on this event.
+    for (const section of bfSelections.querySelectorAll('[data-bf-section]')) {
+        section.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     for (const field of ['name', 'version', 'title', 'author', 'email', 'url', 'description', 'copyright']) {

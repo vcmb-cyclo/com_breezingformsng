@@ -25,6 +25,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\PackageListRows;
  * - rows:      the rows by kind, from PackageListRows.
  * - tracked:   the screen compares with the saved state: rows say "to attach" or "to detach".
  * - showPackage: each row names the package of its item (export, where every item is listed).
+ * - url:        the object editor linked from the object name.
  * - tips:      a tooltip on each list, from COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_<KIND>_TIP.
  *
  * @var array{id: string, fieldName: string, rows: array<string, list<array<string, mixed>>>, tracked: bool, showPackage: bool, tips: bool} $displayData
@@ -76,7 +77,7 @@ $filterLabel = Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_FILTER');
                                 <input class="form-check-input m-0 flex-shrink-0" type="checkbox"
                                     name="<?= $escape(sprintf($displayData['fieldName'], $section)); ?>" value="<?= $row['id']; ?>"
                                     data-bf-package="<?= $escape($row['package']); ?>"<?= $displayData['tracked'] ? ' data-bf-saved="' . ($row['saved'] ? '1' : '0') . '"' : ''; ?><?= $row['checked'] ? ' checked' : ''; ?>>
-                                <span class="flex-grow-1 text-break" data-bf-title><?= $escape($shown); ?></span>
+                                <a class="bf-package-object-link flex-grow-1 text-break" data-bf-title href="<?= $escape($row['url']); ?>" target="_blank" rel="noopener"><?= $escape($shown); ?></a>
                                 <?php if ($displayData['tracked']) : ?>
                                     <span class="badge bg-success d-none" data-bf-flag="attach"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_TO_ATTACH'); ?></span>
                                     <span class="badge bg-warning text-dark d-none" data-bf-flag="detach"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_TO_DETACH'); ?></span>
@@ -84,8 +85,6 @@ $filterLabel = Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_FILTER');
                                 <?php if ($displayData['showPackage']) : ?>
                                     <span class="badge bg-light text-dark border"><?= $escape($row['package'] !== '' ? $row['package'] : Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_GROUP_FREE')); ?></span>
                                 <?php endif; ?>
-                                <a class="btn btn-sm btn-link p-0 flex-shrink-0" href="<?= $escape($row['url']); ?>" target="_blank" rel="noopener"
-                                    aria-label="<?= $escape(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_OPEN_EXISTING_LABEL', $row['title'])); ?>"><span class="icon-external-link" aria-hidden="true"></span></a>
                             </label>
                         <?php endforeach; ?>
                     </div>

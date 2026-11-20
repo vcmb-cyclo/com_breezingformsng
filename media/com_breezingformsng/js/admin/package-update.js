@@ -28,14 +28,16 @@
         var visible = function (box) {
             var row = box.closest('[data-bf-row]');
 
-            return !row || !row.classList.contains('d-none');
+            return !box.disabled && (!row || !row.classList.contains('d-none'));
         };
         var refresh = function () {
             var attached = 0;
             var detached = 0;
 
             sections.forEach(function (section) {
-                var boxes = boxesOf(section);
+                var boxes = boxesOf(section).filter(function (box) {
+                    return !box.disabled;
+                });
                 var toAttach = 0;
                 var toDetach = 0;
                 var ticked = 0;

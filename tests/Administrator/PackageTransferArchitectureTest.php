@@ -254,12 +254,18 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertStringNotContainsString(' multiple', $lists);
         self::assertStringNotContainsString('data-select-all', $export . $lists);
 
-        // Each item opens its own editor in a new tab, by its kind.
+        // The object name itself opens its editor.
+        self::assertStringContainsString('data-bf-title href=', $lists);
+        self::assertStringContainsString('bf-package-object-link', $lists);
         self::assertStringContainsString('target="_blank" rel="noopener"', $lists);
+        self::assertStringNotContainsString('icon-external-link', $lists);
         self::assertStringContainsString('task=quickmode.display&form=', $rows);
         self::assertStringContainsString('task=script.edit&id=', $rows);
         self::assertStringContainsString('task=piece.edit&id=', $rows);
         self::assertStringContainsString('task=menu.edit&id=', $rows);
+        // An existing package with items lists only its own: they can be unticked, the others are out of reach.
+        self::assertStringContainsString("const outside = assigned && box.dataset.bfPackage !== id;", $export);
+        self::assertStringContainsString('box.disabled = outside;', $export);
 
         self::assertStringContainsString("useScript('com_breezingformsng.package-update')", $view);
     }

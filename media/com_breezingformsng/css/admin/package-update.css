@@ -17,3 +17,11 @@
     outline: 2px solid var(--bs-primary);
     outline-offset: -2px;
 }
+
+/* Joomla marks target=_blank links with an external-link arrow. The object name is already
+   the deliberate action target, so keep it visually identical to a normal text link. */
+.bf-package-object-link::after {
+    content: none !important;
+    display: none !important;
+    background-image: none !important;
+}

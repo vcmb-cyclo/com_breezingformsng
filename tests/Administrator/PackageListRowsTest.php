@@ -44,6 +44,7 @@ final class PackageListRowsTest extends TestCase
         self::assertFalse($rows['forms'][1]['saved']);
         self::assertFalse($rows['forms'][1]['checked']);
         self::assertSame(2, $rows['forms'][0]['rules']);
+        self::assertSame('index.php?option=com_breezingformsng&task=quickmode.display&form=3', $rows['forms'][1]['url']);
         self::assertSame([], $rows['pieces']);
         self::assertSame([9], array_column($rows['menus'], 'id'));
     }
@@ -73,6 +74,14 @@ final class PackageListRowsTest extends TestCase
 
         self::assertSame([1, 2, 3], array_column($rows['forms'], 'id'));
         self::assertSame(['alpha', 'beta', ''], array_column($rows['forms'], 'package'));
+        self::assertSame(
+            [
+                'index.php?option=com_breezingformsng&task=quickmode.display&form=1&pkg=alpha',
+                'index.php?option=com_breezingformsng&task=quickmode.display&form=2&pkg=beta',
+                'index.php?option=com_breezingformsng&task=quickmode.display&form=3',
+            ],
+            array_column($rows['forms'], 'url')
+        );
         foreach ($rows['forms'] as $row) {
             self::assertFalse($row['saved']);
             self::assertFalse($row['checked']);
