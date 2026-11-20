@@ -1,13 +1,15 @@
 # TEST_OPTIMIZATION_RESULTS
 
+Mise à jour le 20 novembre 2026 : seuls PHPUnit (PHP 8.5.4 hôte, sans `BFNG_JOOMLA_LIBRARIES`) et PHPStan (niveau 8, 0 erreur) ont été relancés ; les chiffres Browser, E2E et couverture restent ceux du 18 novembre.
+
 Mesures : PHP 8.5.4 hôte (PHPUnit), PHP 8.3 en conteneur (couverture), Joomla 6.2.0 jetable (E2E), chromium. Une seule machine, pas de moyenne statistique.
 
 ## Comparaison
 
 | Indicateur | Avant | Après |
 |---|---|---|
-| Tests PHPUnit | 1328 (6 skipped) | 1328 (**0 skipped** avec `BFNG_JOOMLA_LIBRARIES`) ; suites `unit` 1233 / `characterization` 89 / `integration` 6 |
-| Durée PHPUnit | 5,6 s | inchangée (≈ 6 s) |
+| Tests PHPUnit | 1328 (6 skipped) | 1947 (6 skipped sans `BFNG_JOOMLA_LIBRARIES`, 0 avec le 18 novembre) ; suites `unit` 1841 / `characterization` 100 / `integration` 6 |
+| Durée PHPUnit | 5,6 s | ≈ 13 s (1947 tests) |
 | Tests Browser | 39 OK, 3,8 s | 39 OK, ≈ 4,8 s mur (même ordre ; trace/capture en échec seulement) |
 | Tests E2E | 78 OK, **1 échec**, 4 non exécutés (4,3 min) | **83 OK sur 2 exécutions consécutives** (4,2 min et 4,3 min), 0 flaky |
 | `waitForTimeout` dans les E2E | 11 | **0** |
