@@ -1233,12 +1233,12 @@ final class SubmissionEngine
                             }
 
                             $options = $element['options'];
-                                if (
+                            if (
                                     isset($options['sendNotificationAfterPayment'])
                                     && $options['sendNotificationAfterPayment']
-                                ) {
-                                    $this->processor->sendNotificationAfterPayment = true;
-                                }
+                            ) {
+                                $this->processor->sendNotificationAfterPayment = true;
+                            }
                         }
                     }
             }
@@ -1617,19 +1617,19 @@ final class SubmissionEngine
                                         'string'
                                     );
                                     $ppselect = is_array($rawPpselect) ? $rawPpselect : [];
-                                    if (count($ppselect) != 0) {
-                                        $ppselected = explode(
-                                            '|',
-                                            is_string($ppselect[0] ?? null) ? $ppselect[0] : ''
-                                        );
-                                        if (count($ppselected) == 4) {
-                                            // XDA - BUG : useless with normal itemname
-                                            // Replace item name for Stripe button field with TEXT1 TEXT2 values
-                                            // from bfPaymentSelect text build as TEXT1|TEXT2|MNT1|MNT2
-                                            // $options['itemname'] = $ppselected[0] . ' ' . $ppselected[1];
-                                            $options['amount'] = floatval($ppselected[2]) + floatval($ppselected[3]);
-                                        }
+                                if (count($ppselect) != 0) {
+                                    $ppselected = explode(
+                                        '|',
+                                        is_string($ppselect[0] ?? null) ? $ppselect[0] : ''
+                                    );
+                                    if (count($ppselected) == 4) {
+                                        // XDA - BUG : useless with normal itemname
+                                        // Replace item name for Stripe button field with TEXT1 TEXT2 values
+                                        // from bfPaymentSelect text build as TEXT1|TEXT2|MNT1|MNT2
+                                        // $options['itemname'] = $ppselected[0] . ' ' . $ppselected[1];
+                                        $options['amount'] = floatval($ppselected[2]) + floatval($ppselected[3]);
                                     }
+                                }
 
                                     $options['amount'] = $this->stripeAmount()->comesFromField($options)
                                         ? (int) $this->stripeFieldAmount($options)
@@ -1645,7 +1645,7 @@ final class SubmissionEngine
 
                                     $html = '';
 
-                                    if (!$this->processor->inline) {
+                                if (!$this->processor->inline) {
                                     /*$html .= '<html><head><style> .stripe_checkout_app { height: 580px !important; } </style>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1703,8 +1703,8 @@ final class SubmissionEngine
     transition: box-shadow .15s linear;
     }
     </style></head><body>';*/
-                                        \Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper::load();
-                                    }
+                                    \Vcmb\Component\BreezingformsNG\Administrator\Helper\VendorHelper::load();
+                                }
                                     \Stripe\Stripe::setApiKey($options['secretKey']);
                                     $stripeemail = strtolower(($this->processor->app->getInput()->get(
                                         'ff_nm_' . $options['emailfield'],
@@ -1714,14 +1714,14 @@ final class SubmissionEngine
                                     $returnurl = Uri::root()
                                         . "index.php?option=com_breezingformsng&confirmStripe=true&form_id="
                                         . $this->processor->form . "&record_id=" . $this->processor->record_id;
-                                    if (isset($options['emailfield']) && $options['emailfield'] !== '') {
-                                        $stripeemail = strtolower(($this->processor->app->getInput()->get(
-                                            'ff_nm_' . $options['emailfield'],
-                                            '',
-                                            'string'
-                                        )[0] ?? ''));
-                                        $this->processor->app->getSession()->set('emailfield', $stripeemail);
-                                    }
+                                if (isset($options['emailfield']) && $options['emailfield'] !== '') {
+                                    $stripeemail = strtolower(($this->processor->app->getInput()->get(
+                                        'ff_nm_' . $options['emailfield'],
+                                        '',
+                                        'string'
+                                    )[0] ?? ''));
+                                    $this->processor->app->getSession()->set('emailfield', $stripeemail);
+                                }
 
                                     $productName = $options['itemname'];
 
@@ -1732,66 +1732,66 @@ final class SubmissionEngine
     //      billing_address_collection' => 'required' -> 'auto'
     // ---------------------------------------------------------------------------------------------------------------
 
-                                    if (trim((string) ($options['webhookSecret'] ?? '')) === '') {
-                                        Log::add(
-                                            'Form ' . (int) $this->processor->form
-                                            . ': its Stripe element has no webhook signing secret,'
-                                            . ' so a payment is recorded only if the customer comes back to the site.',
-                                            Log::WARNING,
-                                            'com_breezingformsng'
-                                        );
-                                    }
+                                if (trim((string) ($options['webhookSecret'] ?? '')) === '') {
+                                    Log::add(
+                                        'Form ' . (int) $this->processor->form
+                                        . ': its Stripe element has no webhook signing secret,'
+                                        . ' so a payment is recorded only if the customer comes back to the site.',
+                                        Log::WARNING,
+                                        'com_breezingformsng'
+                                    );
+                                }
 
                                     $excludedPaymentMethods = (new StripePaymentMethods())->excluded($options);
 
-                                    try {
-                                        $checkout_session = \Stripe\Checkout\Session::create(($excludedPaymentMethods !== []
-                                            ? ['excluded_payment_method_types' => $excludedPaymentMethods]
-                                            : []) + [
-                                            'customer_email' => $stripeemail,
-                                            'billing_address_collection' => 'auto',
-                                            /*
-                                            'line_items' => [[
-                                              'price' => 'price_1JYA3UDkYxK6vMJ2QF2S6fNh',
-                                              'quantity' => 1,
-                                              //'description' => var_dump($stripeemail);
-                                            ]],*/
-                                            'line_items' => [
-                                                [
-                                                    'price_data' => [
-                                                        'currency' => strtolower($this->stripeAmount()->currency($options)),
-                                                        'product_data' => [
-                                                            'name' => "$productName",
-                                                        ],
-                                                        'unit_amount' => $options['amount'],
+                                try {
+                                    $checkout_session = \Stripe\Checkout\Session::create(($excludedPaymentMethods !== []
+                                        ? ['excluded_payment_method_types' => $excludedPaymentMethods]
+                                        : []) + [
+                                        'customer_email' => $stripeemail,
+                                        'billing_address_collection' => 'auto',
+                                        /*
+                                        'line_items' => [[
+                                          'price' => 'price_1JYA3UDkYxK6vMJ2QF2S6fNh',
+                                          'quantity' => 1,
+                                          //'description' => var_dump($stripeemail);
+                                        ]],*/
+                                        'line_items' => [
+                                            [
+                                                'price_data' => [
+                                                    'currency' => strtolower($this->stripeAmount()->currency($options)),
+                                                    'product_data' => [
+                                                        'name' => "$productName",
                                                     ],
-                                                    'quantity' => 1,
-                                                ]
-                                            ],
-                                            'mode' => 'payment',
-                                            // Ties the session to its record for the return and the webhook.
-                                            'client_reference_id' => (string) $this->processor->record_id,
-                                            'metadata' => [
-                                                'form_id' => (string) $this->processor->form,
-                                                'record_id' => (string) $this->processor->record_id,
-                                            ],
-                                            'success_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
-                                            'cancel_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
-                                        ]);
-                                    } catch (\Stripe\Exception\ApiErrorException $e) {
-                                        // Currency not accepted, amount too low, invalid key: show an
-                                        // error instead of a fatal.
-                                        Log::add(
-                                            'Stripe Checkout: ' . $e->getMessage(),
-                                            Log::ERROR,
-                                            'com_breezingformsng'
-                                        );
-                                        $tx_token = '';
-                                        $msg = Text::_('COM_BREEZINGFORMSNG_STRIPE_CHECKOUT_FAILED');
-                                        require JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php';
+                                                    'unit_amount' => $options['amount'],
+                                                ],
+                                                'quantity' => 1,
+                                            ]
+                                        ],
+                                        'mode' => 'payment',
+                                        // Ties the session to its record for the return and the webhook.
+                                        'client_reference_id' => (string) $this->processor->record_id,
+                                        'metadata' => [
+                                            'form_id' => (string) $this->processor->form,
+                                            'record_id' => (string) $this->processor->record_id,
+                                        ],
+                                        'success_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
+                                        'cancel_url' => $returnurl . "&session_id={CHECKOUT_SESSION_ID}",
+                                    ]);
+                                } catch (\Stripe\Exception\ApiErrorException $e) {
+                                    // Currency not accepted, amount too low, invalid key: show an
+                                    // error instead of a fatal.
+                                    Log::add(
+                                        'Stripe Checkout: ' . $e->getMessage(),
+                                        Log::ERROR,
+                                        'com_breezingformsng'
+                                    );
+                                    $tx_token = '';
+                                    $msg = Text::_('COM_BREEZINGFORMSNG_STRIPE_CHECKOUT_FAILED');
+                                    require JPATH_SITE . '/components/com_breezingformsng/downloadtpl/error.php';
 
-                                        break 3;
-                                    }
+                                    break 3;
+                                }
 
                                     $this->processor->app->redirect((string) $checkout_session->url, 303);
 
@@ -1801,26 +1801,26 @@ final class SubmissionEngine
 
                                     $locale = 'auto';
 
-                                    if (
+                                if (
                                         in_array(
                                             strtolower($exploded[0]),
                                             array('zh', 'nl', 'en', 'fr', 'de', 'it', 'ja', 'es')
                                         )
-                                    ) {
-                                        $locale = strtolower($exploded[0]);
-                                    }
+                                ) {
+                                    $locale = strtolower($exploded[0]);
+                                }
 
                                     $returnurl = Uri::root()
                                         . "index.php?option=com_breezingformsng&confirmStripe=true&form_id="
                                         . $this->processor->form . "&record_id=" . $this->processor->record_id;
-                                    if (isset($options['emailfield']) && $options['emailfield'] !== '') {
-                                        $stripeemail = strtolower(($this->processor->app->getInput()->get(
-                                            'ff_nm_' . $options['emailfield'],
-                                            '',
-                                            'string'
-                                        )[0] ?? ''));
-                                        $this->processor->app->getSession()->set('emailfield', $stripeemail);
-                                    }
+                                if (isset($options['emailfield']) && $options['emailfield'] !== '') {
+                                    $stripeemail = strtolower(($this->processor->app->getInput()->get(
+                                        'ff_nm_' . $options['emailfield'],
+                                        '',
+                                        'string'
+                                    )[0] ?? ''));
+                                    $this->processor->app->getSession()->set('emailfield', $stripeemail);
+                                }
 
                                     $html .= '
                         
@@ -1870,12 +1870,12 @@ final class SubmissionEngine
 			                	
 			                	';
 
-                                    if (!$this->processor->inline) {
-                                        $html .= "</form>"
-                                            . "<div style='margin-top: 25%; text-align: center; width: 100%;'>"
-                                            . "<button class='thebutton' onclick='handler.open(options);'>"
-                                            . "Click To Pay</button></body></div></html>";
-                                    }
+                                if (!$this->processor->inline) {
+                                    $html .= "</form>"
+                                        . "<div style='margin-top: 25%; text-align: center; width: 100%;'>"
+                                        . "<button class='thebutton' onclick='handler.open(options);'>"
+                                        . "Click To Pay</button></body></div></html>";
+                                }
 
                                     echo $html;
                                     // Return and webhook use this same first Stripe element.
