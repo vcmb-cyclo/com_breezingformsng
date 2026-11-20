@@ -157,7 +157,7 @@ final class McpQuickModeTree
         $form = $this->options->getForm($formId);
         $template = $this->quickmode->getTemplateCode($formId);
         if (
-            $form === null || (string) ($form->package ?? '') !== 'QuickModeForms'
+            $form === null
             || (string) ($form->template_code_processed ?? '') !== 'QuickMode' || strlen($template) > 500000
         ) {
             throw new ToolException('Only QuickMode forms with a supported simple field structure can be edited here.');
