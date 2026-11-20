@@ -8,7 +8,7 @@
         "ext-bcmath": "*",
         "gregwar/captcha": "^2.1",
         "phpoffice/phpspreadsheet": "^5.8",
-        "stripe/stripe-php": "^22.0",
+        "stripe/stripe-php": "^23.0",
         "tecnickcom/tc-lib-pdf": "^8"
     },
     "config": {
