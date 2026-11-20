@@ -340,6 +340,27 @@ final class PackageTransferModel extends BaseDatabaseModel
     }
 
     /**
+     * How many items (forms, scripts, pieces, menus) are attached to a package,
+     * trashed ones included: they are detached too when the package is removed.
+     */
+    public function countPackageItems(string $package): int
+    {
+        $db = $this->getDatabase();
+        $total = 0;
+
+        foreach (['#__facileforms_forms', '#__facileforms_scripts', '#__facileforms_pieces', '#__facileforms_compmenus'] as $table) {
+            $query = $db->createQuery()
+                ->select('COUNT(*)')
+                ->from($db->quoteName($table))
+                ->where($db->quoteName('package') . ' = :package')
+                ->bind(':package', $package);
+            $total += (int) $db->setQuery($query)->loadResult();
+        }
+
+        return $total;
+    }
+
+    /**
      * Removes a package and its assignments. The attached records remain.
      */
     public function removePackage(string $package): bool
@@ -1186,8 +1207,8 @@ final class PackageTransferModel extends BaseDatabaseModel
         $missingPieces = array_keys(array_diff_key($needed['piece'], $present['piece']));
 
         return [
-            array_merge($scripts, $this->loadRowsByIds('#__facileforms_scripts', $missingScripts, true)),
-            array_merge($pieces, $this->loadRowsByIds('#__facileforms_pieces', $missingPieces, true)),
+            array_values(array_merge($scripts, $this->loadRowsByIds('#__facileforms_scripts', $missingScripts, true))),
+            array_values(array_merge($pieces, $this->loadRowsByIds('#__facileforms_pieces', $missingPieces, true))),
         ];
     }
 

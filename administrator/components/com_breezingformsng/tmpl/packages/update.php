@@ -109,7 +109,7 @@ $metadataFields = [
                             </td></tr></tbody>
                         </table>
                         <p class="alert alert-info"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_HINT'); ?></p>
-                        <div class="row g-4" id="bf-package-sections">
+                        <div class="row g-4" id="bf-package-sections" data-bf-lists>
                             <?php foreach ($sections as $section => $label) : ?>
                                 <?php
                                 $members = [];
@@ -154,6 +154,12 @@ $metadataFields = [
                                                     $title = (string) ($item['title'] ?: $item['name']);
                                                     $rules = (int) ($item['rules'] ?? 0);
                                                     $saved = in_array($id, $memberIds, true);
+                                                    $editUrl = match ($section) {
+                                                        'forms' => 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . $id . ($saved ? '&pkg=' . rawurlencode($this->selectedPackage) : ''),
+                                                        'scripts' => 'index.php?option=com_breezingformsng&task=script.edit&id=' . $id,
+                                                        'pieces' => 'index.php?option=com_breezingformsng&task=piece.edit&id=' . $id,
+                                                        'menus' => 'index.php?option=com_breezingformsng&task=menu.edit&id=' . $id,
+                                                    };
                                                     $checked = isset($this->draft['select'][$section]) ? in_array($id, $this->draft['select'][$section], true) : $saved;
                                                     ?>
                                                     <label class="list-group-item d-flex align-items-center gap-2 py-2 bf-package-row<?= $checked ? ' row-selected' : ''; ?>" data-bf-row>
@@ -163,6 +169,8 @@ $metadataFields = [
                                                         <span class="flex-grow-1 text-break" data-bf-title><?= htmlspecialchars($title . ($rules > 0 ? ' (' . Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INTEGRATOR_RULES_COUNT', $rules) . ')' : ''), ENT_QUOTES, 'UTF-8'); ?></span>
                                                         <span class="badge bg-success d-none" data-bf-flag="attach"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_TO_ATTACH'); ?></span>
                                                         <span class="badge bg-warning text-dark d-none" data-bf-flag="detach"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_TO_DETACH'); ?></span>
+                                                        <a class="btn btn-sm btn-link p-0 flex-shrink-0" href="<?= htmlspecialchars($editUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener"
+                                                            aria-label="<?= htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_OPEN_EXISTING_LABEL', $title), ENT_QUOTES, 'UTF-8'); ?>"><span class="icon-external-link" aria-hidden="true"></span></a>
                                                     </label>
                                                 <?php endforeach; ?>
                                             </div>

@@ -20,7 +20,7 @@ use Joomla\Database\ParameterType;
 
 /**
  * The sample forms shipped with the component: where their package file is, whether
- * one is installed, and its entry in the site menu ("Tests" > the form).
+ * one is installed, and its entry in the site menu ("Samples" > the form).
  */
 final class SampleFormService
 {
@@ -29,7 +29,7 @@ final class SampleFormService
     /** Package of the samples installed by the earlier versions, which are still recognised. */
     public const LEGACY_FORM_PACKAGE_NAME = 'QuickModeForms';
     public const FORM_TITLE = 'Sample contact form';
-    public const MENU_PARENT_TITLE = 'Tests';
+    public const MENU_PARENT_TITLE = 'Samples';
     public const DEFAULT_SAMPLE = 'contact';
 
     /**
@@ -155,7 +155,7 @@ final class SampleFormService
     }
 
     /**
-     * Makes sure the site menu has a "Tests" entry with the sample form under it.
+     * Makes sure the site menu has a "Samples" entry with the sample form under it.
      *
      * @return int Id of the menu item of the sample form
      */

@@ -10,11 +10,11 @@
      * names of the fields and the server side do not change.
      */
     function initialize() {
-        var form = document.getElementById('bf-package-update');
+        var form = document.querySelector('[data-bf-lists]');
         var summary = document.getElementById('bf-package-summary');
         var reset = document.getElementById('bf-package-reset');
 
-        if (!form || !summary) {
+        if (!form) {
             return;
         }
 
@@ -51,9 +51,18 @@
                     toDetach += detach ? 1 : 0;
 
                     if (row) {
+                        var attachFlag = row.querySelector('[data-bf-flag="attach"]');
+                        var detachFlag = row.querySelector('[data-bf-flag="detach"]');
+
                         row.classList.toggle('row-selected', box.checked);
-                        row.querySelector('[data-bf-flag="attach"]').classList.toggle('d-none', !attach);
-                        row.querySelector('[data-bf-flag="detach"]').classList.toggle('d-none', !detach);
+
+                        if (attachFlag) {
+                            attachFlag.classList.toggle('d-none', !attach);
+                        }
+
+                        if (detachFlag) {
+                            detachFlag.classList.toggle('d-none', !detach);
+                        }
                     }
                 });
 
@@ -72,11 +81,13 @@
                 detached += toDetach;
             });
 
-            summary.textContent = attached + detached === 0
-                ? text('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_NO_CHANGES')
-                : text('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_PENDING_CHANGES')
-                    .replace('%1$d', String(attached))
-                    .replace('%2$d', String(detached));
+            if (summary) {
+                summary.textContent = attached + detached === 0
+                    ? text('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_NO_CHANGES')
+                    : text('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_PENDING_CHANGES')
+                        .replace('%1$d', String(attached))
+                        .replace('%2$d', String(detached));
+            }
 
             if (reset) {
                 reset.hidden = attached + detached === 0;
@@ -109,14 +120,18 @@
                     var needle = filter.value.trim().toLowerCase();
 
                     Array.prototype.forEach.call(section.querySelectorAll('[data-bf-row]'), function (row) {
-                        var title = row.querySelector('[data-bf-title]').textContent.toLowerCase();
+                        var title = (row.getAttribute('data-bf-search') || row.querySelector('[data-bf-title]').textContent).toLowerCase();
 
                         row.classList.toggle('d-none', needle !== '' && title.indexOf(needle) === -1);
                     });
                 });
 
-                // The filter is not a field of the form.
-                filter.removeAttribute('name');
+                // Enter filters, it does not submit the form (the export would start).
+                filter.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                    }
+                });
             }
         });
 

@@ -91,7 +91,7 @@ final class PackagesController extends BaseController
     }
 
     /**
-     * Installs the sample forms ticked on the Tools screen, and puts each in the site menu under "Tests".
+     * Installs the sample forms ticked on the Tools screen, and puts each in the site menu under "Samples".
      * It never overwrites an installed sample: the form may have been edited.
      */
     public function installSample(): void

@@ -230,6 +230,47 @@ final class PackageTransferArchitectureTest extends TestCase
         }
     }
 
+    public function testTheExportScreenListsItsItemsAsCheckboxesWithLinks(): void
+    {
+        $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $export = (string) file_get_contents($component . '/tmpl/packages/export.php');
+        $update = (string) file_get_contents($component . '/tmpl/packages/update.php');
+        $view = (string) file_get_contents($component . '/src/View/Packages/HtmlView.php');
+
+        self::assertStringContainsString('name="<?= $section; ?>[]"', $export);
+        self::assertStringContainsString('data-bf-lists', $export);
+        self::assertStringNotContainsString(' multiple', $export);
+        self::assertStringNotContainsString('data-select-all', $export);
+
+        foreach ([$export, $update] as $layout) {
+            // Each item opens its own editor in a new tab, by its kind.
+            self::assertStringContainsString('target="_blank" rel="noopener"', $layout);
+            self::assertStringContainsString("'forms' => 'index.php?option=com_breezingformsng&task=quickmode.display&form='", $layout);
+            self::assertStringContainsString('task=script.edit&id=', $layout);
+            self::assertStringContainsString('task=piece.edit&id=', $layout);
+            self::assertStringContainsString('task=menu.edit&id=', $layout);
+        }
+
+        self::assertStringContainsString("useScript('com_breezingformsng.package-update')", $view);
+    }
+
+    public function testRemovingAPackageAsksWithTheNumberOfItsAttachedItems(): void
+    {
+        $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $view = (string) file_get_contents($component . '/src/View/Packages/HtmlView.php');
+
+        self::assertStringContainsString("Text::plural('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE_CONFIRM', \$this->attachedCount)", $view);
+        self::assertStringContainsString('$model->countPackageItems($this->selectedPackage)', $view);
+
+        foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $tag) {
+            $ini = (string) file_get_contents($component . '/language/' . $tag . '/com_breezingformsng.ini');
+            foreach (['', '_1', '_0'] as $suffix) {
+                self::assertStringContainsString('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE_CONFIRM' . $suffix . '="', $ini, $tag . $suffix);
+            }
+            self::assertMatchesRegularExpression('/PACKAGE_TRANSFER_REMOVE_CONFIRM="[^"]*%d/', $ini, $tag);
+        }
+    }
+
     public function testTheExportScreenOnlyDownloadsAFile(): void
     {
         $component = __DIR__ . '/../../administrator/components/com_breezingformsng';

@@ -101,21 +101,59 @@ $auditModified = static function (mixed $date, mixed $author) use ($auditDate, $
                             </div>
                             </td></tr></tbody>
                         </table>
-                        <div class="row g-4" id="bf-selections">
+                        <div class="row g-4" id="bf-selections" data-bf-lists>
                             <?php foreach ($sections as $section => $label) : ?>
+                                <?php $rows = $this->choices[$section] ?? []; ?>
                                 <div class="col-12 col-lg-6">
-                                    <label class="form-label" for="bf-<?= $section; ?>"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_' . strtoupper($section) . '_TIP'); ?>><?= Text::_($label); ?></label>
-                                    <select class="form-select" id="bf-<?= $section; ?>" name="<?= $section; ?>[]" multiple size="14">
-                                        <?php foreach ($this->choices[$section] as $item) : ?>
-                                            <?php $name = (string) ($item["title"] ?: $item["name"]); ?>
-                                            <?php $rules = (int) ($item["rules"] ?? 0); ?>
-                                            <option value="<?= (int) $item["id"]; ?>"><?= htmlspecialchars((string) $item["package"] . " :: " . $name . ($rules > 0 ? " (" . Text::sprintf("COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INTEGRATOR_RULES_COUNT", $rules) . ")" : ""), ENT_QUOTES, "UTF-8"); ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <div class="mt-2">
-                                        <button class="btn btn-sm btn-secondary" data-select-all="bf-<?= $section; ?>" type="button"><?= Text::_("COM_BREEZINGFORMSNG_INSTALLER_SELECTALL"); ?></button>
-                                        <button class="btn btn-sm btn-secondary" data-clear-selection="bf-<?= $section; ?>" type="button"><?= Text::_("COM_BREEZINGFORMSNG_INSTALLER_CLRSELECTION"); ?></button>
-                                    </div>
+                                    <fieldset class="card h-100<?= $rows === [] ? ' opacity-50' : ''; ?>" data-bf-section="<?= $section; ?>"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_' . strtoupper($section) . '_TIP'); ?>>
+                                        <legend class="card-header d-flex flex-wrap align-items-center gap-2 float-none w-100 mb-0 fs-5">
+                                            <?= Text::_($label); ?>
+                                            <span class="badge bg-secondary" data-bf-count></span>
+                                            <?php if ($rows !== []) : ?>
+                                                <span class="ms-auto">
+                                                    <button class="btn btn-sm btn-link" type="button" data-bf-all><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_ALL'); ?></button>
+                                                    <button class="btn btn-sm btn-link" type="button" data-bf-none><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_NONE'); ?></button>
+                                                </span>
+                                            <?php endif; ?>
+                                        </legend>
+                                        <?php if ($rows === []) : ?>
+                                            <p class="card-body fst-italic text-body-secondary mb-0"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_NO_ITEMS'); ?></p>
+                                        <?php else : ?>
+                                            <?php if (count($rows) > 15) : ?>
+                                                <div class="card-body border-bottom py-2">
+                                                    <input type="search" class="form-control form-control-sm" data-bf-filter
+                                                        aria-label="<?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_FILTER'); ?>"
+                                                        placeholder="<?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_FILTER'); ?>">
+                                                </div>
+                                            <?php endif; ?>
+                                            <div class="list-group list-group-flush overflow-auto bf-package-list">
+                                                <?php foreach ($rows as $item) : ?>
+                                                    <?php
+                                                    $id = (int) $item['id'];
+                                                    $itemPackage = (string) $item['package'];
+                                                    $title = (string) ($item['title'] ?: $item['name']);
+                                                    $rules = (int) ($item['rules'] ?? 0);
+                                                    $shown = $title . ($rules > 0 ? ' (' . Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INTEGRATOR_RULES_COUNT', $rules) . ')' : '');
+                                                    $editUrl = match ($section) {
+                                                        'forms' => 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . $id . ($itemPackage !== '' ? '&pkg=' . rawurlencode($itemPackage) : ''),
+                                                        'scripts' => 'index.php?option=com_breezingformsng&task=script.edit&id=' . $id,
+                                                        'pieces' => 'index.php?option=com_breezingformsng&task=piece.edit&id=' . $id,
+                                                        'menus' => 'index.php?option=com_breezingformsng&task=menu.edit&id=' . $id,
+                                                    };
+                                                    ?>
+                                                    <label class="list-group-item d-flex align-items-center gap-2 py-2 bf-package-row" data-bf-row
+                                                        data-bf-search="<?= htmlspecialchars($itemPackage . ' ' . $shown, ENT_QUOTES, 'UTF-8'); ?>">
+                                                        <input class="form-check-input m-0 flex-shrink-0" type="checkbox"
+                                                            name="<?= $section; ?>[]" value="<?= $id; ?>" data-bf-package="<?= htmlspecialchars($itemPackage, ENT_QUOTES, 'UTF-8'); ?>">
+                                                        <span class="flex-grow-1 text-break" data-bf-title><?= htmlspecialchars($shown, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                        <span class="badge bg-light text-dark border"><?= htmlspecialchars($itemPackage !== '' ? $itemPackage : Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_GROUP_FREE'), ENT_QUOTES, 'UTF-8'); ?></span>
+                                                        <a class="btn btn-sm btn-link p-0 flex-shrink-0" href="<?= htmlspecialchars($editUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener"
+                                                            aria-label="<?= htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_OPEN_EXISTING_LABEL', $title), ENT_QUOTES, 'UTF-8'); ?>"><span class="icon-external-link" aria-hidden="true"></span></a>
+                                                    </label>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </fieldset>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -204,8 +242,12 @@ const bfShowProfile = () => {
     document.getElementById('bf-package-audit').classList.toggle('d-none', !hasAudit);
 
     if (assigned) {
-        for (const option of bfSelections.querySelectorAll('option')) {
-            option.selected = option.textContent.startsWith(id + ' :: ');
+        for (const box of bfSelections.querySelectorAll('input[type="checkbox"]')) {
+            box.checked = box.dataset.bfPackage === id;
+        }
+        // The lists (package-update.js) refresh their counters on this event.
+        for (const section of bfSelections.querySelectorAll('[data-bf-section]')) {
+            section.dispatchEvent(new Event('change', { bubbles: true }));
         }
     }
 
@@ -308,16 +350,4 @@ window.addEventListener('beforeunload', (event) => {
 });
 
 bfLoadProfile();
-
-document.addEventListener('click', (event) => {
-    const button = event.target.closest('button[data-select-all], button[data-clear-selection]');
-    if (!button) {
-        return;
-    }
-
-    const select = document.getElementById(button.dataset.selectAll || button.dataset.clearSelection);
-    for (const option of select.options) {
-        option.selected = Boolean(button.dataset.selectAll);
-    }
-});
 </script>

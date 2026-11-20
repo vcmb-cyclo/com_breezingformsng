@@ -17,7 +17,7 @@ namespace Vcmb\Component\BreezingformsNG\Tests\Administrator;
 use PHPUnit\Framework\TestCase;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\SampleFormService;
 
-/** The site menu entry of the sample form: "Tests", then the form, and nothing else. */
+/** The site menu entry of the sample form: "Samples", then the form, and nothing else. */
 final class SampleFormServiceTest extends TestCase
 {
     private function source(): string
@@ -27,11 +27,11 @@ final class SampleFormServiceTest extends TestCase
         );
     }
 
-    public function testTheMenuHasATestsSeparatorWithTheFormUnderIt(): void
+    public function testTheMenuHasASamplesSeparatorWithTheFormUnderIt(): void
     {
         $source = $this->source();
 
-        self::assertStringContainsString("MENU_PARENT_TITLE = 'Tests'", $source);
+        self::assertStringContainsString("MENU_PARENT_TITLE = 'Samples'", $source);
         self::assertStringContainsString("'type' => 'separator'", $source);
         self::assertStringContainsString("'ff_com_name' => \$this->formName()", $source);
         self::assertStringContainsString("'link' => self::FORM_LINK", $source);

@@ -17,6 +17,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Toolbar\Button\ConfirmButton;
 use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Controller\PackagesController;
 use Vcmb\Component\BreezingformsNG\Administrator\Mcp\McpAvailability;
@@ -44,6 +45,9 @@ final class HtmlView extends BaseHtmlView
 
     /** The management screen is creating a package: nothing is selected, the identifier is asked. */
     public bool $isNewPackage = false;
+
+    /** Items attached to the selected package, to say what removing it detaches. */
+    public int $attachedCount = 0;
 
     /**
      * What the user typed and selected when a save was refused, to show it again.
@@ -123,9 +127,16 @@ final class HtmlView extends BaseHtmlView
                     if (!in_array($this->selectedPackage, $this->packages, true)) {
                         throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'), 404);
                     }
+                    $this->attachedCount = $model->countPackageItems($this->selectedPackage);
                 }
             }
             $this->choices = $model->getExportChoices();
+            $this->getDocument()->getWebAssetManager()
+                ->useStyle('com_breezingformsng.package-update-style')
+                ->useScript('com_breezingformsng.package-update');
+            foreach (['NO_CHANGES', 'PENDING_CHANGES'] as $key) {
+                Text::script('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_' . $key);
+            }
 
             if ($this->getLayout() === 'update') {
                 /** @var CMSApplication $app */
@@ -133,12 +144,6 @@ final class HtmlView extends BaseHtmlView
                 $draft = $app->getUserState(PackagesController::UPDATE_DRAFT_STATE, []);
                 $this->draft = is_array($draft) ? $draft : [];
                 $app->setUserState(PackagesController::UPDATE_DRAFT_STATE, null);
-                $this->getDocument()->getWebAssetManager()
-                    ->useStyle('com_breezingformsng.package-update-style')
-                    ->useScript('com_breezingformsng.package-update');
-                foreach (['NO_CHANGES', 'PENDING_CHANGES'] as $key) {
-                    Text::script('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_' . $key);
-                }
             }
         }
 
@@ -277,9 +282,11 @@ final class HtmlView extends BaseHtmlView
                         ->icon('icon-check');
                 }
                 if ($this->selectedPackage !== '') {
-                    $toolbar->confirmButton('delete', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE', 'packages.remove')
+                    /** @var ConfirmButton $removeButton */
+                    $removeButton = $toolbar->confirmButton('delete', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE', 'packages.remove');
+                    $removeButton
+                        ->message(Text::plural('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE_CONFIRM', $this->attachedCount))
                         ->form('bf-package-remove')
-                        ->message('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE_CONFIRM')
                         ->icon('icon-trash');
                 }
                 $toolbar->linkButton('close', 'JTOOLBAR_CANCEL')->url($home)->icon('icon-times');
