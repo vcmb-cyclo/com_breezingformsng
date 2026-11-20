@@ -516,7 +516,10 @@ final class DatabaseAuditService
      */
     private function addFormOfOrphanValues(array $groups): array
     {
-        $ids = array_values(array_map(static fn (array $group): int => self::intValue($group['parent_id'] ?? 0), $groups));
+        $ids = array_values(array_map(
+            static fn (array $group): int => self::intValue($group['parent_id'] ?? 0),
+            $groups
+        ));
 
         if ($ids === []) {
             return $groups;
@@ -925,7 +928,8 @@ final class DatabaseAuditService
             if ($name === '') {
                 continue;
             }
-            $publishedByName[$name] = ($publishedByName[$name] ?? false) || self::intValue($formRow['published'] ?? 0) === 1;
+            $publishedByName[$name] = ($publishedByName[$name] ?? false)
+                || self::intValue($formRow['published'] ?? 0) === 1;
         }
 
         foreach ($menus as $menu) {

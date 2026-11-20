@@ -178,7 +178,7 @@ $ff_request = array();
                 $parprv = self::stringValue($params->get('ff_com_parprv', ''));
                 $ff_request = array_replace(
                     $ff_request,
-            $this->requestParameterParser->parse(self::stringValue($params->get('ff_com_parpub', '')))
+                    $this->requestParameterParser->parse(self::stringValue($params->get('ff_com_parpub', '')))
                 );
             }
         } // if
@@ -258,8 +258,8 @@ $ff_request = array();
 
         $session = $this->application->getSession();
         $contentId = $this->application->getInput()->getInt('ff_contentid', 0);
-        $formName = self::formString($form, 'name');
-        $formTitle = self::formString($form, 'title');
+            $formName = self::formString($form, 'name');
+            $formTitle = self::formString($form, 'title');
         $pluginEditableKey = 'ff_editablePlg' . $contentId . $formName;
         $pluginEditableOverrideKey = 'ff_editable_overridePlg' . $contentId . $formName;
 
@@ -305,9 +305,9 @@ $ff_request = array();
                 $this->requestParameterParser->parse((string) $parprv)
             );
         if ($my_ff_params) {
-            $inputValues = $this->application->getInput()->getArray();
+                $inputValues = $this->application->getInput()->getArray();
             if (!is_array($inputValues)) {
-                $inputValues = [];
+                    $inputValues = [];
             }
             foreach (array_keys($inputValues) as $prop) {
                 if (str_starts_with((string) $prop, 'ff_param_')) {
@@ -339,9 +339,9 @@ $ff_request = array();
             } // switch
             if ($top > 0)
                 $divstyle .= 'padding-top:' . htmlentities((string) $top, ENT_QUOTES, 'UTF-8') . 'px;';
-            $formWidth = self::formString($form, 'width');
-            $formWidthMode = self::formInt($form, 'widthmode');
-            $formHeightMode = self::formInt($form, 'heightmode');
+                    $formWidth = self::formString($form, 'width');
+                    $formWidthMode = self::formInt($form, 'widthmode');
+                    $formHeightMode = self::formInt($form, 'heightmode');
             $framewidth = 'width="' . htmlentities($formWidth . ($formWidthMode ? '%' : ''), ENT_QUOTES, 'UTF-8') . '" ';
             $frameheight = '';
             if (!$formHeightMode)
@@ -366,7 +366,7 @@ $ff_request = array();
             foreach ($ff_request as $prop => $val)
                 $url .= '&amp;' . htmlentities((string) $prop, ENT_QUOTES, 'UTF-8') . '=' . htmlentities(urlencode((string) $val), ENT_QUOTES, 'UTF-8');
 
-            $formId = self::formInt($form, 'id');
+                    $formId = self::formInt($form, 'id');
             $params = 'id="ff_frame' . $formId . '" ' .
                 'src="' . $url . '" ' .
                 $framewidth .
@@ -421,13 +421,13 @@ $ff_request = array();
             if ($id)
                 $myUser->get('id', -1);
             require_once JPATH_SITE . '/components/com_breezingformsng/src/Support/processor_facade.php';
-            $templateCode = self::formString($form, 'template_code');
-            $templateCodeProcessed = self::formString($form, 'template_code_processed');
-            $formWidth = self::formString($form, 'width');
-            $formWidthMode = self::formInt($form, 'widthmode');
-            $formHeightMode = self::formInt($form, 'heightmode');
-            $formHeight = self::formString($form, 'height');
-            $formId = self::formInt($form, 'id');
+                    $templateCode = self::formString($form, 'template_code');
+                    $templateCodeProcessed = self::formString($form, 'template_code_processed');
+                    $formWidth = self::formString($form, 'width');
+                    $formWidthMode = self::formInt($form, 'widthmode');
+                    $formHeightMode = self::formInt($form, 'heightmode');
+                    $formHeight = self::formString($form, 'height');
+                    $formId = self::formInt($form, 'id');
             if ($task == 'view') {
                 $div1style = '';
                 $div2style = '';
@@ -489,7 +489,7 @@ $ff_request = array();
             if ($left > 3)
                 $align = $left;
             // remove temporary flash and chunked upload files if any
-            $temporaryPath = self::stringValue($this->application->get('tmp_path'));
+                    $temporaryPath = self::stringValue($this->application->get('tmp_path'));
             $temporaryUploads = new TemporaryUploadDirectory($temporaryPath);
             $this->uploadFileCleaner->purgeTemporaryUploads($temporaryUploads->path(), '_flashtmp');
             $this->uploadFileCleaner->purgeTemporaryUploads($temporaryUploads->chunksPath(), '_chunktmp');
