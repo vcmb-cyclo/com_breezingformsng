@@ -16,6 +16,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 class ScriptModel extends PackageItemModel
 {
+    #[\Override]
     protected function namedByIdentifier(): bool
     {
         return true;
