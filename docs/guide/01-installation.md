@@ -66,7 +66,7 @@ The Sample data box offers ready-made forms in two groups. The group **Business 
 3. Click **Install**. Confirm the question that appears.
 4. Each installed form gets an **Installed** badge and a **Manage** link.
 
-A sample form is also added to the site menu, under "Tests". Installing a sample form needs administrator rights. If a sample is already installed, it is left as it is.
+A sample form is also added to the site menu, under "Samples". Installing a sample form needs administrator rights. If a sample is already installed, it is left as it is.
 
 To build your own form, continue with the [first form guide](02-first-form.md).
 

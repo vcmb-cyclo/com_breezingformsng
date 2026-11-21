@@ -17,7 +17,7 @@ namespace Vcmb\Component\BreezingformsNG\Tests\Administrator;
 use PHPUnit\Framework\TestCase;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\SampleFormService;
 
-/** The site menu entry of the sample form: "Tests", then the form, and nothing else. */
+/** The site menu entry of the sample form: "Samples", then the form, and nothing else. */
 final class SampleFormServiceTest extends TestCase
 {
     private function source(): string
@@ -27,11 +27,11 @@ final class SampleFormServiceTest extends TestCase
         );
     }
 
-    public function testTheMenuHasATestsSeparatorWithTheFormUnderIt(): void
+    public function testTheMenuHasASamplesSeparatorWithTheFormUnderIt(): void
     {
         $source = $this->source();
 
-        self::assertStringContainsString("MENU_PARENT_TITLE = 'Tests'", $source);
+        self::assertStringContainsString("MENU_PARENT_TITLE = 'Samples'", $source);
         self::assertStringContainsString("'type' => 'separator'", $source);
         self::assertStringContainsString("'ff_com_name' => \$this->formName()", $source);
         self::assertStringContainsString("'link' => self::FORM_LINK", $source);
@@ -61,13 +61,15 @@ final class SampleFormServiceTest extends TestCase
         );
 
         self::assertSame('Sample_Contact', $package['forms'][0]['data']['name']);
-        self::assertSame('QuickModeForms', $package['forms'][0]['data']['package']);
+        self::assertSame('Sample', $package['forms'][0]['data']['package']);
         // The import puts the form in the package named at the top of the file: the service looks for it there.
-        self::assertSame('QuickModeForms', $package['package']);
+        self::assertSame('Sample', $package['package']);
         self::assertSame('Sample contact form', $package['forms'][0]['data']['title']);
         self::assertStringContainsString("FORM_NAME = 'Sample_Contact'", $this->source());
-        self::assertStringContainsString("FORM_PACKAGE_NAME = 'QuickModeForms'", $this->source());
-        self::assertStringContainsString("quoteName('package') . ' = :package'", $this->source());
+        self::assertStringContainsString("FORM_PACKAGE_NAME = 'Sample'", $this->source());
+        // The samples installed by the earlier versions, in QuickModeForms, are still recognised.
+        self::assertStringContainsString("LEGACY_FORM_PACKAGE_NAME = 'QuickModeForms'", $this->source());
+        self::assertStringContainsString("quoteName('package') . ' IN (:package, :legacyPackage)'", $this->source());
         self::assertStringContainsString('getFormNameCount', $this->source());
         self::assertStringContainsString("FORM_TITLE = 'Sample contact form'", $this->source());
     }

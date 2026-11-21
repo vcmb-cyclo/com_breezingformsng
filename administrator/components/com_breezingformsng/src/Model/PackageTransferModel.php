@@ -84,6 +84,9 @@ final class PackageTransferModel extends BaseDatabaseModel
     /** Parts of a package the user can choose from on import, by key of the file. */
     public const SELECTABLE_PARTS = ['forms', 'scripts', 'pieces', 'menus'];
 
+    /** Value of the package choice that opens a new, empty package. */
+    public const NEW_PACKAGE = '__new__';
+
     /**
      * @var array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>, skipped: list<string>, conflicts: list<string>, unresolved: list<string>, items: array<string, list<array<string, mixed>>>}
      *      skipped: the optional parts left out, as the user may not write them.
@@ -217,13 +220,61 @@ final class PackageTransferModel extends BaseDatabaseModel
     }
 
     /**
-     * Dissolves selected assignments, retaining the items themselves.
-     * An already empty package can also be dissolved.
-     *
-     * @param array<string, list<int>> $selection
-     * @return bool True if at least one assignment or an empty package was dissolved.
+     * The identifier of a package to create: it must be free, at most 30 characters,
+     * and not the value that stands for "new package".
      */
-    public function deletePackage(string $package, array $selection): bool
+    public function assertNewPackageId(string $package): string
+    {
+        $package = trim($package);
+
+        if ($package === '') {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SAVED_PACKAGE_REQUIRED'));
+        }
+
+        if (mb_strlen($package) > 30 || $package === self::NEW_PACKAGE) {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_INVALID'));
+        }
+
+        if (in_array($package, $this->getPackages(), true)) {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_EXISTS'));
+        }
+
+        return $package;
+    }
+
+    /**
+     * Whether the submitted details differ from the stored ones, so that a save
+     * which changes nothing does not stamp a new modification date.
+     *
+     * @param array<string, mixed> $submitted
+     */
+    public function metadataDiffers(string $package, array $submitted): bool
+    {
+        $stored = $this->getPackageProfiles()[$package] ?? [];
+
+        foreach (['name', 'version', 'title', 'author', 'email', 'url', 'description', 'copyright'] as $field) {
+            $value = $submitted[$field] ?? null;
+
+            if (is_string($value) && trim($value) !== (string) ($stored[$field] ?? '')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Sets what a package holds, for the kinds listed in $parts: the selected
+     * items stay or become attached, the other items of the package are detached.
+     * Only an item without a package can be attached; an item of another package
+     * is left alone. The items themselves are never deleted, and the package stays
+     * even when it ends up empty.
+     *
+     * @param array<string, list<int>> $selection Ids to keep in the package, by kind.
+     * @param list<string>             $parts     Kinds the submitted lists covered.
+     * @return bool True if at least one item was attached or detached.
+     */
+    public function updatePackage(string $package, array $selection, array $parts): bool
     {
         $package = trim($package);
 
@@ -232,45 +283,51 @@ final class PackageTransferModel extends BaseDatabaseModel
         }
 
         $db = $this->getDatabase();
+        $tables = [
+            'forms' => '#__facileforms_forms',
+            'scripts' => '#__facileforms_scripts',
+            'pieces' => '#__facileforms_pieces',
+            'menus' => '#__facileforms_compmenus',
+        ];
+        $changed = false;
         $db->transactionStart();
 
         try {
-            $tables = [
-                'forms' => '#__facileforms_forms',
-                'scripts' => '#__facileforms_scripts',
-                'pieces' => '#__facileforms_pieces',
-                'menus' => '#__facileforms_compmenus',
-            ];
-            $hadContents = array_filter($this->getPackageContents($package)) !== [];
-            $changed = false;
-
             foreach ($tables as $part => $table) {
+                if (!in_array($part, $parts, true)) {
+                    continue;
+                }
+
                 $ids = array_values(array_unique(array_filter(
                     $selection[$part] ?? [],
                     static fn (mixed $id): bool => is_int($id) && $id > 0
                 )));
 
-                if ($ids === []) {
-                    continue;
-                }
-
+                // Detach what the package holds and the list no longer selects.
                 $query = $db->createQuery()
                     ->update($db->quoteName($table))
                     ->set($db->quoteName('package') . ' = ' . $db->quote(''))
                     ->where($db->quoteName('package') . ' = :package')
+                    ->bind(':package', $package);
+                if ($ids !== []) {
+                    $query->whereNotIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
+                }
+                $db->setQuery($query)->execute();
+                $changed = $db->getAffectedRows() > 0 || $changed;
+
+                if ($ids === []) {
+                    continue;
+                }
+
+                // Attach what is selected and free.
+                $query = $db->createQuery()
+                    ->update($db->quoteName($table))
+                    ->set($db->quoteName('package') . ' = :package')
+                    ->where($db->quoteName('package') . ' = ' . $db->quote(''))
                     ->whereIn($db->quoteName('id'), $ids, ParameterType::INTEGER)
                     ->bind(':package', $package);
                 $db->setQuery($query)->execute();
                 $changed = $db->getAffectedRows() > 0 || $changed;
-            }
-
-            if ((!$hadContents || $changed) && array_filter($this->getPackageContents($package)) === []) {
-                $query = $db->createQuery()
-                    ->delete($db->quoteName('#__facileforms_packages'))
-                    ->where($db->quoteName('id') . ' = :package')
-                    ->bind(':package', $package);
-                $db->setQuery($query)->execute();
-                $changed = true;
             }
 
             $db->transactionCommit();
@@ -283,34 +340,62 @@ final class PackageTransferModel extends BaseDatabaseModel
     }
 
     /**
-     * What is attached to a package, by kind.
-     *
-     * @return array{forms: list<array<string, mixed>>, scripts: list<array<string, mixed>>, pieces: list<array<string, mixed>>, menus: list<array<string, mixed>>}
+     * How many items (forms, scripts, pieces, menus) are attached to a package,
+     * trashed ones included: they are detached too when the package is removed.
      */
-    public function getPackageContents(string $package): array
+    public function countPackageItems(string $package): int
     {
-        return [
-            'forms' => $this->loadPackageSummary('#__facileforms_forms', $package),
-            'scripts' => $this->loadPackageSummary('#__facileforms_scripts', $package),
-            'pieces' => $this->loadPackageSummary('#__facileforms_pieces', $package),
-            'menus' => $this->loadPackageSummary('#__facileforms_compmenus', $package),
-        ];
+        $db = $this->getDatabase();
+        $total = 0;
+
+        foreach (['#__facileforms_forms', '#__facileforms_scripts', '#__facileforms_pieces', '#__facileforms_compmenus'] as $table) {
+            $query = $db->createQuery()
+                ->select('COUNT(*)')
+                ->from($db->quoteName($table))
+                ->where($db->quoteName('package') . ' = :package')
+                ->bind(':package', $package);
+            $total += (int) $db->setQuery($query)->loadResult();
+        }
+
+        return $total;
     }
 
     /**
-     * @return list<array<string, mixed>>
+     * Removes a package and its assignments. The attached records remain.
      */
-    private function loadPackageSummary(string $table, string $package): array
+    public function removePackage(string $package): bool
     {
-        $db = $this->getDatabase();
-        $query = $db->createQuery()
-            ->select($db->quoteName(['id', 'name', 'title', 'published']))
-            ->from($db->quoteName($table))
-            ->where($db->quoteName('package') . ' = :package')
-            ->order([$db->quoteName('name'), $db->quoteName('id')])
-            ->bind(':package', $package);
+        $package = trim($package);
 
-        return $this->assocRows($db->setQuery($query)->loadAssocList());
+        if ($package === '' || !in_array($package, $this->getPackages(), true)) {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'));
+        }
+
+        $db = $this->getDatabase();
+        $db->transactionStart();
+
+        try {
+            foreach (['#__facileforms_forms', '#__facileforms_scripts', '#__facileforms_pieces', '#__facileforms_compmenus'] as $table) {
+                $query = $db->createQuery()
+                    ->update($db->quoteName($table))
+                    ->set($db->quoteName('package') . ' = ' . $db->quote(''))
+                    ->where($db->quoteName('package') . ' = :package')
+                    ->bind(':package', $package);
+                $db->setQuery($query)->execute();
+            }
+
+            $query = $db->createQuery()
+                ->delete($db->quoteName('#__facileforms_packages'))
+                ->where($db->quoteName('id') . ' = :package')
+                ->bind(':package', $package);
+            $db->setQuery($query)->execute();
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+            throw $exception;
+        }
+
+        return true;
     }
 
     /**
@@ -983,7 +1068,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     public function getExportChoices(): array
     {
         return [
-            "forms" => $this->loadChoices("#__facileforms_forms", true),
+            "forms" => $this->withIntegratorRuleCounts($this->loadChoices("#__facileforms_forms", true)),
             "scripts" => $this->loadChoices("#__facileforms_scripts", true),
             "pieces" => $this->loadChoices("#__facileforms_pieces", true),
             "menus" => $this->loadChoices("#__facileforms_compmenus"),
@@ -1041,14 +1126,19 @@ final class PackageTransferModel extends BaseDatabaseModel
             throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_INSTALLER_SELECTAPKG'));
         }
 
+        $formIds = array_values(array_map(static fn(array $form): int => (int) $form['id'], $forms));
+        $elements = $formIds === [] ? [] : $this->loadElements($formIds);
+
+        // The scripts and pieces the forms call travel with them: their ids mean nothing on another site.
+        [$scripts, $pieces] = $this->withReferencedLibraries($forms, $elements, $scripts, $pieces);
+
         $this->assertImportableNames('#__facileforms_forms', $forms, true);
         $this->assertImportableNames('#__facileforms_scripts', $scripts, true);
         $this->assertImportableNames('#__facileforms_pieces', $pieces, true);
 
-        $formIds = array_values(array_map(static fn(array $form): int => (int) $form['id'], $forms));
         $elementsByForm = [];
 
-        foreach ($formIds === [] ? [] : $this->loadElements($formIds) as $element) {
+        foreach ($elements as $element) {
             // The source id lets the Integrator rules find their elements again.
             $elementsByForm[(int) $element['form']][] = ['source_id' => (int) $element['id']] + $this->without($element, ['id', 'form']);
         }
@@ -1082,6 +1172,44 @@ final class PackageTransferModel extends BaseDatabaseModel
         $payload += $this->formExtras($forms, $withTemplates, $withIntegrator);
 
         return json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "\n";
+    }
+
+    /**
+     * Adds the active scripts and pieces that the forms and their elements call and
+     * the selection leaves out. A trashed or missing one is not added: the import
+     * reports it as unresolved.
+     *
+     * @param array<array<string, mixed>> $forms
+     * @param array<array<string, mixed>> $elements
+     * @param array<array<string, mixed>> $scripts
+     * @param array<array<string, mixed>> $pieces
+     * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>}
+     */
+    private function withReferencedLibraries(array $forms, array $elements, array $scripts, array $pieces): array
+    {
+        $needed = ['script' => [], 'piece' => []];
+        foreach (array_merge($forms, $elements) as $row) {
+            foreach (['script' => 3, 'piece' => 4] as $kind => $last) {
+                for ($number = 1; $number <= $last; $number++) {
+                    $id = (int) ($row[$kind . $number . 'id'] ?? 0);
+                    if ($id > 0 && (int) ($row[$kind . $number . 'cond'] ?? 0) === 1) {
+                        $needed[$kind][$id] = true;
+                    }
+                }
+            }
+        }
+
+        $present = [
+            'script' => array_flip(array_map(static fn(array $row): int => (int) $row['id'], $scripts)),
+            'piece' => array_flip(array_map(static fn(array $row): int => (int) $row['id'], $pieces)),
+        ];
+        $missingScripts = array_keys(array_diff_key($needed['script'], $present['script']));
+        $missingPieces = array_keys(array_diff_key($needed['piece'], $present['piece']));
+
+        return [
+            array_values(array_merge($scripts, $this->loadRowsByIds('#__facileforms_scripts', $missingScripts, true))),
+            array_values(array_merge($pieces, $this->loadRowsByIds('#__facileforms_pieces', $missingPieces, true))),
+        ];
     }
 
     /**
@@ -1288,6 +1416,35 @@ final class PackageTransferModel extends BaseDatabaseModel
             ->bind(':parent', $parent);
 
         return (int) $db->setQuery($query, 0, 1)->loadResult();
+    }
+
+    /**
+     * Adds to each form the number of its Integrator rules (`rules`), counted as
+     * the export does: the rules that are not trashed.
+     *
+     * @param list<array<string, mixed>> $forms
+     * @return list<array<string, mixed>>
+     */
+    private function withIntegratorRuleCounts(array $forms): array
+    {
+        $db = $this->getDatabase();
+        $query = $db->createQuery()
+            ->select([$db->quoteName('form_id'), 'COUNT(*) AS ' . $db->quoteName('total')])
+            ->from($db->quoteName('#__facileforms_integrator_rules'))
+            ->where($db->quoteName('published') . ' > -2')
+            ->group($db->quoteName('form_id'));
+        $counts = [];
+
+        foreach ($db->setQuery($query)->loadAssocList() ?: [] as $row) {
+            $counts[(int) $row['form_id']] = (int) $row['total'];
+        }
+
+        foreach ($forms as &$form) {
+            $form['rules'] = $counts[(int) $form['id']] ?? 0;
+        }
+        unset($form);
+
+        return $forms;
     }
 
     /**

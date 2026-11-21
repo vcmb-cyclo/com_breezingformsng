@@ -14,12 +14,12 @@ All screens are in **Components > BreezingForms NG**. The side menu has these en
 ## The quick way: install the sample contact form
 
 1. Go to **Components > BreezingForms NG > Tools**.
-2. Find the card **Sample data**. The text says the sample forms are ready to start from and are added to the site menu under "Tests".
+2. Find the card **Sample data**. The text says the sample forms are ready to start from and are added to the site menu under "Samples".
 3. Under **Business templates**, tick **Professional contact form**. It has required fields, hints, a consent check box, a security code, an e-mail to the site, a copy to the sender and a thank-you page.
 4. Click **Install**. Confirm the question.
-5. You see: "Sample form "Professional contact form" installed. It is in the site menu, under "Tests"."
+5. You see: "Sample form "Professional contact form" installed. It is in the site menu, under "Samples"."
 6. The card now shows the badge **Installed** and a **Manage** link. **Manage** opens the form in QuickMode so you can change it.
-7. Open your website and look in the menu for the **Tests** entry. The form is called **(BF) Sample contact form**. You can use it to test everything in this guide.
+7. Open your website and look in the menu for the **Samples** entry. The form is called **(BF) Sample contact form**. You can use it to test everything in this guide.
 
 The sample is never overwritten. If it is already installed, you see "already installed: it was left as it is".
 
@@ -239,7 +239,7 @@ Replace `ID` with the number of the form in the form list (column **ID**). You c
 5. **Visibility.** The form is **Published**. The menu item, article or module is published and its **Access** level fits your visitors.
 6. **Texts.** Read the error messages, the thank-you page and both e-mails. If your site has several languages, translate them: the editor shows a language switch when more than one language is installed.
 7. **Consent.** If you collect personal data, tell visitors what you do with it. The sample contact form has a consent check box you can copy.
-8. **Clean up.** Unpublish or remove the sample forms and the **Tests** menu entries.
+8. **Clean up.** Unpublish or remove the sample forms and the **Samples** menu entries.
 
 ## See also
 

@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * The Tools page (packages view, default layout) shows its actions in Atum-style
- * cards, not in the toolbar, and keeps every action it offered before.
+ * cards, not in the toolbar.
  */
 final class ToolsPageTemplateTest extends TestCase
 {
@@ -40,19 +40,18 @@ final class ToolsPageTemplateTest extends TestCase
         foreach (
             [
             'bf-tools-audit', 'bf-tools-statistics', 'bf-tools-trash', 'bf-tools-log',
-            'bf-tools-install', 'bf-tools-create', 'bf-tools-dissolve',
+            'bf-tools-install', 'bf-tools-export', 'bf-tools-manage',
             ] as $tile
         ) {
             self::assertStringContainsString("'id' => '" . $tile . "'", $template);
         }
-        self::assertStringContainsString('bf-tile--danger', $template);
     }
 
     public function testPackageActionsAndOptionsLinkAreKept(): void
     {
         $template = $this->template();
 
-        foreach (['import', 'export', 'delete'] as $layout) {
+        foreach (['import', 'export', 'update'] as $layout) {
             self::assertStringContainsString("'layout' => '$layout'", $template);
         }
         self::assertStringContainsString('option=com_config&view=component&component=com_breezingformsng', $template);
@@ -196,6 +195,28 @@ final class ToolsPageTemplateTest extends TestCase
             (int) strpos($install, '->import('),
             (int) strpos($install, 'getInstalledFormId() > 0')
         );
+    }
+
+    public function testTheFormNameOfASampleIsALinkOnlyWhenTheFormExists(): void
+    {
+        $template = $this->template();
+        $view = (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/View/Packages/HtmlView.php');
+
+        self::assertStringContainsString("'name' => \$sampleService->formName(),", $view);
+        // The form name takes the place of the former Manage button.
+        self::assertStringNotContainsString('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_MANAGE', $template);
+        self::assertStringNotContainsString('btn btn-link', $template);
+        self::assertSame(2, substr_count($template, "<?= \$view->escape(\$sample['name']); ?>"));
+
+        $row = substr($template, (int) strpos($template, "if (\$sample['manageId'] > 0)"));
+        $row = substr($row, 0, (int) strpos($row, '<?php endif; ?>'));
+        [$withForm, $withoutForm] = explode('<?php else : ?>', $row, 2);
+
+        self::assertStringContainsString('<a class="bf-sample-form', $withForm);
+        self::assertStringContainsString('task=quickmode.display&form=', $withForm);
+        self::assertStringNotContainsString('<a ', $withoutForm);
+        self::assertStringNotContainsString('href=', $withoutForm);
+        self::assertStringContainsString('<span class="bf-sample-form', $withoutForm);
     }
 
     public function testSampleInstallButtonIsDisabledWhenTheSampleNameIsTaken(): void

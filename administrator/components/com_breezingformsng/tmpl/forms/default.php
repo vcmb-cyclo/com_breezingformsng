@@ -27,16 +27,17 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
   <div id="j-main-container" class="j-main-container">
   <?= LayoutHelper::render('joomla.searchtools.default', ['view' => $this]); ?>
 
-  <table class="table table-striped table-hover">
+  <table class="table table-striped table-hover" id="formList" data-name="bfng-forms">
     <caption class="visually-hidden"><?= Text::_('COM_BREEZINGFORMSNG_MANAGEFORMS'); ?></caption>
     <thead>
       <tr>
-        <th class="w-1 text-center">
+        <td class="w-1 text-center">
           <?= HTMLHelper::_('grid.checkall'); ?>
-        </th>
+        </td>
         <th class="text-center"><?= HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'id', $listDirn, $listOrder); ?></th>
         <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_TITLE', 'title', $listDirn, $listOrder); ?></th>
         <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_NAME', 'name', $listDirn, $listOrder); ?></th>
+        <th class="d-none"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_PACKAGE', 'package', $listDirn, $listOrder); ?></th>
         <th class="text-center"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_PAGES', 'pages', $listDirn, $listOrder); ?></th>
         <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JPUBLISHED', 'published', $listDirn, $listOrder); ?></th>
         <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ORDERING', 'ordering', $listDirn, $listOrder); ?></th>
@@ -45,7 +46,7 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
     </thead>
     <tbody>
       <?php if (empty($this->items)): ?>
-        <tr><td colspan="8" class="text-center"><?= Text::_('JGLOBAL_NO_MATCHING_RESULTS'); ?></td></tr>
+        <tr><td colspan="9" class="text-center"><?= Text::_('JGLOBAL_NO_MATCHING_RESULTS'); ?></td></tr>
       <?php else: ?>
         <?php foreach ($this->items as $i => $form): ?>
           <tr>
@@ -61,6 +62,7 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
               </a>
             </td>
             <td><?= htmlspecialchars($form->name); ?></td>
+            <td class="d-none"><?= htmlspecialchars((string) $form->package); ?></td>
             <td class="text-center"><?= (int) $form->pages; ?></td>
             <td class="text-center">
                 <?php if ((int) $form->published === -2) : ?>

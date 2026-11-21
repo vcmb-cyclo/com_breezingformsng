@@ -234,8 +234,8 @@ final class AdminControllerAccessTest extends TestCase
     /** @return iterable<string, array{string, string, array<string, mixed>}> */
     public static function otherTokenGuardedTasks(): iterable
     {
-        foreach (['save', 'export', 'installSample', 'import', 'preview', 'delete'] as $task) {
-            yield 'packages ' . $task => ['packages', $task, ['package' => 'demo', 'samples' => ['contact'], 'delete_select' => ['forms' => ['3']]]];
+        foreach (['export', 'installSample', 'import', 'preview', 'update', 'remove'] as $task) {
+            yield 'packages ' . $task => ['packages', $task, ['package' => 'demo', 'samples' => ['contact'], 'update_select' => ['forms' => ['3']], 'update_parts' => ['forms']]];
         }
 
         foreach (
@@ -290,12 +290,12 @@ final class AdminControllerAccessTest extends TestCase
     /** @return iterable<string, array{string, array<string, mixed>}> */
     public static function packageTasks(): iterable
     {
-        yield 'save' => ['save', ['package' => 'demo']];
         yield 'export' => ['export', ['package' => 'demo']];
         yield 'installSample' => ['installSample', []];
         yield 'import' => ['import', []];
         yield 'preview' => ['preview', []];
-        yield 'delete' => ['delete', ['package' => 'demo', 'delete_select' => ['forms' => ['3']]]];
+        yield 'update' => ['update', ['package' => 'demo', 'update_select' => ['forms' => ['3']], 'update_parts' => ['forms']]];
+        yield 'remove' => ['remove', ['package' => 'demo']];
     }
 
     /** @param array<string, mixed> $post */
@@ -326,18 +326,60 @@ final class AdminControllerAccessTest extends TestCase
         self::assertSame(self::NOT_ALLOWED, $refused['stopped']);
     }
 
-    public function testSavingAPackageWithTheRightReachesTheModel(): void
+    public function testCreatingAPackageWithTheRightSavesItsDetails(): void
     {
-        $allowed = $this->runTask('packages', 'save', 'valid', 'breezingformsng.configuration', ['package' => 'demo']);
+        $allowed = $this->runTask('packages', 'update', 'valid', 'breezingformsng.configuration', ['package' => 'demo', 'package_new' => 1, 'update_parts' => []]);
 
-        self::assertSame(['PackageTransfer', 'PackageTransfer::savePackage'], self::models($allowed['events']));
+        self::assertContains('PackageTransfer::assertNewPackageId', self::models($allowed['events']));
+        self::assertContains('PackageTransfer::savePackage', self::models($allowed['events']));
     }
 
-    public function testDeletingFromAPackageWithTheRightReachesTheModel(): void
+    public function testUpdatingAPackageWithTheRightReachesTheModel(): void
     {
-        $allowed = $this->runTask('packages', 'delete', 'valid', 'breezingformsng.configuration', ['package' => 'demo', 'delete_select' => ['forms' => ['3']]]);
+        $allowed = $this->runTask('packages', 'update', 'valid', 'breezingformsng.configuration', ['package' => 'demo', 'update_select' => ['forms' => ['3']], 'update_parts' => ['forms']]);
 
-        self::assertContains('PackageTransfer::deletePackage', self::models($allowed['events']));
+        self::assertContains('PackageTransfer::updatePackage', self::models($allowed['events']));
+    }
+
+    public function testExportWithoutANewPackageIdKeepsTheSubmittedDraft(): void
+    {
+        $post = [
+            // The explicit flag also supports a page opened before the select option gained its sentinel value.
+            'selected_package' => '',
+            'package_new' => 1,
+            'package' => '',
+            'metadata' => ['title' => 'My package'],
+            'forms' => ['3'],
+            'include_integrator' => 1,
+        ];
+
+        $result = $this->runTask('packages', 'export', 'valid', 'breezingformsng.configuration,breezingformsng.code', $post);
+        $states = array_values(array_filter($result['events'], static fn (array $event): bool => ($event['state'] ?? '') === 'com_breezingformsng.packages.export_draft'));
+        $redirects = array_column(array_filter($result['events'], static fn (array $event): bool => isset($event['redirect'])), 'redirect');
+
+        self::assertSame([], self::models($result['events']));
+        self::assertCount(1, $states);
+        self::assertTrue($states[0]['value']['new']);
+        self::assertSame('My package', $states[0]['value']['metadata']['title']);
+        self::assertSame([3], $states[0]['value']['select']['forms']);
+        self::assertTrue($states[0]['value']['include_integrator']);
+        self::assertContains('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_ID_REQUIRED', array_column($result['events'], 'message'));
+        self::assertStringContainsString('layout=export&package=__new__', $redirects[0] ?? '');
+    }
+
+    public function testExportWithoutChoosingAPackageDoesNotSelectNewPackage(): void
+    {
+        $result = $this->runTask('packages', 'export', 'valid', 'breezingformsng.configuration', [
+            'selected_package' => '',
+            'package' => '',
+        ]);
+        $states = array_values(array_filter($result['events'], static fn (array $event): bool => ($event['state'] ?? '') === 'com_breezingformsng.packages.export_draft'));
+        $redirects = array_column(array_filter($result['events'], static fn (array $event): bool => isset($event['redirect'])), 'redirect');
+
+        self::assertCount(1, $states);
+        self::assertFalse($states[0]['value']['new']);
+        self::assertContains('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED', array_column($result['events'], 'message'));
+        self::assertStringNotContainsString('__new__', $redirects[0] ?? '');
     }
 
     public function testExportingTheIntegratorNeedsTheCodeRight(): void

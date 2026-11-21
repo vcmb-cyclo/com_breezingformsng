@@ -20,14 +20,16 @@ use Joomla\Database\ParameterType;
 
 /**
  * The sample forms shipped with the component: where their package file is, whether
- * one is installed, and its entry in the site menu ("Tests" > the form).
+ * one is installed, and its entry in the site menu ("Samples" > the form).
  */
 final class SampleFormService
 {
     public const FORM_NAME = 'Sample_Contact';
-    public const FORM_PACKAGE_NAME = 'QuickModeForms';
+    public const FORM_PACKAGE_NAME = 'Sample';
+    /** Package of the samples installed by the earlier versions, which are still recognised. */
+    public const LEGACY_FORM_PACKAGE_NAME = 'QuickModeForms';
     public const FORM_TITLE = 'Sample contact form';
-    public const MENU_PARENT_TITLE = 'Tests';
+    public const MENU_PARENT_TITLE = 'Samples';
     public const DEFAULT_SAMPLE = 'contact';
 
     /**
@@ -109,13 +111,17 @@ final class SampleFormService
     {
         $name = $this->formName();
         $package = self::FORM_PACKAGE_NAME;
+        $legacyPackage = self::LEGACY_FORM_PACKAGE_NAME;
         $query = $this->db->createQuery()
             ->select($this->db->quoteName('id'))
             ->from($this->db->quoteName('#__facileforms_forms'))
             ->where($this->db->quoteName('name') . ' = :name')
-            ->where($this->db->quoteName('package') . ' = :package')
+            ->where($this->db->quoteName('package') . ' IN (:package, :legacyPackage)')
+            ->order($this->db->quoteName('id') . ' ASC')
             ->bind(':name', $name, ParameterType::STRING)
-            ->bind(':package', $package, ParameterType::STRING);
+            ->bind(':package', $package, ParameterType::STRING)
+            ->bind(':legacyPackage', $legacyPackage, ParameterType::STRING)
+            ->setLimit(1);
 
         return (int) $this->db->setQuery($query)->loadResult();
     }
@@ -149,7 +155,7 @@ final class SampleFormService
     }
 
     /**
-     * Makes sure the site menu has a "Tests" entry with the sample form under it.
+     * Makes sure the site menu has a "Samples" entry with the sample form under it.
      *
      * @return int Id of the menu item of the sample form
      */

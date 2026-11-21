@@ -47,10 +47,10 @@ $maintenanceTiles = [
 $packageTiles = [
     ['id' => 'bf-tools-install', 'layout' => 'import', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_INSTALL',
         'icon' => 'fa-arrow-up-from-bracket', 'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_INSTALL_DESC'],
-    ['id' => 'bf-tools-create', 'layout' => 'export', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_CREATE',
-        'icon' => 'fa-cube', 'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_CREATE_DESC'],
-    ['id' => 'bf-tools-dissolve', 'layout' => 'delete', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_DISSOLVE',
-        'icon' => 'fa-circle-xmark', 'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_DISSOLVE_DESC', 'danger' => true],
+    ['id' => 'bf-tools-export', 'layout' => 'export', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_EXPORT',
+        'icon' => 'fa-file-export', 'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_EXPORT_DESC'],
+    ['id' => 'bf-tools-manage', 'layout' => 'update', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_MANAGE',
+        'icon' => 'fa-cubes', 'desc' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_MANAGE_DESC'],
 ];
 
 /** One tile: a link, or a submit button of a form when the action needs a POST. */
@@ -218,10 +218,15 @@ $renderTile = static function (array $tile) use ($layoutUrl): string {
                                     <?php endif; ?>
                                 </label>
                                 <?php if ($sample['manageId'] > 0) : ?>
-                                    <a class="btn btn-link btn-sm flex-shrink-0" id="bf-tools-sample-manage-<?= $view->escape($slug); ?>"
-                                        href="<?= Route::_('index.php?option=com_breezingformsng&task=quickmode.display&form=' . $sample['manageId']); ?>">
-                                        <?= Text::_('COM_BREEZINGFORMSNG_TOOLS_SAMPLE_MANAGE'); ?>
+                                    <a class="bf-sample-form position-relative z-2 flex-shrink-0 px-2" id="bf-tools-sample-form-<?= $view->escape($slug); ?>"
+                                        href="<?= Route::_('index.php?option=com_breezingformsng&task=quickmode.display&form=' . $sample['manageId']); ?>"
+                                        title="<?= $view->escape(Text::_('COM_BREEZINGFORMSNG_FORMS_OPEN_EDITOR')); ?>">
+                                        <?= $view->escape($sample['name']); ?>
                                     </a>
+                                <?php else : ?>
+                                    <span class="bf-sample-form flex-shrink-0 px-2 text-body-secondary" id="bf-tools-sample-form-<?= $view->escape($slug); ?>">
+                                        <?= $view->escape($sample['name']); ?>
+                                    </span>
                                 <?php endif; ?>
                             </div>
                         <?php endforeach; ?>

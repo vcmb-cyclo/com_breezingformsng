@@ -16,6 +16,11 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 class PieceModel extends PackageItemModel
 {
+    protected function namedByIdentifier(): bool
+    {
+        return true;
+    }
+
     /**
      * Piece types with the language key of their name.
      */
