@@ -419,7 +419,7 @@ final class PackagesController extends BaseController
             // Keep what was typed and selected: the screen is shown again with it.
             $app->setUserState(self::UPDATE_DRAFT_STATE, [
                 'package' => $package,
-                'metadata' => array_map(static fn (mixed $value): string => is_scalar($value) ? (string) $value : '', (array) ($metadata ?? [])),
+                'metadata' => array_map(static fn (mixed $value): string => is_scalar($value) ? (string) $value : '', $metadata ?? []),
                 'select' => $this->submittedItemSelection('update_select'),
             ]);
             $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update&package=' . ($isNew ? PackageTransferModel::NEW_PACKAGE : rawurlencode($package)), false));

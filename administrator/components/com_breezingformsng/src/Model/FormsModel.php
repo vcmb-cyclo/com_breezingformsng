@@ -16,7 +16,7 @@ use Joomla\Database\ParameterType;
 
 class FormsModel extends ListModel
 {
-    private const SORTS = ['id', 'title', 'name', 'package', 'pages', 'published', 'ordering', 'modified'];
+    private const array SORTS = ['id', 'title', 'name', 'package', 'pages', 'published', 'ordering', 'modified'];
 
     /**
      * @param array<string, mixed> $config
