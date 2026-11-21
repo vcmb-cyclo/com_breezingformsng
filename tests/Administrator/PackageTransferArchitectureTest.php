@@ -50,15 +50,13 @@ final class PackageTransferArchitectureTest extends TestCase
         // Both screens share the same audit and info accordions.
         $template = (string) file_get_contents($component . '/layouts/packages/audit.php')
             . (string) file_get_contents($component . '/layouts/packages/metadata.php');
-        {
-            self::assertStringContainsString('class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"', $template);
-            self::assertStringContainsString('id="bf-package-audit-content" class="collapse"', $template);
-            self::assertStringContainsString('id="bf-package-info-content" class="collapse"', $template);
-            self::assertStringContainsString('class="table-primary"', $template);
-            self::assertStringContainsString('COM_BREEZINGFORMSNG_RECORDS_AUDITINFO', $template);
-            foreach (['created', 'created_by', 'modified', 'modified_by'] as $field) {
-                self::assertStringContainsString("'" . $field . "'", $template);
-            }
+        self::assertStringContainsString('class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"', $template);
+        self::assertStringContainsString('id="bf-package-audit-content" class="collapse"', $template);
+        self::assertStringContainsString('id="bf-package-info-content" class="collapse"', $template);
+        self::assertStringContainsString('class="table-primary"', $template);
+        self::assertStringContainsString('COM_BREEZINGFORMSNG_RECORDS_AUDITINFO', $template);
+        foreach (['created', 'created_by', 'modified', 'modified_by'] as $field) {
+            self::assertStringContainsString("'" . $field . "'", $template);
         }
     }
 
