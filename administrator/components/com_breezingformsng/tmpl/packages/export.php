@@ -16,180 +16,55 @@ defined("_JEXEC") or die;
 
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Layout\LayoutHelper;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 
-$sections = [
-    "forms" => "COM_BREEZINGFORMSNG_INSTALLER_FORMSEL",
-    "scripts" => "COM_BREEZINGFORMSNG_INSTALLER_SCRIPTSEL",
-    "pieces" => "COM_BREEZINGFORMSNG_INSTALLER_PIECESEL",
-    "menus" => "COM_BREEZINGFORMSNG_INSTALLER_MENUSEL",
-];
-$contentSections = [
-    'forms' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONTENT_FORMS',
-    'scripts' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONTENT_SCRIPTS',
-    'pieces' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONTENT_PIECES',
-    'menus' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_CONTENT_MENUS',
-];
 
 // Each field explains itself in the tooltip of its label.
 $labelTip = static fn (string $key): string => ' title="' . htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8') . '"';
 $mayTransferTemplates = $this->mayTransferTemplates;
 
-$metadataFields = [
-    'name' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE') . ' ' . Text::_('COM_BREEZINGFORMSNG_INSTALLER_NAME'),
-    'version' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE') . ' ' . Text::_('COM_BREEZINGFORMSNG_INSTALLER_VERS'),
-    'title' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE') . ' ' . Text::_('COM_BREEZINGFORMSNG_INSTALLER_TITLE'),
-    'author' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_AUTHOR') . ' ' . Text::_('COM_BREEZINGFORMSNG_INSTALLER_NAME'),
-    'email' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_AUTHOR') . ' ' . Text::_('COM_BREEZINGFORMSNG_INSTALLER_EMAIL'),
-    'url' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_AUTHOR') . ' ' . Text::_('COM_BREEZINGFORMSNG_INSTALLER_URL'),
-    'description' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_DESC'),
-    'copyright' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_CPYRT'),
-];
-$timezone = $this->timezone;
-// Same date display as the record screen: local time, time zone in the tooltip.
-$auditDate = static fn (mixed $utc): string => $utc === null || $utc === '' ? '' : sprintf(
-    '<span title="%s">%s</span>',
-    htmlspecialchars(
-        Text::sprintf('COM_BREEZINGFORMSNG_TIMEZONE_WITH_OFFSET', $timezone->getName(), HTMLHelper::_('date', (string) $utc, 'P')),
-        ENT_QUOTES,
-        'UTF-8'
-    ),
-    HTMLHelper::_('date', (string) $utc, Text::_('DATE_FORMAT_LC6')),
-);
-$auditText = static fn (mixed $text): string => htmlspecialchars((string) ($text ?? ''), ENT_QUOTES, 'UTF-8');
-$auditModified = static function (mixed $date, mixed $author) use ($auditDate, $auditText): string {
-    $dateText = $auditDate($date);
-    $authorText = $auditText($author);
-
-    return $dateText !== '' && $authorText !== ''
-        ? Text::sprintf('COM_BREEZINGFORMSNG_AUDIT_DATE_BY', $dateText, $authorText)
-        : $dateText . $authorText;
-};
 ?>
 <div class="row g-4">
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <form action="index.php?option=com_breezingformsng" method="post" id="bf-package-export">
+                <form action="index.php?option=com_breezingformsng" method="post" id="bf-package-export"<?= $this->draft !== [] ? ' data-bf-draft' : ''; ?>>
                     <p class="alert alert-info"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_EXPORT_HINT'); ?></p>
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-md-6">
                             <label class="form-label" for="bf-package-choice"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_CHOICE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE'); ?></label>
                             <select class="form-select" id="bf-package-choice" name="selected_package">
-                                <option value=""><?= Text::_('JGLOBAL_SELECT_AN_OPTION'); ?></option>
-                                <option value="" data-new><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE'); ?></option>
+                                <option value=""<?= $this->selectedPackage === '' && !$this->isNewPackage ? ' selected' : ''; ?>><?= Text::_('JGLOBAL_SELECT_AN_OPTION'); ?></option>
+                                <option value="<?= PackageTransferModel::NEW_PACKAGE; ?>" data-new<?= $this->isNewPackage ? ' selected' : ''; ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_EXPORT'); ?></option>
                                 <?php foreach ($this->profiles as $id => $profile) : ?>
                                     <option value="<?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?>"<?= (string) $id === $this->selectedPackage ? ' selected' : ''; ?>><?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <input type="hidden" id="bf-package-new-flag" name="package_new" value="<?= $this->isNewPackage ? '1' : '0'; ?>">
                         </div>
                         <div class="col-12 col-md-6 d-none" id="bf-package-new">
                             <label class="form-label" for="bf-package"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_ID'); ?><span class="star" aria-hidden="true">&#160;*</span></label>
-                            <input class="form-control" id="bf-package" name="package" maxlength="30" required value="<?= htmlspecialchars($this->selectedPackage, ENT_QUOTES, 'UTF-8'); ?>">
+                            <input class="form-control" id="bf-package" name="package" maxlength="30" required value="<?= htmlspecialchars((string) ($this->draft['package'] ?? $this->selectedPackage), ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
                     </div>
-                    <div<?= $this->selectedPackage === '' ? ' class="d-none"' : ''; ?> id="bf-package-details">
-                        <table class="table table-striped mb-4" id="bf-package-info">
-                            <tbody><tr class="table-primary"><th>
-                                <a href="#" id="bf-package-info-toggle" class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"
-                                    data-bs-toggle="collapse" data-bs-target="#bf-package-info-content"
-                                    aria-expanded="false" aria-controls="bf-package-info-content">
-                                    <span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> <?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_REPORT_PACKAGEINFO'); ?>
-                                </a>
-                            </th></tr></tbody>
-                            <tbody id="bf-package-info-content" class="collapse"><tr><td>
-                            <div class="row g-3">
-                            <?php foreach ($metadataFields as $field => $label) : ?>
-                                <div class="col-12 col-md-6 d-flex flex-column">
-                                    <label class="form-label" for="bf-meta-<?= $field; ?>"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_META_' . strtoupper($field) . '_TIP'); ?>><?= $label; ?></label>
-                                    <input class="form-control mt-auto" id="bf-meta-<?= $field; ?>" name="metadata[<?= $field; ?>]" value="">
-                                </div>
-                            <?php endforeach; ?>
-                            </div>
-                            </td></tr></tbody>
-                        </table>
-                        <div id="bf-package-contents" class="d-none">
-                            <?php foreach ($contentSections as $section => $label) : ?>
-                                <section data-bf-content-section class="d-none">
-                                    <h3 class="h5 mt-4"><?= Text::_($label); ?> <span class="badge bg-secondary" data-bf-count></span></h3>
-                                    <div class="table-responsive">
-                                        <table class="table table-sm table-striped">
-                                            <thead><tr>
-                                                <th scope="col"><?= Text::_('JGLOBAL_TITLE'); ?></th>
-                                                <th scope="col"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_NAME'); ?></th>
-                                                <th scope="col"><?= Text::_('JGRID_HEADING_ID'); ?></th>
-                                            </tr></thead>
-                                            <tbody>
-                                                <?php foreach ($this->choices[$section] as $item) : ?>
-                                                    <?php if ((string) $item['package'] === '') : ?>
-                                                        <?php continue; ?>
-                                                    <?php endif; ?>
-                                                    <?php
-                                                    $title = (string) ($item['title'] ?: $item['name']);
-                                                    $editUrl = match ($section) {
-                                                        'forms' => 'index.php?option=com_breezingformsng&task=quickmode.display&form=' . (int) $item['id'] . '&pkg=' . rawurlencode((string) $item['package']),
-                                                        'scripts' => 'index.php?option=com_breezingformsng&task=script.edit&id=' . (int) $item['id'],
-                                                        'pieces' => 'index.php?option=com_breezingformsng&task=piece.edit&id=' . (int) $item['id'],
-                                                        'menus' => 'index.php?option=com_breezingformsng&task=menu.edit&id=' . (int) $item['id'],
-                                                    };
-    ?>
-                                                    <tr class="d-none" data-bf-package="<?= htmlspecialchars((string) $item['package'], ENT_QUOTES, 'UTF-8'); ?>">
-                                                        <td><a href="<?= htmlspecialchars($editUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener"
-                                                            aria-label="<?= htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_IMPORT_OPEN_EXISTING_LABEL', $title), ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></a></td>
-                                                        <td><?= htmlspecialchars((string) $item['name'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                                        <td><?= (int) $item['id']; ?></td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </section>
-                            <?php endforeach; ?>
-                        </div>
-                        <div class="row g-4" id="bf-selections">
-                            <?php foreach ($sections as $section => $label) : ?>
-                                <div class="col-12 col-lg-6">
-                                    <label class="form-label" for="bf-<?= $section; ?>"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_' . strtoupper($section) . '_TIP'); ?>><?= Text::_($label); ?></label>
-                                    <select class="form-select" id="bf-<?= $section; ?>" name="<?= $section; ?>[]" multiple size="14">
-                                        <?php foreach ($this->choices[$section] as $item) : ?>
-                                            <?php $name = (string) ($item["title"] ?: $item["name"]); ?>
-                                            <option value="<?= (int) $item["id"]; ?>"><?= htmlspecialchars((string) $item["package"] . " :: " . $name, ENT_QUOTES, "UTF-8"); ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <div class="mt-2">
-                                        <button class="btn btn-sm btn-secondary" data-select-all="bf-<?= $section; ?>" type="button"><?= Text::_("COM_BREEZINGFORMSNG_INSTALLER_SELECTALL"); ?></button>
-                                        <button class="btn btn-sm btn-secondary" data-clear-selection="bf-<?= $section; ?>" type="button"><?= Text::_("COM_BREEZINGFORMSNG_INSTALLER_CLRSELECTION"); ?></button>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
+                    <div<?= $this->selectedPackage === '' && !$this->isNewPackage ? ' class="d-none"' : ''; ?> id="bf-package-details">
+                        <?= LayoutHelper::render('packages.metadata', ['values' => $this->draft['metadata'] ?? [], 'tips' => true]); ?>
+                        <?= LayoutHelper::render('packages.item-lists', ['id' => 'bf-selections', 'fieldName' => '%s[]', 'rows' => $this->listRows, 'tracked' => false, 'showPackage' => true, 'tips' => true]); ?>
                         <fieldset class="mt-4" id="bf-package-options">
                             <legend class="form-label fs-6"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_EXPORT_OPTIONS'); ?></legend>
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="bf-include-templates" name="include_templates" value="1"<?= $mayTransferTemplates ? '' : ' disabled'; ?>>
+                                <input class="form-check-input" type="checkbox" role="switch" id="bf-include-templates" name="include_templates" value="1"<?= !empty($this->draft['include_templates']) && $mayTransferTemplates ? ' checked' : ''; ?><?= $mayTransferTemplates ? '' : ' disabled'; ?>>
                                 <label class="form-check-label" for="bf-include-templates"<?= $mayTransferTemplates
                                     ? $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_TEMPLATES_TIP')
                                     : ' title="' . htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_TEMPLATES_DENIED', Text::_('JACTION_ADMIN')), ENT_QUOTES, 'UTF-8') . '"'; ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_TEMPLATES'); ?></label>
                             </div>
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="bf-include-integrator" name="include_integrator" value="1"<?= $this->mayTransferIntegrator ? '' : ' disabled'; ?>>
+                                <input class="form-check-input" type="checkbox" role="switch" id="bf-include-integrator" name="include_integrator" value="1"<?= !empty($this->draft['include_integrator']) && $this->mayTransferIntegrator ? ' checked' : ''; ?><?= $this->mayTransferIntegrator ? '' : ' disabled'; ?>>
                                 <label class="form-check-label" for="bf-include-integrator"<?= $labelTip($this->mayTransferIntegrator ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR_TIP' : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR_DENIED'); ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_INCLUDE_INTEGRATOR'); ?></label>
                             </div>
                         </fieldset>
-                        <table class="table table-striped mt-4 d-none" id="bf-package-audit">
-                            <tbody><tr class="table-primary"><th colspan="2">
-                                <a href="#" id="bf-package-audit-toggle" class="bf-collapse-toggle collapsed d-block text-decoration-none text-reset"
-                                    data-bs-toggle="collapse" data-bs-target="#bf-package-audit-content"
-                                    aria-expanded="false" aria-controls="bf-package-audit-content">
-                                    <span class="icon-chevron-down bf-collapse-icon" aria-hidden="true"></span> <?= Text::_('COM_BREEZINGFORMSNG_RECORDS_AUDITINFO'); ?>
-                                </a>
-                            </th></tr></tbody>
-                            <tbody id="bf-package-audit-content" class="collapse">
-                                <?php foreach ($this->profiles as $id => $profile) : ?>
-                                    <tr class="d-none" data-bf-audit="<?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?>"><th class="w-25"><?= Text::_('COM_BREEZINGFORMSNG_TEST_CREATED'); ?></th><td><?= $auditModified($profile['created'] ?? null, $profile['created_by'] ?? ''); ?></td></tr>
-                                    <tr class="d-none" data-bf-audit="<?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?>"><th><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MODIFIED'); ?></th><td><?= $auditModified($profile['modified'] ?? null, $profile['modified_by'] ?? ''); ?></td></tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                        <?= LayoutHelper::render('packages.audit', ['profiles' => $this->profiles, 'selected' => $this->selectedPackage, 'timezone' => $this->timezone]); ?>
                     </div>
                     <input type="hidden" name="task" value="packages.export">
                     <?= HTMLHelper::_("form.token"); ?>
@@ -205,33 +80,24 @@ const bfSelections = document.getElementById('bf-selections');
 
 const bfPackageChoice = document.getElementById('bf-package-choice');
 const bfPackageNew = document.getElementById('bf-package-new');
+const bfPackageNewFlag = document.getElementById('bf-package-new-flag');
 
 const bfPackageDetails = document.getElementById('bf-package-details');
 
 // Nothing shows until the list picks a package. An existing one fills in its
-// details, and one with assigned items exports them, so its selection is
-// hidden and cleared. "New package" shows the ID field.
-const bfShowProfile = () => {
+// details, and one with assigned items lists only those items, all ticked. "New package" shows the ID field.
+const bfShowProfile = (preserveValues = false) => {
     const isNew = 'new' in bfPackageChoice.selectedOptions[0].dataset;
-    const id = bfPackageChoice.value;
+    const id = isNew ? '' : bfPackageChoice.value;
     const profile = bfPackageProfiles[id] || {};
     const assigned = Boolean(profile.assigned);
+    bfPackageNewFlag.value = isNew ? '1' : '0';
     bfPackageDetails.classList.toggle('d-none', id === '' && !isNew);
     bfPackageNew.classList.toggle('d-none', !isNew);
-    bfPackage.value = isNew && !bfPackageProfiles[bfPackage.value] ? bfPackage.value : id;
-    bfSelections.classList.toggle('d-none', assigned);
-    const contents = document.getElementById('bf-package-contents');
-    contents.classList.toggle('d-none', !assigned);
-    for (const section of contents.querySelectorAll('[data-bf-content-section]')) {
-        let count = 0;
-        for (const row of section.querySelectorAll('[data-bf-package]')) {
-            const shown = assigned && row.dataset.bfPackage === id;
-            row.classList.toggle('d-none', !shown);
-            count += Number(shown);
-        }
-        section.classList.toggle('d-none', count === 0);
-        section.querySelector('[data-bf-count]').textContent = String(count);
+    if (!preserveValues) {
+        bfPackage.value = isNew && !bfPackageProfiles[bfPackage.value] ? bfPackage.value : id;
     }
+    bfSelections.classList.remove('d-none');
 
     if (isNew) {
         const openPackageInfo = () => {
@@ -258,20 +124,32 @@ const bfShowProfile = () => {
     }
     document.getElementById('bf-package-audit').classList.toggle('d-none', !hasAudit);
 
-    if (assigned) {
-        for (const option of bfSelections.querySelectorAll('option')) {
-            option.selected = false;
+    // A package that already has items exports them: they can be unticked, and the items of
+    // other packages are out of reach. Any other choice leaves every item selectable.
+    for (const box of bfSelections.querySelectorAll('input[type="checkbox"]')) {
+        const outside = assigned && box.dataset.bfPackage !== id;
+        box.disabled = outside;
+        box.closest('[data-bf-row]').classList.toggle('d-none', outside);
+        if (assigned && !preserveValues) {
+            box.checked = !outside;
         }
     }
+    // The lists (package-update.js) refresh their counters on this event.
+    for (const section of bfSelections.querySelectorAll('[data-bf-section]')) {
+        section.dispatchEvent(new Event('change', { bubbles: true }));
+    }
 
-    for (const field of ['name', 'version', 'title', 'author', 'email', 'url', 'description', 'copyright']) {
-        document.getElementById('bf-meta-' + field).value = profile[field] || '';
+    if (!preserveValues) {
+        for (const field of ['name', 'version', 'title', 'author', 'email', 'url', 'description', 'copyright']) {
+            document.getElementById('bf-meta-' + field).value = profile[field] || '';
+        }
     }
 };
 
 // Unsaved changes guard, as on the record screen (admin-form-dirty.js): the
 // form is compared with its last loaded or submitted state, without `task`.
 const bfExportForm = document.getElementById('bf-package-export');
+const bfHasExportDraft = 'bfDraft' in bfExportForm.dataset;
 const bfFormState = () => {
     const params = new URLSearchParams(new FormData(bfExportForm));
     params.delete('task');
@@ -288,8 +166,8 @@ let bfSavedState = '';
 let bfChoice = 0;
 let bfSubmitting = false;
 
-const bfLoadProfile = () => {
-    bfShowProfile();
+const bfLoadProfile = (preserveValues = false) => {
+    bfShowProfile(preserveValues);
     bfChoice = bfPackageChoice.selectedIndex;
     bfSavedState = bfFormState();
 };
@@ -362,17 +240,5 @@ window.addEventListener('beforeunload', (event) => {
     }
 });
 
-bfLoadProfile();
-
-document.addEventListener('click', (event) => {
-    const button = event.target.closest('button[data-select-all], button[data-clear-selection]');
-    if (!button) {
-        return;
-    }
-
-    const select = document.getElementById(button.dataset.selectAll || button.dataset.clearSelection);
-    for (const option of select.options) {
-        option.selected = Boolean(button.dataset.selectAll);
-    }
-});
+bfLoadProfile(bfHasExportDraft);
 </script>

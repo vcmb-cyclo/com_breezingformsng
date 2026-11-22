@@ -55,6 +55,24 @@ final class McpFormWriterTest extends TestCase
         $this->writer->create(['name' => '  ', 'title' => 'A'], McpTestDoubles::user(['core.create']));
     }
 
+    /** @return iterable<string, array{string}> */
+    public static function badNamesProvider(): iterable
+    {
+        yield 'a hyphen' => ['contact-us'];
+        yield 'a space' => ['contact us'];
+        yield 'a dot' => ['contact.us'];
+        yield 'an inner newline' => ["ab\ncd"];
+    }
+
+    #[DataProvider('badNamesProvider')]
+    public function testCreateRefusesANameThatIsNotAnIdentifierWithAToolException(string $name): void
+    {
+        $this->quickmode->expects(self::never())->method('save');
+
+        $this->expectRefusal('letters, digits and underscores');
+        $this->writer->create(['name' => $name, 'title' => 'A'], McpTestDoubles::user(['core.create']));
+    }
+
     /** @return iterable<string, array{list<array<string, mixed>>, string}> */
     public static function badFieldsProvider(): iterable
     {
@@ -281,12 +299,30 @@ final class McpFormWriterTest extends TestCase
 
     public function testManageFieldsOnlyEditsQuickModeFormsItCanPreserve(): void
     {
-        $this->options->method('getForm')->willReturn(self::storedForm(['package' => 'Legacy']));
+        // A form whose layout is not in QuickMode format, whatever its package.
+        $this->options->method('getForm')->willReturn(self::storedForm(['template_code_processed' => '<div>legacy</div>']));
         $this->quickmode->method('getTemplateCode')->willReturn(self::quickmodeTemplate());
         $this->quickmode->expects(self::never())->method('save');
 
         $this->expectRefusal('Only QuickMode forms');
         $this->writer->manageFields(['id' => 7, 'add_pages' => 1], McpTestDoubles::user(['core.edit']));
+    }
+
+    #[DataProvider('packages')]
+    public function testManageFieldsEditsAQuickModeFormOfAnyPackage(string $package): void
+    {
+        $this->options->method('getForm')->willReturn(self::storedForm(['package' => $package]));
+        $this->quickmode->method('getTemplateCode')->willReturn(self::quickmodeTemplate());
+
+        // The form passes the QuickMode check: the refusal is the one that follows it.
+        $this->expectRefusal('at least one field or page change');
+        $this->writer->manageFields(['id' => 7], McpTestDoubles::user(['core.edit']));
+    }
+
+    /** @return array<string, array{string}> */
+    public static function packages(): array
+    {
+        return ['sample' => ['Sample'], 'legacy' => ['Legacy'], 'none' => ['']];
     }
 
     public function testManageFieldsRefusesWhenThereIsNothingToDo(): void

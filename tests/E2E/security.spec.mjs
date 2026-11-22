@@ -645,7 +645,7 @@ test.describe('security, as the site really answers', () => {
 
             return { status: response.status, text: (await response.text()).slice(0, 300) };
         }, [`/${ADMIN}?option=com_breezingformsng&task=forms.saveOptions`, {
-            id: String(textForm), title: dbJson('form', String(textForm)).title, [csrf]: '1', ...fields,
+            id: String(textForm), name: 'e2e_sec_text', title: dbJson('form', String(textForm)).title, [csrf]: '1', ...fields,
         }]);
 
         test.beforeAll(async ({ browser }) => {

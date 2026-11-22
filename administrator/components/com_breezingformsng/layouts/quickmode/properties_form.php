@@ -57,11 +57,11 @@ $debugMode = (bool) ($debugMode ?? false);
                                                 <label class="bfPropertyLabel bfng-field__label"
                                                     title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_FORM_NAME')); ?>"
                                                     for="bfFormName">
-                                                    <?php echo Text::_('COM_BREEZINGFORMSNG_FORM_NAME'); ?>
+                                                    <?php echo Text::_('COM_BREEZINGFORMSNG_FORM_NAME'); ?> <span class="text-danger" aria-hidden="true">*</span>
                                                 </label>
                                                 <input type="text"
                                                     value="<?php echo htmlentities($formName, ENT_QUOTES, 'UTF-8') ?>"
-                                                    id="bfFormName" />
+                                                    id="bfFormName" required />
                                             </div>
                                             <div class="bfPropertyWrap bfng-field">
                                                 <label class="bfPropertyLabel bfng-field__label"

@@ -196,7 +196,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: joomla-stubs
-          key: joomla-stubs-6.1.2-php8.4
+          key: joomla-stubs-6.2.0-php8.4
 
       - name: Extract Joomla core for class discovery
         if: steps.joomla-stubs-cache.outputs.cache-hit != 'true'

@@ -21,6 +21,7 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\FormsAdvancedOptionsHtml;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormsModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageFilter;
 
 class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView
 {
@@ -122,6 +123,11 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         } else {
             $document = $this->getDocument();
             $wa       = $document->getWebAssetManager();
+            // Not deferred: it must run before the table.columns module reads the state.
+            $wa->registerAndUseScript(
+                'com_breezingformsng.forms-columns',
+                'media/com_breezingformsng/js/admin/forms-columns.js'
+            );
             $wa->useScript('table.columns')->useScript('multiselect');
             $wa->registerAndUseScript(
                 'com_breezingformsng.admin-form',
@@ -157,7 +163,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             $this->state = $model->getState();
             $this->filterForm = $model->getFilterForm();
             $this->activeFilters = $model->getActiveFilters();
-            $this->pkg = (string) $this->state->get('filter.package');
+            $filterPackage = (string) $this->state->get('filter.package');
+            $this->pkg = $filterPackage === PackageFilter::NONE ? '' : $filterPackage;
 
             ToolbarHelper::addNew('forms.edit');
             ToolbarHelper::custom('forms.copy', 'copy', '', 'JLIB_HTML_BATCH_COPY', true);

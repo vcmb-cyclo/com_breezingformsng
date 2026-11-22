@@ -25,6 +25,9 @@ use Joomla\Database\DatabaseInterface;
 
 final class PackagesController extends BaseController
 {
+    /** User state holding an export form rejected by server-side validation, shown once. */
+    public const EXPORT_DRAFT_STATE = 'com_breezingformsng.packages.export_draft';
+    public const UPDATE_DRAFT_STATE = 'com_breezingformsng.packages.update_draft';
     /** User state holding the report of the last import, shown once by the import page. */
     public const REPORT_STATE = 'com_breezingformsng.packages.import_report';
 
@@ -40,28 +43,8 @@ final class PackagesController extends BaseController
     }
 
     /**
-     * Stores the package details and returns to the Create Package screen.
-     */
-    public function save(): void
-    {
-        /** @var CMSApplication $app */
-        $app = Factory::getApplication();
-        $this->assertAuthorised();
-        $this->checkToken();
-        $package = $this->submittedPackage();
-
-        try {
-            $this->model()->savePackage($package, $app->getInput()->get('metadata', [], 'array'));
-            $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SAVED'), 'message');
-        } catch (\Throwable $exception) {
-            $app->enqueueMessage($exception->getMessage(), 'error');
-        }
-        $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . rawurlencode($package), false));
-    }
-
-    /**
-     * Saves the package details, then downloads the package: the selected
-     * items when there are any, else the items assigned to the package.
+     * Downloads the package file without creating or changing anything on this site:
+     * the selected items when there are any, else the items assigned to the package.
      */
     public function export(): void
     {
@@ -71,16 +54,38 @@ final class PackagesController extends BaseController
         $this->checkToken();
         $input = $app->getInput();
         $package = $this->submittedPackage();
+        $formIds = $input->get('forms', [], 'array');
+        $scriptIds = $input->get('scripts', [], 'array');
+        $pieceIds = $input->get('pieces', [], 'array');
+        $menuIds = $input->get('menus', [], 'array');
+        $metadata = $input->get('metadata', [], 'array');
+        // An unchecked switch is not posted: Input returns the default as it is.
+        $withTemplates = $input->getBool('include_templates', false);
+        $withIntegrator = $input->getBool('include_integrator', false);
+        $isNew = $input->getInt('package_new', 0) === 1
+            || $input->getString('selected_package', '') === PackageTransferModel::NEW_PACKAGE;
+        $draft = [
+            'package' => $package,
+            'new' => $isNew,
+            'metadata' => array_map(static fn (mixed $value): string => is_scalar($value) ? (string) $value : '', (array) $metadata),
+            'select' => $this->submittedExportSelection(),
+            'include_templates' => $withTemplates,
+            'include_integrator' => $withIntegrator,
+        ];
+
+        if ($package === '') {
+            $message = $draft['new']
+                ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_ID_REQUIRED'
+                : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED';
+            $app->enqueueMessage(Text::_($message), 'error');
+            $app->setUserState(self::EXPORT_DRAFT_STATE, $draft);
+            $redirectPackage = $draft['new'] ? PackageTransferModel::NEW_PACKAGE : '';
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . $redirectPackage, false));
+
+            return;
+        }
 
         try {
-            $formIds = $input->get("forms", [], "array");
-            $scriptIds = $input->get("scripts", [], "array");
-            $pieceIds = $input->get("pieces", [], "array");
-            $menuIds = $input->get("menus", [], "array");
-            $metadata = $input->get('metadata', [], 'array');
-            // An unchecked switch is not posted: Input returns the default as it is.
-            $withTemplates = $input->getBool('include_templates', false);
-            $withIntegrator = $input->getBool('include_integrator', false);
             // Template files are PHP code run by the site.
             if ($withTemplates && !$this->mayTransferTemplates()) {
                 throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_TEMPLATES_NOT_ALLOWED', Text::_('JACTION_ADMIN')));
@@ -91,7 +96,6 @@ final class PackagesController extends BaseController
             $json = $formIds === [] && $scriptIds === [] && $pieceIds === [] && $menuIds === []
                 ? $this->model()->export($package, $metadata, $withTemplates, $withIntegrator)
                 : $this->model()->exportSelection($package, $formIds, $scriptIds, $pieceIds, $menuIds, $metadata, $withTemplates, $withIntegrator);
-            $this->model()->savePackage($package, $metadata);
             $fileName = 'breezingformsng-' . preg_replace('/[^A-Za-z0-9._-]/', '-', $package) . '.json';
             while (ob_get_level() > 0) {
                 ob_end_clean();
@@ -103,12 +107,14 @@ final class PackagesController extends BaseController
             $app->close();
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . rawurlencode($package), false));
+            $app->setUserState(self::EXPORT_DRAFT_STATE, $draft);
+            $redirectPackage = $draft['new'] ? PackageTransferModel::NEW_PACKAGE : rawurlencode($package);
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . $redirectPackage, false));
         }
     }
 
     /**
-     * Installs the sample forms ticked on the Tools screen, and puts each in the site menu under "Tests".
+     * Installs the sample forms ticked on the Tools screen, and puts each in the site menu under "Samples".
      * It never overwrites an installed sample: the form may have been edited.
      */
     public function installSample(): void
@@ -184,11 +190,15 @@ final class PackagesController extends BaseController
                 return;
             }
 
+            // A sample holds code (the live price of the event form, for one). It is imported with the
+            // same rule as an uploaded package: the code is written only for a user who holds the code
+            // permission. A hard-coded false stripped it for everyone and left the sample inert.
+            $user = $app->getIdentity();
             $this->model()->import(
                 SampleFormService::packagePath($slug),
                 true,
                 basename(SampleFormService::packagePath($slug)),
-                false,
+                $user !== null && AreaAccess::isAllowed($user, AreaAccess::CODE),
                 null
             );
             $sample->ensureMenu();
@@ -360,7 +370,71 @@ final class PackagesController extends BaseController
         $app->close();
     }
 
-    public function delete(): void
+    /**
+     * Creates the package when asked, saves its details when they changed, attaches the selected
+     * free items and detaches the items it no longer selects.
+     */
+    public function update(): void
+    {
+        /** @var CMSApplication $app */
+        $app = Factory::getApplication();
+        $this->assertAuthorised();
+        $this->checkToken();
+        $package = $this->submittedPackage();
+        $isNew = $app->getInput()->getInt('package_new', 0) === 1;
+
+        try {
+            $model = $this->model();
+            $metadata = $app->getInput()->get('metadata', [], 'array');
+            $submitted = $app->getInput()->get('update_parts', [], 'array');
+            $parts = array_values(array_intersect(
+                PackageTransferModel::SELECTABLE_PARTS,
+                array_filter($submitted, 'is_string')
+            ));
+            $selection = $this->submittedItemSelection('update_select');
+
+            if ($isNew) {
+                $package = $model->assertNewPackageId($package);
+            } else {
+                // A form kept open for a package removed meanwhile must not bring it back.
+                $model->assertPackageExists($package);
+            }
+
+            // The details and the items are stored together: a failure leaves no half-created package.
+            $changed = $model->inTransaction(
+                function () use ($model, $package, $isNew, $metadata, $selection, $parts): bool {
+                    $changed = false;
+
+                    if ($isNew || $model->metadataDiffers($package, $metadata)) {
+                        $model->savePackage($package, $metadata);
+                        $changed = true;
+                    }
+
+                    return $model->updatePackage($package, $selection, $parts) || $changed;
+                }
+            );
+
+            if (!$changed) {
+                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_NOTHING_CHANGED'), 'notice');
+            } else {
+                (new ActionLogger($app))->log(ActionLogger::SAVED, ActionLogger::PACKAGE, [], $package);
+                $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATED_NAMED', htmlspecialchars($package, ENT_QUOTES, 'UTF-8')), 'message');
+            }
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update&package=' . rawurlencode($package), false));
+        } catch (\Throwable $exception) {
+            $app->enqueueMessage($exception->getMessage(), 'error');
+            // Keep what was typed and selected: the screen is shown again with it.
+            $app->setUserState(self::UPDATE_DRAFT_STATE, [
+                'package' => $package,
+                'metadata' => array_map(static fn (mixed $value): string => is_scalar($value) ? (string) $value : '', $metadata ?? []),
+                'select' => $this->submittedItemSelection('update_select'),
+            ]);
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update&package=' . ($isNew ? PackageTransferModel::NEW_PACKAGE : rawurlencode($package)), false));
+        }
+    }
+
+    /** Removes the selected package while retaining every attached item. */
+    public function remove(): void
     {
         /** @var CMSApplication $app */
         $app = Factory::getApplication();
@@ -369,51 +443,13 @@ final class PackagesController extends BaseController
         $package = $this->submittedPackage();
 
         try {
-            $submitted = $app->getInput()->get('delete_select', [], 'array');
-            $selection = [];
-
-            foreach (['forms', 'scripts', 'pieces', 'menus'] as $part) {
-                $selection[$part] = [];
-                $values = is_array($submitted[$part] ?? null) ? $submitted[$part] : [];
-
-                foreach ($values as $value) {
-                    if (!is_string($value) && !is_int($value)) {
-                        continue;
-                    }
-
-                    $id = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-
-                    if ($id !== false) {
-                        $selection[$part][] = $id;
-                    }
-                }
-            }
-
-            $model = $this->model();
-
-            if (!$model->deletePackage($package, $selection)) {
-                $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE_NOTHING_SELECTED'), 'warning');
-                $app->redirect(Route::_(
-                    'index.php?option=com_breezingformsng&view=packages&layout=delete&package=' . rawurlencode($package),
-                    false
-                ));
-
-                return;
-            }
-
-            $packageExists = in_array($package, $model->getPackages(), true);
-            $action = $packageExists ? ActionLogger::SAVED : ActionLogger::DELETED;
-            (new ActionLogger($app))->log($action, ActionLogger::PACKAGE, [], $package);
-            $app->enqueueMessage(Text::sprintf(
-                $packageExists
-                    ? 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETED_NAMED'
-                    : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DISSOLVED_NAMED',
-                htmlspecialchars($package, ENT_QUOTES, 'UTF-8')
-            ), 'message');
+            $this->model()->removePackage($package);
+            (new ActionLogger($app))->log(ActionLogger::DELETED, ActionLogger::PACKAGE, [], $package);
+            $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVED_NAMED', htmlspecialchars($package, ENT_QUOTES, 'UTF-8')), 'message');
             $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages', false));
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=delete', false));
+            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update', false));
         }
     }
 
@@ -443,9 +479,64 @@ final class PackagesController extends BaseController
         return $selection;
     }
 
+    /**
+     * @return array<string, list<int>>
+     */
+    private function submittedItemSelection(string $field): array
+    {
+        $submitted = Factory::getApplication()->getInput()->get($field, [], 'array');
+        $selection = [];
+
+        foreach (PackageTransferModel::SELECTABLE_PARTS as $part) {
+            $values = is_array($submitted[$part] ?? null) ? $submitted[$part] : [];
+            $selection[$part] = [];
+
+            foreach ($values as $value) {
+                if (!is_string($value) && !is_int($value)) {
+                    continue;
+                }
+
+                $id = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+                if ($id !== false) {
+                    $selection[$part][] = $id;
+                }
+            }
+        }
+
+        return $selection;
+    }
+
     private function submittedPackage(): string
     {
         return trim(Factory::getApplication()->getInput()->getString('package', ''));
+    }
+
+    /**
+     * The item identifiers posted by the export form, normalised for redisplay after an error.
+     *
+     * @return array<string, list<int>>
+     */
+    private function submittedExportSelection(): array
+    {
+        $input = Factory::getApplication()->getInput();
+        $selection = [];
+
+        foreach (PackageTransferModel::SELECTABLE_PARTS as $part) {
+            $selection[$part] = [];
+
+            foreach ((array) $input->get($part, [], 'array') as $value) {
+                if (!is_string($value) && !is_int($value)) {
+                    continue;
+                }
+
+                $id = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+                if ($id !== false) {
+                    $selection[$part][] = $id;
+                }
+            }
+        }
+
+        return $selection;
     }
 
     private function assertAuthorised(): void

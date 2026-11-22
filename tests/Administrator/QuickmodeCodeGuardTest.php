@@ -211,4 +211,40 @@ final class QuickmodeCodeGuardTest extends TestCase
         self::assertSame([], $result['ignored']);
         self::assertSame($tree, $result['tree']);
     }
+
+    private function nameRule(int $form, string $stored, string $name): string
+    {
+        $process = proc_open(
+            [PHP_BINARY, __DIR__ . '/fixtures/quickmode-form-name.php', (string) $form, $stored, $name],
+            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+            $pipes
+        );
+        self::assertIsResource($process);
+        $output = stream_get_contents($pipes[1]);
+        $error = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        self::assertSame(0, proc_close($process), $error);
+
+        return (string) $output;
+    }
+
+    public function testAnUnchangedLegacyNameStaysSaveable(): void
+    {
+        self::assertSame('ok', $this->nameRule(7, 'contact-us', 'contact-us'));
+    }
+
+    public function testANameChangedToAnInvalidOneIsRefused(): void
+    {
+        self::assertSame('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS', $this->nameRule(7, 'contact-us', 'contact.us'));
+        self::assertSame('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS', $this->nameRule(7, 'contact', "abc\n"));
+    }
+
+    public function testANewFormWithAnInvalidNameIsRefusedByTheSharedRule(): void
+    {
+        self::assertSame('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS', $this->nameRule(0, '', 'contact-us'));
+        self::assertSame('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS', $this->nameRule(0, '', "abc\n"));
+        self::assertSame('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME', $this->nameRule(0, '', ''));
+        self::assertSame('ok', $this->nameRule(0, '', 'contact_us'));
+    }
 }

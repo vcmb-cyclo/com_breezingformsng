@@ -5,7 +5,7 @@ description: Build, script, embed and troubleshoot forms with BreezingForms NG (
 
 # BreezingForms NG
 
-BreezingForms NG is a Joomla 6 component (PHP 8.3+, MySQL/MariaDB) for building forms visually,
+BreezingForms NG is a Joomla 6 component (PHP 8.4+, MySQL/MariaDB) for building forms visually,
 storing submissions, sending emails, taking payments and running custom PHP/JS per form.
 Source and releases: https://github.com/vcmb-cyclo/com_breezingformsng
 

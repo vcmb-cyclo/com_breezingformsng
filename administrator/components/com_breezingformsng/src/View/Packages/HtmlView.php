@@ -17,11 +17,13 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Toolbar\Button\ConfirmButton;
 use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Controller\PackagesController;
 use Vcmb\Component\BreezingformsNG\Administrator\Mcp\McpAvailability;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\PackageListRows;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordInventoryService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\SampleFormService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\TrashInventoryService;
@@ -39,10 +41,28 @@ final class HtmlView extends BaseHtmlView
     public array $choices = [];
     /** @var array<array<string, mixed>> */
     public array $profiles = [];
-    /** @var array<string, list<array<string, mixed>>> What is attached to the selected package. */
-    public array $contents = [];
     /** Package preselected in the list, after a save. */
     public string $selectedPackage = '';
+
+    /** The current screen is creating a package: nothing is selected, the identifier is asked. */
+    public bool $isNewPackage = false;
+
+    /**
+     * The rows of the checkbox lists, by kind of item.
+     *
+     * @var array<string, list<array<string, mixed>>>
+     */
+    public array $listRows = [];
+
+    /** Items attached to the selected package, to say what removing it detaches. */
+    public int $attachedCount = 0;
+
+    /**
+     * What the user typed and selected when an update or export was refused, to show it again.
+     *
+     * @var array{package?: string, new?: bool, metadata?: array<string, string>, select?: array<string, list<int>>, include_templates?: bool, include_integrator?: bool}
+     */
+    public array $draft = [];
     /** Time zone the audit dates are shown in. */
     public \DateTimeZone $timezone;
     /** Template files hold PHP code: exporting them takes the Configure permission, as the controller checks. */
@@ -68,7 +88,7 @@ final class HtmlView extends BaseHtmlView
      * form already uses its name (it cannot be installed, and is left as it is), and the form the Manage
      * button opens: the installed sample, else the form already using its name.
      *
-     * @var array<string, array{installedId: int, nameTaken: bool, manageId: int}>
+     * @var array<string, array{name: string, installedId: int, nameTaken: bool, manageId: int}>
      */
     public array $samples = [];
     /**
@@ -88,7 +108,7 @@ final class HtmlView extends BaseHtmlView
         $this->mayTransferTemplates = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
         $this->mayTransferIntegrator = AreaAccess::isAllowed($this->getCurrentUser(), AreaAccess::CODE);
 
-        if (in_array($this->getLayout(), ['export', 'delete'], true)) {
+        if (in_array($this->getLayout(), ['export', 'update'], true)) {
             HTMLHelper::_('bootstrap.collapse');
             $this->getDocument()->getWebAssetManager()->useStyle('com_breezingformsng.admin-style');
             $app = Factory::getApplication();
@@ -102,19 +122,45 @@ final class HtmlView extends BaseHtmlView
             }
             $this->packages = $model->getPackages();
             $this->selectedPackage = $app->getInput()->getString('package', '');
+            if ($this->selectedPackage === PackageTransferModel::NEW_PACKAGE) {
+                $this->isNewPackage = true;
+                $this->selectedPackage = '';
+            }
             $this->profiles = $model->getPackageProfiles();
             $this->profiles = $model->resolveProfileAuditNames($this->profiles);
             $this->timezone = $this->getCurrentUser()->getTimezone();
 
-            if ($this->getLayout() === 'delete') {
+            if ($this->getLayout() === 'update') {
                 if ($this->selectedPackage !== '') {
                     if (!in_array($this->selectedPackage, $this->packages, true)) {
                         throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'), 404);
                     }
-                    $this->contents = $model->getPackageContents($this->selectedPackage);
+                    $this->attachedCount = $model->countPackageItems($this->selectedPackage);
                 }
+            }
+            $this->choices = $model->getExportChoices();
+            $this->getDocument()->getWebAssetManager()
+                ->useStyle('com_breezingformsng.package-update-style')
+                ->useScript('com_breezingformsng.package-update');
+            foreach (['NO_CHANGES', 'PENDING_CHANGES'] as $key) {
+                Text::script('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_' . $key);
+            }
+
+            if ($this->getLayout() === 'update') {
+                /** @var CMSApplication $app */
+                $app = Factory::getApplication();
+                $draft = $app->getUserState(PackagesController::UPDATE_DRAFT_STATE, []);
+                $this->draft = is_array($draft) ? $draft : [];
+                $app->setUserState(PackagesController::UPDATE_DRAFT_STATE, null);
+                $this->listRows = PackageListRows::forUpdate($this->choices, $this->selectedPackage, $this->draft['select'] ?? []);
             } else {
-                $this->choices = $model->getExportChoices();
+                /** @var CMSApplication $app */
+                $app = Factory::getApplication();
+                $draft = $app->getUserState(PackagesController::EXPORT_DRAFT_STATE, []);
+                $this->draft = is_array($draft) ? $draft : [];
+                $app->setUserState(PackagesController::EXPORT_DRAFT_STATE, null);
+                $this->isNewPackage = ($this->draft['new'] ?? $this->isNewPackage) === true;
+                $this->listRows = PackageListRows::forExport($this->choices, $this->draft['select'] ?? []);
             }
         }
 
@@ -137,6 +183,7 @@ final class HtmlView extends BaseHtmlView
                 $installedId = $sampleService->getInstalledFormId();
                 $nameTaken = $installedId === 0 && $sampleService->getFormNameCount() > 0;
                 $this->samples[$slug] = [
+                    'name' => $sampleService->formName(),
                     'installedId' => $installedId,
                     'nameTaken' => $nameTaken,
                     'manageId' => $installedId > 0
@@ -178,8 +225,8 @@ final class HtmlView extends BaseHtmlView
     protected function getDetailLabel(): ?string
     {
         return match ($this->getLayout()) {
-            'export' => Text::_('COM_BREEZINGFORMSNG_INSTALLER_CREATEPKG'),
-            'delete' => Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE_CONFIRM_TITLE'),
+            'export' => Text::_('COM_BREEZINGFORMSNG_TOOLS_TILE_EXPORT'),
+            'update' => Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_MANAGE_TITLE'),
             'import' => Text::_('COM_BREEZINGFORMSNG_INSTALLER'),
             default => null,
         };
@@ -239,19 +286,24 @@ final class HtmlView extends BaseHtmlView
 
         switch ($this->getLayout()) {
             case 'export':
-                $toolbar->apply('packages.save')
-                    ->form('bf-package-export')
-                    ->formValidation(true);
                 $toolbar->standardButton('download', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_EXPORT_PACKAGE', 'packages.export')
                     ->form('bf-package-export')
                     ->formValidation(true);
                 $toolbar->linkButton('close', 'JTOOLBAR_CLOSE')->url($home)->icon('icon-times');
                 break;
 
-            case 'delete':
+            case 'update':
+                if ($this->selectedPackage !== '' || $this->isNewPackage) {
+                    $toolbar->standardButton('apply', 'JTOOLBAR_APPLY', 'packages.update')
+                        ->form('bf-package-update')
+                        ->icon('icon-check');
+                }
                 if ($this->selectedPackage !== '') {
-                    $toolbar->standardButton('delete', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_DELETE', 'packages.delete')
-                        ->form('bf-package-delete')
+                    /** @var ConfirmButton $removeButton */
+                    $removeButton = $toolbar->confirmButton('delete', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE', 'packages.remove');
+                    $removeButton
+                        ->message(Text::plural('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_REMOVE_CONFIRM', $this->attachedCount))
+                        ->form('bf-package-remove')
                         ->icon('icon-trash');
                 }
                 $toolbar->linkButton('close', 'JTOOLBAR_CANCEL')->url($home)->icon('icon-times');

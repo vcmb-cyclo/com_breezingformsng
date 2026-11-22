@@ -49,7 +49,7 @@ Log::add('User Agent: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'CLI') . '.', Log::INF
 class com_breezingformsngInstallerScript implements InstallerScriptInterface
 {
     private const TARGET_COMPONENT = 'com_breezingformsng';
-    private const MINIMUM_PHP = '8.3';
+    private const MINIMUM_PHP = '8.4';
     private const MINIMUM_JOOMLA = '6.0';
     // SHA-256 of every shipped version of the generic PDF templates that
     // media/breezingforms/pdftpl no longer uses, line endings normalised to
@@ -3433,6 +3433,9 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src/View/Pieces/Renderer.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/src/View/Scripts/Renderer.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/tmpl/menus/edit.php',
+            // Renamed package-management layout. Joomla leaves the old file in
+            // place during updates although the replacement is shipped as update.php.
+            JPATH_ADMINISTRATOR . '/components/com_breezingformsng/tmpl/packages/delete.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/tmpl/records/csvimport.php',
             JPATH_ADMINISTRATOR . '/components/com_breezingformsng/tmpl/records/edit.php',
             // Libraries removed from the administration.
@@ -3613,6 +3616,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $this->migrateLegacyComponentOptionReferences();
 
         $this->migrateDatabase();
+        $this->migrateMissingFormNames();
         $this->convertRecordModifiedDatesToUtc();
 
         return true;
@@ -4036,6 +4040,61 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             && ($collation === null || $column->Collation === $collation);
     }
 
+    /** Fill the technical form name from its title when older data left it empty. */
+    private function migrateMissingFormNames(): void
+    {
+        $db = self::getDatabase();
+        $query = $db->createQuery()
+            ->select($db->quoteName(['id', 'name', 'title', 'package']))
+            ->from($db->quoteName('#__facileforms_forms'))
+            ->order($db->quoteName('id'));
+        $rows = $db->setQuery($query)->loadAssocList() ?: [];
+        $used = [];
+        $count = 0;
+
+        foreach ($rows as $row) {
+            $package = (string) ($row['package'] ?? '');
+            $name = trim((string) ($row['name'] ?? ''));
+            if ($name !== '') {
+                $used[strtolower($package) . "\0" . strtolower($name)] = true;
+            }
+        }
+
+        foreach ($rows as $row) {
+            if (trim((string) ($row['name'] ?? '')) !== '') {
+                continue;
+            }
+
+            $id = (int) ($row['id'] ?? 0);
+            $name = strtolower(trim((string) preg_replace('/[^A-Za-z0-9]+/', '_', trim((string) ($row['title'] ?? ''))), '_'));
+            if ($name === '') {
+                continue;
+            }
+
+            $package = (string) ($row['package'] ?? '');
+            $base = $name;
+            $suffix = 0;
+            while (isset($used[strtolower($package) . "\0" . $name])) {
+                $suffix++;
+                $name = $base . '_' . $suffix;
+            }
+
+            $update = $db->createQuery()
+                ->update($db->quoteName('#__facileforms_forms'))
+                ->set($db->quoteName('name') . ' = :name')
+                ->where($db->quoteName('id') . ' = :id')
+                ->bind(':name', $name, ParameterType::STRING)
+                ->bind(':id', $id, ParameterType::INTEGER);
+            $db->setQuery($update)->execute();
+            $used[strtolower($package) . "\0" . $name] = true;
+            $count++;
+        }
+
+        if ($count > 0) {
+            $this->log('Filled the name of ' . $count . ' form(s) from their title.');
+        }
+    }
+
     private function migrateQuickmodeIconPaths(): void
     {
         $db = self::getDatabase();
@@ -4342,6 +4401,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             if ($type !== 'update') {
                 $this->migrateDatabase();
             }
+            $this->migrateMissingFormNames();
             $this->migrateLegacyConfig();
             $this->retireBackendOnlyForms();
             // The forms, scripts and pieces taken over keep their state as

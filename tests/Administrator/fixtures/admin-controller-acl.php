@@ -363,6 +363,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model {
 
     class PackageTransferModel extends RecordingModel
     {
+        public const NEW_PACKAGE = '__new__';
         public const SELECTABLE_PARTS = ['forms', 'scripts', 'pieces', 'menus'];
 
         protected function label(): string
@@ -370,13 +371,24 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model {
             return 'PackageTransfer';
         }
 
+        /** Runs the work as the real model does, inside one transaction. */
+        public function inTransaction(callable $work): mixed
+        {
+            $GLOBALS['events'][] = ['model' => 'PackageTransfer::inTransaction'];
+
+            return $work();
+        }
+
         protected function answer(string $method): mixed
         {
             return match ($method) {
                 'export', 'exportSelection' => '{}',
-                'deletePackage' => true,
+                'updatePackage' => true,
+                'removePackage' => true,
                 'getImportSummary' => ['package' => 'p', 'items' => [], 'templates' => 0, 'rules' => 0, 'unlinked' => 0, 'unresolved' => [], 'skipped' => []],
                 'savePackage' => null,
+                'assertNewPackageId' => 'demo',
+                'metadataDiffers' => false,
                 default => [],
             };
         }
@@ -621,6 +633,7 @@ namespace Fixture {
 
         public function setUserState(string $key, mixed $value): void
         {
+            $GLOBALS['events'][] = ['state' => $key, 'value' => $value];
         }
 
         public function setBody(string $body): void

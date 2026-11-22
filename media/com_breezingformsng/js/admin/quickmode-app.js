@@ -726,8 +726,12 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
 
                         switch (appScope.getNodeClass(appScope.selectedTreeElement)) {
                             case 'bfQuickModeRootClass':
-                                if (JQuery.trim(JQuery('#bfFormTitle').val()) == '') {
+                                var formTitle = JQuery.trim(JQuery('#bfFormTitle').val());
+                                if (formTitle == '') {
                                     fail(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_TITLE'], '#bfFormTitle');
+                                }
+                                if (JQuery.trim(JQuery('#bfFormName').val()) == '' && formTitle != '') {
+                                    JQuery('#bfFormName').val(formTitle.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').toLowerCase());
                                 }
                                 if (JQuery.trim(JQuery('#bfFormName').val()) == '') {
                                     fail(BFQMConfig.labels['COM_BREEZINGFORMSNG_ERROR_ENTER_NAME'], '#bfFormName');

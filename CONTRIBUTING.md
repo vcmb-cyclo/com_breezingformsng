@@ -29,7 +29,7 @@ Please do not post exploitable security details publicly.
 The currently documented runtime requirements are:
 
 - Joomla 6.x
-- PHP 8.3 or later
+- PHP 8.4 or later
 - MySQL 8.0.13+ or MariaDB 10.4+
 
 For development and automated checks, use the repository's `composer.json`, `package.json`, and GitHub Actions workflows as the source of truth for exact tool versions. PHP 8.4 and 8.5 are exercised in the CI configuration for the current release candidate.

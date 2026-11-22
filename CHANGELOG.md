@@ -2,9 +2,25 @@
 
 ## 6.1.0-RC24
 
+### Added
+
+- Add a Package column to the forms list, hidden by default and sortable, that you can show from the Columns menu.
+- Add a "No package" option to the package filter of the forms, menus, scripts and pieces lists, to find the items that belong to no package.
+- Manage the content of a package from the Manage packages screen: create a new package, edit its details, add the items that have no package yet, take items out, or remove the package. The items themselves are never deleted.
+
 ### Changed
 
+- Replace the Dissolve screen of the packages by Manage packages, which also lets you attach and detach forms, scripts, pieces and menu entries.
+- Exporting no longer creates or saves a package on your site: it only downloads the package file. The scripts and pieces called by the exported forms and their elements are now included, so the file works on another site.
+- Require the name of a form, script or piece to be made of letters, digits and underscores, and never empty. This applies to new names and to names you change; existing names are left as they are, and a form saved without a name gets one made from its title.
+- Rename the site menu entry that groups the installed sample forms from "Tests" to "Samples", and update the texts of the Tools screen and the guides accordingly.
 - Replace the standard scripts and pieces of the library by the new standard version when updating, after keeping the version of the site in the history of each item (Versions) with a note that says so; the installation summary lists what was replaced.
+- Require PHP 8.4 or later: the installer refuses to install on older PHP versions, and the update manifest, the About screen and the documentation now announce PHP 8.4+. Sites still running PHP 8.3 stay on the previous release until PHP is upgraded.
+
+### Fixed
+
+- Keep what you typed and selected when saving or exporting a package is refused, instead of showing the screen empty again.
+- Install the sample forms with their code (for example the live price of the event form) when your account may write code; they were installed without it and did not work.
 
 ## 6.1.0-RC23
 

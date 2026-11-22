@@ -13,12 +13,14 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\Filesystem\File;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormCodeGuard;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\ItemName;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\QuickmodeThemePath;
 use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
 use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions;
@@ -110,17 +112,56 @@ class QuickmodeModel extends BaseDatabaseModel
         }
 
         $mdata = $this->quickModeNodeProperties($dataObject);
+        $formName = trim((string) ($mdata['name'] ?? ''));
+        $formTitle = trim((string) ($mdata['title'] ?? ''));
+
+        if ($formName === '') {
+            $formName = self::normaliseFormName($formTitle);
+        }
+
+        $this->assertFormNameAllowed($form, $formName);
 
         return $this->save2(
             $form,
-            (string) ($mdata['name'] ?? ''),
-            (string) ($mdata['title'] ?? ''),
+            $formName,
+            $formTitle,
             (string) ($mdata['description'] ?? ''),
             base64_encode((string) json_encode($dataObject)),
             $areas->container,
             count($dataObject['children'] ?? []),
             $published
         );
+    }
+
+    /**
+     * One rule for every path (ItemName), applied to a new or renamed form only: a stored name is kept as it is.
+     */
+    private function assertFormNameAllowed(int $form, string $formName): void
+    {
+        $nameProblem = ItemName::problemOnSave($formName, $form > 0 ? $this->storedFormName($form) : null);
+        if ($nameProblem !== null) {
+            throw new \InvalidArgumentException(Text::_($nameProblem));
+        }
+    }
+
+    private function storedFormName(int $form): ?string
+    {
+        $query = $this->db->createQuery()
+            ->select($this->db->quoteName('name'))
+            ->from($this->db->quoteName('#__facileforms_forms'))
+            ->where($this->db->quoteName('id') . ' = :storedForm')
+            ->bind(':storedForm', $form, ParameterType::INTEGER);
+        $this->db->setQuery($query);
+        $name = $this->db->loadResult();
+
+        return $name === null ? null : (string) $name;
+    }
+
+    private static function normaliseFormName(string $title): string
+    {
+        $name = preg_replace('/[^A-Za-z0-9]+/', '_', trim($title));
+
+        return strtolower(trim((string) $name, '_'));
     }
 
     /**

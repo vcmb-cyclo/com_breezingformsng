@@ -27,6 +27,7 @@ use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AuditUserNames;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\ItemName;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\VersionOrigin;
 
 /**
@@ -45,6 +46,9 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
      * The published state of an item in the trash.
      */
     public const int TRASHED = -2;
+
+    /** The name of the item being copied, set only while copy() saves its copy. */
+    private ?string $copiedName = null;
 
     /**
      * @param list<string> $values
@@ -70,9 +74,43 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
      */
     public function save($data)
     {
+        $nameProblem = $this->namedByIdentifier()
+            ? ItemName::problemOnSave((string) ($data['name'] ?? ''), $this->storedName((int) ($data['id'] ?? $this->getState($this->getName() . '.id'))), 30)
+            : null;
+        if ($nameProblem !== null) {
+            $this->setError(Text::_($nameProblem));
+
+            return false;
+        }
+
         $this->keepOrigin((int) ($data['id'] ?? $this->getState($this->getName() . '.id')));
 
         return parent::save($data);
+    }
+
+    /**
+     * The name the item keeps if it is saved as posted: the stored name of an existing item, the name of the
+     * source while it is being copied (a copy keeps the name of its source, so it never derives an invalid one),
+     * null for a new item. Such a name is not revalidated, so a legacy name does not block a save or a copy.
+     */
+    private function storedName(int $id): ?string
+    {
+        if ($id <= 0) {
+            return $this->copiedName;
+        }
+
+        $table = $this->getTable();
+
+        return $table->load($id) ? (string) $table->name : null;
+    }
+
+    /**
+     * Whether the name of the item is an identifier (letters, digits, underscores). Pieces and
+     * scripts are, the other items are free.
+     */
+    protected function namedByIdentifier(): bool
+    {
+        return false;
     }
 
     /**
@@ -311,8 +349,15 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
             $data = get_object_vars($source);
             $data['id'] = 0;
             $this->setState($this->getName() . '.id', 0);
+            $this->copiedName = (string) ($source->name ?? '');
 
-            if (!$this->save($data)) {
+            try {
+                $saved = $this->save($data);
+            } finally {
+                $this->copiedName = null;
+            }
+
+            if (!$saved) {
                 throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
 

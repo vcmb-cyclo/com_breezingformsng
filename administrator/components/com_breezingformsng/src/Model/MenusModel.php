@@ -66,12 +66,7 @@ class MenusModel extends ListModel
             )
             ->order([$db->quoteName('menus.parent') . ' ASC', $db->quoteName('menus.ordering') . ' ASC']);
 
-        $package = (string) $this->getState('filter.package');
-
-        if ($package !== '') {
-            $query->where($db->quoteName('menus.package') . ' = :package')
-                ->bind(':package', $package);
-        }
+        PackageFilter::apply($db, $query, 'menus.package', (string) $this->getState('filter.package'));
 
         $published = (string) $this->getState('filter.published');
 

@@ -4,7 +4,7 @@
     "license": "GPL-2.0-or-later",
     "type": "project",
     "require": {
-        "php": ">=8.3",
+        "php": ">=8.4",
         "ext-bcmath": "*",
         "gregwar/captcha": "^2.1",
         "phpoffice/phpspreadsheet": "^5.8",

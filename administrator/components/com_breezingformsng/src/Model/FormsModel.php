@@ -16,14 +16,14 @@ use Joomla\Database\ParameterType;
 
 class FormsModel extends ListModel
 {
-    private const SORTS = ['id', 'title', 'name', 'pages', 'published', 'ordering', 'modified'];
+    private const array SORTS = ['id', 'title', 'name', 'package', 'pages', 'published', 'ordering', 'modified'];
 
     /**
      * @param array<string, mixed> $config
      */
     public function __construct($config = [], ?MVCFactoryInterface $factory = null)
     {
-        $config['filter_fields'] ??= [...self::SORTS, 'package'];
+        $config['filter_fields'] ??= self::SORTS;
 
         parent::__construct($config, $factory);
     }
@@ -56,7 +56,7 @@ class FormsModel extends ListModel
             ->where($db->quoteName('editor.id') . ' = ' . $db->quoteName('#__facileforms_forms.checked_out'));
         $query = $db->createQuery()
             ->select($db->quoteName([
-                'id', 'title', 'name', 'pages', 'published', 'ordering', 'modified', 'checked_out', 'checked_out_time',
+                'id', 'title', 'name', 'package', 'pages', 'published', 'ordering', 'modified', 'checked_out', 'checked_out_time',
             ]))
             ->select('(' . $editor . ') AS ' . $db->quoteName('editor'))
             // Only a flag: the processed template of a legacy form can be large.
@@ -64,12 +64,7 @@ class FormsModel extends ListModel
                 . $db->quoteName('is_quickmode'))
             ->from($db->quoteName('#__facileforms_forms'));
 
-        $package = (string) $this->getState('filter.package');
-
-        if ($package !== '') {
-            $query->where($db->quoteName('package') . ' = :package')
-                ->bind(':package', $package);
-        }
+        PackageFilter::apply($db, $query, 'package', (string) $this->getState('filter.package'));
 
         $published = (string) $this->getState('filter.published');
 
