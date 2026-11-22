@@ -13,7 +13,6 @@ defined('_JEXEC') or die;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
-use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\PackageListRows;
 
 $profile = $this->profiles[$this->selectedPackage] ?? [];
@@ -32,12 +31,12 @@ $profile = $this->profiles[$this->selectedPackage] ?? [];
                             <label class="form-label" for="bf-package-update-select"><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE'); ?></label>
                             <select class="form-select" id="bf-package-update-select" name="package" onchange="this.form.submit()">
                                 <option value=""><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SELECT_PACKAGE'); ?></option>
-                                <option value="<?= PackageTransferModel::NEW_PACKAGE; ?>"<?= $this->isNewPackage ? ' selected' : ''; ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE'); ?></option>
                                 <?php foreach ($this->packages as $package) : ?>
                                     <option value="<?= htmlspecialchars($package, ENT_QUOTES, 'UTF-8'); ?>"<?= $package === $this->selectedPackage ? ' selected' : ''; ?>><?= htmlspecialchars($package, ENT_QUOTES, 'UTF-8'); ?></option>
                                 <?php endforeach; ?>
                             </select>
                             <noscript><button class="btn btn-secondary mt-2" type="submit"><?= Text::_('JSUBMIT'); ?></button></noscript>
+                            <a class="btn btn-secondary mt-2" href="index.php?option=com_breezingformsng&amp;view=packages&amp;layout=update&amp;package_new=1"><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE'); ?></a>
                         </div>
                     </div>
                 </form>

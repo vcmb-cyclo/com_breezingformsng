@@ -129,10 +129,10 @@ final class PackageDissolveTest extends TestCase
         $model = new PackageTransferModel();
 
         self::assertSame('fresh', $model->assertNewPackageId('  fresh '));
+        self::assertSame('__new__', $model->assertNewPackageId('__new__'));
 
         $refused = [
             '' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SAVED_PACKAGE_REQUIRED',
-            '__new__' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_INVALID',
             str_repeat('x', 31) => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_INVALID',
             'alpha' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_EXISTS',
         ];

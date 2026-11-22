@@ -164,7 +164,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             $this->filterForm = $model->getFilterForm();
             $this->activeFilters = $model->getActiveFilters();
             $filterPackage = (string) $this->state->get('filter.package');
-            $this->pkg = $filterPackage === PackageFilter::NONE ? '' : $filterPackage;
+            $this->pkg = PackageFilter::selectedPackage($filterPackage);
 
             ToolbarHelper::addNew('forms.edit');
             ToolbarHelper::custom('forms.copy', 'copy', '', 'JLIB_HTML_BATCH_COPY', true);

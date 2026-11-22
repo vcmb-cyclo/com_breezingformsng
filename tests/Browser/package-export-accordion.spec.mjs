@@ -8,14 +8,14 @@ if (scriptStart === -1 || scriptEnd === -1) {
     throw new Error('Expected a <script> block in package export template');
 }
 const script = template.slice(scriptStart + '<script>'.length, scriptEnd)
-    .replace(/<\?= json_encode\(\$this->profiles, [\s\S]*?\); \?>/, '{ existing: { assigned: true }, other: { assigned: true } }');
+    .replace(/<\?= json_encode\(\$this->profiles, [\s\S]*?\); \?>/, "{ existing: { assigned: true }, other: { assigned: true }, '__new__': { assigned: true } }");
 
 test('new package opens its information and the user can close it', async ({ page }) => {
     await page.setContent(`
         <form id="bf-package-export">
             <select id="bf-package-choice" name="selected_package">
-                <option value="">Choose</option><option value="__new__" data-new>New</option>
-                <option value="existing">Existing</option><option value="other">Other</option>
+                <option value="">Choose</option><option value="" data-new>New</option>
+                <option value="existing">Existing</option><option value="other">Other</option><option value="__new__">Legacy sentinel package</option>
             </select>
             <input type="hidden" id="bf-package-new-flag" name="package_new" value="0">
             <div id="bf-package-new"><input id="bf-package" name="package"></div>
@@ -42,7 +42,7 @@ test('new package opens its information and the user can close it', async ({ pag
     await expect(page.locator('#bf-package-new-flag')).toHaveValue('1');
     await expect(page.locator('#bf-package-export')).toHaveJSProperty('tagName', 'FORM');
     const submitted = await page.locator('#bf-package-export').evaluate((form) => Object.fromEntries(new FormData(form)));
-    expect(submitted).toMatchObject({ selected_package: '__new__', package_new: '1' });
+    expect(submitted).toMatchObject({ selected_package: '', package_new: '1' });
     await info.evaluate((element) => element.classList.remove('show'));
     await page.locator('#bf-package-choice').selectOption({ index: 2 });
     await expect(info).not.toHaveClass(/show/);
@@ -55,13 +55,17 @@ test('new package opens its information and the user can close it', async ({ pag
     await page.locator('#bf-package-choice').selectOption({ index: 1 });
     await expect(info).toHaveClass(/show/);
     await expect(page.locator('#bf-selections')).not.toHaveClass(/d-none/);
+    // A real package once used as the new-package sentinel remains selectable.
+    await page.locator('#bf-package-choice').selectOption('__new__');
+    await expect(page.locator('#bf-package-new-flag')).toHaveValue('0');
+    await expect(page.locator('#bf-package')).toHaveValue('__new__');
 });
 
 test('a rejected new-package export keeps all submitted values', async ({ page }) => {
     await page.setContent(`
         <form id="bf-package-export" data-bf-draft>
             <select id="bf-package-choice" name="selected_package">
-                <option value="">Choose</option><option value="__new__" data-new selected>New</option>
+                <option value="">Choose</option><option value="" data-new selected>New</option>
                 <option value="existing">Existing</option><option value="other">Other</option>
             </select>
             <input type="hidden" id="bf-package-new-flag" name="package_new" value="1">
@@ -85,7 +89,7 @@ test('a rejected new-package export keeps all submitted values', async ({ page }
 
     await page.addScriptTag({ content: script });
 
-    await expect(page.locator('#bf-package-choice')).toHaveValue('__new__');
+    await expect(page.locator('#bf-package-choice')).toHaveValue('');
     await expect(page.locator('#bf-meta-title')).toHaveValue('Draft title');
     await expect(page.locator('[name="forms[]"][value="1"]')).toBeChecked();
     await expect(page.locator('[name="forms[]"][value="2"]')).not.toBeChecked();

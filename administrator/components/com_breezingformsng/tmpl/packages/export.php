@@ -17,7 +17,6 @@ defined("_JEXEC") or die;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
-use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageTransferModel;
 
 
 // Each field explains itself in the tooltip of its label.
@@ -36,7 +35,7 @@ $mayTransferTemplates = $this->mayTransferTemplates;
                             <label class="form-label" for="bf-package-choice"<?= $labelTip('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_CHOICE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_INSTALLER_PACKAGE'); ?></label>
                             <select class="form-select" id="bf-package-choice" name="selected_package">
                                 <option value=""<?= $this->selectedPackage === '' && !$this->isNewPackage ? ' selected' : ''; ?>><?= Text::_('JGLOBAL_SELECT_AN_OPTION'); ?></option>
-                                <option value="<?= PackageTransferModel::NEW_PACKAGE; ?>" data-new<?= $this->isNewPackage ? ' selected' : ''; ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_EXPORT'); ?></option>
+                                <option value="" data-new<?= $this->isNewPackage ? ' selected' : ''; ?>><?= Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_EXPORT'); ?></option>
                                 <?php foreach ($this->profiles as $id => $profile) : ?>
                                     <option value="<?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?>"<?= (string) $id === $this->selectedPackage ? ' selected' : ''; ?>><?= htmlspecialchars((string) $id, ENT_QUOTES, 'UTF-8'); ?></option>
                                 <?php endforeach; ?>
@@ -67,6 +66,7 @@ $mayTransferTemplates = $this->mayTransferTemplates;
                         <?= LayoutHelper::render('packages.audit', ['profiles' => $this->profiles, 'selected' => $this->selectedPackage, 'timezone' => $this->timezone]); ?>
                     </div>
                     <input type="hidden" name="task" value="packages.export">
+                    <input type="hidden" name="export_selection" value="1">
                     <?= HTMLHelper::_("form.token"); ?>
                 </form>
             </div>

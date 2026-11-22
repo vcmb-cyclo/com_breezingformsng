@@ -16,6 +16,7 @@ namespace Vcmb\Component\BreezingformsNG\Tests\Administrator;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageFilter;
 
 /**
  * The package filter of the lists of forms, menus, scripts and pieces offers
@@ -57,6 +58,9 @@ final class PackageFilterTest extends TestCase
         self::assertNotFalse($all);
         self::assertNotFalse($none);
         self::assertGreaterThan($all, $none, 'The "No package" option follows "All packages".');
+        self::assertStringContainsString('type="Packagefilter"', $xml);
+        self::assertStringContainsString('source="' . $name . '"', $xml);
+        self::assertStringNotContainsString('type="sql"', $xml);
     }
 
     public function testTheListModelsShareOnePackageFilter(): void
@@ -64,6 +68,7 @@ final class PackageFilterTest extends TestCase
         $filter = self::source(self::ADMIN . '/src/Model/PackageFilter.php');
 
         self::assertStringContainsString("public const NONE = '__none__';", $filter);
+        self::assertStringContainsString('PackageFilter::encode($package)', self::source(self::ADMIN . '/src/Field/PackagefilterField.php'));
         self::assertStringContainsString("' = ' . \$db->quote('')", $filter);
         self::assertStringContainsString("' = :package'", $filter);
 
@@ -115,6 +120,20 @@ final class PackageFilterTest extends TestCase
     {
         $view = self::source(self::ADMIN . '/src/View/Forms/HtmlView.php');
 
-        self::assertStringContainsString('$filterPackage === PackageFilter::NONE ? \'\' : $filterPackage', $view);
+        self::assertStringContainsString('$this->pkg = PackageFilter::selectedPackage($filterPackage);', $view);
+    }
+
+    public function testRealPackageIdentifiersNeverCollideWithTheNoPackageControl(): void
+    {
+        foreach (['__none__', '__new__', 'package:YQ', 'a package', ''] as $package) {
+            $encoded = PackageFilter::encode($package);
+
+            self::assertNotSame(PackageFilter::NONE, $encoded);
+            self::assertSame($package, PackageFilter::selectedPackage($encoded));
+        }
+
+        self::assertSame('', PackageFilter::selectedPackage(PackageFilter::NONE));
+        self::assertSame('legacy', PackageFilter::selectedPackage('legacy'));
+        self::assertSame('package:not_base64!', PackageFilter::selectedPackage('package:not_base64!'));
     }
 }

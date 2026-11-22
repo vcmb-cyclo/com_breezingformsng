@@ -105,7 +105,7 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertStringContainsString("'fieldName' => 'update_select[%s][]'", $page);
         self::assertStringContainsString('name="update_parts[]"', $layout);
         // A new package is created from this screen: its identifier, then the details and the items in one save.
-        self::assertStringContainsString('PackageTransferModel::NEW_PACKAGE', $layout);
+        self::assertStringContainsString('layout=update&amp;package_new=1', $layout);
         self::assertStringContainsString('name="package_new" value="1"', $layout);
         // With no package selected, the free items are not taken for its members.
         self::assertStringContainsString("if (\$selectedPackage !== '' && \$package === \$selectedPackage) {", (string) file_get_contents($component . '/src/Service/PackageListRows.php'));
@@ -230,7 +230,8 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertStringContainsString("\$this->draft['package']", $template);
         self::assertStringContainsString("\$this->draft['metadata']", $template);
         self::assertStringContainsString('bfLoadProfile(bfHasExportDraft)', $template);
-        self::assertStringContainsString('PackageTransferModel::NEW_PACKAGE', $template);
+        self::assertStringContainsString('<option value="" data-new', $template);
+        self::assertStringContainsString('name="export_selection" value="1"', $template);
 
         foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $tag) {
             $ini = (string) file_get_contents($component . '/language/' . $tag . '/com_breezingformsng.ini');
@@ -322,7 +323,8 @@ final class PackageTransferArchitectureTest extends TestCase
         $export = substr($controller, (int) strpos($controller, 'public function export('), 2500);
         self::assertStringNotContainsString('savePackage', $export);
         self::assertStringContainsString("if (\$package === '')", $export);
-        self::assertStringContainsString('view=packages&layout=export&package=', $export);
+        self::assertStringContainsString('view=packages&layout=export', $export);
+        self::assertStringContainsString("'&package_new=1'", $export);
     }
 
     public function testAnExportCarriesTheActiveScriptsAndPiecesItsFormsCall(): void

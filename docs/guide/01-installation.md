@@ -7,7 +7,7 @@ BreezingForms NG is a form builder for Joomla 6. This guide shows how to install
 You need:
 
 - Joomla 6.x. The installer stops on anything older than Joomla 6.0.
-- PHP 8.3 or later. The installer stops on an older PHP version.
+- PHP 8.4 or later. The installer stops on an older PHP version.
 - MySQL 8.0.13 or later, or MariaDB 10.4 or later.
 - A Super User account on the Joomla administrator.
 - Files that Joomla can write to. On an update, the installer checks that the files of the existing BreezingForms NG installation are writable. If some are not, it stops before copying anything.
@@ -74,7 +74,7 @@ To build your own form, continue with the [first form guide](02-first-form.md).
 
 ### With the Joomla update manager
 
-The component declares an update server, "BreezingForms-ng". Joomla reads the file `com_breezingformsng_update.xml` from the project repository. It lists the current version, the download address of the ZIP and its SHA-256 checksum. The file is for Joomla 6 and PHP 8.3 or later. Release candidates carry the `rc` tag in this file.
+The component declares an update server, "BreezingForms-ng". Joomla reads the file `com_breezingformsng_update.xml` from the project repository. It lists the current version, the download address of the ZIP and its SHA-256 checksum. The file is for Joomla 6 and the PHP version required by the published release. Release candidates carry the `rc` tag in this file.
 
 1. Make your backups.
 2. Go to **System**, then **Update**, then **Extensions**.
@@ -136,7 +136,7 @@ The manifest has no uninstall SQL and `script.php` has no step that drops the da
 
 ## Troubleshooting
 
-**"PHP x is too old. Requires PHP y or later."** The server runs a PHP version below 8.3. Ask your host to switch to PHP 8.3 or later.
+**"PHP x is too old. Requires PHP y or later."** The server runs a PHP version below 8.4. Ask your host to switch to PHP 8.4 or later.
 
 **"Joomla x is too old. Requires Joomla y or later."** The site runs a Joomla version below 6.0. Update Joomla first.
 

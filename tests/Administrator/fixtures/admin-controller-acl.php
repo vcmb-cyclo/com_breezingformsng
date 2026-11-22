@@ -363,7 +363,6 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model {
 
     class PackageTransferModel extends RecordingModel
     {
-        public const NEW_PACKAGE = '__new__';
         public const SELECTABLE_PARTS = ['forms', 'scripts', 'pieces', 'menus'];
 
         protected function label(): string
