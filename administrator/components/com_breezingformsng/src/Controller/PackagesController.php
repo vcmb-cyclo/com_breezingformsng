@@ -27,8 +27,8 @@ final class PackagesController extends BaseController
 {
     /** User state holding an export form rejected by server-side validation, shown once. */
     public const EXPORT_DRAFT_STATE = 'com_breezingformsng.packages.export_draft';
-    /** User state holding the report of the last import, shown once by the import page. */
     public const UPDATE_DRAFT_STATE = 'com_breezingformsng.packages.update_draft';
+    /** User state holding the report of the last import, shown once by the import page. */
     public const REPORT_STATE = 'com_breezingformsng.packages.import_report';
 
     /**
@@ -42,9 +42,6 @@ final class PackagesController extends BaseController
         return parent::display($cachable, $urlparams);
     }
 
-    /**
-     * Stores the package details and returns to the Create Package screen.
-     */
     /**
      * Downloads the package file without creating or changing anything on this site:
      * the selected items when there are any, else the items assigned to the package.
@@ -394,18 +391,28 @@ final class PackagesController extends BaseController
                 PackageTransferModel::SELECTABLE_PARTS,
                 array_filter($submitted, 'is_string')
             ));
-            $changed = false;
+            $selection = $this->submittedItemSelection('update_select');
 
             if ($isNew) {
                 $package = $model->assertNewPackageId($package);
-                $model->savePackage($package, $metadata);
-                $changed = true;
-            } elseif ($model->metadataDiffers($package, $metadata)) {
-                $model->savePackage($package, $metadata);
-                $changed = true;
+            } else {
+                // A form kept open for a package removed meanwhile must not bring it back.
+                $model->assertPackageExists($package);
             }
 
-            $changed = $model->updatePackage($package, $this->submittedItemSelection('update_select'), $parts) || $changed;
+            // The details and the items are stored together: a failure leaves no half-created package.
+            $changed = $model->inTransaction(
+                function () use ($model, $package, $isNew, $metadata, $selection, $parts): bool {
+                    $changed = false;
+
+                    if ($isNew || $model->metadataDiffers($package, $metadata)) {
+                        $model->savePackage($package, $metadata);
+                        $changed = true;
+                    }
+
+                    return $model->updatePackage($package, $selection, $parts) || $changed;
+                }
+            );
 
             if (!$changed) {
                 $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_UPDATE_NOTHING_CHANGED'), 'notice');

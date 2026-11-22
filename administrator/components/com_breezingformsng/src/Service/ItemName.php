@@ -34,4 +34,21 @@ final class ItemName
 
         return null;
     }
+
+    /**
+     * The rule applied when an item is saved: a stored name is never revalidated while it stays as it is, so
+     * a legacy or imported name (hyphen, space, dot) does not make its item unsaveable. A new item, or a
+     * changed name, must follow the rule. An empty name is always refused.
+     *
+     * @param string|null $storedName The name stored for the item being saved, null for a new item.
+     * @return string|null The language key of the problem, null when the name may be saved.
+     */
+    public static function problemOnSave(string $name, ?string $storedName, ?int $maxLength = null): ?string
+    {
+        if ($storedName !== null && $name === $storedName && trim($name) !== '') {
+            return null;
+        }
+
+        return self::problem($name, $maxLength);
+    }
 }

@@ -371,6 +371,14 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model {
             return 'PackageTransfer';
         }
 
+        /** Runs the work as the real model does, inside one transaction. */
+        public function inTransaction(callable $work): mixed
+        {
+            $GLOBALS['events'][] = ['model' => 'PackageTransfer::inTransaction'];
+
+            return $work();
+        }
+
         protected function answer(string $method): mixed
         {
             return match ($method) {

@@ -332,6 +332,15 @@ final class AdminControllerAccessTest extends TestCase
 
         self::assertContains('PackageTransfer::assertNewPackageId', self::models($allowed['events']));
         self::assertContains('PackageTransfer::savePackage', self::models($allowed['events']));
+        // The details and the items are stored in one transaction, the id being checked before it.
+        $models = array_values(array_filter(
+            self::models($allowed['events']),
+            static fn (string $model): bool => str_contains($model, '::')
+        ));
+        self::assertSame(
+            ['PackageTransfer::assertNewPackageId', 'PackageTransfer::inTransaction', 'PackageTransfer::savePackage', 'PackageTransfer::updatePackage'],
+            array_values(array_intersect($models, ['PackageTransfer::assertNewPackageId', 'PackageTransfer::inTransaction', 'PackageTransfer::savePackage', 'PackageTransfer::updatePackage']))
+        );
     }
 
     public function testUpdatingAPackageWithTheRightReachesTheModel(): void
@@ -339,6 +348,10 @@ final class AdminControllerAccessTest extends TestCase
         $allowed = $this->runTask('packages', 'update', 'valid', 'breezingformsng.configuration', ['package' => 'demo', 'update_select' => ['forms' => ['3']], 'update_parts' => ['forms']]);
 
         self::assertContains('PackageTransfer::updatePackage', self::models($allowed['events']));
+        // A package removed in another tab is refused before anything is saved, and unchanged details are not saved.
+        self::assertContains('PackageTransfer::assertPackageExists', self::models($allowed['events']));
+        self::assertNotContains('PackageTransfer::savePackage', self::models($allowed['events']));
+        self::assertNotContains('PackageTransfer::assertNewPackageId', self::models($allowed['events']));
     }
 
     public function testExportWithoutANewPackageIdKeepsTheSubmittedDraft(): void

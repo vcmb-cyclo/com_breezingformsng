@@ -18,6 +18,7 @@ use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\ContentBuilderFormSync;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\ItemName;
 
 /**
  * Creates forms and applies bounded, permission-checked updates through MCP.
@@ -78,6 +79,10 @@ final class McpFormWriter
         $title = trim($this->stringValue($arguments['title'] ?? null));
         if ($name === '' || $title === '') {
             throw new ToolException('Form name and title must not be empty.');
+        }
+
+        if (ItemName::problem($name) !== null) {
+            throw new ToolException('The form name may only contain letters, digits and underscores.');
         }
 
         $description = trim($this->stringValue($arguments['description'] ?? ''));

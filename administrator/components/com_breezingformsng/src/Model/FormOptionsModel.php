@@ -218,7 +218,10 @@ class FormOptionsModel extends BaseDatabaseModel
         }
 
         // A partial update that leaves the name out keeps the stored one.
-        $nameProblem = $id === 0 || array_key_exists('name', $data) ? ItemName::problem((string) ($data['name'] ?? '')) : null;
+        // A stored name that is posted back unchanged is not revalidated: a legacy name stays saveable.
+        $nameProblem = $id === 0 || array_key_exists('name', $data)
+            ? ItemName::problemOnSave((string) ($data['name'] ?? ''), $id > 0 ? (string) ($this->getForm($id)->name ?? '') : null)
+            : null;
         if ($nameProblem !== null) {
             throw new \RuntimeException(Text::_($nameProblem));
         }

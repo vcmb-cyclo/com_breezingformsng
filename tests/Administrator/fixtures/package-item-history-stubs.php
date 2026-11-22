@@ -117,9 +117,24 @@ namespace Joomla\CMS\MVC\Model {
             return true;
         }
 
+        /** @var list<string> */
+        private array $errors = [];
+
         public function save($data)
         {
+            \Fixture\History::$events[] = 'saved:' . ($data['name'] ?? '');
+
             return true;
+        }
+
+        public function setError($error): void
+        {
+            $this->errors[] = (string) $error;
+        }
+
+        public function getError(): string
+        {
+            return (string) end($this->errors);
         }
 
         public function delete(&$pks)
@@ -150,8 +165,12 @@ namespace Joomla\CMS\MVC\Model {
         public function getTable($name = '', $prefix = 'Administrator', $options = [])
         {
             return new class {
+                public string $name = '';
+
                 public function load(int $id): bool
                 {
+                    $this->name = \Fixture\History::$storedName;
+
                     return true;
                 }
             };
@@ -194,6 +213,8 @@ namespace Fixture {
         public static int $lastVersion = 0;
         /** Whether the item already has a version, for the version of origin. */
         public static bool $hasVersions = false;
+        /** The name stored for every item the table loads. */
+        public static string $storedName = 'contact-us';
     }
 
     final class Query
@@ -202,7 +223,7 @@ namespace Fixture {
 
         public function __call(string $method, array $arguments): self
         {
-            $this->text .= ' ' . $method . '(' . implode(',', array_map(static fn (mixed $a): string => (string) $a, $arguments)) . ')';
+            $this->text .= ' ' . $method . '(' . implode(',', array_map(static fn (mixed $a): string => is_array($a) ? implode('|', array_map('strval', $a)) : (string) $a, $arguments)) . ')';
 
             return $this;
         }

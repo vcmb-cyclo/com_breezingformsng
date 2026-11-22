@@ -171,8 +171,8 @@ final class PackageTransferArchitectureTest extends TestCase
         $controller = (string) file_get_contents($component . '/src/Controller/PackagesController.php');
         self::assertStringContainsString("'layout' => 'export', 'label' => 'COM_BREEZINGFORMSNG_TOOLS_TILE_EXPORT'", $tools);
         self::assertStringContainsString("standardButton('download', 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_EXPORT_PACKAGE', 'packages.export')", $view);
-        // The details are saved from the management screen only: when a package is created and when they changed.
-        self::assertSame(2, substr_count($controller, '$model->savePackage($package,'));
+        // The details are saved from the management screen only: when a package is created and when they changed, in one place.
+        self::assertSame(1, substr_count($controller, '$model->savePackage($package,'));
 
         foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $language) {
             $ini = (string) file_get_contents($component . '/language/' . $language . '/com_breezingformsng.ini');

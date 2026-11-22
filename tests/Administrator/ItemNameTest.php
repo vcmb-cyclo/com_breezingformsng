@@ -49,13 +49,26 @@ final class ItemNameTest extends TestCase
         self::assertNull(ItemName::problem(str_repeat('a', 30), 30));
     }
 
+    public function testAStoredNameIsNotRevalidatedWhileItIsUnchanged(): void
+    {
+        self::assertNull(ItemName::problemOnSave('contact-us', 'contact-us'));
+        self::assertNull(ItemName::problemOnSave("a b\n", "a b\n", 30));
+        self::assertSame('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS', ItemName::problemOnSave('contact.us', 'contact-us'));
+        self::assertSame('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS', ItemName::problemOnSave('contact-us', null));
+        self::assertSame('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS', ItemName::problemOnSave("abc\n", null));
+        self::assertSame('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME', ItemName::problemOnSave('', ''));
+        self::assertNull(ItemName::problemOnSave('contact', 'contact-us'));
+    }
+
     public function testTheModelsCheckTheNameOnTheServer(): void
     {
         $component = __DIR__ . '/../../administrator/components/com_breezingformsng';
 
         self::assertStringContainsString('ItemName::problem', (string) file_get_contents($component . '/src/Model/FormOptionsModel.php'));
-        // QuickMode checks the name itself, with the same rule and messages.
-        self::assertStringContainsString("preg_match('/^[A-Za-z0-9_]+$/', \$formName)", (string) file_get_contents($component . '/src/Model/QuickmodeModel.php'));
+        // QuickMode and the MCP writer use the same rule, not a copy of it.
+        self::assertStringContainsString('ItemName::problemOnSave', (string) file_get_contents($component . '/src/Model/QuickmodeModel.php'));
+        self::assertStringNotContainsString('preg_match(\'/^[A-Za-z0-9_]+$/\'', (string) file_get_contents($component . '/src/Model/QuickmodeModel.php'));
+        self::assertStringContainsString('ItemName::problem(', (string) file_get_contents($component . '/src/Mcp/McpFormWriter.php'));
         self::assertStringContainsString('ItemName::problem', (string) file_get_contents($component . '/src/Model/PackageItemModel.php'));
         foreach (['PieceModel', 'ScriptModel'] as $model) {
             self::assertMatchesRegularExpression('/namedByIdentifier\(\): bool\s*\{\s*return true;/', (string) file_get_contents($component . '/src/Model/' . $model . '.php'));

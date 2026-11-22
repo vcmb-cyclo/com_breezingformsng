@@ -3,7 +3,7 @@
 /**
  * Runs FormOptionsModel::saveForm() with a fake database and prints what it wrote.
  *
- * Usage: php form-options-code-guard.php <form id> <rights, comma separated> <posted data as JSON>
+ * Usage: php form-options-code-guard.php <form id> <rights, comma separated> <posted data as JSON> [stored name]
  *
  * It runs in its own process because it stands in for the Joomla classes the
  * model needs, which other tests define differently.
@@ -205,9 +205,11 @@ namespace Fixture {
 
 namespace {
     [, $id, $rights, $json] = $argv;
+    $storedName = $argv[4] ?? 'stored_name';
     $stored = (object) [
         'id' => (int) $id,
         'published' => 0,
+        'name' => $storedName,
         'package' => '',
         'template_areas' => '',
         'piece1code' => "echo 'a';",

@@ -266,6 +266,7 @@ final class PackageTransferModel extends BaseDatabaseModel
     /**
      * Sets what a package holds, for the kinds listed in $parts: the selected
      * items stay or become attached, the other items of the package are detached.
+     * Trashed forms, scripts and pieces are not listed, so they keep their package.
      * Only an item without a package can be attached; an item of another package
      * is left alone. The items themselves are never deleted, and the package stays
      * even when it ends up empty.
@@ -290,7 +291,8 @@ final class PackageTransferModel extends BaseDatabaseModel
             'menus' => '#__facileforms_compmenus',
         ];
         $changed = false;
-        $db->transactionStart();
+        // A savepoint when the caller already holds a transaction: a plain nested start would commit it.
+        $db->transactionStart(true);
 
         try {
             foreach ($tables as $part => $table) {
@@ -309,6 +311,10 @@ final class PackageTransferModel extends BaseDatabaseModel
                     ->set($db->quoteName('package') . ' = ' . $db->quote(''))
                     ->where($db->quoteName('package') . ' = :package')
                     ->bind(':package', $package);
+                // The lists never show trashed forms, scripts and pieces: they keep their package.
+                if (in_array($part, ['forms', 'scripts', 'pieces'], true)) {
+                    $query->where($db->quoteName('published') . ' >= 0');
+                }
                 if ($ids !== []) {
                     $query->whereNotIn($db->quoteName('id'), $ids, ParameterType::INTEGER);
                 }
@@ -330,12 +336,45 @@ final class PackageTransferModel extends BaseDatabaseModel
                 $changed = $db->getAffectedRows() > 0 || $changed;
             }
 
-            $db->transactionCommit();
+            $db->transactionCommit(true);
 
             return $changed;
         } catch (\Throwable $exception) {
+            $db->transactionRollback(true);
+            throw $exception;
+        }
+    }
+
+    /**
+     * Runs several changes as one: all of them are stored, or none when one throws.
+     *
+     * @template T
+     * @param callable(): T $work
+     * @return T
+     */
+    public function inTransaction(callable $work): mixed
+    {
+        $db = $this->getDatabase();
+        $db->transactionStart();
+
+        try {
+            $result = $work();
+            $db->transactionCommit();
+
+            return $result;
+        } catch (\Throwable $exception) {
             $db->transactionRollback();
             throw $exception;
+        }
+    }
+
+    /**
+     * Refuses a package that no longer exists, so that saving its details cannot recreate it.
+     */
+    public function assertPackageExists(string $package): void
+    {
+        if (!in_array(trim($package), $this->getPackages(), true)) {
+            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NOT_FOUND'));
         }
     }
 

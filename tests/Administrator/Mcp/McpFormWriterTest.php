@@ -55,6 +55,24 @@ final class McpFormWriterTest extends TestCase
         $this->writer->create(['name' => '  ', 'title' => 'A'], McpTestDoubles::user(['core.create']));
     }
 
+    /** @return iterable<string, array{string}> */
+    public static function badNamesProvider(): iterable
+    {
+        yield 'a hyphen' => ['contact-us'];
+        yield 'a space' => ['contact us'];
+        yield 'a dot' => ['contact.us'];
+        yield 'an inner newline' => ["ab\ncd"];
+    }
+
+    #[DataProvider('badNamesProvider')]
+    public function testCreateRefusesANameThatIsNotAnIdentifierWithAToolException(string $name): void
+    {
+        $this->quickmode->expects(self::never())->method('save');
+
+        $this->expectRefusal('letters, digits and underscores');
+        $this->writer->create(['name' => $name, 'title' => 'A'], McpTestDoubles::user(['core.create']));
+    }
+
     /** @return iterable<string, array{list<array<string, mixed>>, string}> */
     public static function badFieldsProvider(): iterable
     {

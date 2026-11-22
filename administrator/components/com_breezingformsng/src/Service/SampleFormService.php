@@ -30,6 +30,8 @@ final class SampleFormService
     public const LEGACY_FORM_PACKAGE_NAME = 'QuickModeForms';
     public const FORM_TITLE = 'Sample contact form';
     public const MENU_PARENT_TITLE = 'Samples';
+    /** Alias of the separator, kept from the legacy "Tests" one so that both are the same item. */
+    public const MENU_PARENT_ALIAS = 'tests';
     public const DEFAULT_SAMPLE = 'contact';
 
     /**
@@ -184,7 +186,7 @@ final class SampleFormService
             'menutype' => $menutype,
             'title' => '(BF) ' . self::SAMPLES[$this->sample]['title'],
             'alias' => self::SAMPLES[$this->sample]['alias'],
-            'path' => 'tests/' . self::SAMPLES[$this->sample]['alias'],
+            'path' => self::MENU_PARENT_ALIAS . '/' . self::SAMPLES[$this->sample]['alias'],
             'link' => self::FORM_LINK,
             'type' => 'component',
             'parent_id' => $parentId,
@@ -214,6 +216,9 @@ final class SampleFormService
     private function ensureParent(string $menutype): int
     {
         $title = self::MENU_PARENT_TITLE;
+        $alias = self::MENU_PARENT_ALIAS;
+        // Joomla refuses a second item with the same alias under the same parent: the legacy
+        // "Tests" separator (same alias) is reused, the one titled as now coming first.
         $query = $this->db->createQuery()
             ->select($this->db->quoteName('id'))
             ->from($this->db->quoteName('#__menu'))
@@ -221,10 +226,19 @@ final class SampleFormService
             ->where($this->db->quoteName('menutype') . ' = :menutype')
             ->where($this->db->quoteName('parent_id') . ' = 1')
             ->where($this->db->quoteName('type') . ' = ' . $this->db->quote('separator'))
-            ->where($this->db->quoteName('title') . ' = :title')
+            ->where(
+                '(' . $this->db->quoteName('title') . ' = :title OR ' . $this->db->quoteName('alias') . ' = :alias)'
+            )
             ->where($this->db->quoteName('published') . ' >= 0')
+            ->order(
+                'CASE WHEN ' . $this->db->quoteName('title') . ' = :orderTitle THEN 0 ELSE 1 END, '
+                . $this->db->quoteName('id') . ' ASC'
+            )
             ->bind(':menutype', $menutype, ParameterType::STRING)
-            ->bind(':title', $title, ParameterType::STRING);
+            ->bind(':title', $title, ParameterType::STRING)
+            ->bind(':alias', $alias, ParameterType::STRING)
+            ->bind(':orderTitle', $title, ParameterType::STRING)
+            ->setLimit(1);
         $id = (int) $this->db->setQuery($query)->loadResult();
 
         if ($id > 0) {
@@ -234,8 +248,8 @@ final class SampleFormService
         return $this->storeItem([
             'menutype' => $menutype,
             'title' => $title,
-            'alias' => 'tests',
-            'path' => 'tests',
+            'alias' => self::MENU_PARENT_ALIAS,
+            'path' => self::MENU_PARENT_ALIAS,
             'link' => '',
             'type' => 'separator',
             'parent_id' => 1,

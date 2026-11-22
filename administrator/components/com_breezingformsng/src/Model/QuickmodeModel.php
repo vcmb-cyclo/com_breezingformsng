@@ -20,6 +20,7 @@ use Joomla\Database\ParameterType;
 use Joomla\Filesystem\File;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormCodeGuard;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\ItemName;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\QuickmodeThemePath;
 use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
 use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions;
@@ -118,13 +119,7 @@ class QuickmodeModel extends BaseDatabaseModel
             $formName = self::normaliseFormName($formTitle);
         }
 
-        if ($formName === '') {
-            throw new \InvalidArgumentException(Text::_('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME'));
-        }
-
-        if (preg_match('/^[A-Za-z0-9_]+$/', $formName) !== 1) {
-            throw new \InvalidArgumentException(Text::_('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS'));
-        }
+        $this->assertFormNameAllowed($form, $formName);
 
         return $this->save2(
             $form,
@@ -136,6 +131,30 @@ class QuickmodeModel extends BaseDatabaseModel
             count($dataObject['children'] ?? []),
             $published
         );
+    }
+
+    /**
+     * One rule for every path (ItemName), applied to a new or renamed form only: a stored name is kept as it is.
+     */
+    private function assertFormNameAllowed(int $form, string $formName): void
+    {
+        $nameProblem = ItemName::problemOnSave($formName, $form > 0 ? $this->storedFormName($form) : null);
+        if ($nameProblem !== null) {
+            throw new \InvalidArgumentException(Text::_($nameProblem));
+        }
+    }
+
+    private function storedFormName(int $form): ?string
+    {
+        $query = $this->db->createQuery()
+            ->select($this->db->quoteName('name'))
+            ->from($this->db->quoteName('#__facileforms_forms'))
+            ->where($this->db->quoteName('id') . ' = :storedForm')
+            ->bind(':storedForm', $form, ParameterType::INTEGER);
+        $this->db->setQuery($query);
+        $name = $this->db->loadResult();
+
+        return $name === null ? null : (string) $name;
     }
 
     private static function normaliseFormName(string $title): string
