@@ -29,6 +29,9 @@ final class PackageTransferModel extends BaseDatabaseModel
     /** Whether the import may write the code of the package: set by each import and comparison. */
     private bool $mayWriteCode = false;
 
+    /** Value of the "New package" choice of the export list: reserved, never a package identifier. */
+    public const NEW_PACKAGE_CHOICE = '__new__';
+
     private const FORMAT = 'breezingformsng-package';
     /** Version 3 holds the template code of the forms in clear; 1 and 2, as the database stores it. */
     private const VERSION = 3;
@@ -83,9 +86,6 @@ final class PackageTransferModel extends BaseDatabaseModel
 
     /** Parts of a package the user can choose from on import, by key of the file. */
     public const SELECTABLE_PARTS = ['forms', 'scripts', 'pieces', 'menus'];
-
-    /** Value of the package choice that opens a new, empty package. */
-    public const NEW_PACKAGE = '__new__';
 
     /**
      * @var array{templates: int, rules: int, failed: list<string>, package: string, unlinked: int, shared: list<string>, skipped: list<string>, conflicts: list<string>, unresolved: list<string>, items: array<string, list<array<string, mixed>>>}
@@ -221,7 +221,7 @@ final class PackageTransferModel extends BaseDatabaseModel
 
     /**
      * The identifier of a package to create: it must be free, at most 30 characters,
-     * and not the value that stands for "new package".
+     * and not already in use. The value reserved for the "New package" choice is refused.
      */
     public function assertNewPackageId(string $package): string
     {
@@ -231,7 +231,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SAVED_PACKAGE_REQUIRED'));
         }
 
-        if (mb_strlen($package) > 30 || $package === self::NEW_PACKAGE) {
+        if (mb_strlen($package) > 30 || $package === self::NEW_PACKAGE_CHOICE) {
             throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_INVALID'));
         }
 

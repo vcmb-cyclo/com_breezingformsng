@@ -70,6 +70,17 @@ class QuickmodeModel extends BaseDatabaseModel
             throw new \InvalidArgumentException('A form can only be created published or unpublished.');
         }
 
+        // Validate the identity of the form before code guards, theme-file writes or persistence work.
+        $mdata = $this->quickModeNodeProperties($dataObject);
+        $formName = trim((string) ($mdata['name'] ?? ''));
+        $formTitle = trim((string) ($mdata['title'] ?? ''));
+
+        if ($formName === '') {
+            $formName = self::normaliseFormName($formTitle);
+        }
+
+        $this->assertFormNameAllowed($form, $formName);
+
         if ($writeThemeFiles) {
             unset(
                 $dataObject['properties']['themebootstrapUse3'],
@@ -110,16 +121,6 @@ class QuickmodeModel extends BaseDatabaseModel
                 $areas->container[0]['elements'][] = $el;
             }
         }
-
-        $mdata = $this->quickModeNodeProperties($dataObject);
-        $formName = trim((string) ($mdata['name'] ?? ''));
-        $formTitle = trim((string) ($mdata['title'] ?? ''));
-
-        if ($formName === '') {
-            $formName = self::normaliseFormName($formTitle);
-        }
-
-        $this->assertFormNameAllowed($form, $formName);
 
         return $this->save2(
             $form,

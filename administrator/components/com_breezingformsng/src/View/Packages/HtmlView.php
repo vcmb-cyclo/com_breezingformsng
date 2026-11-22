@@ -122,8 +122,8 @@ final class HtmlView extends BaseHtmlView
             }
             $this->packages = $model->getPackages();
             $this->selectedPackage = $app->getInput()->getString('package', '');
-            if ($this->selectedPackage === PackageTransferModel::NEW_PACKAGE) {
-                $this->isNewPackage = true;
+            $this->isNewPackage = $app->getInput()->getInt('package_new', 0) === 1;
+            if ($this->isNewPackage) {
                 $this->selectedPackage = '';
             }
             $this->profiles = $model->getPackageProfiles();

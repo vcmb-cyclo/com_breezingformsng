@@ -72,7 +72,7 @@ Reste à faire, par priorité :
 
 ## État de la migration — 2026-10-15
 
-La migration du code principal vers Joomla 6 et PHP 8.3+ est réalisée : les
+La migration du code principal vers Joomla 6 et PHP 8.4+ est réalisée : les
 écrans administrateur, le routeur, le rendu et le moteur de soumission utilisent
 les services et API du composant modernisé. Les façades publiques encore
 nécessaires au PHP stocké dans les formulaires restent conservées volontairement.
@@ -233,7 +233,7 @@ techniques sont conservés dans le plan d'architecture associé.
   `DropboxUploader`, `MailchimpClient` et `SalesforceClient`, chacun avec client HTTP injectable ; ancien
   `RemoteApiClient` conservé dans l'historique source et SDK embarqués supprimés)
 - [x] Stripe PHP `17.6.0` → `20.3.1` (2026-07-12 — classes utilisées et package Joomla 6 vérifiés)
-- [x] PDF : `tc-lib-pdf 8.x` utilisé directement via Composer ; PHP 8.3 minimum. Les polices personnalisées doivent être fournies en TTF : les anciennes définitions TCPDF en `.php` ne sont plus chargées. Le code PDF personnalisé qui appelle les anciennes méthodes TCPDF doit être adapté à l'API native, y compris le code enregistré qui utilise `BFPDF` au-delà de `AddPage()`, `SetFont()`, `writeHTML()`, `writeHTMLCell()`, `lastPage()` et `Output()`, que cette classe conserve, et les modèles d'en-tête ou de pied de page qui appellent `$this->SetY()` ou `getAliasNbPages()` (les numéros de page sont fournis dans `$pdfPageNumber` et `$pdfPageCount`). Les modèles génériques `export_{header,footer}_pdf.php` et `pdf_attachment_{header,footer}.php` de `media/breezingforms/pdftpl/` ne sont plus lus : la mise à jour supprime ceux qui n'ont pas été modifiés depuis leur installation et signale les autres, dont les personnalisations doivent passer dans un modèle propre au formulaire ou dans `export_custom_{header,footer}_pdf.php`. L'installation signale les modèles, polices et codes enregistrés concernés.
+- [x] PDF : `tc-lib-pdf 8.x` utilisé directement via Composer ; PHP 8.4 minimum. Les polices personnalisées doivent être fournies en TTF : les anciennes définitions TCPDF en `.php` ne sont plus chargées. Le code PDF personnalisé qui appelle les anciennes méthodes TCPDF doit être adapté à l'API native, y compris le code enregistré qui utilise `BFPDF` au-delà de `AddPage()`, `SetFont()`, `writeHTML()`, `writeHTMLCell()`, `lastPage()` et `Output()`, que cette classe conserve, et les modèles d'en-tête ou de pied de page qui appellent `$this->SetY()` ou `getAliasNbPages()` (les numéros de page sont fournis dans `$pdfPageNumber` et `$pdfPageCount`). Les modèles génériques `export_{header,footer}_pdf.php` et `pdf_attachment_{header,footer}.php` de `media/breezingforms/pdftpl/` ne sont plus lus : la mise à jour supprime ceux qui n'ont pas été modifiés depuis leur installation et signale les autres, dont les personnalisations doivent passer dans un modèle propre au formulaire ou dans `export_custom_{header,footer}_pdf.php`. L'installation signale les modèles, polices et codes enregistrés concernés.
 - [x] CAPTCHA : `gregwar/captcha` 2.1.1 géré par Composer (il remplace Securimage), chargement via `VendorHelper`, code gardé dans la session Joomla
 - [x] Audit About enrichi depuis les concepts CBNG (2026-07-12) : rapport persistant sur un affichage, inventaire des
   14 tables BFNG, volumes et tailles, tables manquantes, collations, index dupliqués et références orphelines ;
@@ -246,7 +246,7 @@ techniques sont conservés dans le plan d'architecture associé.
 
 ## Règles pour les agents
 
-- Joomla 6 uniquement. PHP 8.3+. Aucune compatibilité ascendante.
+- Joomla 6 uniquement. PHP 8.4+. Aucune compatibilité ascendante.
 - Chaque écran migré = un triplet `Controller / Model / View` dans `src/`.
 - Supprimer les fichiers `admin/` correspondants **après** que la route MVC fonctionne.
 - Toute route legacy supprimée du bridge `DisplayController` doit avoir sa route MVC opérationnelle avant.

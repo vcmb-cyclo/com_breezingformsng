@@ -16,6 +16,7 @@ namespace Vcmb\Component\BreezingformsNG\Tests\Administrator;
 
 require_once __DIR__ . '/../Support/joomla-base-database-model-stub.php';
 
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\QuickmodeModel;
 
@@ -58,6 +59,54 @@ final class QuickmodeModelTest extends TestCase
     public function testScanThemeDirReturnsEmptyForMissingDirectory(): void
     {
         self::assertSame([], $this->scanThemeDir($this->themeDirectory . '/missing'));
+    }
+
+    #[RunInSeparateProcess]
+    public function testAnInvalidNameIsRefusedBeforeAThemeFileIsWritten(): void
+    {
+        $textStub = new class {
+            public static function _(string $key): string
+            {
+                return $key;
+            }
+        };
+        class_alias($textStub::class, 'Joomla\\CMS\\Language\\Text');
+        define('JPATH_SITE', $this->themeDirectory);
+        $themes = $this->themeDirectory . '/media/breezingforms/themes-bootstrap5';
+        $theme = $themes . '/custom';
+        self::assertTrue(mkdir($theme, 0777, true));
+        $variables = $theme . '/vars.txt';
+        self::assertNotFalse(file_put_contents($variables, 'stored'));
+        $tree = [
+            'attributes' => ['id' => 'bfQuickModeRoot'],
+            'properties' => [
+                'type' => 'root',
+                'name' => 'invalid-name',
+                'title' => 'Invalid name',
+                'themebootstrap' => 'custom',
+                'themebootstrapbefore' => 'custom',
+                'themebootstrapvars' => 'changed',
+            ],
+            'children' => [],
+        ];
+        $model = (new \ReflectionClass(QuickmodeModel::class))->newInstanceWithoutConstructor();
+
+        try {
+            $model->save(0, $tree);
+            self::fail('The invalid name was accepted.');
+        } catch (\InvalidArgumentException $exception) {
+            self::assertSame(
+                'COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS',
+                $exception->getMessage()
+            );
+        }
+
+        self::assertSame('stored', file_get_contents($variables));
+        unlink($variables);
+        rmdir($theme);
+        rmdir($themes);
+        rmdir(dirname($themes));
+        rmdir(dirname(dirname($themes)));
     }
 
     /**

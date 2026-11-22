@@ -8,7 +8,7 @@ if (scriptStart === -1 || scriptEnd === -1) {
     throw new Error('Expected a <script> block in package export template');
 }
 const script = template.slice(scriptStart + '<script>'.length, scriptEnd)
-    .replace(/<\?= json_encode\(\$this->profiles, [\s\S]*?\); \?>/, '{ existing: { assigned: true }, other: { assigned: true } }');
+    .replace(/<\?= json_encode\(\$this->profiles, [\s\S]*?\); \?>/, "{ existing: { assigned: true }, other: { assigned: true } }");
 
 test('new package opens its information and the user can close it', async ({ page }) => {
     await page.setContent(`

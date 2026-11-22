@@ -132,8 +132,9 @@ final class PackageDissolveTest extends TestCase
 
         $refused = [
             '' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_SAVED_PACKAGE_REQUIRED',
-            '__new__' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_INVALID',
             str_repeat('x', 31) => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_INVALID',
+            // Reserved for the "New package" choice of the export list.
+            '__new__' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_ID_INVALID',
             'alpha' => 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_EXISTS',
         ];
         foreach ($refused as $id => $message) {

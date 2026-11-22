@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form>
+<form addfieldprefix="Vcmb\Component\BreezingformsNG\Administrator\Field">
 	<field
 		name="package"
-		type="sql"
+		type="Packagefilter"
+		source="scripts"
 		filtermode="selector"
 		label="COM_BREEZINGFORMSNG_SCRIPTS_PACKAGE"
-		sql_select="DISTINCT package"
-		sql_from="#__facileforms_scripts"
-		sql_where="package &lt;&gt; ''"
-		sql_order="package ASC"
-		key_field="package"
-		value_field="package"
 		class="js-select-submit-on-change"
 		>
 		<option value="">COM_BREEZINGFORMSNG_ALL_PACKAGES</option>

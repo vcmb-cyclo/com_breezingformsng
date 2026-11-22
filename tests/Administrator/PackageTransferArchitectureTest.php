@@ -105,8 +105,13 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertStringContainsString("'fieldName' => 'update_select[%s][]'", $page);
         self::assertStringContainsString('name="update_parts[]"', $layout);
         // A new package is created from this screen: its identifier, then the details and the items in one save.
-        self::assertStringContainsString('PackageTransferModel::NEW_PACKAGE', $layout);
+        self::assertStringContainsString('layout=update&amp;package_new=1', $layout);
         self::assertStringContainsString('name="package_new" value="1"', $layout);
+        // The "New package" option has its own reserved value, so that it is told apart without JavaScript.
+        $export = (string) file_get_contents($component . '/tmpl/packages/export.php');
+        self::assertStringContainsString('<option value="<?= PackageTransferModel::NEW_PACKAGE_CHOICE; ?>" data-new', $export);
+        self::assertStringNotContainsString('<option value="" data-new', $export);
+        self::assertStringContainsString("getString('selected_package', '') === PackageTransferModel::NEW_PACKAGE_CHOICE", $controller);
         // With no package selected, the free items are not taken for its members.
         self::assertStringContainsString("if (\$selectedPackage !== '' && \$package === \$selectedPackage) {", (string) file_get_contents($component . '/src/Service/PackageListRows.php'));
         self::assertStringContainsString('name="metadata[<?= $field; ?>]"', $layout);
@@ -230,7 +235,8 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertStringContainsString("\$this->draft['package']", $template);
         self::assertStringContainsString("\$this->draft['metadata']", $template);
         self::assertStringContainsString('bfLoadProfile(bfHasExportDraft)', $template);
-        self::assertStringContainsString('PackageTransferModel::NEW_PACKAGE', $template);
+        self::assertStringContainsString('data-new', $template);
+        self::assertStringContainsString('name="export_selection" value="1"', $template);
 
         foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $tag) {
             $ini = (string) file_get_contents($component . '/language/' . $tag . '/com_breezingformsng.ini');
@@ -322,7 +328,8 @@ final class PackageTransferArchitectureTest extends TestCase
         $export = substr($controller, (int) strpos($controller, 'public function export('), 2500);
         self::assertStringNotContainsString('savePackage', $export);
         self::assertStringContainsString("if (\$package === '')", $export);
-        self::assertStringContainsString('view=packages&layout=export&package=', $export);
+        self::assertStringContainsString('view=packages&layout=export', $export);
+        self::assertStringContainsString("'&package_new=1'", $export);
     }
 
     public function testAnExportCarriesTheActiveScriptsAndPiecesItsFormsCall(): void

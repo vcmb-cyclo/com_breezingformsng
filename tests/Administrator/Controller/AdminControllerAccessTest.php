@@ -377,7 +377,27 @@ final class AdminControllerAccessTest extends TestCase
         self::assertSame([3], $states[0]['value']['select']['forms']);
         self::assertTrue($states[0]['value']['include_integrator']);
         self::assertContains('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_ID_REQUIRED', array_column($result['events'], 'message'));
-        self::assertStringContainsString('layout=export&package=__new__', $redirects[0] ?? '');
+        self::assertStringContainsString('layout=export&package_new=1', $redirects[0] ?? '');
+    }
+
+    public function testExportOfTheReservedNewPackageValueOpensTheNewPackageModeWithoutTheFlag(): void
+    {
+        $result = $this->runTask('packages', 'export', 'valid', 'breezingformsng.configuration', [
+            'selected_package' => '__new__',
+            'package_new' => 0,
+            'package' => '',
+            'metadata' => ['title' => 'My package'],
+        ]);
+        $states = array_values(array_filter($result['events'], static fn (array $event): bool => ($event['state'] ?? '') === 'com_breezingformsng.packages.export_draft'));
+        $redirects = array_column(array_filter($result['events'], static fn (array $event): bool => isset($event['redirect'])), 'redirect');
+
+        self::assertSame([], self::models($result['events']));
+        self::assertCount(1, $states);
+        self::assertTrue($states[0]['value']['new']);
+        self::assertSame('My package', $states[0]['value']['metadata']['title']);
+        self::assertContains('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_NEW_PACKAGE_ID_REQUIRED', array_column($result['events'], 'message'));
+        self::assertNotContains('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED', array_column($result['events'], 'message'));
+        self::assertStringContainsString('layout=export&package_new=1', $redirects[0] ?? '');
     }
 
     public function testExportWithoutChoosingAPackageDoesNotSelectNewPackage(): void
@@ -393,6 +413,18 @@ final class AdminControllerAccessTest extends TestCase
         self::assertFalse($states[0]['value']['new']);
         self::assertContains('COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED', array_column($result['events'], 'message'));
         self::assertStringNotContainsString('__new__', $redirects[0] ?? '');
+    }
+
+    public function testAnExplicitlyEmptyExportSelectionNeverFallsBackToTheWholePackage(): void
+    {
+        $result = $this->runTask('packages', 'export', 'valid', 'breezingformsng.configuration', [
+            'package' => 'demo',
+            'export_selection' => 1,
+        ]);
+        $models = self::models($result['events']);
+
+        self::assertContains('PackageTransfer::exportSelection', $models);
+        self::assertNotContains('PackageTransfer::export', $models);
     }
 
     public function testExportingTheIntegratorNeedsTheCodeRight(): void

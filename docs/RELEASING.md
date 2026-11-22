@@ -12,7 +12,7 @@ Check each point and fix what fails before tagging:
 
 | Check | How |
 |---|---|
-| The code builds and passes | The latest `main` run of the workflow is green: PHP 8.3, 8.4 and 8.5 compatibility, lint, front-end checks, PHPStan, PHPUnit, then the package job (build, validation, installation/update/migration smoke test on Joomla, browser journeys). |
+| The code builds and passes | The latest `main` run of the workflow is green: PHP 8.4 and 8.5 compatibility, lint, front-end checks, PHPStan, PHPUnit, then the package job (build, validation, installation/update/migration smoke test on Joomla, browser journeys). |
 | The manifest version is the release version | `<version>` in `breezingformsng.xml`. The release job fails if the tag does not match it. |
 | The changelog has an entry for this exact version | A non-empty `## <version>` section in `CHANGELOG.md` **and** an entry with `<version>` in `com_breezingformsng_changelog.xml`. `scripts/build-package.sh` refuses to build without both. |
 | The entries describe what users see | Plain English under Added, Changed, Fixed and Security. No build logs, no release mechanics, no development-only dependency changes. For a stable release, gather everything since the previous stable tag, including every RC. |
@@ -53,7 +53,7 @@ Pushing a tag that starts with `v` is what starts the publication. Do not move o
 5. It creates the GitHub release with the ZIP attached:
    - a version ending in `-RC<n>` is a **pre-release** and never the "latest" release;
    - a stable version becomes "latest" only if it is at least as recent as the version already in the update stream.
-6. If the version is current, a bot commits `com_breezingformsng_update.xml` to `main` (version, download URL, SHA-256, and the `rc` or `stable` tag). That file is what Joomla sites read to be offered the update.
+6. If the version is current, a bot commits `com_breezingformsng_update.xml` to `main` (version, download URL, SHA-256, minimum PHP version, and the `rc` or `stable` tag). That file is what Joomla sites read to be offered the update.
 
 Only one publication runs at a time. Re-running an older tag refreshes its release without touching the update stream.
 

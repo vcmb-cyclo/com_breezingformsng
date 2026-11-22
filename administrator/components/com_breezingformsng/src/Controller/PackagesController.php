@@ -43,8 +43,10 @@ final class PackagesController extends BaseController
     }
 
     /**
-     * Downloads the package file without creating or changing anything on this site:
-     * the selected items when there are any, else the items assigned to the package.
+     * Downloads the package file without creating or changing anything on this site.
+     * The export form always posts export_selection, so the file holds exactly the ticked
+     * items; with none ticked the export fails on the empty payload. The model's fallback
+     * to the items assigned to the package is reachable only through the model API.
      */
     public function export(): void
     {
@@ -62,8 +64,10 @@ final class PackagesController extends BaseController
         // An unchecked switch is not posted: Input returns the default as it is.
         $withTemplates = $input->getBool('include_templates', false);
         $withIntegrator = $input->getBool('include_integrator', false);
+        // Without JavaScript the flag stays at 0: the reserved value of the option tells the choice.
         $isNew = $input->getInt('package_new', 0) === 1
-            || $input->getString('selected_package', '') === PackageTransferModel::NEW_PACKAGE;
+            || $input->getString('selected_package', '') === PackageTransferModel::NEW_PACKAGE_CHOICE;
+        $selectionSubmitted = $input->getInt('export_selection', 0) === 1;
         $draft = [
             'package' => $package,
             'new' => $isNew,
@@ -79,8 +83,9 @@ final class PackagesController extends BaseController
                 : 'COM_BREEZINGFORMSNG_PACKAGE_TRANSFER_PACKAGE_REQUIRED';
             $app->enqueueMessage(Text::_($message), 'error');
             $app->setUserState(self::EXPORT_DRAFT_STATE, $draft);
-            $redirectPackage = $draft['new'] ? PackageTransferModel::NEW_PACKAGE : '';
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . $redirectPackage, false));
+            $redirect = 'index.php?option=com_breezingformsng&view=packages&layout=export'
+                . ($draft['new'] ? '&package_new=1' : '');
+            $app->redirect(Route::_($redirect, false));
 
             return;
         }
@@ -93,9 +98,9 @@ final class PackagesController extends BaseController
             if ($withIntegrator) {
                 $this->assertCodeAuthorised();
             }
-            $json = $formIds === [] && $scriptIds === [] && $pieceIds === [] && $menuIds === []
-                ? $this->model()->export($package, $metadata, $withTemplates, $withIntegrator)
-                : $this->model()->exportSelection($package, $formIds, $scriptIds, $pieceIds, $menuIds, $metadata, $withTemplates, $withIntegrator);
+            $json = $selectionSubmitted
+                ? $this->model()->exportSelection($package, $formIds, $scriptIds, $pieceIds, $menuIds, $metadata, $withTemplates, $withIntegrator)
+                : $this->model()->export($package, $metadata, $withTemplates, $withIntegrator);
             $fileName = 'breezingformsng-' . preg_replace('/[^A-Za-z0-9._-]/', '-', $package) . '.json';
             while (ob_get_level() > 0) {
                 ob_end_clean();
@@ -108,8 +113,9 @@ final class PackagesController extends BaseController
         } catch (\Throwable $exception) {
             $app->enqueueMessage($exception->getMessage(), 'error');
             $app->setUserState(self::EXPORT_DRAFT_STATE, $draft);
-            $redirectPackage = $draft['new'] ? PackageTransferModel::NEW_PACKAGE : rawurlencode($package);
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=export&package=' . $redirectPackage, false));
+            $redirect = 'index.php?option=com_breezingformsng&view=packages&layout=export'
+                . ($draft['new'] ? '&package_new=1' : '&package=' . rawurlencode($package));
+            $app->redirect(Route::_($redirect, false));
         }
     }
 
@@ -429,7 +435,9 @@ final class PackagesController extends BaseController
                 'metadata' => array_map(static fn (mixed $value): string => is_scalar($value) ? (string) $value : '', $metadata ?? []),
                 'select' => $this->submittedItemSelection('update_select'),
             ]);
-            $app->redirect(Route::_('index.php?option=com_breezingformsng&view=packages&layout=update&package=' . ($isNew ? PackageTransferModel::NEW_PACKAGE : rawurlencode($package)), false));
+            $redirect = 'index.php?option=com_breezingformsng&view=packages&layout=update'
+                . ($isNew ? '&package_new=1' : '&package=' . rawurlencode($package));
+            $app->redirect(Route::_($redirect, false));
         }
     }
 
