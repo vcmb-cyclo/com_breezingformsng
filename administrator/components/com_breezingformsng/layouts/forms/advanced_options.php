@@ -196,7 +196,7 @@ $paneErrors = [
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_name"<?= $labelTip('COM_BREEZINGFORMSNG_QM_FORM_NAME'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_NAME'); ?> <span class="text-danger">*</span></label>
-        <div class="col-sm-9"><input type="text" class="form-control" id="jf_name" name="name" required value="<?= htmlspecialchars($formOptions->name ?? ''); ?>"></div>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_name" name="name" required<?= (int) ($formOptions->id ?? 0) === 0 ? ' pattern="[A-Za-z0-9_]+" title="' . htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS'), ENT_QUOTES, 'UTF-8') . '"' : ''; ?> value="<?= htmlspecialchars($formOptions->name ?? ''); ?>"></div>
       </div>
 
       <div class="row mb-3">

@@ -18,7 +18,11 @@ use Joomla\CMS\Form\Field\ListField;
 use Joomla\CMS\HTML\HTMLHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageFilter;
 
-/** Package selector whose real values cannot collide with its "No package" option. */
+/**
+ * Package selector whose real values cannot collide with its "No package" option.
+ *
+ * @psalm-suppress PropertyNotSetInConstructor Inherited Joomla form field state, set by setup().
+ */
 final class PackagefilterField extends ListField
 {
     protected $type = 'Packagefilter';
@@ -30,6 +34,18 @@ final class PackagefilterField extends ListField
         'scripts' => '#__facileforms_scripts',
     ];
 
+    #[\Override]
+    protected function getInput()
+    {
+        // A legacy raw value (bookmark, saved state) must select the option of that package.
+        if (is_string($this->value)) {
+            $this->value = PackageFilter::toSelectorValue($this->value);
+        }
+
+        return parent::getInput();
+    }
+
+    #[\Override]
     protected function getOptions()
     {
         $options = parent::getOptions();

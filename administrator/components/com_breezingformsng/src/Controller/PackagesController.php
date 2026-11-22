@@ -43,8 +43,10 @@ final class PackagesController extends BaseController
     }
 
     /**
-     * Downloads the package file without creating or changing anything on this site:
-     * the selected items when there are any, else the items assigned to the package.
+     * Downloads the package file without creating or changing anything on this site.
+     * The export form always posts export_selection, so the file holds exactly the ticked
+     * items; with none ticked the export fails on the empty payload. The model's fallback
+     * to the items assigned to the package is reachable only through the model API.
      */
     public function export(): void
     {
@@ -62,7 +64,9 @@ final class PackagesController extends BaseController
         // An unchecked switch is not posted: Input returns the default as it is.
         $withTemplates = $input->getBool('include_templates', false);
         $withIntegrator = $input->getBool('include_integrator', false);
-        $isNew = $input->getInt('package_new', 0) === 1;
+        // Without JavaScript the flag stays at 0: the reserved value of the option tells the choice.
+        $isNew = $input->getInt('package_new', 0) === 1
+            || $input->getString('selected_package', '') === PackageTransferModel::NEW_PACKAGE_CHOICE;
         $selectionSubmitted = $input->getInt('export_selection', 0) === 1;
         $draft = [
             'package' => $package,

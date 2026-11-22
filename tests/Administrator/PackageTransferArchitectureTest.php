@@ -107,6 +107,11 @@ final class PackageTransferArchitectureTest extends TestCase
         // A new package is created from this screen: its identifier, then the details and the items in one save.
         self::assertStringContainsString('layout=update&amp;package_new=1', $layout);
         self::assertStringContainsString('name="package_new" value="1"', $layout);
+        // The "New package" option has its own reserved value, so that it is told apart without JavaScript.
+        $export = (string) file_get_contents($component . '/tmpl/packages/export.php');
+        self::assertStringContainsString('<option value="<?= PackageTransferModel::NEW_PACKAGE_CHOICE; ?>" data-new', $export);
+        self::assertStringNotContainsString('<option value="" data-new', $export);
+        self::assertStringContainsString("getString('selected_package', '') === PackageTransferModel::NEW_PACKAGE_CHOICE", $controller);
         // With no package selected, the free items are not taken for its members.
         self::assertStringContainsString("if (\$selectedPackage !== '' && \$package === \$selectedPackage) {", (string) file_get_contents($component . '/src/Service/PackageListRows.php'));
         self::assertStringContainsString('name="metadata[<?= $field; ?>]"', $layout);
@@ -230,7 +235,7 @@ final class PackageTransferArchitectureTest extends TestCase
         self::assertStringContainsString("\$this->draft['package']", $template);
         self::assertStringContainsString("\$this->draft['metadata']", $template);
         self::assertStringContainsString('bfLoadProfile(bfHasExportDraft)', $template);
-        self::assertStringContainsString('<option value="" data-new', $template);
+        self::assertStringContainsString('data-new', $template);
         self::assertStringContainsString('name="export_selection" value="1"', $template);
 
         foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $tag) {

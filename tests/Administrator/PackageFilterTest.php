@@ -125,7 +125,7 @@ final class PackageFilterTest extends TestCase
 
     public function testRealPackageIdentifiersNeverCollideWithTheNoPackageControl(): void
     {
-        foreach (['__none__', '__new__', 'package:YQ', 'a package', ''] as $package) {
+        foreach (['__none__', '__new__', 'package:YQ', 'a package'] as $package) {
             $encoded = PackageFilter::encode($package);
 
             self::assertNotSame(PackageFilter::NONE, $encoded);
@@ -135,5 +135,35 @@ final class PackageFilterTest extends TestCase
         self::assertSame('', PackageFilter::selectedPackage(PackageFilter::NONE));
         self::assertSame('legacy', PackageFilter::selectedPackage('legacy'));
         self::assertSame('package:not_base64!', PackageFilter::selectedPackage('package:not_base64!'));
+    }
+
+    public function testALegacyRawValueSelectsTheOptionOfThatPackage(): void
+    {
+        self::assertSame(PackageFilter::encode('demo'), PackageFilter::toSelectorValue('demo'));
+        self::assertSame(PackageFilter::NONE, PackageFilter::toSelectorValue(PackageFilter::NONE));
+        self::assertSame('', PackageFilter::toSelectorValue(''));
+        self::assertSame(PackageFilter::encode('demo'), PackageFilter::toSelectorValue(PackageFilter::encode('demo')));
+        self::assertSame(PackageFilter::encode('package:not_base64!'), PackageFilter::toSelectorValue('package:not_base64!'));
+
+        foreach (['demo', 'a package', '__new__'] as $package) {
+            self::assertSame($package, PackageFilter::selectedPackage(PackageFilter::toSelectorValue($package)));
+        }
+    }
+
+    public function testAnEmptyPayloadIsARawValueNeverAnEmptyPackage(): void
+    {
+        foreach (['package:', 'package:=', 'package:===='] as $value) {
+            self::assertSame($value, PackageFilter::selectedPackage($value));
+            self::assertSame(PackageFilter::encode($value), PackageFilter::toSelectorValue($value));
+            self::assertSame($value, PackageFilter::selectedPackage(PackageFilter::toSelectorValue($value)));
+        }
+    }
+
+    public function testTheSelectorDisplaysTheLegacyValue(): void
+    {
+        $field = self::source(self::ADMIN . '/src/Field/PackagefilterField.php');
+
+        self::assertStringContainsString('PackageFilter::toSelectorValue($this->value)', $field);
+        self::assertStringContainsString("#[\\Override]\n    protected function getInput()", $field);
     }
 }

@@ -43,19 +43,45 @@ final class PackageFilter
     /**
      * Returns the real package represented by a selector value. Raw values stay
      * accepted for bookmarks and user state saved before package values were encoded.
+     *
+     * One ambiguity remains: a raw package literally named like a valid
+     * "package:<base64url>" value is read as the encoded one.
      */
     public static function selectedPackage(string $value): string
     {
-        if ($value === '' || $value === self::NONE || !str_starts_with($value, self::VALUE_PREFIX)) {
-            return $value === self::NONE ? '' : $value;
+        if ($value === self::NONE) {
+            return '';
+        }
+
+        return self::decode($value) ?? $value;
+    }
+
+    /**
+     * Returns the selector value that displays the given filter value: a legacy
+     * raw package is encoded so that it matches the option of that package.
+     */
+    public static function toSelectorValue(string $value): string
+    {
+        if ($value === '' || $value === self::NONE || self::decode($value) !== null) {
+            return $value;
+        }
+
+        return self::encode($value);
+    }
+
+    /** Decodes a valid, non-empty encoded value; null for anything else. */
+    private static function decode(string $value): ?string
+    {
+        if (!str_starts_with($value, self::VALUE_PREFIX)) {
+            return null;
         }
 
         $encoded = substr($value, strlen(self::VALUE_PREFIX));
         $padding = (4 - strlen($encoded) % 4) % 4;
         $decoded = base64_decode(strtr($encoded . str_repeat('=', $padding), '-_', '+/'), true);
 
-        // A malformed prefixed raw identifier remains a usable legacy value.
-        return is_string($decoded) && self::encode($decoded) === $value ? $decoded : $value;
+        // A malformed or empty payload is a raw legacy value, never a package of ''.
+        return is_string($decoded) && $decoded !== '' && self::encode($decoded) === $value ? $decoded : null;
     }
 
     /**

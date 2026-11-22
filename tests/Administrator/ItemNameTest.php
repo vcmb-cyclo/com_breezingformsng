@@ -76,7 +76,11 @@ final class ItemNameTest extends TestCase
         // Menus keep a free name.
         self::assertStringNotContainsString('ItemName', (string) file_get_contents($component . '/src/Model/MenuModel.php'));
         $advancedOptions = (string) file_get_contents($component . '/layouts/forms/advanced_options.php');
-        self::assertStringContainsString('id="jf_name" name="name" required value=', $advancedOptions);
+        // The browser hint is for a NEW form only: an existing form with a legacy name must stay saveable.
         self::assertStringNotContainsString('id="jf_name" name="name" required pattern=', $advancedOptions);
+        self::assertStringContainsString(
+            'id="jf_name" name="name" required<?= (int) ($formOptions->id ?? 0) === 0 ? \' pattern="[A-Za-z0-9_]+"',
+            $advancedOptions
+        );
     }
 }
