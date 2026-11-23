@@ -39,7 +39,7 @@ final class DropboxPluginArchitectureTest extends TestCase
         );
 
         self::assertStringContainsString('SubmissionArtifactsEvent::NAME', $plugin);
-        self::assertStringContainsString('getArtifacts()', $plugin);
+        self::assertStringContainsString("getArgument('artifacts', [])", $plugin);
         self::assertStringContainsString('new DropboxUploader()', $plugin);
         self::assertStringNotContainsString('DropboxUploader', $component);
     }

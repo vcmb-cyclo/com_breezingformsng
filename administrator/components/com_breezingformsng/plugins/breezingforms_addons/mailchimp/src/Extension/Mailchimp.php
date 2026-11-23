@@ -45,12 +45,14 @@ final class Mailchimp extends CMSPlugin implements SubscriberInterface
     public function onAfterSubmit(AfterSubmitEvent $event): void
     {
         $form = $this->loadForm((int) $event->getArgument('formId'));
+        $mailData = $event->getArgument('mailData', []);
         if (
             $form === null
             || trim((string) ($form['mailchimp_email_field'] ?? '')) === ''
             || trim((string) ($form['mailchimp_api_key'] ?? '')) === ''
             || trim((string) ($form['mailchimp_list_id'] ?? '')) === ''
-            || $event->getMailData() === []
+            || !is_array($mailData)
+            || $mailData === []
         ) {
             return;
         }
@@ -81,7 +83,7 @@ final class Mailchimp extends CMSPlugin implements SubscriberInterface
         ));
         $email = '';
         $mergeVars = [];
-        foreach ($event->getMailData() as $data) {
+        foreach ($mailData as $data) {
             if (!is_array($data) || !array_key_exists(self::DATA_NAME, $data)) {
                 continue;
             }
