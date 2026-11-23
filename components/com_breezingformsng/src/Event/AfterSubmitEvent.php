@@ -16,6 +16,10 @@ use Joomla\CMS\Event\AbstractImmutableEvent;
  * Dispatched as "onBreezingformsngAfterSubmit" once a submission has been
  * accepted, stored and notified. Read-only: listeners react to the
  * submission, they cannot alter it.
+ *
+ * The getters read the arguments directly: Joomla's getArgument() calls a
+ * get<Name>() method of the event when one exists, so a getter that called
+ * getArgument() for its own argument would call itself without end.
  */
 final class AfterSubmitEvent extends AbstractImmutableEvent
 {
@@ -46,18 +50,18 @@ final class AfterSubmitEvent extends AbstractImmutableEvent
 
     public function getFormId(): int
     {
-        return $this->getArgument('formId');
+        return $this->arguments['formId'];
     }
 
     public function getFormName(): string
     {
-        return $this->getArgument('formName');
+        return $this->arguments['formName'];
     }
 
     /** Identifier of the stored record, 0 when the form does not log to the database. */
     public function getRecordId(): int
     {
-        return $this->getArgument('recordId');
+        return $this->arguments['recordId'];
     }
 
     /**
@@ -65,7 +69,7 @@ final class AfterSubmitEvent extends AbstractImmutableEvent
      */
     public function getSubmitData(): array
     {
-        return $this->getArgument('submitData');
+        return $this->arguments['submitData'];
     }
 
     /**
@@ -73,7 +77,7 @@ final class AfterSubmitEvent extends AbstractImmutableEvent
      */
     public function getMailData(): array
     {
-        return $this->getArgument('mailData');
+        return $this->arguments['mailData'];
     }
 
     /**
@@ -81,6 +85,6 @@ final class AfterSubmitEvent extends AbstractImmutableEvent
      */
     public function getSalesforceData(): array
     {
-        return $this->getArgument('salesforceData');
+        return $this->arguments['salesforceData'];
     }
 }
