@@ -1,5 +1,38 @@
 # Changelog
 
+## 6.1.0
+
+### Added
+
+- Add a native Joomla 6 administration experience for forms, records, menus, scripts, pieces and Integrator rules, with search, filters, pagination, sortable columns and native edit screens.
+- Add a modern QuickMode editor with an accessible keyboard-operable tree, unsaved-change protection, form and element search, debug details, improved narrow-screen layout and an About-page Piranha animation.
+- Add package management and controlled package transfers: create, edit, inspect, import, export and dissolve packages without deleting their items, including selected forms, scripts, pieces, menus, rules and templates.
+- Add record tools for CSV, PDF, XML and XLSX export, CSV import, record transfer between forms, and an audit that finds and repairs orphan data, deleted elements, legacy extensions and database issues.
+- Add privacy/history controls, a reversible trash for forms and related objects, Tools screens for maintenance, statistics, logs and samples, plus a Bootstrap carte theme.
+- Add optional MailChimp, Salesforce and Dropbox integrations, and an opt-in, permission-aware MCP endpoint for AI assistants to read, audit and manage forms.
+- Add form widgets for international telephone numbers, date and time, country selection, address lookup and file drop zones, with ready-to-use sample forms.
+- Add Stripe Checkout improvements, including configurable payment methods, server-verified webhooks and return destinations.
+
+### Changed
+
+- Complete the transition to Joomla 6 native MVC, dependency injection and web assets; remove obsolete legacy administration code and unsupported runtime dependencies.
+- Improve package, form and record workflows: clearer import previews and results, version history, safer library updates, predictable naming, package filters and dedicated package management.
+- Improve accessibility and localisation across the administrator and site interfaces, including semantic groups, labelled controls, keyboard interactions, contrast, responsive layouts and completed interface translations.
+- Require PHP 8.4 or later. Existing sites running PHP 8.3 remain on their previous release until PHP is upgraded.
+- Modernise form rendering, QuickMode trees and bundled libraries; remove discontinued Sofort support while retaining Stripe alternatives, and reduce obsolete package assets without removing the XLSX export or Piranha animation.
+
+### Fixed
+
+- Fix form, payment, upload, QuickMode, package, import/export, installer, record and audit regressions found throughout the release-candidate cycle.
+- Keep form data, code, templates, package selections and editor changes intact when an operation is refused or interrupted, and make legacy updates and migrations resumable.
+- Fix the infinite-recursion error after submitting a form when the MailChimp, Salesforce or Dropbox add-on is enabled.
+
+### Security
+
+- Harden permissions, CSRF checks and server-side validation across form editing, packages, uploads, payments, record transfers, audits and MCP actions.
+- Protect submitted files, signatures, downloads, payment notifications, templates, logs and stored code against traversal, unsafe file types, unauthorised access, formula injection and sensitive-data disclosure.
+- Strengthen Stripe, PayPal, double opt-in, CAPTCHA and upload handling, including replay protection, integrity checks and safer generated identifiers.
+
 ## 6.1.0-RC25
 
 ### Fixed
