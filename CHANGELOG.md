@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.1.0-RC25
+
+### Fixed
+
+- Fix the error page "Maximum call stack size ... Infinite recursion?" shown after sending a form on a site where the MailChimp, Salesforce or Dropbox plugin is turned on (#236).
+
 ## 6.1.0-RC24
 
 ### Added

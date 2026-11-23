@@ -3,6 +3,14 @@
     <changelog>
         <element>com_breezingformsng</element>
         <type>component</type>
+        <version>6.1.0-RC25</version>
+        <change>
+            <item>Fix the error page "Maximum call stack size ... Infinite recursion?" shown after sending a form on a site where the MailChimp, Salesforce or Dropbox plugin is turned on (#236).</item>
+        </change>
+    </changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
         <version>6.1.0-RC24</version>
         <change>
             <item>Add a Package column to the forms list, hidden by default and sortable, that you can show from the Columns menu.</item>

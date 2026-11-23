@@ -44,7 +44,7 @@ final class Mailchimp extends CMSPlugin implements SubscriberInterface
 
     public function onAfterSubmit(AfterSubmitEvent $event): void
     {
-        $form = $this->loadForm($event->getFormId());
+        $form = $this->loadForm((int) $event->getArgument('formId'));
         if (
             $form === null
             || trim((string) ($form['mailchimp_email_field'] ?? '')) === ''

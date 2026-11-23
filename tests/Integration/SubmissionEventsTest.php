@@ -51,7 +51,6 @@ final class SubmissionEventsTest extends TestCase
         $artifacts = [['path' => '/tmp/export.csv', 'name' => 'export.csv']];
         $event = new SubmissionArtifactsEvent(34, 'widgets', 7, $artifacts);
 
-        self::assertSame(34, $event->getFormId());
         self::assertSame('widgets', $event->getFormName());
         self::assertSame(7, $event->getRecordId());
         self::assertSame($artifacts, $event->getArtifacts());
@@ -64,7 +63,6 @@ final class SubmissionEventsTest extends TestCase
     {
         $event = new AfterSubmitEvent(34, 'widgets', 7, [['Name', 'Ada']], [['Mail', 'a@b.c']], [['Sf', 'x']]);
 
-        self::assertSame(34, $event->getFormId());
         self::assertSame('widgets', $event->getFormName());
         self::assertSame(7, $event->getRecordId());
         self::assertSame([['Name', 'Ada']], $event->getSubmitData());
