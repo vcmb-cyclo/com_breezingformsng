@@ -20,9 +20,7 @@ use Joomla\CMS\Event\AbstractImmutableEvent;
  * Announces the files produced by a successful submission before external
  * submission notifications are sent.
  *
- * The getters read the arguments directly: Joomla's getArgument() calls a
- * get<Name>() method of the event when one exists, so a getter that called
- * getArgument() for its own argument would call itself without end.
+ * Consumers access its values through AbstractEvent::getArgument().
  */
 final class SubmissionArtifactsEvent extends AbstractImmutableEvent
 {
@@ -43,23 +41,5 @@ final class SubmissionArtifactsEvent extends AbstractImmutableEvent
             'recordId' => $recordId,
             'artifacts' => $artifacts,
         ]);
-    }
-
-    public function getFormName(): string
-    {
-        return $this->arguments['formName'];
-    }
-
-    public function getRecordId(): int
-    {
-        return $this->arguments['recordId'];
-    }
-
-    /**
-     * @return list<array{path: string, name: string}>
-     */
-    public function getArtifacts(): array
-    {
-        return $this->arguments['artifacts'];
     }
 }

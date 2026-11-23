@@ -38,7 +38,11 @@ final class Dropbox extends CMSPlugin implements SubscriberInterface
     public function onSubmissionArtifacts(SubmissionArtifactsEvent $event): void
     {
         $form = $this->loadForm((int) $event->getArgument('formId'));
+        $artifacts = $event->getArgument('artifacts', []);
         if ($form === null || (int) ($form->dropbox_submission_enabled ?? 0) !== 1) {
+            return;
+        }
+        if (!is_array($artifacts)) {
             return;
         }
         $accessToken = trim((string) ($form->dropbox_email ?? ''));
@@ -47,10 +51,10 @@ final class Dropbox extends CMSPlugin implements SubscriberInterface
         }
 
         $folder = $this->remoteFolder(
-            (string) (($form->dropbox_folder ?? '') ?: $event->getFormName())
+            (string) (($form->dropbox_folder ?? '') ?: $event->getArgument('formName'))
         );
         $uploader = new DropboxUploader();
-        foreach ($event->getArtifacts() as $artifact) {
+        foreach ($artifacts as $artifact) {
             $path = (string) ($artifact['path'] ?? '');
             $name = basename((string) ($artifact['name'] ?? ''));
             if ($name === '' || !is_file($path) || !is_readable($path)) {

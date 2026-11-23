@@ -18,9 +18,7 @@ use Vcmb\Component\BreezingformsNG\Site\Event\SubmissionArtifactsEvent;
 
 /**
  * The submission events read by the add-on plugins (Dropbox, Mailchimp,
- * Salesforce), on the real Joomla event classes: Joomla's getArgument()
- * calls a get<Name>() method of the event when one exists, so a getter
- * that went through getArgument() called itself until PHP ran out of stack.
+ * Salesforce) expose their values through Joomla's native argument accessor.
  */
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
@@ -51,11 +49,9 @@ final class SubmissionEventsTest extends TestCase
         $artifacts = [['path' => '/tmp/export.csv', 'name' => 'export.csv']];
         $event = new SubmissionArtifactsEvent(34, 'widgets', 7, $artifacts);
 
-        self::assertSame('widgets', $event->getFormName());
-        self::assertSame(7, $event->getRecordId());
-        self::assertSame($artifacts, $event->getArtifacts());
-        // Joomla's own accessor, which goes through the getters.
         self::assertSame(34, $event->getArgument('formId'));
+        self::assertSame('widgets', $event->getArgument('formName'));
+        self::assertSame(7, $event->getArgument('recordId'));
         self::assertSame($artifacts, $event->getArgument('artifacts'));
     }
 
@@ -63,12 +59,29 @@ final class SubmissionEventsTest extends TestCase
     {
         $event = new AfterSubmitEvent(34, 'widgets', 7, [['Name', 'Ada']], [['Mail', 'a@b.c']], [['Sf', 'x']]);
 
-        self::assertSame('widgets', $event->getFormName());
-        self::assertSame(7, $event->getRecordId());
-        self::assertSame([['Name', 'Ada']], $event->getSubmitData());
-        self::assertSame([['Mail', 'a@b.c']], $event->getMailData());
-        self::assertSame([['Sf', 'x']], $event->getSalesforceData());
+        self::assertSame(34, $event->getArgument('formId'));
+        self::assertSame('widgets', $event->getArgument('formName'));
         self::assertSame(7, $event->getArgument('recordId'));
+        self::assertSame([['Name', 'Ada']], $event->getArgument('submitData'));
+        self::assertSame([['Mail', 'a@b.c']], $event->getArgument('mailData'));
         self::assertSame([['Sf', 'x']], $event->getArgument('salesforceData'));
+    }
+
+    public function testNoEventDefinesAMethodNamedAfterOneOfItsArguments(): void
+    {
+        // getArgument('x') calls getX() when it exists (deprecated in Joomla 6.2, removed in 7):
+        // a getX() that went through getArgument('x') called itself until PHP ran out of stack.
+        $events = [
+            new SubmissionArtifactsEvent(1, 'f', 1, []),
+            new AfterSubmitEvent(1, 'f', 1, []),
+        ];
+
+        foreach ($events as $event) {
+            foreach (array_keys($event->getArguments()) as $name) {
+                $suffix = ucfirst((string) $name);
+                self::assertFalse(method_exists($event, 'get' . $suffix), $event::class . ' get' . $suffix);
+                self::assertFalse(method_exists($event, 'onGet' . $suffix), $event::class . ' onGet' . $suffix);
+            }
+        }
     }
 }

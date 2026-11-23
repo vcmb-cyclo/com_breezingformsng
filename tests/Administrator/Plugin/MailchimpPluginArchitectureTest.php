@@ -41,7 +41,7 @@ final class MailchimpPluginArchitectureTest extends TestCase
         $notification = (string) file_get_contents(self::NOTIFICATION);
 
         self::assertStringContainsString('AfterSubmitEvent::NAME', $plugin);
-        self::assertStringContainsString('getMailData()', $plugin);
+        self::assertStringContainsString("getArgument('mailData', [])", $plugin);
         self::assertStringContainsString('new MailchimpClient()', $plugin);
         self::assertStringNotContainsString('Mailchimp', $notification);
     }
@@ -51,6 +51,6 @@ final class MailchimpPluginArchitectureTest extends TestCase
         $event = (string) file_get_contents(self::EVENT);
 
         self::assertStringContainsString("'mailData' => \$mailData", $event);
-        self::assertStringContainsString('function getMailData()', $event);
+        self::assertStringNotContainsString('function getMailData()', $event);
     }
 }

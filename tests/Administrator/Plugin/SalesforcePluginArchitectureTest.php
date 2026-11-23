@@ -45,7 +45,7 @@ final class SalesforcePluginArchitectureTest extends TestCase
         $notification = (string) file_get_contents(self::NOTIFICATION);
 
         self::assertStringContainsString('AfterSubmitEvent::NAME', $plugin);
-        self::assertStringContainsString('getSalesforceData()', $plugin);
+        self::assertStringContainsString("getArgument('salesforceData', [])", $plugin);
         self::assertStringContainsString('SalesforceSubmissionHandler', $plugin);
         self::assertStringContainsString('new SalesforceClient()', $handler);
         self::assertStringNotContainsString('Salesforce', $notification);
@@ -56,6 +56,6 @@ final class SalesforcePluginArchitectureTest extends TestCase
         $event = (string) file_get_contents(self::EVENT);
 
         self::assertStringContainsString("'salesforceData' => \$salesforceData", $event);
-        self::assertStringContainsString('function getSalesforceData()', $event);
+        self::assertStringNotContainsString('function getSalesforceData()', $event);
     }
 }

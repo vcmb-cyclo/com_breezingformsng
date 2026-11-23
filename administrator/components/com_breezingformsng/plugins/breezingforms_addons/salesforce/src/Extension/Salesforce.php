@@ -37,11 +37,15 @@ final class Salesforce extends CMSPlugin implements SubscriberInterface
     public function onAfterSubmit(AfterSubmitEvent $event): void
     {
         $form = $this->loadForm((int) $event->getArgument('formId'));
+        $salesforceData = $event->getArgument('salesforceData', []);
         if ($form === null || (int) ($form['salesforce_enabled'] ?? 0) !== 1) {
             return;
         }
+        if (!is_array($salesforceData)) {
+            return;
+        }
 
-        (new SalesforceSubmissionHandler())->handle($form, $event->getSalesforceData());
+        (new SalesforceSubmissionHandler())->handle($form, $salesforceData);
     }
 
     /** @return array<string, mixed>|null */
