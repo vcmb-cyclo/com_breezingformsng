@@ -1,8 +1,10 @@
 # Continuous skill improvement
 
-The prototype is deliberately limited to `.agents/skills/joomla-security`.
-It converts confirmed evidence into a small, reviewable candidate; it never
-lets an agent publish an instruction change by itself.
+The prototype currently evaluates `.agents/skills/joomla-security` and
+`.agents/skills/joomla-events`. Each target has an independent trusted
+manifest, criteria checksum, public fixtures and baseline. It converts
+confirmed evidence into a small, reviewable candidate; it never lets an agent
+publish an instruction change by itself.
 
 ## Evidence and decisions
 
@@ -29,9 +31,11 @@ that proves its assertion; the evaluator fails if that control disappears.
 ## Independence and promotion
 
 `skill-improvement.yml` is manual and checks out its evaluator from `main`.
-It accepts only an open PR whose body names the selected evidence id.
-Its job runs only when manually dispatched from `main`; dispatching a changed
-workflow from a candidate branch produces no evaluation.
+Select a target and eligible evidence id. It accepts only an open PR whose
+body names the selected evidence id. The job runs only when manually
+dispatched from `main`; dispatching a changed workflow from a candidate branch
+produces no evaluation. The target manifest on `main` defines valid evidence,
+skill paths and candidate files.
 The candidate checkout is data only: it cannot change the evaluator, fixtures,
 thresholds or workflow used for the run. The workflow has read-only permissions
 and emits an artifact; it cannot write, approve, merge or create a PR.
@@ -49,7 +53,17 @@ a public evaluation is a prototype report, not hidden-case approval.
 
 ## Loop prevention
 
-The workflow is `workflow_dispatch` only, has one concurrency group, rejects
-bot actors and accepts the hard-coded `joomla-security` target only. It rejects
-duplicate evidence and caps each run at one record. It is never triggered by
-its reports, artifacts or a skill PR.
+The workflow is `workflow_dispatch` only, uses a per-target concurrency group,
+rejects bot actors and accepts only targets declared in the workflow inputs.
+Target manifests on `main` allowlist evidence and candidate paths. The
+evaluator rejects duplicate evidence and caps each run at one record. It is
+never triggered by its reports, artifacts or a skill PR.
+
+## Joomla events target
+
+Evidence `pr-235-event-accessor-recursion` records the confirmed Joomla event
+argument-resolution recursion and points to
+`tests/Integration/SubmissionEventsTest.php`. The candidate skill explains
+the dispatch behavior, avoids same-argument custom accessors, and requires
+runtime checks with enabled add-ons where applicable. Public fixtures are
+repeatable checks, not hidden-case approval.

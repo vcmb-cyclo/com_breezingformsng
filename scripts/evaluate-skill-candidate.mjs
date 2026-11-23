@@ -9,7 +9,7 @@ function fail(message) { throw new Error(message); }
 
 function parse(argv) {
     const options = { changedFiles: [] };
-    const valued = new Set(['root', 'manifest', 'baseline', 'candidate', 'candidate-evidence', 'evidence', 'report', 'changed-file']);
+    const valued = new Set(['root', 'manifest', 'target', 'baseline', 'candidate', 'candidate-evidence', 'evidence', 'report', 'changed-file']);
     for (let index = 0; index < argv.length; index += 1) {
         const name = argv[index].replace(/^--/, '');
         if (!valued.has(name)) {
@@ -72,7 +72,10 @@ function validatesEvidenceLifecycle(trustedPath, candidatePath, evidenceId) {
 export function evaluate(options) {
     const defaultRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
     const root = resolve(options.root ?? defaultRoot);
-    const manifest = JSON.parse(text(inside(root, options.manifest ?? 'skills-evaluation/joomla-security/manifest.json')));
+    const target = options.target ?? 'joomla-security';
+    if (!/^[a-z0-9-]+$/.test(target)) fail('--target must be a simple allowlisted target name.');
+    const manifest = JSON.parse(text(inside(root, options.manifest ?? `skills-evaluation/${target}/manifest.json`)));
+    if (manifest.target !== target) fail(`Manifest target ${manifest.target} does not match requested target ${target}.`);
     if (!/^[a-z0-9][a-z0-9:_@.#/-]*$/i.test(options.evidence ?? '')) fail('--evidence must be a stable, non-empty evidence identifier.');
     const criteriaText = text(inside(root, manifest.criteriaPath));
     const checksum = createHash('sha256').update(criteriaText).digest('hex');
@@ -88,6 +91,7 @@ export function evaluate(options) {
     const trustedEvidencePath = inside(root, 'data/skill-improvement/evidence.json');
     const trustedEvidence = evidenceRecord(trustedEvidencePath, options.evidence);
     if (!trustedEvidence || trustedEvidence.status !== 'eligible') fail(`Evidence ${options.evidence} is not eligible on the trusted main branch.`);
+    if (!manifest.evidenceIds?.includes(options.evidence)) fail(`Evidence ${options.evidence} is not allowlisted for ${target}.`);
     const missingControls = (trustedEvidence.controlPaths ?? []).filter((path) => !existsSync(inside(root, path)));
     const candidateEvidencePath = options['candidate-evidence']
         ? (isAbsolute(options['candidate-evidence']) ? resolve(options['candidate-evidence']) : resolve(root, options['candidate-evidence']))

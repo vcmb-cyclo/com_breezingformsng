@@ -35,9 +35,15 @@ increasing instruction size.
 - Never modify evaluator code, fixtures, thresholds, workflow policy or an evidence record other than the selected record's permitted lifecycle transition.
 - Never create, merge, approve or label a pull request. A human reviewer owns promotion.
 
-## Joomla security prototype
+## Supported evaluation targets
 
-For `joomla-security`, use `data/skill-improvement/evidence.json` and the
-manual `skill-improvement.yml` workflow. Its evaluator is independent of the
-candidate and reports coverage, regressions, false positives and instruction
-size. A candidate may change only the skill and its selected evidence record.
+Use `data/skill-improvement/evidence.json` and the manual
+`skill-improvement.yml` workflow. Each target has a trusted manifest, immutable
+criteria and public fixtures under `skills-evaluation/<target>/`. The
+independent evaluator reports coverage, regressions, false-positive signals,
+instruction bytes, words and estimated tokens. A candidate may change only the
+target skill and its selected evidence record.
+
+The initial targets are `joomla-security` and `joomla-events`. For event
+argument regressions, use the real Joomla event classes and exercise enabled
+add-ons when the affected path depends on them.

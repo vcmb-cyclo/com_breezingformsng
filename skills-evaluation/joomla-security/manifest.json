@@ -1,6 +1,10 @@
 {
   "schemaVersion": 1,
   "target": "joomla-security",
+  "evidenceIds": [
+    "pr-187-request-output-and-upload-boundaries",
+    "pr-190-runtime-security-journeys"
+  ],
   "candidateRelativePath": ".agents/skills/joomla-security/SKILL.md",
   "baselinePath": "skills-evaluation/joomla-security/baseline.md",
   "criteriaPath": "skills-evaluation/joomla-security/criteria.json",

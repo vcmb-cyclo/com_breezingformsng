@@ -1,4 +1,4 @@
-name: Evaluate Joomla security skill candidate
+name: Evaluate agent skill candidate
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       evidence_id:
-        description: Eligible evidence id from data/skill-improvement/evidence.json on main
+        description: Eligible evidence id from the trusted evidence registry on main
         required: true
         type: choice
         options:
@@ -16,19 +16,20 @@ on:
           - pr-187-request-output-and-upload-boundaries
           - pr-190-runtime-security-journeys
       target:
-        description: Prototype target (intentionally allowlisted)
+        description: Evaluation target (intentionally allowlisted)
         required: true
         default: joomla-security
         type: choice
         options:
           - joomla-security
+          - joomla-events
 
 permissions:
   contents: read
   pull-requests: read
 
 concurrency:
-  group: skill-improvement-joomla-security
+  group: skill-improvement-${{ inputs.target }}
   cancel-in-progress: false
 
 jobs:
@@ -62,20 +63,31 @@ jobs:
           grep -Fqx '## Skill improvement' <<< "${body}"
           grep -Fqx "Evidence: ${EVIDENCE_ID}" <<< "${body}"
 
-      - name: Refuse changes outside the candidate contract
+      - name: Refuse changes outside the trusted target contract
         id: contract
         run: |
           set -euo pipefail
           git -C candidate fetch origin main --depth=1
           changed="$(git -C candidate diff --name-only origin/main...HEAD)"
           test -n "${changed}"
+          manifest="trusted/skills-evaluation/${TARGET}/manifest.json"
+          test -f "${manifest}"
+          candidate_path="$(jq -r '.candidateRelativePath' "${manifest}")"
+          allowed="$(jq -r '.allowedCandidatePaths[]' "${manifest}")"
+          required="$(jq -r '.requiredCandidatePaths[]' "${manifest}")"
+          test -n "${candidate_path}"
           while IFS= read -r path; do
-            case "${path}" in
-              .agents/skills/joomla-security/SKILL.md|data/skill-improvement/evidence.json) ;;
-              *) echo "::error::Candidate changes protected path: ${path}"; exit 1 ;;
-            esac
+            if ! grep -Fxq "${path}" <<< "${allowed}"; then
+              echo "::error::Candidate changes path outside the trusted target contract: ${path}"; exit 1
+            fi
           done <<< "${changed}"
+          while IFS= read -r path; do
+            grep -Fxq "${path}" <<< "${changed}" || { echo "::error::Required candidate path missing: ${path}"; exit 1; }
+          done <<< "${required}"
+          grep -Fxq "${candidate_path}" <<< "${changed}"
           printf '%s\n' "${changed}" > changed-files.txt
+        env:
+          TARGET: ${{ inputs.target }}
 
       - name: Compare baseline and candidate
         run: |
@@ -85,8 +97,8 @@ jobs:
           done < changed-files.txt
           node trusted/scripts/evaluate-skill-candidate.mjs \
             --root trusted \
-            --baseline trusted/.agents/skills/joomla-security/SKILL.md \
-            --candidate candidate/.agents/skills/joomla-security/SKILL.md \
+            --target "${{ inputs.target }}" \
+            --candidate "candidate/$(jq -r '.candidateRelativePath' "trusted/skills-evaluation/${{ inputs.target }}/manifest.json")" \
             --candidate-evidence candidate/data/skill-improvement/evidence.json \
             --evidence "${{ inputs.evidence_id }}" \
             --report skill-evaluation.json \
@@ -95,6 +107,6 @@ jobs:
       - name: Publish public evaluation report
         uses: actions/upload-artifact@v7
         with:
-          name: joomla-security-evaluation
+          name: ${{ inputs.target }}-evaluation
           path: skill-evaluation.json
           retention-days: 30
