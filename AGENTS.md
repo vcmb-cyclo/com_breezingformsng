@@ -24,6 +24,7 @@
 
 - Add or update relevant tests. Run `php -l` on changed PHP files and configured PHPCS, PHPStan, PHPUnit and functional checks when installed and feasible.
 - Run all tests without the Joomla 6.2 compatibility plugin and without the BreezingForms compatibility plugin for old classes.
+- Every code path that runs only when an optional extension is enabled (add-on plugins Dropbox, Mailchimp, Salesforce, event listeners, integrations) must be executed by at least one test, on the real Joomla classes, with that extension enabled. A test that only matches source text, or a run with the extension disabled, does not cover the path. Restore the previous state after a manual run. (Origin: the event getters of RC23/RC24 recursed forever as soon as an add-on was enabled; every local run had them disabled.)
 - Put every locally built release ZIP directly in the repository's `build/` directory.
 - Use the local Docker environment `joomla6` for BF tests; its Joomla container is named `joomla6-joomla-1` and serves the site on port 9080 (`http://localhost:9080`).
 - `joomla6-joomla-1` runs PHP 8.3, not the 8.4 target: it does not validate PHP 8.4/8.5 compatibility. Run the PHP 8.4/8.5 checks (`php -l`, PHPStan, PHPUnit) with the host PHP and report the PHP version used for each result.
