@@ -2,10 +2,10 @@
 <extension type="plugin" group="webservices" method="upgrade">
 	<name>PLG_WEBSERVICES_BREEZINGFORMSNG</name>
 	<author>XDA/GIL</author>
-	<creationDate>2026-11-21</creationDate>
+	<creationDate>2026-11-23</creationDate>
 	<copyright>Copyright 2026 by XDA+GIL</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-	<version>6.1.0-RC24</version>
+	<version>6.1.0-RC25</version>
 	<description>PLG_WEBSERVICES_BREEZINGFORMSNG_XML_DESCRIPTION</description>
 	<namespace path="src">Vcmb\Plugin\WebServices\Breezingformsng</namespace>
 	<files>

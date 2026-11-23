@@ -45,11 +45,6 @@ final class SubmissionArtifactsEvent extends AbstractImmutableEvent
         ]);
     }
 
-    public function getFormId(): int
-    {
-        return $this->arguments['formId'];
-    }
-
     public function getFormName(): string
     {
         return $this->arguments['formName'];

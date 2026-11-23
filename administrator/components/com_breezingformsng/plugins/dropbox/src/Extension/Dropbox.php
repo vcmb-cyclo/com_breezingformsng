@@ -37,7 +37,7 @@ final class Dropbox extends CMSPlugin implements SubscriberInterface
 
     public function onSubmissionArtifacts(SubmissionArtifactsEvent $event): void
     {
-        $form = $this->loadForm($event->getFormId());
+        $form = $this->loadForm((int) $event->getArgument('formId'));
         if ($form === null || (int) ($form->dropbox_submission_enabled ?? 0) !== 1) {
             return;
         }
