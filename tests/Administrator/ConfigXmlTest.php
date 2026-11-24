@@ -38,7 +38,7 @@ final class ConfigXmlTest extends TestCase
     {
         $expected = [
             'disable_ip' => '0',
-            'emailadr' => 'Enter your email address here',
+            'emailadr' => '',
             'uploads' => '{mospath}/media/breezingforms/uploads',
             'save_history' => '1',
             'history_limit' => '10',
