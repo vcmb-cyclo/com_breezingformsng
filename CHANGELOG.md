@@ -6,7 +6,7 @@
 
 - Link record submitters and audit users to their Joomla profiles from the administrator.
 - List every BreezingForms extension on the About > Extensions screen, the former BreezingForms ones too and whatever their type, with the ID first, the description and the changelog link of each extension, and an uninstall button; "Manage extensions" opens the Extensions Manager of Joomla.
-- Delete from the audit the records and the elements of deleted forms, one form at a time with its trash button or several at once with the selection, and delete the values of records that no longer exist.
+- Clean up from the audit what deleted forms left behind, one form at a time with its trash button or several at once with the selection: their elements are deleted and their records go to the trash of the records, to be deleted from there like any record; the values of records that no longer exist can be deleted.
 - Show on each sub-tab of the form email options (administrator notification, user confirmation) how many settings it holds.
 
 ### Changed

@@ -727,18 +727,19 @@ class AboutController extends BaseController
     }
 
     /**
-     * Deletes the records, with their values, of forms that no longer exist: only the forms named in orphan_ids[]
-     * (the selection) or in orphan_element_id (the row). There is no "all": records are what visitors sent.
+     * Moves the records of forms that no longer exist to the trash of the records: only the forms named in
+     * orphan_ids[] (the selection) or in orphan_element_id (the row). There is no "all", and nothing is deleted
+     * here: the records are deleted from the trash, like any other.
      */
-    public function deleteOrphanRecords(): void
+    public function trashOrphanRecords(): void
     {
         $this->repairOrphans(
-            fn (DatabaseRepairService $repair): int => $repair->deleteOrphanRecords(
+            fn (DatabaseRepairService $repair): int => $repair->trashOrphanRecords(
                 $this->orphanParentIds(false) ?? []
             ),
             'records_without_form',
-            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORDS_DELETED',
-            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORDS_DELETE_FAILED'
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORDS_TRASHED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORDS_TRASH_FAILED'
         );
     }
 

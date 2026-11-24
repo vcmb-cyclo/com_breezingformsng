@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 import { loginAsAdmin } from './login.mjs';
 
 // "Records without a form" and "Elements without a form" of the audit: a trash button for one deleted form,
-// a selection (with a select-all box) for several, and never an unnamed deletion.
+// a selection (with a select-all box) for several, and never an unnamed action. The elements are deleted; the
+// records go to the trash of the records and are deleted from there, like any record.
 
 const ADMIN = 'administrator/index.php';
 const db = (...args) => execFileSync('docker', ['exec', '-i', process.env.BFNG_E2E_CONTAINER, 'php', '--', ...args], {
@@ -26,7 +27,7 @@ test('records and elements of deleted forms are deleted one by one or by selecti
         const task = (name) => `${ADMIN}?option=com_breezingformsng&task=about.${name}&format=json`;
 
         // Nothing is deleted when no form is named: a missing id is not "everything".
-        for (const name of ['deleteOrphanRecords', 'deleteOrphanElements']) {
+        for (const name of ['trashOrphanRecords', 'deleteOrphanElements']) {
             const unnamed = await page.request.post(task(name), { form: { [csrf]: '1' } });
             expect(unnamed.status(), name).toBe(400);
             const invalid = await page.request.post(task(name), { form: { [csrf]: '1', 'orphan_ids[]': 'x' } });
@@ -70,9 +71,15 @@ test('records and elements of deleted forms are deleted one by one or by selecti
         page.once('dialog', (dialog) => dialog.accept());
         await bulk.click();
 
-        await expect.poll(() => counts().records[first] + counts().records[second], { timeout: 30_000 }).toBe(0);
-        // Their values went with them; the record of a form that exists stays, with its value.
-        expect(counts()).toMatchObject({ values: 0, kept: 1 });
+        // The records are in the trash, not deleted: they and their values are all still there.
+        await expect.poll(() => counts().trashed[first] + counts().trashed[second], { timeout: 30_000 }).toBe(3);
+        expect(counts()).toMatchObject({ records: { [first]: 1, [second]: 2 }, values: 3, kept: 1, keptState: 1 });
+
+        // They are no longer listed as orphans: the trash of the records deals with them.
+        await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about&layout=audit`);
+        await expect(page.locator('#bf-audit-section')).toBeVisible({ timeout: 30_000 });
+        await expect(page.locator(`[data-bf-orphan-check="records_without_form"] input[data-bf-orphan-select][value="${first}"]`)).toHaveCount(0);
+        await expect(page.locator(`[data-bf-orphan-check="records_without_form"] input[data-bf-orphan-select][value="${second}"]`)).toHaveCount(0);
     } finally {
         db('orphan-parents-clean', String(fixture.kept));
         await page.close();

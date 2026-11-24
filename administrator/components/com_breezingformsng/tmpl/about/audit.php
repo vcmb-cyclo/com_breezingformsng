@@ -630,7 +630,9 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                             $orphanRecordValues = ($check['id'] ?? '') === 'subrecords_without_record';
                             // Records and elements of a deleted form: one trash button per form, and a selection to delete several.
                             $orphanSelectable = in_array((string) ($check['id'] ?? ''), array('records_without_form', 'elements_without_form'), true);
-                            $orphanDeleteTask = ($check['id'] ?? '') === 'records_without_form' ? 'about.deleteOrphanRecords' : 'about.deleteOrphanElements';
+                            $orphanDeleteTask = ($check['id'] ?? '') === 'records_without_form' ? 'about.trashOrphanRecords' : 'about.deleteOrphanElements';
+                            // Records go to the trash of the records; elements are deleted.
+                            $orphanActionKey = ($check['id'] ?? '') === 'records_without_form' ? 'TRASH' : 'DELETE';
                             $orphanDeleteKey = ($check['id'] ?? '') === 'records_without_form' ? 'RECORDS' : 'ELEMENTS';
                             $orphanHasForm = array_filter(array_column($orphanGroups, 'form_id')) !== array();
                             $orphanHasPeriod = array_filter(array_column($orphanGroups, 'first')) !== array();
@@ -663,7 +665,7 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                                     <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></th>
                                                 <?php endif; ?>
                                                 <?php if ($orphanSelectable) : ?>
-                                                    <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_DELETE'); ?></span></th>
+                                                    <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_' . $orphanActionKey); ?></span></th>
                                                 <?php endif; ?>
                                                 <?php if ($orphanRecordValues) : ?>
                                                     <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></th>
@@ -790,12 +792,12 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                                             <button
                                                                 type="button"
                                                                 class="btn btn-sm btn-outline-danger"
-                                                                title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_DELETE'), ENT_QUOTES, 'UTF-8'); ?>"
+                                                                title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_' . $orphanActionKey), ENT_QUOTES, 'UTF-8'); ?>"
                                                                 data-bf-orphan-task="<?php echo $orphanDeleteTask; ?>"
                                                                 <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
                                                                 data-bf-orphan-element="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
-                                                                data-bf-confirm="<?php echo htmlspecialchars(Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_DELETE_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
-                                                            ><span class="icon-trash" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_DELETE'); ?></span></button>
+                                                                data-bf-confirm="<?php echo htmlspecialchars(Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_' . $orphanActionKey . '_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
+                                                            ><span class="icon-trash" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_' . $orphanActionKey); ?></span></button>
                                                         </td>
                                                     <?php endif; ?>
                                                     <?php if ($orphanRecordValues) : ?>
