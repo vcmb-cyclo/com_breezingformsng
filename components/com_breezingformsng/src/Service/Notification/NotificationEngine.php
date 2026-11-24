@@ -74,20 +74,9 @@ final class NotificationEngine
         else
             $recipient = $ff_config->emailadr;
 
-        $recipients = explode(';', $recipient);
-        $cleaned_recipients = array();
-
-        $alt_sender = '';
-
-        foreach ($recipients as $recipient) {
-
-            $test = explode(':', $recipient);
-            if (count($test) == 2 && strtolower(trim($test[0])) == 'sender') {
-                $alt_sender = trim($test[1]);
-            } else {
-                $cleaned_recipients[] = $recipient;
-            }
-        }
+        $parsedRecipients = NotificationRecipients::parse((string) $recipient);
+        $cleaned_recipients = $parsedRecipients['recipients'];
+        $alt_sender = $parsedRecipients['sender'];
 
         /*
           $customSender = false;
@@ -112,6 +101,15 @@ final class NotificationEngine
 
         $recipients = $cleaned_recipients;
         $recipientsSize = count($recipients);
+
+        if ($recipientsSize === 0) {
+            // No recipient is set (the form uses the default address and the configuration has none): the
+            // submission is kept and nothing is sent; mailing a placeholder would fail every submission.
+            Log::add('The administrator notification of form ' . (int) $this->processor->form
+                . ' has no recipient.', Log::WARNING, 'com_breezingformsng');
+
+            return;
+        }
 
         // dynamic receipients
         $all_recipients = array();

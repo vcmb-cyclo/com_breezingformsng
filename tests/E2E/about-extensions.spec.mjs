@@ -63,6 +63,8 @@ test('the extensions screen lists the whole family, with ID first, and uninstall
         // The changelog XML declared by the manifest is linked; an extension without one has no link.
         const componentRow = table.locator('tbody tr', { hasText: 'com_breezingformsng' });
         await expect(componentRow.locator('a[href$="com_breezingformsng_changelog.xml"]')).toHaveCount(1);
+        // The plugins and the module shipped with it declare the same one.
+        expect(await table.locator('tbody a[href$="com_breezingformsng_changelog.xml"]').count()).toBeGreaterThanOrEqual(9);
         await expect(row.locator('a[href$=".xml"]')).toHaveCount(0);
 
         // The generic text that used to be repeated on every row is gone.

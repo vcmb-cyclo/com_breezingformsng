@@ -6,6 +6,7 @@
     <copyright>Copyright 2008-2020 Markus Bopp; 2024-2026 XDA+GIL</copyright>
     <license>GNU General Public License version 2 or later</license>
     <version>6.1.1-RC1</version>
+    <changelogurl>https://raw.githubusercontent.com/vcmb-cyclo/com_breezingformsng/main/com_breezingformsng_changelog.xml</changelogurl>
     <description>PLG_CONTENT_BREEZINGFORMS_XML_DESCRIPTION</description>
     <namespace path="src">Vcmb\Plugin\Content\Breezingforms</namespace>
     <files>
