@@ -31,8 +31,10 @@ final class DatabaseRepairService
         $report = (new DatabaseAuditService($this->db, $this->temporaryPath))->run();
         $physical = $this->db->getPrefix() . 'breezingforms';
 
-        if (!in_array($alias, (array) ($report['unexpected_tables'] ?? []), true)
-            || !in_array($physical, $this->db->getTableList(), true)) {
+        if (
+            !in_array($alias, (array) ($report['unexpected_tables'] ?? []), true)
+            || !in_array($physical, $this->db->getTableList(), true)
+        ) {
             throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 
