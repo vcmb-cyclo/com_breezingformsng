@@ -373,11 +373,12 @@ fi
 
 dropbox_plugin_count="$(
     docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
-        -e "SELECT COUNT(*) FROM \`${table_prefix}extensions\` WHERE type = 'plugin' AND element = 'dropbox' AND folder = 'breezingforms_addons' AND enabled = 1;"
+        -e "SELECT COUNT(*) FROM \`${table_prefix}extensions\` WHERE type = 'plugin' AND element = 'dropbox' AND folder = 'breezingforms_addons' AND enabled = 0;"
 )"
 
 if [[ "${dropbox_plugin_count}" -ne 1 ]]; then
-    echo "The BreezingForms NG Dropbox plugin was not installed and enabled correctly." >&2
+    # Optional integrations are installed turned off: the administrator enables the ones the site uses.
+    echo "The BreezingForms NG Dropbox plugin was not installed (and turned off by default) correctly." >&2
     exit 1
 fi
 
