@@ -215,6 +215,15 @@ test.describe('forms', () => {
         expect(row.mb_email_type).toBe('1');
         expectMailHtml(row.mb_email_custom_template, 'User');
         expect(row.prevwidth).toBe('1234');
+
+        // After the save the Email tab shows its count, split between its two sub-tabs.
+        await page.goto(`${ADMIN}?option=com_breezingformsng&view=forms&layout=edit&id=${formId}&advanced=1`);
+        const badge = async (id) => Number(await page.locator(`#${id} .badge`).first().textContent({ timeout: 2000 }).catch(() => '0'));
+        const total = await badge('tab-email');
+        const admin = await badge('tab-email-admin');
+        const user = await badge('tab-email-user');
+        expect(total).toBeGreaterThan(0);
+        expect(admin + user).toBe(total);
     });
 
     test('the tabs of the add-ons follow their plugin: a disabled plugin has no tab, and its settings are kept', async () => {
