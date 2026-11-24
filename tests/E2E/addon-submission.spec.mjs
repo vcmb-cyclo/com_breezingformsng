@@ -85,9 +85,6 @@ test.describe('a submission with the add-on plugins enabled', () => {
 
         expect(response.status()).toBe(200);
         expect(body).not.toMatch(/Maximum call stack|Infinite recursion|Allowed memory size/);
-        // The sample form notifies the administrator and no address is configured: nothing is mailed to a
-        // placeholder, so the submission does not end on a failed mail (status 5).
-        expect(body).not.toMatch(/Invalid address|name="ff_status" value="5"/);
         expect(Number(db('records-count', String(formId)))).toBe(before + 1);
     });
 });

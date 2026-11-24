@@ -25,7 +25,7 @@ final class NgExtensions
     /** Plugins by group. */
     private const PLUGINS = [
         'system' => ['bfcompat'],
-        'content' => ['breezingforms'],
+        'content' => ['breezingformsng'],
         'breezingforms_addons' => ['mailchimp', 'salesforce', 'dropbox'],
         'privacy' => ['breezingformsng'],
         'webservices' => ['breezingformsng'],
@@ -41,7 +41,7 @@ final class NgExtensions
 
         return match ($type) {
             'component' => $element === 'com_breezingformsng',
-            'module' => $element === 'mod_breezingforms' && $clientId === 0,
+            'module' => $element === 'mod_breezingformsng' && $clientId === 0,
             'plugin' => in_array($element, self::PLUGINS[$folder] ?? [], true),
             default => false,
         };
