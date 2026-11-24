@@ -1,0 +1,5 @@
+[
+  {"id":"argument-name-shadowing","source":"PR #235","concepts":["argument-dispatch","recursion-avoidance","native-payload"]},
+  {"id":"enabled-addon-runtime","source":"AGENTS.md optional-extension regression rule","concepts":["runtime-test","enabled-addon"]},
+  {"id":"joomla-event-conventions","source":"docs/best-practices/joomla6-plugins-events.md","concepts":["canonical-guide","native-payload"]}
+]

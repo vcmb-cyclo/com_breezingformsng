@@ -38,3 +38,13 @@ Open the pull request from a branch, not from `main`.
 ## Not checked / risks
 
 <!-- Anything you could not verify, and what could go wrong. -->
+
+## Skill improvement
+
+<!-- Required only for a candidate evaluated by skill-improvement.yml. -->
+<!-- Keep the two lines below exactly as written; the manual evaluator reads them. -->
+
+Evidence: <!-- data/skill-improvement/evidence.json id -->
+
+<!-- State the root cause, why an existing rule was insufficient, the baseline/candidate
+evaluation artifact and the independent reviewer. -->
