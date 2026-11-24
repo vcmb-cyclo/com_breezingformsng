@@ -353,7 +353,7 @@ fi
 
 content_plugin_count="$(
     docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
-        -e "SELECT COUNT(*) FROM \`${table_prefix}extensions\` WHERE type = 'plugin' AND element = 'breezingforms' AND folder = 'content' AND enabled = 1;"
+        -e "SELECT COUNT(*) FROM \`${table_prefix}extensions\` WHERE type = 'plugin' AND element = 'breezingformsng' AND folder = 'content' AND enabled = 1;"
 )"
 
 if [[ "${content_plugin_count}" -ne 1 ]]; then
@@ -572,7 +572,7 @@ docker exec -e BFNG_ARTICLE_ID="${fixture_article_id}" "${web_container}" php -r
 '
 
 docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
-    -e "UPDATE \`${table_prefix}extensions\` SET params = '{\"load_in_iframe\":1}' WHERE type = 'plugin' AND folder = 'content' AND element = 'breezingforms';"
+    -e "UPDATE \`${table_prefix}extensions\` SET params = '{\"load_in_iframe\":1}' WHERE type = 'plugin' AND folder = 'content' AND element = 'breezingformsng';"
 
 docker exec -e BFNG_ARTICLE_ID="${fixture_article_id}" "${web_container}" php -r '
     $url = "http://127.0.0.1/index.php?option=com_content&view=article&id=" . getenv("BFNG_ARTICLE_ID");
@@ -584,7 +584,7 @@ docker exec -e BFNG_ARTICLE_ID="${fixture_article_id}" "${web_container}" php -r
 '
 
 docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla \
-    -e "UPDATE \`${table_prefix}extensions\` SET params = '{\"load_in_iframe\":0}' WHERE type = 'plugin' AND folder = 'content' AND element = 'breezingforms'; DELETE FROM \`${table_prefix}content\` WHERE id = ${fixture_article_id};"
+    -e "UPDATE \`${table_prefix}extensions\` SET params = '{\"load_in_iframe\":0}' WHERE type = 'plugin' AND folder = 'content' AND element = 'breezingformsng'; DELETE FROM \`${table_prefix}content\` WHERE id = ${fixture_article_id};"
 
 # Frontend sanity check: the site must still render after installation
 # (catches a fatal error in the system plugin or a broken menu item).
@@ -634,9 +634,9 @@ docker exec "${web_container}" php -r '
     exit(str_starts_with($captcha->get(), "\xFF\xD8\xFF") ? 0 : 1);
 '
 
-module_count="$(docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "SELECT COUNT(*) FROM \`${table_prefix}extensions\` WHERE type = 'module' AND element = 'mod_breezingforms' AND client_id = 0;")"
+module_count="$(docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "SELECT COUNT(*) FROM \`${table_prefix}extensions\` WHERE type = 'module' AND element = 'mod_breezingformsng' AND client_id = 0;")"
 [[ "${module_count}" -eq 1 ]] || { echo 'Module registration missing or duplicated'; exit 1; }
-fixture_module_id="$(docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "INSERT INTO \`${table_prefix}modules\` (title, position, published, module, access, showtitle, params, client_id, language) VALUES ('BFNG module smoke', 'sidebar-right', 1, 'mod_breezingforms', 1, 0, '{\"ff_mod_name\":\"bfng-smoke-update-form\",\"cache\":0}', 0, '*'); SELECT LAST_INSERT_ID();")"
+fixture_module_id="$(docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "INSERT INTO \`${table_prefix}modules\` (title, position, published, module, access, showtitle, params, client_id, language) VALUES ('BFNG module smoke', 'sidebar-right', 1, 'mod_breezingformsng', 1, 0, '{\"ff_mod_name\":\"bfng-smoke-update-form\",\"cache\":0}', 0, '*'); SELECT LAST_INSERT_ID();")"
 docker exec -e MYSQL_PWD=joomla "${db_container}" mysql -N -ujoomla joomla -e "INSERT INTO \`${table_prefix}modules_menu\` (moduleid, menuid) VALUES (${fixture_module_id}, 0);"
 docker exec "${web_container}" php -r '
     $html = file_get_contents("http://127.0.0.1/index.php", false, stream_context_create(["http" => ["ignore_errors" => true]]));

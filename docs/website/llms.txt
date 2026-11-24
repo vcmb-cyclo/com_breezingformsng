@@ -7,7 +7,7 @@
 > per-form PHP and JavaScript hooks, GDPR privacy plugin, and 8 languages.
 
 Install from the GitHub releases through Joomla's extension installer. Embed a form with a menu
-item, the `mod_breezingforms` module or the content plugin `{BreezingForms:FormName}`.
+item, the `mod_breezingformsng` module or the content plugin `{BreezingForms:FormName}`.
 Existing BreezingForms (Crosstec) sites upgrade in place: data stays in the `#__facileforms_*` tables.
 
 Historical lineage: BreezingForms NG continues FacileForms, credited to Peter Koch in historical

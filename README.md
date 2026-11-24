@@ -71,7 +71,7 @@ the [August 2005 Joomla forum discussion](https://forum.joomla.org/viewtopic.php
 
 ### Embedding a form
 - Menu item type "Add Form".
-- Site module `mod_breezingforms`.
+- Site module `mod_breezingformsng`.
 - Content plugin: `{BreezingForms:FormName}` in any article.
 
 ### Administration, privacy and maintenance

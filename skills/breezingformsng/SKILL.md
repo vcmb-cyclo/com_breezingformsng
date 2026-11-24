@@ -31,7 +31,7 @@ Source and releases: https://github.com/vcmb-cyclo/com_breezingformsng
 
 ### Embed a form
 - Menu item type "Add Form" (enter the form name, start page, iframe and alignment options), or
-- site module `mod_breezingforms`, or
+- site module `mod_breezingformsng`, or
 - content plugin in an article: `{BreezingForms:FormName}`.
 - Pass initial values with URL parameters `ff_param_<name>=value`; in PHP read them with `ff_getParam('ff_param_<name>')`.
 

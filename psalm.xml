@@ -18,7 +18,7 @@
 >
     <projectFiles>
         <directory name="administrator/components/com_breezingformsng/mailtpl"/>
-        <directory name="administrator/components/com_breezingformsng/modules/mod_breezingforms"/>
+        <directory name="administrator/components/com_breezingformsng/modules/mod_breezingformsng"/>
         <directory name="administrator/components/com_breezingformsng/pdftpl"/>
         <directory name="administrator/components/com_breezingformsng/plugins"/>
         <directory name="administrator/components/com_breezingformsng/src"/>
