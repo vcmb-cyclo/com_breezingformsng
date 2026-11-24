@@ -1,0 +1,112 @@
+name: Evaluate agent skill candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      pull_request:
+        description: Open pull request number containing the candidate
+        required: true
+        type: string
+      evidence_id:
+        description: Eligible evidence id from the trusted evidence registry on main
+        required: true
+        type: choice
+        options:
+          - pr-235-event-accessor-recursion
+          - pr-187-request-output-and-upload-boundaries
+          - pr-190-runtime-security-journeys
+      target:
+        description: Evaluation target (intentionally allowlisted)
+        required: true
+        default: joomla-security
+        type: choice
+        options:
+          - joomla-security
+          - joomla-events
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: skill-improvement-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    if: github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout trusted evaluator from main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: trusted
+
+      - name: Checkout candidate as data
+        uses: actions/checkout@v7
+        with:
+          ref: refs/pull/${{ inputs.pull_request }}/head
+          path: candidate
+          fetch-depth: 0
+
+      - name: Require a documented open pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVIDENCE_ID: ${{ inputs.evidence_id }}
+          PULL_REQUEST: ${{ inputs.pull_request }}
+        run: |
+          set -euo pipefail
+          gh pr view "${PULL_REQUEST}" --json state,body --jq '.state' | grep -Fx OPEN
+          body="$(gh pr view "${PULL_REQUEST}" --json body --jq '.body')"
+          grep -Fqx '## Skill improvement' <<< "${body}"
+          grep -Fqx "Evidence: ${EVIDENCE_ID}" <<< "${body}"
+
+      - name: Refuse changes outside the trusted target contract
+        id: contract
+        run: |
+          set -euo pipefail
+          git -C candidate fetch origin main --depth=1
+          changed="$(git -C candidate diff --name-only origin/main...HEAD)"
+          test -n "${changed}"
+          manifest="trusted/skills-evaluation/${TARGET}/manifest.json"
+          test -f "${manifest}"
+          candidate_path="$(jq -r '.candidateRelativePath' "${manifest}")"
+          allowed="$(jq -r '.allowedCandidatePaths[]' "${manifest}")"
+          required="$(jq -r '.requiredCandidatePaths[]' "${manifest}")"
+          test -n "${candidate_path}"
+          while IFS= read -r path; do
+            if ! grep -Fxq "${path}" <<< "${allowed}"; then
+              echo "::error::Candidate changes path outside the trusted target contract: ${path}"; exit 1
+            fi
+          done <<< "${changed}"
+          while IFS= read -r path; do
+            grep -Fxq "${path}" <<< "${changed}" || { echo "::error::Required candidate path missing: ${path}"; exit 1; }
+          done <<< "${required}"
+          grep -Fxq "${candidate_path}" <<< "${changed}"
+          printf '%s\n' "${changed}" > changed-files.txt
+        env:
+          TARGET: ${{ inputs.target }}
+
+      - name: Compare baseline and candidate
+        run: |
+          args=()
+          while IFS= read -r path; do
+            args+=(--changed-file "${path}")
+          done < changed-files.txt
+          node trusted/scripts/evaluate-skill-candidate.mjs \
+            --root trusted \
+            --target "${{ inputs.target }}" \
+            --candidate "candidate/$(jq -r '.candidateRelativePath' "trusted/skills-evaluation/${{ inputs.target }}/manifest.json")" \
+            --candidate-evidence candidate/data/skill-improvement/evidence.json \
+            --evidence "${{ inputs.evidence_id }}" \
+            --report skill-evaluation.json \
+            "${args[@]}"
+
+      - name: Publish public evaluation report
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.target }}-evaluation
+          path: skill-evaluation.json
+          retention-days: 30

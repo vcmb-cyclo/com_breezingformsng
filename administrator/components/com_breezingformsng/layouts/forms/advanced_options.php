@@ -296,10 +296,10 @@ $paneErrors = [
     <div class="tab-pane fade" id="pane-email" role="tabpanel">
       <ul class="nav nav-tabs" id="<?= $tabIdentifier; ?>-email" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="tab-email-admin" data-bs-toggle="tab" data-bs-target="#pane-email-admin" type="button" role="tab" aria-controls="pane-email-admin" aria-selected="true"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_ADMIN'); ?></button>
+          <button class="nav-link active" id="tab-email-admin" data-bs-toggle="tab" data-bs-target="#pane-email-admin" type="button" role="tab" aria-controls="pane-email-admin" aria-selected="true"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_ADMIN'); ?><?php if (($entryCounts['email-admin'] ?? 0) > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts['email-admin']; ?></span><?php endif; ?></button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="tab-email-user" data-bs-toggle="tab" data-bs-target="#pane-email-user" type="button" role="tab" aria-controls="pane-email-user" aria-selected="false"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_USER'); ?></button>
+          <button class="nav-link" id="tab-email-user" data-bs-toggle="tab" data-bs-target="#pane-email-user" type="button" role="tab" aria-controls="pane-email-user" aria-selected="false"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_USER'); ?><?php if (($entryCounts['email-user'] ?? 0) > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts['email-user']; ?></span><?php endif; ?></button>
         </li>
       </ul>
       <div class="tab-content pt-3">

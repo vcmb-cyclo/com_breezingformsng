@@ -1015,11 +1015,11 @@ final class DatabaseAuditService
                 'enabled' => self::intValue($row['enabled'] ?? 0),
             ];
 
-            // The NG component and its compatibility plugin are the expected rows.
-            $isExpected = ($entry['type'] === 'component' && $element === 'com_breezingformsng')
-                || ($entry['type'] === 'plugin' && $element === 'bfcompat' && $entry['folder'] === 'system');
-
-            if (!$isExpected && !str_contains($element, 'breezingformsng')) {
+            // What the NG package installs is expected; any other registration is a former BreezingForms leftover.
+            if (
+                !NgExtensions::owns($entry['type'], $entry['element'], $entry['folder'], $entry['client_id'])
+                && !str_contains($element, 'breezingformsng')
+            ) {
                 $legacy[] = $entry;
             }
 

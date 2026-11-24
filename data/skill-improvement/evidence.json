@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "evidence": [
+    {
+      "id": "pr-235-event-accessor-recursion",
+      "fingerprint": "CWE-835:event-addon:dynamic-accessor",
+      "source": "https://github.com/vcmb-cyclo/com_breezingformsng/pull/235",
+      "fix": "2c5ec7ff",
+      "status": "eligible",
+      "rootCause": "An event accessor called Joomla argument resolution, which can dispatch back to that accessor when an add-on reads the argument.",
+      "mechanicalControl": "integration-e2e-enabled-addon",
+      "controlPaths": ["tests/Integration/SubmissionEventsTest.php"]
+    },
+    {
+      "id": "pr-187-request-output-and-upload-boundaries",
+      "fingerprint": "CWE-79:CWE-22:request-output-upload",
+      "source": "https://github.com/vcmb-cyclo/com_breezingformsng/pull/187",
+      "fix": "0f744456",
+      "status": "eligible",
+      "rootCause": "Request values crossed HTML, URL and file-path boundaries without context-specific encoding and validation.",
+      "mechanicalControl": "semgrep-phpunit",
+      "controlPaths": [".semgrep/joomla.yml", "tests/E2E/security.spec.mjs"]
+    },
+    {
+      "id": "pr-190-runtime-security-journeys",
+      "fingerprint": "CWE-352:CWE-639:acl-csrf-runtime",
+      "source": "https://github.com/vcmb-cyclo/com_breezingformsng/pull/190",
+      "fix": "4aef5fb5",
+      "status": "eligible",
+      "rootCause": "Source-level assertions did not prove that Joomla permission and token checks protected real state-changing requests.",
+      "mechanicalControl": "playwright-e2e",
+      "controlPaths": ["tests/Security/MutationRequestRegressionTest.php", "tests/E2E/security.spec.mjs"]
+    }
+  ]
+}
