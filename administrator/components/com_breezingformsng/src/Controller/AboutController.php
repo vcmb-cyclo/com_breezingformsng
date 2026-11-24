@@ -417,7 +417,10 @@ class AboutController extends BaseController
             );
         }
 
-        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=extensions', false));
+        $this->setRedirect(Route::_(
+            'index.php?option=com_breezingformsng&task=about.display&view=about&layout=extensions',
+            false
+        ));
     }
 
     public function removeLegacyExtensions(): void
@@ -708,14 +711,72 @@ class AboutController extends BaseController
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=trash', false));
     }
 
+    /**
+     * Deletes the elements of forms that no longer exist: all of them (orphan_all), the ones of the forms named in
+     * orphan_ids[] (the selection) or of the one named in orphan_element_id (the row). Without any of these nothing
+     * is deleted: a missing id is never taken for "everything".
+     */
     public function deleteOrphanElements(): void
     {
         $this->repairOrphans(
-            fn (DatabaseRepairService $repair): int => $repair->deleteOrphanElements(),
+            fn (DatabaseRepairService $repair): int => $repair->deleteOrphanElements($this->orphanParentIds(true)),
             'elements_without_form',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETED',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETE_FAILED'
         );
+    }
+
+    /**
+     * Deletes the records, with their values, of forms that no longer exist: only the forms named in orphan_ids[]
+     * (the selection) or in orphan_element_id (the row). There is no "all": records are what visitors sent.
+     */
+    public function deleteOrphanRecords(): void
+    {
+        $this->repairOrphans(
+            fn (DatabaseRepairService $repair): int => $repair->deleteOrphanRecords(
+                $this->orphanParentIds(false) ?? []
+            ),
+            'records_without_form',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORDS_DELETED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORDS_DELETE_FAILED'
+        );
+    }
+
+    /**
+     * The missing parents named by the request, or null for all of them when it is allowed and asked for.
+     *
+     * @return ?list<int>
+     *
+     * @throws \InvalidArgumentException When nothing valid is named.
+     */
+    private function orphanParentIds(bool $allowAll): ?array
+    {
+        if ($allowAll && $this->input->post->getBool('orphan_all', false)) {
+            return null;
+        }
+
+        $named = array_filter(
+            array_merge(
+                (array) $this->input->post->get('orphan_ids', [], 'array'),
+                [$this->input->post->get('orphan_element_id', null, 'raw')]
+            ),
+            static fn ($id): bool => $id !== null && $id !== ''
+        );
+        $ids = [];
+
+        foreach ($named as $id) {
+            if (!is_string($id) || preg_match('/\A[0-9]+\z/', $id) !== 1) {
+                throw new \InvalidArgumentException('Invalid form ID.');
+            }
+
+            $ids[] = (int) $id;
+        }
+
+        if ($ids === []) {
+            throw new \InvalidArgumentException('No form was named.');
+        }
+
+        return array_values(array_unique($ids));
     }
 
     public function reassignOrphanValues(): void

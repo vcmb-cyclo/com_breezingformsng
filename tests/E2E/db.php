@@ -281,6 +281,52 @@ switch ($argv[1] ?? '') {
         $db->query("INSERT INTO {$config->dbprefix}facileforms_subrecords (record, element, title, name, type, value) VALUES ({$recordId}, {$element['id']}, '{$db->real_escape_string($element['title'])}', '{$name}', '{$element['type']}', '{$value}')");
         echo $recordId;
         break;
+    case 'orphan-parents-fixture':
+        // orphan-parents-fixture <existing form id>: two missing forms with two elements and records each, and one
+        // record of the existing form that must stay. Prints the ids as JSON.
+        $prefix = $config->dbprefix;
+        $missing = [1999999961, 1999999962];
+        $recordIds = [];
+        foreach ($missing as $index => $formId) {
+            for ($n = 1; $n <= 2; $n++) {
+                $db->query("INSERT INTO {$prefix}facileforms_elements (form, page, ordering, published, name, title, type) VALUES ({$formId}, 1, {$n}, 1, 'orphan_{$formId}_{$n}', 'Orphan', 'Text')");
+            }
+            for ($n = 1; $n <= $index + 1; $n++) {
+                $db->query("INSERT INTO {$prefix}facileforms_records (submitted, form, title, name, ip, browser, state) VALUES ('2026-01-02 03:04:05', {$formId}, 'Orphan', 'orphan', '127.0.0.1', '', 1)");
+                $recordId = $db->insert_id;
+                $db->query("INSERT INTO {$prefix}facileforms_subrecords (record, element, title, name, type, value) VALUES ({$recordId}, 1, 'Orphan', 'orphan_value', 'Text', 'x')");
+                $recordIds[$formId][] = $recordId;
+            }
+        }
+        $db->query("INSERT INTO {$prefix}facileforms_records (submitted, form, title, name, ip, browser, state) VALUES ('2026-01-02 03:04:05', {$id}, 'Kept', 'kept', '127.0.0.1', '', 1)");
+        $kept = $db->insert_id;
+        $db->query("INSERT INTO {$prefix}facileforms_subrecords (record, element, title, name, type, value) VALUES ({$kept}, 1, 'Kept', 'kept_value', 'Text', 'kept')");
+        echo json_encode(['forms' => $missing, 'records' => $recordIds, 'kept' => $kept]);
+        break;
+    case 'orphan-parents-counts':
+        // orphan-parents-counts <kept record id>: what is left of the fixture of orphan-parents-fixture.
+        $prefix = $config->dbprefix;
+        $count = static fn (string $sql): int => (int) $db->query($sql)->fetch_row()[0];
+        echo json_encode([
+            'elements' => [
+                1999999961 => $count("SELECT COUNT(*) FROM {$prefix}facileforms_elements WHERE form = 1999999961"),
+                1999999962 => $count("SELECT COUNT(*) FROM {$prefix}facileforms_elements WHERE form = 1999999962"),
+            ],
+            'records' => [
+                1999999961 => $count("SELECT COUNT(*) FROM {$prefix}facileforms_records WHERE form = 1999999961"),
+                1999999962 => $count("SELECT COUNT(*) FROM {$prefix}facileforms_records WHERE form = 1999999962"),
+            ],
+            'values' => $count("SELECT COUNT(*) FROM {$prefix}facileforms_subrecords WHERE name = 'orphan_value'"),
+            'kept' => $count("SELECT COUNT(*) FROM {$prefix}facileforms_subrecords WHERE record = {$id} AND name = 'kept_value'"),
+        ]);
+        break;
+    case 'orphan-parents-clean':
+        // orphan-parents-clean <kept record id>: removes what a failed journey left.
+        $prefix = $config->dbprefix;
+        $db->query("DELETE FROM {$prefix}facileforms_subrecords WHERE name IN ('orphan_value', 'kept_value')");
+        $db->query("DELETE FROM {$prefix}facileforms_records WHERE form IN (1999999961, 1999999962) OR id = {$id}");
+        $db->query("DELETE FROM {$prefix}facileforms_elements WHERE form IN (1999999961, 1999999962)");
+        break;
     case 'delete-form':
         // delete-form <id>: the form and its elements are gone, its records and their values stay.
         $db->query("DELETE FROM {$config->dbprefix}facileforms_elements WHERE form = {$id}");

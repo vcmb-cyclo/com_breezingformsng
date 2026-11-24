@@ -216,6 +216,58 @@
         }
     });
 
+    // Selection of the rows of a check of the orphan references: the bulk button stays off until
+    // something is ticked, and shows how many rows are.
+    function ticksOf(details) {
+        return details
+            ? Array.prototype.slice.call(details.querySelectorAll('input[data-bf-orphan-select]:checked'))
+            : [];
+    }
+
+    function refreshSelection(details) {
+        if (!details) {
+            return;
+        }
+
+        var boxes = details.querySelectorAll('input[data-bf-orphan-select]:not(:disabled)');
+        var ticked = ticksOf(details);
+        var button = details.querySelector('[data-bf-orphan-selection]');
+        var all = details.querySelector('input[data-bf-orphan-select-all]');
+
+        if (button) {
+            button.disabled = ticked.length === 0;
+
+            var count = button.querySelector('[data-bf-orphan-selected-count]');
+
+            if (count) {
+                count.textContent = ticked.length > 0 ? '(' + ticked.length + ')' : '';
+            }
+        }
+
+        if (all) {
+            all.checked = boxes.length > 0 && ticked.length === boxes.length;
+            all.indeterminate = ticked.length > 0 && ticked.length < boxes.length;
+        }
+    }
+
+    document.addEventListener('change', function (event) {
+        var box = event.target.closest('input[data-bf-orphan-select], input[data-bf-orphan-select-all]');
+
+        if (!box) {
+            return;
+        }
+
+        var details = box.closest('details[data-bf-orphan-check]');
+
+        if (box.hasAttribute('data-bf-orphan-select-all') && details) {
+            details.querySelectorAll('input[data-bf-orphan-select]:not(:disabled)').forEach(function (row) {
+                row.checked = box.checked;
+            });
+        }
+
+        refreshSelection(details);
+    });
+
     document.addEventListener('click', function (event) {
         var button = event.target.closest('[data-bf-orphan-task]');
 
@@ -237,11 +289,35 @@
             return;
         }
 
-        if (!window.confirm(button.dataset.bfConfirm || '')) {
-            return;
-        }
+        var params;
 
-        var params = new URLSearchParams({ orphan_element_id: button.dataset.bfOrphanElement || '0' });
+        if (button.hasAttribute('data-bf-orphan-selection')) {
+            // The rows ticked in the table of this check: nothing is sent without a selection.
+            var ticked = ticksOf(button.closest('details[data-bf-orphan-check]'));
+
+            if (ticked.length === 0) {
+                return;
+            }
+
+            var rows = ticked.reduce(function (sum, box) {
+                return sum + (parseInt(box.dataset.bfCount, 10) || 0);
+            }, 0);
+
+            if (!window.confirm((button.dataset.bfConfirmTemplate || '%d').replace('%d', String(rows)))) {
+                return;
+            }
+
+            params = new URLSearchParams();
+            ticked.forEach(function (box) {
+                params.append('orphan_ids[]', box.value);
+            });
+        } else {
+            if (!window.confirm(button.dataset.bfConfirm || '')) {
+                return;
+            }
+
+            params = new URLSearchParams({ orphan_element_id: button.dataset.bfOrphanElement || '0' });
+        }
 
         if (targetSelect) {
             params.set('orphan_target_id', targetSelect.value);

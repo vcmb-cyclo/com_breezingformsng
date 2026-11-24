@@ -300,10 +300,16 @@ final class DatabaseRepairService
      * Deletes the elements whose form no longer exists. Their records keep the
      * id, name, title and type of each field in their own rows.
      *
+     * @param ?list<int|string> $formIds The missing forms, or null for all of them.
+     *
      * @return int The number of elements deleted.
      */
-    public function deleteOrphanElements(): int
+    public function deleteOrphanElements(?array $formIds = null): int
     {
+        if ($formIds !== null) {
+            $formIds = self::missingParentIds($formIds);
+        }
+
         $db = $this->db;
         $forms = $db->createQuery()
             ->select('1')
@@ -312,9 +318,91 @@ final class DatabaseRepairService
         $query = $db->createQuery()
             ->delete($db->quoteName('#__facileforms_elements'))
             ->where('NOT EXISTS (' . $forms . ')');
+
+        if ($formIds !== null) {
+            $query->whereIn($db->quoteName('form'), $formIds);
+        }
+
         $db->setQuery($query)->execute();
 
         return $db->getAffectedRows();
+    }
+
+    /**
+     * Deletes the records of forms that no longer exist, with their values. The records of a form that exists
+     * are never touched, and nothing is deleted without the forms being named.
+     *
+     * @param list<int|string> $formIds The missing forms (their ids are the "form" of the records).
+     *
+     * @return int The number of records deleted.
+     */
+    public function deleteOrphanRecords(array $formIds): int
+    {
+        $formIds = self::missingParentIds($formIds);
+
+        if ($formIds === []) {
+            throw new \InvalidArgumentException('No form was named.');
+        }
+
+        $db = $this->db;
+        $forms = $db->createQuery()
+            ->select('1')
+            ->from($db->quoteName('#__facileforms_forms', 'forms'))
+            ->where($db->quoteName('forms.id') . ' = ' . $db->quoteName('records.form'));
+        $orphans = $db->createQuery()
+            ->select($db->quoteName('records.id'))
+            ->from($db->quoteName('#__facileforms_records', 'records'))
+            // The ids are integers (checked above): written in the query, because a subquery put inside another
+            // one keeps none of its bound values.
+            ->where($db->quoteName('records.form') . ' IN (' . implode(',', $formIds) . ')')
+            ->where('NOT EXISTS (' . $forms . ')');
+        $db->transactionStart();
+
+        try {
+            $db->setQuery(
+                $db->createQuery()
+                    ->delete($db->quoteName('#__facileforms_subrecords'))
+                    ->where($db->quoteName('record') . ' IN (' . $orphans . ')')
+            )->execute();
+
+            $formsOfRecords = $db->createQuery()
+                ->select('1')
+                ->from($db->quoteName('#__facileforms_forms', 'forms'))
+                ->where($db->quoteName('forms.id') . ' = ' . $db->quoteName('#__facileforms_records.form'));
+            $db->setQuery(
+                $db->createQuery()
+                    ->delete($db->quoteName('#__facileforms_records'))
+                    ->whereIn($db->quoteName('form'), $formIds)
+                    ->where('NOT EXISTS (' . $formsOfRecords . ')')
+            )->execute();
+            $deleted = $db->getAffectedRows();
+            $db->transactionCommit();
+        } catch (\Throwable $exception) {
+            $db->transactionRollback();
+            throw $exception;
+        }
+
+        return $deleted;
+    }
+
+    /**
+     * @param list<int|string> $ids
+     *
+     * @return list<int>
+     */
+    private static function missingParentIds(array $ids): array
+    {
+        $clean = [];
+
+        foreach ($ids as $id) {
+            if (!is_int($id) && !(is_string($id) && preg_match('/\A[0-9]+\z/', $id) === 1)) {
+                throw new \InvalidArgumentException('Invalid form ID.');
+            }
+
+            $clean[(int) $id] = (int) $id;
+        }
+
+        return array_values($clean);
     }
 
     /**
