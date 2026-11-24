@@ -417,13 +417,16 @@ final class DatabaseAuditService
 
             try {
                 // The records of a deleted form that are already in the trash are being dealt with there.
+                $notTrashed = $id === 'records_without_form'
+                    ? $this->db->quoteName('child.state') . ' <> ' . RecordState::TRASHED
+                    : null;
                 $summary = $this->summarizeOrphans(
                     $child,
                     $parent,
                     $foreignKey,
                     $labelColumn,
                     $dateColumn,
-                    $id === 'records_without_form' ? $this->db->quoteName('child.state') . ' <> ' . RecordState::TRASHED : null
+                    $notTrashed
                 );
 
                 if ($id === 'subrecords_without_element') {
