@@ -301,6 +301,39 @@ final class DatabaseRepairService
     }
 
     /**
+     * Deletes the values (subrecords) whose record no longer exists: nothing can show them any more.
+     * Values of an existing record are never touched.
+     *
+     * @param ?int $recordId One missing record, or null for all of them.
+     *
+     * @return int The number of values deleted.
+     */
+    public function deleteOrphanSubrecords(?int $recordId = null): int
+    {
+        if ($recordId !== null && $recordId < 1) {
+            throw new \InvalidArgumentException('Invalid record ID.');
+        }
+
+        $db = $this->db;
+        $records = $db->createQuery()
+            ->select('1')
+            ->from($db->quoteName('#__facileforms_records', 'records'))
+            ->where($db->quoteName('records.id') . ' = ' . $db->quoteName('#__facileforms_subrecords.record'));
+        $query = $db->createQuery()
+            ->delete($db->quoteName('#__facileforms_subrecords'))
+            ->where('NOT EXISTS (' . $records . ')');
+
+        if ($recordId !== null) {
+            $query->where($db->quoteName('record') . ' = :recordId')
+                ->bind(':recordId', $recordId, ParameterType::INTEGER);
+        }
+
+        $db->setQuery($query)->execute();
+
+        return $db->getAffectedRows();
+    }
+
+    /**
      * Deletes only values whose element and record no longer exist. Values of
      * existing records remain available even after their form was deleted.
      *

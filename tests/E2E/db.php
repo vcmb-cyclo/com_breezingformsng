@@ -288,6 +288,14 @@ switch ($argv[1] ?? '') {
         }
         echo json_encode($ids);
         break;
+    case 'subrecords-delete':
+        // subrecords-delete <id>...: removes the given rows, so that a journey leaves no fixture behind.
+        $subrecords = $config->dbprefix . 'facileforms_subrecords';
+        $list = implode(',', array_map('intval', array_slice($argv, 2)));
+        if ($list !== '') {
+            $db->query("DELETE FROM {$subrecords} WHERE id IN ({$list})");
+        }
+        break;
     case 'audit-orphan-fixture-rows':
         $subrecords = $config->dbprefix . 'facileforms_subrecords';
         $rows = $db->query("SELECT id FROM {$subrecords} WHERE name = 'audit_fixture' ORDER BY id")->fetch_all(MYSQLI_ASSOC);

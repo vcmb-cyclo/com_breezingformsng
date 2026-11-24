@@ -1,5 +1,15 @@
 # Changelog
 
+## 6.1.1-RC1
+
+### Added
+
+- Link record submitters and audit users to their Joomla profiles from the administrator.
+
+### Changed
+
+- Disable Salesforce and Dropbox plugins by default on new installations while preserving plugin states during updates.
+
 ## 6.1.0
 
 ### Added
