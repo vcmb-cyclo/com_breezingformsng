@@ -59,6 +59,14 @@ abstract class PackageItemModel extends AdminModel implements VersionableModelIn
         return AuditUserNames::resolve($this->getDatabase(), $values);
     }
 
+    /** @param list<string> $values
+     *  @return array<string, int>
+     */
+    public function resolveAuditUserIds(array $values): array
+    {
+        return AuditUserNames::resolveUserIds($this->getDatabase(), $values);
+    }
+
     /**
      * @param array<string, mixed> $config
      */

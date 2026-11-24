@@ -52,6 +52,17 @@ final class AuditUserNamesTest extends TestCase
         self::assertSame([], AuditUserNames::resolve($db, ['', '']));
         self::assertSame(0, $db->queries);
     }
+
+    #[RunInSeparateProcess]
+    public function testResolvesIdsForExistingAuditUsernamesOnly(): void
+    {
+        class_alias(AuditDatabaseInterface::class, 'Joomla\\Database\\DatabaseInterface');
+        class_alias(AuditParameterType::class, 'Joomla\\Database\\ParameterType');
+        $db = new AuditDatabase();
+
+        self::assertSame(['admin' => 1], AuditUserNames::resolveUserIds($db, ['admin', 'ancien']));
+        self::assertSame(1, $db->queries);
+    }
 }
 
 // Minimal database double for the batch lookups.
