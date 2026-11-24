@@ -3,7 +3,7 @@
     <changelog>
         <element>com_breezingformsng</element>
         <type>component</type>
-        <version>6.1.0</version>
+        <version>6.1.1</version>
         <addition>
             <item>Add a native Joomla 6 administration experience for forms, records, menus, scripts, pieces and Integrator rules, with search, filters, pagination, sortable columns and native edit screens.</item>
             <item>Add a modern QuickMode editor with an accessible keyboard-operable tree, unsaved-change protection, form and element search, debug details, improved narrow-screen layout and an About-page Piranha animation.</item>
