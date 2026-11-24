@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "target": "joomla-events",
+  "evidenceIds": ["pr-235-event-accessor-recursion"],
+  "candidateRelativePath": ".agents/skills/joomla-events/SKILL.md",
+  "baselinePath": "skills-evaluation/joomla-events/baseline.md",
+  "criteriaPath": "skills-evaluation/joomla-events/criteria.json",
+  "criteriaSha256": "574804bb7299b4a5b97f47e259d49179e5b59d835259f88c99013dfc4966bd52",
+  "publicFixtures": "skills-evaluation/joomla-events/public-fixtures.json",
+  "allowedCandidatePaths": [
+    ".agents/skills/joomla-events/SKILL.md",
+    "data/skill-improvement/evidence.json"
+  ],
+  "requiredCandidatePaths": [
+    ".agents/skills/joomla-events/SKILL.md",
+    "data/skill-improvement/evidence.json"
+  ],
+  "protectedPaths": [
+    ".github/workflows/skill-improvement.yml",
+    "scripts/evaluate-skill-candidate.mjs",
+    "tests/JavaScript/skill-improvement.test.mjs",
+    "skills-evaluation/"
+  ]
+}
