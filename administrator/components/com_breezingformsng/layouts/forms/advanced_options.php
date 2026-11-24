@@ -130,6 +130,9 @@ $piecesBeginSubmit = $pieceBeginSubmit;
  */
 $piecesEndSubmit = $pieceEndSubmit;
 
+$countBadge = static fn (int $count): string => $count > 0
+    ? ' <span class="badge bg-primary text-white">' . $count . '</span>'
+    : '';
 $labelTip = static fn (string $key): string => ' title="' . htmlspecialchars(Text::_($key), ENT_QUOTES, 'UTF-8') . '"';
 
 $mailEditor = Editor::getInstance(Factory::getApplication()->get('editor'));
@@ -296,10 +299,10 @@ $paneErrors = [
     <div class="tab-pane fade" id="pane-email" role="tabpanel">
       <ul class="nav nav-tabs" id="<?= $tabIdentifier; ?>-email" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="tab-email-admin" data-bs-toggle="tab" data-bs-target="#pane-email-admin" type="button" role="tab" aria-controls="pane-email-admin" aria-selected="true"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_ADMIN'); ?><?php if (($entryCounts['email-admin'] ?? 0) > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts['email-admin']; ?></span><?php endif; ?></button>
+          <button class="nav-link active" id="tab-email-admin" data-bs-toggle="tab" data-bs-target="#pane-email-admin" type="button" role="tab" aria-controls="pane-email-admin" aria-selected="true"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_ADMIN'); ?><?= $countBadge($entryCounts['email-admin'] ?? 0); ?></button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="tab-email-user" data-bs-toggle="tab" data-bs-target="#pane-email-user" type="button" role="tab" aria-controls="pane-email-user" aria-selected="false"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_USER'); ?><?php if (($entryCounts['email-user'] ?? 0) > 0): ?> <span class="badge bg-primary text-white"><?= $entryCounts['email-user']; ?></span><?php endif; ?></button>
+          <button class="nav-link" id="tab-email-user" data-bs-toggle="tab" data-bs-target="#pane-email-user" type="button" role="tab" aria-controls="pane-email-user" aria-selected="false"><?= Text::_('COM_BREEZINGFORMSNG_FORMS_EMAIL_USER'); ?><?= $countBadge($entryCounts['email-user'] ?? 0); ?></button>
         </li>
       </ul>
       <div class="tab-content pt-3">
