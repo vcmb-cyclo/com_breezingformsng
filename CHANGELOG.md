@@ -9,6 +9,7 @@
 ### Changed
 
 - Disable Salesforce and Dropbox plugins by default on new installations while preserving plugin states during updates.
+- The site module and the content plugin are renamed (mod_breezingformsng, content/breezingformsng) so that they no longer share their names with the former BreezingForms; updating moves the module instances placed in the site and the settings of the plugin, and the caches are purged at the end of the installation.
 
 ## 6.1.0
 
