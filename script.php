@@ -1144,7 +1144,13 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     {
         $removed = 0;
 
-        foreach (glob(JPATH_CACHE . '/language/*breezingforms*.php') ?: [] as $file) {
+        $files = glob(JPATH_CACHE . '/language/*breezingforms*.php');
+
+        if ($files === false) {
+            return;
+        }
+
+        foreach ($files as $file) {
             try {
                 if (is_file($file) && @unlink($file)) {
                     $removed++;
@@ -1409,7 +1415,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 ->where($db->quoteName('module') . ' = ' . $db->quote('mod_breezingforms'))
                 ->where($db->quoteName('client_id') . ' = 0')
         )->execute();
-        $moved = (int) $db->getAffectedRows();
+        $moved = $db->getAffectedRows();
         $this->log('Module instances moved to mod_breezingformsng: ' . $moved . '.', Log::INFO, true);
         $this->removeDuplicateModulePlaceholders();
         $this->uninstallReplacedExtension('module', $oldId, 'module mod_breezingforms');
