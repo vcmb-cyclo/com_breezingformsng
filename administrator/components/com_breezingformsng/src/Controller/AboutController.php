@@ -148,6 +148,23 @@ class AboutController extends BaseController
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit', false));
     }
 
+    public function deleteLegacyBreezingformsTable(): void
+    {
+        $this->checkToken();
+
+        try {
+            $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertDeleteOrphans($user);
+            $this->getRepairService()->deleteLegacyBreezingformsTable();
+            $this->app->setUserState('com_breezingformsng.about.audit', $this->getAuditService()->run());
+            $this->setMessage(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_LEGACY_TABLE_DELETED'), 'message');
+        } catch (\Throwable $exception) {
+            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_LEGACY_TABLE_DELETE_FAILED', $exception->getMessage()), 'error');
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
+    }
+
     /**
      * Number of issues of the audit, read asynchronously by the Tools page badge.
      * Read-only: nothing is stored, the report itself is built by the Audit button.
@@ -366,6 +383,44 @@ class AboutController extends BaseController
         }
 
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
+    }
+
+    /**
+     * Uninstalls one BreezingForms extension chosen on the Extensions screen.
+     * Uninstalling is a right of the Joomla Installer, as in its own model.
+     */
+    public function uninstallExtension(): void
+    {
+        $this->checkToken();
+
+        try {
+            $application = $this->getAuthorizedApplication();
+            $user = $application->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+
+            if (!$user->authorise('core.delete', 'com_installer')) {
+                throw new NotAllowed(Text::_('JERROR_CORE_DELETE_NOT_PERMITTED'), 403);
+            }
+
+            $aboutModel = $this->getMVCFactoryOf($application)
+                ->createModel('About', 'Administrator', ['ignore_request' => true]);
+
+            if (!$aboutModel instanceof AboutModel) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            $removed = $aboutModel->uninstallExtension($this->input->post->getInt('extension_id', 0));
+            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_UNINSTALLED', $removed), 'message');
+        } catch (\Throwable $exception) {
+            $this->setMessage(
+                Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_UNINSTALL_FAILED', $exception->getMessage()),
+                'error'
+            );
+        }
+
+        $this->setRedirect(Route::_(
+            'index.php?option=com_breezingformsng&task=about.display&view=about&layout=extensions',
+            false
+        ));
     }
 
     public function removeLegacyExtensions(): void
@@ -656,14 +711,72 @@ class AboutController extends BaseController
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=trash', false));
     }
 
+    /**
+     * Deletes the elements of forms that no longer exist: all of them (orphan_all), the ones of the forms named in
+     * orphan_ids[] (the selection) or of the one named in orphan_element_id (the row). Without any of these nothing
+     * is deleted: a missing id is never taken for "everything".
+     */
     public function deleteOrphanElements(): void
     {
         $this->repairOrphans(
-            fn (DatabaseRepairService $repair): int => $repair->deleteOrphanElements(),
+            fn (DatabaseRepairService $repair): int => $repair->deleteOrphanElements($this->orphanParentIds(true)),
             'elements_without_form',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETED',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETE_FAILED'
         );
+    }
+
+    /**
+     * Deletes the records, with their values, of forms that no longer exist: only the forms named in orphan_ids[]
+     * (the selection) or in orphan_element_id (the row). There is no "all": records are what visitors sent.
+     */
+    public function deleteOrphanRecords(): void
+    {
+        $this->repairOrphans(
+            fn (DatabaseRepairService $repair): int => $repair->deleteOrphanRecords(
+                $this->orphanParentIds(false) ?? []
+            ),
+            'records_without_form',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORDS_DELETED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORDS_DELETE_FAILED'
+        );
+    }
+
+    /**
+     * The missing parents named by the request, or null for all of them when it is allowed and asked for.
+     *
+     * @return ?list<int>
+     *
+     * @throws \InvalidArgumentException When nothing valid is named.
+     */
+    private function orphanParentIds(bool $allowAll): ?array
+    {
+        if ($allowAll && $this->input->post->getBool('orphan_all', false)) {
+            return null;
+        }
+
+        $named = array_filter(
+            array_merge(
+                (array) $this->input->post->get('orphan_ids', [], 'array'),
+                [$this->input->post->get('orphan_element_id', null, 'raw')]
+            ),
+            static fn ($id): bool => $id !== null && $id !== ''
+        );
+        $ids = [];
+
+        foreach ($named as $id) {
+            if (!is_string($id) || preg_match('/\A[0-9]+\z/', $id) !== 1) {
+                throw new \InvalidArgumentException('Invalid form ID.');
+            }
+
+            $ids[] = (int) $id;
+        }
+
+        if ($ids === []) {
+            throw new \InvalidArgumentException('No form was named.');
+        }
+
+        return array_values(array_unique($ids));
     }
 
     public function reassignOrphanValues(): void
@@ -764,6 +877,24 @@ class AboutController extends BaseController
         $this->repairOrphans(
             fn (DatabaseRepairService $repair): int => $repair->deleteOrphanValues($elementId),
             'subrecords_without_element',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETED',
+            'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_FAILED'
+        );
+    }
+
+    /**
+     * Deletes the values of records that no longer exist. The screen script posts the record in
+     * orphan_element_id (its generic "parent" field) or orphan_all for every missing record.
+     */
+    public function deleteOrphanSubrecords(): void
+    {
+        $all = $this->input->post->getBool('orphan_all', false);
+        $rawId = $this->input->post->get('orphan_element_id', null, 'raw');
+        $recordId = $all ? null : (is_string($rawId) && preg_match('/\A[0-9]+\z/', $rawId) ? (int) $rawId : -1);
+
+        $this->repairOrphans(
+            fn (DatabaseRepairService $repair): int => $repair->deleteOrphanSubrecords($recordId),
+            'subrecords_without_record',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETED',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_FAILED'
         );

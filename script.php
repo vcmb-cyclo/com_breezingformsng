@@ -1352,21 +1352,24 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             );
         }
 
-        // Preserve existing plugin states; enable newly installed plugins only.
+        // Preserve existing plugin states; disable optional integrations on a fresh install.
         $standardDb = self::getDatabase();
+        $disabledByDefault = [
+            'breezingforms_addons' => ['salesforce', 'dropbox'],
+        ];
 
         foreach ($this->getPlugins() as $folder => $plugins) {
             foreach ($plugins as $plugin) {
                 $query = $standardDb->createQuery()
                     ->update('#__extensions')
-                    ->set('enabled = ' . ($existingPlugins[$folder][$plugin] ?? 1))
+                    ->set('enabled = ' . ($existingPlugins[$folder][$plugin] ?? (in_array($plugin, $disabledByDefault[$folder] ?? [], true) ? 0 : 1)))
                     ->where('type = ' . $standardDb->quote('plugin'))
                     ->where('element = ' . $standardDb->quote($plugin))
                     ->where('folder = ' . $standardDb->quote($folder));
 
                 $standardDb->setQuery($query)->execute();
                 if (!isset($existingPlugins[$folder][$plugin])) {
-                    $this->log("Plugin {$plugin} enabled.");
+                    $this->log("Plugin {$plugin} " . (($disabledByDefault[$folder] ?? []) !== [] && in_array($plugin, $disabledByDefault[$folder], true) ? 'disabled' : 'enabled') . '.');
                 }
             }
         }

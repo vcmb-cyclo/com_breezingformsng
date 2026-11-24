@@ -16,6 +16,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseRepairService;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\ExtensionAdminLink;
 
 /** @var \Vcmb\Component\BreezingformsNG\Administrator\View\About\HtmlView $this */
 
@@ -86,19 +87,7 @@ $auditHelp = static function (string $key): string {
 
     return ' <span class="icon-info-circle text-muted ms-1" tabindex="0" role="img" title="' . $text . '" aria-label="' . $text . '"></span>';
 };
-$auditLegacyUrl = static function (array $entry): string {
-    $type = (string) ($entry['type'] ?? '');
-    $client = (int) ($entry['client_id'] ?? 0);
-    $id = (int) ($entry['extension_id'] ?? 0);
-    $element = rawurlencode((string) ($entry['element'] ?? ''));
-
-    return match ($type) {
-        'template' => 'index.php?option=com_templates&view=styles&client_id=' . $client . '&filter[search]=' . $element,
-        'plugin' => 'index.php?option=com_plugins&view=plugins&filter[search]=id:' . $id,
-        'module' => 'index.php?option=com_modules&view=modules&client_id=' . $client . '&filter[search]=id:' . $id,
-        default => 'index.php?option=com_installer&view=manage&filter[search]=' . $element,
-    };
-};
+$auditLegacyUrl = static fn(array $entry): string => ExtensionAdminLink::forEntry($entry);
 $auditExtensionLegacy = $auditEntryList($auditReport['extension_legacy'] ?? array());
 $auditErrors = $auditStringList($auditReport['errors'] ?? array());
 $auditOrphanChecks = array_values(array_filter(
@@ -106,6 +95,15 @@ $auditOrphanChecks = array_values(array_filter(
     static fn(array $check): bool => (int) ($check['count'] ?? 0) > 0
 ));
 $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
+// The report stores its date in UTC: it is shown in the time zone of the user.
+$auditGeneratedAt = $notAvailable;
+if (($auditReport['generated_at'] ?? '') !== '') {
+    try {
+        $auditGeneratedAt = HTMLHelper::_('date', (string) $auditReport['generated_at'], 'Y-m-d H:i:s', true);
+    } catch (\Throwable) {
+        $auditGeneratedAt = (string) $auditReport['generated_at'];
+    }
+}
 ?>
 
 <form action="<?php echo Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit'); ?>" method="post" name="adminForm" id="adminForm">
@@ -121,7 +119,7 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                     <span class="text-muted small">
                         <?php echo Text::sprintf(
                             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_GENERATED_AT',
-                            htmlspecialchars((string) ($auditReport['generated_at'] ?? $notAvailable), ENT_QUOTES, 'UTF-8')
+                            htmlspecialchars($auditGeneratedAt, ENT_QUOTES, 'UTF-8')
                         ); ?>
                     </span>
                 <?php endif; ?>
@@ -232,7 +230,16 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                         <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_TABLES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_TABLES_HELP'); ?></h4>
                         <ul class="mb-0">
                             <?php foreach ($auditMissingTables as $table) : ?>
-                                <li><code><?php echo htmlspecialchars((string) $table, ENT_QUOTES, 'UTF-8'); ?></code></li>
+                                <li>
+                                    <code><?php echo htmlspecialchars((string) $table, ENT_QUOTES, 'UTF-8'); ?></code>
+                                    <?php if ($table === '#__breezingforms' && $this->canDeleteOrphans) : ?>
+                                        <button type="button" class="btn btn-sm btn-outline-danger ms-2"
+                                            onclick="if (window.confirm(<?php echo htmlspecialchars((string) json_encode(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_LEGACY_TABLE_DELETE_CONFIRM'), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG), ENT_QUOTES, 'UTF-8'); ?>)) { Joomla.submitform('about.deleteLegacyBreezingformsTable'); }">
+                                            <span class="icon-trash" aria-hidden="true"></span>
+                                            <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_LEGACY_TABLE_DELETE'); ?>
+                                        </button>
+                                    <?php endif; ?>
+                                </li>
                             <?php endforeach; ?>
                         </ul>
                     </div>
@@ -471,9 +478,8 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                 <?php $legacyUrl = $auditLegacyUrl($entry); ?>
                                 <li class="d-flex align-items-center gap-2 mb-1">
                                     <input type="checkbox" class="form-check-input mt-0" data-bf-select-item="legacy-extensions" name="legacy_extensions[]" value="<?php echo $legacyId; ?>" aria-label="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_SELECT_ONE', (int) $index + 1), ENT_QUOTES, 'UTF-8'); ?>">
-                                    <code><?php echo htmlspecialchars((string) ($entry['type'] ?? '') . '/' . ((string) ($entry['folder'] ?? '') !== '' ? (string) $entry['folder'] . '/' : '') . (string) ($entry['element'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code>
+                                    <a href="<?php echo htmlspecialchars(Route::_($legacyUrl, false), ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_MANAGE'), ENT_QUOTES, 'UTF-8'); ?>"><code><?php echo htmlspecialchars((string) ($entry['type'] ?? '') . '/' . ((string) ($entry['folder'] ?? '') !== '' ? (string) $entry['folder'] . '/' : '') . (string) ($entry['element'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code></a>
                                     <span class="text-muted">(#<?php echo $legacyId; ?>)</span>
-                                    <a class="btn btn-sm btn-outline-secondary" href="<?php echo htmlspecialchars(Route::_($legacyUrl, false), ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_MANAGE'), ENT_QUOTES, 'UTF-8'); ?>" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_MANAGE'), ENT_QUOTES, 'UTF-8'); ?>"><span class="icon-external-link" aria-hidden="true"></span></a>
                                     <button type="submit" class="btn btn-sm btn-warning" title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_REMOVE_TIP'), ENT_QUOTES, 'UTF-8'); ?>" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_REMOVE'), ENT_QUOTES, 'UTF-8'); ?>" onclick="if (!window.confirm('<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_CONFIRM'), ENT_QUOTES, 'UTF-8'); ?>')) { return false; } document.getElementById('bf-about-task').value='about.removeLegacyExtensions';document.getElementById('bf-legacy-extension').value='<?php echo $legacyId; ?>';"><span class="icon-trash" aria-hidden="true"></span></button>
                                 </li>
                             <?php endforeach; ?>
@@ -620,6 +626,12 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                             $orphanHidden = (int) ($check['parents'] ?? 0) - count($orphanGroups);
                             $orphanHasLabel = array_filter(array_column($orphanGroups, 'label')) !== array();
                             $orphanValues = ($check['id'] ?? '') === 'subrecords_without_element';
+                            // Values of a record that no longer exists: nothing can show them, they can be deleted.
+                            $orphanRecordValues = ($check['id'] ?? '') === 'subrecords_without_record';
+                            // Records and elements of a deleted form: one trash button per form, and a selection to delete several.
+                            $orphanSelectable = in_array((string) ($check['id'] ?? ''), array('records_without_form', 'elements_without_form'), true);
+                            $orphanDeleteTask = ($check['id'] ?? '') === 'records_without_form' ? 'about.deleteOrphanRecords' : 'about.deleteOrphanElements';
+                            $orphanDeleteKey = ($check['id'] ?? '') === 'records_without_form' ? 'RECORDS' : 'ELEMENTS';
                             $orphanHasForm = array_filter(array_column($orphanGroups, 'form_id')) !== array();
                             $orphanHasPeriod = array_filter(array_column($orphanGroups, 'first')) !== array();
                             // Records of a deleted form: link to the records list filtered on it, all states.
@@ -631,6 +643,13 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                     <table class="table table-sm table-striped align-middle mb-0 w-auto">
                                         <thead>
                                             <tr>
+                                                <?php if ($orphanSelectable) : ?>
+                                                    <th scope="col" class="w-1">
+                                                        <input type="checkbox" class="form-check-input" data-bf-orphan-select-all
+                                                            aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEX_SELECT_ALL'), ENT_QUOTES, 'UTF-8'); ?>"
+                                                            <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>>
+                                                    </th>
+                                                <?php endif; ?>
                                                 <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_PARENT_' . $orphanParent); ?></th>
                                                 <?php if ($orphanHasLabel && !$orphanValues) : ?>
                                                     <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_LABEL'); ?></th>
@@ -643,6 +662,12 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                                     <th scope="col" class="text-nowrap"><span class="fa-solid fa-arrow-right-long me-1" aria-hidden="true"></span><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_TARGET'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_HELP'); ?></th>
                                                     <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></th>
                                                 <?php endif; ?>
+                                                <?php if ($orphanSelectable) : ?>
+                                                    <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_DELETE'); ?></span></th>
+                                                <?php endif; ?>
+                                                <?php if ($orphanRecordValues) : ?>
+                                                    <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></th>
+                                                <?php endif; ?>
                                                 <?php if ($orphanHasPeriod) : ?>
                                                     <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_PERIOD'); ?></th>
                                                 <?php endif; ?>
@@ -651,6 +676,15 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                         <tbody>
                                             <?php foreach ($orphanGroups as $orphanGroup) : ?>
                                                 <tr>
+                                                    <?php if ($orphanSelectable) : ?>
+                                                        <td>
+                                                            <input type="checkbox" class="form-check-input" data-bf-orphan-select
+                                                                value="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
+                                                                data-bf-count="<?php echo (int) ($orphanGroup['count'] ?? 0); ?>"
+                                                                aria-label="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SELECT_ONE', '#' . (int) ($orphanGroup['parent_id'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
+                                                                <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>>
+                                                        </td>
+                                                    <?php endif; ?>
                                                     <?php $orphanLabel = htmlspecialchars((string) ($orphanGroup['label'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>
                                                     <?php $orphanId = '#' . (int) ($orphanGroup['parent_id'] ?? 0); ?>
                                                     <?php if ($orphanValues) : ?>
@@ -751,6 +785,32 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                                             <?php endif; ?>
                                                         </td>
                                                     <?php endif; ?>
+                                                    <?php if ($orphanSelectable) : ?>
+                                                        <td>
+                                                            <button
+                                                                type="button"
+                                                                class="btn btn-sm btn-outline-danger"
+                                                                title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_DELETE'), ENT_QUOTES, 'UTF-8'); ?>"
+                                                                data-bf-orphan-task="<?php echo $orphanDeleteTask; ?>"
+                                                                <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
+                                                                data-bf-orphan-element="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
+                                                                data-bf-confirm="<?php echo htmlspecialchars(Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_DELETE_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
+                                                            ><span class="icon-trash" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_DELETE'); ?></span></button>
+                                                        </td>
+                                                    <?php endif; ?>
+                                                    <?php if ($orphanRecordValues) : ?>
+                                                        <td>
+                                                            <button
+                                                                type="button"
+                                                                class="btn btn-sm btn-outline-danger"
+                                                                title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'), ENT_QUOTES, 'UTF-8'); ?>"
+                                                                data-bf-orphan-task="about.deleteOrphanSubrecords"
+                                                                <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
+                                                                data-bf-orphan-element="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
+                                                                data-bf-confirm="<?php echo htmlspecialchars(Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORD_VALUES_DELETE_CONFIRM', (int) ($orphanGroup['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
+                                                            ><span class="icon-trash" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></button>
+                                                        </td>
+                                                    <?php endif; ?>
                                                     <?php if ($orphanHasPeriod) : ?>
                                                         <td class="text-nowrap"><?php echo htmlspecialchars(substr((string) ($orphanGroup['first'] ?? ''), 0, 10) . ' → ' . substr((string) ($orphanGroup['last'] ?? ''), 0, 10), ENT_QUOTES, 'UTF-8'); ?></td>
                                                     <?php endif; ?>
@@ -785,6 +845,28 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                             data-bf-confirm="<?php echo htmlspecialchars(Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_ALL_CONFIRM', (int) ($check['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
                                         ><span class="icon-trash" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_ALL'); ?></button>
                                     <?php endif; ?>
+                                    <?php if ($orphanSelectable) : ?>
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-danger mt-2"
+                                            data-bf-orphan-task="<?php echo $orphanDeleteTask; ?>"
+                                            data-bf-orphan-selection
+                                            data-bf-confirm-template="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_SELECTED_CONFIRM'), ENT_QUOTES, 'UTF-8'); ?>"
+                                            disabled
+                                        ><span class="icon-trash" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SELECTED_DELETE'); ?> <span data-bf-orphan-selected-count></span></button>
+                                    <?php endif; ?>
+                                    <?php if ($orphanRecordValues && (int) ($check['count'] ?? 0) > 0) : ?>
+                                        <button
+                                            id="bf-audit-delete-all-orphan-record-values"
+                                            type="button"
+                                            class="btn btn-sm btn-outline-danger mt-2"
+                                            data-bf-orphan-task="about.deleteOrphanSubrecords"
+                                            <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
+                                            data-bf-orphan-element="0"
+                                            data-bf-orphan-all="1"
+                                            data-bf-confirm="<?php echo htmlspecialchars(Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORD_VALUES_DELETE_ALL_CONFIRM', (int) ($check['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
+                                        ><span class="icon-trash" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></button>
+                                    <?php endif; ?>
                                     <?php if (($check['id'] ?? '') === 'elements_without_form') : ?>
                                         <button
                                             id="bf-audit-delete-orphan-elements"
@@ -792,6 +874,7 @@ $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
                                             class="btn btn-sm btn-outline-danger mt-2"
                                             data-bf-orphan-task="about.deleteOrphanElements"
                                             <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
+                                            data-bf-orphan-all="1"
                                             data-bf-confirm="<?php echo htmlspecialchars(Text::plural('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETE_CONFIRM', (int) ($check['count'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
                                         ><span class="icon-trash" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_ELEMENTS_DELETE'); ?></button>
                                     <?php endif; ?>

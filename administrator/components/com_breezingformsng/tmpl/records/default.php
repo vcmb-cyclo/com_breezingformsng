@@ -107,7 +107,14 @@ $deletedFormMark = static fn (\stdClass $rec): string => $rec->form_id === null
                 <?php endif; ?>
               </th>
               <td><?= $this->escape((string) $rec->ip); ?></td>
-              <td><?= $this->escape((string) ($rec->user_full_name ?: $rec->username)); ?></td>
+              <td>
+                <?php $recordUserId = (int) $rec->user_id; ?>
+                <?php if ($recordUserId > 0): ?>
+                  <a href="<?= Route::_('index.php?option=com_users&view=user&layout=edit&id=' . $recordUserId); ?>"><?= $this->escape((string) ($rec->user_full_name ?: $rec->username)); ?></a>
+                <?php else: ?>
+                  <?= $this->escape((string) ($rec->user_full_name ?: $rec->username)); ?>
+                <?php endif; ?>
+              </td>
               <td class="d-none text-center">
                 <?php if ($canEditState): ?>
                   <a href="#" data-bf-record-id="<?= $recId; ?>" data-bf-flag="viewed" title="<?= $headerTitle('COM_BREEZINGFORMSNG_TOGGLE_VIEWED'); ?>">

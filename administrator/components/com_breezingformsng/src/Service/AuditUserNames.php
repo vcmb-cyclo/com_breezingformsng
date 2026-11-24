@@ -19,6 +19,34 @@ use Joomla\Database\ParameterType;
 final class AuditUserNames
 {
     /**
+     * Resolve existing Joomla user IDs for historical usernames.
+     *
+     * @param list<string> $usernames
+     * @return array<string, int>
+     */
+    public static function resolveUserIds(DatabaseInterface $db, array $usernames): array
+    {
+        $usernames = array_values(array_unique(array_filter($usernames, static fn (string $username): bool => $username !== '')));
+
+        if ($usernames === []) {
+            return [];
+        }
+
+        $query = $db->createQuery()
+            ->select($db->quoteName(['username', 'id']))
+            ->from($db->quoteName('#__users'))
+            ->whereIn($db->quoteName('username'), $usernames, ParameterType::STRING);
+        $users = $db->setQuery($query)->loadAssocList('username') ?: [];
+        $result = [];
+
+        foreach ($users as $username => $user) {
+            $result[(string) $username] = (int) $user['id'];
+        }
+
+        return $result;
+    }
+
+    /**
      * Exact usernames take precedence. Numeric values are treated as user IDs
      * only when the caller knows its field stores IDs.
      *

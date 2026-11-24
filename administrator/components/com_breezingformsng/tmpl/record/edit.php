@@ -13,6 +13,7 @@
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
+use Joomla\CMS\Router\Route;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordState;
 
 $record = $this->item;
@@ -70,6 +71,9 @@ $modifiedAudit = $modifiedDate !== '' && $modifiedBy !== ''
     : $modifiedDate . $modifiedBy;
 $checkedOutDate = $optionalDate($record->checked_out_time);
 $checkedOutBy = $value($record->checked_out_name);
+if ((int) $record->checked_out > 0 && $checkedOutBy !== '') {
+    $checkedOutBy = '<a href="' . Route::_('index.php?option=com_users&view=user&layout=edit&id=' . (int) $record->checked_out) . '">' . $checkedOutBy . '</a>';
+}
 $checkedOutAudit = $checkedOutDate !== '' && $checkedOutBy !== ''
     ? Text::sprintf('COM_BREEZINGFORMSNG_AUDIT_DATE_BY', $checkedOutDate, $checkedOutBy)
     : $checkedOutDate . $checkedOutBy;
@@ -258,7 +262,7 @@ $paginationNav = static function (string $spacing) use ($pages, $pageLink, $posi
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_PROVIDER', 'COM_BREEZINGFORMSNG_RECORDS_PROVIDER_DESC'); ?></th><td><?= $value($record->provider); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_USERID', 'COM_BREEZINGFORMSNG_USERID_DESC'); ?></th><td><?= (int) $record->user_id; ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME', 'COM_BREEZINGFORMSNG_PROCESS_SUBMITTERUSERNAME_DESC'); ?></th><td><?= $value($record->username); ?></td></tr>
-            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME', 'COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME_DESC'); ?></th><td><?= $value($record->user_full_name); ?></td></tr>
+            <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME', 'COM_BREEZINGFORMSNG_PROCESS_SUBMITTERFULLNAME_DESC'); ?></th><td><?php if ((int) $record->user_id > 0) : ?><a href="<?= Route::_('index.php?option=com_users&view=user&layout=edit&id=' . (int) $record->user_id); ?>"><?= $value($record->user_full_name); ?></a><?php else : ?><?= $value($record->user_full_name); ?><?php endif; ?></td></tr>
             <?= $sectionHeader('record-section-recordinfo', 'COM_BREEZINGFORMSNG_RECORDS_RECORDINFO'); ?>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_VIEWED', 'COM_BREEZINGFORMSNG_RECORDS_VIEWED_DESC'); ?></th><td><?= $flagToggle('viewed', $record->viewed, 'COM_BREEZINGFORMSNG_TOGGLE_VIEWED', '<span class="bf-flag-text">' . $yesNo($record->viewed) . '</span>'); ?></td></tr>
             <tr><th><?= $systemLabel('COM_BREEZINGFORMSNG_RECORDS_EXPORTED', 'COM_BREEZINGFORMSNG_RECORDS_EXPORTED_DESC'); ?></th><td><?= $flagToggle('exported', $record->exported, 'COM_BREEZINGFORMSNG_TOGGLE_EXPORTED', '<span class="bf-flag-text">' . $yesNo($record->exported) . '</span>'); ?></td></tr>

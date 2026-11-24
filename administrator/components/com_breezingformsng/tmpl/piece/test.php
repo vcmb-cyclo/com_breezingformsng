@@ -40,9 +40,17 @@ $autoOpenUnitWarningText = $unitTestFailures > 0
 $action = Route::_('index.php?option=com_breezingformsng&view=piece&layout=test&id=' . (int) $row->id);
 $createdDate = $row->created ? HTMLHelper::date($row->created, 'Y-m-d H:i', true) : '-';
 $createdBy = htmlspecialchars($this->auditCreatedBy, ENT_QUOTES, 'UTF-8');
+$createdUserId = $this->auditUserIds[(string) ($row->created_by ?? '')] ?? 0;
+if ($createdUserId > 0) {
+    $createdBy = '<a href="' . Route::_('index.php?option=com_users&view=user&layout=edit&id=' . $createdUserId) . '">' . $createdBy . '</a>';
+}
 $createdAudit = $createdBy !== '' ? Text::sprintf('COM_BREEZINGFORMSNG_AUDIT_DATE_BY', $createdDate, $createdBy) : $createdDate;
 $modifiedDate = $row->modified ? HTMLHelper::date($row->modified, 'Y-m-d H:i', true) : '-';
 $modifiedBy = htmlspecialchars($this->auditModifiedBy, ENT_QUOTES, 'UTF-8');
+$modifiedUserId = $this->auditUserIds[(string) ($row->modified_by ?? '')] ?? 0;
+if ($modifiedUserId > 0) {
+    $modifiedBy = '<a href="' . Route::_('index.php?option=com_users&view=user&layout=edit&id=' . $modifiedUserId) . '">' . $modifiedBy . '</a>';
+}
 $modifiedAudit = $modifiedBy !== ''
     ? Text::sprintf('COM_BREEZINGFORMSNG_AUDIT_DATE_BY', $modifiedDate, $modifiedBy)
     : $modifiedDate;

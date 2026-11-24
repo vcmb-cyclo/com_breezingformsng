@@ -66,6 +66,8 @@ class HtmlView extends BaseHtmlView
     public bool $canEditState = false;
     public string $auditCreatedBy = '';
     public string $auditModifiedBy = '';
+    /** @var array<string, int> */
+    public array $auditUserIds = [];
     public \DateTimeZone $timezone;
 
     // test layout
@@ -100,6 +102,7 @@ class HtmlView extends BaseHtmlView
             $createdBy = (string) ($item->created_by ?? '');
             $modifiedBy = (string) ($item->modified_by ?? '');
             $names = $model->resolveAuditNames([$createdBy, $modifiedBy]);
+            $this->auditUserIds = $model->resolveAuditUserIds([$createdBy, $modifiedBy]);
             $this->auditCreatedBy = $names[$createdBy] ?? $createdBy;
             $this->auditModifiedBy = $names[$modifiedBy] ?? $modifiedBy;
             $this->timezone = $this->getCurrentUser()->getTimezone();

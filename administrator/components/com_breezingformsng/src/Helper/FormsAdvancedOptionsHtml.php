@@ -40,13 +40,22 @@ final class FormsAdvancedOptionsHtml
             return count(array_filter($values, static fn ($value): bool => $value !== null && $value !== '' && $value !== 0 && $value !== '0'));
         };
 
+        // The Email tab holds two sets of settings, shown as two sub-tabs: the notification sent to the administrator
+        // and the confirmation sent to the user. The tab counts both.
+        $emailAdmin = $countConfigured([
+            $f->emailntf ?? 0, $f->emailadr ?? '', $f->custom_mail_subject ?? '', $f->alt_mailfrom ?? '',
+            $f->alt_fromname ?? '', $f->emailxml ?? 0, $f->email_type ?? 0,
+        ]);
+        $emailUser = $countConfigured([
+            $f->mb_emailntf ?? 0, $f->mb_custom_mail_subject ?? '', $f->mb_alt_mailfrom ?? '',
+            $f->mb_alt_fromname ?? '', $f->mb_emailxml ?? 0, $f->mb_email_type ?? 0,
+        ]);
+
         return [
             'general' => $countConfigured([$f->title ?? '', $f->name ?? '', $f->package ?? '', $f->description ?? '', $f->class1 ?? '']),
-            'email' => $countConfigured([
-                $f->emailntf ?? 0, $f->emailadr ?? '', $f->custom_mail_subject ?? '', $f->alt_mailfrom ?? '',
-                $f->alt_fromname ?? '', $f->emailxml ?? 0, $f->email_type ?? 0, $f->mb_emailntf ?? 0, $f->mb_custom_mail_subject ?? '',
-                $f->mb_alt_mailfrom ?? '', $f->mb_alt_fromname ?? '', $f->mb_emailxml ?? 0, $f->mb_email_type ?? 0,
-            ]),
+            'email' => $emailAdmin + $emailUser,
+            'email-admin' => $emailAdmin,
+            'email-user' => $emailUser,
             'scripts' => (int) ((int) ($f->script1cond ?? 0) > 0) + (int) ((int) ($f->script2cond ?? 0) > 0),
             'form-pieces' => (int) ((int) ($f->piece1cond ?? 0) > 0) + (int) ((int) ($f->piece2cond ?? 0) > 0),
             'submit-pieces' => (int) ((int) ($f->piece3cond ?? 0) > 0) + (int) ((int) ($f->piece4cond ?? 0) > 0),

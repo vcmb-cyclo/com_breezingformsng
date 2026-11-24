@@ -112,7 +112,7 @@ final class AreaAccessArchitectureTest extends TestCase
         self::assertIsString($template);
         self::assertSame(8, substr_count($controller, 'AreaAccess::assertRepair('));
         // The orphan repairs and the reassignment preview also need the right to delete of the component.
-        self::assertSame(2, substr_count($controller, 'AreaAccess::assertDeleteOrphans('));
+        self::assertSame(3, substr_count($controller, 'AreaAccess::assertDeleteOrphans('));
         self::assertStringContainsString("\$this->canDeleteOrphans ? '' : ' disabled'", $template);
         self::assertStringContainsString("\$this->canRepair ? '' : ' disabled'", $template);
     }
