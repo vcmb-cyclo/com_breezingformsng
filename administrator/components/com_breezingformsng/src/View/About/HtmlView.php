@@ -33,6 +33,8 @@ class HtmlView extends BaseHtmlView
     /** @var list<array<string, mixed>> */
     public array $plugins = [];
     public bool $canEditPluginState = false;
+    /** Uninstalling is a right of the Joomla Installer. */
+    public bool $canUninstallExtension = false;
     /** @var array<mixed> */
     public array $logReport = [];
     /** @var array<mixed> */
@@ -63,6 +65,7 @@ class HtmlView extends BaseHtmlView
         $this->canRepair = AreaAccess::canRepair($user);
         $this->canDeleteOrphans = AreaAccess::canDeleteOrphans($user);
         $this->canEditPluginState = $user->authorise('core.edit.state', 'com_plugins');
+        $this->canUninstallExtension = $user->authorise('core.delete', 'com_installer');
         /** @var HtmlDocument $document */
         $document = $app->getDocument();
         $wa = $document->getWebAssetManager();
@@ -86,10 +89,13 @@ class HtmlView extends BaseHtmlView
                 ->url(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about', false))
                 ->text('JTOOLBAR_BACK')
                 ->icon('fa-solid fa-arrow-left');
-            $toolbar->linkButton('about_manage_plugins')
-                ->url(Route::_('index.php?option=com_plugins&view=plugins&filter[search]=' . rawurlencode('breezingforms'), false))
-                ->text('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS_MANAGE_PLUGINS')
-                ->icon('fa-solid fa-plug');
+            // The Extensions Manager of Joomla, on the BreezingForms extensions.
+            if ($user->authorise('core.manage', 'com_installer')) {
+                $toolbar->linkButton('about_manage_plugins')
+                    ->url(Route::_('index.php?option=com_installer&view=manage&filter[search]=' . rawurlencode('breezingforms'), false))
+                    ->text('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS_MANAGE_PLUGINS')
+                    ->icon('fa-solid fa-plug');
+            }
         }
 
         if ($layout === 'audit') {
@@ -190,7 +196,7 @@ class HtmlView extends BaseHtmlView
                 throw new \RuntimeException('Unable to create BreezingForms NG About model.');
             }
 
-            $rows = $model->getInstalledPluginRows();
+            $rows = $model->getBreezingFormsExtensionRows();
         } catch (\Throwable) {
             return [];
         }
@@ -214,10 +220,18 @@ class HtmlView extends BaseHtmlView
                 }
             }
 
+            $type = (string) ($row['type'] ?? 'plugin');
             $group = (string) ($row['folder'] ?? '');
             $element = (string) ($row['element'] ?? '');
-            $languageExtension = 'plg_' . $group . '_' . $element;
-            // The name and the description of a plugin live in its .sys.ini file; the other strings in its .ini.
+            $languageExtension = match ($type) {
+                'plugin' => 'plg_' . $group . '_' . $element,
+                'library' => 'lib_' . $element,
+                'package' => 'pkg_' . $element,
+                'file' => 'file_' . $element,
+                'template' => 'tpl_' . $element,
+                default => $element,
+            };
+            // The name and the description of an extension live in its .sys.ini file; the other strings in its .ini.
             foreach ([$languageExtension . '.sys', $languageExtension] as $languageFile) {
                 $language->load($languageFile, JPATH_ADMINISTRATOR) || $language->load($languageFile, JPATH_SITE);
             }
@@ -229,6 +243,12 @@ class HtmlView extends BaseHtmlView
 
             $plugins[] = [
                 'id' => (int) ($row['extension_id'] ?? 0),
+                'type' => $type,
+                // The changelog XML the extension declares in its manifest, when it has one.
+                'changelogUrl' => $this->changelogUrl((string) ($manifest['changelogurl'] ?? '')),
+                // The running component and what Joomla protects cannot be uninstalled from here.
+                'uninstallable' => (int) ($row['protected'] ?? 0) !== 1
+                    && !($type === 'component' && $element === 'com_breezingformsng'),
                 'name' => $name !== '' ? Text::_($name) : Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE'),
                 'group' => $group,
                 'element' => $element,
@@ -236,12 +256,18 @@ class HtmlView extends BaseHtmlView
                 'enabled' => (int) ($row['enabled'] ?? 0) === 1,
                 'description' => $description !== '' ? $description : Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE'),
                 'category' => $this->getPluginCategory($group, $element),
-                'purpose' => $this->getPluginPurpose($group, $element),
-                'usage' => $this->getPluginUsage($group, $element),
             ];
         }
 
         return $plugins;
+    }
+
+    /** Only a web address is linked: the manifest of an extension is not trusted to hold anything else. */
+    private function changelogUrl(string $url): string
+    {
+        $url = trim($url);
+
+        return preg_match('#^https?://#i', $url) === 1 && filter_var($url, FILTER_VALIDATE_URL) !== false ? $url : '';
     }
 
     private function getPluginCategory(string $group, string $element): string
@@ -252,26 +278,11 @@ class HtmlView extends BaseHtmlView
         };
     }
 
-    private function getPluginPurpose(string $group, string $element): string
-    {
-        return match ($group . '.' . $element) {
-            'system.bfcompat' => Text::_('COM_BREEZINGFORMSNG_EXTENSION_PURPOSE_COMPAT'),
-            default => Text::_('COM_BREEZINGFORMSNG_EXTENSION_PURPOSE_OTHER'),
-        };
-    }
-
-    private function getPluginUsage(string $group, string $element): string
-    {
-        return match ($group) {
-            'system' => Text::_('COM_BREEZINGFORMSNG_EXTENSION_USAGE_SYSTEM'),
-            default => Text::_('COM_BREEZINGFORMSNG_EXTENSION_USAGE_OTHER'),
-        };
-    }
-
     #[\Override]
     protected function getDetailLabel(): ?string
     {
         return match ($this->getLayout()) {
+            'extensions' => Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS'),
             'audit' => Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT'),
             'statistics' => Text::_('COM_BREEZINGFORMSNG_TOOLS_STATISTICS_TITLE'),
             'trash' => Text::_('COM_BREEZINGFORMSNG_TOOLS_TRASH_TITLE'),

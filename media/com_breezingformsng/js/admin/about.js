@@ -207,6 +207,15 @@
         container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
+    // A button that posts its form after a confirmation (uninstalling an extension).
+    document.addEventListener('submit', function (event) {
+        var message = event.submitter && event.submitter.dataset.bfSubmitConfirm;
+
+        if (message && !window.confirm(message)) {
+            event.preventDefault();
+        }
+    });
+
     document.addEventListener('click', function (event) {
         var button = event.target.closest('[data-bf-orphan-task]');
 

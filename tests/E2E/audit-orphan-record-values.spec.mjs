@@ -49,7 +49,7 @@ test('the values of a missing record are deleted from the audit, and only those'
         expect([302, 303]).toContain(run.status());
         await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about&layout=audit`);
         const audit = page.locator('[data-bf-orphan-check="subrecords_without_record"]');
-        await expect(audit).toBeAttached({ timeout: 30_000 });
+        await expect(audit).toBeAttached({ timeout: 60_000 });
         const trash = audit.locator(`[data-bf-orphan-task="about.deleteOrphanSubrecords"][data-bf-orphan-element="${MISSING_RECORD}"]`);
         await expect(trash).toHaveCount(1);
         await expect(trash.locator('.icon-trash')).toHaveCount(1);

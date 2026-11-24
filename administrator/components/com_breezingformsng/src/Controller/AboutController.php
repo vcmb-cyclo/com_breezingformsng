@@ -148,6 +148,23 @@ class AboutController extends BaseController
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit', false));
     }
 
+    public function deleteLegacyBreezingformsTable(): void
+    {
+        $this->checkToken();
+
+        try {
+            $user = $this->getAuthorizedApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+            AreaAccess::assertDeleteOrphans($user);
+            $this->getRepairService()->deleteLegacyBreezingformsTable();
+            $this->app->setUserState('com_breezingformsng.about.audit', $this->getAuditService()->run());
+            $this->setMessage(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_LEGACY_TABLE_DELETED'), 'message');
+        } catch (\Throwable $exception) {
+            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_LEGACY_TABLE_DELETE_FAILED', $exception->getMessage()), 'error');
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
+    }
+
     /**
      * Number of issues of the audit, read asynchronously by the Tools page badge.
      * Read-only: nothing is stored, the report itself is built by the Audit button.
@@ -366,6 +383,41 @@ class AboutController extends BaseController
         }
 
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
+    }
+
+    /**
+     * Uninstalls one BreezingForms extension chosen on the Extensions screen.
+     * Uninstalling is a right of the Joomla Installer, as in its own model.
+     */
+    public function uninstallExtension(): void
+    {
+        $this->checkToken();
+
+        try {
+            $application = $this->getAuthorizedApplication();
+            $user = $application->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
+
+            if (!$user->authorise('core.delete', 'com_installer')) {
+                throw new NotAllowed(Text::_('JERROR_CORE_DELETE_NOT_PERMITTED'), 403);
+            }
+
+            $aboutModel = $this->getMVCFactoryOf($application)
+                ->createModel('About', 'Administrator', ['ignore_request' => true]);
+
+            if (!$aboutModel instanceof AboutModel) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            $removed = $aboutModel->uninstallExtension($this->input->post->getInt('extension_id', 0));
+            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_UNINSTALLED', $removed), 'message');
+        } catch (\Throwable $exception) {
+            $this->setMessage(
+                Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_UNINSTALL_FAILED', $exception->getMessage()),
+                'error'
+            );
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=extensions', false));
     }
 
     public function removeLegacyExtensions(): void

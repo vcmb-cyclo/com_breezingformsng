@@ -41,6 +41,39 @@ switch ($argv[1] ?? '') {
         }
         echo json_encode($db->query("SELECT enabled FROM {$config->dbprefix}extensions WHERE {$where}")->fetch_assoc());
         break;
+    case 'probe-plugin':
+        // probe-plugin <element>: a former-BreezingForms-style system plugin, with its files, to uninstall. Prints its id.
+        $element = preg_replace('/[^a-z0-9]/', '', strtolower($argv[2] ?? 'breezingformsprobe'));
+        $directory = "/var/www/html/plugins/system/{$element}";
+        $manifest = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<extension type=\"plugin\" group=\"system\" method=\"upgrade\">\n"
+            . "<name>{$element}</name><version>1.0.0</version><description>Probe plugin of the former BreezingForms.</description>\n"
+            . "<files><filename plugin=\"{$element}\">{$element}.php</filename></files>\n</extension>\n";
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+        file_put_contents("{$directory}/{$element}.xml", $manifest);
+        file_put_contents("{$directory}/{$element}.php", "<?php\ndefined('_JEXEC') or die;\n");
+        foreach ([$directory, "{$directory}/{$element}.xml", "{$directory}/{$element}.php"] as $path) {
+            chown($path, 'www-data');
+            chgrp($path, 'www-data');
+        }
+        $extensions = $config->dbprefix . 'extensions';
+        $existing = $db->query("SELECT extension_id FROM {$extensions} WHERE type = 'plugin' AND folder = 'system' AND element = '{$element}'")->fetch_assoc();
+        if ($existing === null) {
+            $cache = $db->real_escape_string(json_encode(['name' => $element, 'version' => '1.0.0', 'description' => 'Probe plugin of the former BreezingForms.']));
+            $db->query("INSERT INTO {$extensions} (name, type, element, folder, client_id, enabled, access, protected, locked, manifest_cache, params, custom_data, ordering, state) VALUES ('{$element}', 'plugin', '{$element}', 'system', 0, 1, 1, 0, 0, '{$cache}', '{}', '', 0, 0)");
+            $existing = ['extension_id' => $db->insert_id];
+        }
+        echo (int) $existing['extension_id'];
+        break;
+    case 'extension-delete':
+        // extension-delete <id>: drops a probe registration left by a failed journey.
+        $db->query("DELETE FROM {$config->dbprefix}extensions WHERE extension_id = {$id}");
+        break;
+    case 'extension-exists':
+        // extension-exists <id>: 1 when the row is still registered.
+        echo (int) $db->query("SELECT COUNT(*) c FROM {$config->dbprefix}extensions WHERE extension_id = {$id}")->fetch_assoc()['c'];
+        break;
     case 'sample-form':
         // sample-form <name>: a form with a text element, created once; prints its id.
         $name = $db->real_escape_string($argv[2] ?? '');

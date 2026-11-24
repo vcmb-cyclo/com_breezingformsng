@@ -11,6 +11,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Service;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Installer\Installer;
+use Joomla\CMS\Language\Text;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use Joomla\Filesystem\Folder;
@@ -21,6 +22,22 @@ final class DatabaseRepairService
         private readonly DatabaseInterface $db,
         private readonly string $temporaryPath
     ) {
+    }
+
+    /** Remove only the standalone legacy table after a fresh audit confirms it. */
+    public function deleteLegacyBreezingformsTable(): void
+    {
+        $alias = '#__breezingforms';
+        $report = (new DatabaseAuditService($this->db, $this->temporaryPath))->run();
+        $physical = $this->db->getPrefix() . 'breezingforms';
+
+        if (!in_array($alias, (array) ($report['unexpected_tables'] ?? []), true)
+            || !in_array($physical, $this->db->getTableList(), true)) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $this->db->setQuery('DROP TABLE ' . $this->db->quoteName($physical));
+        $this->db->execute();
     }
 
     /**
