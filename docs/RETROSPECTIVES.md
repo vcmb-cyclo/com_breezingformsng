@@ -77,3 +77,30 @@
 2. Écrire le parcours E2E dans la même étape que la fonction.
 3. Surveiller le CI après un push correctif, jusqu'au résultat.
 4. Demande touchant une release (flux de mise à jour, tag, notes) : reformuler le changement minimal en une ligne avant d'agir (skill `methode-ia`, mémoire `release-ask-restate-minimal-change`). Origine : « RC1 sur main » lue comme « publier la RC ».
+
+## 2026-11-25 (RC2) — PR #259, thèmes QuickMode, audit, note de version
+
+### Points forts
+- 10 thèmes QuickMode contrôlés par test de contraste automatique (`quickmode-theme-contrast.spec.mjs`).
+- Audit, extensions, note de version et éditeur sans doublon, avec tests PHPUnit pour chacun.
+- RC2 : manifestes, `CHANGELOG.md` et XML alignés ; PR #259 ouverte.
+- Deux échecs de CI (Semgrep, ligne PHPCS) corrigés et poussés vite.
+
+### Points faibles
+- `git add -u` a embarqué un fichier local de l'utilisateur dans un commit (défait ensuite).
+- Réécriture de `about.css` : règles perdues, détectées seulement par un test.
+- Écran d'audit : 6 allers-retours faute de généralisation du motif dès le départ.
+- Le contrôle PHPCS local ne voit pas les avertissements, la CI oui (deux échecs).
+
+### Tri
+- Indexer fichier par fichier → méthode S-2026-11-25-1 + préférence provisoire.
+- Généraliser un motif d'interface dès la première version → méthode S-2026-11-25-2 + préférence provisoire.
+- Corriger avec Edit, sans réécrire le fichier → préférence.
+- `composer lint:php` avant push → projet (`docs/RELEASING.md`).
+- « Commit » seul vaut accord pour les modifications de l'étape → préférence.
+- Expliquer sans jargon sur « je ne comprends pas » → préférence.
+
+### Actions
+1. `composer lint:php` avant chaque push.
+2. Indexer les fichiers un par un.
+3. Tag `v6.1.1-RC2` seulement après fusion de la PR et accord.
