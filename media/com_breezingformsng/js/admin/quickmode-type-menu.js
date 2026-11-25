@@ -1,19 +1,23 @@
 /**
- * Listbox over the #bfElementType select: native options cannot show an icon.
- * The hidden select keeps the value and the change event the editor relies on;
- * the editor dispatches "bfng:type-sync" after setting its value from a script.
+ * Listbox over a select whose options carry a "bfng-type-icon--*" class: native options cannot show an
+ * icon. It serves #bfElementType of the editor and every select marked data-bfng-icon-menu (the
+ * integrator). The hidden select keeps the value, the change event and the form submission; the editor
+ * dispatches "bfng:type-sync" after setting its value from a script.
  */
 (function () {
 	'use strict';
 
-	var select = document.getElementById('bfElementType');
-	var wrapper = document.getElementById('bfElementTypeIcon');
+	Array.prototype.forEach.call(document.querySelectorAll('#bfElementType, select[data-bfng-icon-menu]'), enhance);
 
-	if (!select || !wrapper) {
+function enhance(select) {
+	var wrapper = select.closest('.bfng-type-select');
+	var prefix = select.id || 'bfIconMenu' + Math.random().toString(36).slice(2, 8);
+
+	if (!wrapper) {
 		return;
 	}
 
-	var label = document.querySelector('label[for="bfElementType"]');
+	var label = select.id ? document.querySelector('label[for="' + select.id + '"]') : null;
 	var button = document.createElement('button');
 	var list = document.createElement('div');
 	var buttonText = document.createElement('span');
@@ -23,22 +27,22 @@
 	var typedAt = 0;
 
 	button.type = 'button';
-	button.id = 'bfElementTypeButton';
+	button.id = prefix + 'Button';
 	button.className = 'bfng-type-menu__button';
 	button.setAttribute('role', 'combobox');
 	button.setAttribute('aria-haspopup', 'listbox');
 	button.setAttribute('aria-expanded', 'false');
-	button.setAttribute('aria-controls', 'bfElementTypeList');
+	button.setAttribute('aria-controls', prefix + 'List');
 	buttonText.className = 'bfng-type-menu__text';
 	button.appendChild(buttonText);
 
-	list.id = 'bfElementTypeList';
+	list.id = prefix + 'List';
 	list.className = 'bfng-type-menu__list';
 	list.setAttribute('role', 'listbox');
 	list.hidden = true;
 
 	if (label) {
-		label.id = label.id || 'bfElementTypeLabel';
+		label.id = label.id || prefix + 'Label';
 		label.htmlFor = button.id;
 		button.setAttribute('aria-labelledby', label.id + ' ' + button.id);
 		list.setAttribute('aria-labelledby', label.id);
@@ -47,7 +51,7 @@
 	function addOption(option, parent) {
 		var item = document.createElement('div');
 
-		item.id = 'bfElementTypeOption' + options.length;
+		item.id = prefix + 'Option' + options.length;
 		item.className = 'bfng-type-menu__option' + (option.className ? ' ' + option.className : '');
 		item.setAttribute('role', 'option');
 		item.textContent = option.textContent.trim();
@@ -71,7 +75,7 @@
 		var group = document.createElement('div');
 		var heading = document.createElement('div');
 
-		heading.id = 'bfElementTypeGroup' + index;
+		heading.id = prefix + 'Group' + index;
 		heading.className = 'bfng-type-menu__group';
 		heading.textContent = child.label;
 		group.setAttribute('role', 'group');
@@ -120,7 +124,18 @@
 			item.setAttribute('aria-selected', item === selected ? 'true' : 'false');
 		});
 		buttonText.textContent = selected ? selected.textContent : '';
-		wrapper.className = 'bfng-type-select' + (select.value ? ' bfng-type-icon--' + select.value : '');
+		// Only the icon class changes: the wrapper may carry others (bfng, bfng-type-select--form).
+		Array.prototype.slice.call(wrapper.classList).forEach(function (name) {
+			if (name.indexOf('bfng-type-icon--') === 0) {
+				wrapper.classList.remove(name);
+			}
+		});
+
+		if (selected && selected.className.indexOf('bfng-type-icon--') >= 0) {
+			wrapper.classList.add(selected.className.split(/\s+/).filter(function (name) {
+				return name.indexOf('bfng-type-icon--') === 0;
+			})[0]);
+		}
 	}
 
 	// Fixed to the viewport: the editor's containers would clip it on a short form.
@@ -278,4 +293,5 @@
 	wrapper.appendChild(button);
 	wrapper.appendChild(list);
 	sync();
+}
 }());

@@ -32,6 +32,15 @@ $operators = [
 ];
 
 $fakeName = static fn(string $n): bool => \in_array($n, ['bfFakeName', 'bfFakeName2', 'bfFakeName3', 'bfFakeName4'], true);
+// The type stored for an element -> the icon of the editor's type menu (a type without one has no icon).
+$elementIcons = [
+    'Text' => 'bfElementTypeText', 'Textarea' => 'bfElementTypeTextarea', 'Number Input' => 'bfElementTypeNumberInput',
+    'Calendar' => 'bfElementTypeCalendar', 'Hidden Input' => 'bfElementTypeHidden', 'File Upload' => 'bfElementTypeFile',
+    'Checkbox' => 'bfElementTypeCheckbox', 'Checkbox Group' => 'bfElementTypeCheckboxGroup',
+    'Radio Group' => 'bfElementTypeRadioGroup', 'Select List' => 'bfElementTypeSelect', 'Captcha' => 'bfElementTypeCaptcha',
+    'Signature' => 'bfElementTypeSignature', 'PayPal' => 'bfElementTypePayPal', 'Stripe' => 'bfElementTypeStripe',
+    'Regular Button' => 'bfElementTypeSubmitButton', 'Summarize' => 'bfElementTypeSummarize',
+];
 ?>
 
 <form action="<?= $baseUrl; ?>" method="post" id="integratorActionForm">
@@ -137,11 +146,15 @@ $fakeName = static fn(string $n): bool => \in_array($n, ['bfFakeName', 'bfFakeNa
           <?php /* New item row */ ?>
           <tr class="table-secondary">
             <td>
-              <select name="element_id" class="form-select form-select-sm">
-                <?php foreach ($this->formElements as $el): if ($fakeName($el->name)) continue; ?>
-                  <option value="<?= (int) $el->id; ?>"><?= htmlspecialchars($el->name); ?> (<?= htmlspecialchars($el->type); ?>)</option>
-                <?php endforeach; ?>
-              </select>
+              <?php /* The icons of the editor's type menu: native options cannot show one. */ ?>
+              <span class="bfng bfng-type-select bfng-type-select--form">
+                <select name="element_id" id="bf-integrator-element" class="form-select form-select-sm" data-bfng-icon-menu>
+                  <?php foreach ($this->formElements as $el): if ($fakeName($el->name)) continue; ?>
+                    <?php $iconType = $elementIcons[$el->type] ?? null; ?>
+                    <option value="<?= (int) $el->id; ?>"<?= $iconType !== null ? ' class="bfng-type-icon--' . $iconType . '"' : ''; ?>><?= htmlspecialchars($el->name); ?> (<?= htmlspecialchars($el->type); ?>)</option>
+                  <?php endforeach; ?>
+                </select>
+              </span>
             </td>
             <td class="text-center">=&gt;</td>
             <td>
