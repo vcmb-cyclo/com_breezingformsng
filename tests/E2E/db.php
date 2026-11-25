@@ -429,6 +429,28 @@ switch ($argv[1] ?? '') {
         // element <form id> <name>: one element of a form, as stored.
         echo json_encode($db->query("SELECT * FROM {$config->dbprefix}facileforms_elements WHERE form = {$id} AND name = '" . $db->real_escape_string($argv[3] ?? '') . "'")->fetch_assoc());
         break;
+    case 'menu-fixture':
+        // menu-fixture <title prefix> <count>: site menu items linking a form that is not configured, which the audit reports.
+        $menu = $config->dbprefix . 'menu';
+        $prefix = $db->real_escape_string((string) ($argv[2] ?? 'E2E menu'));
+        $ids = [];
+        for ($i = 1; $i <= (int) ($argv[3] ?? 1); $i++) {
+            $edge = (int) $db->query("SELECT COALESCE(MAX(rgt), 0) m FROM {$menu}")->fetch_assoc()['m'];
+            $alias = strtolower(str_replace(' ', '-', $prefix)) . '-' . $i . '-' . $edge;
+            $db->query("INSERT INTO {$menu} (menutype, title, alias, note, path, link, type, published, parent_id, level, component_id, checked_out_time, browserNav, access, img, template_style_id, params, lft, rgt, home, language, client_id) VALUES ('mainmenu', '{$prefix} {$i}', '{$alias}', '', '{$alias}', 'index.php?option=com_breezingformsng&view=form', 'component', 1, 1, 1, 0, NULL, 0, 1, '', 0, '{}', " . ($edge + 1) . ', ' . ($edge + 2) . ", 0, '*', 0)");
+            $ids[] = $db->insert_id;
+        }
+        echo json_encode($ids);
+        break;
+    case 'menu-published':
+        // menu-published <id>: the state of a menu item (-2 is the trash), or "gone".
+        $row = $db->query("SELECT published FROM {$config->dbprefix}menu WHERE id = {$id}")->fetch_assoc();
+        echo $row === null ? 'gone' : $row['published'];
+        break;
+    case 'menu-delete':
+        // menu-delete <title prefix>: removes the menu items of the fixture for good.
+        $db->query("DELETE FROM {$config->dbprefix}menu WHERE title LIKE '" . $db->real_escape_string((string) ($argv[2] ?? '')) . "%'");
+        break;
     default:
         exit(1);
 }
