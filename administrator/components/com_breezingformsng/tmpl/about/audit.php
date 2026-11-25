@@ -78,6 +78,17 @@ $orphanLink = static fn (bool $linked, array $group, string $text): string => $l
         . Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SHOW_RECORDS') . '</span></a>'
     : $text;
 $auditCollationHistogram = (array) ($auditReport['collation_histogram'] ?? array());
+$auditCollationGroups = array();
+$auditColumnCollationGroups = array();
+
+foreach ($auditCollationIssues as $auditIndex => $auditIssue) {
+    $auditCollationGroups[(string) ($auditIssue['collation'] ?? '')][$auditIndex] = $auditIssue;
+}
+
+foreach ($auditColumnCollationIssues as $auditIndex => $auditIssue) {
+    $auditColumnCollationGroups[(string) ($auditIssue['table'] ?? '')][$auditIndex] = $auditIssue;
+}
+
 $auditTablesByCollation = array();
 
 foreach ($auditEntryList($auditReport['tables'] ?? array()) as $auditTable) {
@@ -514,17 +525,22 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                             </label>
                             <button type="submit" class="btn btn-sm btn-warning" onclick="document.getElementById('bf-about-task').value='about.repairTableCollations';document.getElementById('bf-table-collation-issue').value='';"><span class="fa-solid fa-wrench me-1" aria-hidden="true"></span><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEX_REPAIR_SELECTED'); ?></button>
                         </div>
-                        <div class="table-responsive">
+                        <?php foreach ($auditCollationGroups as $groupName => $groupIssues) : ?>
+                        <details class="bf-audit-subsection mb-1">
+                            <summary><code><?php echo htmlspecialchars((string) $groupName, ENT_QUOTES, 'UTF-8'); ?></code>: <strong><?php echo count($groupIssues); ?></strong></summary>
+                            <div class="table-responsive mt-2">
                             <table class="table table-sm align-middle mb-0">
                                 <thead><tr><th></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_CURRENT'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXPECTED'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ACTIONS'); ?></th></tr></thead>
                                 <tbody>
-                                <?php foreach ($auditCollationIssues as $index => $issue) : ?>
+                                <?php foreach ($groupIssues as $index => $issue) : ?>
                                     <?php $tableCollationToken = DatabaseRepairService::getTableCollationSelectionToken((array) $issue); ?>
                                     <tr class="table-warning"><td><input type="checkbox" class="form-check-input" data-bf-select-item="table-collations" name="table_collation_issues[]" value="<?php echo htmlspecialchars($tableCollationToken, ENT_QUOTES, 'UTF-8'); ?>" aria-label="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEX_SELECT_ONE', (int) $index + 1), ENT_QUOTES, 'UTF-8'); ?>"></td><td><code><?php echo htmlspecialchars((string) ($issue['table'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code></td><td><?php echo htmlspecialchars((string) ($issue['collation'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td><td><?php echo htmlspecialchars((string) ($issue['expected'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td><td class="text-nowrap"><button type="submit" class="btn btn-sm btn-warning" onclick="document.getElementById('bf-about-task').value='about.repairTableCollations';document.getElementById('bf-table-collation-issue').value='<?php echo $tableCollationToken; ?>';" title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_COLLATION_REPAIR'), ENT_QUOTES, 'UTF-8'); ?>" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE_COLLATION_REPAIR'), ENT_QUOTES, 'UTF-8'); ?>"><span class="fa-solid fa-wrench" aria-hidden="true"></span></button></td></tr>
                                 <?php endforeach; ?>
                                 </tbody>
                             </table>
                         </div>
+                        </details>
+                        <?php endforeach; ?>
                     </details>
                 <?php endif; ?>
 
@@ -550,23 +566,28 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 <span class="fa-solid fa-wrench me-1" aria-hidden="true"></span><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATION_REPAIR_SELECTED'); ?>
                             </button>
                         </div>
-                        <div class="table-responsive">
+                        <?php foreach ($auditColumnCollationGroups as $groupName => $groupIssues) : ?>
+                        <details class="bf-audit-subsection mb-1">
+                            <summary><code><?php echo htmlspecialchars((string) $groupName, ENT_QUOTES, 'UTF-8'); ?></code>: <strong><?php echo count($groupIssues); ?></strong></summary>
+                            <div class="table-responsive mt-2">
                             <table class="table table-sm align-middle mb-0">
                                 <thead><tr><th></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_CHARSET'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLLATION'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXPECTED'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ACTIONS'); ?></th></tr></thead>
                                 <tbody>
-                                <?php foreach ($auditColumnCollationIssues as $index => $issue) : ?>
+                                <?php foreach ($groupIssues as $index => $issue) : ?>
                                     <?php $columnCollationToken = DatabaseRepairService::getColumnCollationSelectionToken((array) $issue); ?>
                                     <tr class="table-warning"><td><input type="checkbox" class="form-check-input" data-bf-select-item="column-collations" name="column_collation_issues[]" value="<?php echo htmlspecialchars($columnCollationToken, ENT_QUOTES, 'UTF-8'); ?>" aria-label="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATION_SELECT_ONE', (int) $index + 1), ENT_QUOTES, 'UTF-8'); ?>"></td><td><code><?php echo htmlspecialchars((string) ($issue['table'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code></td><td><code><?php echo htmlspecialchars((string) ($issue['column'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code></td><td><?php echo htmlspecialchars((string) ($issue['charset'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td><td><?php echo htmlspecialchars((string) ($issue['collation'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td><td><?php echo htmlspecialchars((string) ($issue['expected_charset'] ?? '') . ' / ' . (string) ($issue['expected'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td><td class="text-nowrap"><button type="submit" class="btn btn-sm btn-warning" onclick="document.getElementById('bf-about-task').value='about.repairColumnCollations';document.getElementById('bf-column-collation-issue').value='<?php echo $columnCollationToken; ?>';" title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATION_REPAIR_TIP'), ENT_QUOTES, 'UTF-8'); ?>" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATION_REPAIR'), ENT_QUOTES, 'UTF-8'); ?>"><span class="fa-solid fa-wrench" aria-hidden="true"></span></button></td></tr>
                                 <?php endforeach; ?>
                                 </tbody>
                             </table>
                         </div>
+                        </details>
+                        <?php endforeach; ?>
                     </details>
                 <?php endif; ?>
 
                 <?php if (count($auditCollationHistogram) > 1) : ?>
                     <details class="bf-audit-section-block mb-3" open>
-                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS_HELP'); ?></h4> <span class="badge bg-secondary ms-1"><?php echo (int) count($auditCollationHistogram); ?></span></summary>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS_HELP'); ?></h4> <span class="badge bg-secondary ms-1"><?php echo (int) array_sum($auditCollationHistogram); ?></span></summary>
                         <?php foreach ($auditCollationHistogram as $collationName => $count) : ?>
                             <details class="bf-audit-subsection mb-1">
                                 <summary><code><?php echo htmlspecialchars((string) $collationName, ENT_QUOTES, 'UTF-8'); ?></code>: <strong><?php echo (int) $count; ?></strong></summary>

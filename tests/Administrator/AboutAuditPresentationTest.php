@@ -176,7 +176,9 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringContainsString("'subrecords_without_record' => 'about.deleteOrphanSubrecords'", $template);
         self::assertSame(15, substr_count($template, '<span class="badge bg-secondary ms-1">'));
         // The mixed collations list one sub-accordion per collation, with its tables.
-        self::assertStringContainsString('<details class="bf-audit-subsection mb-1">', $template);
+        // The three collation sections are grouped in sub-accordions; the mixed ones count tables, not collations.
+        self::assertSame(3, substr_count($template, '<details class="bf-audit-subsection mb-1">'));
+        self::assertStringContainsString('array_sum($auditCollationHistogram)', $template);
     }
 
     public function testRemovingALegacyTemplateNeverLeavesAClientWithoutDefaultStyle(): void
