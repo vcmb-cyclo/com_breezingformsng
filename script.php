@@ -1424,7 +1424,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
     /**
      * Joomla creates one unpublished, unplaced instance named after the module each time a module is installed:
      * the old module left one, the new module made another. Only untouched placeholders are counted (no position,
-     * unpublished, no parameters), and the first one stays.
+     * unpublished, no parameters, still named after the module), and the first one stays. A draft the administrator
+     * named is theirs.
      */
     private function removeDuplicateModulePlaceholders(): void
     {
@@ -1435,6 +1436,17 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                 ->from($db->quoteName('#__modules'))
                 ->where($db->quoteName('module') . ' = ' . $db->quote('mod_breezingformsng'))
                 ->where($db->quoteName('client_id') . ' = 0')
+                ->whereIn(
+                    $db->quoteName('title'),
+                    array_values(array_unique([
+                        'MOD_BREEZINGFORMSNG',
+                        'MOD_BREEZINGFORMS',
+                        Text::_('MOD_BREEZINGFORMSNG'),
+                        'BreezingForms NG',
+                        'BreezingForms',
+                    ])),
+                    ParameterType::STRING
+                )
                 ->where($db->quoteName('position') . ' = ' . $db->quote(''))
                 ->where($db->quoteName('published') . ' = 0')
                 ->where($db->quoteName('params') . ' IN (' . $db->quote('') . ', ' . $db->quote('{}') . ')')

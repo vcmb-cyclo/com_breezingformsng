@@ -18,6 +18,7 @@
 ### Fixed
 
 - Stop listing as leftovers of the former BreezingForms the module and the content plugin that BreezingForms NG installs itself, and open the right entry of the Extensions Manager from the audit link.
+- Do not send the administrator notification to the placeholder address "Enter your email address here" when no recipient is configured: the submission is stored and the missing recipient is logged instead of ending on a failed mail.
 
 ## 6.1.0
 

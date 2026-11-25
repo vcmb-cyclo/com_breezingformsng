@@ -734,9 +734,16 @@ class AboutController extends BaseController
     public function trashOrphanRecords(): void
     {
         $this->repairOrphans(
-            fn (DatabaseRepairService $repair): int => $repair->trashOrphanRecords(
-                $this->orphanParentIds(false) ?? []
-            ),
+            function (DatabaseRepairService $repair): int {
+                // Changing the state of a record is the right to edit its state, like in the Records screen.
+                $user = $this->getAuthorizedApplication()->getIdentity();
+
+                if ($user === null || !$user->authorise('core.edit.state', 'com_breezingformsng')) {
+                    throw new NotAllowed(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+                }
+
+                return $repair->trashOrphanRecords($this->orphanParentIds(false) ?? []);
+            },
             'records_without_form',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORDS_TRASHED',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_RECORDS_TRASH_FAILED'

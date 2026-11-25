@@ -80,6 +80,19 @@ test('records and elements of deleted forms are deleted one by one or by selecti
         await expect(page.locator('#bf-audit-section')).toBeVisible({ timeout: 30_000 });
         await expect(page.locator(`[data-bf-orphan-check="records_without_form"] input[data-bf-orphan-select][value="${first}"]`)).toHaveCount(0);
         await expect(page.locator(`[data-bf-orphan-check="records_without_form"] input[data-bf-orphan-select][value="${second}"]`)).toHaveCount(0);
+
+        // Deleted from the trash like any record: the records and their values go, the kept record stays.
+        const ids = [...fixture.records[first], ...fixture.records[second]];
+        const body = new URLSearchParams({ [csrf]: '1' });
+        ids.forEach((id) => body.append('cid[]', String(id)));
+        const removed = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=records.delete`, {
+            data: body.toString(),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            maxRedirects: 0,
+        });
+        expect([302, 303]).toContain(removed.status());
+        await expect.poll(() => counts().records[first] + counts().records[second], { timeout: 30_000 }).toBe(0);
+        expect(counts()).toMatchObject({ values: 0, kept: 1, keptState: 1 });
     } finally {
         db('orphan-parents-clean', String(fixture.kept));
         await page.close();
