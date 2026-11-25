@@ -46,7 +46,9 @@ final class AboutExtensionsChangelogTest extends TestCase
 
         self::assertIsString($template);
         self::assertIsString($css);
-        self::assertStringContainsString('class="bf-extension-name"', $template);
+        self::assertStringContainsString('data-bf-sortable-table', $template);
+        self::assertSame(7, substr_count($template, "\$sortHeader('"));
+        self::assertStringContainsString("'bf-extension-name'", $template);
         self::assertStringContainsString('class="bf-extension-description" title="', $template);
         self::assertStringContainsString('-webkit-line-clamp: 2;', $css);
         self::assertStringContainsString('#bf-extensions-table th.bf-extension-name', $css);

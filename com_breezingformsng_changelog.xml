@@ -6,7 +6,7 @@
         <version>6.1.1-RC1</version>
         <addition>
             <item>Link record submitters and audit users to their Joomla profiles from the administrator.</item>
-            <item>List every BreezingForms extension on the About &gt; Extensions screen, the former BreezingForms ones too and whatever their type, with the ID first, the description and the changelog link of each extension, and an uninstall button; "Manage extensions" opens the Extensions Manager of Joomla.</item>
+            <item>List every BreezingForms extension on the About Extensions screen, the former BreezingForms ones too and whatever their type, with the ID first, the description, the version (it opens the changelog of the extension in a dialog, like in the Extensions Manager of Joomla) and an uninstall button; "Manage extensions" opens the Extensions Manager of Joomla.</item>
             <item>Clean up from the audit what deleted forms left behind, one form at a time with its trash button or several at once with the selection: their elements are deleted and their records go to the trash of the records, to be deleted from there like any record; the values of records that no longer exist can be deleted.</item>
             <item>Show on each sub-tab of the form email options (administrator notification, user confirmation) how many settings it holds.</item>
             <item>Move several site menu items reported by the audit to the trash at once, with a checkbox on each of them and a button for the selection.</item>
@@ -18,7 +18,7 @@
         </change>
         <fix>
             <item>Stop listing as leftovers of the former BreezingForms the module and the content plugin that BreezingForms NG installs itself, and open the right entry of the Extensions Manager from the audit link.</item>
-            <item>Do not send the administrator notification to the placeholder address &quot;Enter your email address here&quot; when no recipient is configured: the submission is stored and the missing recipient is logged instead of ending on a failed mail.</item>
+            <item>Do not send the administrator notification to the placeholder address "Enter your email address here" when no recipient is configured: the submission is stored and the missing recipient is logged instead of ending on a failed mail.</item>
         </fix>
     </changelog>
     <changelog>
@@ -362,7 +362,7 @@
             <item>Forms previously saved as Backend only are unpublished during updates and package imports to keep them off the site. Publish them explicitly to make them available. Imports warn about each affected form, show its previous publication state and record the change in the log.</item>
         </change>
         <fix>
-            <item>Display forms saved as Frontend &amp; Backend through modules and article plugins instead of reporting that the form was not found.</item>
+            <item>Display forms saved as Frontend and Backend through modules and article plugins instead of reporting that the form was not found.</item>
             <item>Keep a form's display mode unchanged when restoring a saved version.</item>
             <item>Remove obsolete administrator links from form error reports.</item>
             <item>Preserve component settings and correctly register the installed version when upgrading a legacy BreezingForms installation.</item>

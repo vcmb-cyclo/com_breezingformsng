@@ -5,7 +5,7 @@
 ### Added
 
 - Link record submitters and audit users to their Joomla profiles from the administrator.
-- List every BreezingForms extension on the About > Extensions screen, the former BreezingForms ones too and whatever their type, with the ID first, the description and the changelog link of each extension, and an uninstall button; "Manage extensions" opens the Extensions Manager of Joomla.
+- List every BreezingForms extension on the About Extensions screen, the former BreezingForms ones too and whatever their type, with the ID first, the description, the version (it opens the changelog of the extension in a dialog, like in the Extensions Manager of Joomla) and an uninstall button; "Manage extensions" opens the Extensions Manager of Joomla.
 - Clean up from the audit what deleted forms left behind, one form at a time with its trash button or several at once with the selection: their elements are deleted and their records go to the trash of the records, to be deleted from there like any record; the values of records that no longer exist can be deleted.
 - Show on each sub-tab of the form email options (administrator notification, user confirmation) how many settings it holds.
 - Move several site menu items reported by the audit to the trash at once, with a checkbox on each of them and a button for the selection.
@@ -413,7 +413,7 @@
 
 ### Fixed
 
-- Display forms saved as Frontend & Backend through modules and article plugins instead of
+- Display forms saved as Frontend and Backend through modules and article plugins instead of
   reporting that the form was not found.
 - Keep a form's display mode unchanged when restoring a saved version.
 - Remove obsolete administrator links from form error reports.
