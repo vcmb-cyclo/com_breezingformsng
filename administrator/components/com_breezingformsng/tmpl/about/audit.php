@@ -92,7 +92,15 @@ foreach ($auditColumnCollationIssues as $auditIndex => $auditIssue) {
 $auditTablesByCollation = array();
 
 foreach ($auditEntryList($auditReport['tables'] ?? array()) as $auditTable) {
-    $auditTablesByCollation[(string) ($auditTable['collation'] ?? '')][] = (string) ($auditTable['table'] ?? '');
+    $auditTablesByCollation[(string) ($auditTable['collation'] ?? '')][] = $auditTable;
+}
+
+// The tables that do not use the target collation are the ones the table-collation repair converts.
+$auditTargetCollation = (string) ($auditReport['target_collation'] ?? '');
+$auditCollationIssueByTable = array();
+
+foreach ($auditCollationIssues as $auditIssue) {
+    $auditCollationIssueByTable[(string) ($auditIssue['table'] ?? '')] = $auditIssue;
 }
 $auditDuplicateIndexes = $auditEntryList($auditReport['duplicate_indexes'] ?? array());
 $auditMenuIssues = $auditEntryList($auditReport['menu_issues'] ?? array());
@@ -589,13 +597,54 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                     <details class="bf-audit-section-block mb-3" open>
                         <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS_HELP'); ?></h4> <span class="badge bg-secondary ms-1"><?php echo (int) array_sum($auditCollationHistogram); ?></span></summary>
                         <?php foreach ($auditCollationHistogram as $collationName => $count) : ?>
+                            <?php
+                            $mixedTables = $auditTablesByCollation[(string) $collationName] ?? array();
+                            $mixedIsTarget = strcasecmp((string) $collationName, $auditTargetCollation) === 0;
+                            $mixedGroup = 'mixed-collation-' . md5((string) $collationName);
+                            ?>
                             <details class="bf-audit-subsection mb-1">
-                                <summary><code><?php echo htmlspecialchars((string) $collationName, ENT_QUOTES, 'UTF-8'); ?></code>: <strong><?php echo (int) $count; ?></strong></summary>
-                                <ul class="mt-2 mb-1">
-                                    <?php foreach ($auditTablesByCollation[(string) $collationName] ?? array() as $collationTable) : ?>
-                                        <li><code><?php echo htmlspecialchars($collationTable, ENT_QUOTES, 'UTF-8'); ?></code></li>
-                                    <?php endforeach; ?>
-                                </ul>
+                                <summary>
+                                    <code><?php echo htmlspecialchars((string) $collationName, ENT_QUOTES, 'UTF-8'); ?></code>: <strong><?php echo (int) $count; ?></strong>
+                                    <?php if ($mixedIsTarget) : ?>
+                                        <span class="badge bg-success ms-1"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXPECTED'); ?></span>
+                                    <?php endif; ?>
+                                </summary>
+                                <?php if (!$mixedIsTarget) : ?>
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2 mb-2">
+                                        <label class="form-check mb-0">
+                                            <input type="checkbox" class="form-check-input" data-bf-select-all="<?php echo $mixedGroup; ?>" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEX_SELECT_ALL'), ENT_QUOTES, 'UTF-8'); ?>">
+                                            <span class="form-check-label"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEX_SELECT_ALL'); ?></span>
+                                        </label>
+                                        <button type="submit" class="btn btn-sm btn-warning" onclick="document.getElementById('bf-about-task').value='about.repairTableCollations';document.getElementById('bf-table-collation-issue').value='';"><span class="fa-solid fa-wrench me-1" aria-hidden="true"></span><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATION_REPAIR_SELECTED'); ?></button>
+                                    </div>
+                                <?php endif; ?>
+                                <div class="table-responsive<?php echo $mixedIsTarget ? ' mt-2' : ''; ?>">
+                                    <table class="table table-sm table-striped align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <?php if (!$mixedIsTarget) : ?><th class="w-1"></th><?php endif; ?>
+                                                <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE'); ?></th>
+                                                <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ROWS'); ?></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($mixedTables as $mixedTable) : ?>
+                                                <?php $mixedIssue = $auditCollationIssueByTable[(string) ($mixedTable['table'] ?? '')] ?? null; ?>
+                                                <tr>
+                                                    <?php if (!$mixedIsTarget) : ?>
+                                                        <td>
+                                                            <?php if ($mixedIssue !== null) : ?>
+                                                                <input type="checkbox" class="form-check-input" data-bf-select-item="<?php echo $mixedGroup; ?>" name="table_collation_issues[]" value="<?php echo htmlspecialchars(DatabaseRepairService::getTableCollationSelectionToken((array) $mixedIssue), ENT_QUOTES, 'UTF-8'); ?>" aria-label="<?php echo htmlspecialchars((string) ($mixedTable['table'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
+                                                            <?php endif; ?>
+                                                        </td>
+                                                    <?php endif; ?>
+                                                    <td><code><?php echo htmlspecialchars((string) ($mixedTable['table'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></code></td>
+                                                    <td><?php echo (int) ($mixedTable['rows'] ?? 0); ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </details>
                         <?php endforeach; ?>
                     </details>

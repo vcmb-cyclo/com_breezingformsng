@@ -178,6 +178,9 @@ final class AboutAuditPresentationTest extends TestCase
         // The mixed collations list one sub-accordion per collation, with its tables.
         // The three collation sections are grouped in sub-accordions; the mixed ones count tables, not collations.
         self::assertSame(3, substr_count($template, '<details class="bf-audit-subsection mb-1">'));
+        // Each mixed collation lists its tables in a striped table; the ones off the target can be repaired.
+        self::assertStringContainsString('data-bf-select-item="<?php echo $mixedGroup; ?>" name="table_collation_issues[]"', $template);
+        self::assertStringContainsString('$mixedIsTarget = strcasecmp(', $template);
         self::assertStringContainsString('array_sum($auditCollationHistogram)', $template);
     }
 
