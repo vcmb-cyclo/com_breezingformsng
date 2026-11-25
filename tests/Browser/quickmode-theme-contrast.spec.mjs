@@ -8,7 +8,7 @@ const hosts = {
     dark: { scheme: 'dark', background: '#212529', color: '#dee2e6' },
 };
 
-const markup = `<div class="bfQuickMode" id="bfQuickModeForm">
+const markup = (theme = 'vcmb_j6') => `<div class="bfFormDiv" data-bf-theme="${theme}"><form class="bfQuickMode" id="bfQuickModeForm">
     <div class="bfPageIntro">Please fill in the form below.</div>
     <fieldset><legend>Contact</legend>
         <section class="bfElemWrap"><label for="name">Name <span class="bfRequired">*</span></label>
@@ -26,7 +26,7 @@ const markup = `<div class="bfQuickMode" id="bfQuickModeForm">
         <button type="button" class="bfPrevButton">Previous</button>
         <button type="submit" class="bfSubmitButton">Send</button>
     </fieldset>
-</div>`;
+</form></div>`;
 
 const measure = () => {
     const parse = (value) => {
@@ -124,7 +124,7 @@ for (const theme of themes) {
             await page.emulateMedia({ colorScheme: host.scheme });
             await page.setContent(`<!doctype html><html data-bs-theme="${host.scheme}"><head><meta charset="utf-8">
                 <style>body { margin: 1rem; background: ${host.background}; color: ${host.color}; }</style></head>
-                <body>${markup}</body></html>`);
+                <body>${markup(theme)}</body></html>`);
             await page.addStyleTag({ path: `media/breezingforms/themes/${theme}/theme.css` });
 
             expect([...await page.evaluate(measure), ...await page.evaluate(focusFailures)]).toEqual([]);
@@ -134,7 +134,7 @@ for (const theme of themes) {
 
 test('vcmb_j6 puts the label close to its field, on the same line, with the help visible under the field', async ({ page }) => {
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>body { margin: 1rem; }</style></head>
-        <body>${markup}</body></html>`);
+        <body>${markup()}</body></html>`);
     await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j6/theme.css' });
 
     const row = await page.evaluate(() => {
@@ -173,7 +173,7 @@ test('vcmb_j6 puts the label close to its field, on the same line, with the help
 });
 
 test('vcmb_j6 draws the fieldsets in light grey and keeps the blue for their title', async ({ page }) => {
-    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"></head><body>${markup}</body></html>`);
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"></head><body>${markup()}</body></html>`);
     await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j6/theme.css' });
 
     const colours = await page.evaluate(() => {
@@ -189,7 +189,7 @@ test('vcmb_j6 draws the fieldsets in light grey and keeps the blue for their tit
 
 test('vcmb_j6 lays out the rows the form script shows, keeps hidden ones hidden, and does not stretch checkboxes', async ({ page }) => {
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"></head><body>
-        <div class="bfQuickMode"><fieldset>
+        <div class="bfFormDiv" data-bf-theme="vcmb_j6"><form class="bfQuickMode"><fieldset>
             <section id="shown" class="bfElemWrap bfLabelLeft" style="display: block;">
                 <label>Participants</label><span class="ff_elem bfSummarize" style="display: table-cell">4</span></section>
             <section id="hidden" class="bfElemWrap bfLabelLeft" style="display:none">
@@ -199,7 +199,7 @@ test('vcmb_j6 lays out the rows the form script shows, keeps hidden ones hidden,
             <section id="check" class="bfElemWrap bfLabelLeft" style="display: block;">
                 <label for="agree">I accept the registration terms and the cancellation policy</label>
                 <input id="agree" type="checkbox"><small class="bfHint">The seat is confirmed by email</small></section>
-        </fieldset></div></body></html>`);
+        </fieldset></form></div></body></html>`);
     await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j6/theme.css' });
 
     const state = await page.evaluate(() => {
@@ -226,13 +226,13 @@ test('vcmb_j6 lays out the rows the form script shows, keeps hidden ones hidden,
 test('vcmb_j6 keeps the phone layout and ignores the rollover colour of the form', async ({ page }) => {
     await page.setViewportSize({ width: 500, height: 800 });
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"></head><body>
-        <div class="bfQuickMode"><fieldset>
+        <div class="bfFormDiv" data-bf-theme="vcmb_j6"><form class="bfQuickMode"><fieldset>
             <section id="plain" class="bfElemWrap bfLabelLeft"><label for="a">Last name</label><input id="a" type="text"></section>
             <section id="active" class="bfElemWrap bfLabelLeft bfRolloverBg" style="background: rgb(255, 255, 204);">
                 <label for="b">First name</label><input id="b" type="text"></section>
             <section id="blurred" class="bfElemWrap bfLabelLeft" style="background: rgba(0, 0, 0, 0);">
                 <label for="c">Email</label><input id="c" type="text"></section>
-        </fieldset></div></body></html>`);
+        </fieldset></form></div></body></html>`);
     await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j6/theme.css' });
 
     const rows = await page.evaluate(() => ['plain', 'active', 'blurred'].map((id) => {
@@ -253,4 +253,20 @@ test('vcmb_j6 keeps the phone layout and ignores the rollover colour of the form
         expect(row.fieldShare).toBeGreaterThan(0.9);
         expect(row.background).toBe('rgba(0, 0, 0, 0)');
     });
+});
+
+
+test('loading VCMB J6 preserves the layout and tooltip of a sibling Classic form', async ({ page }) => {
+    const form = (theme) => `<div class="bfFormDiv" data-bf-theme="${theme}"><form class="bfQuickMode">
+        <section class="bfElemWrap bfLabelLeft"><label>Name <span class="editlinktip">Help</span></label>
+        <input type="text"></section></form></div>`;
+    await page.setContent(form('vcmb_j5') + form('vcmb_j6'));
+    await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j5/theme.css' });
+    const classic = page.locator('[data-bf-theme="vcmb_j5"]');
+    const layout = (root) => root.evaluate((node) => ['section', '.editlinktip'].map((selector) =>
+        getComputedStyle(node.querySelector(selector)).display));
+    const before = await layout(classic);
+    await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j6/theme.css' });
+    expect(await layout(classic)).toEqual(before);
+    expect(await layout(page.locator('[data-bf-theme="vcmb_j6"]'))).toEqual(['grid', 'none']);
 });

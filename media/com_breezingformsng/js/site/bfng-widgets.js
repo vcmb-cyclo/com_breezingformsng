@@ -417,8 +417,13 @@
                 var message = bad ? text('COM_BREEZINGFORMSNG_WIDGET_PHONE_INVALID', 'Enter a valid phone number.') : '';
                 input.classList.toggle('is-invalid', bad);
                 input.setAttribute('aria-invalid', bad ? 'true' : 'false');
+                var descriptions = (input.getAttribute('aria-describedby') || '').split(/\s+/)
+                    .filter(function (id) { return id && id !== error.id; });
                 if (bad) {
-                    input.setAttribute('aria-describedby', error.id);
+                    descriptions.push(error.id);
+                }
+                if (descriptions.length) {
+                    input.setAttribute('aria-describedby', descriptions.join(' '));
                 } else {
                     input.removeAttribute('aria-describedby');
                 }

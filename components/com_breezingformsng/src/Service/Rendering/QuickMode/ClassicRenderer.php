@@ -650,6 +650,14 @@ float:left;
                     }
                 }
 
+                $translatedHint = $this->classicTranslation(
+                    $mdata,
+                    'hint_translation' . $this->language_tag
+                );
+                if ($translatedHint !== null) {
+                    $mdata['hint'] = $translatedHint;
+                }
+
                 if (!$mdata['hideLabel']) {
                     $badge = '';
 
@@ -670,13 +678,6 @@ float:left;
                         );
                         if ($translatedLabel !== null) {
                             $mdata['label'] = $translatedLabel;
-                        }
-                        $translatedHint = $this->classicTranslation(
-                            $mdata,
-                            'hint_translation' . $this->language_tag
-                        );
-                        if ($translatedHint !== null) {
-                            $mdata['hint'] = $translatedHint;
                         }
                         /* translatables end */
 
@@ -751,6 +752,16 @@ float:left;
                 }
                 $tabIndex .= $this->quickModeRequiredMarkupBuilder()->ariaRequiredAttribute((string) $mdata['bfType'], !empty($mdata['required']));
 
+                $hintLine = '';
+                $hintId = '';
+                if ($mdata['bfType'] !== 'bfHidden' && trim((string) ($mdata['hint'] ?? '')) !== '') {
+                    $hintLine = trim(strip_tags($this->quickModeHintContentResolver()->resolve((string) $mdata['hint'], true)));
+                    if ($hintLine !== '' && ($this->rootMdata['theme'] ?? '') === 'vcmb_j6') {
+                        $hintId = 'bfHint' . (int) $mdata['dbId'];
+                        $tabIndex .= 'aria-describedby="' . $hintId . '" ';
+                    }
+                }
+
                 $mdata = QuickModeSubmittedValueHydrator::hydrate($this->p, $mdata, $this->language_tag);
                 $mdata = $this->normalizeClassicFieldData($mdata);
 
@@ -810,15 +821,15 @@ float:left;
                         break;
 
                     case 'bfCaptcha':
-                        $this->renderCaptchaField($mdata);
+                        $this->renderCaptchaField($mdata, $hintId);
                         break;
 
                     case 'bfCalendar':
-                        $this->renderCalendarField($mdata);
+                        $this->renderCalendarField($mdata, $hintId);
                         break;
 
                     case 'bfCalendarResponsive':
-                        $this->renderCalendarResponsiveField($mdata);
+                        $this->renderCalendarResponsiveField($mdata, $hintId);
                         break;
 
                     case 'bfSignature':
@@ -844,14 +855,9 @@ float:left;
 
                 echo $flashUploader;
 
-                // The hint as a plain line under the field: shown by the themes that want it (the tooltip needs a hover).
-                if ($mdata['bfType'] != 'bfHidden' && trim((string) ($mdata['hint'] ?? '')) !== '') {
-                    $hintLine = trim(strip_tags($this->quickModeHintContentResolver()->resolve((string) $mdata['hint'], true)));
-
-                    if ($hintLine !== '') {
-                        echo '<small class="bfHint" id="bfHint' . $mdata['dbId'] . '">'
-                            . htmlspecialchars($hintLine, ENT_QUOTES, 'UTF-8') . '</small>' . "\n";
-                    }
+                if ($hintLine !== '') {
+                    echo '<small class="bfHint" id="bfHint' . (int) $mdata['dbId'] . '">'
+                        . htmlspecialchars($hintLine, ENT_QUOTES, 'UTF-8') . '</small>' . "\n";
                 }
 
                 if ($mdata['bfType'] != 'bfHidden') {
@@ -1254,7 +1260,7 @@ float:left;
     /**
      * @param array<string, mixed> $mdata
      */
-    private function renderCaptchaField(array $mdata): void
+    private function renderCaptchaField(array $mdata, string $hintId): void
     {
         $mdata = $this->normalizeClassicFieldData($mdata);
         $captcha_url = $this->quickModeCaptchaUrlBuilder()->build(
@@ -1277,7 +1283,7 @@ float:left;
         echo $this->quickModeCaptchaMarkupBuilder()->buildResponseInput(
             isset($mdata['width']) && intval($mdata['width']) > 0 && (intval($mdata['width']) - 45 >= 230) ? ' style="width:' . (intval($mdata['width']) - 45) . 'px;"' : '',
             'ff_elem',
-            '',
+            $hintId !== '' ? 'aria-describedby="' . $hintId . '" ' : '',
             true
         );
         echo '<a href="#" class="ff_elem" role="button" onclick="' . $this->quickModeCaptchaReloadScriptBuilder()->build($captcha_url) . '"><img alt="' . htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_RC_REFRESH'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '" src="' . Uri::root(true) . '/media/com_breezingformsng/images/site/captcha/refresh-captcha.png" /></a>' . "\n";
@@ -1287,7 +1293,7 @@ float:left;
     /**
      * @param array<string, mixed> $mdata
      */
-    private function renderCalendarField(array $mdata): void
+    private function renderCalendarField(array $mdata, string $hintId): void
     {
         $mdata = $this->normalizeClassicFieldData($mdata);
         /* translatables */
@@ -1326,6 +1332,10 @@ float:left;
             'firstDay' => (isset($mdata['firstDay']) && $mdata['firstDay'] != '') ? $mdata['firstDay'] : '7',
         ];
 
+        if ($hintId !== '') {
+            $calAttr['aria-describedby'] = $hintId;
+        }
+
         echo $this->classicString(
             HTMLHelper::_('calendar', $left, "ff_nm_" . $mdata['bfName'] . "[]", "ff_elem" . $mdata['dbId'], $mdata['format'], $calAttr),
             'calendarMarkup'
@@ -1335,7 +1345,7 @@ float:left;
     /**
      * @param array<string, mixed> $mdata
      */
-    private function renderCalendarResponsiveField(array $mdata): void
+    private function renderCalendarResponsiveField(array $mdata, string $hintId): void
     {
         $mdata = $this->normalizeClassicFieldData($mdata);
         /* translatables */
@@ -1377,7 +1387,7 @@ float:left;
             (string) $mdata['bfName'],
             (int) $mdata['dbId'],
             (string) $left,
-            $size
+            $size . ($hintId !== '' ? 'aria-describedby="' . $hintId . '" ' : '')
         );
         echo $this->quickModeCalendarButtonBuilder()->build(
             'type="button"',
