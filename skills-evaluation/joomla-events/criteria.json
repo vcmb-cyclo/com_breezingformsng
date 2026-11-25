@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "maximumInstructionBytes": 2400,
+  "maximumEstimatedTokens": 600,
+  "maximumFalsePositiveSignals": 0,
+  "concepts": {
+    "canonical-guide": ["joomla6-plugins-events.md"],
+    "argument-dispatch": ["getargument()", "get<name>()", "onget<name>()"],
+    "recursion-avoidance": ["recurses", "same argument"],
+    "native-payload": ["argument map", "native `getargument()`"],
+    "runtime-test": ["real joomla event class", "runtime regression test"],
+    "enabled-addon": ["add-on is enabled", "integration or end-to-end"]
+  },
+  "falsePositiveSignals": [
+    "always add a custom event getter",
+    "test only the source text",
+    "skip enabled add-on paths"
+  ]
+}

@@ -10,14 +10,14 @@ parameters:
         - phpstan-bootstrap.php
     paths:
         - administrator/components/com_breezingformsng/mailtpl
-        - administrator/components/com_breezingformsng/modules/mod_breezingforms/src
-        - administrator/components/com_breezingformsng/modules/mod_breezingforms/services
-        - administrator/components/com_breezingformsng/modules/mod_breezingforms/tmpl
+        - administrator/components/com_breezingformsng/modules/mod_breezingformsng/src
+        - administrator/components/com_breezingformsng/modules/mod_breezingformsng/services
+        - administrator/components/com_breezingformsng/modules/mod_breezingformsng/tmpl
         - administrator/components/com_breezingformsng/pdftpl
         - administrator/components/com_breezingformsng/plugins/bfcompat/src
         - administrator/components/com_breezingformsng/plugins/bfcompat/services
-        - administrator/components/com_breezingformsng/plugins/breezingforms/src
-        - administrator/components/com_breezingformsng/plugins/breezingforms/services
+        - administrator/components/com_breezingformsng/plugins/breezingformsng/src
+        - administrator/components/com_breezingformsng/plugins/breezingformsng/services
         - administrator/components/com_breezingformsng/plugins/dropbox/src
         - administrator/components/com_breezingformsng/plugins/dropbox/services
         - administrator/components/com_breezingformsng/plugins/privacy/src

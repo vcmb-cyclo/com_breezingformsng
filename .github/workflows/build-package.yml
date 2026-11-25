@@ -339,6 +339,18 @@ jobs:
       - name: Test installation, update and migration on Joomla
         run: scripts/joomla-install-smoke.sh "${{ steps.package.outputs.archive }}"
 
+      # The module and the content plugin were renamed after 6.1.0: an update from the published package must keep
+      # the module instances placed in the site and the state of the plugin.
+      - name: Update from the published 6.1.0 package (renamed module and plugin)
+        run: |
+          set -euo pipefail
+          published="$RUNNER_TEMP/com_breezingformsng-6.1.0.zip"
+          curl -fsSL -o "$published" \
+            https://github.com/vcmb-cyclo/com_breezingformsng/releases/download/v6.1.0/com_breezingformsng-6.1.0.zip
+          # Pinned: the release is refused when its package is not the one the check was written against.
+          echo "32e4c436c8697a7571a70d4a2a75dbc924cf06ca050f38bc94adef0691e6f5d9  $published" | sha256sum --check --strict -
+          scripts/joomla-rename-migration.sh "$published" "${{ steps.package.outputs.archive }}"
+
       - name: Setup Node.js for the browser journeys
         uses: actions/setup-node@v7
         with:

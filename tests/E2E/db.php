@@ -316,6 +316,11 @@ switch ($argv[1] ?? '') {
                 1999999961 => $count("SELECT COUNT(*) FROM {$prefix}facileforms_records WHERE form = 1999999961"),
                 1999999962 => $count("SELECT COUNT(*) FROM {$prefix}facileforms_records WHERE form = 1999999962"),
             ],
+            'trashed' => [
+                1999999961 => $count("SELECT COUNT(*) FROM {$prefix}facileforms_records WHERE form = 1999999961 AND state = -2"),
+                1999999962 => $count("SELECT COUNT(*) FROM {$prefix}facileforms_records WHERE form = 1999999962 AND state = -2"),
+            ],
+            'keptState' => $count("SELECT COUNT(*) FROM {$prefix}facileforms_records WHERE id = {$id} AND state = 1"),
             'values' => $count("SELECT COUNT(*) FROM {$prefix}facileforms_subrecords WHERE name = 'orphan_value'"),
             'kept' => $count("SELECT COUNT(*) FROM {$prefix}facileforms_subrecords WHERE record = {$id} AND name = 'kept_value'"),
         ]);

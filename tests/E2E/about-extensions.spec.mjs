@@ -33,8 +33,8 @@ test('the extensions screen lists the whole family, with ID first, and uninstall
         const legacy = page.locator('#adminForm li:has([data-bf-select-item="legacy-extensions"])');
         const probeLink = legacy.locator('a:has(code)', { hasText: 'plugin/system/breezingformsprobe' });
         await expect(probeLink).toHaveAttribute('href', new RegExp(`option=com_plugins.*id:${probe}`));
-        await expect(legacy.filter({ hasText: 'module/mod_breezingforms' })).toHaveCount(0);
-        await expect(legacy.filter({ hasText: 'plugin/content/breezingforms' })).toHaveCount(0);
+        await expect(legacy.filter({ hasText: 'module/mod_breezingformsng' })).toHaveCount(0);
+        await expect(legacy.filter({ hasText: 'plugin/content/breezingformsng' })).toHaveCount(0);
         await expect(legacy.locator('a.btn')).toHaveCount(0);
 
         await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about&layout=extensions`);

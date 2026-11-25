@@ -38,7 +38,7 @@ Do not unzip the file. Joomla installs the ZIP as it is.
 What the installer adds:
 
 - The component **BreezingForms NG** (`com_breezingformsng`), with its database tables.
-- The module **BreezingForms NG** (`mod_breezingforms`). It shows a form in a template position.
+- The module **BreezingForms NG** (`mod_breezingformsng`). It shows a form in a template position.
 - The plugin **BreezingForms NG - Content**. It lets you put `{BreezingForms:FormName}` in an article.
 - The plugin **BreezingForms NG - Privacy**. It handles Joomla privacy export and removal requests for submissions.
 - The plugin **BreezingForms NG - MCP**. It adds the MCP endpoint to the Joomla API. The endpoint exists only when MCP is enabled in the component options.
@@ -128,7 +128,7 @@ The installation log is also written to `administrator/logs/breezingforms_instal
 
 What the uninstaller does, according to `script.php`:
 
-- It uninstalls the four bundled plugins (system `bfcompat`, content, privacy, web services) and the `mod_breezingforms` site module.
+- It uninstalls the four bundled plugins (system `bfcompat`, content, privacy, web services) and the `mod_breezingformsng` site module.
 - It removes the component menu entries in the administrator, the action log registration and the content type registration.
 - It deletes the old configuration file `media/breezingforms/facileforms.config.php` if it exists, and the component log file `administrator/logs/com_breezingformsng.log`.
 

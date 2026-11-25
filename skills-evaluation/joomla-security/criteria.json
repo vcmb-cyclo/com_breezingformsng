@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "maximumInstructionBytes": 6000,
+  "maximumEstimatedTokens": 1500,
+  "maximumFalsePositiveSignals": 0,
+  "concepts": {
+    "canonical-guide": ["docs/best-practices/joomla6-security.md"],
+    "server-acl": ["acl", "server-side"],
+    "csrf": ["csrf", "token"],
+    "input-output": ["input", "escape"],
+    "sql": ["sql", "bind"],
+    "uploads": ["upload", "path"],
+    "sensitive-data": ["log", "secret"],
+    "runtime-proof": ["phpunit", "playwright"]
+  },
+  "falsePositiveSignals": [
+    "always add a semgrep rule",
+    "automatically change the security skill",
+    "approve your own"
+  ]
+}
