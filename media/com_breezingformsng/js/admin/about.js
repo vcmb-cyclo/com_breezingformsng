@@ -216,6 +216,13 @@
         }
     });
 
+    // The help icon sits in the title of an audit accordion: reading it must not open or close the section.
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('summary .icon-info-circle')) {
+            event.preventDefault();
+        }
+    });
+
     // Selection of the rows of a check of the orphan references: the bulk button stays off until
     // something is ticked, and shows how many rows are.
     function ticksOf(details) {

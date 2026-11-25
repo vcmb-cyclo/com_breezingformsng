@@ -268,6 +268,21 @@ a.bf-about-version-sub {
 .bf-audit-section-block > h4:first-child {
     margin: 0 !important;
 }
+details.bf-audit-section-block {
+    display: block;
+}
+details.bf-audit-section-block > summary {
+    cursor: pointer;
+}
+details.bf-audit-section-block > summary > h4 {
+    margin: 0 !important;
+}
+details.bf-audit-section-block[open] > summary {
+    margin-bottom: .75rem;
+}
+details.bf-audit-section-block[open] > :not(summary) + :not(summary) {
+    margin-top: .75rem;
+}
 .bf-audit-section-block > .alert,
 .bf-audit-section-block > .table-responsive,
 .bf-audit-section-block > ol {

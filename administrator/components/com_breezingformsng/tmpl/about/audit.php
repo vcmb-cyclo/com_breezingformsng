@@ -226,8 +226,8 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                 <div class="bf-audit-detail-sections">
 
                 <?php if ($auditMissingTables !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_TABLES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_TABLES_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_TABLES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_TABLES_HELP'); ?></h4></summary>
                         <ul class="mb-0">
                             <?php foreach ($auditMissingTables as $table) : ?>
                                 <li>
@@ -242,12 +242,12 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 </li>
                             <?php endforeach; ?>
                         </ul>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditMissingColumns !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_COLUMNS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_COLUMNS_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_COLUMNS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_COLUMNS_HELP'); ?></h4></summary>
                         <p class="text-muted small mb-2"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MISSING_COLUMNS_DESC'); ?></p>
                         <ul class="mb-0">
                             <?php foreach ($auditMissingColumns as $entry) : ?>
@@ -260,12 +260,12 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 </li>
                             <?php endforeach; ?>
                         </ul>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditDebugForms !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS_HELP'); ?></h4></summary>
                         <p class="text-muted small mb-2"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DEBUG_FORMS_DESC'); ?></p>
                         <ul class="mb-0">
                             <?php foreach ($auditDebugForms as $form) : ?>
@@ -280,34 +280,34 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 </li>
                             <?php endforeach; ?>
                         </ul>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditUnexpectedTables !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_UNEXPECTED_TABLES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_UNEXPECTED_TABLES_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_UNEXPECTED_TABLES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_UNEXPECTED_TABLES_HELP'); ?></h4></summary>
                         <ul class="mb-0">
                             <?php foreach ($auditUnexpectedTables as $table) : ?>
                                 <li><code><?php echo htmlspecialchars((string) $table, ENT_QUOTES, 'UTF-8'); ?></code></li>
                             <?php endforeach; ?>
                         </ul>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditStaleLanguageFiles !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_LANGUAGE_FILES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_LANGUAGE_FILES_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_LANGUAGE_FILES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_LANGUAGE_FILES_HELP'); ?></h4></summary>
                         <ul class="mb-0">
                             <?php foreach ($auditStaleLanguageFiles as $file) : ?>
                                 <li><code><?php echo htmlspecialchars((string) $file, ENT_QUOTES, 'UTF-8'); ?></code></li>
                             <?php endforeach; ?>
                         </ul>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditStaleInstallerTempDirs !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_INSTALLER_TEMP'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_INSTALLER_TEMP_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_INSTALLER_TEMP'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_STALE_INSTALLER_TEMP_HELP'); ?></h4></summary>
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                             <label class="form-check mb-0">
                                 <input
@@ -351,12 +351,12 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 </li>
                             <?php endforeach; ?>
                         </ul>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditMenuIssues !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_ISSUES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_ISSUES_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_ISSUES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_ISSUES_HELP'); ?></h4></summary>
                         <div class="d-flex flex-wrap justify-content-end mb-2">
                             <button type="button" class="btn btn-sm btn-outline-danger"
                                 title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE_SELECTED_TIP'), ENT_QUOTES, 'UTF-8'); ?>"
@@ -407,12 +407,12 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditDuplicateForms !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_FORMS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_FORMS_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_FORMS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_FORMS_HELP'); ?></h4></summary>
                         <p class="text-muted small mb-2"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_FORMS_DESC'); ?></p>
                         <ul class="mb-0">
                             <?php foreach ($auditDuplicateForms as $group) : ?>
@@ -448,12 +448,12 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 </li>
                             <?php endforeach; ?>
                         </ul>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditExtensionDuplicates !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_DUPLICATES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_DUPLICATES_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_DUPLICATES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_DUPLICATES_HELP'); ?></h4></summary>
                         <ul class="mb-0">
                             <?php foreach ($auditExtensionDuplicates as $group) : ?>
                                 <li>
@@ -470,12 +470,12 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 </li>
                             <?php endforeach; ?>
                         </ul>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditExtensionLegacy !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_HELP'); ?></h4></summary>
                         <p class="small text-muted mb-2"><?php echo Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_EXPLAIN', '<a href="' . htmlspecialchars(Route::_('index.php?option=com_installer&view=manage&filter[search]=breezingforms', false), ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXTENSION_LEGACY_LINK_LABEL'), ENT_QUOTES, 'UTF-8') . '</a>'); ?></p>
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                             <label class="form-check mb-0">
@@ -496,12 +496,12 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 </li>
                             <?php endforeach; ?>
                         </ul>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditCollationIssues !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLLATIONS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLLATIONS_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLLATIONS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLLATIONS_HELP'); ?></h4></summary>
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                             <label class="form-check mb-0">
                                 <input type="checkbox" class="form-check-input" data-bf-select-all="table-collations" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEX_SELECT_ALL'), ENT_QUOTES, 'UTF-8'); ?>">
@@ -520,12 +520,12 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditColumnCollationIssues !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATIONS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATIONS_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATIONS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_COLUMN_COLLATIONS_HELP'); ?></h4></summary>
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                             <label class="form-check mb-0">
                                 <input
@@ -556,23 +556,23 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if (count($auditCollationHistogram) > 1) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MIXED_COLLATIONS_HELP'); ?></h4></summary>
                         <ul class="mb-0">
                             <?php foreach ($auditCollationHistogram as $collationName => $count) : ?>
                                 <li><code><?php echo htmlspecialchars((string) $collationName, ENT_QUOTES, 'UTF-8'); ?></code>: <?php echo (int) $count; ?></li>
                             <?php endforeach; ?>
                         </ul>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditDuplicateIndexes !== array()) : ?>
-                    <div class="bf-audit-section-block mb-3">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEXES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEXES_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open>
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEXES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEXES_HELP'); ?></h4></summary>
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                             <label class="form-check mb-0">
                                 <input
@@ -624,13 +624,13 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 </li>
                             <?php endforeach; ?>
                         </ul>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 <?php if ($auditOrphanChecks !== array()) : ?>
                     <div id="bf-audit-orphan-messages" class="mb-2" role="status" aria-live="polite"></div>
-                    <div class="bf-audit-section-block mb-3" id="bf-audit-orphan-references">
-                        <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES_HELP'); ?></h4>
+                    <details class="bf-audit-section-block mb-3" open id="bf-audit-orphan-references">
+                        <summary><h4 class="h6 d-inline"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REFERENCES_HELP'); ?></h4></summary>
                         <?php foreach ($auditOrphanChecks as $check) : ?>
                             <?php
                             $orphanGroups = $auditEntryList($check['groups'] ?? array());
@@ -641,17 +641,31 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                             // Values of a record that no longer exists: nothing can show them, they can be deleted.
                             $orphanRecordValues = ($check['id'] ?? '') === 'subrecords_without_record';
                             // Records and elements of a deleted form: one trash button per form, and a selection to delete several.
-                            $orphanSelectable = in_array((string) ($check['id'] ?? ''), array('records_without_form', 'elements_without_form'), true);
-                            $orphanDeleteTask = ($check['id'] ?? '') === 'records_without_form' ? 'about.trashOrphanRecords' : 'about.deleteOrphanElements';
+                            $orphanSelectable = in_array(
+                                (string) ($check['id'] ?? ''),
+                                array('records_without_form', 'elements_without_form', 'subrecords_without_element'),
+                                true
+                            );
+                            // Values have their own delete / reassign buttons per row; the others get one trash button per row.
+                            $orphanRowDelete = $orphanSelectable && !$orphanValues;
+                            $orphanDeleteTask = match ((string) ($check['id'] ?? '')) {
+                                'records_without_form' => 'about.trashOrphanRecords',
+                                'subrecords_without_element' => 'about.deleteOrphanValues',
+                                default => 'about.deleteOrphanElements',
+                            };
                             // Records go to the trash of the records; elements are deleted.
                             $orphanActionKey = ($check['id'] ?? '') === 'records_without_form' ? 'TRASH' : 'DELETE';
-                            $orphanDeleteKey = ($check['id'] ?? '') === 'records_without_form' ? 'RECORDS' : 'ELEMENTS';
+                            $orphanDeleteKey = match ((string) ($check['id'] ?? '')) {
+                                'records_without_form' => 'RECORDS',
+                                'subrecords_without_element' => 'VALUES',
+                                default => 'ELEMENTS',
+                            };
                             $orphanHasForm = array_filter(array_column($orphanGroups, 'form_id')) !== array();
                             $orphanHasPeriod = array_filter(array_column($orphanGroups, 'first')) !== array();
                             // Records of a deleted form: link to the records list filtered on it, all states.
                             $orphanRecordsLink = ($check['id'] ?? '') === 'records_without_form';
                             ?>
-                            <details class="bf-audit-orphans mb-1" open data-bf-orphan-check="<?php echo htmlspecialchars((string) ($check['id'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
+                            <details class="bf-audit-orphans mb-1" data-bf-orphan-check="<?php echo htmlspecialchars((string) ($check['id'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
                                 <summary><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_' . strtoupper((string) ($check['id'] ?? ''))); ?>: <strong class="bf-orphan-count"><?php echo (int) ($check['count'] ?? 0); ?></strong></summary>
                                 <div class="table-responsive mt-2 mb-3">
                                     <table class="table table-sm table-striped align-middle mb-0 w-auto">
@@ -676,7 +690,7 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                                     <th scope="col" class="text-nowrap"><span class="fa-solid fa-arrow-right-long me-1" aria-hidden="true"></span><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_TARGET'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN_HELP'); ?></th>
                                                     <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE'); ?></span></th>
                                                 <?php endif; ?>
-                                                <?php if ($orphanSelectable) : ?>
+                                                <?php if ($orphanRowDelete) : ?>
                                                     <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_' . $orphanDeleteKey . '_' . $orphanActionKey); ?></span></th>
                                                 <?php endif; ?>
                                                 <?php if ($orphanRecordValues) : ?>
@@ -696,7 +710,7 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                                                 value="<?php echo (int) ($orphanGroup['parent_id'] ?? 0); ?>"
                                                                 data-bf-count="<?php echo (int) ($orphanGroup['count'] ?? 0); ?>"
                                                                 aria-label="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_SELECT_ONE', '#' . (int) ($orphanGroup['parent_id'] ?? 0)), ENT_QUOTES, 'UTF-8'); ?>"
-                                                                <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>>
+                                                                <?php echo $this->canDeleteOrphans && (!$orphanValues || (int) ($orphanGroup['deletable'] ?? 0) === (int) ($orphanGroup['count'] ?? 0)) ? '' : ' disabled'; ?>>
                                                         </td>
                                                     <?php endif; ?>
                                                     <?php $orphanLabel = htmlspecialchars((string) ($orphanGroup['label'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>
@@ -764,7 +778,7 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                                                     </select>
                                                                     <button
                                                                         type="button"
-                                                                        class="btn btn-outline-primary"
+                                                                        class="btn btn-warning"
                                                                         title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_REASSIGN'), ENT_QUOTES, 'UTF-8'); ?>"
                                                                         data-bf-orphan-preview
                                                                         data-bf-orphan-target-select="<?php echo $orphanSelectId; ?>"
@@ -799,7 +813,7 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                                             <?php endif; ?>
                                                         </td>
                                                     <?php endif; ?>
-                                                    <?php if ($orphanSelectable) : ?>
+                                                    <?php if ($orphanRowDelete) : ?>
                                                         <td>
                                                             <button
                                                                 type="button"
@@ -839,7 +853,7 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                         <button
                                             id="bf-audit-reassign-all-orphan-values"
                                             type="button"
-                                            class="btn btn-sm btn-outline-primary mt-2 me-1"
+                                            class="btn btn-sm btn-warning mt-2 me-1"
                                             data-bf-orphan-task="about.reassignOrphanValues"
                                             <?php echo $this->canDeleteOrphans ? '' : ' disabled'; ?>
                                             data-bf-orphan-element="0"
@@ -895,7 +909,7 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 </div>
                             </details>
                         <?php endforeach; ?>
-                    </div>
+                    </details>
                 <?php endif; ?>
 
                 </div>
@@ -955,7 +969,7 @@ if (($auditReport['generated_at'] ?? '') !== '') {
     </div>
     <div class="card-footer d-flex justify-content-end gap-2">
         <button type="button" class="btn btn-secondary" data-bf-reassign-cancel><span class="icon-times" aria-hidden="true"></span> <?php echo Text::_('JCANCEL'); ?></button>
-        <button type="button" class="btn btn-primary" data-bf-reassign-apply><span class="icon-shuffle" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_APPLY'); ?></button>
+        <button type="button" class="btn btn-warning" data-bf-reassign-apply><span class="icon-shuffle" aria-hidden="true"></span> <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_REASSIGN_APPLY'); ?></button>
     </div>
     </div>
 </dialog>
