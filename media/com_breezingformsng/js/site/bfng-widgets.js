@@ -135,9 +135,20 @@
     function datetimeConfig(options, now) {
         var mode = ['datetime', 'date', 'time'].indexOf(options.mode) >= 0 ? options.mode : 'datetime';
         var step = parseInt(options.step, 10);
+        var min = resolveBound(options.min, mode, now);
+        if (mode !== 'date' && step > 0 && String(options.min).trim().toLowerCase() === 'now') {
+            var start = new Date(now);
+            var minutes = start.getHours() * 60 + start.getMinutes();
+            var nextSlot = Math.ceil(minutes / step) * step;
+            // A time-only input cannot represent tomorrow. Keep today's lower bound at rollover.
+            if (mode === 'datetime' || nextSlot < 1440) {
+                start.setHours(0, nextSlot, 0, 0);
+                min = formatLocal(start, mode);
+            }
+        }
         return {
             type: mode === 'datetime' ? 'datetime-local' : mode,
-            min: resolveBound(options.min, mode, now),
+            min: min,
             max: resolveBound(options.max, mode, now),
             step: mode !== 'date' && step > 0 ? step * 60 : 0,
         };

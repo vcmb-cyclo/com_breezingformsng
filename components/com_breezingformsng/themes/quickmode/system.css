@@ -246,6 +246,12 @@
     color: red;
 }
 
+/* ##### hint line (shown by the themes that prefer it to the tooltip) ##### */
+
+.bfQuickMode .bfHint {
+    display: none;
+}
+
 /* ##### tooltip ##### */
 
 .bfQuickMode span.bfTooltip {

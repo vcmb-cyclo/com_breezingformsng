@@ -19,6 +19,19 @@
     width: 100%;
 }
 
+/* Classic floats text fields; the selector needs the height of the phone input. */
+.bfFormDiv .bfQuickMode .iti input[type="tel"] {
+    float: none;
+    display: block;
+    width: 100%;
+}
+
+/* Label on the left: the phone field sits beside the floated label (45% + 10px margin), as wide as the other fields. */
+.bfFormDiv .bfQuickMode .bfLabelLeft .iti {
+    margin-inline-start: calc(45% + 10px);
+    width: 45%;
+}
+
 .bfFormDiv .iti__dropdown-content,
 .bfFormDiv .iti__country-list {
     background: var(--bf-card, #fff);

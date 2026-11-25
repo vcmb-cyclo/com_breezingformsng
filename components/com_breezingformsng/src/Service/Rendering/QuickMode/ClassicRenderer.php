@@ -844,6 +844,16 @@ float:left;
 
                 echo $flashUploader;
 
+                // The hint as a plain line under the field: shown by the themes that want it (the tooltip needs a hover).
+                if ($mdata['bfType'] != 'bfHidden' && trim((string) ($mdata['hint'] ?? '')) !== '') {
+                    $hintLine = trim(strip_tags($this->quickModeHintContentResolver()->resolve((string) $mdata['hint'], true)));
+
+                    if ($hintLine !== '') {
+                        echo '<small class="bfHint" id="bfHint' . $mdata['dbId'] . '">'
+                            . htmlspecialchars($hintLine, ENT_QUOTES, 'UTF-8') . '</small>' . "\n";
+                    }
+                }
+
                 if ($mdata['bfType'] != 'bfHidden') {
                     if ($options['displayType'] == 'breaks') {
                         echo '</section>' . "\n";

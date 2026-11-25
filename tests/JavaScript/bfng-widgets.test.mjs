@@ -55,7 +55,7 @@ test('the datetime config maps the mode to an input type, min, max and a step in
     const now = new Date(2026, 0, 2, 3, 4);
 
     assert.deepEqual({ ...h.datetimeConfig({ mode: 'datetime', min: 'now', step: 15 }, now) }, {
-        type: 'datetime-local', min: '2026-01-02T03:04', max: '', step: 900,
+        type: 'datetime-local', min: '2026-01-02T03:15', max: '', step: 900,
     });
     assert.deepEqual({ ...h.datetimeConfig({ mode: 'date', step: 15, max: '2027-01-01' }, now) }, {
         type: 'date', min: '', max: '2027-01-01', step: 0,
