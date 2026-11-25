@@ -440,7 +440,8 @@ a.bfng-seg__opt {
   position: relative;
 }
 /* The ids outrank the generic "#bfQuickModeWrapper" control rules. */
-#bfQuickModeWrapper #bfElementTypeIcon .bfng-type-menu__button {
+#bfQuickModeWrapper #bfElementTypeIcon .bfng-type-menu__button,
+.bfng-type-select--form .bfng-type-menu__button {
   align-items: center;
   background: var(--bfng-surface);
   border: 1px solid var(--bfng-border-strong);
@@ -455,7 +456,16 @@ a.bfng-seg__opt {
   text-align: start;
   width: 100%;
 }
-#bfQuickModeWrapper #bfElementTypeIcon .bfng-type-menu__button:focus-visible {
+/* In a form row (integrator): as small as the Bootstrap form-select-sm it replaces. */
+.bfng-type-select--form {
+  display: block;
+  font-size: .875rem;
+}
+.bfng-type-select--form .bfng-type-menu__button {
+  height: 31px;
+}
+#bfQuickModeWrapper #bfElementTypeIcon .bfng-type-menu__button:focus-visible,
+.bfng-type-select--form .bfng-type-menu__button:focus-visible {
   box-shadow: var(--bfng-focus-ring);
   outline: none;
 }

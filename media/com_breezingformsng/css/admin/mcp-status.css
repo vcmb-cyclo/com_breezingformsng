@@ -42,6 +42,10 @@
     width: 100%;
 }
 
+[data-bs-theme="dark"] .bf-tile {
+    background: color-mix(in oklab, var(--body-bg, #212529), #fff 6%);
+}
+
 .bf-tile:hover,
 .bf-tile:focus-visible {
     border-color: var(--template-link-hover-color);

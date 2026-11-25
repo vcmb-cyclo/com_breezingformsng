@@ -1,6 +1,7 @@
 import { test, expect, request } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { runAuditAndOpen } from './audit.mjs';
 import { loginAsAdmin } from './login.mjs';
 
 const ADMIN = 'administrator/index.php';
@@ -49,13 +50,7 @@ test('orphan repairs preserve existing records and distinguish element zero from
         expect(noToken.status()).toBe(403);
         expect(rows()).toEqual([ids[0], ids[1], ids[2], ids[4]]);
 
-        const run = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.runAudit`, {
-            form: { [csrf]: '1' },
-            maxRedirects: 0,
-        });
-        // The audit run answers with a redirect: anything else means it did not run.
-        expect([302, 303]).toContain(run.status());
-        await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about&layout=audit`);
+        await runAuditAndOpen(page, csrf);
         const audit = page.locator('[data-bf-orphan-check="subrecords_without_element"]');
         // The audit report is built on this request: a busy runner needs more than the default 5 s.
         await expect(audit).toBeAttached({ timeout: 30_000 });

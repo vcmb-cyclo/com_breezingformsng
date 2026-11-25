@@ -55,6 +55,9 @@ final class LegacyExtensionRepairGuardsTest extends TestCase
         self::assertStringContainsString("['menu_issues']", $method);
         self::assertStringContainsString('publish($pks, -2)', $method);
         self::assertStringNotContainsString('->delete(', $method);
+        // The checked items are revalidated one by one against a fresh audit, like a single one.
+        self::assertStringContainsString("'menu_items'", $method);
+        self::assertStringContainsString('isset($reported[$menuId])', $method);
 
         // The About screen is one form: a nested form is dropped by the browser.
         $template = (string) file_get_contents(self::ADMIN . '/tmpl/about/audit.php');
@@ -63,5 +66,7 @@ final class LegacyExtensionRepairGuardsTest extends TestCase
 
         self::assertStringContainsString("Joomla.submitform('about.deleteMenuItem')", $menuBlock);
         self::assertStringNotContainsString('<form', $menuBlock);
+        self::assertStringContainsString('name="menu_items[]"', $menuBlock);
+        self::assertStringContainsString('data-bf-select-all="menu-items"', $menuBlock);
     }
 }

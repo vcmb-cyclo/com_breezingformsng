@@ -535,14 +535,18 @@ class AboutController extends BaseController
     }
 
     /**
-     * Sends a site menu item reported by the audit to the trash, from the About
-     * screen, under the Joomla rights of the user. It is not deleted for good.
+     * Sends the site menu items reported by the audit to the trash, from the About
+     * screen, under the Joomla rights of the user: one item (its own button) or the
+     * checked ones. They are not deleted for good.
      */
     public function deleteMenuItem(): void
     {
         $this->checkToken();
 
-        $menuId = $this->input->getInt('menu_item_id', 0);
+        $single = $this->input->getInt('menu_item_id', 0);
+        $menuIds = $single > 0
+            ? [$single]
+            : array_values(array_unique(array_filter(array_map('intval', (array) $this->input->post->get('menu_items', [], 'array')))));
 
         try {
             $application = $this->getAuthorizedApplication();
@@ -553,18 +557,21 @@ class AboutController extends BaseController
                 throw new \RuntimeException(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'));
             }
 
-            $auditService = $this->getAuditService();
-            $candidate = false;
-
-            foreach ((array) ($auditService->run()['menu_issues'] ?? []) as $issue) {
-                if ((int) ($issue['menu_id'] ?? 0) === $menuId) {
-                    $candidate = true;
-                    break;
-                }
+            if ($menuIds === []) {
+                throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_NO_SELECTION'));
             }
 
-            if ($menuId < 1 || !$candidate) {
-                throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_NOT_CANDIDATE', $menuId));
+            $auditService = $this->getAuditService();
+            $reported = [];
+
+            foreach ((array) ($auditService->run()['menu_issues'] ?? []) as $issue) {
+                $reported[(int) ($issue['menu_id'] ?? 0)] = true;
+            }
+
+            foreach ($menuIds as $menuId) {
+                if ($menuId < 1 || !isset($reported[$menuId])) {
+                    throw new \RuntimeException(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_NOT_CANDIDATE', $menuId));
+                }
             }
 
             $menus = $application->bootComponent('com_menus');
@@ -579,16 +586,39 @@ class AboutController extends BaseController
                 throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
 
-            // Like the trash button of the Joomla menu screen: the item goes to the
-            // trash, where it can be restored or emptied.
-            $pks = [$menuId];
+            // Like the trash button of the Joomla menu screen: the items go to the
+            // trash, where they can be restored or emptied.
+            $moved = 0;
+            $errors = [];
 
-            if (!$model->publish($pks, -2)) {
-                throw new \RuntimeException($this->menuError($model, 'JLIB_APPLICATION_ERROR_UNPUBLISH_FAILED'));
+            foreach ($menuIds as $menuId) {
+                $pks = [$menuId];
+
+                if ($model->publish($pks, -2)) {
+                    ++$moved;
+                } else {
+                    $errors[] = '#' . $menuId . ' : ' . $this->menuError($model, 'JLIB_APPLICATION_ERROR_UNPUBLISH_FAILED');
+                }
             }
 
             $application->setUserState('com_breezingformsng.about.audit', $auditService->run());
-            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETED', $menuId), 'message');
+
+            if ($single > 0 && $errors !== []) {
+                throw new \RuntimeException($errors[0]);
+            }
+
+            if ($single > 0) {
+                $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETED', $single), 'message');
+            } else {
+                $this->setMessage(
+                    Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE_SUMMARY', count($menuIds), $moved, count($errors)),
+                    $errors !== [] ? 'warning' : 'message'
+                );
+
+                foreach ($errors as $error) {
+                    $application->enqueueMessage(htmlspecialchars($error, ENT_QUOTES, 'UTF-8'), 'warning');
+                }
+            }
         } catch (\Throwable $exception) {
             $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE_FAILED', $exception->getMessage()), 'error');
         }

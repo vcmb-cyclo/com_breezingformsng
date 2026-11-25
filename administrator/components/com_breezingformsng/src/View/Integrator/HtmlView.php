@@ -185,7 +185,10 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             $this->auditModifiedBy = $names[$modifiedBy] ?? $modifiedBy;
             $this->timezone        = $this->getCurrentUser()->getTimezone();
             HTMLHelper::_('bootstrap.collapse');
-            $this->getDocument()->getWebAssetManager()->useStyle('com_breezingformsng.admin-style');
+            $this->getDocument()->getWebAssetManager()
+                ->useStyle('com_breezingformsng.admin-style')
+                ->useStyle('com_breezingformsng.bfng-admin')
+                ->useScript('com_breezingformsng.quickmode-type-menu');
             $this->items          = $model->getItems($id);
             $this->tableColumns   = $model->getTableColumns($this->rule->reference_table);
             $this->formElements   = $model->getFormElements((int) $this->rule->form_id);
@@ -197,8 +200,6 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         if ($id === 0) {
             ToolbarHelper::save('integrator.save');
         }
-        ToolbarHelper::cancel('integrator.display', 'JTOOLBAR_CLOSE');
-
         if ($this->rule !== null) {
             /** @var HtmlDocument $document */
             $document = $this->getDocument();
@@ -209,6 +210,9 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
                 $toolbar->versions(IntegratorVersioning::TYPE_ALIAS, $id);
             }
         }
+
+        // Last, after the Versions button.
+        ToolbarHelper::cancel('integrator.display', 'JTOOLBAR_CLOSE');
     }
 
     protected function getDetailLabel(): ?string
