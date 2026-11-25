@@ -559,3 +559,16 @@ details.bf-audit-section-block[open] > :not(summary) + :not(summary) {
 .bf-audit-subsection > summary strong {
     color: inherit;
 }
+
+/* Extensions list: a wide name column, and a description cut after two lines (the full text is in the tooltip). */
+#bf-extensions-table th.bf-extension-name {
+    min-width: 18rem;
+}
+#bf-extensions-table .bf-extension-description {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    cursor: help;
+}

@@ -622,7 +622,9 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                     <table class="table table-sm table-striped align-middle mb-0">
                                         <thead>
                                             <tr>
-                                                <?php if (!$mixedIsTarget) : ?><th class="w-1"></th><?php endif; ?>
+                                                <?php if (!$mixedIsTarget) : ?>
+                                                    <th class="w-1"></th>
+                                                <?php endif; ?>
                                                 <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TABLE'); ?></th>
                                                 <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ROWS'); ?></th>
                                             </tr>
@@ -728,20 +730,18 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                             );
                             // Values have their own delete / reassign buttons per row; the others get one trash button per row.
                             $orphanRowDelete = $orphanSelectable && !$orphanValues && !$orphanRecordValues;
-                            $orphanDeleteTask = match ((string) ($check['id'] ?? '')) {
+                            $orphanDeleteTask = array(
                                 'records_without_form' => 'about.trashOrphanRecords',
                                 'subrecords_without_element' => 'about.deleteOrphanValues',
                                 'subrecords_without_record' => 'about.deleteOrphanSubrecords',
-                                default => 'about.deleteOrphanElements',
-                            };
+                            )[(string) ($check['id'] ?? '')] ?? 'about.deleteOrphanElements';
                             // Records go to the trash of the records; elements are deleted.
                             $orphanActionKey = ($check['id'] ?? '') === 'records_without_form' ? 'TRASH' : 'DELETE';
-                            $orphanDeleteKey = match ((string) ($check['id'] ?? '')) {
+                            $orphanDeleteKey = array(
                                 'records_without_form' => 'RECORDS',
                                 'subrecords_without_element' => 'VALUES',
                                 'subrecords_without_record' => 'RECORD_VALUES',
-                                default => 'ELEMENTS',
-                            };
+                            )[(string) ($check['id'] ?? '')] ?? 'ELEMENTS';
                             $orphanHasForm = array_filter(array_column($orphanGroups, 'form_id')) !== array();
                             $orphanHasPeriod = array_filter(array_column($orphanGroups, 'first')) !== array();
                             // Records of a deleted form: link to the records list filtered on it, all states.
