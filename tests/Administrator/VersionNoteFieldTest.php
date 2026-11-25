@@ -50,4 +50,23 @@ final class VersionNoteFieldTest extends TestCase
         self::assertStringContainsString('->record($id, mb_substr($versionNote, 0, 255))', $controller);
         self::assertStringContainsString("JQuery('#jf_version_note').val('');", $script);
     }
+
+    /**
+     * The QuickMode properties hold the title, the name and the description; the Options tab of the editor keeps them
+     * only as hidden copies filled at save time, while the standalone options screen still shows them.
+     */
+    public function testTheEditorShowsTheTitleNameAndDescriptionOnlyOnce(): void
+    {
+        $layout = file_get_contents(self::BASE . '/layouts/forms/advanced_options.php');
+
+        self::assertIsString($layout);
+
+        foreach (['title' => 'jf_title', 'name' => 'jf_name', 'description' => 'jf_description'] as $name => $id) {
+            self::assertStringContainsString('<input type="hidden" id="' . $id . '" name="' . $name . '"', $layout);
+        }
+
+        self::assertStringContainsString('<?php if (!empty($quickMode)) :', $layout);
+        self::assertSame(1, substr_count($layout, '<?php if (empty($quickMode)) : ?>'));
+        self::assertStringContainsString('<label class="col-sm-3 col-form-label" for="jf_description"', $layout);
+    }
 }
