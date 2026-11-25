@@ -224,4 +224,19 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringContainsString('icon-unpublish', $template);
         self::assertStringContainsString('admin-toggle-published', $view);
     }
+
+    public function testTheAuditCountsTheSameTrashAsTheToolsTile(): void
+    {
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $service = (string) file_get_contents($base . '/src/Service/DatabaseAuditService.php');
+        $template = (string) file_get_contents($base . '/tmpl/about/audit.php');
+        $tile = (string) file_get_contents($base . '/src/View/Packages/HtmlView.php');
+
+        // The Tools tile adds the trashed submissions and the trashed forms, scripts and pieces: so does the audit.
+        self::assertStringContainsString('RecordInventoryService', $tile);
+        self::assertStringContainsString('(new TrashInventoryService($this->db))->getTrashedItems()', $service);
+        self::assertStringContainsString("'trashed_items' => array_sum(array_column(\$trashedItems, 'count'))", $service);
+        self::assertStringContainsString('$auditTrashedRecordsTotal + $auditTrashedItemsTotal', $template);
+        self::assertStringContainsString('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_TOTAL_DETAIL', $template);
+    }
 }

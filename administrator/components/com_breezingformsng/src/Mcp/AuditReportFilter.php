@@ -27,7 +27,7 @@ final class AuditReportFilter
     /** Lists of the report, in the order the About screen shows them. */
     public const LISTS = [
         'errors', 'missing_tables', 'missing_columns', 'unexpected_tables', 'collation_issues', 'column_collation_issues',
-        'duplicate_indexes', 'orphan_checks', 'duplicate_forms', 'debug_forms', 'trashed_records', 'menu_issues',
+        'duplicate_indexes', 'orphan_checks', 'duplicate_forms', 'debug_forms', 'trashed_records', 'trashed_items', 'menu_issues',
         'extension_duplicates', 'extension_legacy', 'stale_language_files', 'stale_installer_temp_dirs',
     ];
 

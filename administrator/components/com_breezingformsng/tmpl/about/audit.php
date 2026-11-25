@@ -61,6 +61,7 @@ $auditUnexpectedTables = $auditStringList($auditReport['unexpected_tables'] ?? a
 $auditMissingColumns = $auditEntryList($auditReport['missing_columns'] ?? array());
 $auditDebugForms = $auditEntryList($auditReport['debug_forms'] ?? array());
 $auditTrashedRecordsTotal = (int) ($auditSummary['trashed_records'] ?? 0);
+$auditTrashedItemsTotal = (int) ($auditSummary['trashed_items'] ?? 0);
 $auditStaleLanguageFiles = $auditStringList($auditReport['stale_language_files'] ?? array());
 $auditStaleInstallerTempDirs = $auditStringList($auditReport['stale_installer_temp_dirs'] ?? array());
 $auditCollationIssues = $auditEntryList($auditReport['collation_issues'] ?? array());
@@ -240,8 +241,11 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                             </tr>
                             <tr>
                                 <td class="text-muted text-end pe-2">9</td>
-                                <th scope="row"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_RECORDS'); ?></th>
-                                <td><?php echo $auditTrashedRecordsTotal; ?></td>
+                                <th scope="row"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_TOTAL'); ?></th>
+                                <td>
+                                    <?php echo $auditTrashedRecordsTotal + $auditTrashedItemsTotal; ?>
+                                    <span class="text-muted small ms-1"><?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_TOTAL_DETAIL', $auditTrashedRecordsTotal, $auditTrashedItemsTotal), ENT_QUOTES, 'UTF-8'); ?></span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

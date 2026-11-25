@@ -135,6 +135,7 @@ final class DatabaseAuditService
         $duplicateForms = $this->findDuplicateForms();
         $debugForms = $this->findDebugModeForms($tableList);
         $trashedRecords = $this->findTrashedRecords($tableList);
+        $trashedItems = $this->findTrashedItems();
         $missingColumnsTotal = array_sum(array_map(
             static fn (array $entry): int => count($entry['columns']),
             $missingColumns
@@ -155,6 +156,7 @@ final class DatabaseAuditService
             'missing_columns' => $missingColumns,
             'debug_forms' => $debugForms,
             'trashed_records' => $trashedRecords,
+            'trashed_items' => $trashedItems,
             'unexpected_tables' => $unexpectedTables,
             'collation_issues' => $collationIssues,
             'column_collation_issues' => $columnCollationIssues,
@@ -175,6 +177,7 @@ final class DatabaseAuditService
                 'missing_columns' => $missingColumnsTotal,
                 'debug_forms' => count($debugForms),
                 'trashed_records' => array_sum(array_column($trashedRecords, 'count')),
+                'trashed_items' => array_sum(array_column($trashedItems, 'count')),
                 'unexpected_tables' => count($unexpectedTables),
                 'total_rows' => $totalRows,
                 'total_data_bytes' => $totalDataBytes,
@@ -1223,6 +1226,22 @@ final class DatabaseAuditService
             'package' => trim(self::stringValue($row['package'] ?? '')),
             'published' => self::intValue($row['published'] ?? 0),
         ], $rows));
+    }
+
+    /**
+     * Forms, scripts, pieces and integrator rules in the trash: the same items as the Trash tile of the Tools screen.
+     *
+     * @return list<array{label: string, view: string, count: int}>
+     */
+    private function findTrashedItems(): array
+    {
+        try {
+            return (new TrashInventoryService($this->db))->getTrashedItems();
+        } catch (\Throwable $e) {
+            $this->errors[] = $e->getMessage();
+
+            return [];
+        }
     }
 
     /**
