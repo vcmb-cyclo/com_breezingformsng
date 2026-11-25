@@ -35,6 +35,9 @@ class HtmlView extends BaseHtmlView
     public bool $canEditPluginState = false;
     /** Uninstalling is a right of the Joomla Installer. */
     public bool $canUninstallExtension = false;
+
+    /** The changelog popup is served by the Installer component: it needs the right to manage it. */
+    public bool $canViewChangelog = false;
     /** @var array<mixed> */
     public array $logReport = [];
     /** @var array<mixed> */
@@ -66,12 +69,19 @@ class HtmlView extends BaseHtmlView
         $this->canDeleteOrphans = AreaAccess::canDeleteOrphans($user);
         $this->canEditPluginState = $user->authorise('core.edit.state', 'com_plugins');
         $this->canUninstallExtension = $user->authorise('core.delete', 'com_installer');
+        $this->canViewChangelog = $user->authorise('core.manage', 'com_installer');
         /** @var HtmlDocument $document */
         $document = $app->getDocument();
         $wa = $document->getWebAssetManager();
         $wa->getRegistry()->addExtensionRegistryFile('com_breezingformsng');
         $wa->useStyle('com_breezingformsng.about-style');
         $wa->useScript('com_breezingformsng.about');
+
+        if ($this->getLayout() === 'extensions' && $this->canViewChangelog) {
+            // The changelog of an extension opens in a dialog, like in the Installer's Manage screen.
+            $wa->useScript('joomla.dialog-autocreate');
+            Factory::getApplication()->getLanguage()->load('com_installer', JPATH_ADMINISTRATOR);
+        }
         $layout = $this->getLayout();
 
         /** @var Toolbar $toolbar */

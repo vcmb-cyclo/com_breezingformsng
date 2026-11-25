@@ -35,12 +35,12 @@ $plugins = $this->plugins;
                     <thead>
                     <tr>
                         <th scope="col" class="w-1 text-center"><?php echo Text::_('JGRID_HEADING_ID'); ?></th>
-                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_NAME'); ?></th>
+                        <th scope="col" class="bf-extension-name"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_NAME'); ?></th>
                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_TYPE'); ?></th>
                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_CATEGORY'); ?></th>
                         <th scope="col" class="text-center"><?php echo Text::_('COM_BREEZINGFORMSNG_PLUGIN_STATUS'); ?></th>
                         <th scope="col"><?php echo Text::_('JGLOBAL_DESCRIPTION'); ?></th>
-                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_CHANGELOG'); ?></th>
+                        <th scope="col"><?php echo Text::_('JVERSION'); ?></th>
                         <?php if ($this->canUninstallExtension) : ?>
                             <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_UNINSTALL'); ?></span></th>
                         <?php endif; ?>
@@ -68,9 +68,6 @@ $plugins = $this->plugins;
                                 <span class="text-muted small d-block">
                                     <?php echo $isPlugin ? htmlspecialchars((string) ($plugin['group'] ?? ''), ENT_QUOTES, 'UTF-8') . ' /' : ''; ?>
                                     <?php echo htmlspecialchars((string) ($plugin['element'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>
-                                    <?php if ((string) ($plugin['version'] ?? '') !== '') : ?>
-                                        &middot; <?php echo htmlspecialchars((string) $plugin['version'], ENT_QUOTES, 'UTF-8'); ?>
-                                    <?php endif; ?>
                                 </span>
                             </th>
                             <td><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_TYPE_' . strtoupper((string) ($plugin['type'] ?? 'plugin'))); ?></td>
@@ -95,13 +92,29 @@ $plugins = $this->plugins;
                                     </span>
                                 <?php endif; ?>
                             </td>
-                            <td><?php echo htmlspecialchars((string) ($plugin['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                             <td>
-                                <?php if (($plugin['changelogUrl'] ?? '') !== '') : ?>
-                                    <a href="<?php echo htmlspecialchars((string) $plugin['changelogUrl'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer">
-                                        <span class="icon-out-2" aria-hidden="true"></span>
-                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_CHANGELOG'); ?>
-                                    </a>
+                                <?php $pluginDescription = htmlspecialchars((string) ($plugin['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>
+                                <div class="bf-extension-description" title="<?php echo $pluginDescription; ?>"><?php echo $pluginDescription; ?></div>
+                            </td>
+                            <td>
+                                <?php $pluginVersion = (string) ($plugin['version'] ?? ''); ?>
+                                <?php if ($pluginVersion !== '' && $this->canViewChangelog && ($plugin['changelogUrl'] ?? '') !== '' && $pluginId > 0) : ?>
+                                    <?php
+                                    // Same dialog as the Installer's Manage screen: the version opens its changelog, in colour.
+                                    $changelogDialog = [
+                                        'popupType' => 'ajax',
+                                        'textHeader' => Text::sprintf('COM_INSTALLER_CHANGELOG_TITLE', (string) ($plugin['name'] ?? ''), $pluginVersion),
+                                        'src' => Route::_('index.php?option=com_installer&task=manage.loadChangelogRaw&eid=' . $pluginId . '&source=manage&format=raw', false),
+                                        'width' => '800px',
+                                        'height' => 'fit-content',
+                                    ];
+                                    ?>
+                                    <button type="button" class="btn btn-info btn-sm"
+                                        data-joomla-dialog="<?php echo htmlspecialchars(json_encode($changelogDialog, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8'); ?>">
+                                        <?php echo htmlspecialchars($pluginVersion, ENT_QUOTES, 'UTF-8'); ?>
+                                    </button>
+                                <?php else : ?>
+                                    <?php echo htmlspecialchars($pluginVersion, ENT_QUOTES, 'UTF-8'); ?>
                                 <?php endif; ?>
                             </td>
                             <?php if ($this->canUninstallExtension) : ?>
