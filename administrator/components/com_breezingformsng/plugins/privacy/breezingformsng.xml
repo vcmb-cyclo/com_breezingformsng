@@ -2,10 +2,10 @@
 <extension type="plugin" group="privacy" method="upgrade">
 	<name>PLG_PRIVACY_BREEZINGFORMSNG</name>
 	<author>XDA/GIL</author>
-	<creationDate>2026-11-24</creationDate>
+	<creationDate>2026-11-25</creationDate>
 	<copyright>Copyright 2024 - 2026 by XDA+GIL</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-	<version>6.1.1-RC1</version>
+	<version>6.1.1-RC2</version>
 	<changelogurl>https://raw.githubusercontent.com/vcmb-cyclo/com_breezingformsng/main/com_breezingformsng_changelog.xml</changelogurl>
 	<description>PLG_PRIVACY_BREEZINGFORMSNG_XML_DESCRIPTION</description>
 	<namespace path="src">Vcmb\Plugin\Privacy\Breezingformsng</namespace>

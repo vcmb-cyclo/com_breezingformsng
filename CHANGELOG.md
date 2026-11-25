@@ -1,11 +1,40 @@
 # Changelog
 
+## 6.1.1-RC2
+
+### Added
+
+- Show the release date of every PHP and JavaScript library on the About screen, and sort both library tables by any column.
+- Sort the About Extensions list by any column, and open the changelog of an extension from its version, in a coloured dialog like the one of the Extensions Manager of Joomla.
+- Add a version note to forms, scripts and pieces: it is kept with the version that your save creates and shown in the Versions list.
+- Add the VCMB J6 QuickMode theme, with light and dark colours, a narrow label column, a soft ring around the active field and the help of each field written under it instead of a hover icon.
+- Select several values of missing records or of missing elements in the audit and delete them in one go.
+- List the tables of each mixed collation in the audit, and repair the ones that do not use the target collation from there.
+
+### Changed
+
+- Make every section of the audit report collapsible, with its count in the title, and group the collation problems in collapsible sub-sections.
+- Show the title, the name and the description of a form once in the editor, under Properties, instead of repeating them in the Options tab.
+- Show the reassignment buttons of the audit in the yellow of the other repair buttons, and label the audit date Audited on.
+- Give the Extensions list a wider name column, and cut the description after two lines with the full text in a tooltip.
+- Improve the contrast of the VCMB J5 theme: readable legends and errors, visible field borders and focus outlines.
+- Improve the administration screens in dark mode.
+- Round the minimum of a date and time field set to now up to the next time step.
+- Show the phone field next to its label when labels are on the left.
+
+### Fixed
+
+- Keep a description edited in the Options tab of the form editor: it was replaced by the older copy of the Properties.
+- Show each line of a changelog as one item in the changelog dialog, instead of cutting it at quotes and symbols.
+- Show a single external-link icon, instead of two, on the changelog link of the Extensions screen.
+- Load the translations of the phone and date widgets on the site.
+
 ## 6.1.1-RC1
 
 ### Added
 
 - Link record submitters and audit users to their Joomla profiles from the administrator.
-- List every BreezingForms extension on the About Extensions screen, the former BreezingForms ones too and whatever their type, with the ID first, the description, the version (it opens the changelog of the extension in a dialog, like in the Extensions Manager of Joomla) and an uninstall button; "Manage extensions" opens the Extensions Manager of Joomla.
+- List every BreezingForms extension on the About Extensions screen, the former BreezingForms ones too and whatever their type, with the ID first, the description and the changelog link of each extension, and an uninstall button; "Manage extensions" opens the Extensions Manager of Joomla.
 - Clean up from the audit what deleted forms left behind, one form at a time with its trash button or several at once with the selection: their elements are deleted and their records go to the trash of the records, to be deleted from there like any record; the values of records that no longer exist can be deleted.
 - Show on each sub-tab of the form email options (administrator notification, user confirmation) how many settings it holds.
 - Move several site menu items reported by the audit to the trash at once, with a checkbox on each of them and a button for the selection.
