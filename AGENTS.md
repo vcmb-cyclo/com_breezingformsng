@@ -23,6 +23,7 @@
 ## Verification and report
 
 - Add or update relevant tests. Run `php -l` on changed PHP files and configured PHPCS, PHPStan, PHPUnit and functional checks when installed and feasible.
+- Before every push, run `python3 scripts/check-phpcs-changed.py origin/main`: CI runs the same per-file PHPCS check and a failure there is avoidable.
 - Run all tests without the Joomla 6.2 compatibility plugin and without the BreezingForms compatibility plugin for old classes.
 - Every code path that runs only when an optional extension is enabled (add-on plugins Dropbox, Mailchimp, Salesforce, event listeners, integrations) must be executed by at least one test, on the real Joomla classes, with that extension enabled. A test that only matches source text, or a run with the extension disabled, does not cover the path. Restore the previous state after a manual run. (Origin: the event getters of RC23/RC24 recursed forever as soon as an add-on was enabled; every local run had them disabled.)
 - Put every locally built release ZIP directly in the repository's `build/` directory.
