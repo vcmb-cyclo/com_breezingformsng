@@ -122,7 +122,8 @@
             return '';
         }
         if (raw.toLowerCase() === 'now') {
-            return formatLocal(now instanceof Date ? now : new Date(), mode);
+            // Without a date, now does not define a bound across midnight.
+            return mode === 'time' ? '' : formatLocal(now instanceof Date ? now : new Date(), mode);
         }
         var shapes = {
             datetime: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
@@ -136,15 +137,12 @@
         var mode = ['datetime', 'date', 'time'].indexOf(options.mode) >= 0 ? options.mode : 'datetime';
         var step = parseInt(options.step, 10);
         var min = resolveBound(options.min, mode, now);
-        if (mode !== 'date' && step > 0 && String(options.min).trim().toLowerCase() === 'now') {
+        if (mode === 'datetime' && step > 0 && String(options.min).trim().toLowerCase() === 'now') {
             var start = new Date(now);
             var minutes = start.getHours() * 60 + start.getMinutes();
             var nextSlot = Math.ceil(minutes / step) * step;
-            // A time-only input cannot represent tomorrow. Keep today's lower bound at rollover.
-            if (mode === 'datetime' || nextSlot < 1440) {
-                start.setHours(0, nextSlot, 0, 0);
-                min = formatLocal(start, mode);
-            }
+            start.setHours(0, nextSlot, 0, 0);
+            min = formatLocal(start, mode);
         }
         return {
             type: mode === 'datetime' ? 'datetime-local' : mode,

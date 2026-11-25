@@ -600,7 +600,7 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                             <?php
                             $mixedTables = $auditTablesByCollation[(string) $collationName] ?? array();
                             $mixedIsTarget = strcasecmp((string) $collationName, $auditTargetCollation) === 0;
-                            $mixedGroup = 'mixed-collation-' . md5((string) $collationName);
+                            $mixedGroup = 'mixed-collation-' . bin2hex((string) $collationName);
                             ?>
                             <details class="bf-audit-subsection mb-1">
                                 <summary>

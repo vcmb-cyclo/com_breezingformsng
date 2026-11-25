@@ -3,7 +3,9 @@ import { loginAsAdmin } from './login.mjs';
 
 const ADMIN = 'administrator/index.php';
 
-async function lightSurfacesWithLightText(page) {
+async function darkThemeIssues(page) {
+    await expect(page.locator('html')).toHaveAttribute('data-bs-theme', 'dark');
+    await expect(page.locator('html')).toHaveAttribute('data-color-scheme', 'dark');
     return page.evaluate(() => {
         const visible = (element) => {
             const rect = element.getBoundingClientRect();
@@ -44,7 +46,7 @@ async function lightSurfacesWithLightText(page) {
             .filter((element) => visible(element)
                 && ((element.children.length === 0 && element.innerText.trim())
                     || element.matches('input, select, textarea, button')))
-            .filter((element) => {
+            .flatMap((element) => {
                 const foreground = getComputedStyle(element).color;
                 const surface = paintedBackground(element);
                 const lightSurface = rgbLuminance(surface.color) >= 0.78;
@@ -52,27 +54,17 @@ async function lightSurfacesWithLightText(page) {
                 const largeLightSurface = surface.owner.getBoundingClientRect().width >= 120
                     && surface.owner.getBoundingClientRect().height >= 28
                     && !surface.owner.matches('button, .btn, .badge, .alert');
-                return lightSurface && (lightTextOnLightSurface || largeLightSurface);
-            })
-            .map(describe);
+                if (!lightSurface) return [];
+                if (lightTextOnLightSurface) return ['Light text on light surface: ' + describe(element)];
+                return largeLightSurface ? ['Large light surface: ' + describe(element)] : [];
+            });
     });
 }
 
-test('administrator screens have no light text on light surfaces in dark mode', async ({ page }) => {
+test('administrator screens use dark surfaces with readable text in dark mode', async ({ page, baseURL }) => {
     test.setTimeout(180000);
     await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
-    await page.addInitScript(() => {
-        const forceDarkTheme = () => {
-            if (document.documentElement.getAttribute('data-bs-theme') !== 'dark') {
-                document.documentElement.setAttribute('data-bs-theme', 'dark');
-            }
-        };
-        forceDarkTheme();
-        new MutationObserver(forceDarkTheme).observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['data-bs-theme'],
-        });
-    });
+    await page.context().addCookies([{ name: 'userColorScheme', value: 'dark', url: baseURL }]);
     await page.goto(ADMIN);
     await loginAsAdmin(page);
     await page.goto(`${ADMIN}?option=com_breezingformsng`);
@@ -97,7 +89,7 @@ test('administrator screens have no light text on light surfaces in dark mode', 
         await page.goto(route, { waitUntil: 'domcontentloaded' });
         await expect(page.locator('main'), `administrator screen did not load: ${route}`).toBeVisible();
 
-        const issues = await lightSurfacesWithLightText(page);
+        const issues = await darkThemeIssues(page);
         if (issues.length) failures.push(`${route}\n  ${issues.join('\n  ')}`);
 
         const editRoutes = await page.locator('main a[href*="option=com_breezingformsng"]:visible').evaluateAll((links) => links
@@ -111,10 +103,10 @@ test('administrator screens have no light text on light surfaces in dark mode', 
             visited.add(editRoute);
             await page.goto(editRoute, { waitUntil: 'domcontentloaded' });
             await expect(page.locator('main'), `administrator screen did not load: ${editRoute}`).toBeVisible();
-            const editIssues = await lightSurfacesWithLightText(page);
+            const editIssues = await darkThemeIssues(page);
             if (editIssues.length) failures.push(`${editRoute}\n  ${editIssues.join('\n  ')}`);
         }
     }
 
-    expect(failures, `light text found on light surfaces:\n${failures.join('\n')}`).toEqual([]);
+    expect(failures, `Dark theme issues:\n${failures.join('\n')}`).toEqual([]);
 });

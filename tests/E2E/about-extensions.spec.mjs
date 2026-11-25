@@ -56,12 +56,25 @@ test('the extensions screen lists the whole family, with ID first, and uninstall
         await expect(table.locator('tbody')).toContainText('com_breezingformsng');
         await expect(table.locator('tbody')).toContainText('mod_breezingforms');
 
-        // The changelog XML declared by the manifest is linked; an extension without one has no link.
         const componentRow = table.locator('tbody tr', { hasText: 'com_breezingformsng' });
-        await expect(componentRow.locator('a[href$="com_breezingformsng_changelog.xml"]')).toHaveCount(1);
-        // The plugins and the module shipped with it declare the same one.
-        expect(await table.locator('tbody a[href$="com_breezingformsng_changelog.xml"]').count()).toBeGreaterThanOrEqual(9);
-        await expect(row.locator('a[href$=".xml"]')).toHaveCount(0);
+        const versionButton = componentRow.locator('button[data-joomla-dialog]');
+        const componentId = (await componentRow.locator('td').first().innerText()).trim();
+        await expect(versionButton).toBeVisible();
+        expect(await table.locator('tbody button[data-joomla-dialog]').count()).toBeGreaterThanOrEqual(9);
+        await expect(row.locator('button[data-joomla-dialog]')).toHaveCount(0);
+
+        // Exercise Joomla's AJAX dialog without depending on a published changelog for this candidate.
+        await page.route((url) => url.searchParams.get('option') === 'com_installer'
+            && url.searchParams.get('task') === 'manage.loadChangelogRaw'
+            && url.searchParams.get('eid') === componentId
+            && url.searchParams.get('source') === 'manage'
+            && url.searchParams.get('format') === 'raw',
+        (route) => route.fulfill({ contentType: 'text/html', body: '<p>Component changelog fixture</p>' }));
+        await versionButton.click();
+        const changelog = page.locator('joomla-dialog dialog[open]');
+        await expect(changelog).toContainText('Component changelog fixture');
+        await page.keyboard.press('Escape');
+        await expect(changelog).toHaveCount(0);
 
         // The generic text that used to be repeated on every row is gone.
         await expect(table).not.toContainText('Used by BreezingForms when enabled.');

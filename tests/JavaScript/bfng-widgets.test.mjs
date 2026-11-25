@@ -44,7 +44,7 @@ test('date and time bounds follow the mode and resolve now', () => {
 
     assert.equal(h.resolveBound('now', 'datetime', now), '2026-11-18T09:05');
     assert.equal(h.resolveBound('NOW', 'date', now), '2026-11-18');
-    assert.equal(h.resolveBound('now', 'time', now), '09:05');
+    assert.equal(h.resolveBound('now', 'time', now), '');
     assert.equal(h.resolveBound('2026-12-01T10:00', 'datetime', now), '2026-12-01T10:00');
     assert.equal(h.resolveBound('2026-12-01', 'datetime', now), '');
     assert.equal(h.resolveBound('', 'date', now), '');
@@ -62,6 +62,14 @@ test('the datetime config maps the mode to an input type, min, max and a step in
     });
     assert.equal(h.datetimeConfig({ mode: 'nope', step: 0 }, now).type, 'datetime-local');
     assert.equal(h.datetimeConfig({ mode: 'time', step: 5 }, now).step, 300);
+});
+
+test('a time without a date ignores now across midnight and keeps explicit bounds', () => {
+    const late = new Date(2026, 0, 2, 23, 54);
+    const options = { mode: 'time', min: 'now', max: 'NOW', step: 15 };
+    assert.deepEqual(h.datetimeConfig(options, late), { type: 'time', min: '', max: '', step: 900 });
+    assert.equal(h.datetimeConfig({ ...options, min: '08:30' }, late).min, '08:30');
+    assert.equal(h.datetimeConfig({ ...options, mode: 'datetime' }, late).min, '2026-01-03T00:00');
 });
 
 test('the country list is localised, sorted, restricted and flagged on request', () => {
