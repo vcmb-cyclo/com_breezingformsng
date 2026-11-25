@@ -606,7 +606,7 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                                 <summary>
                                     <code><?php echo htmlspecialchars((string) $collationName, ENT_QUOTES, 'UTF-8'); ?></code>: <strong><?php echo (int) $count; ?></strong>
                                     <?php if ($mixedIsTarget) : ?>
-                                        <span class="badge bg-success ms-1"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_EXPECTED'); ?></span>
+                                        <span class="badge bg-success ms-1"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TARGET_COLLATION'); ?></span>
                                     <?php endif; ?>
                                 </summary>
                                 <?php if (!$mixedIsTarget) : ?>
