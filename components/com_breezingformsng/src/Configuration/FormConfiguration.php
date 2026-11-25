@@ -36,7 +36,7 @@ final class FormConfiguration
 	/** @var int */
 	public $limitdesc = 100;      	// listview description limit
 	/** @var string */
-	public $emailadr = 'Enter your email address here';                  // default email notify address
+	public $emailadr = '';                  // default email notify address
 	/** @var string */
 	public $images = '{mossite}/media/com_breezingformsng/images/site';    // {ff_images} path
 	/** @var string */

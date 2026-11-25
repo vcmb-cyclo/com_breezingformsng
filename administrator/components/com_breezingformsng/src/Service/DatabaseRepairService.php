@@ -31,8 +31,10 @@ final class DatabaseRepairService
         $report = (new DatabaseAuditService($this->db, $this->temporaryPath))->run();
         $physical = $this->db->getPrefix() . 'breezingforms';
 
-        if (!in_array($alias, (array) ($report['unexpected_tables'] ?? []), true)
-            || !in_array($physical, $this->db->getTableList(), true)) {
+        if (
+            !in_array($alias, (array) ($report['unexpected_tables'] ?? []), true)
+            || !in_array($physical, $this->db->getTableList(), true)
+        ) {
             throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
         }
 
@@ -329,14 +331,15 @@ final class DatabaseRepairService
     }
 
     /**
-     * Deletes the records of forms that no longer exist, with their values. The records of a form that exists
-     * are never touched, and nothing is deleted without the forms being named.
+     * Moves the records of forms that no longer exist to the trash of the records, like any record: they are
+     * then deleted for good from there, with the cleanup that deletion runs (ContentBuilder NG included). The
+     * records of a form that exists are never touched, and nothing is moved without the forms being named.
      *
      * @param list<int|string> $formIds The missing forms (their ids are the "form" of the records).
      *
-     * @return int The number of records deleted.
+     * @return int The number of records moved to the trash.
      */
-    public function deleteOrphanRecords(array $formIds): int
+    public function trashOrphanRecords(array $formIds): int
     {
         $formIds = self::missingParentIds($formIds);
 
@@ -345,44 +348,22 @@ final class DatabaseRepairService
         }
 
         $db = $this->db;
+        $trashed = RecordState::TRASHED;
         $forms = $db->createQuery()
             ->select('1')
             ->from($db->quoteName('#__facileforms_forms', 'forms'))
-            ->where($db->quoteName('forms.id') . ' = ' . $db->quoteName('records.form'));
-        $orphans = $db->createQuery()
-            ->select($db->quoteName('records.id'))
-            ->from($db->quoteName('#__facileforms_records', 'records'))
-            // The ids are integers (checked above): written in the query, because a subquery put inside another
-            // one keeps none of its bound values.
-            ->where($db->quoteName('records.form') . ' IN (' . implode(',', $formIds) . ')')
-            ->where('NOT EXISTS (' . $forms . ')');
-        $db->transactionStart();
+            ->where($db->quoteName('forms.id') . ' = ' . $db->quoteName('#__facileforms_records.form'));
+        $query = $db->createQuery()
+            ->update($db->quoteName('#__facileforms_records'))
+            ->set($db->quoteName('state') . ' = :trashed')
+            ->whereIn($db->quoteName('form'), $formIds)
+            ->where($db->quoteName('state') . ' <> :trashedState')
+            ->where('NOT EXISTS (' . $forms . ')')
+            ->bind(':trashed', $trashed, ParameterType::INTEGER)
+            ->bind(':trashedState', $trashed, ParameterType::INTEGER);
+        $db->setQuery($query)->execute();
 
-        try {
-            $db->setQuery(
-                $db->createQuery()
-                    ->delete($db->quoteName('#__facileforms_subrecords'))
-                    ->where($db->quoteName('record') . ' IN (' . $orphans . ')')
-            )->execute();
-
-            $formsOfRecords = $db->createQuery()
-                ->select('1')
-                ->from($db->quoteName('#__facileforms_forms', 'forms'))
-                ->where($db->quoteName('forms.id') . ' = ' . $db->quoteName('#__facileforms_records.form'));
-            $db->setQuery(
-                $db->createQuery()
-                    ->delete($db->quoteName('#__facileforms_records'))
-                    ->whereIn($db->quoteName('form'), $formIds)
-                    ->where('NOT EXISTS (' . $formsOfRecords . ')')
-            )->execute();
-            $deleted = $db->getAffectedRows();
-            $db->transactionCommit();
-        } catch (\Throwable $exception) {
-            $db->transactionRollback();
-            throw $exception;
-        }
-
-        return $deleted;
+        return $db->getAffectedRows();
     }
 
     /**

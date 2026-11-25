@@ -23,9 +23,8 @@ final class ExtensionRegistrationTest extends TestCase
     public function testTheExtensionsTheNgPackageInstallsAreNotFormerOnes(): void
     {
         self::assertTrue(NgExtensions::owns('component', 'com_breezingformsng'));
-        // The module and the content plugin keep the names of the former BreezingForms.
-        self::assertTrue(NgExtensions::owns('module', 'mod_breezingforms'));
-        self::assertTrue(NgExtensions::owns('plugin', 'breezingforms', 'content'));
+        self::assertTrue(NgExtensions::owns('module', 'mod_breezingformsng'));
+        self::assertTrue(NgExtensions::owns('plugin', 'breezingformsng', 'content'));
         self::assertTrue(NgExtensions::owns('plugin', 'bfcompat', 'system'));
         foreach (['mailchimp', 'salesforce', 'dropbox'] as $addon) {
             self::assertTrue(NgExtensions::owns('plugin', $addon, 'breezingforms_addons'));
@@ -37,10 +36,14 @@ final class ExtensionRegistrationTest extends TestCase
     public function testWhatTheFormerBreezingFormsInstalledIsNot(): void
     {
         self::assertFalse(NgExtensions::owns('component', 'com_breezingforms'));
+        // The module and the content plugin were named like this before they were renamed: what is still
+        // registered under these names is a leftover.
+        self::assertFalse(NgExtensions::owns('module', 'mod_breezingforms'));
+        self::assertFalse(NgExtensions::owns('plugin', 'breezingforms', 'content'));
         self::assertFalse(NgExtensions::owns('plugin', 'breezingforms', 'system'));
         self::assertFalse(NgExtensions::owns('plugin', 'breezingforms', 'search'));
         // An administrator module of that name is not the site module of the package.
-        self::assertFalse(NgExtensions::owns('module', 'mod_breezingforms', '', 1));
+        self::assertFalse(NgExtensions::owns('module', 'mod_breezingformsng', '', 1));
         self::assertFalse(NgExtensions::owns('library', 'breezingforms'));
     }
 

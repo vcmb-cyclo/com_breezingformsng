@@ -6,17 +6,19 @@
 
 - Link record submitters and audit users to their Joomla profiles from the administrator.
 - List every BreezingForms extension on the About > Extensions screen, the former BreezingForms ones too and whatever their type, with the ID first, the description and the changelog link of each extension, and an uninstall button; "Manage extensions" opens the Extensions Manager of Joomla.
-- Delete from the audit the records and the elements of deleted forms, one form at a time with its trash button or several at once with the selection, and delete the values of records that no longer exist.
+- Clean up from the audit what deleted forms left behind, one form at a time with its trash button or several at once with the selection: their elements are deleted and their records go to the trash of the records, to be deleted from there like any record; the values of records that no longer exist can be deleted.
 - Show on each sub-tab of the form email options (administrator notification, user confirmation) how many settings it holds.
 
 ### Changed
 
 - Disable Salesforce and Dropbox plugins by default on new installations while preserving plugin states during updates.
 - Show the date of the audit in the time zone of the user instead of UTC.
+- The site module and the content plugin are renamed (mod_breezingformsng, content/breezingformsng) so that they no longer share their names with the former BreezingForms; updating moves the module instances placed in the site and the settings of the plugin, and the caches are purged at the end of the installation.
 
 ### Fixed
 
 - Stop listing as leftovers of the former BreezingForms the module and the content plugin that BreezingForms NG installs itself, and open the right entry of the Extensions Manager from the audit link.
+- Do not send the administrator notification to the placeholder address "Enter your email address here" when no recipient is configured: the submission is stored and the missing recipient is logged instead of ending on a failed mail.
 
 ## 6.1.0
 

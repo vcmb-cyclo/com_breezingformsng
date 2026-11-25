@@ -10,7 +10,8 @@
             type="text"
             label="COM_BREEZINGFORMSNG_CONFIG_DEFAULTEMAIL"
             description="COM_BREEZINGFORMSNG_CONFIG_DEFAULTEMAIL_TIP"
-            default="Enter your email address here"
+            default=""
+            hint="COM_BREEZINGFORMSNG_CONFIG_DEFAULTEMAIL_HINT"
             size="60"
             class="w-100"
         />

@@ -1134,6 +1134,37 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         }
     }
 
+    /**
+     * Joomla keeps each language file it has read, parsed, in JPATH_CACHE/language, under the path of the file and
+     * its modification time. The entries of the files of this component, of its plugins and of its module are
+     * removed: those of a path that no longer exists (a renamed extension, the temporary folder of an earlier
+     * installation) are never read again, and the others are read again from the files. Exactly these files.
+     */
+    private function purgeLanguageCache(string $context): void
+    {
+        $removed = 0;
+
+        $files = glob(JPATH_CACHE . '/language/*breezingforms*.php');
+
+        if ($files === false) {
+            return;
+        }
+
+        foreach ($files as $file) {
+            try {
+                if (is_file($file) && @unlink($file)) {
+                    $removed++;
+                }
+            } catch (\Throwable) {
+                // Best-effort cache cleanup.
+            }
+        }
+
+        if ($removed > 0) {
+            $this->log("Language cache cleared ({$removed} file(s)) during {$context}.");
+        }
+    }
+
     private function purgeCaches(string $context = 'install'): void
     {
         $autoloadFiles = [
@@ -1170,7 +1201,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             // that were just added/renamed by this same install/update.
         }
 
-        $cacheGroups = ['_system', 'com_installer', 'com_plugins', 'com_breezingformsng'];
+        // com_modules holds the list of the modules of a page: after a module is renamed it names the old one.
+        $this->purgeLanguageCache($context);
+
+        $cacheGroups = ['_system', 'com_installer', 'com_plugins', 'com_modules', 'com_breezingformsng'];
 
         try {
             $cacheFactory = Factory::getContainer()->get(CacheControllerFactoryInterface::class);
@@ -1178,9 +1212,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             if ($cacheFactory instanceof CacheControllerFactoryInterface) {
                 foreach ($cacheGroups as $group) {
                     try {
+                        // The cache folder of the site (JPATH_CACHE, the administrator's one), not JPATH_ROOT/cache.
                         $cacheFactory->createCacheController('callback', [
                             'defaultgroup' => $group,
-                            'cachebase' => JPATH_ROOT . '/cache',
+                            'cachebase' => JPATH_CACHE,
                         ])->clean();
                     } catch (\Throwable) {
                         // Continue with the remaining cache groups.
@@ -1276,13 +1311,205 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
 
     private function installModules(): void
     {
-        $path = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/modules/mod_breezingforms';
+        $path = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/modules/mod_breezingformsng';
         $installer = new Installer();
         $installer->setDatabase(self::getDatabase());
 
         if (!$installer->install($path)) {
             $this->announce('Failed to install BreezingForms NG module.', 'error', Log::ERROR);
         }
+    }
+
+    /**
+     * The module and the content plugin were renamed (mod_breezingforms to mod_breezingformsng, content/breezingforms
+     * to content/breezingformsng) so that they no longer share their names with the former BreezingForms. The
+     * folders that carried the old names in the component are removed first: the plugin installer takes every
+     * bundled plugin folder it finds, and would install the old plugin again. Exactly these two folders.
+     */
+    private function removeRenamedBundleFolders(): void
+    {
+        $base = JPATH_ADMINISTRATOR . '/components/com_breezingformsng';
+
+        foreach ([$base . '/modules/mod_breezingforms', $base . '/plugins/breezingforms'] as $directory) {
+            if (!Folder::exists($directory)) {
+                continue;
+            }
+
+            if (Folder::delete($directory)) {
+                $this->log('Obsolete directory removed: ' . basename($directory));
+            } else {
+                $this->log('Unable to remove the obsolete directory ' . $directory . '.', Log::WARNING);
+            }
+        }
+    }
+
+    /**
+     * Moves what the administrator set on the renamed module and content plugin to the new ones, then uninstalls
+     * the old registrations. Idempotent: nothing is done once the old registration is gone, and nothing is moved
+     * while the new one is missing.
+     */
+    private function migrateRenamedExtensions(): void
+    {
+        try {
+            $this->migrateRenamedModule();
+            $this->migrateRenamedContentPlugin();
+        } catch (\Throwable $exception) {
+            // The old registration stays and the database audit lists it: nothing is lost.
+            $this->log('Unable to migrate the renamed extensions: ' . $exception->getMessage(), Log::WARNING);
+        }
+    }
+
+    private function getExtensionId(string $type, string $element, string $folder = '', int $clientId = 0): int
+    {
+        $db = self::getDatabase();
+        $query = $db->createQuery()
+            ->select($db->quoteName('extension_id'))
+            ->from($db->quoteName('#__extensions'))
+            ->where($db->quoteName('type') . ' = :type')
+            ->where($db->quoteName('element') . ' = :element')
+            ->where($db->quoteName('folder') . ' = :folder')
+            ->where($db->quoteName('client_id') . ' = :clientId')
+            ->bind(':type', $type)
+            ->bind(':element', $element)
+            ->bind(':folder', $folder)
+            ->bind(':clientId', $clientId, ParameterType::INTEGER);
+
+        return (int) $db->setQuery($query)->loadResult();
+    }
+
+    private function uninstallReplacedExtension(string $type, int $extensionId, string $label): void
+    {
+        $installer = new Installer();
+        $installer->setDatabase(self::getDatabase());
+
+        if ($installer->uninstall($type, $extensionId)) {
+            $this->log("The replaced {$label} was uninstalled.", Log::INFO);
+
+            return;
+        }
+
+        $this->log("The replaced {$label} could not be uninstalled; the database audit lists it.", Log::WARNING);
+    }
+
+    private function migrateRenamedModule(): void
+    {
+        $oldId = $this->getExtensionId('module', 'mod_breezingforms');
+
+        if ($oldId <= 0) {
+            return;
+        }
+
+        if ($this->getExtensionId('module', 'mod_breezingformsng') <= 0) {
+            $this->log('The module mod_breezingformsng is not registered: the old module is kept.', Log::WARNING);
+
+            return;
+        }
+
+        // The instances placed in the site keep their position, parameters and menu assignments. They are
+        // renamed before the old module is uninstalled: Joomla deletes the instances of an uninstalled module.
+        $db = self::getDatabase();
+        $db->setQuery(
+            $db->createQuery()
+                ->update($db->quoteName('#__modules'))
+                ->set($db->quoteName('module') . ' = ' . $db->quote('mod_breezingformsng'))
+                ->where($db->quoteName('module') . ' = ' . $db->quote('mod_breezingforms'))
+                ->where($db->quoteName('client_id') . ' = 0')
+        )->execute();
+        $moved = $db->getAffectedRows();
+        $this->log('Module instances moved to mod_breezingformsng: ' . $moved . '.', Log::INFO, true);
+        $this->removeDuplicateModulePlaceholders();
+        $this->uninstallReplacedExtension('module', $oldId, 'module mod_breezingforms');
+    }
+
+    /**
+     * Joomla creates one unpublished, unplaced instance named after the module each time a module is installed:
+     * the old module left one, the new module made another. Only untouched placeholders are counted (no position,
+     * unpublished, no parameters, still named after the module), and the first one stays. A draft the administrator
+     * named is theirs.
+     */
+    private function removeDuplicateModulePlaceholders(): void
+    {
+        $db = self::getDatabase();
+        $ids = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName('id'))
+                ->from($db->quoteName('#__modules'))
+                ->where($db->quoteName('module') . ' = ' . $db->quote('mod_breezingformsng'))
+                ->where($db->quoteName('client_id') . ' = 0')
+                ->whereIn(
+                    $db->quoteName('title'),
+                    array_values(array_unique([
+                        'MOD_BREEZINGFORMSNG',
+                        'MOD_BREEZINGFORMS',
+                        Text::_('MOD_BREEZINGFORMSNG'),
+                        'BreezingForms NG',
+                        'BreezingForms',
+                    ])),
+                    ParameterType::STRING
+                )
+                ->where($db->quoteName('position') . ' = ' . $db->quote(''))
+                ->where($db->quoteName('published') . ' = 0')
+                ->where($db->quoteName('params') . ' IN (' . $db->quote('') . ', ' . $db->quote('{}') . ')')
+                ->order($db->quoteName('id') . ' ASC')
+        )->loadColumn();
+        $duplicates = array_map('intval', array_slice($ids, 1));
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        foreach (['#__modules_menu' => 'moduleid', '#__modules' => 'id'] as $table => $column) {
+            $db->setQuery(
+                $db->createQuery()
+                    ->delete($db->quoteName($table))
+                    ->whereIn($db->quoteName($column), $duplicates)
+            )->execute();
+        }
+
+        $this->log('Duplicate module placeholders removed: ' . count($duplicates) . '.', Log::INFO, true);
+    }
+
+    private function migrateRenamedContentPlugin(): void
+    {
+        $oldId = $this->getExtensionId('plugin', 'breezingforms', 'content');
+        $newId = $this->getExtensionId('plugin', 'breezingformsng', 'content');
+
+        if ($oldId <= 0) {
+            return;
+        }
+
+        if ($newId <= 0) {
+            $this->log('The plugin content/breezingformsng is not registered: the old plugin is kept.', Log::WARNING);
+
+            return;
+        }
+
+        // Its state and its settings: a plugin the administrator turned off stays off.
+        $db = self::getDatabase();
+        $old = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName(['enabled', 'access', 'ordering', 'params']))
+                ->from($db->quoteName('#__extensions'))
+                ->where($db->quoteName('extension_id') . ' = ' . $oldId)
+        )->loadAssoc();
+
+        if (is_array($old)) {
+            $params = trim((string) ($old['params'] ?? ''));
+            $query = $db->createQuery()
+                ->update($db->quoteName('#__extensions'))
+                ->set($db->quoteName('enabled') . ' = ' . (int) $old['enabled'])
+                ->set($db->quoteName('access') . ' = ' . (int) $old['access'])
+                ->set($db->quoteName('ordering') . ' = ' . (int) $old['ordering'])
+                ->where($db->quoteName('extension_id') . ' = ' . $newId);
+
+            if ($params !== '' && $params !== '{}') {
+                $query->set($db->quoteName('params') . ' = ' . $db->quote($params));
+            }
+
+            $db->setQuery($query)->execute();
+        }
+
+        $this->uninstallReplacedExtension('plugin', $oldId, 'plugin content/breezingforms');
     }
 
     private function installPlugins(): void
@@ -4308,7 +4535,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             ->select($db->quoteName('extension_id'))
             ->from($db->quoteName('#__extensions'))
             ->where($db->quoteName('type') . ' = ' . $db->quote('module'))
-            ->where($db->quoteName('element') . ' = ' . $db->quote('mod_breezingforms'))
+            ->where($db->quoteName('element') . ' = ' . $db->quote('mod_breezingformsng'))
             ->where($db->quoteName('client_id') . ' = 0');
         $moduleId = (int) $db->setQuery($query)->loadResult();
 
@@ -4414,8 +4641,10 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             $this->keepVersionOrigins();
             $this->importStandardLibrary();
             $this->copyComponentImageAssets();
+            $this->removeRenamedBundleFolders();
             $this->installPlugins();
             $this->installModules();
+            $this->migrateRenamedExtensions();
             $this->registerActionLogExtension();
             $this->cleanupLegacyBreezingFormsAfterInstall();
             $this->reportLegacyPdfCustomisations();
@@ -4480,7 +4709,7 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $plugins = array();
         $plugins['system'] = array();
         $plugins['system'][] = 'bfcompat';
-        $plugins['content'] = ['breezingforms'];
+        $plugins['content'] = ['breezingformsng'];
         $plugins['breezingforms_addons'] = ['mailchimp', 'salesforce', 'dropbox'];
         $plugins['privacy'] = ['breezingformsng'];
         $plugins['webservices'] = ['breezingformsng'];

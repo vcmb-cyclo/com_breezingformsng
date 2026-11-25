@@ -416,7 +416,18 @@ final class DatabaseAuditService
             }
 
             try {
-                $summary = $this->summarizeOrphans($child, $parent, $foreignKey, $labelColumn, $dateColumn);
+                // The records of a deleted form that are already in the trash are being dealt with there.
+                $notTrashed = $id === 'records_without_form'
+                    ? $this->db->quoteName('child.state') . ' <> ' . RecordState::TRASHED
+                    : null;
+                $summary = $this->summarizeOrphans(
+                    $child,
+                    $parent,
+                    $foreignKey,
+                    $labelColumn,
+                    $dateColumn,
+                    $notTrashed
+                );
 
                 if ($id === 'subrecords_without_element') {
                     $summary['groups'] = $this->addFormOfOrphanValues($summary['groups']);
@@ -445,17 +456,22 @@ final class DatabaseAuditService
         string $parent,
         string $foreignKey,
         ?string $labelColumn,
-        ?string $dateColumn
+        ?string $dateColumn,
+        ?string $extraCondition = null
     ): array {
         $key = $this->db->quoteName('child.' . $foreignKey);
-        $orphans = fn() => $this->db->createQuery()
-            ->from($this->db->quoteName('#__' . $child, 'child'))
-            ->join(
-                'LEFT',
-                $this->db->quoteName('#__' . $parent, 'parent'),
-                $key . ' = ' . $this->db->quoteName('parent.id')
-            )
-            ->where($this->db->quoteName('parent.id') . ' IS NULL');
+        $orphans = function () use ($key, $child, $parent, $extraCondition) {
+            $query = $this->db->createQuery()
+                ->from($this->db->quoteName('#__' . $child, 'child'))
+                ->join(
+                    'LEFT',
+                    $this->db->quoteName('#__' . $parent, 'parent'),
+                    $key . ' = ' . $this->db->quoteName('parent.id')
+                )
+                ->where($this->db->quoteName('parent.id') . ' IS NULL');
+
+            return $extraCondition === null ? $query : $query->where($extraCondition);
+        };
 
         $this->db->setQuery(
             $orphans()->select(['COUNT(*) AS ' . $this->db->quoteName('total'), 'COUNT(DISTINCT ' . $key . ') AS '

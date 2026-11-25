@@ -33,8 +33,8 @@ test('the extensions screen lists the whole family, with ID first, and uninstall
         const legacy = page.locator('#adminForm li:has([data-bf-select-item="legacy-extensions"])');
         const probeLink = legacy.locator('a:has(code)', { hasText: 'plugin/system/breezingformsprobe' });
         await expect(probeLink).toHaveAttribute('href', new RegExp(`option=com_plugins.*id:${probe}`));
-        await expect(legacy.filter({ hasText: 'module/mod_breezingforms' })).toHaveCount(0);
-        await expect(legacy.filter({ hasText: 'plugin/content/breezingforms' })).toHaveCount(0);
+        await expect(legacy.filter({ hasText: 'module/mod_breezingformsng' })).toHaveCount(0);
+        await expect(legacy.filter({ hasText: 'plugin/content/breezingformsng' })).toHaveCount(0);
         await expect(legacy.locator('a.btn')).toHaveCount(0);
 
         await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about&layout=extensions`);
@@ -63,6 +63,8 @@ test('the extensions screen lists the whole family, with ID first, and uninstall
         // The changelog XML declared by the manifest is linked; an extension without one has no link.
         const componentRow = table.locator('tbody tr', { hasText: 'com_breezingformsng' });
         await expect(componentRow.locator('a[href$="com_breezingformsng_changelog.xml"]')).toHaveCount(1);
+        // The plugins and the module shipped with it declare the same one.
+        expect(await table.locator('tbody a[href$="com_breezingformsng_changelog.xml"]').count()).toBeGreaterThanOrEqual(9);
         await expect(row.locator('a[href$=".xml"]')).toHaveCount(0);
 
         // The generic text that used to be repeated on every row is gone.

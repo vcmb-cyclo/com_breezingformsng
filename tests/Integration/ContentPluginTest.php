@@ -27,7 +27,7 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Vcmb\Plugin\Content\Breezingforms\Extension\Breezingforms;
+use Vcmb\Plugin\Content\BreezingformsNG\Extension\Breezingforms;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
@@ -51,7 +51,7 @@ final class ContentPluginTest extends TestCase
             }
         }
         require_once getenv('BFNG_PLUGIN_SOURCE') ?: dirname(__DIR__, 2)
-            . '/administrator/components/com_breezingformsng/plugins/breezingforms/src/Extension/Breezingforms.php';
+            . '/administrator/components/com_breezingformsng/plugins/breezingformsng/src/Extension/Breezingforms.php';
         $this->site = sys_get_temp_dir() . '/bfng-content-test-' . bin2hex(random_bytes(6));
         mkdir($this->site . '/components/com_breezingformsng/src/Support', 0777, true);
         define('JPATH_SITE', $this->site);
@@ -112,7 +112,7 @@ PHP);
         $application->method('isClient')->willReturn(true);
         $application->method('getInput')->willReturn($input);
         $application->method('getSession')->willReturn($session);
-        $plugin = new Breezingforms(['name' => 'breezingforms', 'type' => 'content', 'params' => json_encode(['load_in_iframe' => $iframe])]);
+        $plugin = new Breezingforms(['name' => 'breezingformsng', 'type' => 'content', 'params' => json_encode(['load_in_iframe' => $iframe])]);
         $plugin->setApplication($application);
         $plugin->setDatabase($database);
 

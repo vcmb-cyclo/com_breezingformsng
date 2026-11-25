@@ -37,8 +37,8 @@ final class AdminRunModeRemovalTest extends TestCase
     public function testModuleAndPluginApplyTheRuleOfTheSite(): void
     {
         $paths = [
-            'modules/mod_breezingforms/src/Dispatcher/Dispatcher.php',
-            'plugins/breezingforms/src/Extension/Breezingforms.php',
+            'modules/mod_breezingformsng/src/Dispatcher/Dispatcher.php',
+            'plugins/breezingformsng/src/Extension/Breezingforms.php',
         ];
 
         foreach ($paths as $path) {

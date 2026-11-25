@@ -55,7 +55,7 @@ final class InstallerReinstallationTest extends TestCase
         $block = substr($source, $start, $end - $start);
         $block = substr($block, 0, strrpos($block, '}'));
         $runner = eval('return new class { public array $logs = [];'
-            . 'public function getPlugins() { return ["system" => ["bfcompat"], "content" => ["breezingforms"]]; }'
+            . 'public function getPlugins() { return ["system" => ["bfcompat"], "content" => ["breezingformsng"]]; }'
             . 'public function log($message) { $this->logs[] = $message; }'
             . 'public function run($standardDb, $existingPlugins) { ' . $block . ' } };');
         $db = new class {
@@ -92,7 +92,7 @@ final class InstallerReinstallationTest extends TestCase
             }
         };
 
-        $runner->run($db, ['system' => ['bfcompat' => 0], 'content' => ['breezingforms' => 1]]);
+        $runner->run($db, ['system' => ['bfcompat' => 0], 'content' => ['breezingformsng' => 1]]);
         self::assertSame(['enabled = 0', 'enabled = 1'], $db->states);
         self::assertSame([], $runner->logs);
         $db->states = [];
