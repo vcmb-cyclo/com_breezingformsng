@@ -95,11 +95,11 @@ $auditOrphanChecks = array_values(array_filter(
     static fn(array $check): bool => (int) ($check['count'] ?? 0) > 0
 ));
 $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
-// The report stores its date in UTC: it is shown in the time zone of the user.
+// The report stores its date in UTC: show it in the site's configured time zone.
 $auditGeneratedAt = $notAvailable;
 if (($auditReport['generated_at'] ?? '') !== '') {
     try {
-        $auditGeneratedAt = HTMLHelper::_('date', (string) $auditReport['generated_at'], 'Y-m-d H:i:s', true);
+        $auditGeneratedAt = HTMLHelper::_('date', (string) $auditReport['generated_at'], 'Y-m-d H:i:s', false);
     } catch (\Throwable) {
         $auditGeneratedAt = (string) $auditReport['generated_at'];
     }
