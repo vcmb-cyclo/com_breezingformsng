@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { runAuditAndOpen } from './audit.mjs';
 import { loginAsAdmin } from './login.mjs';
 
 // "Records without a form" and "Elements without a form" of the audit: a trash button for one deleted form,
@@ -35,12 +36,7 @@ test('records and elements of deleted forms are deleted one by one or by selecti
         }
         expect(counts()).toMatchObject({ elements: { [first]: 2, [second]: 2 }, records: { [first]: 1, [second]: 2 }, values: 3, kept: 1 });
 
-        const run = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.runAudit`, {
-            form: { [csrf]: '1' },
-            maxRedirects: 0,
-        });
-        expect([302, 303]).toContain(run.status());
-        await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about&layout=audit`);
+        await runAuditAndOpen(page, csrf);
 
         // Elements: the trash button of one form removes only its elements.
         const elements = page.locator('[data-bf-orphan-check="elements_without_form"]');

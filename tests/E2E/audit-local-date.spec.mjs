@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
+import { runAuditAndOpen } from './audit.mjs';
 import { loginAsAdmin } from './login.mjs';
 
 // The date of the audit report is shown in the site's configured time zone, not in UTC.
@@ -23,12 +24,7 @@ test('the audit date is shown in local time', async ({ browser }) => {
         await page.goto(ADMIN);
         await loginAsAdmin(page);
         const csrf = await page.evaluate(() => Joomla.getOptions('csrf.token'));
-        const run = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.runAudit`, {
-            form: { [csrf]: '1' },
-            maxRedirects: 0,
-        });
-        expect([302, 303]).toContain(run.status());
-        await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about&layout=audit`);
+        await runAuditAndOpen(page, csrf);
 
         const text = await page.locator('#bf-audit-section .text-muted.small').first().innerText({ timeout: 30_000 });
         expect(text).not.toMatch(/UTC/);

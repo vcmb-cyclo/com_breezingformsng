@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { runAuditAndOpen } from './audit.mjs';
 import { loginAsAdmin } from './login.mjs';
 
 // "Values without a record" of the database audit: the values of a record that no longer exists.
@@ -42,12 +43,7 @@ test('the values of a missing record are deleted from the audit, and only those'
         expect(rows()).toEqual(expect.arrayContaining([...kept, ...orphans]));
 
         // The audit shows the values, with a trash button per missing record and one for all of them.
-        const run = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.runAudit`, {
-            form: { [csrf]: '1' },
-            maxRedirects: 0,
-        });
-        expect([302, 303]).toContain(run.status());
-        await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about&layout=audit`);
+        await runAuditAndOpen(page, csrf);
         const audit = page.locator('[data-bf-orphan-check="subrecords_without_record"]');
         await expect(audit).toBeAttached({ timeout: 60_000 });
         const trash = audit.locator(`[data-bf-orphan-task="about.deleteOrphanSubrecords"][data-bf-orphan-element="${MISSING_RECORD}"]`);

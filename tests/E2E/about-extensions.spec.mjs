@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { runAuditAndOpen } from './audit.mjs';
 import { loginAsAdmin } from './login.mjs';
 
 // The Extensions screen of the About page: every BreezingForms extension (the former BreezingForms
@@ -23,12 +24,7 @@ test('the extensions screen lists the whole family, with ID first, and uninstall
         // The audit lists the leftovers of a former BreezingForms, with the link on their name; what the
         // BreezingForms NG package installs (its module, its content plugin) is never one of them.
         const csrf = await page.evaluate(() => Joomla.getOptions('csrf.token'));
-        const run = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.runAudit`, {
-            form: { [csrf]: '1' },
-            maxRedirects: 0,
-        });
-        expect([302, 303]).toContain(run.status());
-        await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about&layout=audit`);
+        await runAuditAndOpen(page, csrf);
         await expect(page.locator('#bf-audit-section')).toBeVisible({ timeout: 30_000 });
         const legacy = page.locator('#adminForm li:has([data-bf-select-item="legacy-extensions"])');
         const probeLink = legacy.locator('a:has(code)', { hasText: 'plugin/system/breezingformsprobe' });
