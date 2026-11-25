@@ -544,3 +544,14 @@ details.bf-audit-section-block[open] > :not(summary) + :not(summary) {
 .bf-about-libraries-title {
     color: var(--bs-emphasis-color, #1f2d3d);
 }
+
+/* A neutral sub-section of an audit section: a title with its count, the detail when opened. */
+.bf-audit-subsection {
+    padding: .4rem .75rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: .5rem;
+    background: var(--bs-body-bg);
+}
+.bf-audit-subsection > summary {
+    cursor: pointer;
+}

@@ -939,16 +939,30 @@ class AboutController extends BaseController
 
     /**
      * Deletes the values of records that no longer exist. The screen script posts the record in
-     * orphan_element_id (its generic "parent" field) or orphan_all for every missing record.
+     * orphan_element_id (its generic "parent" field), the ones of orphan_ids[] (the selection) or orphan_all for
+     * every missing record.
      */
     public function deleteOrphanSubrecords(): void
     {
         $all = $this->input->post->getBool('orphan_all', false);
         $rawId = $this->input->post->get('orphan_element_id', null, 'raw');
+        $selected = (array) $this->input->post->get('orphan_ids', [], 'array') !== [];
         $recordId = $all ? null : (is_string($rawId) && preg_match('/\A[0-9]+\z/', $rawId) ? (int) $rawId : -1);
 
         $this->repairOrphans(
-            fn (DatabaseRepairService $repair): int => $repair->deleteOrphanSubrecords($recordId),
+            function (DatabaseRepairService $repair) use ($selected, $recordId): int {
+                if (!$selected) {
+                    return $repair->deleteOrphanSubrecords($recordId);
+                }
+
+                $deleted = 0;
+
+                foreach ($this->orphanParentIds(false) ?? [] as $selectedId) {
+                    $deleted += $repair->deleteOrphanSubrecords($selectedId);
+                }
+
+                return $deleted;
+            },
             'subrecords_without_record',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETED',
             'COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_FAILED'

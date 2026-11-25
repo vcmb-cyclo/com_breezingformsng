@@ -172,6 +172,11 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringNotContainsString('btn-outline-primary', $template);
         self::assertStringContainsString("'subrecords_without_element' => 'about.deleteOrphanValues'", $template);
         self::assertStringContainsString("orphan_ids", $controller);
+        // Both kinds of orphan values are selectable, and every section shows its count in its title.
+        self::assertStringContainsString("'subrecords_without_record' => 'about.deleteOrphanSubrecords'", $template);
+        self::assertSame(15, substr_count($template, '<span class="badge bg-secondary ms-1">'));
+        // The mixed collations list one sub-accordion per collation, with its tables.
+        self::assertStringContainsString('<details class="bf-audit-subsection mb-1">', $template);
     }
 
     public function testRemovingALegacyTemplateNeverLeavesAClientWithoutDefaultStyle(): void
