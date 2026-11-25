@@ -413,6 +413,9 @@ $versionInformation = bf_about_get_version_information();
 $phpLibraries = bf_about_get_php_libraries();
 $javascriptLibraries = bf_about_get_javascript_libraries();
 $notAvailable = Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE');
+$sortHeader = static fn (string $labelKey, string $type): string => '<th scope="col" aria-sort="none"><button type="button" '
+    . 'class="btn btn-link p-0 text-reset text-decoration-none fw-bold" data-bf-table-sort="' . $type . '">'
+    . htmlspecialchars(Text::_($labelKey), ENT_QUOTES, 'UTF-8') . '</button></th>';
 
 $versionValue = $versionInformation['version'] !== '' ? $versionInformation['version'] : $notAvailable;
 $creationDateValue = $versionInformation['creationDate'] !== '' ? $versionInformation['creationDate'] : $notAvailable;
@@ -563,13 +566,13 @@ HTMLHelper::_('bootstrap.collapse');
                             </div>
                         <?php else : ?>
                             <div class="table-responsive">
-                                <table class="table table-sm table-striped align-middle mb-0">
+                                <table class="table table-sm table-striped align-middle mb-0" data-bf-sortable-table>
                                     <thead>
                                     <tr>
-                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARY'); ?></th>
-                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARY_VERSION'); ?></th>
-                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_LIBRARY_RELEASED'); ?></th>
-                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE'); ?></th>
+                                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_PHP_LIBRARY', 'text'); ?>
+                                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_PHP_LIBRARY_VERSION', 'text'); ?>
+                                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_LIBRARY_RELEASED', 'text'); ?>
+                                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE', 'text'); ?>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -577,7 +580,7 @@ HTMLHelper::_('bootstrap.collapse');
                                         <tr>
                                             <td><?php echo htmlspecialchars((string) ($library['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td><?php echo htmlspecialchars((string) (($library['version'] ?? '') !== '' ? $library['version'] : $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td><?php echo htmlspecialchars(bf_about_format_library_date((string) ($library['released'] ?? '')) ?: $notAvailable, ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td data-bf-sort-value="<?php echo htmlspecialchars(substr((string) ($library['released'] ?? ''), 0, 10), ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars(bf_about_format_library_date((string) ($library['released'] ?? '')) ?: $notAvailable, ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td><?php echo Text::_(!empty($library['is_dev']) ? 'COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE_DEV' : 'COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE_RUNTIME'); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -609,14 +612,14 @@ HTMLHelper::_('bootstrap.collapse');
                             </div>
                         <?php else : ?>
                             <div class="table-responsive">
-                                <table class="table table-sm table-striped align-middle mb-0">
+                                <table class="table table-sm table-striped align-middle mb-0" data-bf-sortable-table>
                                     <thead>
                                     <tr>
-                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY'); ?></th>
-                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_VERSION'); ?></th>
-                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_LIBRARY_RELEASED'); ?></th>
-                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_ASSETS'); ?></th>
-                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_SOURCE'); ?></th>
+                                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_JS_LIBRARY', 'text'); ?>
+                                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_JS_LIBRARY_VERSION', 'text'); ?>
+                                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_LIBRARY_RELEASED', 'text'); ?>
+                                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_JS_LIBRARY_ASSETS', 'text'); ?>
+                                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_JS_LIBRARY_SOURCE', 'text'); ?>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -624,7 +627,7 @@ HTMLHelper::_('bootstrap.collapse');
                                         <tr>
                                             <td><?php echo htmlspecialchars((string) ($library['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td><?php echo htmlspecialchars((string) ($library['version'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td><?php echo htmlspecialchars(bf_about_format_library_date((string) ($library['released'] ?? '')) ?: $notAvailable, ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td data-bf-sort-value="<?php echo htmlspecialchars(substr((string) ($library['released'] ?? ''), 0, 10), ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars(bf_about_format_library_date((string) ($library['released'] ?? '')) ?: $notAvailable, ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td><?php echo htmlspecialchars((string) ($library['assets'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td>
                                                 <?php if (!empty($library['external'])) : ?>

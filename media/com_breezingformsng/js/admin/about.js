@@ -80,7 +80,7 @@
                         if (numeric) {
                             comparison = Number(left.value) - Number(right.value);
                         } else {
-                            comparison = left.value.localeCompare(right.value, undefined, { sensitivity: 'base' });
+                            comparison = left.value.localeCompare(right.value, undefined, { sensitivity: 'base', numeric: true });
                         }
 
                         return comparison === 0 ? left.position - right.position : comparison * direction;

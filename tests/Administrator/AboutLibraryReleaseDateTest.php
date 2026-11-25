@@ -95,4 +95,16 @@ final class AboutLibraryReleaseDateTest extends TestCase
     {
         self::assertSame('', bf_about_format_library_date(''));
     }
+
+    public function testLibraryTablesAreSortableOnEveryColumn(): void
+    {
+        $template = file_get_contents(
+            __DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/default.php'
+        );
+        self::assertIsString($template);
+
+        self::assertSame(2, substr_count($template, 'data-bf-sortable-table'));
+        self::assertSame(9, substr_count($template, '$sortHeader(\'COM_BREEZINGFORMSNG_'));
+        self::assertSame(2, substr_count($template, 'data-bf-sort-value="<?php echo htmlspecialchars(substr('));
+    }
 }
