@@ -128,16 +128,18 @@ if (!function_exists('bf_about_get_version_information')) {
 
 if (!function_exists('bf_about_add_php_library')) {
     /**
-     * @param array<string, array{name: string, version: string, is_dev: bool}> $indexedLibraries
+     * @param array<string, array{name: string, version: string, released: string, is_dev: bool}> $indexedLibraries
      * @param string $name
      * @param string $version
      * @param bool $isDev
+     * @param string $released
      * @return void
      */
-    function bf_about_add_php_library(&$indexedLibraries, $name, $version, $isDev)
+    function bf_about_add_php_library(&$indexedLibraries, $name, $version, $isDev, $released = '')
     {
         $name = trim((string) $name);
         $version = trim((string) $version);
+        $released = trim((string) $released);
 
         if ($name === '') {
             return;
@@ -147,6 +149,7 @@ if (!function_exists('bf_about_add_php_library')) {
             $indexedLibraries[$name] = array(
                 'name' => $name,
                 'version' => $version,
+                'released' => $released,
                 'is_dev' => (bool) $isDev,
             );
             return;
@@ -154,6 +157,7 @@ if (!function_exists('bf_about_add_php_library')) {
 
         if ($indexedLibraries[$name]['version'] === '' && $version !== '') {
             $indexedLibraries[$name]['version'] = $version;
+            $indexedLibraries[$name]['released'] = $released;
         }
 
         $indexedLibraries[$name]['is_dev'] = (bool) $indexedLibraries[$name]['is_dev'] && (bool) $isDev;
@@ -162,7 +166,7 @@ if (!function_exists('bf_about_add_php_library')) {
 
 if (!function_exists('bf_about_collect_php_libraries_from_installed_json')) {
     /**
-     * @param array<string, array{name: string, version: string, is_dev: bool}> $indexedLibraries
+     * @param array<string, array{name: string, version: string, released: string, is_dev: bool}> $indexedLibraries
      * @param string $installedJsonPath
      * @return void
      */
@@ -191,14 +195,16 @@ if (!function_exists('bf_about_collect_php_libraries_from_installed_json')) {
             $version = (string) ($package['pretty_version'] ?? $package['version'] ?? '');
             $isDev = (bool) ($package['dev_requirement'] ?? false);
 
-            bf_about_add_php_library($indexedLibraries, $name, $version, $isDev);
+            $released = (string) ($package['time'] ?? '');
+
+            bf_about_add_php_library($indexedLibraries, $name, $version, $isDev, $released);
         }
     }
 }
 
 if (!function_exists('bf_about_collect_php_library_from_composer_json')) {
     /**
-     * @param array<string, array{name: string, version: string, is_dev: bool}> $indexedLibraries
+     * @param array<string, array{name: string, version: string, released: string, is_dev: bool}> $indexedLibraries
      * @param string $composerJsonPath
      * @return void
      */
@@ -220,7 +226,7 @@ if (!function_exists('bf_about_collect_php_library_from_composer_json')) {
 
 if (!function_exists('bf_about_get_php_libraries')) {
     /**
-     * @return list<array{name: string, version: string, is_dev: bool}>
+     * @return list<array{name: string, version: string, released: string, is_dev: bool}>
      */
     function bf_about_get_php_libraries()
     {
@@ -273,9 +279,62 @@ if (!function_exists('bf_about_extract_version_from_file')) {
     }
 }
 
+if (!function_exists('bf_about_extract_release_date_from_file')) {
+    /**
+     * Release date (Y-m-d) written in the header comment of a bundled script, or '' when absent.
+     *
+     * @param string $filePath
+     * @return string
+     */
+    function bf_about_extract_release_date_from_file($filePath)
+    {
+        if (!is_file($filePath)) {
+            return '';
+        }
+
+        $contents = @file_get_contents($filePath, false, null, 0, 512);
+
+        if (is_string($contents) && preg_match('/^\/\*!.*?\b(\d{4}-\d{2}-\d{2})\b/', $contents, $matches)) {
+            return $matches[1];
+        }
+
+        return '';
+    }
+}
+
+if (!function_exists('bf_about_format_library_date')) {
+    /**
+     * Format a library release date (ISO 8601) in the administrator language; '' when invalid.
+     *
+     * @param string $date
+     * @return string
+     */
+    function bf_about_format_library_date($date)
+    {
+        $date = trim((string) $date);
+
+        if ($date === '') {
+            return '';
+        }
+
+        try {
+            return (new \IntlDateFormatter(
+                str_replace('-', '_', Factory::getApplication()->getLanguage()->getTag()),
+                \IntlDateFormatter::NONE,
+                \IntlDateFormatter::NONE,
+                'UTC',
+                \IntlDateFormatter::GREGORIAN,
+                'd MMM y'
+            ))->format(new \DateTimeImmutable($date, new \DateTimeZone('UTC'))) ?: '';
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+}
+
 if (!function_exists('bf_about_get_javascript_libraries')) {
     /**
-     * @return list<array{name: string, version: string, assets: string, source: string}>
+     * @return list<array{name: string, version: string, released: string, assets: string, source: string}>
      */
     function bf_about_get_javascript_libraries()
     {
@@ -284,6 +343,11 @@ if (!function_exists('bf_about_get_javascript_libraries')) {
         $externalSource = Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_SOURCE_EXTERNAL');
         $basePath = JPATH_ADMINISTRATOR . '/components/com_breezingformsng/libraries/jquery/';
         $libraries = array();
+
+        // The jQuery build shipped by Joomla carries no date: map the detected version to its release date.
+        $knownReleaseDates = array(
+            'jQuery' => array('3.7.1' => '2023-08-28'),
+        );
 
         $candidates = array(
             array(
@@ -306,6 +370,12 @@ if (!function_exists('bf_about_get_javascript_libraries')) {
             }
 
             $version = bf_about_extract_version_from_file($scriptPath);
+            $released = bf_about_extract_release_date_from_file($scriptPath);
+
+            if ($released === '') {
+                $released = (string) ($knownReleaseDates[(string) $candidate['name']][ltrim($version, 'v')] ?? '');
+            }
+
             $assets = 'JS';
             $cssPath = (string) $candidate['css_path'];
 
@@ -316,6 +386,7 @@ if (!function_exists('bf_about_get_javascript_libraries')) {
             $libraries[] = array(
                 'name' => (string) $candidate['name'],
                 'version' => $version !== '' ? $version : $notAvailable,
+                'released' => $released,
                 'assets' => $assets,
                 'source' => $bundledSource,
             );
@@ -324,6 +395,7 @@ if (!function_exists('bf_about_get_javascript_libraries')) {
         $libraries[] = array(
             'name' => 'Google reCAPTCHA',
             'version' => 'v2',
+            'released' => '',
             'assets' => 'JS',
             'source' => $externalSource,
             'external' => true,
@@ -496,6 +568,7 @@ HTMLHelper::_('bootstrap.collapse');
                                     <tr>
                                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARY'); ?></th>
                                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARY_VERSION'); ?></th>
+                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_LIBRARY_RELEASED'); ?></th>
                                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE'); ?></th>
                                     </tr>
                                     </thead>
@@ -504,6 +577,7 @@ HTMLHelper::_('bootstrap.collapse');
                                         <tr>
                                             <td><?php echo htmlspecialchars((string) ($library['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td><?php echo htmlspecialchars((string) (($library['version'] ?? '') !== '' ? $library['version'] : $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars(bf_about_format_library_date((string) ($library['released'] ?? '')) ?: $notAvailable, ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td><?php echo Text::_(!empty($library['is_dev']) ? 'COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE_DEV' : 'COM_BREEZINGFORMSNG_PHP_LIBRARY_SCOPE_RUNTIME'); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -540,6 +614,7 @@ HTMLHelper::_('bootstrap.collapse');
                                     <tr>
                                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY'); ?></th>
                                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_VERSION'); ?></th>
+                                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_LIBRARY_RELEASED'); ?></th>
                                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_ASSETS'); ?></th>
                                         <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_JS_LIBRARY_SOURCE'); ?></th>
                                     </tr>
@@ -549,6 +624,7 @@ HTMLHelper::_('bootstrap.collapse');
                                         <tr>
                                             <td><?php echo htmlspecialchars((string) ($library['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td><?php echo htmlspecialchars((string) ($library['version'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars(bf_about_format_library_date((string) ($library['released'] ?? '')) ?: $notAvailable, ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td><?php echo htmlspecialchars((string) ($library['assets'] ?? $notAvailable), ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td>
                                                 <?php if (!empty($library['external'])) : ?>
