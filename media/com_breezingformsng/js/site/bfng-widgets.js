@@ -122,7 +122,8 @@
             return '';
         }
         if (raw.toLowerCase() === 'now') {
-            return formatLocal(now instanceof Date ? now : new Date(), mode);
+            // Without a date, now does not define a bound across midnight.
+            return mode === 'time' ? '' : formatLocal(now instanceof Date ? now : new Date(), mode);
         }
         var shapes = {
             datetime: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
@@ -135,9 +136,17 @@
     function datetimeConfig(options, now) {
         var mode = ['datetime', 'date', 'time'].indexOf(options.mode) >= 0 ? options.mode : 'datetime';
         var step = parseInt(options.step, 10);
+        var min = resolveBound(options.min, mode, now);
+        if (mode === 'datetime' && step > 0 && String(options.min).trim().toLowerCase() === 'now') {
+            var start = new Date(now);
+            var minutes = start.getHours() * 60 + start.getMinutes();
+            var nextSlot = Math.ceil(minutes / step) * step;
+            start.setHours(0, nextSlot, 0, 0);
+            min = formatLocal(start, mode);
+        }
         return {
             type: mode === 'datetime' ? 'datetime-local' : mode,
-            min: resolveBound(options.min, mode, now),
+            min: min,
             max: resolveBound(options.max, mode, now),
             step: mode !== 'date' && step > 0 ? step * 60 : 0,
         };
@@ -408,8 +417,13 @@
                 var message = bad ? text('COM_BREEZINGFORMSNG_WIDGET_PHONE_INVALID', 'Enter a valid phone number.') : '';
                 input.classList.toggle('is-invalid', bad);
                 input.setAttribute('aria-invalid', bad ? 'true' : 'false');
+                var descriptions = (input.getAttribute('aria-describedby') || '').split(/\s+/)
+                    .filter(function (id) { return id && id !== error.id; });
                 if (bad) {
-                    input.setAttribute('aria-describedby', error.id);
+                    descriptions.push(error.id);
+                }
+                if (descriptions.length) {
+                    input.setAttribute('aria-describedby', descriptions.join(' '));
                 } else {
                     input.removeAttribute('aria-describedby');
                 }

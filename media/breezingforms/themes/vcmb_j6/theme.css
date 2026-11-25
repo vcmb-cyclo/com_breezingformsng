@@ -1,0 +1,194 @@
+/* VCMB J6 · BreezingForms QuickMode Classic */
+.bfFormDiv[data-bf-theme="vcmb_j6"] {
+    color-scheme: light;
+    --vcmb-paper: light-dark(#fff, #182433);
+    --vcmb-ink: light-dark(#172e48, #edf4ff);
+    --vcmb-line: light-dark(#70859a, #8799ab);
+    --vcmb-blue: light-dark(#174a78, #a6d5ff);
+    --vcmb-on-blue: light-dark(#fff, #102438);
+    --vcmb-stripe: light-dark(#00816e, #63d8b7);
+    --vcmb-danger: light-dark(#a32132, #ffabb3);
+    --vcmb-muted: light-dark(#4f6277, #b9c7d6);
+    --vcmb-hairline: light-dark(#d5dde5, #34475c);
+    color: var(--vcmb-ink);
+    background: var(--vcmb-paper);
+    accent-color: var(--vcmb-blue);
+    line-height: 1.5;
+}
+
+[data-bs-theme="dark"] .bfFormDiv[data-bf-theme="vcmb_j6"] { color-scheme: dark; }
+[data-bs-theme="light"] .bfFormDiv[data-bf-theme="vcmb_j6"] { color-scheme: light; }
+
+@media (prefers-color-scheme: dark) {
+    .bfFormDiv[data-bf-theme="vcmb_j6"] { color-scheme: dark; }
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] .bfPageIntro {
+    border-inline-start: .35rem solid var(--vcmb-stripe);
+    padding-inline-start: 1rem;
+    margin-block-end: 1.5rem;
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] fieldset {
+    min-inline-size: 0;
+    padding: clamp(.75rem, 2vw, 1.5rem);
+    margin-block: 1rem;
+    border: 1px solid var(--vcmb-hairline);
+    border-radius: .6rem;
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] legend {
+    float: none;
+    max-inline-size: 100%;
+    padding-inline: .5rem;
+    color: var(--vcmb-blue);
+    font-size: 1.15em;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] section.bfElemWrap { padding-block: .6rem; }
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] :is(input:not([type]), input[type="text"], input[type="password"],
+    input[type="email"], input[type="url"], input[type="tel"], input[type="search"],
+    input[type="number"], input[type="date"], input[type="time"], textarea, select) {
+    box-sizing: border-box;
+    max-inline-size: 100%;
+    min-block-size: 2.75rem;
+    padding: .45rem .65rem;
+    border: 1px solid var(--vcmb-line);
+    border-radius: .4rem;
+    background-color: var(--vcmb-paper);
+    color: var(--vcmb-ink);
+    font: inherit;
+}
+
+/* Active field: a soft ring in the blue instead of a background highlight, and no highlight from the host page. */
+.bfFormDiv[data-bf-theme="vcmb_j6"] :is(input[type], input:not([type]), textarea, select):is(:hover, :focus) {
+    background-color: var(--vcmb-paper);
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] :is(input[type], input:not([type]), textarea, select):focus {
+    border-color: var(--vcmb-blue);
+    outline: 2px solid var(--vcmb-blue);
+    outline-offset: 0;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--vcmb-blue) 25%, transparent);
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] :is(input, textarea, select):-webkit-autofill {
+    box-shadow: 0 0 0 100px var(--vcmb-paper) inset;
+    -webkit-text-fill-color: var(--vcmb-ink);
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] textarea { resize: vertical; }
+
+/* Label on the left: a narrow label column, the field takes the rest and sits on the label's baseline.
+   The form script writes display: block on the rows it shows and display: none on the ones it hides: the grid
+   must win over the first, never over the second. */
+.bfFormDiv[data-bf-theme="vcmb_j6"] section.bfLabelLeft:not([hidden], [style*="display: none" i], [style*="display:none" i]) {
+    display: grid !important;
+    grid-template-columns: minmax(7rem, 11rem) minmax(0, 1fr);
+    column-gap: 1rem;
+    align-items: baseline;
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] section.bfLabelLeft > label {
+    grid-column: 1;
+    float: none;
+    width: auto;
+    margin: 0;
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] section.bfLabelLeft > :not(label) {
+    grid-column: 2;
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] section.bfLabelLeft > :is(
+    input[type]:not([type="checkbox"], [type="radio"], [type="file"], [type="image"], [type="range"], [type="color"], [type="hidden"]),
+    input:not([type]),
+    textarea,
+    select
+) {
+    float: none;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] section.bfLabelLeft > :is(input[type="checkbox"], input[type="radio"]) {
+    justify-self: start;
+    width: auto;
+    margin-inline-start: 0;
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] .bfLabelLeft .iti {
+    margin-inline-start: 0;
+    width: 100%;
+}
+
+/* The form's "rollover" option paints the row of the active field with an inline colour: this theme marks the
+   active field with its ring instead, so the row keeps its own background. */
+.bfFormDiv[data-bf-theme="vcmb_j6"] .bfElemWrap.bfRolloverBg {
+    background: transparent !important;
+}
+
+/* Help: a visible line under the field instead of a hover-only icon. */
+.bfFormDiv[data-bf-theme="vcmb_j6"] .editlinktip { display: none; }
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] .bfHint {
+    display: block;
+    margin-block-start: .25rem;
+    color: var(--vcmb-muted);
+    font-size: .9em;
+}
+.bfFormDiv[data-bf-theme="vcmb_j6"] .bfRequired { color: var(--vcmb-danger); }
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] .bfErrorMessage {
+    color: var(--vcmb-danger);
+    border-inline-start: .3rem solid currentColor;
+    padding-inline-start: .8rem;
+    font-weight: 600;
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] :is(.bfSubmitButton, .bfNextButton, .bfPrevButton, .bfCancelButton, button[type="submit"]) {
+    min-block-size: 2.75rem;
+    padding: .5rem 1rem;
+    border: 1px solid var(--vcmb-blue);
+    border-radius: .45rem;
+    background: var(--vcmb-blue);
+    color: var(--vcmb-on-blue);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] :is(.bfPrevButton, .bfCancelButton) {
+    background: var(--vcmb-paper);
+    color: var(--vcmb-blue);
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] :is(button, input[type="submit"]):enabled:hover {
+    text-decoration: underline;
+    text-underline-offset: .18em;
+}
+
+.bfFormDiv[data-bf-theme="vcmb_j6"] :is(input[type], input, select, textarea, button, a):focus-visible {
+    outline: 3px solid var(--vcmb-stripe);
+    outline-offset: 2px;
+}
+
+@media (max-width: 36rem) {
+    .bfFormDiv[data-bf-theme="vcmb_j6"] section.bfLabelLeft:not([hidden], [style*="display: none" i], [style*="display:none" i]) { grid-template-columns: minmax(0, 1fr); row-gap: .3rem; }
+    .bfFormDiv[data-bf-theme="vcmb_j6"] section.bfLabelLeft > :not(label) { grid-column: 1; }
+
+    .bfFormDiv[data-bf-theme="vcmb_j6"] .bfLabelLeft > label,
+    .bfFormDiv[data-bf-theme="vcmb_j6"] .bfLabelRight > label {
+        float: none;
+        display: block;
+        width: auto;
+        margin-block-end: .3rem;
+    }
+
+    .bfFormDiv[data-bf-theme="vcmb_j6"] .bfSignature { width: 100%; }
+    .bfFormDiv[data-bf-theme="vcmb_j6"] .bfElementGroupNoWrap { white-space: normal; }
+}

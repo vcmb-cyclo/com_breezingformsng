@@ -706,6 +706,80 @@ main .page-item a, main .page-item a:hover, main .page-item a:active{
     text-decoration: none !important;
 }
 
+/* The legacy component skin predates Atum's dark theme. Keep these overrides
+   scoped to dark mode so its white surfaces and muted text do not sit under
+   Atum's light foreground colors. */
+[data-bs-theme="dark"] body.admin {
+    background-color: var(--body-bg, #212529) !important;
+}
+
+[data-bs-theme="dark"] body.admin main,
+[data-bs-theme="dark"] body.admin #bf-sidebar,
+[data-bs-theme="dark"] body.admin #sidebar {
+    background-color: var(--body-bg, #212529);
+    color: var(--body-color, #dee2e6);
+    box-shadow: none;
+}
+
+[data-bs-theme="dark"] body.admin main input[type="text"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="password"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="datetime"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="datetime-local"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="date"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="month"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="time"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="week"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="number"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="email"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="url"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="search"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="tel"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main input[type="color"]:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main textarea:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main select:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main .custom-form-control:not(#bfOptionsFieldsWrap *) {
+    background-color: var(--body-bg, #212529) !important;
+    border-color: var(--atum-bg-color-dark, #495057) !important;
+    color: var(--body-color, #dee2e6) !important;
+}
+
+[data-bs-theme="dark"] body.admin main input:focus:not([type="checkbox"]):not([type="radio"]):not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main textarea:focus:not(#bfOptionsFieldsWrap *),
+[data-bs-theme="dark"] body.admin main select:focus:not(#bfOptionsFieldsWrap *) {
+    background-color: var(--body-bg, #212529) !important;
+    color: var(--body-color, #dee2e6) !important;
+}
+
+[data-bs-theme="dark"] body.admin main .pagination ul > li > a,
+[data-bs-theme="dark"] body.admin main .pagination ul > li > span {
+    background-color: var(--body-bg, #212529);
+    border-color: var(--atum-bg-color-dark, #495057);
+    color: var(--body-color, #dee2e6);
+}
+
+[data-bs-theme="dark"] body.admin main .table th,
+[data-bs-theme="dark"] body.admin main .table td,
+[data-bs-theme="dark"] body.admin main label:not(#bfOptionsFieldsWrap *) {
+    color: var(--body-color, #dee2e6);
+}
+
+[data-bs-theme="dark"] body.admin #sidebar li a {
+    color: var(--body-color, #dee2e6);
+}
+
+[data-bs-theme="dark"] body.admin #sidebar li a:hover,
+[data-bs-theme="dark"] body.admin #sidebar li a:focus,
+[data-bs-theme="dark"] body.admin #sidebar li.active a {
+    background-color: color-mix(in srgb, var(--body-color, #dee2e6) 10%, transparent);
+    color: var(--body-color, #dee2e6) !important;
+}
+
+[data-bs-theme="dark"] body.admin .bfPropertyWrap:not(.bfng-field):hover,
+[data-bs-theme="dark"] body.admin .bfPropertyWrap .btn-secondary {
+    background-color: var(--body-bg, #212529);
+    color: var(--body-color, #dee2e6);
+}
+
 main .pagination {
     margin-top: 10px;
 }

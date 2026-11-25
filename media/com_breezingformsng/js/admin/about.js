@@ -80,7 +80,7 @@
                         if (numeric) {
                             comparison = Number(left.value) - Number(right.value);
                         } else {
-                            comparison = left.value.localeCompare(right.value, undefined, { sensitivity: 'base' });
+                            comparison = left.value.localeCompare(right.value, undefined, { sensitivity: 'base', numeric: true });
                         }
 
                         return comparison === 0 ? left.position - right.position : comparison * direction;
@@ -212,6 +212,13 @@
         var message = event.submitter && event.submitter.dataset.bfSubmitConfirm;
 
         if (message && !window.confirm(message)) {
+            event.preventDefault();
+        }
+    });
+
+    // The help icon sits in the title of an audit accordion: reading it must not open or close the section.
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('summary .icon-info-circle')) {
             event.preventDefault();
         }
     });

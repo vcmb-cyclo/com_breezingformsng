@@ -74,7 +74,7 @@ final class FormVersioningTest extends TestCase
         self::assertStringContainsString("recordVersion: JQuery('#bfOptionsFieldsWrap').length === 0 ? 1 : 0", $app);
         self::assertStringContainsString("if (\$input->getInt('recordVersion', 1) === 1) {", $quickmode);
         self::assertStringContainsString('$versioning->record($formId);', $quickmode);
-        self::assertStringContainsString('->record($id);', $forms);
+        self::assertStringContainsString('->record($id, mb_substr($versionNote, 0, 255));', $forms);
     }
 
     public function testARestoreKeepsWhatIsNotTheFormContent(): void

@@ -140,7 +140,7 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringNotContainsString("'Checkbox Group'", $matcher);
     }
 
-    public function testAuditListsEveryMissingElementAndOpensItsAccordions(): void
+    public function testAuditListsEveryMissingElementInClosedAccordions(): void
     {
         $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
         $audit = file_get_contents($base . '/src/Service/DatabaseAuditService.php');
@@ -150,7 +150,38 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertIsString($template);
         self::assertStringNotContainsString('ORPHAN_GROUP_LIMIT', $audit);
         self::assertStringNotContainsString('array_slice($candidates', $audit);
-        self::assertStringContainsString('class="bf-audit-orphans mb-1" open', $template);
+        self::assertStringContainsString('class="bf-audit-orphans mb-1" data-bf-orphan-check', $template);
+        self::assertStringNotContainsString('class="bf-audit-orphans mb-1" open', $template);
+    }
+
+    public function testEveryAuditSectionIsAnAccordionAndValuesCanBeSelected(): void
+    {
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $template = file_get_contents($base . '/tmpl/about/audit.php');
+        $controller = file_get_contents($base . '/src/Controller/AboutController.php');
+
+        self::assertIsString($template);
+        self::assertIsString($controller);
+        // The sections are accordions, open by default; their sub-sections (orphan checks) are closed.
+        // The errors block alone stays a plain block.
+        self::assertSame(15, substr_count($template, '<details class="bf-audit-section-block mb-3" open'));
+        self::assertSame(15, substr_count($template, '<details class="bf-audit-section-block'));
+        self::assertSame(1, substr_count($template, '<div class="bf-audit-section-block'));
+        self::assertSame(substr_count($template, '<details'), substr_count($template, '</details>'));
+        // The reassignment buttons are yellow, like the other repair buttons.
+        self::assertStringNotContainsString('btn-outline-primary', $template);
+        self::assertStringContainsString("'subrecords_without_element' => 'about.deleteOrphanValues'", $template);
+        self::assertStringContainsString("orphan_ids", $controller);
+        // Both kinds of orphan values are selectable, and every section shows its count in its title.
+        self::assertStringContainsString("'subrecords_without_record' => 'about.deleteOrphanSubrecords'", $template);
+        self::assertSame(15, substr_count($template, '<span class="badge bg-secondary ms-1">'));
+        // The mixed collations list one sub-accordion per collation, with its tables.
+        // The three collation sections are grouped in sub-accordions; the mixed ones count tables, not collations.
+        self::assertSame(3, substr_count($template, '<details class="bf-audit-subsection mb-1">'));
+        // Each mixed collation lists its tables in a striped table; the ones off the target can be repaired.
+        self::assertStringContainsString('data-bf-select-item="<?php echo $mixedGroup; ?>" name="table_collation_issues[]"', $template);
+        self::assertStringContainsString('$mixedIsTarget = strcasecmp(', $template);
+        self::assertStringContainsString('array_sum($auditCollationHistogram)', $template);
     }
 
     public function testRemovingALegacyTemplateNeverLeavesAClientWithoutDefaultStyle(): void

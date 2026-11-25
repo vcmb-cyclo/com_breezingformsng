@@ -192,6 +192,11 @@ $paneErrors = [
     <!-- TAB: GÉNÉRAL -->
     <div class="tab-pane fade show active" id="pane-general" role="tabpanel">
 
+      <?php if (!empty($quickMode)) : // The QuickMode properties hold the title, the name and the description: the save copies them here. ?>
+        <input type="hidden" id="jf_title" name="title" value="<?= htmlspecialchars($formOptions->title ?? ''); ?>">
+        <input type="hidden" id="jf_name" name="name" value="<?= htmlspecialchars($formOptions->name ?? ''); ?>">
+        <input type="hidden" id="jf_description" name="description" value="<?= htmlspecialchars($formOptions->description ?? ''); ?>">
+      <?php else : ?>
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_title"<?= $labelTip('COM_BREEZINGFORMSNG_QM_FORM_TITLE'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_TITLE'); ?> <span class="text-danger">*</span></label>
         <div class="col-sm-9"><input type="text" class="form-control" id="jf_title" name="title" required value="<?= htmlspecialchars($formOptions->title ?? ''); ?>"></div>
@@ -201,6 +206,7 @@ $paneErrors = [
         <label class="col-sm-3 col-form-label" for="jf_name"<?= $labelTip('COM_BREEZINGFORMSNG_QM_FORM_NAME'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_NAME'); ?> <span class="text-danger">*</span></label>
         <div class="col-sm-9"><input type="text" class="form-control" id="jf_name" name="name" required<?= (int) ($formOptions->id ?? 0) === 0 ? ' pattern="[A-Za-z0-9_]+" title="' . htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ERROR_ENTER_NAME_CHARACTERS'), ENT_QUOTES, 'UTF-8') . '"' : ''; ?> value="<?= htmlspecialchars($formOptions->name ?? ''); ?>"></div>
       </div>
+      <?php endif; ?>
 
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_package"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_PACKAGE_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PACKAGE'); ?></label>
@@ -215,9 +221,16 @@ $paneErrors = [
         </div>
       </div>
 
+      <?php if (empty($quickMode)) : ?>
       <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_description"<?= $labelTip('COM_BREEZINGFORMSNG_QM_FORM_DESCRIPTION'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_DESCRIPTION'); ?></label>
         <div class="col-sm-9"><textarea class="form-control" id="jf_description" name="description" rows="3"><?= htmlspecialchars($formOptions->description ?? ''); ?></textarea></div>
+      </div>
+      <?php endif; ?>
+
+      <div class="row mb-3">
+        <label class="col-sm-3 col-form-label" for="jf_version_note"<?= $labelTip('COM_BREEZINGFORMSNG_QM_FORM_VERSION_NOTE'); ?>><?= Text::_('JGLOBAL_FIELD_VERSION_NOTE_LABEL'); ?></label>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_version_note" name="version_note" maxlength="255" value=""></div>
       </div>
 
       <div class="row mb-3">

@@ -14,6 +14,10 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 
 $plugins = $this->plugins;
+$sortHeader = static fn (string $labelKey, string $type, string $class = ''): string => '<th scope="col"'
+    . ($class !== '' ? ' class="' . $class . '"' : '') . ' aria-sort="none"><button type="button" '
+    . 'class="btn btn-link p-0 text-reset text-decoration-none fw-bold" data-bf-table-sort="' . $type . '">'
+    . htmlspecialchars(Text::_($labelKey), ENT_QUOTES, 'UTF-8') . '</button></th>';
 ?>
 <div class="card">
     <div class="card-header">
@@ -31,16 +35,16 @@ $plugins = $this->plugins;
             <form id="bf-extensions-form" method="post"
                 action="<?php echo Route::_('index.php?option=com_breezingformsng&task=about.uninstallExtension'); ?>">
             <div class="table-responsive">
-                <table id="bf-extensions-table" class="table table-sm table-striped align-middle mb-0">
+                <table id="bf-extensions-table" class="table table-sm table-striped align-middle mb-0" data-bf-sortable-table>
                     <thead>
                     <tr>
-                        <th scope="col" class="w-1 text-center"><?php echo Text::_('JGRID_HEADING_ID'); ?></th>
-                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_NAME'); ?></th>
-                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_TYPE'); ?></th>
-                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_CATEGORY'); ?></th>
-                        <th scope="col" class="text-center"><?php echo Text::_('COM_BREEZINGFORMSNG_PLUGIN_STATUS'); ?></th>
-                        <th scope="col"><?php echo Text::_('JGLOBAL_DESCRIPTION'); ?></th>
-                        <th scope="col"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_CHANGELOG'); ?></th>
+                        <?php echo $sortHeader('JGRID_HEADING_ID', 'number', 'w-1 text-center'); ?>
+                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_NAME', 'text', 'bf-extension-name'); ?>
+                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_TYPE', 'text'); ?>
+                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_CATEGORY', 'text'); ?>
+                        <?php echo $sortHeader('COM_BREEZINGFORMSNG_PLUGIN_STATUS', 'number', 'text-center'); ?>
+                        <?php echo $sortHeader('JGLOBAL_DESCRIPTION', 'text'); ?>
+                        <?php echo $sortHeader('JVERSION', 'text'); ?>
                         <?php if ($this->canUninstallExtension) : ?>
                             <th scope="col"><span class="visually-hidden"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_UNINSTALL'); ?></span></th>
                         <?php endif; ?>
@@ -56,7 +60,7 @@ $plugins = $this->plugins;
                             : '';
                         ?>
                         <tr>
-                            <td class="text-center"><?php echo $pluginId; ?></td>
+                            <td class="text-center" data-bf-sort-value="<?php echo $pluginId; ?>"><?php echo $pluginId; ?></td>
                             <th scope="row">
                                 <?php if ($pluginEditUrl !== '') : ?>
                                     <a href="<?php echo htmlspecialchars($pluginEditUrl, ENT_QUOTES, 'UTF-8'); ?>">
@@ -68,15 +72,12 @@ $plugins = $this->plugins;
                                 <span class="text-muted small d-block">
                                     <?php echo $isPlugin ? htmlspecialchars((string) ($plugin['group'] ?? ''), ENT_QUOTES, 'UTF-8') . ' /' : ''; ?>
                                     <?php echo htmlspecialchars((string) ($plugin['element'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>
-                                    <?php if ((string) ($plugin['version'] ?? '') !== '') : ?>
-                                        &middot; <?php echo htmlspecialchars((string) $plugin['version'], ENT_QUOTES, 'UTF-8'); ?>
-                                    <?php endif; ?>
                                 </span>
                             </th>
                             <td><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_TYPE_' . strtoupper((string) ($plugin['type'] ?? 'plugin'))); ?></td>
                             <td><?php echo htmlspecialchars((string) ($plugin['category'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td class="text-center">
-                                <?php $isEnabled = !empty($plugin['enabled']); ?>
+                            <?php $isEnabled = !empty($plugin['enabled']); ?>
+                            <td class="text-center" data-bf-sort-value="<?php echo $isEnabled ? 1 : 0; ?>">
                                 <?php if ($this->canEditPluginState && $isPlugin && $pluginId > 0) : ?>
                                     <button type="button"
                                         class="tbody-icon js-bf-form-state<?php echo $isEnabled ? ' active' : ''; ?>"
@@ -95,13 +96,29 @@ $plugins = $this->plugins;
                                     </span>
                                 <?php endif; ?>
                             </td>
-                            <td><?php echo htmlspecialchars((string) ($plugin['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                             <td>
-                                <?php if (($plugin['changelogUrl'] ?? '') !== '') : ?>
-                                    <a href="<?php echo htmlspecialchars((string) $plugin['changelogUrl'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer">
-                                        <span class="icon-out-2" aria-hidden="true"></span>
-                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_CHANGELOG'); ?>
-                                    </a>
+                                <?php $pluginDescription = htmlspecialchars((string) ($plugin['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>
+                                <div class="bf-extension-description" title="<?php echo $pluginDescription; ?>"><?php echo $pluginDescription; ?></div>
+                            </td>
+                            <td>
+                                <?php $pluginVersion = (string) ($plugin['version'] ?? ''); ?>
+                                <?php if ($pluginVersion !== '' && $this->canViewChangelog && ($plugin['changelogUrl'] ?? '') !== '' && $pluginId > 0) : ?>
+                                    <?php
+                                    // Same dialog as the Installer's Manage screen: the version opens its changelog, in colour.
+                                    $changelogDialog = [
+                                        'popupType' => 'ajax',
+                                        'textHeader' => Text::sprintf('COM_INSTALLER_CHANGELOG_TITLE', (string) ($plugin['name'] ?? ''), $pluginVersion),
+                                        'src' => Route::_('index.php?option=com_installer&task=manage.loadChangelogRaw&eid=' . $pluginId . '&source=manage&format=raw', false),
+                                        'width' => '800px',
+                                        'height' => 'fit-content',
+                                    ];
+                                    ?>
+                                    <button type="button" class="btn btn-info btn-sm"
+                                        data-joomla-dialog="<?php echo htmlspecialchars(json_encode($changelogDialog, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8'); ?>">
+                                        <?php echo htmlspecialchars($pluginVersion, ENT_QUOTES, 'UTF-8'); ?>
+                                    </button>
+                                <?php else : ?>
+                                    <?php echo htmlspecialchars($pluginVersion, ENT_QUOTES, 'UTF-8'); ?>
                                 <?php endif; ?>
                             </td>
                             <?php if ($this->canUninstallExtension) : ?>

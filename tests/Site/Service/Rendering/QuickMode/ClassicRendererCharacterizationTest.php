@@ -128,6 +128,26 @@ final class ClassicRendererCharacterizationTest extends TestCase
         self::assertStringContainsString('class="editlinktip hasTooltip"', $html);
     }
 
+    public function testOnlyJ6FieldsWithVisibleHintTextReferenceTheDescription(): void
+    {
+        foreach (['vcmb_j6', 'vcmb_j5'] as $theme) {
+            $renderer = $this->makeRenderer();
+            $this->setPrivate($renderer, 'rootMdata', ['theme' => $theme]);
+            foreach (['<em>Use international format</em>', '<em></em>'] as $hint) {
+                $html = $this->render($renderer, $this->elementNode('bfTextfield', [
+                    'dbId' => 44,
+                    'bfName' => 'phone',
+                    'hint' => $hint,
+                ]));
+                $xpath = $this->xpath($html);
+                $description = $xpath->evaluate('string(//input/@aria-describedby)');
+                $expected = $theme === 'vcmb_j6' && strip_tags($hint) !== '';
+                self::assertSame($expected ? 'bfHint44' : '', $description);
+                self::assertSame(strip_tags($hint), $xpath->evaluate('string(//small[@id="bfHint44"])'));
+            }
+        }
+    }
+
     public function testPageNavigationRendersPreviousNextAndCancelActions(): void
     {
         $renderer = $this->makeRenderer();

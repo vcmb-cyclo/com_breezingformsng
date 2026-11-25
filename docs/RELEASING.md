@@ -10,6 +10,8 @@ Work on a branch and merge it into `main` through a pull request. A release is a
 
 Check each point and fix what fails before tagging:
 
+Before every push to a branch with a pull request, run `composer lint:php`: CI fails on PHPCS warnings, which `python3 scripts/check-phpcs-changed.py origin/main` does not report.
+
 | Check | How |
 |---|---|
 | The code builds and passes | The latest `main` run of the workflow is green: PHP 8.4 and 8.5 compatibility, lint, front-end checks, PHPStan, PHPUnit, then the package job (build, validation, installation/update/migration smoke test on Joomla, browser journeys). |

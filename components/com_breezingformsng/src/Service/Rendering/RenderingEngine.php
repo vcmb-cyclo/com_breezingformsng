@@ -515,7 +515,8 @@ final class RenderingEngine
         set_error_handler('_ff_errorHandler');
         ob_start();
         echo $this->processor->header();
-        $this->initializeFormRendering();
+        $classicTheme = ($rootMdata['themebootstrapThemeEngine'] ?? '') !== 'bootstrap' ? ($rootMdata['theme'] ?? '') : '';
+        $this->initializeFormRendering(is_string($classicTheme) ? $classicTheme : '');
 
         if ($this->executeBeforeFormPiece()) {
             $this->abortViewRendering();
@@ -840,7 +841,7 @@ final class RenderingEngine
         $this->processor->linkcode('onload', $library, $linked, $code);
     }
 
-    private function initializeFormRendering(): void
+    private function initializeFormRendering(string $classicTheme = ''): void
     {
         $this->processor->queryCols = [];
         $this->processor->queryRows = [];
@@ -849,7 +850,8 @@ final class RenderingEngine
             (string) $this->processor->form,
             $this->processor->formrow->class1 != ''
                 ? $this->processor->getClassName($this->processor->formrow->class1)
-                : ''
+                : '',
+            $classicTheme
         );
 
         $this->processor->status = $this->processor->app->getInput()->getCmd('ff_status', '');

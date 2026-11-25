@@ -40,7 +40,9 @@ final class WidgetAssets
         RuntimeAssetLoader::style($application, $base . 'css/bfng-widgets.css');
         RuntimeAssetLoader::script($application, $base . 'js/site/bfng-widgets.js', ['defer' => true]);
 
-        $tag = str_replace('_', '-', (string) $application->getLanguage()?->getTag());
+        $language = $application->getLanguage();
+        $language?->load('com_breezingformsng', JPATH_SITE . '/components/com_breezingformsng');
+        $tag = str_replace('_', '-', (string) $language?->getTag());
         $lang = strtolower(substr($tag, 0, 2));
         $lang = \in_array($lang, self::SUPPORTED_LANGUAGES, true) ? $lang : 'en';
 

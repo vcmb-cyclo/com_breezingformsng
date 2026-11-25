@@ -19,6 +19,11 @@ export async function runAuditAndOpen(page, csrf) {
 
         // "No database audit has been run yet" is the only notice of an administrator's audit page without a report.
         if (await page.locator('#bf-audit-section .alert-info').count() === 0) {
+            // The sections of the report are accordions, closed by default: open them so their controls can be used.
+            await page.evaluate(() => {
+                document.querySelectorAll('#bf-audit-section details').forEach((details) => { details.open = true; });
+            });
+
             return;
         }
     }

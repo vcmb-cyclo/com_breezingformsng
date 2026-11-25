@@ -17,10 +17,14 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering;
 /** Assembles the form wrapper and its mode-specific closing markup. */
 final class FormEnvelopeMarkupBuilder
 {
-    public function opening(string $formId, string $className): string
+    public function opening(string $formId, string $className, string $classicTheme = ''): string
     {
+        $theme = $classicTheme !== ''
+            ? ' data-bf-theme="' . htmlspecialchars($classicTheme, ENT_QUOTES, 'UTF-8') . '"'
+            : '';
+
         return '<div id="ff_formdiv' . $formId . '" class="bfFormDiv'
-            . ($className !== '' ? ' ' . $className : '') . '">';
+            . ($className !== '' ? ' ' . $className : '') . '"' . $theme . '>';
     }
 
     public function closing(string $newline = "\r\n"): string
