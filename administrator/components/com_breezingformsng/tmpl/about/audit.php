@@ -357,13 +357,25 @@ if (($auditReport['generated_at'] ?? '') !== '') {
                 <?php if ($auditMenuIssues !== array()) : ?>
                     <div class="bf-audit-section-block mb-3">
                         <h4 class="h6"><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_ISSUES'); ?><?php echo $auditHelp('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_ISSUES_HELP'); ?></h4>
+                        <div class="d-flex flex-wrap justify-content-end mb-2">
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                title="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE_SELECTED_TIP'), ENT_QUOTES, 'UTF-8'); ?>"
+                                onclick="if (window.confirm('<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE_SELECTED_CONFIRM'), ENT_QUOTES, 'UTF-8'); ?>')) { document.getElementById('bf-menu-item-id').value = ''; Joomla.submitform('about.deleteMenuItem'); }">
+                                <span class="icon-trash me-1" aria-hidden="true"></span><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_DELETE_SELECTED'); ?>
+                            </button>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-sm align-middle mb-0">
-                                <thead><tr><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_FORM'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ISSUE'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ACTIONS'); ?></th></tr></thead>
+                                <thead><tr><th class="w-1"><input type="checkbox" class="form-check-input" data-bf-select-all="menu-items" aria-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_DUPLICATE_INDEX_SELECT_ALL'), ENT_QUOTES, 'UTF-8'); ?>"></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_FORM'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ISSUE'); ?></th><th><?php echo Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ACTIONS'); ?></th></tr></thead>
                                 <tbody>
                                 <?php foreach ($auditMenuIssues as $issue) : ?>
                                     <?php $menuId = (int) ($issue['menu_id'] ?? 0); ?>
                                     <tr class="table-warning">
+                                        <td>
+                                            <?php if ($menuId > 0) : ?>
+                                                <input type="checkbox" class="form-check-input mt-0" data-bf-select-item="menu-items" name="menu_items[]" value="<?php echo $menuId; ?>" aria-label="<?php echo htmlspecialchars(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_AUDIT_MENU_SELECT_ONE', $menuId), ENT_QUOTES, 'UTF-8'); ?>">
+                                            <?php endif; ?>
+                                        </td>
                                         <td>
                                             <?php $menuTitle = htmlspecialchars((string) ($issue['title'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>
                                             <?php if ($menuId > 0) : ?>
