@@ -196,6 +196,22 @@ final class SamplePackagesTest extends TestCase
         }
     }
 
+    #[DataProvider('samples')]
+    public function testEveryFieldActionIsDefinedByTheFieldItself(string $slug, string $name, string $file): void
+    {
+        $tree = $this->package($file)['forms'][0]['data']['template_code'];
+
+        foreach ($this->elements($tree) as $element) {
+            $function = (string) ($element['actionFunctionName'] ?? '');
+            if ($function === '') {
+                continue;
+            }
+            // A click that calls a function nobody defines is an error in the console of every visitor.
+            self::assertSame('ff_' . $element['bfName'] . '_action', $function, $element['bfName']);
+            self::assertStringContainsString('function ' . $function . '(', (string) $element['actionCode']);
+        }
+    }
+
     public function testTheEventTotalIsCalculatedFromThePricesOfTheForm(): void
     {
         $elements = $this->package('bfng-sample-event.json')['forms'][0]['elements'];
