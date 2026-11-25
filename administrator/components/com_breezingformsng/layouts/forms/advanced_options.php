@@ -221,6 +221,11 @@ $paneErrors = [
       </div>
 
       <div class="row mb-3">
+        <label class="col-sm-3 col-form-label" for="jf_version_note"<?= $labelTip('COM_BREEZINGFORMSNG_QM_FORM_VERSION_NOTE'); ?>><?= Text::_('JGLOBAL_FIELD_VERSION_NOTE_LABEL'); ?></label>
+        <div class="col-sm-9"><input type="text" class="form-control" id="jf_version_note" name="version_note" maxlength="255" value=""></div>
+      </div>
+
+      <div class="row mb-3">
         <label class="col-sm-3 col-form-label" for="jf_pages"<?= $labelTip('COM_BREEZINGFORMSNG_FORMS_PAGES_TIP'); ?>><?= Text::_('COM_BREEZINGFORMSNG_FORMS_PAGES'); ?></label>
         <div class="col-sm-9"><input type="number" class="form-control w-auto" id="jf_pages" name="pages" min="1" value="<?= (int) ($formOptions->pages ?? 1); ?>"></div>
       </div>

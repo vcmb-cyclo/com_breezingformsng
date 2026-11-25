@@ -1288,6 +1288,8 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
                     })
                     .then(function (answer) {
                         if (answer.success) {
+                            // The note belongs to the version just stored: the next save starts without one.
+                            JQuery('#jf_version_note').val('');
                             callback();
                         } else {
                             optionsSaveFailed(answer.message);

@@ -299,8 +299,12 @@ class FormsController extends AdminController
             $app->enqueueMessage(Text::_('COM_BREEZINGFORMSNG_FORM_CODE_NOT_SAVED'), 'warning');
         }
 
+        // The note typed for this save, kept with the version it creates (the history column holds 255 characters).
+        $versionNote = trim((string) $this->input->post->getString('version_note', ''));
+
         try {
-            (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class), $this->getFormModel()))->record($id);
+            (new FormVersioning(Factory::getContainer()->get(DatabaseInterface::class), $this->getFormModel()))
+                ->record($id, mb_substr($versionNote, 0, 255));
         } catch (\Throwable $e) {
             $app->enqueueMessage(Text::sprintf('COM_BREEZINGFORMSNG_FORM_VERSION_NOT_KEPT', $e->getMessage()), 'warning');
         }
