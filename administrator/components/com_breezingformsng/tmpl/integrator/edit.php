@@ -34,13 +34,26 @@ $operators = [
 $fakeName = static fn(string $n): bool => \in_array($n, ['bfFakeName', 'bfFakeName2', 'bfFakeName3', 'bfFakeName4'], true);
 // The type stored for an element -> the icon of the editor's type menu (a type without one has no icon).
 $elementIcons = [
-    'Text' => 'bfElementTypeText', 'Textarea' => 'bfElementTypeTextarea', 'Number Input' => 'bfElementTypeNumberInput',
-    'Calendar' => 'bfElementTypeCalendar', 'Hidden Input' => 'bfElementTypeHidden', 'File Upload' => 'bfElementTypeFile',
-    'Checkbox' => 'bfElementTypeCheckbox', 'Checkbox Group' => 'bfElementTypeCheckboxGroup',
-    'Radio Group' => 'bfElementTypeRadioGroup', 'Select List' => 'bfElementTypeSelect', 'Captcha' => 'bfElementTypeCaptcha',
-    'Signature' => 'bfElementTypeSignature', 'PayPal' => 'bfElementTypePayPal', 'Stripe' => 'bfElementTypeStripe',
-    'Regular Button' => 'bfElementTypeSubmitButton', 'Summarize' => 'bfElementTypeSummarize',
+    'Text' => 'bfElementTypeText',
+    'Textarea' => 'bfElementTypeTextarea',
+    'Number Input' => 'bfElementTypeNumberInput',
+    'Calendar' => 'bfElementTypeCalendar',
+    'Hidden Input' => 'bfElementTypeHidden',
+    'File Upload' => 'bfElementTypeFile',
+    'Checkbox' => 'bfElementTypeCheckbox',
+    'Checkbox Group' => 'bfElementTypeCheckboxGroup',
+    'Radio Group' => 'bfElementTypeRadioGroup',
+    'Select List' => 'bfElementTypeSelect',
+    'Captcha' => 'bfElementTypeCaptcha',
+    'Signature' => 'bfElementTypeSignature',
+    'PayPal' => 'bfElementTypePayPal',
+    'Stripe' => 'bfElementTypeStripe',
+    'Regular Button' => 'bfElementTypeSubmitButton',
+    'Summarize' => 'bfElementTypeSummarize',
 ];
+$iconClassOf = static fn(string $type): string => isset($elementIcons[$type])
+    ? ' class="bfng-type-icon--' . $elementIcons[$type] . '"'
+    : '';
 ?>
 
 <form action="<?= $baseUrl; ?>" method="post" id="integratorActionForm">
@@ -148,10 +161,10 @@ $elementIcons = [
             <td>
               <?php /* The icons of the editor's type menu: native options cannot show one. */ ?>
               <span class="bfng bfng-type-select bfng-type-select--form">
-                <select name="element_id" id="bf-integrator-element" class="form-select form-select-sm" data-bfng-icon-menu>
+                <select name="element_id" id="bf-integrator-element" data-bfng-icon-menu
+                        class="form-select form-select-sm">
                   <?php foreach ($this->formElements as $el): if ($fakeName($el->name)) continue; ?>
-                    <?php $iconType = $elementIcons[$el->type] ?? null; ?>
-                    <option value="<?= (int) $el->id; ?>"<?= $iconType !== null ? ' class="bfng-type-icon--' . $iconType . '"' : ''; ?>><?= htmlspecialchars($el->name); ?> (<?= htmlspecialchars($el->type); ?>)</option>
+                  <option value="<?= (int) $el->id; ?>"<?= $iconClassOf($el->type); ?>><?= htmlspecialchars($el->name); ?> (<?= htmlspecialchars($el->type); ?>)</option>
                   <?php endforeach; ?>
                 </select>
               </span>
