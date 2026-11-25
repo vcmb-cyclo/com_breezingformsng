@@ -78,7 +78,7 @@ final class SampleFormServiceTest extends TestCase
 
     public function testOnlyTheSamplesOfTheCatalogExist(): void
     {
-        self::assertSame(['contact', 'event', 'quote', 'survey', 'widgets'], SampleFormService::slugs());
+        self::assertSame(['contact', 'event', 'quote', 'survey', 'booking', 'widgets'], SampleFormService::slugs());
         foreach (['', 'Contact', '../contact', 'contact.json', 'unknown', "contact\0"] as $slug) {
             self::assertFalse(SampleFormService::isSample($slug), $slug);
         }

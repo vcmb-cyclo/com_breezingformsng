@@ -10,6 +10,7 @@
 - Add the VCMB J6 QuickMode theme, with light and dark colours, a narrow label column, a soft ring around the active field and the help of each field written under it instead of a hover icon.
 - Select several values of missing records or of missing elements in the audit and delete them in one go.
 - List the tables of each mixed collation in the audit, and repair the ones that do not use the target collation from there.
+- Add an appointment booking sample form that uses every field widget (phone, date, date and time, time, country, address and file drop zone), in the Samples of the Tools screen.
 
 ### Changed
 

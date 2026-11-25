@@ -57,6 +57,10 @@ final class SampleFormService
             'name' => 'Sample_Survey', 'title' => 'Sample satisfaction survey',
             'alias' => 'bf-sample-survey', 'file' => 'bfng-sample-survey.json', 'category' => 'business',
         ],
+        'booking' => [
+            'name' => 'Sample_Booking', 'title' => 'Sample appointment booking',
+            'alias' => 'bf-sample-booking', 'file' => 'bfng-sample-booking.json', 'category' => 'business',
+        ],
         'widgets' => [
             'name' => 'Sample_Widgets', 'title' => 'Sample field widgets',
             'alias' => 'bf-sample-widgets', 'file' => 'bfng-sample-widgets.json', 'category' => 'technical',

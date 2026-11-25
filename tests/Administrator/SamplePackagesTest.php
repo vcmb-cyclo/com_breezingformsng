@@ -78,7 +78,7 @@ final class SamplePackagesTest extends TestCase
 
     public function testTheCatalogIsComplete(): void
     {
-        self::assertSame(['contact', 'event', 'quote', 'survey', 'widgets'], array_keys(self::samples()));
+        self::assertSame(['contact', 'event', 'quote', 'survey', 'booking', 'widgets'], array_keys(self::samples()));
     }
 
     #[DataProvider('samples')]
@@ -235,6 +235,33 @@ final class SamplePackagesTest extends TestCase
         self::assertStringContainsString('turn on element LowReason if Overall is 1', $rules);
         self::assertStringContainsString('turn on element LowReason if Overall is 2', $rules);
         self::assertStringContainsString('turn off element LowReason if Overall is 5', $rules);
+    }
+
+    public function testTheBookingUsesEveryFieldWidgetInOneRealisticForm(): void
+    {
+        $tree = $this->package('bfng-sample-booking.json')['forms'][0]['data']['template_code'];
+        $elements = $this->elements($tree);
+        $byName = array_column($elements, null, 'bfName');
+
+        $widgets = array_values(array_unique(array_filter(array_column($elements, 'widget'))));
+        sort($widgets);
+        self::assertSame(['address', 'country', 'datetime', 'phone'], $widgets);
+        // The three modes of the date and time picker, and the drop zone for files.
+        self::assertSame('date', $byName['BirthDate']['widgetMode']);
+        self::assertSame('datetime', $byName['Appointment']['widgetMode']);
+        self::assertSame('time', $byName['CallbackTime']['widgetMode']);
+        self::assertTrue($byName['Documents']['dropZone']);
+        // Choosing an address fills the other address fields of the form.
+        foreach (array_filter(explode("\n", (string) $byName['Street']['widgetFill'])) as $line) {
+            [, $field] = explode('=', $line, 2);
+            self::assertArrayHasKey($field, $byName, $line);
+        }
+        // The callback time exists only for a phone confirmation.
+        self::assertTrue($byName['CallbackTime']['off']);
+        self::assertStringContainsString(
+            'turn on element CallbackTime if Confirm is Phone',
+            $tree['properties']['toggleFields']
+        );
     }
 
     public function testTheBusinessTemplatesUseTheFieldWidgets(): void
