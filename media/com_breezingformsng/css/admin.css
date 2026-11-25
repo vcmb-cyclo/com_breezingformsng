@@ -101,6 +101,11 @@ overflow:hidden;width: 100%;
 	color: var(--bfng-qm-ink) !important;
 }
 
+/* The selected node of the tree: Bootstrap's light blue under the light text of the dark theme. */
+[data-bs-theme="dark"] #bfQuickModeWrapper.bfng .jstree-anchor.jstree-clicked {
+	background: color-mix(in oklab, var(--bfng-accent-500) 35%, transparent);
+}
+
 /* ##### hr ##### */
 
 #bfQuickModeWrapper hr {
@@ -381,3 +386,26 @@ overflow:hidden;width: 100%;
 .bf-collapse-toggle .bf-collapse-icon { transition: transform .15s ease-in-out; display: inline-block; }
 .bf-collapse-toggle:not(.collapsed) .bf-collapse-icon { transform: rotate(180deg); }
 .bf-record-values .control-group .control-label { inline-size: 320px; }
+
+/* Bootstrap's contextual rows stay light under the light text of the dark theme: darken them. */
+[data-bs-theme="dark"] .table-primary {
+    --bs-table-bg: color-mix(in oklab, #2a69b8 30%, var(--body-bg, #212529));
+}
+
+[data-bs-theme="dark"] .table-secondary {
+    --bs-table-bg: color-mix(in oklab, var(--body-bg, #212529), #fff 10%);
+}
+
+[data-bs-theme="dark"] .table-warning {
+    --bs-table-bg: color-mix(in oklab, #d4a017 25%, var(--body-bg, #212529));
+}
+
+[data-bs-theme="dark"] :is(.table-primary, .table-secondary, .table-warning) {
+    --bs-table-color: #e7ebf0;
+}
+
+[data-bs-theme="dark"] :is(.table-primary, .table-secondary, .table-warning) > :is(th, td) {
+    background-color: var(--bs-table-bg);
+    box-shadow: none;
+    color: #e7ebf0;
+}

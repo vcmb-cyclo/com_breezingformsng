@@ -1683,3 +1683,20 @@ Mobile view
         white-space: pre-wrap;
         word-break: break-word;
     }
+
+/* Dark mode: the light surfaces above follow the Joomla theme instead of staying white. */
+[data-bs-theme="dark"] body {
+    background-color: var(--body-bg, #212529) !important;
+}
+
+[data-bs-theme="dark"] main {
+    background-color: var(--body-bg, #212529);
+}
+
+[data-bs-theme="dark"] main :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="file"], [type="submit"], [type="button"], [type="image"]), textarea, select, .custom-form-control):not(#bfOptionsFieldsWrap *) {
+    background-color: color-mix(in oklab, var(--body-bg, #212529), #fff 8%) !important;
+}
+
+[data-bs-theme="dark"] :is(#bf-sidebar, #sidebar) {
+    background-color: var(--body-bg, #212529);
+}
