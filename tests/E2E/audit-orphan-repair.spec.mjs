@@ -70,20 +70,20 @@ test('orphan repairs preserve existing records and distinguish element zero from
         const selectedDelete = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.deleteOrphanValues&format=json`, {
             form: { [csrf]: '1', 'orphan_ids[]': '1999999990' },
         });
-        expect(selectedDelete.status()).toBe(200);
+        expect(selectedDelete.status()).toBe(400);
         expect((await selectedDelete.json()).success).toBe(false);
         expect(rows()).toEqual([ids[0], ids[1], ids[2], ids[4]]);
+
+        const all = await api.delete(`${AUDIT}/orphan-values`);
+        expect(all.status()).toBe(200);
+        expect(rows()).toEqual([ids[0], ids[1], ids[2]]);
 
         const confirmedDelete = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.deleteOrphanValues&format=json`, {
             form: { [csrf]: '1', 'orphan_ids[]': '1999999990', orphan_acknowledged: '1' },
         });
         expect(confirmedDelete.status()).toBe(200);
         expect((await confirmedDelete.json()).success).toBe(true);
-        expect(rows()).toEqual([ids[2], ids[4]]);
-
-        const all = await api.delete(`${AUDIT}/orphan-values`);
-        expect(all.status()).toBe(200);
-        expect(rows()).toEqual([ids[0], ids[1], ids[2]]);
+        expect(rows()).toEqual([ids[0]]);
     } finally {
         await page.close();
         await api.dispose();
