@@ -152,6 +152,23 @@ final class WidgetValueValidator
         return null;
     }
 
+    /** @return list<string> Names of the elements whose stored template area gives them the widget. */
+    public function elementNames(string $templateAreas, string $widget): array
+    {
+        $areas = str_contains($templateAreas, '"widget"') ? json_decode($templateAreas, true) : null;
+        $names = [];
+
+        foreach (\is_array($areas) ? $areas : [] as $area) {
+            foreach (\is_array($area['elements'] ?? null) ? $area['elements'] : [] as $element) {
+                if (\is_array($element) && ($element['options']['widget'] ?? '') === $widget) {
+                    $names[] = trim((string) ($element['name'] ?? ''));
+                }
+            }
+        }
+
+        return $names;
+    }
+
     /** The format check is the administrator's choice: it is off when the widget does not validate. */
     /** @param array<string, mixed> $options */
     private function validatesPhone(array $options): bool

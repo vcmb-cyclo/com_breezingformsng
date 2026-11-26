@@ -4,6 +4,8 @@
 
 ### Added
 
+- Add a field demonstration sample form that shows every field type that needs no key.
+- Offer a single Anti-robot element whose method is an invisible puzzle without any service, a code in an image or Google ReCaptcha.
 - Add an appointment booking sample form that uses every field widget (phone, date, date and time, time, country, address and file drop zone), in the Samples of the Tools screen.
 - Add the VCMB J5b QuickMode theme, with light and dark colours, compact fields and buttons, a ring around the active field and the help of each field written under it.
 - Add a debug bar above the form on the website, shown to Super Users while the form is in debug mode: try any theme, switch between light and dark colours, show or hide the technical names of the fields and read the form details.

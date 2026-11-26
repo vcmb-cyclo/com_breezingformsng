@@ -62,6 +62,12 @@ import { JoomlaEditor } from 'editor-api';
             mdata.widgetProvider = JQuery('#bfElementTypeTextWidgetProvider').val();
             mdata.widgetMinChars = Math.max(1, parseInt(JQuery('#bfElementTypeTextWidgetMinChars').val(), 10) || 3);
             mdata.widgetFill = JQuery('#bfElementTypeTextWidgetFill').val();
+
+            // The puzzle has its own panel: its sentence replaces the one of the hidden text panel.
+            if (widget === 'robot') {
+                mdata.hint = JQuery('#bfElementTypeRobotHint').val();
+                mdata['hint_translation' + BFQMConfig.lang] = JQuery('#bfElementTypeRobotHintTrans').val();
+            }
         };
 
         appScope.populateWidgetProperties = function (mdata) {
@@ -82,6 +88,8 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeTextWidgetProvider').val(read('widgetProvider'));
             JQuery('#bfElementTypeTextWidgetMinChars').val(read('widgetMinChars'));
             JQuery('#bfElementTypeTextWidgetFill').val(read('widgetFill'));
+            JQuery('#bfElementTypeRobotHint').val(mdata.hint || '');
+            JQuery('#bfElementTypeRobotHintTrans').val(mdata['hint_translation' + BFQMConfig.lang] || '');
             appScope.refreshWidgetRows();
         };
 
@@ -1728,6 +1736,7 @@ JQuery(document).on('change', 'input[name="bfStripeReturnMode"]', function () {
                         JQuery('#bfElementValidationRequiredSet').css('display', 'none');
 
                         JQuery('#bfAdvancedLeaf').css('display', '');
+                        JQuery('#bfRobotMethodRow').hide();
                         JQuery('#bfHideInMailback').css('display', '');
 
                         switch (mdata.bfType) {
@@ -1845,6 +1854,12 @@ JQuery(document).on('change', 'input[name="bfStripeReturnMode"]', function () {
                         }
 
                         var elementTypeValue = JQuery('#bfElementType').val();
+                        var isRobot = appScope.treeModel.isRobotOption(elementTypeValue);
+                        JQuery('#bfRobotMethodRow').toggle(isRobot);
+
+                        if (isRobot) {
+                            JQuery('#bfRobotMethod').val(elementTypeValue);
+                        }
                         JQuery('#bfElementType').get(0).dispatchEvent(new CustomEvent('bfng:type-sync'));
 
                         if (elementTypeValue) {
@@ -1853,7 +1868,8 @@ JQuery(document).on('change', 'input[name="bfStripeReturnMode"]', function () {
                             JQuery('#bfElementTypeClass').css('display', 'none');
                             JQuery('#' + mappedElementType).css('display', '');
                             JQuery('#' + mappedElementType + "Advanced").css('display', '');
-                            if (mdata.bfType != 'bfHidden') {
+                            // The puzzle has nothing to require: the server checks it.
+                            if (mdata.bfType != 'bfHidden' && mdata.widget !== 'robot') {
                                 JQuery('#bfElementValidationRequiredSet').css('display', '');
                             }
                         }

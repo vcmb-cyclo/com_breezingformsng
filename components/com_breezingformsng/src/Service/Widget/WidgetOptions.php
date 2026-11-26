@@ -21,7 +21,7 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Widget;
  */
 final class WidgetOptions
 {
-    public const WIDGETS = ['email', 'url', 'phone', 'datetime', 'country', 'address', 'rating', 'consent'];
+    public const WIDGETS = ['email', 'url', 'phone', 'datetime', 'country', 'address', 'rating', 'consent', 'robot'];
 
     private const MODES = ['datetime', 'date', 'time'];
     private const PROVIDERS = ['ban', 'photon'];
@@ -67,6 +67,8 @@ final class WidgetOptions
             ],
             'datetime' => self::datetimeOptions($properties),
             'rating' => self::ratingOptions($properties),
+            // Filled by the renderer for the page being built; the stored form holds none.
+            'robot' => \is_array($properties['robotChallenge'] ?? null) ? $properties['robotChallenge'] : [],
             'consent' => [
                 'url' => self::link((string) ($properties['consentUrl'] ?? '')),
                 'text' => trim((string) ($properties['consentText'] ?? '')),

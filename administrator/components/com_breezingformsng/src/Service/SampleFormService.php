@@ -65,6 +65,10 @@ final class SampleFormService
             'name' => 'Sample_Widgets', 'title' => 'Sample field widgets',
             'alias' => 'bf-sample-widgets', 'file' => 'bfng-sample-widgets.json', 'category' => 'technical',
         ],
+        'demo' => [
+            'name' => 'Sample_Demo', 'title' => 'Sample field demonstration',
+            'alias' => 'bf-sample-demo', 'file' => 'bfng-sample-demo.json', 'category' => 'technical',
+        ],
     ];
 
     private const FORM_LINK = 'index.php?option=com_breezingformsng&view=form';

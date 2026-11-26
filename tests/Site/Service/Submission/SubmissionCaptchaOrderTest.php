@@ -38,5 +38,8 @@ final class SubmissionCaptchaOrderTest extends TestCase
         self::assertNotFalse($collect);
         self::assertLessThan($collect, $captcha);
         self::assertLessThan($collect, $recaptcha);
+        $robot = strpos($source, '$this->checkRobotAnswers();');
+        self::assertNotFalse($robot);
+        self::assertLessThan($collect, $robot);
     }
 }

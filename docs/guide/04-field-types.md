@@ -336,6 +336,20 @@ When a file is refused, the visitor sees: "The file '...' has an invalid extensi
 
 **Accessibility.** The image has an alternative text, and a button reloads a new image. An image code is hard for some visitors, so consider ReCaptcha.
 
+## Anti-robot
+
+The type list has one **Anti-robot** entry. Its **Method** option chooses the **invisible puzzle** (below, the default), a **code in an image** (see Captcha) or **Google ReCaptcha** (see ReCaptcha). Changing the method keeps the label, the name and the hint. Forms made before are unchanged.
+
+### Invisible puzzle
+
+**Use.** Stop basic robots without an account, a key or an external service.
+
+**How it works.** The page receives a small puzzle that the browser of the visitor solves on its own, usually in less than a second; the status line says when it is done. The server refuses a submission without the answer, and each puzzle serves once.
+
+**Options.** Label only. The value is not stored.
+
+**Watch out.** It makes automated sending costly, it does not prove that a person is there: for a heavily targeted form, add Captcha. A cached page gives the same puzzle to several visitors: do not cache the pages that hold the form.
+
 ## ReCaptcha
 
 **Use.** Google robot check.

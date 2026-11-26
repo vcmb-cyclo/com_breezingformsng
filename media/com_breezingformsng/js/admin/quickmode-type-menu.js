@@ -159,7 +159,8 @@ function enhancePanel(select) {
 	// Built again at each opening and search: the editor may change the select meanwhile.
 	function render() {
 		var term = fold(search.value);
-		var all = Array.prototype.slice.call(select.querySelectorAll('optgroup > option'));
+		// A hidden option is a choice made elsewhere: it shows on the button but not in the panel.
+		var all = Array.prototype.slice.call(select.querySelectorAll('optgroup > option:not([hidden])'));
 
 		list.textContent = '';
 		items = [];
@@ -179,7 +180,7 @@ function enhancePanel(select) {
 
 		Array.prototype.forEach.call(select.querySelectorAll('optgroup'), function (family) {
 			var found = Array.prototype.filter.call(family.children, function (option) {
-				return fold(option.textContent + ' ' + (option.dataset.keywords || '')).indexOf(term) >= 0;
+				return !option.hidden && fold(option.textContent + ' ' + (option.dataset.keywords || '')).indexOf(term) >= 0;
 			});
 
 			if (found.length > 0) {

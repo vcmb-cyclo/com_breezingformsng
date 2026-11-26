@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Vcmb\Component\BreezingformsNG\Site\Service\Widget;
 
+use Vcmb\Component\BreezingformsNG\Site\Service\Security\RobotCheckStore;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
@@ -55,5 +56,26 @@ final class WidgetAssets
         foreach (self::RUNTIME_STRINGS as $key) {
             Text::script($key);
         }
+    }
+
+    /**
+     * A robot check element gets a new challenge of this session, with the texts of its status line.
+     *
+     * @param array<string, mixed> $field
+     *
+     * @return array<string, mixed>
+     */
+    public static function withRobotChallenge(CMSApplication $application, array $field): array
+    {
+        if (WidgetOptions::widget($field) !== 'robot') {
+            return $field;
+        }
+
+        $field['robotChallenge'] = (new RobotCheckStore($application->getSession()))->issue() + [
+            'working' => Text::_('COM_BREEZINGFORMSNG_ROBOT_WORKING'),
+            'done' => Text::_('COM_BREEZINGFORMSNG_ROBOT_DONE'),
+        ];
+
+        return $field;
     }
 }

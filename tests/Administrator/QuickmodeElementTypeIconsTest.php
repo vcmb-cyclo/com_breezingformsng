@@ -25,7 +25,7 @@ final class QuickmodeElementTypeIconsTest extends TestCase
     private const FAMILIES = [
         'INPUT' => ['input', ['Text', 'Textarea', 'Hidden', 'NumberInput', 'DateTime', 'Email', 'Phone', 'File', 'Address', 'Country', 'Url', 'Calendar', 'CalendarResponsive']],
         'CHOICE' => ['struct', ['RadioGroup', 'Select', 'Checkbox', 'CheckboxGroup', 'Consent', 'Slider']],
-        'SECURITY_PAYMENT' => ['logic', ['Captcha', 'ReCaptcha', 'Stripe', 'PayPal', 'Signature']],
+        'SECURITY_PAYMENT' => ['logic', ['Captcha', 'Robot', 'ReCaptcha', 'Stripe', 'PayPal', 'Signature']],
         'ACTION_VIEW' => ['static', ['SubmitButton', 'Summarize']],
     ];
 
@@ -67,14 +67,14 @@ final class QuickmodeElementTypeIconsTest extends TestCase
             }
         }
 
-        self::assertCount(26, array_unique($icons));
+        self::assertCount(27, array_unique($icons));
 
         // One color per type, in the light theme and in the dark one.
         $tokens = (string) file_get_contents(__DIR__ . '/../../media/com_breezingformsng/css/bfng-tokens.css');
         preg_match_all('/--bfng-type-\w+: (#[0-9a-f]{6});/', $tokens, $colors);
-        self::assertCount(52, $colors[1]);
-        self::assertCount(26, array_unique(array_slice($colors[1], 0, 26)));
-        self::assertCount(26, array_unique(array_slice($colors[1], 26)));
+        self::assertCount(54, $colors[1]);
+        self::assertCount(27, array_unique(array_slice($colors[1], 0, 27)));
+        self::assertCount(27, array_unique(array_slice($colors[1], 27)));
     }
 
     public function testFamilyLabelsAreTranslated(): void

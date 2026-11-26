@@ -78,7 +78,7 @@ final class SamplePackagesTest extends TestCase
 
     public function testTheCatalogIsComplete(): void
     {
-        self::assertSame(['contact', 'event', 'quote', 'survey', 'booking', 'widgets'], array_keys(self::samples()));
+        self::assertSame(['contact', 'event', 'quote', 'survey', 'booking', 'widgets', 'demo'], array_keys(self::samples()));
     }
 
     #[DataProvider('samples')]
@@ -304,6 +304,34 @@ final class SamplePackagesTest extends TestCase
             $stored = array_column(array_merge(...array_column($areas, 'elements')), null, 'name');
             self::assertSame('consent', $stored[$name]['options']['widget'] ?? null, $sample);
         }
+    }
+
+    public function testTheDemonstrationShowsEveryFieldThatNeedsNoKey(): void
+    {
+        $data = $this->package('bfng-sample-demo.json')['forms'][0]['data'];
+        $elements = $this->elements($data['template_code']);
+        $types = array_values(array_unique(array_column($elements, 'bfType')));
+        sort($types);
+
+        self::assertSame([
+            'bfCalendar', 'bfCalendarResponsive', 'bfCaptcha', 'bfCheckbox', 'bfCheckboxGroup', 'bfFile', 'bfHidden',
+            'bfNumberInput', 'bfRadioGroup', 'bfSelect', 'bfSignature', 'bfSubmitButton', 'bfSummarize', 'bfTextarea',
+            'bfTextfield',
+        ], $types);
+        $widgets = array_values(array_unique(array_filter(array_column($elements, 'widget'))));
+        sort($widgets);
+        self::assertSame(
+            ['address', 'consent', 'country', 'datetime', 'email', 'phone', 'rating', 'robot', 'url'],
+            $widgets
+        );
+        $byName = array_column($elements, null, 'bfName');
+        self::assertTrue($byName['Slider']['range']);
+        self::assertSame(['stars', 'stars', 'scale'], array_values(array_filter(array_column($elements, 'ratingStyle'))));
+        // The server checks what the tree shows.
+        $areas = json_decode($data['template_areas'], true, 512, JSON_THROW_ON_ERROR);
+        $stored = array_column($areas[0]['elements'], null, 'name');
+        self::assertSame('robot', $stored['Robot']['options']['widget']);
+        self::assertSame('rating', $stored['Scale']['options']['widget']);
     }
 
     public function testTheBusinessTemplatesUseTheFieldWidgets(): void

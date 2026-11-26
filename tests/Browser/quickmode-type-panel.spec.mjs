@@ -130,3 +130,17 @@ test('reads the select again at each opening and closes outside', async ({ page 
     await page.mouse.click(1100, 690);
     await expect(panel(page)).toBeHidden();
 });
+
+test('leaves a hidden option out of the panel but shows it on the button', async ({ page }) => {
+    await open(page);
+    await page.evaluate(() => {
+        const select = document.getElementById('bfElementType');
+        select.querySelector('option[value="stripe"]').hidden = true;
+        select.value = 'stripe';
+        select.dispatchEvent(new CustomEvent('bfng:type-sync'));
+    });
+
+    await expect(button(page)).toHaveText('Stripe');
+    await button(page).click();
+    await expect(page.getByRole('option', { name: 'Stripe' })).toHaveCount(0);
+});

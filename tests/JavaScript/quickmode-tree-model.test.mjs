@@ -129,6 +129,18 @@ test('Textfield widget presets map to their own type option', () => {
 
     assert.equal(model.getElementTypeOption(typed({ bfType: 'bfCheckbox', widget: 'consent' })), 'bfElementTypeConsent');
     assert.equal(model.getElementTypeOption(typed({ bfType: 'bfCheckbox' })), 'bfElementTypeCheckbox');
+    assert.equal(model.getPropertiesPanel('bfElementTypeRobot'), 'bfElementTypeRobot');
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfCaptcha' })), 'bfElementTypeCaptcha');
+    assert.equal(model.isRobotOption('bfElementTypeReCaptcha'), true);
+    assert.equal(model.isRobotOption('bfElementTypeText'), false);
+    // Changing the method keeps the names and texts, never the settings of the former method.
+    assert.deepEqual(
+        model.carryRobotSettings(
+            { label: 'Check', label_translationfr_FR: 'Contrôle', bfName: 'Check', pubkey: 'k', widget: 'robot', dbId: 7 },
+            { label: 'untitled', bfName: 'id', bfType: 'bfCaptcha', dbId: 0 }
+        ),
+        { label: 'Check', label_translationfr_FR: 'Contrôle', bfName: 'Check', bfType: 'bfCaptcha', dbId: 0 }
+    );
     assert.equal(model.getPropertiesPanel('bfElementTypeConsent'), 'bfElementTypeCheckbox');
     assert.equal(model.getPropertiesPanel('bfElementTypeSlider'), 'bfElementTypeNumberInput');
     assert.equal(model.getPropertiesPanel('bfElementTypeUrl'), 'bfElementTypeText');

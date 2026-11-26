@@ -32,6 +32,7 @@ final class WidgetFieldBuilder
         'url' => 'text',
         'phone' => 'tel',
         'address' => 'text',
+        'robot' => 'text',
         // Without the script the visitor still types the number.
         'rating' => 'number',
     ];
@@ -62,7 +63,8 @@ final class WidgetFieldBuilder
     {
         $widget = WidgetOptions::widget($field);
         $options = WidgetOptions::options($widget, $field);
-        $value = trim((string) ($field['value'] ?? ''));
+        // The answer to a robot check belongs to the page that asks it: nothing is restored.
+        $value = $widget === 'robot' ? '' : trim((string) ($field['value'] ?? ''));
         $data = self::dataAttributes($widget, $options) . ' data-bfng-value="' . self::escape($value) . '"';
 
         if ($widget === 'country') {

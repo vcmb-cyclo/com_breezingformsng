@@ -723,6 +723,7 @@ class BootstrapRenderer
 
                 if (WidgetFieldBuilder::hasWidget($mdata)) {
                     WidgetAssets::register($this->p->app);
+                    $mdata = WidgetAssets::withRobotChallenge($this->p->app, $mdata);
                 }
 
                 switch ($mdata['bfType']) {

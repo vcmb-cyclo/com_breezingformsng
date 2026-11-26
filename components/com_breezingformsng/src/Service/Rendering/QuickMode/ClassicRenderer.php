@@ -773,6 +773,7 @@ float:left;
 
                 if (WidgetFieldBuilder::hasWidget($mdata)) {
                     WidgetAssets::register($this->p->app);
+                    $mdata = WidgetAssets::withRobotChallenge($this->p->app, $mdata);
                 }
 
                 $flashUploader = '';

@@ -55,8 +55,10 @@ use Joomla\CMS\Language\Text;
                                                             'bfElementTypeSlider' => 'Slider',
                                                         ),
                                                         'COM_BREEZINGFORMSNG_ELEMENT_FAMILY_SECURITY_PAYMENT' => array(
-                                                            'bfElementTypeCaptcha' => Text::_('COM_BREEZINGFORMSNG_CAPTCHA'),
-                                                            'bfElementTypeReCaptcha' => Text::_('COM_BREEZINGFORMSNG_ReCaptcha'),
+                                                            // One "Anti-robots" entry: the two older types stay hidden options, chosen by "Method".
+                                                            'bfElementTypeCaptcha' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_ROBOT'),
+                                                            'bfElementTypeRobot' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_ROBOT'),
+                                                            'bfElementTypeReCaptcha' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_ROBOT'),
                                                             'bfElementTypeStripe' => Text::_('COM_BREEZINGFORMSNG_STRIPE'),
                                                             'bfElementTypePayPal' => Text::_('COM_BREEZINGFORMSNG_PAYPAL'),
                                                             'bfElementTypeSignature' => Text::_('COM_BREEZINGFORMSNG_SIGNATURE'),
@@ -68,19 +70,20 @@ use Joomla\CMS\Language\Text;
                                                     );
 
                                                     // Synonyms of the type search, for the types that people look for under another word.
-                                                $elementTypeKeywords = static function (string $elementType): string {
-                                                    $key = 'COM_BREEZINGFORMSNG_QM_TYPE_KEYWORDS_' . strtoupper(substr($elementType, strlen('bfElementType')));
-                                                    $words = Text::_($key);
+                                                    $elementTypeKeywords = static function (string $elementType): string {
+                                                        $key = 'COM_BREEZINGFORMSNG_QM_TYPE_KEYWORDS_' . strtoupper(substr($elementType, strlen('bfElementType')));
+                                                        $words = Text::_($key);
 
-                                                    return $words === $key ? '' : $words;
-                                                };
+                                                        return $words === $key ? '' : $words;
+                                                    };
 
-                                                foreach ($elementTypeFamilies as $familyKey => $elementTypes) :
+                                                    foreach ($elementTypeFamilies as $familyKey => $elementTypes) :
                                                     ?>
                                                         <optgroup label="<?php echo htmlspecialchars(Text::_($familyKey), ENT_QUOTES, 'UTF-8'); ?>">
                                                             <?php foreach ($elementTypes as $elementType => $elementTypeLabel) : ?>
                                                                 <option value="<?php echo $elementType; ?>" class="bfng-type-icon--<?php echo $elementType; ?>"
-                                                                data-keywords="<?php echo htmlspecialchars($elementTypeKeywords($elementType), ENT_QUOTES, 'UTF-8'); ?>">
+                                                                data-keywords="<?php echo htmlspecialchars($elementTypeKeywords($elementType), ENT_QUOTES, 'UTF-8'); ?>"
+                                                                <?php echo in_array($elementType, array('bfElementTypeCaptcha', 'bfElementTypeReCaptcha'), true) ? 'hidden' : ''; ?>>
                                                                     <?php echo htmlspecialchars($elementTypeLabel, ENT_QUOTES, 'UTF-8'); ?>
                                                                 </option>
                                                             <?php endforeach; ?>
@@ -319,6 +322,40 @@ use Joomla\CMS\Language\Text;
                                             </div>
                                             <!-- SUMMARIZE END -->
                                             <!-- TEXTFIELD BEGIN -->
+                                            <div class="bfPropertyWrap bfng-field" id="bfRobotMethodRow" style="display:none">
+                                                <label class="bfPropertyLabel bfng-field__label" for="bfRobotMethod"
+                                                    title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ROBOT_METHOD_DESC')); ?>">
+                                                    <?php echo Text::_('COM_BREEZINGFORMSNG_QM_ROBOT_METHOD'); ?>
+                                                </label>
+                                                <select id="bfRobotMethod">
+                                                    <option value="bfElementTypeRobot"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_ROBOT_METHOD_PUZZLE'); ?></option>
+                                                    <option value="bfElementTypeCaptcha"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_ROBOT_METHOD_IMAGE'); ?></option>
+                                                    <option value="bfElementTypeReCaptcha"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_ROBOT_METHOD_RECAPTCHA'); ?></option>
+                                                </select>
+                                                <small class="bfng-field__help"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_ROBOT_METHOD_DESC'); ?></small>
+                                            </div>
+                                            <!-- ANTI-ROBOT PUZZLE: only the sentence shown to the visitor -->
+                                            <div class="bfElementTypeClass" id="bfElementTypeRobot" style="display:none">
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeRobotHint">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
+                                                    </label>
+                                                    <textarea id="bfElementTypeRobotHint"></textarea>
+                                                </div>
+                                                <div class="bfPropertyWrap bfTrans bfng-field">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeRobotHintTrans">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <textarea id="bfElementTypeRobotHintTrans"></textarea>
+                                                </div>
+                                            </div>
                                             <div class="bfElementTypeClass" id="bfElementTypeText" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
@@ -1129,13 +1166,15 @@ use Joomla\CMS\Language\Text;
                                                     <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RECAPTCHA_THEME')); ?>"
                                                         for=bfElementTypeReCaptchaTheme><?php echo Text::_('COM_BREEZINGFORMSNG_Theme'); ?></label>
-                                                    <input type="text" value="red" id="bfElementTypeReCaptchaTheme" />
+                                                    <input type="text" value="" id="bfElementTypeReCaptchaTheme" list="bfReCaptchaThemes" />
+                                                    <datalist id="bfReCaptchaThemes"><option value="light"></option><option value="dark"></option></datalist>
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RECAPTCHA_SIZE')); ?>"
                                                         for=bfElementTypeReCaptchaSize><?php echo Text::_('COM_BREEZINGFORMSNG_RECAPTCHA_SIZE'); ?></label>
-                                                    <input type="text" value="normal" id="bfElementTypeReCaptchaSize" />
+                                                    <input type="text" value="normal" id="bfElementTypeReCaptchaSize" list="bfReCaptchaSizes" />
+                                                    <datalist id="bfReCaptchaSizes"><option value="normal"></option><option value="compact"></option></datalist>
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"

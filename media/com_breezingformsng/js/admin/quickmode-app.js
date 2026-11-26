@@ -827,6 +827,13 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
                     }
                 );
 
+                // The method of an anti-robot element is a type of its own behind a single entry of the list.
+                JQuery('#bfRobotMethod').change(
+                    function () {
+                        JQuery('#bfElementType').val(this.value).trigger('change');
+                    }
+                );
+
                 JQuery('#bfElementType').change(
                     function () {
                         var obj = null;
@@ -836,6 +843,7 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
                             case 'bfElementTypeText':
                             case 'bfElementTypeEmail':
                             case 'bfElementTypeUrl':
+                            case 'bfElementTypeRobot':
                             case 'bfElementTypePhone':
                             case 'bfElementTypeDateTime':
                             case 'bfElementTypeCountry':
@@ -855,6 +863,12 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
 
                                 obj = appScope.createTextfield(id);
                                 appScope.treeModel.applyWidgetPreset(obj.properties, appScope.treeModel.getWidgetFromOption(selected));
+                                if (selected === 'bfElementTypeRobot') {
+                                    // Nothing to keep in the submissions.
+                                    obj.properties.logging = false;
+                                    obj.properties.label = BFQMConfig.labels.COM_BREEZINGFORMSNG_ELEMENT_ROBOT || obj.properties.label;
+                                    obj.data.title = obj.properties.label;
+                                }
                                 break;
                             case 'bfElementTypeRadioGroup':
                                 obj = appScope.createRadioGroup(id);
@@ -939,6 +953,14 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
                                 break;
                         }
                         if (obj) {
+                            var former = appScope.findDataObjectItem(appScope.selectedTreeElement.attributes.id);
+                            var formerOption = former ? appScope.treeModel.getElementTypeOption(former) : null;
+
+                            if (appScope.treeModel.isRobotOption(selected) && appScope.treeModel.isRobotOption(formerOption)) {
+                                appScope.treeModel.carryRobotSettings(former.properties, obj.properties);
+                                obj.data.title = obj.properties.label;
+                            }
+
                             appScope.replaceDataObjectItem(appScope.selectedTreeElement.attributes.id, obj, appScope.dataObject);
                             appScope.refreshTree(function () {
                                 appScope.selectTreeBranch(id);
