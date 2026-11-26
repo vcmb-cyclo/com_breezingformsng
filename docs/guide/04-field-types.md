@@ -337,7 +337,7 @@ When a file is refused, the visitor sees: "The file '...' has an invalid extensi
 
 **Amount warning.** An amount taken from a free field passes through the browser, and the visitor can change it. A list or radio field is checked against its values. To impose a price, compute it on the server in a Begin Submit piece. The amount format is a main unit with a decimal separator, for example `12.99` or `12,99`. If it is empty or invalid, the form is not submitted.
 
-**Mode.** The editor shows Test mode or Production mode from the Secret Key. A method only appears if it is enabled in your Stripe Dashboard.
+**Mode.** The editor shows Test mode or Production mode from the Secret Key. A method only appears if it is enabled in your Stripe Dashboard. Cards (CB, Visa, Mastercard) are always offered. To process French cards on the CB network, turn on **Cartes Bancaires** in the Stripe Dashboard: for a payment in euros with a co-badged card, Stripe Checkout then lets the customer choose the network.
 
 **Example.** Fixed amount `49.00`, Currency code `EUR`, Webhook signing secret filled in so the payment is recorded even if the customer does not come back.
 

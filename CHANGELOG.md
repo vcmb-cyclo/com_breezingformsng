@@ -15,6 +15,7 @@
 - Keep a form in debug mode until you turn it off: opening, saving or closing the editor no longer changes it.
 - Show the error message closer to its field in Bootstrap and one-page forms.
 - Count the same trashed items in the audit as in the Tools screen.
+- Name the CB network in the Stripe payment methods of the editor and recall how to turn it on in Stripe.
 - Use a slightly darker blue in the VCMB J5 and J6 themes so that white text keeps a sufficient contrast.
 
 ### Fixed
