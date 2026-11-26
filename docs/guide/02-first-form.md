@@ -164,7 +164,7 @@ The toolbar also has **Preview**, **Site Preview** and **Close**. **Preview** op
 
 ## Publish the form and show it on your website
 
-A form is shown only when it is published. In the editor, the **Published** switch at the top right (next to **Debug**) shows the state. In the form list the column **Published** has the same switch. Click it to publish or unpublish.
+A form is shown only when it is published. In the editor, the **Published** switch at the top right (next to **Debug**) shows the state. In the form list the column **Published** has the same switch. Click it to publish or unpublish. The column **Debug** next to it turns the debug mode of a form on or off. To change several forms at once, check them and use the **Actions** menu: **Publish**, **Unpublish**, **Debug** or **No debug**. A form stays in debug mode until you turn it off: opening or closing the editor does not change it.
 
 There are three ways to show the form.
 

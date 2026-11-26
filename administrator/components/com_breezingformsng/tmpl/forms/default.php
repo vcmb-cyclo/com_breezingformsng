@@ -39,6 +39,7 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
         <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_NAME', 'name', $listDirn, $listOrder); ?></th>
         <th class="d-none"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_PACKAGE', 'package', $listDirn, $listOrder); ?></th>
         <th class="text-center"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_PAGES', 'pages', $listDirn, $listOrder); ?></th>
+        <th class="text-center w-10" title="<?= $this->escape(Text::_('COM_BREEZINGFORMSNG_FORMS_COLUMN_DEBUG_TIP')); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_COLUMN_DEBUG', 'debug_mode', $listDirn, $listOrder); ?></th>
         <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JPUBLISHED', 'published', $listDirn, $listOrder); ?></th>
         <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ORDERING', 'ordering', $listDirn, $listOrder); ?></th>
         <th class="text-nowrap"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_MODIFIED', 'modified', $listDirn, $listOrder); ?></th>
@@ -46,9 +47,10 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
     </thead>
     <tbody>
       <?php if (empty($this->items)): ?>
-        <tr><td colspan="9" class="text-center"><?= Text::_('JGLOBAL_NO_MATCHING_RESULTS'); ?></td></tr>
+        <tr><td colspan="10" class="text-center"><?= Text::_('JGLOBAL_NO_MATCHING_RESULTS'); ?></td></tr>
       <?php else: ?>
         <?php foreach ($this->items as $i => $form): ?>
+                <?php $debugLabel = Text::_((int) $form->debug_mode === 1 ? 'COM_BREEZINGFORMSNG_DEBUG_MODE_ENABLED' : 'COM_BREEZINGFORMSNG_DEBUG_MODE_DISABLED'); ?>
           <tr>
             <td class="text-center"><?= HTMLHelper::_('grid.id', $i, $form->id); ?></td>
             <td class="text-center"><?= (int) $form->id; ?></td>
@@ -64,6 +66,27 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
             <td><?= htmlspecialchars($form->name); ?></td>
             <td class="d-none"><?= htmlspecialchars((string) $form->package); ?></td>
             <td class="text-center"><?= (int) $form->pages; ?></td>
+            <td class="text-center">
+                <?php if ((int) $form->published === -2 || !$user->authorise('core.edit', 'com_breezingformsng')) : ?>
+                <span class="tbody-icon">
+                  <span class="<?= (int) $form->debug_mode === 1 ? 'fa-solid fa-bug text-success' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+                  <span class="visually-hidden"><?= $debugLabel; ?></span>
+                </span>
+                <?php else : ?>
+                <button type="button"
+                   class="tbody-icon js-bf-form-state<?= (int) $form->debug_mode === 1 ? ' active' : ''; ?>"
+                   data-item-form-id="<?= (int) $form->id; ?>"
+                   data-item-task="forms.setDebug"
+                   data-state-type="debug"
+                   data-icon-on="fa-solid fa-bug text-success"
+                   data-icon-off="icon-unpublish"
+                   title="<?= $this->escape($debugLabel); ?>"
+                   aria-pressed="<?= (int) $form->debug_mode === 1 ? 'true' : 'false'; ?>"
+                   aria-label="<?= $this->escape($debugLabel); ?>">
+                  <span class="<?= (int) $form->debug_mode === 1 ? 'fa-solid fa-bug text-success' : 'icon-unpublish'; ?>" aria-hidden="true"></span>
+                </button>
+                <?php endif; ?>
+            </td>
             <td class="text-center">
                 <?php if ((int) $form->published === -2) : ?>
                 <span class="tbody-icon" title="<?= Text::_('JTRASHED'); ?>">

@@ -70,6 +70,40 @@ final class FormsListActionsArchitectureTest extends TestCase
         self::assertStringNotContainsString('confirmDeleteTask', $view);
     }
 
+    public function testTheActionsMenuHoldsPublicationAndDebugMode(): void
+    {
+        $view = $this->read('/src/View/Forms/HtmlView.php');
+        $controller = $this->read('/src/Controller/FormsController.php');
+
+        self::assertStringContainsString("dropdownButton('forms-status-group')", $view);
+
+        foreach (['forms.publish', 'forms.unpublish', 'forms.debugOn', 'forms.debugOff'] as $task) {
+            self::assertStringContainsString("'" . $task . "'", $view);
+        }
+
+        self::assertStringNotContainsString('ToolbarHelper::publish(', $view);
+        // The token and every checked form are verified before the first write.
+        self::assertMatchesRegularExpression(
+            '/function setCheckedDebugMode\(int \$state\): void\s*\{\s*\$this->checkToken\(\);.*'
+            . 'assertFormEditPermission\(\$id\);.*setDebugMode\(\$id, \$state\)/s',
+            $controller
+        );
+    }
+
+    public function testTheDebugColumnSortsAndTogglesItsState(): void
+    {
+        $template = $this->read('/tmpl/forms/default.php');
+
+        self::assertStringContainsString("'debug_mode', \$listDirn, \$listOrder", $template);
+        self::assertStringContainsString('data-item-task="forms.setDebug"', $template);
+        self::assertStringContainsString("'debug_mode', 'published'", $this->read('/src/Model/FormsModel.php'));
+    }
+
+    public function testLeavingTheEditorKeepsTheDebugMode(): void
+    {
+        self::assertStringNotContainsString('setDebugMode', $this->read('/src/Controller/QuickmodeController.php'));
+    }
+
     public function testTheFormOptionsKeepTheirOwnModel(): void
     {
         self::assertStringContainsString(
