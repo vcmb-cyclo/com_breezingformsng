@@ -102,7 +102,8 @@ class HtmlView extends BaseHtmlView
                 $toolbar->linkButton('about_manage_plugins')
                     ->url(Route::_('index.php?option=com_installer&view=manage&filter[search]=' . rawurlencode('breezingforms'), false))
                     ->text('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS_MANAGE_PLUGINS')
-                    ->icon('fa-solid fa-plug');
+                    // The icon of the Extensions screens of Joomla.
+                    ->icon('fa-solid fa-puzzle-piece');
             }
         }
 
@@ -123,7 +124,7 @@ class HtmlView extends BaseHtmlView
             $toolbar->linkButton('about_extensions')
                 ->url(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=extensions', false))
                 ->text('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS')
-                ->icon('fa-solid fa-plug');
+                ->icon('fa-solid fa-puzzle-piece');
         }
 
         if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
