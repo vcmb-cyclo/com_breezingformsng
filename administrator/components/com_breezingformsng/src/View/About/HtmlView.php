@@ -34,7 +34,6 @@ class HtmlView extends BaseHtmlView
     public array $plugins = [];
     public bool $canEditPluginState = false;
     /** Uninstalling is a right of the Joomla Installer. */
-    public bool $canUninstallExtension = false;
 
     /** The changelog popup is served by the Installer component: it needs the right to manage it. */
     public bool $canViewChangelog = false;
@@ -68,7 +67,6 @@ class HtmlView extends BaseHtmlView
         $this->canRepair = AreaAccess::canRepair($user);
         $this->canDeleteOrphans = AreaAccess::canDeleteOrphans($user);
         $this->canEditPluginState = $user->authorise('core.edit.state', 'com_plugins');
-        $this->canUninstallExtension = $user->authorise('core.delete', 'com_installer');
         $this->canViewChangelog = $user->authorise('core.manage', 'com_installer');
         /** @var HtmlDocument $document */
         $document = $app->getDocument();
@@ -104,7 +102,8 @@ class HtmlView extends BaseHtmlView
                 $toolbar->linkButton('about_manage_plugins')
                     ->url(Route::_('index.php?option=com_installer&view=manage&filter[search]=' . rawurlencode('breezingforms'), false))
                     ->text('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS_MANAGE_PLUGINS')
-                    ->icon('fa-solid fa-plug');
+                    // The icon of the Extensions screens of Joomla.
+                    ->icon('fa-solid fa-puzzle-piece');
             }
         }
 
@@ -125,7 +124,7 @@ class HtmlView extends BaseHtmlView
             $toolbar->linkButton('about_extensions')
                 ->url(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=extensions', false))
                 ->text('COM_BREEZINGFORMSNG_ABOUT_EXTENSIONS')
-                ->icon('fa-solid fa-plug');
+                ->icon('fa-solid fa-puzzle-piece');
         }
 
         if ($user->authorise('core.admin', 'com_breezingformsng') || $user->authorise('core.options', 'com_breezingformsng')) {
@@ -238,7 +237,6 @@ class HtmlView extends BaseHtmlView
                 'library' => 'lib_' . $element,
                 'package' => 'pkg_' . $element,
                 'file' => 'file_' . $element,
-                'template' => 'tpl_' . $element,
                 default => $element,
             };
             // The name and the description of an extension live in its .sys.ini file; the other strings in its .ini.
@@ -256,9 +254,6 @@ class HtmlView extends BaseHtmlView
                 'type' => $type,
                 // The changelog XML the extension declares in its manifest, when it has one.
                 'changelogUrl' => $this->changelogUrl((string) ($manifest['changelogurl'] ?? '')),
-                // The running component and what Joomla protects cannot be uninstalled from here.
-                'uninstallable' => (int) ($row['protected'] ?? 0) !== 1
-                    && !($type === 'component' && $element === 'com_breezingformsng'),
                 'name' => $name !== '' ? Text::_($name) : Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE'),
                 'group' => $group,
                 'element' => $element,

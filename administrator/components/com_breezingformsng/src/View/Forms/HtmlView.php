@@ -10,6 +10,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Forms;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\Registry\Registry;
@@ -17,6 +18,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Session\Session;
+use Joomla\CMS\Toolbar\Button\DropdownButton;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\FormsAdvancedOptionsHtml;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
@@ -150,6 +152,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             );
             Text::script('JPUBLISHED');
             Text::script('JUNPUBLISHED');
+            Text::script('COM_BREEZINGFORMSNG_DEBUG_MODE_ENABLED');
+            Text::script('COM_BREEZINGFORMSNG_DEBUG_MODE_DISABLED');
             Text::script('COM_BREEZINGFORMSNG_AJAX_STATE_ERROR');
 
             $model = $this->getModel();
@@ -178,10 +182,10 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             }
             $user = $this->getCurrentUser();
 
-            if ($user->authorise('core.edit.state', 'com_breezingformsng')) {
-                ToolbarHelper::publish('forms.publish', 'JTOOLBAR_PUBLISH', true);
-                ToolbarHelper::unpublish('forms.unpublish', 'JTOOLBAR_UNPUBLISH', true);
-            }
+            $this->addActionsDropdown(
+                $user->authorise('core.edit.state', 'com_breezingformsng'),
+                $user->authorise('core.edit', 'com_breezingformsng')
+            );
             ToolbarHelper::checkin('forms.checkin');
 
             if ((string) $this->state->get('filter.published') === '-2') {
@@ -199,6 +203,44 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         }
 
         parent::display($tpl);
+    }
+
+    /** The "Actions" menu of the checked forms: publication and debug mode. */
+    private function addActionsDropdown(bool $canEditState, bool $canEdit): void
+    {
+        if (!$canEditState && !$canEdit) {
+            return;
+        }
+
+        /** @var HtmlDocument $document */
+        $document = $this->getDocument();
+        $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
+        $dropdown = $toolbar->dropdownButton('forms-status-group');
+
+        if (!$dropdown instanceof DropdownButton) {
+            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+        }
+
+        $dropdown->toggleSplit(false);
+        $dropdown->text(Text::_('COM_BREEZINGFORMSNG_TOOLBAR_ACTIONS'))
+            ->icon('fa-solid fa-ellipsis')
+            ->buttonClass('btn btn-action')
+            ->listCheck(true);
+        $actions = $dropdown->getChildToolbar();
+
+        if ($canEditState) {
+            $actions->publish('forms.publish')->icon('fa-solid fa-check text-success')->listCheck(true);
+            $actions->unpublish('forms.unpublish')->icon('fa-solid fa-circle-xmark text-danger')->listCheck(true);
+        }
+
+        if ($canEdit) {
+            $actions->standardButton('debug_on', 'COM_BREEZINGFORMSNG_FORMS_DEBUG_ON', 'forms.debugOn')
+                ->icon('fa-solid fa-bug text-success')
+                ->listCheck(true);
+            $actions->standardButton('debug_off', 'COM_BREEZINGFORMSNG_FORMS_DEBUG_OFF', 'forms.debugOff')
+                ->icon('fa-solid fa-bug text-danger')
+                ->listCheck(true);
+        }
     }
 
     protected function getDetailLabel(): ?string

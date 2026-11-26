@@ -163,6 +163,11 @@
     overflow: hidden;
 }
 
+/* A row keeps its floated parts even when it may overflow, as the rows of a calendar do for its popup. */
+.bfQuickMode section.bfElemWrap:not([hidden]) {
+    display: flow-root;
+}
+
 .bfQuickMode span.bfElemWrap {
     padding: 5px;
     margin: 0px 10px 0px 0px;
@@ -244,6 +249,21 @@
     float: none;
     display: block;
     color: red;
+}
+
+/* ##### message under a field in error ##### */
+
+.bfQuickMode .bf-field-error {
+    display: block;
+    clear: both;
+    margin-top: 4px;
+    color: var(--bf-error-color, #a01515);
+    font-weight: bold;
+    white-space: pre-line;
+}
+
+.bfQuickMode :is(input, select, textarea).is-invalid {
+    border-color: var(--bf-error-color, #a01515) !important;
 }
 
 /* ##### hint line (shown by the themes that prefer it to the tooltip) ##### */
@@ -767,4 +787,9 @@
     clip: rect(0, 0, 0, 0) !important;
     white-space: nowrap !important;
     border: 0 !important;
+}
+
+/* Responsive calendar: the field first, its button right after it. */
+.bfQuickMode .bfElementGroupNoWrap > input.bfCalendarInput {
+    float: left;
 }

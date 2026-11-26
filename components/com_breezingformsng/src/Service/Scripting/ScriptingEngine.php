@@ -540,6 +540,8 @@ final class ScriptingEngine
         $code = "function ff_validation(page)" . nl() .
             "{" . nl() .
             "    if(typeof inlineErrorElements != 'undefined') inlineErrorElements = new Array();" . nl() .
+            // The Classic renderer removes the messages of the previous check from under the fields.
+            "    if(typeof bfClearFieldErrors == 'function') bfClearFieldErrors();" . nl() .
             "    error = '';" . nl() .
             "    ff_validationFocusName = '';" . nl();
         $curr = -1;

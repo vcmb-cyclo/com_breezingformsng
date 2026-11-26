@@ -14,6 +14,9 @@ const NODE_CLASSES = Object.freeze({
 
 /** Textfield presets: widget property value => #bfElementType option. */
 const WIDGET_OPTIONS = Object.freeze({
+    email: 'bfElementTypeEmail',
+    url: 'bfElementTypeUrl',
+    robot: 'bfElementTypeRobot',
     phone: 'bfElementTypePhone',
     datetime: 'bfElementTypeDateTime',
     country: 'bfElementTypeCountry',
@@ -188,11 +191,54 @@ export class QuickmodeTreeModel {
             return this.getWidgetOption(node.properties.widget) || 'bfElementTypeText';
         }
 
+        if (bfType === 'bfCheckbox' && node.properties.widget === 'consent') {
+            return 'bfElementTypeConsent';
+        }
+
         if (bfType === 'bfNumberInput' && node.properties.range) {
             return 'bfElementTypeSlider';
         }
 
         return 'bfElementType' + bfType.slice(2);
+    }
+
+    /** Whether a #bfElementType option is one of the methods of the anti-robot element. */
+    isRobotOption(option) {
+        return ['bfElementTypeRobot', 'bfElementTypeCaptcha', 'bfElementTypeReCaptcha'].includes(option);
+    }
+
+    /**
+     * Keeps what the form builder wrote when the anti-robot method changes: names and texts.
+     * The settings of the former method stay on its element type only.
+     */
+    carryRobotSettings(from, to) {
+        const kept = /^(label|bfName|hint|hideLabel|labelPosition|off|orderNumber|tabIndex)(_translation.*)?$/;
+
+        for (const [key, value] of Object.entries(from || {})) {
+            if (kept.test(key)) {
+                to[key] = value;
+            }
+        }
+
+        return to;
+    }
+
+    /**
+     * Id of the properties panel of a #bfElementType option: the presets share the panel of
+     * their field.
+     */
+    getPropertiesPanel(option) {
+        // The puzzle has no setting of its own besides the label and the method.
+        if (option === 'bfElementTypeRobot') {
+            return option;
+        }
+
+        if (this.getWidgetFromOption(option)) {
+            return 'bfElementTypeText';
+        }
+
+        return { bfElementTypeSlider: 'bfElementTypeNumberInput', bfElementTypeConsent: 'bfElementTypeCheckbox' }[option]
+            || option;
     }
 
     /**

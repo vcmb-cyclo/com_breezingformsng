@@ -3,9 +3,12 @@ var __bfToggleOpts = Joomla.getOptions('com_breezingformsng.admin-toggle-publish
 function bfSetToggleIcon(link, state, stateType) {
 	var span = link.querySelector('span');
 
-	span.className = stateType === 'debug'
+	// A button can bring its own icons, as the debug column of the forms list does.
+	const ownIcon = state ? link.dataset.iconOn : link.dataset.iconOff;
+
+	span.className = ownIcon || (stateType === 'debug'
 		? (state ? 'fa-solid fa-bug' : 'fa-solid fa-bug text-muted')
-		: (state ? 'icon-publish' : 'icon-unpublish');
+		: (state ? 'icon-publish' : 'icon-unpublish'));
 	link.classList.toggle('active', Boolean(state));
 
 	if (stateType === 'debug') {
@@ -109,18 +112,3 @@ document.addEventListener('click', function (event) {
 		link
 	);
 });
-
-var bfDebugToggle = document.getElementById('bfFormDebugToggle');
-if (bfDebugToggle) {
-	var bfDebugFormId = bfDebugToggle.dataset.itemFormId;
-	var bfPreserveDebug = false;
-	try {
-		bfPreserveDebug = sessionStorage.getItem('bfqm:preserve-debug:' + bfDebugFormId) === '1';
-		sessionStorage.removeItem('bfqm:preserve-debug:' + bfDebugFormId);
-	} catch {
-		// Debug is reset when session storage is unavailable.
-	}
-	if (bfDebugToggle.classList.contains('active') && !bfPreserveDebug) {
-		bfRequestFormState(bfDebugFormId, 'forms.setDebug', 0, 'debug', bfDebugToggle);
-	}
-}

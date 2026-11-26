@@ -72,7 +72,6 @@ class QuickmodeController extends BaseController
 
         if ($formId > 0) {
             $form = $this->getOptionsModel()->getForm($formId);
-            $checkinSucceeded = true;
 
             // QuickMode does not lock on GET. Joomla returns 0 (falsey) when
             // checkin() is called for a form that is not locked.
@@ -80,19 +79,9 @@ class QuickmodeController extends BaseController
                 $model = $this->getFormModel();
 
                 // Joomla refuses it when someone else holds the lock and the user cannot manage check-in.
-                $checkinSucceeded = $model->checkin($formId) !== false;
-
-                if (!$checkinSucceeded) {
+                if ($model->checkin($formId) === false) {
                     $this->setMessage(Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()), 'error');
                 }
-            }
-
-            if (
-                $checkinSucceeded
-                && ($user = $this->app->getIdentity()) !== null
-                && $user->authorise('core.edit.state', 'com_breezingformsng')
-            ) {
-                $this->getOptionsModel()->setDebugMode($formId, 0);
             }
         }
 

@@ -54,8 +54,10 @@ test('orphan repairs preserve existing records and distinguish element zero from
         const audit = page.locator('[data-bf-orphan-check="subrecords_without_element"]');
         // The audit report is built on this request: a busy runner needs more than the default 5 s.
         await expect(audit).toBeAttached({ timeout: 30_000 });
-        // Only the deletion must be withheld: reassignment buttons use the same data attribute.
-        await expect(audit.locator('[data-bf-orphan-task="about.deleteOrphanValues"][data-bf-orphan-element="1999999990"]')).toHaveCount(0);
+        // Missing-element values remain selectable for acknowledged bulk deletion,
+        // including values belonging to records that still exist.
+        const selectable = audit.locator('[data-bf-orphan-select][value="1999999990"]');
+        await expect(selectable).toBeEnabled();
         await expect(audit.locator('#bf-audit-delete-all-orphan-values')).toHaveCount(0);
 
         const denied = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.deleteOrphanValues&format=json`, {
@@ -65,9 +67,23 @@ test('orphan repairs preserve existing records and distinguish element zero from
         expect((await denied.json()).success).toBe(false);
         expect(rows()).toEqual([ids[0], ids[1], ids[2], ids[4]]);
 
+        const selectedDelete = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.deleteOrphanValues&format=json`, {
+            form: { [csrf]: '1', 'orphan_ids[]': '1999999990' },
+        });
+        expect(selectedDelete.status()).toBe(400);
+        expect((await selectedDelete.json()).success).toBe(false);
+        expect(rows()).toEqual([ids[0], ids[1], ids[2], ids[4]]);
+
         const all = await api.delete(`${AUDIT}/orphan-values`);
         expect(all.status()).toBe(200);
         expect(rows()).toEqual([ids[0], ids[1], ids[2]]);
+
+        const confirmedDelete = await page.request.post(`${ADMIN}?option=com_breezingformsng&task=about.deleteOrphanValues&format=json`, {
+            form: { [csrf]: '1', 'orphan_ids[]': '1999999990', orphan_acknowledged: '1' },
+        });
+        expect(confirmedDelete.status()).toBe(200);
+        expect((await confirmedDelete.json()).success).toBe(true);
+        expect(rows()).toEqual([ids[0]]);
     } finally {
         await page.close();
         await api.dispose();

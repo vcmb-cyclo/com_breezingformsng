@@ -74,6 +74,10 @@ final class QuickModeTextFieldStrategy
             $field['placeholder'] = '000';
         }
 
+        if (WidgetOptions::widget($field) === 'rating') {
+            return WidgetFieldBuilder::textControl($field, $class, $attributesBeforeLength . $attributesAfterLength);
+        }
+
         $length = is_numeric($field['maxLength'] ?? null)
             ? $lengthAttribute . '="' . intval($field['maxLength']) . '" '
             : '';

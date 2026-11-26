@@ -574,3 +574,8 @@
         width: 100%;
     }
 }
+
+/* A field in error: the message sits right under the control, without the bottom margin of its group. */
+.bfQuickMode .bfElemWrap:has(> .bf-field-error) .bf-form-group {
+    margin-bottom: 0 !important;
+}

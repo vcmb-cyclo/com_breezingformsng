@@ -78,7 +78,7 @@ Le menu « Choisir un type de champ » (`#bfElementType`) utilise **une icône L
 |---|---|---|
 | Saisie (`input`) | Champ de texte | `Type` |
 | | Zone de texte | `AlignLeft` |
-| | Champ numérique / Slider | `Hash` |
+| | Champ numérique | `Hash` |
 | | Calendrier | `Calendar` |
 | | Calendrier responsive | `CalendarDays` |
 | | Entrée cachée | `EyeOff` |

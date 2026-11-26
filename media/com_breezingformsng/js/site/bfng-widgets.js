@@ -766,6 +766,213 @@
         refresh();
     }
 
+    /* ---------- robot check ---------- */
+
+    // SHA-256 of an ASCII string, in hexadecimal: the Web Crypto API is missing on plain HTTP pages.
+    var SHA_K = [], SHA_H = [];
+
+    function shaConstants() {
+        for (var candidate = 2; SHA_K.length < 64; candidate++) {
+            for (var divisor = 2; divisor * divisor <= candidate && candidate % divisor; divisor++) { /* prime test */ }
+
+            if (divisor * divisor > candidate) {
+                if (SHA_H.length < 8) {
+                    SHA_H.push((Math.pow(candidate, 1 / 2) * 4294967296) | 0);
+                }
+                SHA_K.push((Math.pow(candidate, 1 / 3) * 4294967296) | 0);
+            }
+        }
+    }
+
+    function sha256(message) {
+        if (!SHA_K.length) {
+            shaConstants();
+        }
+
+        var words = [];
+        var length = message.length;
+        var blocks = ((length + 8) >> 6) + 1;
+        var hash = SHA_H.slice();
+
+        for (var i = 0; i < blocks * 16; i++) {
+            words[i] = 0;
+        }
+        for (i = 0; i < length; i++) {
+            words[i >> 2] |= message.charCodeAt(i) << (24 - (i % 4) * 8);
+        }
+        words[length >> 2] |= 0x80 << (24 - (length % 4) * 8);
+        words[blocks * 16 - 1] = length * 8;
+
+        function rotate(value, bits) {
+            return (value >>> bits) | (value << (32 - bits));
+        }
+
+        for (var block = 0; block < blocks * 16; block += 16) {
+            var w = words.slice(block, block + 16);
+            var s = hash.slice();
+
+            for (var t = 0; t < 64; t++) {
+                if (t >= 16) {
+                    var x = w[t - 15];
+                    var y = w[t - 2];
+                    w[t] = (w[t - 16] + (rotate(x, 7) ^ rotate(x, 18) ^ (x >>> 3))
+                        + w[t - 7] + (rotate(y, 17) ^ rotate(y, 19) ^ (y >>> 10))) | 0;
+                }
+
+                var first = (s[7] + (rotate(s[4], 6) ^ rotate(s[4], 11) ^ rotate(s[4], 25))
+                    + ((s[4] & s[5]) ^ (~s[4] & s[6])) + SHA_K[t] + w[t]) | 0;
+                var second = ((rotate(s[0], 2) ^ rotate(s[0], 13) ^ rotate(s[0], 22))
+                    + ((s[0] & s[1]) ^ (s[0] & s[2]) ^ (s[1] & s[2]))) | 0;
+                s.pop();
+                s.unshift((first + second) | 0);
+                s[4] = (s[4] + first) | 0;
+            }
+
+            for (i = 0; i < 8; i++) {
+                hash[i] = (hash[i] + s[i]) | 0;
+            }
+        }
+
+        return hash.map(function (value) {
+            return ('00000000' + (value >>> 0).toString(16)).slice(-8);
+        }).join('');
+    }
+
+    // Searches the number in small slices, so that the page stays responsive.
+    function initRobot(input, options) {
+        var status = element('span', 'bfng-robot', options.working || '');
+        var number = 0;
+
+        input.type = 'hidden';
+        input.value = '';
+        status.setAttribute('role', 'status');
+        input.after(status);
+
+        function search() {
+            for (var end = number + 1500; number < end && number <= options.max; number++) {
+                if (sha256(options.salt + number) === options.target) {
+                    input.value = options.salt + ':' + number;
+                    // A reset button of the form keeps the answer.
+                    input.defaultValue = input.value;
+                    status.textContent = options.done || '';
+                    status.classList.add('is-done');
+                    return;
+                }
+            }
+
+            if (number <= options.max) {
+                window.setTimeout(search, 0);
+            }
+        }
+
+        search();
+    }
+
+    /* ---------- rating ---------- */
+
+    // The field keeps the note; radio buttons, outside the "ff_nm_" names the form reads, show it.
+    function initRating(input, options) {
+        var min = Number(options.min);
+        var max = Number(options.max);
+        var stars = options.style !== 'scale';
+        var restored = input.getAttribute('data-bfng-value') || input.value;
+        var box = element('div', 'bfng-rating bfng-rating--' + (stars ? 'stars' : 'scale') + (options.large ? ' bfng-rating--large' : ''));
+        var group = element('div', 'bfng-rating__choices');
+        var name = nextId('bfngRating');
+        var label = input.id ? document.querySelector('label[for="' + input.id + '"]') : null;
+        var choices = [];
+
+        function show(value) {
+            choices.forEach(function (choice) {
+                var note = Number(choice.radio.value);
+                var lit = value !== '' && (stars ? note <= Number(value) : note === Number(value));
+
+                choice.radio.checked = value !== '' && note === Number(value);
+                choice.label.classList.toggle('is-on', lit);
+            });
+        }
+
+        function choose(value) {
+            input.value = value;
+            show(value);
+            fire(input, 'input');
+            fire(input, 'change');
+        }
+
+        input.type = 'hidden';
+        input.value = restored;
+        // A reset button of the form brings the restored note back.
+        input.defaultValue = restored;
+
+        if (options.color) {
+            box.style.setProperty('--bfng-rating-color', options.color);
+        }
+
+        group.setAttribute('role', 'radiogroup');
+
+        if (label) {
+            label.id = label.id || nextId('bfngRatingLabel');
+            group.setAttribute('aria-labelledby', label.id);
+        }
+
+        for (var note = min; note <= max; note++) {
+            var choice = element('label');
+            var radio = element('input', 'bfng-rating__radio');
+
+            radio.type = 'radio';
+            radio.name = name;
+            radio.value = String(note);
+            radio.setAttribute('aria-label', stars ? note + ' / ' + max : String(note));
+            choice.setAttribute('data-value', String(note));
+            choice.appendChild(radio);
+            choice.appendChild(element('span', 'bfng-rating__mark', stars ? '\u2605' : String(note)));
+            group.appendChild(choice);
+            choices.push({ radio: radio, label: choice });
+        }
+
+        group.addEventListener('change', function (event) {
+            event.stopPropagation();
+            choose(event.target.value);
+        });
+        // A second click on the chosen note takes it back: a radio button alone cannot be unchecked.
+        group.addEventListener('click', function (event) {
+            if (event.target.type === 'radio' && event.target.value === input.value && event.target.dataset.wasChecked) {
+                choose('');
+            }
+        });
+        group.addEventListener('pointerdown', function (event) {
+            var target = event.target.closest('label');
+
+            if (target) {
+                var radioButton = target.querySelector('input');
+                radioButton.dataset.wasChecked = radioButton.checked ? '1' : '';
+            }
+        });
+
+        if (options.low) {
+            box.appendChild(element('span', 'bfng-rating__low', options.low));
+        }
+
+        box.appendChild(group);
+
+        if (options.high) {
+            box.appendChild(element('span', 'bfng-rating__high', options.high));
+        }
+
+        input.after(box);
+
+        if (input.form) {
+            input.form.addEventListener('reset', function () {
+                window.setTimeout(function () {
+                    input.value = restored;
+                    show(restored);
+                }, 0);
+            });
+        }
+
+        show(restored);
+    }
+
     /* ---------- bootstrap ---------- */
 
     function upgrade(node, config) {
@@ -782,6 +989,10 @@
         }
         if (kind === 'datetime') {
             initDatetime(node, options);
+        } else if (kind === 'robot') {
+            initRobot(node, options);
+        } else if (kind === 'rating') {
+            initRating(node, options);
         } else if (kind === 'country') {
             initCountry(node, options, config);
         } else if (kind === 'address') {

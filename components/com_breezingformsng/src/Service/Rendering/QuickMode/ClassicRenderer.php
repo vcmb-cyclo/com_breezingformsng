@@ -389,7 +389,7 @@ float:left;
         return $this->quickModeSubmitActionBuilderService ??= new QuickModeSubmitActionBuilder();
     }
 
-    public function __construct(HTML_facileFormsProcessor $p)
+    public function __construct(HTML_facileFormsProcessor $p, ?string $theme = null)
     {
         $this->p = $p;
 
@@ -411,6 +411,9 @@ float:left;
                 [],
                 'none'
             );
+        }
+        if ($theme !== null) {
+            $this->rootMdata['theme'] = $theme;
         }
 
         if ($this->p->app->getInput()->getString('ff_applic', '') != 'mod_facileforms' && $this->p->app->getInput()->getString('ff_applic', '') != 'plg_facileforms') {
@@ -756,7 +759,10 @@ float:left;
                 $hintId = '';
                 if ($mdata['bfType'] !== 'bfHidden' && trim((string) ($mdata['hint'] ?? '')) !== '') {
                     $hintLine = trim(strip_tags($this->quickModeHintContentResolver()->resolve((string) $mdata['hint'], true)));
-                    if ($hintLine !== '' && ($this->rootMdata['theme'] ?? '') === 'vcmb_j6') {
+                    // These themes show the help line under the field: the field refers to it.
+                    $visibleHint = in_array($this->rootMdata['theme'] ?? '', ['vcmb_j5b', 'vcmb_j6'], true);
+
+                    if ($hintLine !== '' && $visibleHint) {
                         $hintId = 'bfHint' . (int) $mdata['dbId'];
                         $tabIndex .= 'aria-describedby="' . $hintId . '" ';
                     }
@@ -767,6 +773,7 @@ float:left;
 
                 if (WidgetFieldBuilder::hasWidget($mdata)) {
                     WidgetAssets::register($this->p->app);
+                    $mdata = WidgetAssets::withRobotChallenge($this->p->app, $mdata);
                 }
 
                 $flashUploader = '';
@@ -1101,7 +1108,9 @@ float:left;
             $mdata,
             'ff_elem',
             $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect,
-            $readonly !== ''
+            $readonly !== '',
+            Text::_('COM_BREEZINGFORMSNG_CONSENT_POLICY'),
+            (string) $this->language_tag
         );
         if ($mdata['mailbackAccept']) {
             echo '<input type="hidden" class="ff_elem" name="mailbackConnectWith[' . $mdata['mailbackConnectWith'] . ']" value="true_' . $mdata['bfName'] . '"/>' . "\n";

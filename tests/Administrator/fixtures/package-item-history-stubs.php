@@ -75,6 +75,7 @@ namespace Joomla\CMS\MVC\Factory {
 namespace Joomla\CMS\Versioning {
     interface VersionableModelInterface
     {
+        public function saveHistory(array $data, string $context);
     }
 
     trait VersionableModelTrait

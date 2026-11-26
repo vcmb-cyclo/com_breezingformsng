@@ -184,15 +184,29 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringContainsString('array_sum($auditCollationHistogram)', $template);
     }
 
-    public function testRemovingALegacyTemplateNeverLeavesAClientWithoutDefaultStyle(): void
+    public function testOrphanRepairActionsPrecedeTheLongResultTable(): void
     {
-        $repair = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Service/DatabaseRepairService.php');
+        $template = (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/audit.php');
+        $actions = strpos($template, 'class="bf-audit-orphan-actions');
+        $table = strpos($template, '<div class="table-responsive mt-2 mb-3">', $actions);
 
-        self::assertIsString($repair);
-        self::assertStringContainsString('function deleteTemplateStyles(', $repair);
-        self::assertStringContainsString("'atum' : 'cassiopeia'", $repair);
-        self::assertStringContainsString("quoteName('template_style_id') . ' = 0'", $repair);
-        self::assertStringContainsString('No \' . $coreTemplate', $repair);
+        self::assertNotFalse($actions);
+        self::assertNotFalse($table);
+        self::assertLessThan($table, strpos($template, 'data-bf-orphan-selection', $actions));
+        self::assertLessThan($table, strpos($template, 'bf-audit-reassign-all-orphan-values', $actions));
+        self::assertStringNotContainsString('data-bf-orphan-selection', substr($template, $table));
+        self::assertStringNotContainsString('bf-audit-reassign-all-orphan-values', substr($template, $table));
+    }
+
+    public function testAuditLeavesJoomlaTemplateStylesToJoomla(): void
+    {
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng/src/Service';
+        $audit = (string) file_get_contents($base . '/DatabaseAuditService.php');
+        $repair = (string) file_get_contents($base . '/DatabaseRepairService.php');
+
+        self::assertStringContainsString("\$excludedType = 'template';", $audit);
+        self::assertStringContainsString("quoteName('type') . ' <> :excludedType'", $audit);
+        self::assertStringNotContainsString('#__template_styles', $repair);
     }
 
     public function testExtensionsButtonsAreInTheToolbarBackFirst(): void
@@ -223,5 +237,20 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringContainsString('icon-publish', $template);
         self::assertStringContainsString('icon-unpublish', $template);
         self::assertStringContainsString('admin-toggle-published', $view);
+    }
+
+    public function testTheAuditCountsTheSameTrashAsTheToolsTile(): void
+    {
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $service = (string) file_get_contents($base . '/src/Service/DatabaseAuditService.php');
+        $template = (string) file_get_contents($base . '/tmpl/about/audit.php');
+        $tile = (string) file_get_contents($base . '/src/View/Packages/HtmlView.php');
+
+        // The Tools tile adds the trashed submissions and the trashed forms, scripts and pieces: so does the audit.
+        self::assertStringContainsString('RecordInventoryService', $tile);
+        self::assertStringContainsString('(new TrashInventoryService($this->db))->getTrashedItems()', $service);
+        self::assertStringContainsString("'trashed_items' => array_sum(array_column(\$trashedItems, 'count'))", $service);
+        self::assertStringContainsString('$auditTrashedRecordsTotal + $auditTrashedItemsTotal', $template);
+        self::assertStringContainsString('COM_BREEZINGFORMSNG_ABOUT_AUDIT_TRASHED_TOTAL_DETAIL', $template);
     }
 }

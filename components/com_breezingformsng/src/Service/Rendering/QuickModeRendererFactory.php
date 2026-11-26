@@ -24,19 +24,23 @@ final class QuickModeRendererFactory
 {
     /**
      * @param array<string, mixed> $metadata
+     * @param string|null $theme Theme replacing the stored one for this request.
      *
      * @return ClassicRenderer|BootstrapRenderer|OnePageRenderer
      */
-    public function create(HTML_facileFormsProcessor $processor, array $metadata): object
-    {
+    public function create(
+        HTML_facileFormsProcessor $processor,
+        array $metadata,
+        ?string $theme = null
+    ): object {
         if (($metadata['themebootstrapThemeEngine'] ?? '') === 'bootstrap') {
             if (!empty($metadata['themebootstrapMode'])) {
-                return new OnePageRenderer($processor);
+                return new OnePageRenderer($processor, $theme);
             }
 
-            return new BootstrapRenderer($processor);
+            return new BootstrapRenderer($processor, $theme);
         }
 
-        return new ClassicRenderer($processor);
+        return new ClassicRenderer($processor, $theme);
     }
 }

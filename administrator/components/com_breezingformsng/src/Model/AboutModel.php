@@ -16,8 +16,6 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 \defined('_JEXEC') or die;
 
-use Joomla\CMS\Installer\Installer;
-use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 
 final class AboutModel extends BaseDatabaseModel
@@ -77,8 +75,7 @@ final class AboutModel extends BaseDatabaseModel
     }
 
     /**
-     * Every extension of the BreezingForms family, whatever its type (component, module, plugin, library,
-     * package, file, template, language): the ones of BreezingForms NG and the ones of the former BreezingForms.
+     * Extensions of BreezingForms NG and the former BreezingForms. Joomla templates can share the site name.
      *
      * @return list<array<string, mixed>>
      */
@@ -88,6 +85,7 @@ final class AboutModel extends BaseDatabaseModel
         $namePattern = '%BreezingForms%';
         $elementPattern = '%breezingforms%';
         $compatElement = 'bfcompat';
+        $excludedType = 'template';
         $query = $db->createQuery()
             ->select([
                 $db->quoteName('extension_id'),
@@ -97,10 +95,10 @@ final class AboutModel extends BaseDatabaseModel
                 $db->quoteName('folder'),
                 $db->quoteName('client_id'),
                 $db->quoteName('enabled'),
-                $db->quoteName('protected'),
                 $db->quoteName('manifest_cache'),
             ])
             ->from($db->quoteName('#__extensions'))
+            ->where($db->quoteName('type') . ' <> :excludedType')
             ->where(
                 '('
                 . $db->quoteName('element') . ' LIKE :elementPattern'
@@ -117,43 +115,9 @@ final class AboutModel extends BaseDatabaseModel
             ->bind(':elementPattern', $elementPattern)
             ->bind(':folderPattern', $elementPattern)
             ->bind(':compatElement', $compatElement)
+            ->bind(':excludedType', $excludedType)
             ->bind(':namePattern', $namePattern);
 
         return $db->setQuery($query)->loadAssocList() ?: [];
-    }
-
-    /**
-     * Uninstalls one extension of the BreezingForms family with the Joomla installer, like the Installer
-     * component does. BreezingForms NG itself (the component running this screen) and the extensions
-     * Joomla protects are refused.
-     *
-     * @throws \RuntimeException With a message fit for the administrator.
-     */
-    public function uninstallExtension(int $extensionId): string
-    {
-        $row = null;
-
-        foreach ($this->getBreezingFormsExtensionRows() as $candidate) {
-            if ((int) ($candidate['extension_id'] ?? 0) === $extensionId && $extensionId > 0) {
-                $row = $candidate;
-            }
-        }
-
-        if ($row === null) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-        }
-
-        $type = (string) $row['type'];
-        $element = (string) $row['element'];
-
-        if ((int) ($row['protected'] ?? 0) === 1 || ($type === 'component' && $element === 'com_breezingformsng')) {
-            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_UNINSTALL_PROTECTED'));
-        }
-
-        if (!Installer::getInstance()->uninstall($type, $extensionId)) {
-            throw new \RuntimeException(Text::_('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_UNINSTALL_REFUSED'));
-        }
-
-        return $type . '/' . ($type === 'plugin' ? (string) $row['folder'] . '/' : '') . $element;
     }
 }

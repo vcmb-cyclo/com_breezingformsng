@@ -125,7 +125,7 @@ final class CheckOutArchitectureTest extends TestCase
             'QuickmodeController' => [
                 '$this->setMessage('
                     . "Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', \$model->getError()), 'error');",
-                '/\$checkinSucceeded = \$model->checkin\(\$formId\) !== false;\s+if \(!\$checkinSucceeded\) \{/',
+                '/if \(\$model->checkin\(\$formId\) === false\) \{/',
             ],
             'FormsController' => [
                 '$this->app->enqueueMessage('

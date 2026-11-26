@@ -1,5 +1,50 @@
 # Changelog
 
+## 6.1.1-RC4
+
+### Added
+
+- Add a field demonstration sample form that shows every field type that needs no key.
+- Offer a single Anti-robot element whose method is an invisible puzzle without any service, a code in an image or Google ReCaptcha.
+- Add an appointment booking sample form that uses every field widget (phone, date, date and time, time, country, address and file drop zone), in the Samples of the Tools screen.
+- Add the VCMB J5b QuickMode theme, with light and dark colours, compact fields and buttons, a ring around the active field and the help of each field written under it.
+- Add a debug bar above the form on the website, shown to Super Users while the form is in debug mode: try any theme, switch between light and dark colours, show or hide the technical names of the fields and read the form details.
+- Repeat each error message under its field in Classic forms, in addition to the list at the top.
+- Add a sortable Debug column to the forms list, and an Actions menu to publish, unpublish and switch the debug mode of several forms at once.
+- Add the E-mail address and Web address (URL) field types, with the matching phone keyboard and a check by the server.
+- Add a GDPR consent field: its box is never checked beforehand, links your privacy policy, and each submission keeps the date and the accepted text.
+- Show a number as a rating, in stars or as a scale of buttons, with captions, size and colour.
+- Choose the type of a field in a panel with a search, your last choices and one column for each category.
+
+### Changed
+
+- Keep a form in debug mode until you turn it off: opening, saving or closing the editor no longer changes it.
+- Show the error message closer to its field in Bootstrap and one-page forms.
+- Count the same trashed items in the audit as in the Tools screen.
+- Name the CB network in the Stripe payment methods of the editor and recall how to turn it on in Stripe.
+- Use a slightly darker blue in the VCMB J5 and J6 themes so that white text keeps a sufficient contrast.
+- Order the field types by likely use, and shorten the French name of the number field.
+
+### Fixed
+
+- Restore the country selector of the phone field in the Aqua, Breeze, Glossy Blue and Glossy Gray themes.
+- Give a form row its theme colour again after the rollover highlight, including when the colours turn dark.
+- Show the changes made to fields and layout when two versions of a form saved from now on are compared.
+
+## 6.1.1-RC3
+
+### Changed
+
+- Manage uninstallation in Joomla's Extensions Manager. About Extensions still lets permitted administrators enable and disable plugins.
+- Give extension descriptions more room in About Extensions and keep the full text available on hover.
+- Soften the blue accents in the VCMB J5 and J6 form themes while keeping white text readable.
+
+### Fixed
+
+- Exclude Joomla templates from the BreezingForms extension list and audit so site templates are not flagged as legacy or offered for removal.
+- Let administrators delete selected values of missing elements from the audit, with an explicit warning when values of existing records are included.
+- Put audit repair actions above each orphan results table so they stay accessible without scrolling through long lists.
+
 ## 6.1.1-RC2
 
 ### Added

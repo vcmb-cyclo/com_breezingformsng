@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Labels of the version comparison of a form: not an edit form. -->
+<form>
+	<field name="form_content" type="textarea" label="COM_BREEZINGFORMSNG_FORM_VERSION_CONTENT" />
+</form>

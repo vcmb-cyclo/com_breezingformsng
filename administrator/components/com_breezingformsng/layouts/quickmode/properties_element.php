@@ -22,7 +22,10 @@ use Joomla\CMS\Language\Text;
                                                     <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_TYPE'); ?>
                                                 </label>
                                                 <span class="bfng-type-select" id="bfElementTypeIcon">
-                                                <select id="bfElementType">
+                                                <select id="bfElementType" data-bfng-type-panel
+                                                    data-search-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_QM_TYPE_SEARCH'), ENT_QUOTES, 'UTF-8'); ?>"
+                                                    data-recent-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_QM_TYPE_RECENT'), ENT_QUOTES, 'UTF-8'); ?>"
+                                                    data-empty-label="<?php echo htmlspecialchars(Text::_('COM_BREEZINGFORMSNG_QM_TYPE_NONE'), ENT_QUOTES, 'UTF-8'); ?>">
                                                     <option value="" disabled selected>
                                                         <?php echo Text::_('COM_BREEZINGFORMSNG_CHOOSE_ONE'); ?>
                                                     </option>
@@ -30,30 +33,35 @@ use Joomla\CMS\Language\Text;
                                                     $elementTypeFamilies = array(
                                                         'COM_BREEZINGFORMSNG_ELEMENT_FAMILY_INPUT' => array(
                                                             'bfElementTypeText' => Text::_('COM_BREEZINGFORMSNG_TEXTFIELD'),
-                                                            'bfElementTypePhone' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_PHONE'),
-                                                            'bfElementTypeDateTime' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_DATETIME'),
-                                                            'bfElementTypeCountry' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_COUNTRY'),
-                                                            'bfElementTypeAddress' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_ADDRESS'),
                                                             'bfElementTypeTextarea' => Text::_('COM_BREEZINGFORMSNG_TEXTAREA'),
+                                                            'bfElementTypeHidden' => Text::_('COM_BREEZINGFORMSNG_HIDDEN'),
                                                             'bfElementTypeNumberInput' => Text::_('COM_BREEZINGFORMSNG_NUMBER_INPUT'),
+                                                            'bfElementTypeDateTime' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_DATETIME'),
+                                                            'bfElementTypeEmail' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_EMAIL'),
+                                                            'bfElementTypePhone' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_PHONE'),
+                                                            'bfElementTypeFile' => Text::_('COM_BREEZINGFORMSNG_FILE'),
+                                                            'bfElementTypeAddress' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_ADDRESS'),
+                                                            'bfElementTypeCountry' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_COUNTRY'),
+                                                            'bfElementTypeUrl' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_URL'),
                                                             'bfElementTypeCalendar' => Text::_('COM_BREEZINGFORMSNG_CALENDAR'),
                                                             'bfElementTypeCalendarResponsive' => Text::_('COM_BREEZINGFORMSNG_CALENDAR_RESPONSIVE'),
-                                                            'bfElementTypeHidden' => Text::_('COM_BREEZINGFORMSNG_HIDDEN'),
-                                                            'bfElementTypeFile' => Text::_('COM_BREEZINGFORMSNG_FILE'),
                                                         ),
                                                         'COM_BREEZINGFORMSNG_ELEMENT_FAMILY_CHOICE' => array(
-                                                            'bfElementTypeCheckbox' => Text::_('COM_BREEZINGFORMSNG_CHECKBOX'),
-                                                            'bfElementTypeCheckboxGroup' => Text::_('COM_BREEZINGFORMSNG_CHECKBOX_GROUP'),
                                                             'bfElementTypeRadioGroup' => Text::_('COM_BREEZINGFORMSNG_RADIO_GROUP'),
                                                             'bfElementTypeSelect' => Text::_('COM_BREEZINGFORMSNG_SELECT'),
+                                                            'bfElementTypeCheckbox' => Text::_('COM_BREEZINGFORMSNG_CHECKBOX'),
+                                                            'bfElementTypeCheckboxGroup' => Text::_('COM_BREEZINGFORMSNG_CHECKBOX_GROUP'),
+                                                            'bfElementTypeConsent' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_CONSENT'),
                                                             'bfElementTypeSlider' => 'Slider',
                                                         ),
                                                         'COM_BREEZINGFORMSNG_ELEMENT_FAMILY_SECURITY_PAYMENT' => array(
-                                                            'bfElementTypeCaptcha' => Text::_('COM_BREEZINGFORMSNG_CAPTCHA'),
-                                                            'bfElementTypeReCaptcha' => Text::_('COM_BREEZINGFORMSNG_ReCaptcha'),
-                                                            'bfElementTypeSignature' => Text::_('COM_BREEZINGFORMSNG_SIGNATURE'),
-                                                            'bfElementTypePayPal' => Text::_('COM_BREEZINGFORMSNG_PAYPAL'),
+                                                            // One "Anti-robots" entry: the two older types stay hidden options, chosen by "Method".
+                                                            'bfElementTypeCaptcha' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_ROBOT'),
+                                                            'bfElementTypeRobot' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_ROBOT'),
+                                                            'bfElementTypeReCaptcha' => Text::_('COM_BREEZINGFORMSNG_ELEMENT_ROBOT'),
                                                             'bfElementTypeStripe' => Text::_('COM_BREEZINGFORMSNG_STRIPE'),
+                                                            'bfElementTypePayPal' => Text::_('COM_BREEZINGFORMSNG_PAYPAL'),
+                                                            'bfElementTypeSignature' => Text::_('COM_BREEZINGFORMSNG_SIGNATURE'),
                                                         ),
                                                         'COM_BREEZINGFORMSNG_ELEMENT_FAMILY_ACTION_VIEW' => array(
                                                             'bfElementTypeSubmitButton' => Text::_('COM_BREEZINGFORMSNG_SUBMIT_BUTTON'),
@@ -61,11 +69,21 @@ use Joomla\CMS\Language\Text;
                                                         ),
                                                     );
 
+                                                    // Synonyms of the type search, for the types that people look for under another word.
+                                                    $elementTypeKeywords = static function (string $elementType): string {
+                                                        $key = 'COM_BREEZINGFORMSNG_QM_TYPE_KEYWORDS_' . strtoupper(substr($elementType, strlen('bfElementType')));
+                                                        $words = Text::_($key);
+
+                                                        return $words === $key ? '' : $words;
+                                                    };
+
                                                     foreach ($elementTypeFamilies as $familyKey => $elementTypes) :
                                                     ?>
                                                         <optgroup label="<?php echo htmlspecialchars(Text::_($familyKey), ENT_QUOTES, 'UTF-8'); ?>">
                                                             <?php foreach ($elementTypes as $elementType => $elementTypeLabel) : ?>
-                                                                <option value="<?php echo $elementType; ?>" class="bfng-type-icon--<?php echo $elementType; ?>">
+                                                                <option value="<?php echo $elementType; ?>" class="bfng-type-icon--<?php echo $elementType; ?>"
+                                                                data-keywords="<?php echo htmlspecialchars($elementTypeKeywords($elementType), ENT_QUOTES, 'UTF-8'); ?>"
+                                                                <?php echo in_array($elementType, array('bfElementTypeCaptcha', 'bfElementTypeReCaptcha'), true) ? 'hidden' : ''; ?>>
                                                                     <?php echo htmlspecialchars($elementTypeLabel, ENT_QUOTES, 'UTF-8'); ?>
                                                                 </option>
                                                             <?php endforeach; ?>
@@ -109,6 +127,50 @@ use Joomla\CMS\Language\Text;
 
                                             <!-- NUMBER INPUT BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeNumberInput" style="display:none">
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RATING_STYLE_DESC')); ?>"
+                                                        for="bfElementTypeNumberInputRatingStyle">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_QM_RATING_STYLE'); ?>
+                                                    </label>
+                                                    <select id="bfElementTypeNumberInputRatingStyle">
+                                                        <option value=""><?php echo Text::_('COM_BREEZINGFORMSNG_QM_RATING_STYLE_NONE'); ?></option>
+                                                        <option value="stars"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_RATING_STYLE_STARS'); ?></option>
+                                                        <option value="scale"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_RATING_STYLE_SCALE'); ?></option>
+                                                    </select>
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field bfngRatingRow">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RATING_LOW_DESC')); ?>"
+                                                        for="bfElementTypeNumberInputRatingLow">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_QM_RATING_LOW'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeNumberInputRatingLow" />
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field bfngRatingRow">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RATING_HIGH_DESC')); ?>"
+                                                        for="bfElementTypeNumberInputRatingHigh">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_QM_RATING_HIGH'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeNumberInputRatingHigh" />
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field bfngRatingRow">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RATING_LARGE_DESC')); ?>"
+                                                        for="bfElementTypeNumberInputRatingLarge">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_QM_RATING_LARGE'); ?>
+                                                    </label>
+                                                    <input type="checkbox" value="" id="bfElementTypeNumberInputRatingLarge" />
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field bfngRatingRow">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RATING_COLOR_DESC')); ?>"
+                                                        for="bfElementTypeNumberInputRatingColor">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_QM_RATING_COLOR'); ?>
+                                                    </label>
+                                                    <input type="text" value="" maxlength="7" placeholder="#a15c07" id="bfElementTypeNumberInputRatingColor" />
+                                                </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label" title="<?php echo 'value'; ?>"
                                                         for="bfElementTypeNumberInputValue">
@@ -260,6 +322,40 @@ use Joomla\CMS\Language\Text;
                                             </div>
                                             <!-- SUMMARIZE END -->
                                             <!-- TEXTFIELD BEGIN -->
+                                            <div class="bfPropertyWrap bfng-field" id="bfRobotMethodRow" style="display:none">
+                                                <label class="bfPropertyLabel bfng-field__label" for="bfRobotMethod"
+                                                    title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ROBOT_METHOD_DESC')); ?>">
+                                                    <?php echo Text::_('COM_BREEZINGFORMSNG_QM_ROBOT_METHOD'); ?>
+                                                </label>
+                                                <select id="bfRobotMethod">
+                                                    <option value="bfElementTypeRobot"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_ROBOT_METHOD_PUZZLE'); ?></option>
+                                                    <option value="bfElementTypeCaptcha"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_ROBOT_METHOD_IMAGE'); ?></option>
+                                                    <option value="bfElementTypeReCaptcha"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_ROBOT_METHOD_RECAPTCHA'); ?></option>
+                                                </select>
+                                                <small class="bfng-field__help"><?php echo Text::_('COM_BREEZINGFORMSNG_QM_ROBOT_METHOD_DESC'); ?></small>
+                                            </div>
+                                            <!-- ANTI-ROBOT PUZZLE: only the sentence shown to the visitor -->
+                                            <div class="bfElementTypeClass" id="bfElementTypeRobot" style="display:none">
+                                                <div class="bfPropertyWrap bfng-field">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeRobotHint">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
+                                                    </label>
+                                                    <textarea id="bfElementTypeRobotHint"></textarea>
+                                                </div>
+                                                <div class="bfPropertyWrap bfTrans bfng-field">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_HINT')); ?>"
+                                                        for="bfElementTypeRobotHintTrans">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_ELEMENT_HINT'); ?>
+                                                        <br /><em>(
+                                                            <?php echo $active_language_code ?>)
+                                                        </em>
+                                                    </label>
+                                                    <textarea id="bfElementTypeRobotHintTrans"></textarea>
+                                                </div>
+                                            </div>
                                             <div class="bfElementTypeClass" id="bfElementTypeText" style="display:none">
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
@@ -397,7 +493,7 @@ use Joomla\CMS\Language\Text;
                                                         <input type="checkbox" value="" id="bfElementTypeTextWidgetShowDialCode" />
                                                     </div>
 
-                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="phone">
+                                                    <div class="bfPropertyWrap bfng-field bfngWidgetRow" data-widgets="email url phone">
                                                         <label class="bfPropertyLabel bfng-field__label"
                                                             title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_WIDGET_VALIDATE_DESC')); ?>"
                                                             for="bfElementTypeTextWidgetValidate">
@@ -1070,13 +1166,15 @@ use Joomla\CMS\Language\Text;
                                                     <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RECAPTCHA_THEME')); ?>"
                                                         for=bfElementTypeReCaptchaTheme><?php echo Text::_('COM_BREEZINGFORMSNG_Theme'); ?></label>
-                                                    <input type="text" value="red" id="bfElementTypeReCaptchaTheme" />
+                                                    <input type="text" value="" id="bfElementTypeReCaptchaTheme" list="bfReCaptchaThemes" />
+                                                    <datalist id="bfReCaptchaThemes"><option value="light"></option><option value="dark"></option></datalist>
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_RECAPTCHA_SIZE')); ?>"
                                                         for=bfElementTypeReCaptchaSize><?php echo Text::_('COM_BREEZINGFORMSNG_RECAPTCHA_SIZE'); ?></label>
-                                                    <input type="text" value="normal" id="bfElementTypeReCaptchaSize" />
+                                                    <input type="text" value="normal" id="bfElementTypeReCaptchaSize" list="bfReCaptchaSizes" />
+                                                    <datalist id="bfReCaptchaSizes"><option value="normal"></option><option value="compact"></option></datalist>
                                                 </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
@@ -1374,6 +1472,30 @@ use Joomla\CMS\Language\Text;
                                             <!-- CHECKBOXGROUP END -->
                                             <!-- CHECKBOX BEGIN -->
                                             <div class="bfElementTypeClass" id="bfElementTypeCheckbox" style="display:none">
+                                                <div class="bfPropertyWrap bfng-field bfngConsentRow">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CONSENT_TEXT_DESC')); ?>"
+                                                        for="bfElementTypeCheckboxConsentText">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_QM_CONSENT_TEXT'); ?>
+                                                    </label>
+                                                    <textarea id="bfElementTypeCheckboxConsentText" rows="4"></textarea>
+                                                </div>
+                                                <div class="bfPropertyWrap bfTrans bfng-field bfngConsentRow">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        for="bfElementTypeCheckboxConsentTextTrans">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_QM_CONSENT_TEXT'); ?>
+                                                    </label>
+                                                    <textarea id="bfElementTypeCheckboxConsentTextTrans" rows="4"></textarea>
+                                                </div>
+                                                <div class="bfPropertyWrap bfng-field bfngConsentRow">
+                                                    <label class="bfPropertyLabel bfng-field__label"
+                                                        title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_CONSENT_URL_DESC')); ?>"
+                                                        for="bfElementTypeCheckboxConsentUrl">
+                                                        <?php echo Text::_('COM_BREEZINGFORMSNG_QM_CONSENT_URL'); ?>
+                                                    </label>
+                                                    <input type="text" value="" id="bfElementTypeCheckboxConsentUrl"
+                                                        placeholder="https://example.org/privacy" />
+                                                </div>
                                                 <div class="bfPropertyWrap bfng-field">
                                                     <label class="bfPropertyLabel bfng-field__label"
                                                         title="<?php echo bf_tooltipText(Text::_('COM_BREEZINGFORMSNG_QM_ELEMENT_CHECKBOX_VALUE')); ?>"

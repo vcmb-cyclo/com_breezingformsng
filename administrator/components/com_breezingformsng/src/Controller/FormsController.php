@@ -361,6 +361,45 @@ class FormsController extends AdminController
         $this->app->redirect(Route::_(self::LIST_URL, false));
     }
 
+    /** Turns the debug mode of the checked forms on. */
+    public function debugOn(): void
+    {
+        $this->setCheckedDebugMode(1);
+    }
+
+    /** Turns the debug mode of the checked forms off. */
+    public function debugOff(): void
+    {
+        $this->setCheckedDebugMode(0);
+    }
+
+    private function setCheckedDebugMode(int $state): void
+    {
+        $this->checkToken();
+
+        $ids = array_values(array_filter(ArrayHelper::toInteger((array) $this->input->get('cid', [], 'array'))));
+
+        // Every form is checked before the first one is written: a trashed form refuses the whole selection.
+        foreach ($ids as $id) {
+            $this->assertFormEditPermission($id);
+        }
+
+        if ($ids === []) {
+            $this->setMessage(Text::_($this->text_prefix . '_NO_ITEM_SELECTED'), 'warning');
+        } else {
+            foreach ($ids as $id) {
+                $this->getOptionsModel()->setDebugMode($id, $state);
+            }
+
+            $this->setMessage(Text::plural(
+                $state === 1 ? 'COM_BREEZINGFORMSNG_FORMS_N_DEBUG_ON' : 'COM_BREEZINGFORMSNG_FORMS_N_DEBUG_OFF',
+                count($ids)
+            ));
+        }
+
+        $this->setRedirect(Route::_(self::LIST_URL, false));
+    }
+
     public function copy(): void
     {
         $this->checkToken();

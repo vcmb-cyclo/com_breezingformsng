@@ -1,0 +1,317 @@
+/*
+ ########## BreezingForms Template QuickMode ##########
+ # Authors: Gilles N. - Xavier D. - vcmb.fr/cyclo
+ # v1.0 - date: 24/01/2024
+ # Template VCMB issued from 'qmtheme' for Joomla! 5
+ # Designed, tested and fixed bugs on Joomla! 5.0.2
+ @
+ @ Copyright (C) 2024 vcmb cyclo - All rights reserved.
+ ##########################################################
+*/
+.bfElementGroup input[type='radio']{
+    vertical-align: top;
+}
+.bfElementGroupNoWrap input[type='radio']{
+    vertical-align: top;
+}
+.bfElementGroup input[type='checkbox']{
+    vertical-align: top;
+}
+.bfElementGroupNoWrap input[type='checkbox']{
+    vertical-align: top;
+}
+.bfQuickMode label{
+    cursor: pointer;
+}
+/* ##### Light and dark colours ##### */
+
+/* The form follows the visitor's colour scheme; the page can force it with data-bs-theme. */
+.bfFormDiv[data-bf-theme="vcmb_j5b"] {
+    color-scheme: light;
+    --j5b-surface: light-dark(#eff5fa, #1f2d3d);
+    --j5b-field: light-dark(#fff, #111a24);
+    --j5b-ink: light-dark(#212529, #e4ecf5);
+    --j5b-line: light-dark(#767676, #8799ab);
+    --j5b-hairline: light-dark(#ccc, #3b4b5e);
+    --j5b-legend: light-dark(#fff, #16202c);
+    --j5b-link: light-dark(#23568a, #a6d5ff);
+    --j5b-ring: light-dark(#5b8cc5, #8ab8ee);
+    --j5b-error: light-dark(#a01515, #ffb3bb);
+    --j5b-error-surface: light-dark(#ffeded, #3a1720);
+    --j5b-required: light-dark(#b32020, #ff9aa2);
+    --j5b-counter: light-dark(#0071bc, #8cc8ff);
+    --j5b-muted: light-dark(#4f5b66, #b9c7d6);
+    --j5b-button: light-dark(#fff, #1f2d3d);
+    --bf-error-color: var(--j5b-error);
+
+    /* Unchanged in light mode; a dark form paints its own page, even on a white site. */
+    color: light-dark(currentcolor, #e4ecf5);
+    background: light-dark(transparent, #16202c);
+}
+
+[data-bs-theme="dark"] .bfFormDiv[data-bf-theme="vcmb_j5b"] { color-scheme: dark; }
+[data-bs-theme="light"] .bfFormDiv[data-bf-theme="vcmb_j5b"] { color-scheme: light; }
+
+@media (prefers-color-scheme: dark) {
+    .bfFormDiv[data-bf-theme="vcmb_j5b"] { color-scheme: dark; }
+}
+
+/* ##### General BreezingForms styles ##### */
+
+.bfQuickMode {
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+}
+
+.bfQuickMode fieldset {
+    padding: 10px 10px 10px 10px;
+    border: 1px solid var(--j5b-hairline, #ccc);
+    margin: 0px 0px 10px 0px;
+    width: auto;
+    border-radius: 5px;
+}
+
+.bfQuickMode legend {
+    padding: 5px;
+    background: #5b8cc5;
+    color: #fff;
+    font-size: 120%;
+    /* Large text: white on this blue reaches the 3:1 contrast ratio, not 4.5:1. */
+    font-weight: 700;
+    border-radius: 5px;
+    line-height: normal !important;
+    margin-top: -28px !important;
+    border: none !important;
+}
+
+.bfQuickMode section.bfElemWrap {
+    padding: 5px;
+    margin: 15px 0px 10px 0px;
+    background: var(--j5b-surface, #eff5fa);
+    color: var(--j5b-ink, #212529);
+    border-radius: 5px;
+}
+
+.bfQuickMode span.bfElemWrap {
+    padding: 5px;
+    background: var(--j5b-surface, #eff5fa);
+    color: var(--j5b-ink, #212529);
+    margin: 10px 10px 30px 0px;
+    border-radius: 5px;
+}
+
+/* ##### inline ##### */
+
+.bfQuickMode fieldset fieldset legend {
+    border-width: 1px !important;
+    border-style: solid !important;
+    padding: 5px;
+    background: var(--j5b-legend, #fff);
+    color: var(--j5b-link, #23568a);
+    border-color: #5b8cc5;
+    font-size: 110%;
+    border-radius: 5px;
+    line-height: normal !important;
+    margin-top: -28px !important;
+}
+
+.bfQuickMode fieldset.bfInline {
+    margin: 0px 10px 10px 0px;
+    padding: 10px 10px 10px 10px;
+}
+
+.bfQuickMode fieldset.bfInline section {
+    padding: 5px;
+    margin: 15px 0px 10px 0px;
+}
+
+/* ##### Input Fields ##### */
+
+.bfQuickMode input[type=text], .bfQuickMode input[type=password], .bfQuickMode textarea, .bfQuickMode select {
+    border: 1px solid var(--j5b-line, #767676);
+    padding: 2px;
+    line-height: normal;
+}
+
+.bfQuickMode :is(input:not([type=checkbox], [type=radio], [type=submit], [type=button], [type=reset], [type=image], [type=file]), textarea, select) {
+    border-color: var(--j5b-line, #767676);
+    background-color: var(--j5b-field, #fff);
+    color: var(--j5b-ink, #212529);
+}
+
+/* Fields of one look, compact but easy to reach (WCAG 2.2 asks for 24px at least). */
+.bfQuickMode :is(input:not([type=checkbox], [type=radio], [type=submit], [type=button], [type=reset], [type=image], [type=file], [type=range], [type=color], [type=hidden]), textarea, select) {
+    box-sizing: border-box;
+    min-height: 1.75rem;
+    padding: .125rem .5rem;
+    border: 1px solid var(--j5b-line, #767676);
+    border-radius: .25rem;
+    line-height: 1.35;
+}
+
+.bfQuickMode textarea:hover, .bfQuickMode input[type='text']:hover, .bfQuickMode input[type='password']:hover, .bfQuickMode select:hover {
+    border-color: #5b8cc5;
+}
+
+/* Active field: a soft ring around it instead of a highlighted background. */
+/* input[type] weighs enough to win over system.css, which removes the outline of the focused text fields. */
+.bfQuickMode :is(input, input[type], textarea, select, .custom-form-control):focus {
+    border-color: var(--j5b-ring, #5b8cc5);
+    outline: 2px solid var(--j5b-ring, #5b8cc5);
+    outline-offset: 0;
+    box-shadow: 0 0 0 4px rgb(91 140 197 / 25%);
+}
+
+/* The form's "rollover" option paints the row of the active field with an inline colour: keep the row background. */
+.bfQuickMode section.bfElemWrap.bfRolloverBg, .bfQuickMode span.bfElemWrap.bfRolloverBg {
+    background: var(--j5b-surface, #eff5fa) !important;
+}
+
+.bfQuickMode input[type='button'], .bfQuickMode input[type='submit'], .bfQuickMode input[type='checkbox'], .bfQuickMode input[type='image'], .bfQuickMode input[type='radio'], .bfQuickMode input[type='reset'], .bfQuickMode select, .bfQuickMode button {
+    cursor: pointer;
+}
+
+.bfQuickMode input[type='hidden'] { display: none; }
+
+/* system.css gives a width to the text fields only: the other one-line fields take the same one. */
+.bfQuickMode section :is(input[type=email], input[type=number], input[type=url], input[type=search], input[type=password], input[type=date]) {
+    float: left;
+    margin: 0px;
+    width: 45%;
+}
+
+/* ##### page intro ##### */
+
+.bfQuickMode .bfPageIntro {
+    padding: 5px;
+    margin: 0px 0px 10px 0px;
+    background: none;
+    border: none;
+    font-weight: normal;
+}
+
+/* ##### error messages #####*/
+
+.bfQuickMode .bfErrorMessage {
+    padding: .75rem 1rem;
+    margin-block-end: 1rem;
+    border-inline-start: 4px solid var(--j5b-error, #a01515);
+    background: var(--j5b-error-surface, #ffeded);
+    font-weight: bold;
+    float: none;
+    display: block;
+    color: var(--j5b-error, #a01515);
+    border-radius: 5px;
+}
+
+/* ##### max length message ##### */
+
+.bfMaxLengthCounter {
+    color: var(--j5b-counter, #0071bc);
+}
+
+/* ##### help: a visible line under the field instead of a hover-only icon ##### */
+
+.bfQuickMode .bfElemWrap:has(> .bfHint) .editlinktip {
+    display: none;
+}
+
+.bfQuickMode .bfHint {
+    display: block;
+    clear: both;
+    margin-block-start: .25rem;
+    color: var(--j5b-muted, #4f5b66);
+    font-size: .9em;
+}
+
+.bfQuickMode section.bfLabelLeft > .bfHint {
+    /* As wide as the label column and its margin. */
+    margin-inline-start: calc(45% + 10px);
+}
+
+
+/* ##### Section Description #####*/
+
+.bfQuickMode .bfSectionDescription {
+    background: none;
+    border: none;
+    font-weight: normal;
+	margin-top: 10px;
+}
+
+.bfQuickMode .bfSectionDescription section {
+    background: none;
+    border: none;
+}
+
+/* ##### required ##### */
+
+.bfQuickMode .bfRequired {
+    background: none;
+    font-size: 100%;
+    font-weight: bold;
+    border: none;
+    padding: 0px 0px 0px 5px;
+    margin: 0px;
+    color: var(--j5b-required, #b32020);
+    float: none;
+}
+
+/* ##### buttons ##### */
+
+/* Main actions in blue, the way back and the reset in a light secondary style: all of the same size. */
+.bfQuickMode button:is(.bfSubmitButton, .bfNextButton, .bfPrevButton, .bfCancelButton, [type='submit'], [type='reset']) {
+    box-sizing: border-box;
+    min-height: 1.75rem;
+    min-width: 5.5rem;
+    padding: .125rem .75rem;
+    margin: 0 0 0 .5rem;
+    font-weight: bold;
+    font-size: 100%;
+    border: 1px solid #00508a;
+    border-radius: .375rem;
+    color: #fff;
+    background: #0065a8;
+}
+
+.bfQuickMode button:is(.bfSubmitButton, .bfNextButton, [type='submit']):hover {
+    color: #fff;
+    background: #00508a;
+}
+
+.bfQuickMode button:is(.bfPrevButton, .bfCancelButton, [type='reset']) {
+    color: var(--j5b-link, #23568a);
+    background: var(--j5b-button, #fff);
+    border-color: var(--j5b-link, #23568a);
+}
+
+.bfQuickMode button:is(.bfPrevButton, .bfCancelButton, [type='reset']):hover {
+    color: var(--j5b-link, #23568a);
+    background: var(--j5b-surface, #eff5fa);
+}
+
+.bfQuickMode .bfNextButton, .bfQuickMode .bfSubmitButton, .bfQuickMode .bfCancelButton {
+    float: right;
+}
+
+.bfQuickMode .bfCancelButton{
+    margin-left: 5px !important;
+}
+
+.bfQuickMode button.bfPrevButton {
+    float: left;
+    margin-left: 0;
+}
+
+.bfQuickMode button.bfCalendar {
+    box-sizing: border-box;
+    min-height: 1.75rem;
+    min-width: 1.75rem;
+    margin: 0px 0px 0px .5rem;
+}
+
+.bfQuickMode button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -3px;
+}

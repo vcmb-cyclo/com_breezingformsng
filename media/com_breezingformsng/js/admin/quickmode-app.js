@@ -827,6 +827,13 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
                     }
                 );
 
+                // The method of an anti-robot element is a type of its own behind a single entry of the list.
+                JQuery('#bfRobotMethod').change(
+                    function () {
+                        JQuery('#bfElementType').val(this.value).trigger('change');
+                    }
+                );
+
                 JQuery('#bfElementType').change(
                     function () {
                         var obj = null;
@@ -834,6 +841,9 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
                         var selected = JQuery('#bfElementType').val();
                         switch (selected) {
                             case 'bfElementTypeText':
+                            case 'bfElementTypeEmail':
+                            case 'bfElementTypeUrl':
+                            case 'bfElementTypeRobot':
                             case 'bfElementTypePhone':
                             case 'bfElementTypeDateTime':
                             case 'bfElementTypeCountry':
@@ -853,6 +863,12 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
 
                                 obj = appScope.createTextfield(id);
                                 appScope.treeModel.applyWidgetPreset(obj.properties, appScope.treeModel.getWidgetFromOption(selected));
+                                if (selected === 'bfElementTypeRobot') {
+                                    // Nothing to keep in the submissions.
+                                    obj.properties.logging = false;
+                                    obj.properties.label = BFQMConfig.labels.COM_BREEZINGFORMSNG_ELEMENT_ROBOT || obj.properties.label;
+                                    obj.data.title = obj.properties.label;
+                                }
                                 break;
                             case 'bfElementTypeRadioGroup':
                                 obj = appScope.createRadioGroup(id);
@@ -863,6 +879,32 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
                             case 'bfElementTypeCheckbox':
                                 obj = appScope.createCheckbox(id);
                                 break;
+                            case 'bfElementTypeConsent': {
+                                // A required, unchecked box with the library check of a checked box.
+                                obj = appScope.createCheckbox(id);
+                                var check = (appScope.elementScripts.validation || []).find(function (script) {
+                                    return script.name === 'ff_checked';
+                                });
+                                Object.assign(obj.properties, {
+                                    widget: 'consent',
+                                    consentUrl: '',
+                                    value: 'yes',
+                                    required: true,
+                                    label: BFQMConfig.labels.COM_BREEZINGFORMSNG_ELEMENT_CONSENT || obj.properties.label,
+                                    consentText: BFQMConfig.labels.COM_BREEZINGFORMSNG_CONSENT_DEFAULT_LABEL || ''
+                                });
+                                // The tree shows the short label.
+                                obj.data.title = obj.properties.label;
+                                if (check) {
+                                    Object.assign(obj.properties, {
+                                        validationCondition: 1,
+                                        validationId: check.id,
+                                        validationFunctionName: check.name,
+                                        validationMessage: BFQMConfig.labels.COM_BREEZINGFORMSNG_CONSENT_DEFAULT_ERROR || ''
+                                    });
+                                }
+                                break;
+                            }
                             case 'bfElementTypeSelect':
                                 obj = appScope.createSelect(id);
                                 break;
@@ -911,6 +953,14 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
                                 break;
                         }
                         if (obj) {
+                            var former = appScope.findDataObjectItem(appScope.selectedTreeElement.attributes.id);
+                            var formerOption = former ? appScope.treeModel.getElementTypeOption(former) : null;
+
+                            if (appScope.treeModel.isRobotOption(selected) && appScope.treeModel.isRobotOption(formerOption)) {
+                                appScope.treeModel.carryRobotSettings(former.properties, obj.properties);
+                                obj.data.title = obj.properties.label;
+                            }
+
                             appScope.replaceDataObjectItem(appScope.selectedTreeElement.attributes.id, obj, appScope.dataObject);
                             appScope.refreshTree(function () {
                                 appScope.selectTreeBranch(id);
@@ -1331,11 +1381,6 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
                                 + (activeTab ? "#" + activeTab : "");
                             submitOptionsTab(function () {
                                 window.dispatchEvent(new Event('bfqm:saved'));
-                                try {
-                                    sessionStorage.setItem('bfqm:preserve-debug:' + data, '1');
-                                } catch (e) {
-                                    // A blocked storage API only ends the temporary debug session.
-                                }
                                 // Only the hash would change, whatever the open tab: no reload,
                                 // an old version number and a Save button left locked.
                                 var target = new URL(returnUrl, location.href);

@@ -26,8 +26,15 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Rendering\QuickMode\QuickModeInp
 final class WidgetFieldBuilder
 {
     private const INPUT_TYPES = [
+        // A text input keeps the style that every theme gives to the text fields; inputmode and
+        // autocomplete bring the e-mail keyboard and the browser suggestions.
+        'email' => 'text',
+        'url' => 'text',
         'phone' => 'tel',
         'address' => 'text',
+        'robot' => 'text',
+        // Without the script the visitor still types the number.
+        'rating' => 'number',
     ];
 
     private const DATETIME_TYPES = [
@@ -39,7 +46,11 @@ final class WidgetFieldBuilder
     /** @param array<string, mixed> $field */
     public static function hasWidget(array $field): bool
     {
-        return ($field['bfType'] ?? '') === 'bfTextfield' && WidgetOptions::widget($field) !== ''
+        $widget = WidgetOptions::widget($field);
+
+        // The rating is a presentation of the number field, every other widget one of the text field.
+        return ($field['bfType'] ?? '') === 'bfTextfield' && !\in_array($widget, ['', 'rating', 'consent'], true)
+            || ($field['bfType'] ?? '') === 'bfNumberInput' && $widget === 'rating'
             || ($field['bfType'] ?? '') === 'bfFile' && WidgetOptions::hasDropZone($field);
     }
 
@@ -52,7 +63,8 @@ final class WidgetFieldBuilder
     {
         $widget = WidgetOptions::widget($field);
         $options = WidgetOptions::options($widget, $field);
-        $value = trim((string) ($field['value'] ?? ''));
+        // The answer to a robot check belongs to the page that asks it: nothing is restored.
+        $value = $widget === 'robot' ? '' : trim((string) ($field['value'] ?? ''));
         $data = self::dataAttributes($widget, $options) . ' data-bfng-value="' . self::escape($value) . '"';
 
         if ($widget === 'country') {
@@ -65,7 +77,11 @@ final class WidgetFieldBuilder
         $type = $widget === 'datetime'
             ? self::DATETIME_TYPES[$options['mode']]
             : self::INPUT_TYPES[$widget];
-        $attributes .= $widget === 'address' && is_numeric($field['maxLength'] ?? null)
+        if ($widget === 'email' || $widget === 'url') {
+            $attributes .= 'inputmode="' . $widget . '" autocomplete="' . $widget . '" autocapitalize="off" spellcheck="false" ';
+        }
+
+        $attributes .= \in_array($widget, ['email', 'url', 'address'], true) && is_numeric($field['maxLength'] ?? null)
             ? 'maxlength="' . (int) $field['maxLength'] . '" '
             : '';
 

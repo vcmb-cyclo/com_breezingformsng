@@ -3,6 +3,52 @@
     <changelog>
         <element>com_breezingformsng</element>
         <type>component</type>
+        <version>6.1.1-RC4</version>
+        <addition>
+            <item>Add a field demonstration sample form that shows every field type that needs no key.</item>
+            <item>Offer a single Anti-robot element whose method is an invisible puzzle without any service, a code in an image or Google ReCaptcha.</item>
+            <item>Add an appointment booking sample form that uses every field widget (phone, date, date and time, time, country, address and file drop zone), in the Samples of the Tools screen.</item>
+            <item>Add the VCMB J5b QuickMode theme, with light and dark colours, compact fields and buttons, a ring around the active field and the help of each field written under it.</item>
+            <item>Add a debug bar above the form on the website, shown to Super Users while the form is in debug mode: try any theme, switch between light and dark colours, show or hide the technical names of the fields and read the form details.</item>
+            <item>Repeat each error message under its field in Classic forms, in addition to the list at the top.</item>
+            <item>Add a sortable Debug column to the forms list, and an Actions menu to publish, unpublish and switch the debug mode of several forms at once.</item>
+            <item>Add the E-mail address and Web address (URL) field types, with the matching phone keyboard and a check by the server.</item>
+            <item>Add a GDPR consent field: its box is never checked beforehand, links your privacy policy, and each submission keeps the date and the accepted text.</item>
+            <item>Show a number as a rating, in stars or as a scale of buttons, with captions, size and colour.</item>
+            <item>Choose the type of a field in a panel with a search, your last choices and one column for each category.</item>
+        </addition>
+        <change>
+            <item>Keep a form in debug mode until you turn it off: opening, saving or closing the editor no longer changes it.</item>
+            <item>Show the error message closer to its field in Bootstrap and one-page forms.</item>
+            <item>Count the same trashed items in the audit as in the Tools screen.</item>
+            <item>Name the CB network in the Stripe payment methods of the editor and recall how to turn it on in Stripe.</item>
+            <item>Use a slightly darker blue in the VCMB J5 and J6 themes so that white text keeps a sufficient contrast.</item>
+            <item>Order the field types by likely use, and shorten the French name of the number field.</item>
+        </change>
+        <fix>
+            <item>Restore the country selector of the phone field in the Aqua, Breeze, Glossy Blue and Glossy Gray themes.</item>
+            <item>Give a form row its theme colour again after the rollover highlight, including when the colours turn dark.</item>
+            <item>Show the changes made to fields and layout when two versions of a form saved from now on are compared.</item>
+        </fix>
+    </changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
+        <version>6.1.1-RC3</version>
+        <change>
+            <item>Manage uninstallation in Joomla's Extensions Manager. About Extensions still lets permitted administrators enable and disable plugins.</item>
+            <item>Give extension descriptions more room in About Extensions and keep the full text available on hover.</item>
+            <item>Soften the blue accents in the VCMB J5 and J6 form themes while keeping white text readable.</item>
+        </change>
+        <fix>
+            <item>Exclude Joomla templates from the BreezingForms extension list and audit so site templates are not flagged as legacy or offered for removal.</item>
+            <item>Let administrators delete selected values of missing elements from the audit, with an explicit warning when values of existing records are included.</item>
+            <item>Put audit repair actions above each orphan results table so they stay accessible without scrolling through long lists.</item>
+        </fix>
+    </changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
         <version>6.1.1-RC2</version>
         <addition>
             <item>Show the release date of every PHP and JavaScript library on the About screen, and sort both library tables by any column.</item>

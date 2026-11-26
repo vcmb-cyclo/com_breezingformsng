@@ -62,6 +62,12 @@ import { JoomlaEditor } from 'editor-api';
             mdata.widgetProvider = JQuery('#bfElementTypeTextWidgetProvider').val();
             mdata.widgetMinChars = Math.max(1, parseInt(JQuery('#bfElementTypeTextWidgetMinChars').val(), 10) || 3);
             mdata.widgetFill = JQuery('#bfElementTypeTextWidgetFill').val();
+
+            // The puzzle has its own panel: its sentence replaces the one of the hidden text panel.
+            if (widget === 'robot') {
+                mdata.hint = JQuery('#bfElementTypeRobotHint').val();
+                mdata['hint_translation' + BFQMConfig.lang] = JQuery('#bfElementTypeRobotHintTrans').val();
+            }
         };
 
         appScope.populateWidgetProperties = function (mdata) {
@@ -82,6 +88,8 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementTypeTextWidgetProvider').val(read('widgetProvider'));
             JQuery('#bfElementTypeTextWidgetMinChars').val(read('widgetMinChars'));
             JQuery('#bfElementTypeTextWidgetFill').val(read('widgetFill'));
+            JQuery('#bfElementTypeRobotHint').val(mdata.hint || '');
+            JQuery('#bfElementTypeRobotHintTrans').val(mdata['hint_translation' + BFQMConfig.lang] || '');
             appScope.refreshWidgetRows();
         };
 
@@ -223,6 +231,13 @@ import { JoomlaEditor } from 'editor-api';
             mdata.bfName = JQuery('#bfElementName').val();
             mdata.logging = JQuery('#bfElementNumberInputAdvancedLogging').prop('checked');
             mdata.range = JQuery('#bfElementNumberInputAdvancedRange').prop('checked');
+            // A rating replaces the number input or the slider; its bounds are the minimum and maximum.
+            mdata.ratingStyle = JQuery('#bfElementTypeNumberInputRatingStyle').val() || '';
+            mdata.widget = mdata.ratingStyle ? 'rating' : '';
+            mdata.ratingLow = JQuery('#bfElementTypeNumberInputRatingLow').val();
+            mdata.ratingHigh = JQuery('#bfElementTypeNumberInputRatingHigh').val();
+            mdata.ratingLarge = JQuery('#bfElementTypeNumberInputRatingLarge').prop('checked');
+            mdata.ratingColor = JQuery('#bfElementTypeNumberInputRatingColor').val().trim();
             mdata.label = JQuery('#bfElementLabel').val();
             mdata['label_translation'+BFQMConfig.lang] = JQuery('#bfElementLabelTrans').val();
             mdata.maxLength = JQuery('#bfElementTypeNumberInputMaxLength').val();
@@ -263,6 +278,15 @@ import { JoomlaEditor } from 'editor-api';
             JQuery('#bfElementLabelTrans').val(typeof mdata['label_translation'+BFQMConfig.lang] != "undefined" ? mdata['label_translation'+BFQMConfig.lang] : "");
             JQuery('#bfElementNumberInputAdvancedLogging').prop('checked', mdata.logging);
             JQuery('#bfElementNumberInputAdvancedRange').prop('checked', mdata.range);
+            JQuery('#bfElementTypeNumberInputRatingStyle').val(mdata.ratingStyle || '')
+                .off('change.bfngRating').on('change.bfngRating', function () {
+                    JQuery('.bfngRatingRow').toggle(this.value !== '');
+                });
+            JQuery('.bfngRatingRow').toggle(!!mdata.ratingStyle);
+            JQuery('#bfElementTypeNumberInputRatingLow').val(mdata.ratingLow || '');
+            JQuery('#bfElementTypeNumberInputRatingHigh').val(mdata.ratingHigh || '');
+            JQuery('#bfElementTypeNumberInputRatingLarge').prop('checked', !!mdata.ratingLarge);
+            JQuery('#bfElementTypeNumberInputRatingColor').val(mdata.ratingColor || '');
             JQuery('#bfElementTypeNumberInputMaxLength').val(mdata.maxLength);
 
             JQuery('#bfElementTypeNumberInputHint').val(mdata.hint);
@@ -449,7 +473,11 @@ import { JoomlaEditor } from 'editor-api';
         appScope.saveCheckboxProperties = function (mdata, item) {
             // dynamic properties
             mdata.value = JQuery('#bfElementTypeCheckboxValue').val() == '' ? 'checked' : JQuery('#bfElementTypeCheckboxValue').val();
-            mdata.checked = JQuery('#bfElementTypeCheckboxChecked').prop('checked');
+            // A consent box is never checked beforehand.
+            mdata.checked = mdata.widget !== 'consent' && JQuery('#bfElementTypeCheckboxChecked').prop('checked');
+            mdata.consentUrl = JQuery('#bfElementTypeCheckboxConsentUrl').val().trim();
+            mdata.consentText = JQuery('#bfElementTypeCheckboxConsentText').val().trim();
+            mdata['consentText_translation' + BFQMConfig.lang] = JQuery('#bfElementTypeCheckboxConsentTextTrans').val();
             mdata.readonly = JQuery('#bfElementTypeCheckboxReadonly').prop('checked');
             mdata.mailbackAccept = JQuery('#bfElementCheckboxAdvancedMailbackAccept').prop('checked');
             mdata.mailbackConnectWith = JQuery('#bfElementCheckboxAdvancedMailbackConnectWith').val();
@@ -478,7 +506,13 @@ import { JoomlaEditor } from 'editor-api';
         appScope.populateCheckboxProperties = function (mdata) {
             // dynamic properties
             JQuery('#bfElementTypeCheckboxValue').val(mdata.value);
-            JQuery('#bfElementTypeCheckboxChecked').prop('checked', mdata.checked);
+            JQuery('#bfElementTypeCheckboxChecked').prop('checked', mdata.checked)
+                .prop('disabled', mdata.widget === 'consent');
+            // Translation rows keep their own visibility, set for the language being edited.
+            JQuery('.bfngConsentRow').toggleClass('d-none', mdata.widget !== 'consent');
+            JQuery('#bfElementTypeCheckboxConsentText').val(mdata.consentText || '');
+            JQuery('#bfElementTypeCheckboxConsentTextTrans').val(mdata['consentText_translation' + BFQMConfig.lang] || '');
+            JQuery('#bfElementTypeCheckboxConsentUrl').val(mdata.consentUrl || '');
             JQuery('#bfElementCheckboxAdvancedMailbackAccept').prop('checked', mdata.mailbackAccept);
             JQuery('#bfElementCheckboxAdvancedMailbackConnectWith').val(mdata.mailbackConnectWith);
             JQuery('#bfElementTypeCheckboxReadonly').prop('checked', mdata.readonly);
@@ -1702,6 +1736,7 @@ JQuery(document).on('change', 'input[name="bfStripeReturnMode"]', function () {
                         JQuery('#bfElementValidationRequiredSet').css('display', 'none');
 
                         JQuery('#bfAdvancedLeaf').css('display', '');
+                        JQuery('#bfRobotMethodRow').hide();
                         JQuery('#bfHideInMailback').css('display', '');
 
                         switch (mdata.bfType) {
@@ -1795,7 +1830,8 @@ JQuery(document).on('change', 'input[name="bfStripeReturnMode"]', function () {
                                 appScope.populateElementActionScript();
                                 break;
                             case 'bfCheckbox':
-                                JQuery('#bfElementType').val('bfElementTypeCheckbox');
+                                // A consent box is a checkbox with a type of its own in the list.
+                                JQuery('#bfElementType').val(mdata.widget === 'consent' ? 'bfElementTypeConsent' : 'bfElementTypeCheckbox');
                                 appScope.populateCheckboxProperties(mdata);
                                 appScope.populateElementValidationScript();
                                 appScope.populateElementInitScript();
@@ -1818,18 +1854,22 @@ JQuery(document).on('change', 'input[name="bfStripeReturnMode"]', function () {
                         }
 
                         var elementTypeValue = JQuery('#bfElementType').val();
+                        var isRobot = appScope.treeModel.isRobotOption(elementTypeValue);
+                        JQuery('#bfRobotMethodRow').toggle(isRobot);
+
+                        if (isRobot) {
+                            JQuery('#bfRobotMethod').val(elementTypeValue);
+                        }
                         JQuery('#bfElementType').get(0).dispatchEvent(new CustomEvent('bfng:type-sync'));
 
                         if (elementTypeValue) {
                             var selectedElementType = elementTypeValue;
-                            var mappedElementType = selectedElementType === 'bfElementTypeSlider' ? 'bfElementTypeNumberInput' : selectedElementType;
-                            if (appScope.treeModel.getWidgetFromOption(selectedElementType)) {
-                                mappedElementType = 'bfElementTypeText';
-                            }
+                            var mappedElementType = appScope.treeModel.getPropertiesPanel(selectedElementType);
                             JQuery('#bfElementTypeClass').css('display', 'none');
                             JQuery('#' + mappedElementType).css('display', '');
                             JQuery('#' + mappedElementType + "Advanced").css('display', '');
-                            if (mdata.bfType != 'bfHidden') {
+                            // The puzzle has nothing to require: the server checks it.
+                            if (mdata.bfType != 'bfHidden' && mdata.widget !== 'robot') {
                                 JQuery('#bfElementValidationRequiredSet').css('display', '');
                             }
                         }

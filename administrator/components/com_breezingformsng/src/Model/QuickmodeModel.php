@@ -501,6 +501,13 @@ class QuickmodeModel extends BaseDatabaseModel
                         break;
                     case 'bfCheckbox':
                         $element['bfType']                   = 'Checkbox';
+                        if (WidgetOptions::widget($mdata) === 'consent') {
+                            $mdata['checked'] = false;
+                            $element['options'] = [
+                                'widget'        => 'consent',
+                                'widgetOptions' => WidgetOptions::options('consent', $mdata),
+                            ] + (array) ($element['options'] ?? []);
+                        }
                         $element['options']['checked']        = $mdata['checked'];
                         $element['flag1']                    = $mdata['checked'] ? 1 : 0;
                         $element['options']['value']         = $mdata['value'];
@@ -549,6 +556,13 @@ class QuickmodeModel extends BaseDatabaseModel
                     case 'bfNumberInput':
                         $element['bfType'] = 'Number Input';
                         $element['data1']  = $mdata['value'];
+                        // Only a rating has a server-side check of its bounds.
+                        if (WidgetOptions::widget($mdata) === 'rating') {
+                            $element['options'] = [
+                                'widget'        => 'rating',
+                                'widgetOptions' => WidgetOptions::options('rating', $mdata),
+                            ] + (array) ($element['options'] ?? []);
+                        }
                         break;
                     case 'bfReCaptcha':
                         $element['bfType']   = 'ReCaptcha';

@@ -1,5 +1,4 @@
-/* One-page QuickMode initializer. Kept separate from the Classic/Bootstrap
-   initializer because this renderer has no bfSetElemWrapBg hook. */
+/* One-page QuickMode initializer, kept separate from the Classic/Bootstrap one. */
 bfToggleFieldsLoaded = false;
 bfSectionFieldsDeactivated = false;
 

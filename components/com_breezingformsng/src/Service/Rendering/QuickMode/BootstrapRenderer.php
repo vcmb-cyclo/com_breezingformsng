@@ -239,7 +239,7 @@ class BootstrapRenderer
         return QuickModeEditorValueBuilder::build($editor);
     }
 
-    public function __construct(HTML_facileFormsProcessor $p)
+    public function __construct(HTML_facileFormsProcessor $p, ?string $theme = null)
     {
         $this->p = $p;
         $default = ComponentHelper::getParams('com_languages')->get('site');
@@ -263,6 +263,9 @@ class BootstrapRenderer
                 $this->rootMdata['themebootstrap'],
                 ['carte']
             );
+        }
+        if ($theme !== null) {
+            $this->rootMdata['themebootstrap'] = $theme;
         }
 
         $this->bsClasses[5] = QuickModeBootstrapClassMapBuilder::build();
@@ -720,6 +723,7 @@ class BootstrapRenderer
 
                 if (WidgetFieldBuilder::hasWidget($mdata)) {
                     WidgetAssets::register($this->p->app);
+                    $mdata = WidgetAssets::withRobotChallenge($this->p->app, $mdata);
                 }
 
                 switch ($mdata['bfType']) {

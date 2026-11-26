@@ -175,6 +175,166 @@
     flex: none;
 }
 
+/* Rating: stars or a numbered scale over the hidden field. The selectors with .bfElemWrap outweigh
+   the label rules of the renderers, such as ".bfQuickMode .bfElemWrap .bf-form-inline label". */
+.bfFormDiv .bfng-rating {
+    --bfng-rating-on: var(--bfng-rating-color, light-dark(#a15c07, #fbbf24));
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .25rem .6rem;
+    max-width: 100%;
+}
+
+/* Classic floats the label of the left layout: the rating sits beside it. */
+.bfFormDiv .bfQuickMode .bfLabelLeft .bfng-rating {
+    float: left;
+    /* All the room left beside the label column (45% and its 10px margin). */
+    max-width: calc(55% - 10px);
+}
+
+.bfFormDiv .bfng-rating__choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .15rem;
+}
+
+.bfFormDiv .bfQuickMode .bfElemWrap .bfng-rating label,
+.bfFormDiv .bfng-rating label {
+    position: relative;
+    display: flex;
+    float: none;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: auto;
+    min-width: 2rem;
+    min-height: 2rem;
+    margin: 0;
+    cursor: pointer;
+}
+
+.bfFormDiv .bfQuickMode .bfElemWrap .bfng-rating--large label,
+.bfFormDiv .bfng-rating--large label {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    font-size: 1.35em;
+}
+
+.bfFormDiv .bfng-rating .bfng-rating__radio {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.bfFormDiv .bfng-rating label:focus-within {
+    outline: 2px solid var(--bfng-rating-on);
+    outline-offset: 1px;
+}
+
+/* Stars sit side by side, so that ten of them fit on one line. */
+.bfFormDiv .bfng-rating--stars .bfng-rating__choices {
+    gap: 0;
+}
+
+.bfFormDiv .bfQuickMode .bfElemWrap .bfng-rating--stars label,
+.bfFormDiv .bfng-rating--stars label {
+    min-width: 1.5rem;
+    color: var(--bf-muted, #767676);
+    font-size: 1.6em;
+    line-height: 1;
+}
+
+.bfFormDiv .bfQuickMode .bfElemWrap .bfng-rating--stars.bfng-rating--large label,
+.bfFormDiv .bfng-rating--stars.bfng-rating--large label {
+    min-width: 2.1rem;
+    font-size: 2em;
+}
+
+/* A brighter gold than the scale needs: a star is a shape (3:1), not text on a background. */
+.bfFormDiv .bfQuickMode .bfElemWrap .bfng-rating--stars label.is-on,
+.bfFormDiv .bfng-rating--stars label.is-on,
+.bfFormDiv .bfQuickMode .bfElemWrap .bfng-rating--stars label:hover,
+.bfFormDiv .bfng-rating--stars label:hover {
+    color: var(--bfng-rating-color, light-dark(#d97706, #fbbf24));
+}
+
+.bfFormDiv .bfQuickMode .bfElemWrap .bfng-rating--scale label,
+.bfFormDiv .bfng-rating--scale label {
+    min-width: 1.75rem;
+    padding: 0 .25rem;
+    border: 1px solid var(--bf-line, #767676);
+    border-radius: .3rem;
+}
+
+.bfFormDiv .bfQuickMode .bfElemWrap .bfng-rating--scale label.is-on,
+.bfFormDiv .bfng-rating--scale label.is-on {
+    border-color: var(--bfng-rating-on);
+    background: var(--bfng-rating-on);
+    color: light-dark(#fff, #111);
+    font-weight: 700;
+}
+
+/* The captions of a scale sit under its two ends, whatever the width left to it. */
+.bfFormDiv .bfng-rating--scale {
+    display: inline-grid;
+    grid-template-columns: auto auto;
+    grid-template-areas: "choices choices" "low high";
+}
+
+.bfFormDiv .bfng-rating--scale .bfng-rating__choices {
+    grid-area: choices;
+}
+
+.bfFormDiv .bfng-rating--scale .bfng-rating__low {
+    grid-area: low;
+    justify-self: start;
+}
+
+.bfFormDiv .bfng-rating--scale .bfng-rating__high {
+    grid-area: high;
+    justify-self: end;
+}
+
+.bfFormDiv .bfng-rating__low,
+.bfFormDiv .bfng-rating__high {
+    color: var(--bf-muted, #555);
+    font-size: .9em;
+}
+
+/* The box, the text to accept and the policy link stay together beside the label. */
+.bfFormDiv .bfQuickMode .bfLabelLeft .bfng-consent {
+    float: left;
+    max-width: 53%;
+}
+
+.bfFormDiv .bfQuickMode .bfng-consent label.bfng-consent-text {
+    display: inline;
+    float: none;
+    width: auto;
+    min-width: 0;
+    margin: 0 0 0 .5rem;
+}
+
+.bfFormDiv .bfng-robot {
+    color: var(--bf-muted, #555);
+    font-size: .9em;
+}
+
+.bfFormDiv .bfng-robot.is-done::before {
+    content: "\2713\00a0";
+    color: light-dark(#166534, #86efac);
+}
+
+.bfFormDiv .bfng-consent-link {
+    display: inline-block;
+    margin-inline-start: .5rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .bfFormDiv .bfng-dropzone-area {
         transition: none;

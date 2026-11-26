@@ -78,7 +78,7 @@ final class SamplePackagesTest extends TestCase
 
     public function testTheCatalogIsComplete(): void
     {
-        self::assertSame(['contact', 'event', 'quote', 'survey', 'widgets'], array_keys(self::samples()));
+        self::assertSame(['contact', 'event', 'quote', 'survey', 'booking', 'widgets', 'demo'], array_keys(self::samples()));
     }
 
     #[DataProvider('samples')]
@@ -196,6 +196,22 @@ final class SamplePackagesTest extends TestCase
         }
     }
 
+    #[DataProvider('samples')]
+    public function testEveryFieldActionIsDefinedByTheFieldItself(string $slug, string $name, string $file): void
+    {
+        $tree = $this->package($file)['forms'][0]['data']['template_code'];
+
+        foreach ($this->elements($tree) as $element) {
+            $function = (string) ($element['actionFunctionName'] ?? '');
+            if ($function === '') {
+                continue;
+            }
+            // A click that calls a function nobody defines is an error in the console of every visitor.
+            self::assertSame('ff_' . $element['bfName'] . '_action', $function, $element['bfName']);
+            self::assertStringContainsString('function ' . $function . '(', (string) $element['actionCode']);
+        }
+    }
+
     public function testTheEventTotalIsCalculatedFromThePricesOfTheForm(): void
     {
         $elements = $this->package('bfng-sample-event.json')['forms'][0]['elements'];
@@ -237,6 +253,87 @@ final class SamplePackagesTest extends TestCase
         self::assertStringContainsString('turn off element LowReason if Overall is 5', $rules);
     }
 
+    public function testTheBookingUsesEveryFieldWidgetInOneRealisticForm(): void
+    {
+        $tree = $this->package('bfng-sample-booking.json')['forms'][0]['data']['template_code'];
+        $elements = $this->elements($tree);
+        $byName = array_column($elements, null, 'bfName');
+
+        $widgets = array_values(array_unique(array_filter(array_column($elements, 'widget'))));
+        sort($widgets);
+        self::assertSame(['address', 'consent', 'country', 'datetime', 'email', 'phone'], $widgets);
+        // The three modes of the date and time picker, and the drop zone for files.
+        self::assertSame('date', $byName['BirthDate']['widgetMode']);
+        self::assertSame('datetime', $byName['Appointment']['widgetMode']);
+        self::assertSame('time', $byName['CallbackTime']['widgetMode']);
+        self::assertTrue($byName['Documents']['dropZone']);
+        // Choosing an address fills the other address fields of the form.
+        foreach (array_filter(explode("\n", (string) $byName['Street']['widgetFill'])) as $line) {
+            [, $field] = explode('=', $line, 2);
+            self::assertArrayHasKey($field, $byName, $line);
+        }
+        // The callback time exists only for a phone confirmation.
+        self::assertTrue($byName['CallbackTime']['off']);
+        self::assertStringContainsString(
+            'turn on element CallbackTime if Confirm is Phone',
+            $tree['properties']['toggleFields']
+        );
+    }
+
+    public function testEverySampleEmailFieldIsAnEmailWidgetInTheTreeAndTheStoredAreas(): void
+    {
+        foreach (['booking', 'contact', 'event', 'quote', 'widgets'] as $sample) {
+            $data = $this->package('bfng-sample-' . $sample . '.json')['forms'][0]['data'];
+            $fields = array_column($this->elements($data['template_code']), null, 'bfName');
+            self::assertSame('email', $fields['Email']['widget'] ?? null, $sample);
+
+            $areas = json_decode($data['template_areas'], true, 512, JSON_THROW_ON_ERROR);
+            $stored = array_column(array_merge(...array_column($areas, 'elements')), null, 'name');
+            self::assertSame('email', $stored['Email']['options']['widget'] ?? null, $sample);
+        }
+    }
+
+    public function testTheSampleConsentBoxesAreUncheckedRequiredConsentFields(): void
+    {
+        foreach (['booking' => 'Consent', 'contact' => 'Consent', 'event' => 'Terms', 'quote' => 'Consent'] as $sample => $name) {
+            $data = $this->package('bfng-sample-' . $sample . '.json')['forms'][0]['data'];
+            $field = array_column($this->elements($data['template_code']), null, 'bfName')[$name];
+            self::assertSame(['consent', false, true], [$field['widget'] ?? null, $field['checked'], $field['required']], $sample);
+
+            $areas = json_decode($data['template_areas'], true, 512, JSON_THROW_ON_ERROR);
+            $stored = array_column(array_merge(...array_column($areas, 'elements')), null, 'name');
+            self::assertSame('consent', $stored[$name]['options']['widget'] ?? null, $sample);
+        }
+    }
+
+    public function testTheDemonstrationShowsEveryFieldThatNeedsNoKey(): void
+    {
+        $data = $this->package('bfng-sample-demo.json')['forms'][0]['data'];
+        $elements = $this->elements($data['template_code']);
+        $types = array_values(array_unique(array_column($elements, 'bfType')));
+        sort($types);
+
+        self::assertSame([
+            'bfCalendar', 'bfCalendarResponsive', 'bfCaptcha', 'bfCheckbox', 'bfCheckboxGroup', 'bfFile', 'bfHidden',
+            'bfNumberInput', 'bfRadioGroup', 'bfSelect', 'bfSignature', 'bfSubmitButton', 'bfSummarize', 'bfTextarea',
+            'bfTextfield',
+        ], $types);
+        $widgets = array_values(array_unique(array_filter(array_column($elements, 'widget'))));
+        sort($widgets);
+        self::assertSame(
+            ['address', 'consent', 'country', 'datetime', 'email', 'phone', 'rating', 'robot', 'url'],
+            $widgets
+        );
+        $byName = array_column($elements, null, 'bfName');
+        self::assertTrue($byName['Slider']['range']);
+        self::assertSame(['stars', 'stars', 'scale'], array_values(array_filter(array_column($elements, 'ratingStyle'))));
+        // The server checks what the tree shows.
+        $areas = json_decode($data['template_areas'], true, 512, JSON_THROW_ON_ERROR);
+        $stored = array_column($areas[0]['elements'], null, 'name');
+        self::assertSame('robot', $stored['Robot']['options']['widget']);
+        self::assertSame('rating', $stored['Scale']['options']['widget']);
+    }
+
     public function testTheBusinessTemplatesUseTheFieldWidgets(): void
     {
         foreach (['bfng-sample-contact.json', 'bfng-sample-event.json', 'bfng-sample-quote.json'] as $file) {
@@ -244,6 +341,8 @@ final class SamplePackagesTest extends TestCase
             $phone = array_values(array_filter($elements, static fn (array $e): bool => $e['bfName'] === 'Phone'));
 
             self::assertSame('phone', $phone[0]['widget'] ?? null, $file);
+            $email = array_values(array_filter($elements, static fn (array $e): bool => $e['bfName'] === 'Email'));
+            self::assertSame('email', $email[0]['widget'] ?? null, $file);
         }
 
         $quote = $this->elements($this->package('bfng-sample-quote.json')['forms'][0]['data']['template_code']);

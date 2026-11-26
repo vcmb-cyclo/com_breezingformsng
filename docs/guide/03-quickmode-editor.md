@@ -135,7 +135,7 @@ Tab **Advanced**, for the form:
 - Group "Other Options":
   - **Use Joomla tooltips for hints**.
   - **Use Sweetalerts on errors**.
-  - **If no alert on errors**: choose **Use default errors** or **Use balloon errors**.
+  - **If no alert on errors**: choose **Use default errors** or **Use balloon errors**. The default errors are listed at the top of the form and each message is repeated under its field.
   - **Fading effect on form entry** and **Rollover** / **Rollover color** (only with the BreezingForms theme engine).
   - A text box for the **Form toggle fields** rules (visibility rules).
 
@@ -177,7 +177,7 @@ On the form (top item), tab **Advanced**, group "Form Themes", use **Choose a th
 
 **BreezingForms engine** ("BreezingForms Themes"):
 
-- Pick a **Theme** from the list. The list reads the folders in `media/breezingforms/themes/`. In the package these are: aqua, breeze, default, glossy_blue, glossy_gray, qmtheme, vcmb_j5.
+- Pick a **Theme** from the list. The list reads the folders in `media/breezingforms/themes/`. In the package these are: aqua, breeze, default, glossy_blue, glossy_gray, qmtheme, vcmb_j5, vcmb_j5b, vcmb_j6.
 - This is the Classic renderer (the original BreezingForms look, independent of Bootstrap).
 
 **Bootstrap engine** ("Bootstrap Themes"):
@@ -195,6 +195,10 @@ How the site chooses the renderer (`QuickModeRendererFactory.php`): Bootstrap en
 ### Two columns (worked example below)
 
 QuickMode has no "columns" setting. Use a section with **Display type** set to **All in a row**. With the Bootstrap engine, the elements of that section are placed in one Bootstrap row, in equal-width columns. Two elements give two columns. Check the result with **Site Preview**, because the exact look depends on the theme and the engine.
+
+### Debug mode
+
+Turn on the **Debug** switch at the top of the editor. While it is on (it stays on until you turn it off, here or in the forms list), Super Users logged in to the site see a bar above the form with the form name, the account, the render time, the form details and its fields with their validation (never the submitted values). The bar also switches between automatic, light and dark colours, and tries any installed theme (`*` marks the configured one). On a Bootstrap or one-page form, the **Classic** group of the list shows the form with the Classic engine and the chosen theme; some fields may then look or behave differently: these choices are carried by the page address and nothing is saved. The technical name of each field is shown next to its label; untick **Field names** in the bar to hide them. Other visitors see no change.
 
 ## 5. The Options tab (e-mail, scripts and more)
 

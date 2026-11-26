@@ -5,9 +5,8 @@ import vm from 'node:vm';
 
 const source = readFileSync(new URL('../../media/com_breezingformsng/js/admin/admin-toggle-published.js', import.meta.url), 'utf8');
 
-function openEditor(active, savedReload = false) {
+function openEditor(active) {
     const requests = [];
-    const stored = new Map(savedReload ? [['bfqm:preserve-debug:42', '1']] : []);
     const toggle = {
         dataset: { itemFormId: '42' },
         classList: { contains: (name) => name === 'active' && active },
@@ -19,10 +18,6 @@ function openEditor(active, savedReload = false) {
             addEventListener: () => {},
             getElementById: (id) => id === 'bfFormDebugToggle' ? toggle : null,
         },
-        sessionStorage: {
-            getItem: (key) => stored.get(key) ?? null,
-            removeItem: (key) => stored.delete(key),
-        },
         fetch: (url, options) => {
             requests.push({ url, body: options.body });
             return new Promise(() => {});
@@ -31,26 +26,13 @@ function openEditor(active, savedReload = false) {
     };
 
     vm.runInNewContext(source, context);
-    return { requests, stored, context };
+    return { requests, context };
 }
 
-test('opening a form resets a debug state left on', () => {
-    const { requests } = openEditor(true);
-    assert.equal(requests.length, 1);
-    assert.match(requests[0].url, /task=forms\.setDebug/);
-    assert.match(requests[0].body, /id=42&state=0&test-token=1/);
-});
-
-test('the reload immediately after Save keeps debug until Close', () => {
-    const { requests, stored } = openEditor(true, true);
-    assert.equal(requests.length, 0);
-    assert.equal(stored.has('bfqm:preserve-debug:42'), false);
-});
-
-test('an inactive form consumes any stale reload marker', () => {
-    const { requests, stored } = openEditor(false, true);
-    assert.equal(requests.length, 0);
-    assert.equal(stored.has('bfqm:preserve-debug:42'), false);
+// As in ContentBuilder NG: only a click changes the debug mode, so the forms list and the editor agree.
+test('opening a form leaves its debug state alone', () => {
+    assert.equal(openEditor(true).requests.length, 0);
+    assert.equal(openEditor(false).requests.length, 0);
 });
 
 test('the debug icon uses the red badge styling when enabled', () => {
@@ -58,6 +40,7 @@ test('the debug icon uses the red badge styling when enabled', () => {
     const icon = { className: '' };
     const classes = new Set();
     const link = {
+        dataset: {},
         querySelector: () => icon,
         classList: { toggle: (name, enabled) => enabled ? classes.add(name) : classes.delete(name) },
         hasAttribute: () => false,
@@ -70,4 +53,20 @@ test('the debug icon uses the red badge styling when enabled', () => {
     context.bfSetToggleIcon(link, 0, 'debug');
     assert.equal(icon.className, 'fa-solid fa-bug text-muted');
     assert.equal(classes.has('active'), false);
+});
+
+test('a button with its own icons shows them', () => {
+    const { context } = openEditor(false);
+    const icon = { className: '' };
+    const link = {
+        dataset: { iconOn: 'fa-solid fa-bug text-success', iconOff: 'icon-unpublish' },
+        querySelector: () => icon,
+        classList: { toggle: () => {} },
+        hasAttribute: () => false,
+    };
+
+    context.bfSetToggleIcon(link, 1, 'debug');
+    assert.equal(icon.className, 'fa-solid fa-bug text-success');
+    context.bfSetToggleIcon(link, 0, 'debug');
+    assert.equal(icon.className, 'icon-unpublish');
 });

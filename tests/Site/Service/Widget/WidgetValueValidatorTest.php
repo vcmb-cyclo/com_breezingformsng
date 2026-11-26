@@ -41,7 +41,7 @@ final class WidgetValueValidatorTest extends TestCase
     /** @return iterable<string, array{string, string, array<string, mixed>}> */
     public static function emptyValues(): iterable
     {
-        foreach (['phone', 'datetime', 'country', 'address', 'unknown'] as $widget) {
+        foreach (['email', 'phone', 'datetime', 'country', 'address', 'unknown'] as $widget) {
             yield $widget => [$widget, '', []];
         }
     }
@@ -51,6 +51,53 @@ final class WidgetValueValidatorTest extends TestCase
     public function testAnEmptyValueIsValid(string $widget, string $value, array $options): void
     {
         self::assertNull($this->validate($widget, $value, $options));
+    }
+
+    public function testAnEmailAddressIsCheckedUnlessTheFieldDoesNotValidate(): void
+    {
+        foreach (['name@example.org', 'first.last+tag@sub.example.fr', 'josé@example.org'] as $address) {
+            self::assertNull($this->validate('email', $address), $address);
+        }
+
+        foreach (['name', 'name@', '@example.org', 'name@example', 'two words@example.org'] as $address) {
+            self::assertSame('COM_BREEZINGFORMSNG_WIDGET_INVALID_EMAIL', $this->validate('email', $address), $address);
+        }
+
+        self::assertNull($this->validate('email', 'name', ['validate' => false]));
+    }
+
+    public function testAWebAddressNeedsHttpAndADomain(): void
+    {
+        $valid = ['https://www.google.com', 'http://monentreprise.fr', 'https://linkedin.com/in/utilisateur',
+            'https://société.fr:8080/page?a=1#b'];
+
+        foreach ($valid as $address) {
+            self::assertNull($this->validate('url', $address), $address);
+        }
+
+        $invalid = ['monentreprise.fr', 'ftp://example.org', 'javascript:alert(1)', 'https://', 'https://localhost',
+            'https://example .org', 'https://-bad.org'];
+
+        foreach ($invalid as $address) {
+            self::assertSame('COM_BREEZINGFORMSNG_WIDGET_INVALID_URL', $this->validate('url', $address), $address);
+        }
+
+        self::assertNull($this->validate('url', 'anything', ['validate' => false]));
+    }
+
+    public function testARatingStaysInsideItsScale(): void
+    {
+        foreach (['0', '7', '10'] as $note) {
+            self::assertNull($this->validate('rating', $note, ['min' => 0, 'max' => 10]), $note);
+        }
+
+        foreach (['0', '6', '3.5', '-1', '05', 'five'] as $note) {
+            self::assertSame(
+                'COM_BREEZINGFORMSNG_WIDGET_INVALID_RATING',
+                $this->validate('rating', $note, ['min' => 1, 'max' => 5]),
+                $note
+            );
+        }
     }
 
     /** @return iterable<string, array{string}> */
