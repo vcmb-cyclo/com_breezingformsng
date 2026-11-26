@@ -122,7 +122,6 @@ final class FormDebugBar
         );
 
         $tree = json_decode(bf_b64dec($processor->formrow->template_code), true);
-        $username = (string) $identity->username;
         $formId = (int) $processor->form;
 
         $media = Uri::root(true) . '/media/com_breezingformsng';
@@ -137,8 +136,8 @@ final class FormDebugBar
 
         return new self($themeName, $classicTheme, $classicSwitch, $marker, microtime(true), [
             'formId' => $formId,
-            'formName' => (string) ($processor->formrow->title ?? ''),
-            'account' => $identity->name . ' (' . $username . ', #' . (int) $identity->id . ')',
+            'formName' => $processor->formrow->title ?? '',
+            'account' => $identity->name . ' (' . $identity->username . ', #' . $identity->id . ')',
             'renderer' => $classic || $classicSwitch
                 ? 'Classic'
                 : (empty($properties['themebootstrapMode']) ? 'Bootstrap' : 'One page'),
@@ -193,7 +192,7 @@ final class FormDebugBar
 
         $builder = new FormDebugBarBuilder(static fn (string $key): string => Text::_($key));
         $data = $this->data;
-        $data['renderTime'] = (int) round((microtime(true) - $this->startedAt) * 1000);
+        $data['renderTime'] = (int) round((microtime(true) - $this->startedAt) * 1000.0);
         $bar = $builder->build($data);
 
         ob_clean();

@@ -1,12 +1,37 @@
 /* Frontend debug bar: theme list, colour mode and technical names next to the fields. Nothing is saved. */
 (() => {
-    document.addEventListener('change', (event) => {
-        if (event.target.matches('select[data-bfng-debug-theme]') && event.target.value) {
-            window.location.assign(event.target.value);
-        } else if (event.target.matches('input[data-bfng-debug-names-url]')) {
-            window.location.assign(event.target.dataset.bfngDebugNamesUrl);
+    const changeOption = (event) => {
+        const control = event.target;
+        let parameter;
+        let value;
+        if (control.matches('select[data-bfng-debug-theme]')) {
+            parameter = 'bf_debug_theme';
+            value = control.value;
+        } else if (control.matches('input[data-bfng-debug-names-url]')) {
+            parameter = 'bf_debug_names';
+            value = control.dataset.bfngDebugNamesUrl;
+        } else {
+            return;
         }
-    });
+
+        if (!value || !URL.canParse(value, window.location.href)) {
+            return;
+        }
+
+        const target = new URL(value, window.location.href);
+        if (!['http:', 'https:'].includes(target.protocol) || target.origin !== window.location.origin
+            || target.pathname !== window.location.pathname) {
+            return;
+        }
+
+        const query = new URLSearchParams(window.location.search);
+        if (target.searchParams.has(parameter)) {
+            query.set(parameter, target.searchParams.get(parameter));
+        } else {
+            query.delete(parameter);
+        }
+        window.location.search = query.toString();
+    };
 
     // A click keeps the help tooltip open (some browsers do not focus a clicked button), Escape closes it.
     document.addEventListener('click', (event) => {
@@ -48,9 +73,13 @@
     };
 
     const showFieldNames = (bar) => {
+        const formWrapper = bar.nextElementSibling;
+        if (!formWrapper?.matches('.bfFormDiv')) {
+            return;
+        }
         for (const row of bar.querySelectorAll('tr[data-bfng-field]')) {
             const name = row.dataset.bfngField;
-            const input = document.getElementsByName(`ff_nm_${name}[]`)[0];
+            const input = formWrapper.querySelector(`[name="${CSS.escape(`ff_nm_${name}[]`)}"]`);
 
             const wrapper = input?.closest('.bfElemWrap');
 
@@ -69,6 +98,7 @@
 
     const start = () => {
         for (const bar of document.querySelectorAll('.bfng-debug')) {
+            bar.addEventListener('change', changeOption);
             if (bar.dataset.bfngDebugNames !== '0') {
                 showFieldNames(bar);
             }

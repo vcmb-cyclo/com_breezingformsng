@@ -16,6 +16,7 @@ declare(strict_types=1);
 // extend must be autoloadable, from the copy extracted for both tools.
 require_once __DIR__ . '/phpstan-bootstrap.php';
 require_once __DIR__ . '/joomla-stubs/libraries/vendor/autoload.php';
+require_once __DIR__ . '/components/com_breezingformsng/src/Support/runtime_functions.php';
 
 // Defined at runtime by processor_facade.php before the legacy submission code runs.
 \defined('_FF_DATA_NAME') || \define('_FF_DATA_NAME', 1);

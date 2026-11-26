@@ -47,14 +47,44 @@ for (const shown of ['1', '0']) {
     test(`the technical names follow the checkbox of the bar (${shown})`, async ({ page }) => {
         await page.route('http://bar.test/**', (route) => route.fulfill({ contentType: 'text/html', body: `<!doctype html>
             <div class="bfng-debug" data-bfng-debug-color="auto" data-bfng-debug-names="${shown}">
-            <input type="checkbox" data-bfng-debug-names-url="http://bar.test/toggled"${shown === '1' ? ' checked' : ''}>
-            <table><tr data-bfng-field="Name"></tr></table></div><input name="ff_nm_Name[]">` }));
-        await page.goto('http://bar.test/form');
+            <input type="checkbox" data-bfng-debug-names-url="/form${shown === '1' ? '?bf_debug_names=0' : ''}"${shown === '1' ? ' checked' : ''}>
+            <table><tr data-bfng-field="Name"></tr></table></div><div class="bfFormDiv"><form><input name="ff_nm_Name[]"></form></div>` }));
+        await page.goto(`http://bar.test/form?lang=fr${shown === '0' ? '&bf_debug_names=0' : ''}`);
         await page.addScriptTag({ path: 'media/com_breezingformsng/js/site/quickmode-debug-bar.js' });
         // The page is already loaded: the script waits for no further event.
         await expect(page.locator('.bfng-debug-field-name')).toHaveCount(Number(shown));
 
         await page.locator('input[type=checkbox]').click();
-        await expect(page).toHaveURL('http://bar.test/toggled');
+        await expect(page).toHaveURL(`http://bar.test/form?lang=fr${shown === '1' ? '&bf_debug_names=0' : ''}`);
     });
 }
+
+test('each bar annotates its own form when fields share a name', async ({ page }) => {
+    const instance = `<div class="bfng-debug" data-bfng-debug-color="auto">
+        <table><tr data-bfng-field="Name"></tr></table></div>
+        <div class="bfFormDiv"><form><input name="ff_nm_Name[]"></form></div>`;
+    await page.setContent(instance + instance);
+    await page.addScriptTag({ path: 'media/com_breezingformsng/js/site/quickmode-debug-bar.js' });
+    for (const form of await page.locator('form').all()) {
+        await expect(form.locator('.bfng-debug-field-name')).toHaveText('Name');
+    }
+});
+
+test('theme changes only update the current page from inside its bar', async ({ page }) => {
+    const select = `<select data-bfng-debug-theme><option></option><option value="/form?bf_debug_theme=carte">Carte</option>
+        <option value="https://elsewhere.test/form">External</option><option value="/other">Other page</option></select>`;
+    await page.route('http://bar.test/**', (route) => route.fulfill({ contentType: 'text/html',
+        body: select + '<div class="bfng-debug" data-bfng-debug-color="auto">' + select + '</div>' }));
+    const current = 'http://bar.test/form?lang=en';
+    await page.goto(current);
+    await page.addScriptTag({ path: 'media/com_breezingformsng/js/site/quickmode-debug-bar.js' });
+    await page.locator('select').first().selectOption({ label: 'Carte' });
+    await expect(page).toHaveURL(current);
+    const theme = page.locator('.bfng-debug select');
+    for (const label of ['External', 'Other page']) {
+        await theme.selectOption({ label });
+        await expect(page).toHaveURL(current);
+    }
+    await theme.selectOption({ label: 'Carte' });
+    await expect(page).toHaveURL(current + '&bf_debug_theme=carte');
+});

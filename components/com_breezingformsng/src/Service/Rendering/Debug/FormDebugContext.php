@@ -48,7 +48,13 @@ final class FormDebugContext
     {
         $themes = [];
 
-        foreach (glob($root . '/*/theme.css') ?: [] as $stylesheet) {
+        $stylesheets = glob($root . '/*/theme.css');
+
+        if ($stylesheets === false) {
+            return [];
+        }
+
+        foreach ($stylesheets as $stylesheet) {
             $name = basename(dirname($stylesheet));
 
             if (preg_match('/^[A-Za-z0-9_-]+$/D', $name) === 1) {
