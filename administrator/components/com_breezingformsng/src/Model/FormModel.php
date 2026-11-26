@@ -24,6 +24,7 @@ use Joomla\CMS\Versioning\VersionableModelInterface;
 use Joomla\CMS\Versioning\VersionableModelTrait;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\FormContentSummary;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\FormVersioning;
 use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetector;
 
@@ -37,7 +38,9 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Submission\SofortOnlyFormDetecto
  */
 class FormModel extends AdminModel implements VersionableModelInterface
 {
-    use VersionableModelTrait;
+    use VersionableModelTrait {
+        saveHistory as private saveModelHistory;
+    }
 
     /** @var string */
     public $typeAlias = FormVersioning::TYPE_ALIAS;
@@ -71,6 +74,29 @@ class FormModel extends AdminModel implements VersionableModelInterface
         $this->setIgnoreChanges([
             'modified_by', 'modified', 'checked_out', 'checked_out_time', 'version', 'ordering', 'template_areas',
         ]);
+    }
+
+    /**
+     * As the trait, with the readable content of the form added to the version
+     * for the Joomla comparison.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return bool
+     */
+    public function saveHistory(array $data, string $context)
+    {
+        $table = $this->getTable();
+
+        if ($table->load((int) $this->getState($this->getName() . '.id'))) {
+            $content = FormContentSummary::fromTemplateCode((string) ($table->template_code ?? ''));
+
+            if ($content !== []) {
+                $data[FormContentSummary::FIELD] = $content;
+            }
+        }
+
+        return $this->saveModelHistory($data, $context);
     }
 
     /**

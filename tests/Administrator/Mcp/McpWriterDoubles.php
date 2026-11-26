@@ -26,7 +26,6 @@ if (!class_exists(\Joomla\CMS\MVC\Model\AdminModel::class)) {
         . ' public function checkin($pk = null) { return true; }'
         . ' public function getName() { return "Form"; }'
         . ' public function setState($property, $value = null) { return null; }'
-        . ' public function saveHistory($data, $typeAlias) { return true; }'
         . ' protected function canDelete($record) { return true; }'
         . '}'
     );
@@ -35,7 +34,8 @@ if (!interface_exists(\Joomla\CMS\Versioning\VersionableModelInterface::class)) 
     eval('namespace Joomla\\CMS\\Versioning; interface VersionableModelInterface {}');
 }
 if (!trait_exists(\Joomla\CMS\Versioning\VersionableModelTrait::class)) {
-    eval('namespace Joomla\\CMS\\Versioning; trait VersionableModelTrait {}');
+    eval('namespace Joomla\\CMS\\Versioning; trait VersionableModelTrait {'
+        . ' public function saveHistory(array $data, string $context) { return true; }}');
 }
 if (!class_exists(\Joomla\CMS\Component\ComponentHelper::class)) {
     eval('namespace Joomla\\CMS\\Component; final class ComponentHelper {

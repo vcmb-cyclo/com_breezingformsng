@@ -1817,7 +1817,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
         $types = [
             'com_breezingformsng.form' => [
                 'BreezingForms NG Form', '#__facileforms_forms', 'FormTable', [
-                    'formFile' => '',
+                    'formFile' => 'administrator/components/com_breezingformsng/forms/formhistory.xml',
+                    // template_code cannot be read: form_content shows the fields.
                     'hideFields' => ['checked_out', 'checked_out_time', 'version', 'template_code', 'template_areas'],
                     // As for articles, the history compares the content, version left out.
                     // template_areas is rebuilt by QuickMode at each save.
@@ -1829,6 +1830,8 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
                         'version',
                         'ordering',
                         'template_areas',
+                        // Derived from template_code: the same form adds no version.
+                        'form_content',
                     ],
                     'convertToInt' => [],
                     'displayLookup' => [],

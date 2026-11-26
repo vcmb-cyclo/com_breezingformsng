@@ -29,6 +29,7 @@
 
 - Restore the country selector of the phone field in the Aqua, Breeze, Glossy Blue and Glossy Gray themes.
 - Give a form row its theme colour again after the rollover highlight, including when the colours turn dark.
+- Show the changes made to fields and layout when two versions of a form saved from now on are compared.
 
 ## 6.1.1-RC3
 

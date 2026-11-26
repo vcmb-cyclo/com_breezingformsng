@@ -95,7 +95,7 @@ final class FormVersioningTest extends TestCase
         // As ArticleModel: VersionableModelTrait, not the legacy table plugin
         // nor the deprecated Versioning class.
         self::assertStringContainsString('class FormModel extends AdminModel implements VersionableModelInterface', $model);
-        self::assertStringContainsString('use VersionableModelTrait;', $model);
+        self::assertStringContainsString('use VersionableModelTrait {', $model);
         self::assertStringNotContainsString('VersionableTableInterface', $table);
         self::assertStringNotContainsString('Versioning::', $service);
         // Saved without its note, which goes on the new row only: given a note,
