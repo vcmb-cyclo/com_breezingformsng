@@ -80,10 +80,11 @@ class FormModel extends AdminModel implements VersionableModelInterface
      * As the trait, with the readable content of the form added to the version
      * for the Joomla comparison.
      *
-     * @param array<string, mixed> $data
+     * @param array<array-key, mixed> $data
      *
      * @return bool
      */
+    #[\Override]
     public function saveHistory(array $data, string $context)
     {
         $table = $this->getTable();

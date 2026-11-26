@@ -100,7 +100,7 @@ final class FormContentSummary
         $lines[$name . ' · content'] = implode(', ', array_keys($children));
 
         foreach ($children as $childName => $child) {
-            self::describe($child, (string) $childName, $lines, $names);
+            self::describe($child, $childName, $lines, $names);
         }
     }
 

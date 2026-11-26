@@ -75,6 +75,16 @@ final class FormContentSummaryTest extends TestCase
         self::assertSame('label: Two', $summary['A (2)']);
     }
 
+    public function testAFieldNamedByANumberKeepsItsLine(): void
+    {
+        $summary = $this->summarize([
+            ['properties' => ['type' => 'element', 'bfName' => '2026', 'label' => 'Year']],
+        ]);
+
+        self::assertSame('label: Year', $summary['2026']);
+        self::assertSame('2026', $summary['page 1 · content']);
+    }
+
     public function testAnUnreadableCodeGivesNoSummary(): void
     {
         self::assertSame([], FormContentSummary::fromTemplateCode(''));

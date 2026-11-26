@@ -31,7 +31,8 @@ if (!class_exists(\Joomla\CMS\MVC\Model\AdminModel::class)) {
     );
 }
 if (!interface_exists(\Joomla\CMS\Versioning\VersionableModelInterface::class)) {
-    eval('namespace Joomla\\CMS\\Versioning; interface VersionableModelInterface {}');
+    eval('namespace Joomla\\CMS\\Versioning; interface VersionableModelInterface {'
+        . ' public function saveHistory(array $data, string $context); }');
 }
 if (!trait_exists(\Joomla\CMS\Versioning\VersionableModelTrait::class)) {
     eval('namespace Joomla\\CMS\\Versioning; trait VersionableModelTrait {'
