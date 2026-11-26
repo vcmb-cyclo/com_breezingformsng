@@ -213,7 +213,9 @@
 
 /* OPTIONAL BUTTON STYLES for applying custom look and feel: */
 
-.bfQuickMode button {
+/* The buttons of the phone field keep their own look; :where() adds no weight to the selectors. */
+
+.bfQuickMode button:not(:where(.iti__selected-country, .iti__search-clear)) {
     -o-transition: none !important;
     -ms-transition: none !important;
     -moz-transition: none !important;
@@ -231,7 +233,7 @@
     overflow: visible; /* removes extra side padding in IE */
 }
 
-.bfQuickMode button span {
+.bfQuickMode button:not(:where(.iti__selected-country, .iti__search-clear)) span {
     padding: 5px 0 0 15px; 
     height:26px; 
     background: transparent url('img/bg_btn.png') no-repeat left top !important; 
@@ -245,11 +247,11 @@
     border: none;  /* overrides extra padding in Firefox */
 }
 
-.bfQuickMode button:hover, button.submitBtnHover { /* the redundant class is used to apply the hover state with a script */
+.bfQuickMode button:not(:where(.iti__selected-country, .iti__search-clear)):hover, button.submitBtnHover { /* the redundant class is used to apply the hover state with a script */
     background-position: right -136px !important;
 }
 
-.bfQuickMode button:hover span, button.submitBtnHover span {
+.bfQuickMode button:not(:where(.iti__selected-country, .iti__search-clear)):hover span, button.submitBtnHover span {
     background-position: 0 -46px !important;
 }
 
@@ -259,7 +261,7 @@
 
 @media screen and (-webkit-min-device-pixel-ratio:0) {
     /* Safari and Google Chrome only - fix margins */
-    .bfQuickMode button span {
+    .bfQuickMode button:not(:where(.iti__selected-country, .iti__search-clear)) span {
     }
 }
 
