@@ -150,6 +150,22 @@ final class FormDebugBarTest extends TestCase
         );
     }
 
+    public function testFieldNamesAreShownUnlessTheAddressHidesThem(): void
+    {
+        self::assertTrue(FormDebugContext::showFieldNames(''));
+        self::assertTrue(FormDebugContext::showFieldNames('unknown'));
+        self::assertFalse(FormDebugContext::showFieldNames('0'));
+
+        $html = $this->build([]);
+
+        self::assertStringContainsString('data-bfng-debug-names="1"', $html);
+        self::assertStringContainsString(
+            '<input type="checkbox" data-bfng-debug-names-url="/f?n=0" checked> '
+            . 'COM_BREEZINGFORMSNG_DEBUG_BAR_SHOW_FIELD_NAMES',
+            $html
+        );
+    }
+
     public function testBarHasNoThemeListWhenTheRendererCannotChangeIt(): void
     {
         self::assertStringNotContainsString('<select', $this->build([]));
@@ -169,6 +185,8 @@ final class FormDebugBarTest extends TestCase
             'themeOptions' => $options,
             'colorMode' => 'dark',
             'colorOptions' => [['mode' => 'dark', 'url' => '/f?c=dark']],
+            'fieldNames' => true,
+            'fieldNamesUrl' => '/f?n=0',
             'fields' => [[
                 'name' => 'Email',
                 'type' => 'bfTextfield',

@@ -3,6 +3,8 @@
     document.addEventListener('change', (event) => {
         if (event.target.matches('select[data-bfng-debug-theme]') && event.target.value) {
             window.location.assign(event.target.value);
+        } else if (event.target.matches('input[data-bfng-debug-names-url]')) {
+            window.location.assign(event.target.dataset.bfngDebugNamesUrl);
         }
     });
 
@@ -67,7 +69,9 @@
 
     const start = () => {
         for (const bar of document.querySelectorAll('.bfng-debug')) {
-            showFieldNames(bar);
+            if (bar.dataset.bfngDebugNames !== '0') {
+                showFieldNames(bar);
+            }
 
             if (bar.dataset.bfngDebugColor !== 'auto') {
                 applyColorMode(bar.dataset.bfngDebugColor);

@@ -36,6 +36,8 @@ final class FormDebugBar
      *     themeOptions: list<array{theme: string, url: string}>,
      *     colorMode: string,
      *     colorOptions: list<array{mode: string, url: string}>,
+     *     fieldNames: bool,
+     *     fieldNamesUrl: string,
      *     fields: list<array{
      *         name: string,
      *         type: string,
@@ -115,6 +117,10 @@ final class FormDebugBar
             ];
         }
 
+        $fieldNames = FormDebugContext::showFieldNames(
+            $app->getInput()->getCmd(FormDebugContext::NAMES_PARAM, '')
+        );
+
         $tree = json_decode(bf_b64dec($processor->formrow->template_code), true);
         $username = (string) $identity->username;
         $formId = (int) $processor->form;
@@ -141,6 +147,9 @@ final class FormDebugBar
             'themeOptions' => $options,
             'colorMode' => $colorMode,
             'colorOptions' => $colorOptions,
+            'fieldNames' => $fieldNames,
+            // The address the checkbox goes to: it reverses the current choice.
+            'fieldNamesUrl' => self::url(FormDebugContext::NAMES_PARAM, $fieldNames ? '0' : null),
             'fields' => is_array($tree) ? FormDebugContext::fields($tree) : [],
         ]);
     }

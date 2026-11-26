@@ -120,6 +120,14 @@
     font: 700 .7rem/1.4 monospace;
 }
 
+.bfng-debug__names {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    margin: 0;
+    cursor: pointer;
+}
+
 .bfng-debug__theme {
     display: inline-flex;
     flex-wrap: wrap;

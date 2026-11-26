@@ -42,3 +42,19 @@ for (const width of [375, 1200]) {
         await expect(tooltip).toBeVisible();
     });
 }
+
+for (const shown of ['1', '0']) {
+    test(`the technical names follow the checkbox of the bar (${shown})`, async ({ page }) => {
+        await page.route('http://bar.test/**', (route) => route.fulfill({ contentType: 'text/html', body: `<!doctype html>
+            <div class="bfng-debug" data-bfng-debug-color="auto" data-bfng-debug-names="${shown}">
+            <input type="checkbox" data-bfng-debug-names-url="http://bar.test/toggled"${shown === '1' ? ' checked' : ''}>
+            <table><tr data-bfng-field="Name"></tr></table></div><input name="ff_nm_Name[]">` }));
+        await page.goto('http://bar.test/form');
+        await page.addScriptTag({ path: 'media/com_breezingformsng/js/site/quickmode-debug-bar.js' });
+        // The page is already loaded: the script waits for no further event.
+        await expect(page.locator('.bfng-debug-field-name')).toHaveCount(Number(shown));
+
+        await page.locator('input[type=checkbox]').click();
+        await expect(page).toHaveURL('http://bar.test/toggled');
+    });
+}

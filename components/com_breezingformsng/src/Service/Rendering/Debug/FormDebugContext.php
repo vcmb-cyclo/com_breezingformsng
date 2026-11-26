@@ -26,6 +26,8 @@ final class FormDebugContext
 
     public const COLOR_MODES = ['auto', 'light', 'dark'];
 
+    public const NAMES_PARAM = 'bf_debug_names';
+
     /** Marks a Classic theme tried on a Bootstrap or one-page form; a theme folder has no dot. */
     public const CLASSIC_PREFIX = 'classic.';
 
@@ -107,6 +109,12 @@ final class FormDebugContext
     public static function appliedTheme(?string $override, string $stored, array $available): string
     {
         return $override ?? (in_array($stored, $available, true) ? $stored : 'none');
+    }
+
+    /** The technical names are shown next to the fields unless the address hides them. */
+    public static function showFieldNames(string $requested): bool
+    {
+        return $requested !== '0';
     }
 
     public static function colorMode(string $requested): string

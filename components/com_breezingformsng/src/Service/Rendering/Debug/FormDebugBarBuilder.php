@@ -40,6 +40,8 @@ final class FormDebugBarBuilder
      *     themeOptions: list<array{theme: string, url: string}>,
      *     colorMode: string,
      *     colorOptions: list<array{mode: string, url: string}>,
+     *     fieldNames: bool,
+     *     fieldNamesUrl: string,
      *     fields: list<array{
      *         name: string,
      *         type: string,
@@ -55,7 +57,8 @@ final class FormDebugBarBuilder
         $id = 'bfng-debug-' . $data['formId'];
 
         $html = '<div class="bfng-debug" id="' . $id . '" data-bfng-debug-color="'
-            . self::escape($data['colorMode']) . '"><div class="bfng-debug__bar">'
+            . self::escape($data['colorMode']) . '" data-bfng-debug-names="' . (int) $data['fieldNames']
+            . '"><div class="bfng-debug__bar">'
             . '<strong class="bfng-debug__badge">' . self::icon('eye') . ' ' . $this->label('BADGE') . '</strong>'
             . '<span class="bfng-debug__modes" role="group" aria-label="' . $this->label('COLOR_MODE') . '">';
 
@@ -98,6 +101,10 @@ final class FormDebugBarBuilder
 
             $html .= ($classicGroup ? '</optgroup>' : '') . '</select></label>';
         }
+
+        $html .= '<label class="bfng-debug__names"><input type="checkbox" data-bfng-debug-names-url="'
+            . self::escape($data['fieldNamesUrl']) . '"' . ($data['fieldNames'] ? ' checked' : '') . '> '
+            . $this->label('SHOW_FIELD_NAMES') . '</label>';
 
         $help = $this->label('HELP');
         $html .= '<span class="bfng-debug__form">' . $this->label('FORM') . ' : '
