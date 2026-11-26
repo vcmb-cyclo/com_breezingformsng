@@ -184,15 +184,29 @@ final class AboutAuditPresentationTest extends TestCase
         self::assertStringContainsString('array_sum($auditCollationHistogram)', $template);
     }
 
-    public function testRemovingALegacyTemplateNeverLeavesAClientWithoutDefaultStyle(): void
+    public function testOrphanRepairActionsPrecedeTheLongResultTable(): void
     {
-        $repair = file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/src/Service/DatabaseRepairService.php');
+        $template = (string) file_get_contents(__DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/audit.php');
+        $actions = strpos($template, 'class="bf-audit-orphan-actions');
+        $table = strpos($template, '<div class="table-responsive mt-2 mb-3">', $actions);
 
-        self::assertIsString($repair);
-        self::assertStringContainsString('function deleteTemplateStyles(', $repair);
-        self::assertStringContainsString("'atum' : 'cassiopeia'", $repair);
-        self::assertStringContainsString("quoteName('template_style_id') . ' = 0'", $repair);
-        self::assertStringContainsString('No \' . $coreTemplate', $repair);
+        self::assertNotFalse($actions);
+        self::assertNotFalse($table);
+        self::assertLessThan($table, strpos($template, 'data-bf-orphan-selection', $actions));
+        self::assertLessThan($table, strpos($template, 'bf-audit-reassign-all-orphan-values', $actions));
+        self::assertStringNotContainsString('data-bf-orphan-selection', substr($template, $table));
+        self::assertStringNotContainsString('bf-audit-reassign-all-orphan-values', substr($template, $table));
+    }
+
+    public function testAuditLeavesJoomlaTemplateStylesToJoomla(): void
+    {
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng/src/Service';
+        $audit = (string) file_get_contents($base . '/DatabaseAuditService.php');
+        $repair = (string) file_get_contents($base . '/DatabaseRepairService.php');
+
+        self::assertStringContainsString("\$excludedType = 'template';", $audit);
+        self::assertStringContainsString("quoteName('type') . ' <> :excludedType'", $audit);
+        self::assertStringNotContainsString('#__template_styles', $repair);
     }
 
     public function testExtensionsButtonsAreInTheToolbarBackFirst(): void

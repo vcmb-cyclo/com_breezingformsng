@@ -2,10 +2,10 @@
 <extension type="module" client="site" method="upgrade">
     <name>MOD_BREEZINGFORMSNG</name>
     <author>XDA/GIL</author>
-    <creationDate>2026-11-25</creationDate>
+    <creationDate>2026-11-26</creationDate>
     <copyright>Copyright 2008-2020 Markus Bopp; 2024-2026 XDA+GIL</copyright>
     <license>GNU General Public License version 2 or later</license>
-    <version>6.1.1-RC2</version>
+    <version>6.1.1-RC3</version>
     <changelogurl>https://raw.githubusercontent.com/vcmb-cyclo/com_breezingformsng/main/com_breezingformsng_changelog.xml</changelogurl>
     <description>MOD_BREEZINGFORMSNG_XML_DESCRIPTION</description>
     <namespace path="src">Vcmb\Module\BreezingformsNG</namespace>

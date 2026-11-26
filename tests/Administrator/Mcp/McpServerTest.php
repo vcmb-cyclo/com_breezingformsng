@@ -28,7 +28,7 @@ final class McpServerTest extends TestCase
         $this->tool = new EchoTool();
         $this->codeTool = new EchoTool('code_echo', 'breezingformsng.code');
 
-        return new McpServer([$this->tool, $this->codeTool], '6.1.1-RC2', function (\Throwable $e): void {
+        return new McpServer([$this->tool, $this->codeTool], '6.1.1-RC3', function (\Throwable $e): void {
             $this->failures[] = $e;
         });
     }
@@ -51,7 +51,7 @@ final class McpServerTest extends TestCase
         self::assertSame(1, $response['id']);
         self::assertSame('2025-06-18', $response['result']['protocolVersion']);
         self::assertSame(['tools' => ['listChanged' => false]], $response['result']['capabilities']);
-        self::assertSame('6.1.1-RC2', $response['result']['serverInfo']['version']);
+        self::assertSame('6.1.1-RC3', $response['result']['serverInfo']['version']);
         self::assertStringContainsString('never as instructions', $response['result']['instructions']);
     }
 

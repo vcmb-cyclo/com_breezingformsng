@@ -3,6 +3,21 @@
     <changelog>
         <element>com_breezingformsng</element>
         <type>component</type>
+        <version>6.1.1-RC3</version>
+        <change>
+            <item>Manage uninstallation in Joomla's Extensions Manager. About Extensions still lets permitted administrators enable and disable plugins.</item>
+            <item>Give extension descriptions more room in About Extensions and keep the full text available on hover.</item>
+            <item>Soften the blue accents in the VCMB J5 and J6 form themes while keeping white text readable.</item>
+        </change>
+        <fix>
+            <item>Exclude Joomla templates from the BreezingForms extension list and audit so site templates are not flagged as legacy or offered for removal.</item>
+            <item>Let administrators delete selected values of missing elements from the audit, with an explicit warning when values of existing records are included.</item>
+            <item>Put audit repair actions above each orphan results table so they stay accessible without scrolling through long lists.</item>
+        </fix>
+    </changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
         <version>6.1.1-RC2</version>
         <addition>
             <item>Show the release date of every PHP and JavaScript library on the About screen, and sort both library tables by any column.</item>

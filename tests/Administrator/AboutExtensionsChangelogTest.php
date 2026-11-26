@@ -37,7 +37,7 @@ final class AboutExtensionsChangelogTest extends TestCase
         self::assertStringNotContainsString('target="_blank"', $template);
     }
 
-    public function testTheNameColumnIsWideAndTheDescriptionIsCutWithATooltip(): void
+    public function testTheDescriptionColumnHasMoreRoomAndKeepsItsTooltip(): void
     {
         $template = file_get_contents(
             __DIR__ . '/../../administrator/components/com_breezingformsng/tmpl/about/extensions.php'
@@ -48,9 +48,20 @@ final class AboutExtensionsChangelogTest extends TestCase
         self::assertIsString($css);
         self::assertStringContainsString('data-bf-sortable-table', $template);
         self::assertSame(7, substr_count($template, "\$sortHeader('"));
-        self::assertStringContainsString("'bf-extension-name'", $template);
+        self::assertStringContainsString("'bf-extension-description-column'", $template);
         self::assertStringContainsString('class="bf-extension-description" title="', $template);
         self::assertStringContainsString('-webkit-line-clamp: 2;', $css);
-        self::assertStringContainsString('#bf-extensions-table th.bf-extension-name', $css);
+        self::assertStringContainsString('#bf-extensions-table th.bf-extension-description-column', $css);
+    }
+
+    public function testExtensionsScreenOnlyAllowsChangingPluginState(): void
+    {
+        $base = __DIR__ . '/../../administrator/components/com_breezingformsng';
+        $template = (string) file_get_contents($base . '/tmpl/about/extensions.php');
+        $controller = (string) file_get_contents($base . '/src/Controller/AboutController.php');
+
+        self::assertStringNotContainsString('uninstallExtension', $template);
+        self::assertStringNotContainsString('function uninstallExtension', $controller);
+        self::assertStringContainsString('data-item-task="about.setPluginState"', $template);
     }
 }

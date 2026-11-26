@@ -560,9 +560,13 @@ details.bf-audit-section-block[open] > :not(summary) + :not(summary) {
     color: inherit;
 }
 
-/* Extensions list: a wide name column, and a description cut after two lines (the full text is in the tooltip). */
+/* Give the description room to wrap. The tooltip shows the full text. */
 #bf-extensions-table th.bf-extension-name {
-    min-width: 18rem;
+    min-width: 14rem;
+}
+#bf-extensions-table th.bf-extension-description-column {
+    width: 50%;
+    min-width: 13rem;
 }
 #bf-extensions-table .bf-extension-description {
     display: -webkit-box;

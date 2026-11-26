@@ -70,6 +70,11 @@ switch ($argv[1] ?? '') {
         // extension-delete <id>: drops a probe registration left by a failed journey.
         $db->query("DELETE FROM {$config->dbprefix}extensions WHERE extension_id = {$id}");
         break;
+    case 'probe-template':
+        $element = 'atum_breezingformse2e_' . bin2hex(random_bytes(6));
+        $db->query("INSERT INTO {$config->dbprefix}extensions (name, type, element, folder, client_id, enabled, access, protected, locked, manifest_cache, params, custom_data, ordering, state) VALUES ('{$element}', 'template', '{$element}', '', 1, 1, 1, 0, 0, '{}', '{}', '', 0, 0)");
+        echo json_encode(['id' => $db->insert_id, 'element' => $element]);
+        break;
     case 'extension-exists':
         // extension-exists <id>: 1 when the row is still registered.
         echo (int) $db->query("SELECT COUNT(*) c FROM {$config->dbprefix}extensions WHERE extension_id = {$id}")->fetch_assoc()['c'];

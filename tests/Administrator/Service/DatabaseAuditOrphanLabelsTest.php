@@ -19,6 +19,17 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseAuditService;
 
 final class DatabaseAuditOrphanLabelsTest extends TestCase
 {
+    public function testDebugModeAuditQueriesOnlyFormsWithDebugEnabled(): void
+    {
+        $source = (string) file_get_contents(__DIR__ . '/../../../administrator/components/com_breezingformsng/src/Service/DatabaseAuditService.php');
+        $start = strpos($source, 'private function findDebugModeForms');
+        $method = substr($source, (int) $start);
+        $method = substr($method, 0, (int) strpos($method, '/**'));
+
+        self::assertStringContainsString("where(\$this->db->quoteName('debug_mode') . ' = 1')", $method);
+        self::assertStringContainsString("select(\$this->db->quoteName(['id', 'name', 'title', 'package', 'published']))", $method);
+    }
+
     public function testElementsBorrowTheFormNameKeptByOrphanRecords(): void
     {
         $group = static fn(int $id, string $label): array => [

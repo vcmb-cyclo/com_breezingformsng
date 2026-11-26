@@ -207,15 +207,6 @@
         container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // A button that posts its form after a confirmation (uninstalling an extension).
-    document.addEventListener('submit', function (event) {
-        var message = event.submitter && event.submitter.dataset.bfSubmitConfirm;
-
-        if (message && !window.confirm(message)) {
-            event.preventDefault();
-        }
-    });
-
     // The help icon sits in the title of an audit accordion: reading it must not open or close the section.
     document.addEventListener('click', function (event) {
         if (event.target.closest('summary .icon-info-circle')) {

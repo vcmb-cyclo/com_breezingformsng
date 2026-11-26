@@ -385,44 +385,6 @@ class AboutController extends BaseController
         $this->setRedirect(Route::_('index.php?option=com_breezingformsng&task=about.display&view=about&layout=audit#bf-audit-section', false));
     }
 
-    /**
-     * Uninstalls one BreezingForms extension chosen on the Extensions screen.
-     * Uninstalling is a right of the Joomla Installer, as in its own model.
-     */
-    public function uninstallExtension(): void
-    {
-        $this->checkToken();
-
-        try {
-            $application = $this->getAuthorizedApplication();
-            $user = $application->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
-
-            if (!$user->authorise('core.delete', 'com_installer')) {
-                throw new NotAllowed(Text::_('JERROR_CORE_DELETE_NOT_PERMITTED'), 403);
-            }
-
-            $aboutModel = $this->getMVCFactoryOf($application)
-                ->createModel('About', 'Administrator', ['ignore_request' => true]);
-
-            if (!$aboutModel instanceof AboutModel) {
-                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
-            }
-
-            $removed = $aboutModel->uninstallExtension($this->input->post->getInt('extension_id', 0));
-            $this->setMessage(Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_UNINSTALLED', $removed), 'message');
-        } catch (\Throwable $exception) {
-            $this->setMessage(
-                Text::sprintf('COM_BREEZINGFORMSNG_ABOUT_EXTENSION_UNINSTALL_FAILED', $exception->getMessage()),
-                'error'
-            );
-        }
-
-        $this->setRedirect(Route::_(
-            'index.php?option=com_breezingformsng&task=about.display&view=about&layout=extensions',
-            false
-        ));
-    }
-
     public function removeLegacyExtensions(): void
     {
         $this->checkToken();
@@ -913,19 +875,26 @@ class AboutController extends BaseController
     public function deleteOrphanValues(): void
     {
         $all = $this->input->post->getBool('orphan_all', false);
+        $acknowledged = $this->input->post->getBool('orphan_acknowledged', false);
         $rawId = $this->input->post->get('orphan_element_id', null, 'raw');
         $selected = (array) $this->input->post->get('orphan_ids', [], 'array') !== [];
         $elementId = $all ? null : (is_string($rawId) && preg_match('/\A[0-9]+\z/', $rawId) ? (int) $rawId : -1);
 
         $this->repairOrphans(
-            function (DatabaseRepairService $repair) use ($selected, $elementId): int {
+            function (DatabaseRepairService $repair) use ($selected, $elementId, $acknowledged): int {
                 if (!$selected) {
                     return $repair->deleteOrphanValues($elementId);
                 }
 
-                $deleted = 0;
+                if (!$acknowledged) {
+                    throw new \InvalidArgumentException(Text::_('COM_BREEZINGFORMSNG_ABOUT_AUDIT_ORPHAN_VALUES_DELETE_LIVE_ACK_REQUIRED'));
+                }
 
-                foreach ($this->orphanParentIds(false) ?? [] as $selectedId) {
+                $deleted = 0;
+                $selectedIds = $this->orphanParentIds(false) ?? [];
+
+                foreach ($selectedIds as $selectedId) {
+                    $deleted += $repair->deleteOrphanValuesOfRecords($selectedId);
                     $deleted += $repair->deleteOrphanValues($selectedId);
                 }
 
