@@ -24,7 +24,7 @@ final class QuickModeRendererFactory
 {
     /**
      * @param array<string, mixed> $metadata
-     * @param string|null $theme Theme replacing the stored one for this request (Classic renderer only).
+     * @param string|null $theme Theme replacing the stored one for this request.
      *
      * @return ClassicRenderer|BootstrapRenderer|OnePageRenderer
      */
@@ -35,10 +35,10 @@ final class QuickModeRendererFactory
     ): object {
         if (($metadata['themebootstrapThemeEngine'] ?? '') === 'bootstrap') {
             if (!empty($metadata['themebootstrapMode'])) {
-                return new OnePageRenderer($processor);
+                return new OnePageRenderer($processor, $theme);
             }
 
-            return new BootstrapRenderer($processor);
+            return new BootstrapRenderer($processor, $theme);
         }
 
         return new ClassicRenderer($processor, $theme);

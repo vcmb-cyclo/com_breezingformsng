@@ -22,6 +22,13 @@ final class FormDebugContext
 {
     public const THEME_PARAM = 'bf_debug_theme';
 
+    public const COLOR_PARAM = 'bf_debug_color';
+
+    public const COLOR_MODES = ['auto', 'light', 'dark'];
+
+    /** Marks a Classic theme tried on a Bootstrap or one-page form; a theme folder has no dot. */
+    public const CLASSIC_PREFIX = 'classic.';
+
     /**
      * The bar needs both the debug mode of the form and a Super User on the site.
      *
@@ -63,9 +70,61 @@ final class FormDebugContext
     }
 
     /**
+     * @return list<string> Themes of the Bootstrap and one-page renderers: no theme,
+     *                      the shipped one and the installed folders.
+     */
+    public static function bootstrapThemes(string $root): array
+    {
+        return array_values(array_unique(['none', 'carte', ...self::installedThemes($root)]));
+    }
+
+    /**
+     * @param list<string> $themes Themes of the Classic renderer.
+     *
+     * @return list<string> Their choices on a Bootstrap or one-page form.
+     */
+    public static function classicChoices(array $themes): array
+    {
+        return array_map(static fn (string $theme): string => self::CLASSIC_PREFIX . $theme, $themes);
+    }
+
+    public static function isClassicChoice(string $choice): bool
+    {
+        return str_starts_with($choice, self::CLASSIC_PREFIX);
+    }
+
+    /** Theme folder of a choice of the theme list. */
+    public static function themeName(string $choice): string
+    {
+        return self::isClassicChoice($choice) ? substr($choice, strlen(self::CLASSIC_PREFIX)) : $choice;
+    }
+
+    /**
+     * @param list<string> $available
+     *
+     * @return string The theme the renderer uses: an unavailable stored theme means no theme.
+     */
+    public static function appliedTheme(?string $override, string $stored, array $available): string
+    {
+        return $override ?? (in_array($stored, $available, true) ? $stored : 'none');
+    }
+
+    public static function colorMode(string $requested): string
+    {
+        return in_array($requested, self::COLOR_MODES, true) ? $requested : 'auto';
+    }
+
+    /**
      * @param array<mixed> $node A node of the QuickMode form tree.
      *
-     * @return list<array{name: string, type: string, label: string, required: bool}>
+     * @return list<array{
+     *     name: string,
+     *     type: string,
+     *     label: string,
+     *     required: bool,
+     *     validation: string,
+     *     customValidation: bool
+     * }>
      */
     public static function fields(array $node): array
     {
@@ -73,11 +132,16 @@ final class FormDebugContext
         $properties = is_array($node['properties'] ?? null) ? $node['properties'] : [];
 
         if (($properties['type'] ?? '') === 'element') {
+            // 0: no validation, 1: library script, 2: script written in the form.
+            $validation = (int) self::text($properties['validationCondition'] ?? null);
+
             $fields[] = [
                 'name' => self::text($properties['bfName'] ?? null),
                 'type' => self::text($properties['bfType'] ?? null),
                 'label' => self::text($properties['label'] ?? null),
-                'required' => ($properties['required'] ?? false) === true,
+                'required' => !empty($properties['required']),
+                'validation' => $validation > 0 ? self::text($properties['validationFunctionName'] ?? null) : '',
+                'customValidation' => $validation === 2,
             ];
         }
 

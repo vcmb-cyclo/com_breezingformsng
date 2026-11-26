@@ -67,14 +67,58 @@ final class FormDebugBarTest extends TestCase
                     'label' => 'E-mail',
                     'required' => true,
                     'value' => 'secret',
+                    'validationCondition' => 2,
+                    'validationFunctionName' => 'ff_Email_validation',
                 ]],
             ]],
         ]];
 
         self::assertSame(
-            [['name' => 'Email', 'type' => 'bfTextfield', 'label' => 'E-mail', 'required' => true]],
+            [[
+                'name' => 'Email',
+                'type' => 'bfTextfield',
+                'label' => 'E-mail',
+                'required' => true,
+                'validation' => 'ff_Email_validation',
+                'customValidation' => true,
+            ]],
             FormDebugContext::fields($tree)
         );
+    }
+
+    public function testBootstrapRenderersOfferTheShippedThemeAndNoTheme(): void
+    {
+        self::assertSame(['none', 'carte'], FormDebugContext::bootstrapThemes(__DIR__ . '/missing'));
+    }
+
+    public function testAnUnavailableStoredThemeIsShownAsNoTheme(): void
+    {
+        self::assertSame('a', FormDebugContext::appliedTheme(null, 'a', ['a', 'b']));
+        self::assertSame('b', FormDebugContext::appliedTheme('b', 'a', ['a', 'b']));
+        self::assertSame('none', FormDebugContext::appliedTheme(null, 'gone', ['a']));
+    }
+
+    public function testClassicThemesAreOfferedInTheirOwnGroup(): void
+    {
+        $choices = FormDebugContext::classicChoices(['vcmb_j6']);
+
+        self::assertSame(['classic.vcmb_j6'], $choices);
+        self::assertTrue(FormDebugContext::isClassicChoice($choices[0]));
+        self::assertSame('vcmb_j6', FormDebugContext::themeName($choices[0]));
+        self::assertSame('carte', FormDebugContext::themeName('carte'));
+
+        $html = $this->build([['theme' => 'carte', 'url' => '/a'], ['theme' => $choices[0], 'url' => '/b']]);
+
+        self::assertStringContainsString(
+            '<optgroup label="Classic"><option value="/b">vcmb_j6</option></optgroup></select>',
+            $html
+        );
+    }
+
+    public function testOnlyKnownColorModesAreAccepted(): void
+    {
+        self::assertSame('dark', FormDebugContext::colorMode('dark'));
+        self::assertSame('auto', FormDebugContext::colorMode('<script>'));
     }
 
     public function testBarEscapesDataAndSelectsTheAppliedTheme(): void
@@ -84,7 +128,10 @@ final class FormDebugBarTest extends TestCase
         self::assertStringContainsString('&lt;script&gt;', $html);
         self::assertStringNotContainsString('<script>', $html);
         self::assertStringContainsString('<option value="/f?x=1&amp;y=&quot;" selected>a</option>', $html);
-        self::assertStringContainsString('b (COM_BREEZINGFORMSNG_DEBUG_BAR_THEME_CONFIGURED)', $html);
+        self::assertStringContainsString('>b *</option>', $html);
+        self::assertStringContainsString('<a href="/f?c=dark" title="COM_BREEZINGFORMSNG_DEBUG_BAR_COLOR_DARK"', $html);
+        self::assertStringContainsString('aria-current="true"', $html);
+        self::assertStringContainsString('<code>ff_Email_validation</code>', $html);
         self::assertStringContainsString('42&nbsp;ms', $html);
         self::assertStringContainsString('<td>JYES</td>', $html);
     }
@@ -106,7 +153,16 @@ final class FormDebugBarTest extends TestCase
             'appliedTheme' => 'a',
             'renderTime' => 42,
             'themeOptions' => $options,
-            'fields' => [['name' => 'Email', 'type' => 'bfTextfield', 'label' => 'E-mail', 'required' => true]],
+            'colorMode' => 'dark',
+            'colorOptions' => [['mode' => 'dark', 'url' => '/f?c=dark']],
+            'fields' => [[
+                'name' => 'Email',
+                'type' => 'bfTextfield',
+                'label' => 'E-mail',
+                'required' => true,
+                'validation' => 'ff_Email_validation',
+                'customValidation' => false,
+            ]],
         ]);
     }
 }

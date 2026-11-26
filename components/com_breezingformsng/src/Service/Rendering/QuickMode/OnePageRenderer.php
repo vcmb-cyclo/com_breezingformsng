@@ -237,7 +237,7 @@ class OnePageRenderer
         return QuickModeEditorValueBuilder::build($editor);
     }
 
-    public function __construct(HTML_facileFormsProcessor $p)
+    public function __construct(HTML_facileFormsProcessor $p, ?string $theme = null)
     {
         $this->p = $p;
         $default = ComponentHelper::getParams('com_languages')->get('site');
@@ -261,6 +261,9 @@ class OnePageRenderer
                 $this->rootMdata['themebootstrap'],
                 ['carte']
             );
+        }
+        if ($theme !== null) {
+            $this->rootMdata['themebootstrap'] = $theme;
         }
 
         $this->bsClasses[5] = QuickModeBootstrapClassMapBuilder::build();

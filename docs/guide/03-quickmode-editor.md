@@ -198,7 +198,7 @@ QuickMode has no "columns" setting. Use a section with **Display type** set to *
 
 ### Debug mode
 
-Turn on the **Debug** switch at the top of the editor. While it is on (closing the editor turns it off), Super Users logged in to the site see a bar above the form with the render time, the form details and its fields (never the submitted values). With the Classic engine, the bar also lets you try any installed theme: the choice is carried by the page address and nothing is saved. Other visitors see no change.
+Turn on the **Debug** switch at the top of the editor. While it is on (closing the editor turns it off), Super Users logged in to the site see a bar above the form with the form name, the account, the render time, the form details and its fields with their validation (never the submitted values). The bar also switches between automatic, light and dark colours, and tries any installed theme (`*` marks the configured one). On a Bootstrap or one-page form, the **Classic** group of the list shows the form with the Classic engine and the chosen theme; some fields may then look or behave differently: these choices are carried by the page address and nothing is saved. The technical name of each field is shown next to its label. Other visitors see no change.
 
 ## 5. The Options tab (e-mail, scripts and more)
 

@@ -26,6 +26,66 @@
     padding: .1rem .5rem;
 }
 
+.bfng-debug__modes {
+    display: inline-flex;
+}
+
+.bfng-debug__modes a {
+    display: inline-block;
+    min-width: 2.25rem;
+    padding: .25rem .5rem;
+    text-align: center;
+    color: #212529;
+    background: #fff;
+    border: 1px solid #6c757d;
+}
+
+.bfng-debug__modes a + a {
+    border-inline-start: 0;
+}
+
+.bfng-debug__modes a:first-child {
+    border-radius: .25rem 0 0 .25rem;
+}
+
+.bfng-debug__modes a:last-child {
+    border-radius: 0 .25rem .25rem 0;
+}
+
+.bfng-debug__modes a[aria-current] {
+    color: #fff;
+    background: #5c636a;
+}
+
+.bfng-debug__tag {
+    color: #fff;
+    background: #5c636a;
+    border-radius: .25rem;
+    padding: .1rem .5rem;
+    font-size: .8rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.bfng-debug__help {
+    cursor: help;
+}
+
+/* Technical name shown next to each field of the form. */
+.bfng-debug-field-name {
+    display: inline-block;
+    width: fit-content;
+    align-self: flex-start;
+    justify-self: start;
+    margin-inline-end: .5rem;
+    padding: .15em .45em;
+    border: 1px solid #0a3622;
+    border-radius: .25rem;
+    color: #0a3622;
+    background: #a3cfbb;
+    font: 700 .7rem/1.4 monospace;
+}
+
 .bfng-debug__theme {
     display: inline-flex;
     flex-wrap: wrap;

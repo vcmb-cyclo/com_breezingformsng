@@ -518,7 +518,7 @@ final class RenderingEngine
         echo $this->processor->header();
         $classicTheme = ($rootMdata['themebootstrapThemeEngine'] ?? '') !== 'bootstrap' ? ($rootMdata['theme'] ?? '') : '';
         $debugBar = $this->startDebugBar($rootMdata);
-        $classicTheme = $debugBar->themeOverride ?? $classicTheme;
+        $classicTheme = $debugBar->classicTheme ?? $classicTheme;
         $this->initializeFormRendering(is_string($classicTheme) ? $classicTheme : '');
 
         if ($this->executeBeforeFormPiece()) {
@@ -737,7 +737,7 @@ final class RenderingEngine
 
             $quickMode = $this->quickModeRendererFactory()->create(
                 $this->processor,
-                $rootMdata,
+                $debugBar?->rendererMetadata($rootMdata) ?? $rootMdata,
                 $debugBar?->themeOverride
             );
             $this->processor->quickmode = $quickMode;
