@@ -54,8 +54,8 @@ for (const theme of themes) {
 
         const themed = await measure(page, theme);
 
-        // VCMB J6 gives every button the height of its fields, the country button included.
-        const ignored = theme === 'vcmb_j6' ? ['height'] : [];
+        // These themes have high fields: the country button takes their height.
+        const ignored = ['vcmb_j5b', 'vcmb_j6'].includes(theme) ? ['height'] : [];
         const comparable = (parts) => parts.map((part) => Object.fromEntries(
             Object.entries(part).filter(([property]) => !ignored.includes(property))));
 

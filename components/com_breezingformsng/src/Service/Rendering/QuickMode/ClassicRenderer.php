@@ -759,7 +759,10 @@ float:left;
                 $hintId = '';
                 if ($mdata['bfType'] !== 'bfHidden' && trim((string) ($mdata['hint'] ?? '')) !== '') {
                     $hintLine = trim(strip_tags($this->quickModeHintContentResolver()->resolve((string) $mdata['hint'], true)));
-                    if ($hintLine !== '' && ($this->rootMdata['theme'] ?? '') === 'vcmb_j6') {
+                    // These themes show the help line under the field: the field refers to it.
+                    $visibleHint = in_array($this->rootMdata['theme'] ?? '', ['vcmb_j5b', 'vcmb_j6'], true);
+
+                    if ($hintLine !== '' && $visibleHint) {
                         $hintId = 'bfHint' . (int) $mdata['dbId'];
                         $tabIndex .= 'aria-describedby="' . $hintId . '" ';
                     }
