@@ -163,6 +163,11 @@
     overflow: hidden;
 }
 
+/* A row keeps its floated parts even when it may overflow, as the rows of a calendar do for its popup. */
+.bfQuickMode section.bfElemWrap:not([hidden]) {
+    display: flow-root;
+}
+
 .bfQuickMode span.bfElemWrap {
     padding: 5px;
     margin: 0px 10px 0px 0px;
@@ -782,4 +787,9 @@
     clip: rect(0, 0, 0, 0) !important;
     white-space: nowrap !important;
     border: 0 !important;
+}
+
+/* Responsive calendar: the field first, its button right after it. */
+.bfQuickMode .bfElementGroupNoWrap > input.bfCalendarInput {
+    float: left;
 }
