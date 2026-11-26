@@ -135,7 +135,7 @@ Tab **Advanced**, for the form:
 - Group "Other Options":
   - **Use Joomla tooltips for hints**.
   - **Use Sweetalerts on errors**.
-  - **If no alert on errors**: choose **Use default errors** or **Use balloon errors**.
+  - **If no alert on errors**: choose **Use default errors** or **Use balloon errors**. The default errors are listed at the top of the form and each message is repeated under its field.
   - **Fading effect on form entry** and **Rollover** / **Rollover color** (only with the BreezingForms theme engine).
   - A text box for the **Form toggle fields** rules (visibility rules).
 

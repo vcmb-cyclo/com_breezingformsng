@@ -10,6 +10,7 @@
     --vcmb-danger: light-dark(#a32132, #ffabb3);
     --vcmb-muted: light-dark(#4f6277, #b9c7d6);
     --vcmb-hairline: light-dark(#d5dde5, #34475c);
+    --bf-error-color: var(--vcmb-danger);
     color: var(--vcmb-ink);
     background: var(--vcmb-paper);
     accent-color: var(--vcmb-blue);

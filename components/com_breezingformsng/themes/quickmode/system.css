@@ -246,6 +246,21 @@
     color: red;
 }
 
+/* ##### message under a field in error ##### */
+
+.bfQuickMode .bf-field-error {
+    display: block;
+    clear: both;
+    margin-top: 4px;
+    color: var(--bf-error-color, #a01515);
+    font-weight: bold;
+    white-space: pre-line;
+}
+
+.bfQuickMode :is(input, select, textarea).is-invalid {
+    border-color: var(--bf-error-color, #a01515) !important;
+}
+
 /* ##### hint line (shown by the themes that prefer it to the tooltip) ##### */
 
 .bfQuickMode .bfHint {
