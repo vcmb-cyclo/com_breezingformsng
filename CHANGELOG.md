@@ -1,5 +1,27 @@
 # Changelog
 
+## 6.1.1-RC4
+
+### Added
+
+- Add an appointment booking sample form that uses every field widget (phone, date, date and time, time, country, address and file drop zone), in the Samples of the Tools screen.
+- Add the VCMB J5b QuickMode theme, with light and dark colours, compact fields and buttons, a ring around the active field and the help of each field written under it.
+- Add a debug bar above the form on the website, shown to Super Users while the form is in debug mode: try any theme, switch between light and dark colours, show or hide the technical names of the fields and read the form details.
+- Repeat each error message under its field in Classic forms, in addition to the list at the top.
+- Add a sortable Debug column to the forms list, and an Actions menu to publish, unpublish and switch the debug mode of several forms at once.
+
+### Changed
+
+- Keep a form in debug mode until you turn it off: opening, saving or closing the editor no longer changes it.
+- Show the error message closer to its field in Bootstrap and one-page forms.
+- Count the same trashed items in the audit as in the Tools screen.
+- Use a slightly darker blue in the VCMB J5 and J6 themes so that white text keeps a sufficient contrast.
+
+### Fixed
+
+- Restore the country selector of the phone field in the Aqua, Breeze, Glossy Blue and Glossy Gray themes.
+- Give a form row its theme colour again after the rollover highlight, including when the colours turn dark.
+
 ## 6.1.1-RC3
 
 ### Changed
@@ -24,7 +46,6 @@
 - Add the VCMB J6 QuickMode theme, with light and dark colours, a narrow label column, a soft ring around the active field and the help of each field written under it instead of a hover icon.
 - Select several values of missing records or of missing elements in the audit and delete them in one go.
 - List the tables of each mixed collation in the audit, and repair the ones that do not use the target collation from there.
-- Add an appointment booking sample form that uses every field widget (phone, date, date and time, time, country, address and file drop zone), in the Samples of the Tools screen.
 
 ### Changed
 

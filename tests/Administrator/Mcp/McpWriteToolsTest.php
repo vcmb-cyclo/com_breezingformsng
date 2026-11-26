@@ -55,7 +55,7 @@ final class McpWriteToolsTest extends TestCase
 
     private function server(): McpServer
     {
-        return new McpServer(array_values($this->tools()), '6.1.1-RC3');
+        return new McpServer(array_values($this->tools()), '6.1.1-RC4');
     }
 
     /**

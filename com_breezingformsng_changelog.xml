@@ -3,6 +3,28 @@
     <changelog>
         <element>com_breezingformsng</element>
         <type>component</type>
+        <version>6.1.1-RC4</version>
+        <addition>
+            <item>Add an appointment booking sample form that uses every field widget (phone, date, date and time, time, country, address and file drop zone), in the Samples of the Tools screen.</item>
+            <item>Add the VCMB J5b QuickMode theme, with light and dark colours, compact fields and buttons, a ring around the active field and the help of each field written under it.</item>
+            <item>Add a debug bar above the form on the website, shown to Super Users while the form is in debug mode: try any theme, switch between light and dark colours, show or hide the technical names of the fields and read the form details.</item>
+            <item>Repeat each error message under its field in Classic forms, in addition to the list at the top.</item>
+            <item>Add a sortable Debug column to the forms list, and an Actions menu to publish, unpublish and switch the debug mode of several forms at once.</item>
+        </addition>
+        <change>
+            <item>Keep a form in debug mode until you turn it off: opening, saving or closing the editor no longer changes it.</item>
+            <item>Show the error message closer to its field in Bootstrap and one-page forms.</item>
+            <item>Count the same trashed items in the audit as in the Tools screen.</item>
+            <item>Use a slightly darker blue in the VCMB J5 and J6 themes so that white text keeps a sufficient contrast.</item>
+        </change>
+        <fix>
+            <item>Restore the country selector of the phone field in the Aqua, Breeze, Glossy Blue and Glossy Gray themes.</item>
+            <item>Give a form row its theme colour again after the rollover highlight, including when the colours turn dark.</item>
+        </fix>
+    </changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
         <version>6.1.1-RC3</version>
         <change>
             <item>Manage uninstallation in Joomla's Extensions Manager. About Extensions still lets permitted administrators enable and disable plugins.</item>
@@ -26,7 +48,6 @@
             <item>Add the VCMB J6 QuickMode theme, with light and dark colours, a narrow label column, a soft ring around the active field and the help of each field written under it instead of a hover icon.</item>
             <item>Select several values of missing records or of missing elements in the audit and delete them in one go.</item>
             <item>List the tables of each mixed collation in the audit, and repair the ones that do not use the target collation from there.</item>
-            <item>Add an appointment booking sample form that uses every field widget (phone, date, date and time, time, country, address and file drop zone), in the Samples of the Tools screen.</item>
         </addition>
         <change>
             <item>Make every section of the audit report collapsible, with its count in the title, and group the collation problems in collapsible sub-sections.</item>

@@ -5,7 +5,7 @@
 	<creationDate>2026-11-26</creationDate>
 	<copyright>Copyright 2024 - 2026 by XDA+GIL</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-	<version>6.1.1-RC3</version>
+	<version>6.1.1-RC4</version>
 	<changelogurl>https://raw.githubusercontent.com/vcmb-cyclo/com_breezingformsng/main/com_breezingformsng_changelog.xml</changelogurl>
 	<description>PLG_SYSTEM_BFCOMPAT_XML_DESCRIPTION</description>
 	<namespace path="src">Vcmb\Plugin\System\Bfcompat</namespace>

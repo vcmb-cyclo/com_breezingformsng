@@ -250,7 +250,7 @@ test('vcmb_j6 draws the fieldsets in light grey and keeps the blue for their tit
     });
     expect(colours.width).toBe('1px');
     expect(colours.border).toBe('rgb(213, 221, 229)');
-    expect(colours.legend).toBe('rgb(23, 74, 120)');
+    expect(colours.legend).toBe('rgb(56, 121, 181)');
 });
 
 test('vcmb_j6 lays out the rows the form script shows, keeps hidden ones hidden, and does not stretch checkboxes', async ({ page }) => {
