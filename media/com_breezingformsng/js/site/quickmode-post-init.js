@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	if(typeof bfFade != "undefined")bfFade();
-	if(typeof bfSetElemWrapBg != "undefined")bfSetElemWrapBg();
 	if(typeof bfRollover != "undefined")bfRollover();
 	if(typeof bfRollover2 != "undefined")bfRollover2();
 	if(typeof bfRegisterToggleFields != "undefined"){

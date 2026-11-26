@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test';
 // WCAG 2.2 contrast of the VCMB QuickMode themes, in a light and a dark host page: 4.5:1 for text (3:1 for large
 // text, SC 1.4.3) and 3:1 for the border and the focus indicator of the controls (SC 1.4.11, 2.4.13).
 const themes = ['vcmb_j5b', 'vcmb_j6'];
+// The Classic renderer loads this stylesheet before the theme; it removes the outline of the focused text fields.
+const systemCss = 'components/com_breezingformsng/themes/quickmode/system.css';
 const hosts = {
     light: { scheme: 'light', background: '#ffffff', color: '#212529' },
     dark: { scheme: 'dark', background: '#212529', color: '#dee2e6' },
@@ -125,6 +127,10 @@ for (const theme of themes) {
             await page.setContent(`<!doctype html><html data-bs-theme="${host.scheme}"><head><meta charset="utf-8">
                 <style>body { margin: 1rem; background: ${host.background}; color: ${host.color}; }</style></head>
                 <body>${markup(theme)}</body></html>`);
+            if (theme === 'vcmb_j5b') {
+                await page.addStyleTag({ path: systemCss });
+            }
+
             await page.addStyleTag({ path: `media/breezingforms/themes/${theme}/theme.css` });
 
             expect([...await page.evaluate(measure), ...await page.evaluate(focusFailures)]).toEqual([]);
@@ -174,6 +180,7 @@ test('vcmb_j6 puts the label close to its field, on the same line, with the help
 
 test('vcmb_j5b rings the active field and ignores the rollover colour of the form', async ({ page }) => {
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"></head><body>${markup('vcmb_j5b')}</body></html>`);
+    await page.addStyleTag({ path: systemCss });
     await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j5b/theme.css' });
     await page.evaluate(() => {
         const row = document.querySelector('#name').closest('.bfElemWrap');
@@ -195,6 +202,40 @@ test('vcmb_j5b rings the active field and ignores the rollover colour of the for
     expect(focused.outline).toBe('rgb(91, 140, 197)');
     expect(focused.shadow).not.toBe('none');
     expect(focused.row).toBe('rgb(239, 245, 250)');
+});
+
+for (const [label, scheme, attribute] of [
+    ['the dark scheme of the visitor', 'dark', ''],
+    ['the dark mode of the page', 'light', ' data-bs-theme="dark"'],
+]) {
+    test(`vcmb_j5b turns dark with ${label}`, async ({ page }) => {
+        await page.emulateMedia({ colorScheme: scheme });
+        // The host page stays white, as a site template without a dark mode does.
+        await page.setContent(`<!doctype html><html${attribute}><head><meta charset="utf-8"></head>
+            <body>${markup('vcmb_j5b')}</body></html>`);
+        await page.addStyleTag({ path: systemCss });
+        await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j5b/theme.css' });
+
+        const light = await page.evaluate(() => ['.bfFormDiv', 'section.bfElemWrap', '#name', '#msg', '#pick', 'fieldset fieldset legend']
+            .filter((selector) => {
+                const [r, g, b, alpha = 1] = getComputedStyle(document.querySelector(selector)).backgroundColor
+                    .match(/[\d.]+/g).map(Number);
+
+                return alpha < 0.95 || Math.max(r, g, b) > 100;
+            }));
+
+        expect(light).toEqual([]);
+        expect([...await page.evaluate(measure), ...await page.evaluate(focusFailures)]).toEqual([]);
+    });
+}
+
+test('vcmb_j5b stays light when the page forces the light mode', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.setContent(`<!doctype html><html data-bs-theme="light"><head><meta charset="utf-8"></head>
+        <body>${markup('vcmb_j5b')}</body></html>`);
+    await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j5b/theme.css' });
+
+    await expect(page.locator('section.bfElemWrap').first()).toHaveCSS('background-color', 'rgb(239, 245, 250)');
 });
 
 test('vcmb_j6 draws the fieldsets in light grey and keeps the blue for their title', async ({ page }) => {
@@ -294,4 +335,28 @@ test('loading VCMB J6 preserves the layout and tooltip of a sibling Classic form
     await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j6/theme.css' });
     expect(await layout(classic)).toEqual(before);
     expect(await layout(page.locator('[data-bf-theme="vcmb_j6"]'))).toEqual(['grid', 'none']);
+});
+
+test('a row left by the pointer or the focus takes the colour of the current mode again', async ({ page }) => {
+    await page.setContent(`<!doctype html><html data-bs-theme="light"><head><meta charset="utf-8"></head>
+        <body>${markup('vcmb_j5b').replace('id="name"', 'id="name" class="ff_elem"')}</body></html>`);
+    await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j5b/theme.css' });
+    await page.addScriptTag({ path: 'node_modules/jquery/dist/jquery.min.js' });
+    await page.addScriptTag({ content: 'var JQuery = window.jQuery; var bfRolloverColor = "#ffc";' });
+    await page.addScriptTag({ path: 'media/com_breezingformsng/js/site/quickmode-rollover.js' });
+    // The form binds the rollover while the page is light; the debug bar switches to dark afterwards.
+    await page.evaluate(() => {
+        window.bfRollover();
+        window.bfRollover2();
+        document.documentElement.setAttribute('data-bs-theme', 'dark');
+    });
+
+    const row = page.locator('section.bfElemWrap').first();
+    await row.hover();
+    await page.mouse.move(0, 0);
+    await expect(row).toHaveCSS('background-color', 'rgb(31, 45, 61)');
+
+    await page.focus('#name');
+    await page.locator('#name').blur();
+    await expect(row).toHaveCSS('background-color', 'rgb(31, 45, 61)');
 });

@@ -3,10 +3,7 @@
    form's rollover property is enabled with a non-empty color (see
    ClassicRenderer::headers()). Depends on a global bfRolloverColor,
    declared inline right before this file is loaded. */
-var bfElemWrapBg = "";
-function bfSetElemWrapBg(){
-	bfElemWrapBg = JQuery(".bfElemWrap").css("background-color");
-}
+/* A row that is left drops its inline background: the stylesheet then gives the colour of the current mode. */
 function bfRollover() {
 	JQuery(".ff_elem").focus(
 		function(){
@@ -19,7 +16,7 @@ function bfRollover() {
 	).blur(
 		function(){
 			var parent = JQuery(this).closest(".bfElemWrap");
-			parent.css("background",bfElemWrapBg);
+			parent.css("background","");
                         parent.removeClass("bfRolloverBg");
 		}
 	);
@@ -36,7 +33,7 @@ function bfRollover2() {
 	JQuery(".bfElemWrap").mouseout(
 		function(e){
 		    if(JQuery(e.currentTarget).hasClass("js-calendar")) return;
-			JQuery(this).css("background",bfElemWrapBg);
+			JQuery(this).css("background","");
                         JQuery(this).removeClass("bfRolloverBg");
 		}
 	);
