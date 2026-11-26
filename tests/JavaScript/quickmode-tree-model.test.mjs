@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { QuickmodeTreeModel, getTreeKeyCommand } from '../../media/com_breezingformsng/js/admin/quickmode-tree-model.js';
@@ -126,6 +127,12 @@ test('Textfield widget presets map to their own type option', () => {
     const model = new QuickmodeTreeModel(root);
     const typed = (properties) => ({ ...element('typed'), properties: { type: 'element', ...properties } });
 
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfCheckbox', widget: 'consent' })), 'bfElementTypeConsent');
+    assert.equal(model.getElementTypeOption(typed({ bfType: 'bfCheckbox' })), 'bfElementTypeCheckbox');
+    assert.equal(model.getPropertiesPanel('bfElementTypeConsent'), 'bfElementTypeCheckbox');
+    assert.equal(model.getPropertiesPanel('bfElementTypeSlider'), 'bfElementTypeNumberInput');
+    assert.equal(model.getPropertiesPanel('bfElementTypeUrl'), 'bfElementTypeText');
+    assert.equal(model.getPropertiesPanel('bfElementTypeSelect'), 'bfElementTypeSelect');
     assert.equal(model.getElementTypeOption(typed({ bfType: 'bfTextfield', widget: 'phone' })), 'bfElementTypePhone');
     assert.equal(model.getElementTypeOption(typed({ bfType: 'bfTextfield', widget: 'datetime' })), 'bfElementTypeDateTime');
     assert.equal(model.getElementTypeOption(typed({ bfType: 'bfTextfield', widget: 'country' })), 'bfElementTypeCountry');
@@ -213,4 +220,9 @@ test('maps tree key events to commands', () => {
     assert.equal(getTreeKeyCommand({ key: 'F10' }), null);
     assert.equal(getTreeKeyCommand({ key: 'ContextMenu' }), 'context-menu');
     assert.equal(getTreeKeyCommand(null), null);
+});
+
+test('the properties list shows the type of a consent box', () => {
+    const source = readFileSync(new URL('../../media/com_breezingformsng/js/admin/quickmode-app-properties.js', import.meta.url), 'utf8');
+    assert.match(source, /val\(mdata\.widget === 'consent' \? 'bfElementTypeConsent' : 'bfElementTypeCheckbox'\)/);
 });

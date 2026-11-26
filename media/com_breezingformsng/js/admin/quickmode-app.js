@@ -834,6 +834,8 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
                         var selected = JQuery('#bfElementType').val();
                         switch (selected) {
                             case 'bfElementTypeText':
+                            case 'bfElementTypeEmail':
+                            case 'bfElementTypeUrl':
                             case 'bfElementTypePhone':
                             case 'bfElementTypeDateTime':
                             case 'bfElementTypeCountry':
@@ -863,6 +865,32 @@ import { QuickmodeTreeModel, getTreeKeyCommand } from 'com_breezingformsng.quick
                             case 'bfElementTypeCheckbox':
                                 obj = appScope.createCheckbox(id);
                                 break;
+                            case 'bfElementTypeConsent': {
+                                // A required, unchecked box with the library check of a checked box.
+                                obj = appScope.createCheckbox(id);
+                                var check = (appScope.elementScripts.validation || []).find(function (script) {
+                                    return script.name === 'ff_checked';
+                                });
+                                Object.assign(obj.properties, {
+                                    widget: 'consent',
+                                    consentUrl: '',
+                                    value: 'yes',
+                                    required: true,
+                                    label: BFQMConfig.labels.COM_BREEZINGFORMSNG_ELEMENT_CONSENT || obj.properties.label,
+                                    consentText: BFQMConfig.labels.COM_BREEZINGFORMSNG_CONSENT_DEFAULT_LABEL || ''
+                                });
+                                // The tree shows the short label.
+                                obj.data.title = obj.properties.label;
+                                if (check) {
+                                    Object.assign(obj.properties, {
+                                        validationCondition: 1,
+                                        validationId: check.id,
+                                        validationFunctionName: check.name,
+                                        validationMessage: BFQMConfig.labels.COM_BREEZINGFORMSNG_CONSENT_DEFAULT_ERROR || ''
+                                    });
+                                }
+                                break;
+                            }
                             case 'bfElementTypeSelect':
                                 obj = appScope.createSelect(id);
                                 break;

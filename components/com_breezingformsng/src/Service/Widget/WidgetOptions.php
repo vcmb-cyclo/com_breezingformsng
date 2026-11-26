@@ -21,10 +21,11 @@ namespace Vcmb\Component\BreezingformsNG\Site\Service\Widget;
  */
 final class WidgetOptions
 {
-    public const WIDGETS = ['phone', 'datetime', 'country', 'address'];
+    public const WIDGETS = ['email', 'url', 'phone', 'datetime', 'country', 'address', 'rating', 'consent'];
 
     private const MODES = ['datetime', 'date', 'time'];
     private const PROVIDERS = ['ban', 'photon'];
+    private const RATING_STYLES = ['stars', 'scale'];
     private const FILL_ROLES = ['street', 'postcode', 'city', 'country'];
 
     /**
@@ -54,6 +55,9 @@ final class WidgetOptions
     public static function options(string $widget, array $properties): array
     {
         return match ($widget) {
+            'email', 'url' => [
+                'validate' => self::bool($properties['widgetValidate'] ?? true, true),
+            ],
             'phone' => [
                 'defaultCountry' => self::defaultCountry($properties),
                 'countries' => self::countries($properties),
@@ -62,6 +66,11 @@ final class WidgetOptions
                 'validate' => self::bool($properties['widgetValidate'] ?? true, true),
             ],
             'datetime' => self::datetimeOptions($properties),
+            'rating' => self::ratingOptions($properties),
+            'consent' => [
+                'url' => self::link((string) ($properties['consentUrl'] ?? '')),
+                'text' => trim((string) ($properties['consentText'] ?? '')),
+            ],
             'country' => [
                 'defaultCountry' => self::defaultCountry($properties),
                 'countries' => self::countries($properties),
@@ -94,6 +103,56 @@ final class WidgetOptions
             'max' => self::bound((string) ($properties['widgetMax'] ?? ''), $mode),
             'step' => max(0, (int) ($properties['widgetStep'] ?? 15)),
         ];
+    }
+
+    /**
+     * Stars count from 1 to the maximum (3 to 10 stars); a scale goes from the minimum to the
+     * maximum of the number field, 0 to 10 by default and 21 choices at most.
+     *
+     * @param array<string, mixed> $properties
+     * @return array<string, mixed>
+     */
+    private static function ratingOptions(array $properties): array
+    {
+        $style = (string) ($properties['ratingStyle'] ?? 'stars');
+        $style = \in_array($style, self::RATING_STYLES, true) ? $style : 'stars';
+        $min = self::integer($properties['min'] ?? null);
+        $max = self::integer($properties['max'] ?? null);
+
+        if ($style === 'stars') {
+            $min = 1;
+            $max = $max === null ? 5 : max(3, min(10, $max));
+        } else {
+            $min = max(0, min(100, $min ?? 0));
+            $max = max($min + 1, min($min + 20, $max ?? $min + 10));
+        }
+
+        $color = trim((string) ($properties['ratingColor'] ?? ''));
+
+        return [
+            'style' => $style,
+            'min' => $min,
+            'max' => $max,
+            'low' => trim((string) ($properties['ratingLow'] ?? '')),
+            'high' => trim((string) ($properties['ratingHigh'] ?? '')),
+            'large' => self::bool($properties['ratingLarge'] ?? false, false),
+            'color' => preg_match('/^#[0-9a-fA-F]{6}\z/', $color) === 1 ? $color : '',
+        ];
+    }
+
+    /** A web address or a page of the site: nothing a click could execute. */
+    private static function link(string $url): string
+    {
+        $url = trim($url);
+
+        return preg_match('~^(?:https?://[^\s"<>]+|/(?!/)[^\s"<>]*|index\.php\?[^\s"<>]*)\z~i', $url) === 1 ? $url : '';
+    }
+
+    private static function integer(mixed $value): ?int
+    {
+        $number = filter_var(\is_string($value) ? trim($value) : $value, FILTER_VALIDATE_INT);
+
+        return $number === false ? null : $number;
     }
 
     /** A bound is "", "now" or an ISO value of the shape of the mode. */

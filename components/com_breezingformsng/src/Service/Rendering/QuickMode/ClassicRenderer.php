@@ -1107,7 +1107,9 @@ float:left;
             $mdata,
             'ff_elem',
             $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect,
-            $readonly !== ''
+            $readonly !== '',
+            Text::_('COM_BREEZINGFORMSNG_CONSENT_POLICY'),
+            (string) $this->language_tag
         );
         if ($mdata['mailbackAccept']) {
             echo '<input type="hidden" class="ff_elem" name="mailbackConnectWith[' . $mdata['mailbackConnectWith'] . ']" value="true_' . $mdata['bfName'] . '"/>' . "\n";

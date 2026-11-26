@@ -27,8 +27,16 @@ use DateTimeZone;
 final class WidgetValueValidator
 {
     public const INVALID_PHONE = 'COM_BREEZINGFORMSNG_WIDGET_INVALID_PHONE';
+    public const INVALID_EMAIL = 'COM_BREEZINGFORMSNG_WIDGET_INVALID_EMAIL';
+    public const INVALID_RATING = 'COM_BREEZINGFORMSNG_WIDGET_INVALID_RATING';
+    public const INVALID_URL = 'COM_BREEZINGFORMSNG_WIDGET_INVALID_URL';
     public const INVALID_DATETIME = 'COM_BREEZINGFORMSNG_WIDGET_INVALID_DATETIME';
     public const INVALID_COUNTRY = 'COM_BREEZINGFORMSNG_WIDGET_INVALID_COUNTRY';
+
+    /** A web address: http or https, a host with a domain (accents allowed), then anything but spaces. */
+    private const WEB_ADDRESS = '~^https?://'
+        . '(?:[\p{L}\p{N}](?:[\p{L}\p{N}-]*[\p{L}\p{N}])?\.)+[\p{L}\p{N}-]{2,}'
+        . '(?::\d{1,5})?(?:[/?#]\S*)?\z~iu';
 
     private const FORMATS = [
         'datetime' => ['!Y-m-d\TH:i', '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}\z/'],
@@ -53,10 +61,17 @@ final class WidgetValueValidator
         }
 
         return match ($widget) {
+            'email' => ($options['validate'] ?? true) && filter_var($value, FILTER_VALIDATE_EMAIL, FILTER_FLAG_EMAIL_UNICODE) === false
+                ? self::INVALID_EMAIL
+                : null,
+            'url' => ($options['validate'] ?? true) && preg_match(self::WEB_ADDRESS, $value) !== 1
+                ? self::INVALID_URL
+                : null,
             'phone' => $this->validatesPhone($options) && preg_match('/^\+[1-9]\d{7,14}\z/', $value) !== 1
                 ? self::INVALID_PHONE
                 : null,
             'datetime' => $this->validateDatetime($options, $value, $now),
+            'rating' => $this->validateRating($options, $value),
             'country' => $this->validateCountry($options, $value),
             default => null,
         };
@@ -98,6 +113,39 @@ final class WidgetValueValidator
                 }
 
                 return null;
+            }
+        }
+
+        return null;
+    }
+
+    /** @param array<string, mixed> $options */
+    private function validateRating(array $options, string $value): ?string
+    {
+        $note = preg_match('/^(0|[1-9]\d{0,2})\z/', $value) === 1 ? (int) $value : null;
+
+        return $note === null || $note < (int) ($options['min'] ?? 1) || $note > (int) ($options['max'] ?? 5)
+            ? self::INVALID_RATING
+            : null;
+    }
+
+    /**
+     * @return array<string, mixed>|null The options of the element called $name when its stored
+     *                                   template area gives it the widget $widget.
+     */
+    public function elementOptions(string $templateAreas, string $name, string $widget): ?array
+    {
+        $areas = str_contains($templateAreas, '"widget"') ? json_decode($templateAreas, true) : null;
+
+        foreach (\is_array($areas) ? $areas : [] as $area) {
+            foreach (\is_array($area['elements'] ?? null) ? $area['elements'] : [] as $element) {
+                if (
+                    \is_array($element)
+                    && trim((string) ($element['name'] ?? '')) === trim($name)
+                    && ($element['options']['widget'] ?? '') === $widget
+                ) {
+                    return (array) ($element['options']['widgetOptions'] ?? []);
+                }
             }
         }
 

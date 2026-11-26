@@ -54,6 +54,7 @@ use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadExtensionPolicy;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadDirectoryProtection;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\UploadRuntime;
 use Vcmb\Component\BreezingformsNG\Site\Service\Security\HtmlSanitizer;
+use Vcmb\Component\BreezingformsNG\Site\Service\Widget\ConsentProof;
 use Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetValueValidator;
 use CB\Component\Contentbuilderng\Administrator\Helper\ContentbuilderngHelper;
 use CB\Component\Contentbuilderng\Administrator\Helper\FormSourceFactory;
@@ -202,6 +203,45 @@ final class SubmissionEngine
         $this->processor->message = Text::_($error);
 
         return true;
+    }
+
+    /**
+     * The values of a consent box are replaced by the proof of the consent; any other box keeps its own.
+     *
+     * @param array<int|string, string> $values
+     *
+     * @return array<int|string, string>
+     */
+    private function consentValues(string $elementName, string $title, array $values): array
+    {
+        $options = (new WidgetValueValidator())->elementOptions(
+            (string) $this->processor->formrow->template_areas,
+            $elementName,
+            'consent'
+        );
+
+        if ($options === null) {
+            return $values;
+        }
+
+        $text = '';
+        // Sites with several languages keep the text the visitor read.
+        $this->processor->getFieldTranslated('consentText', $elementName, $text);
+        // Without a text of its own, the box was accepted next to its label.
+        $accepted = (string) $text !== '' ? (string) $text : (string) ($options['text'] ?? '');
+        $accepted = $accepted !== '' ? $accepted : $title;
+        $now = new \DateTimeImmutable('now');
+
+        return array_map(
+            static fn (string $value): string => ConsentProof::value(
+                $value,
+                Text::_('COM_BREEZINGFORMSNG_CONSENT_PROOF'),
+                $accepted,
+                (string) ($options['url'] ?? ''),
+                $now
+            ),
+            $values
+        );
     }
 
     public function measureTime(): float
@@ -893,6 +933,10 @@ final class SubmissionEngine
                                 }
 
                                 $sigValues = '';
+
+                                if ($row->type === 'Checkbox') {
+                                    $values = $this->consentValues((string) $row->name, (string) $row->title, $values);
+                                }
 
                                 foreach ($values as $value) {
                                     if ($row->type == 'Signature' && $value != '') {

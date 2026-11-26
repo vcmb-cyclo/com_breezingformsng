@@ -51,6 +51,7 @@
   --bfng-type-hidden: #64748b;
   --bfng-type-file: #b45309;
   --bfng-type-checkbox: #15803d;
+  --bfng-type-consent: #166534;
   --bfng-type-checkboxgroup: #065f46;
   --bfng-type-radiogroup: #7c3aed;
   --bfng-type-select: #0f766e;
@@ -62,6 +63,8 @@
   --bfng-type-stripe: #635bff;
   --bfng-type-submitbutton: #e11d48;
   --bfng-type-summarize: #0369a1;
+  --bfng-type-email: #9d174d;
+  --bfng-type-url: #7c2d12;
   --bfng-type-phone: #0ea5e9;
   --bfng-type-datetime: #a21caf;
   --bfng-type-country: #4d7c0f;
@@ -111,6 +114,7 @@
   --bfng-type-hidden: #94a3b8;
   --bfng-type-file: #fbbf24;
   --bfng-type-checkbox: #4ade80;
+  --bfng-type-consent: #86efac;
   --bfng-type-checkboxgroup: #34d399;
   --bfng-type-radiogroup: #a78bfa;
   --bfng-type-select: #2dd4bf;
@@ -122,6 +126,8 @@
   --bfng-type-stripe: #a5a0ff;
   --bfng-type-submitbutton: #fb7185;
   --bfng-type-summarize: #38bdf8;
+  --bfng-type-email: #f9a8d4;
+  --bfng-type-url: #fdba74;
   --bfng-type-phone: #67e8f9;
   --bfng-type-datetime: #e879f9;
   --bfng-type-country: #a3e635;

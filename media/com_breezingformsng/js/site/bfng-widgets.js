@@ -766,6 +766,111 @@
         refresh();
     }
 
+    /* ---------- rating ---------- */
+
+    // The field keeps the note; radio buttons, outside the "ff_nm_" names the form reads, show it.
+    function initRating(input, options) {
+        var min = Number(options.min);
+        var max = Number(options.max);
+        var stars = options.style !== 'scale';
+        var restored = input.getAttribute('data-bfng-value') || input.value;
+        var box = element('div', 'bfng-rating bfng-rating--' + (stars ? 'stars' : 'scale') + (options.large ? ' bfng-rating--large' : ''));
+        var group = element('div', 'bfng-rating__choices');
+        var name = nextId('bfngRating');
+        var label = input.id ? document.querySelector('label[for="' + input.id + '"]') : null;
+        var choices = [];
+
+        function show(value) {
+            choices.forEach(function (choice) {
+                var note = Number(choice.radio.value);
+                var lit = value !== '' && (stars ? note <= Number(value) : note === Number(value));
+
+                choice.radio.checked = value !== '' && note === Number(value);
+                choice.label.classList.toggle('is-on', lit);
+            });
+        }
+
+        function choose(value) {
+            input.value = value;
+            show(value);
+            fire(input, 'input');
+            fire(input, 'change');
+        }
+
+        input.type = 'hidden';
+        input.value = restored;
+        // A reset button of the form brings the restored note back.
+        input.defaultValue = restored;
+
+        if (options.color) {
+            box.style.setProperty('--bfng-rating-color', options.color);
+        }
+
+        group.setAttribute('role', 'radiogroup');
+
+        if (label) {
+            label.id = label.id || nextId('bfngRatingLabel');
+            group.setAttribute('aria-labelledby', label.id);
+        }
+
+        for (var note = min; note <= max; note++) {
+            var choice = element('label');
+            var radio = element('input', 'bfng-rating__radio');
+
+            radio.type = 'radio';
+            radio.name = name;
+            radio.value = String(note);
+            radio.setAttribute('aria-label', stars ? note + ' / ' + max : String(note));
+            choice.setAttribute('data-value', String(note));
+            choice.appendChild(radio);
+            choice.appendChild(element('span', 'bfng-rating__mark', stars ? '\u2605' : String(note)));
+            group.appendChild(choice);
+            choices.push({ radio: radio, label: choice });
+        }
+
+        group.addEventListener('change', function (event) {
+            event.stopPropagation();
+            choose(event.target.value);
+        });
+        // A second click on the chosen note takes it back: a radio button alone cannot be unchecked.
+        group.addEventListener('click', function (event) {
+            if (event.target.type === 'radio' && event.target.value === input.value && event.target.dataset.wasChecked) {
+                choose('');
+            }
+        });
+        group.addEventListener('pointerdown', function (event) {
+            var target = event.target.closest('label');
+
+            if (target) {
+                var radioButton = target.querySelector('input');
+                radioButton.dataset.wasChecked = radioButton.checked ? '1' : '';
+            }
+        });
+
+        if (options.low) {
+            box.appendChild(element('span', 'bfng-rating__low', options.low));
+        }
+
+        box.appendChild(group);
+
+        if (options.high) {
+            box.appendChild(element('span', 'bfng-rating__high', options.high));
+        }
+
+        input.after(box);
+
+        if (input.form) {
+            input.form.addEventListener('reset', function () {
+                window.setTimeout(function () {
+                    input.value = restored;
+                    show(restored);
+                }, 0);
+            });
+        }
+
+        show(restored);
+    }
+
     /* ---------- bootstrap ---------- */
 
     function upgrade(node, config) {
@@ -782,6 +887,8 @@
         }
         if (kind === 'datetime') {
             initDatetime(node, options);
+        } else if (kind === 'rating') {
+            initRating(node, options);
         } else if (kind === 'country') {
             initCountry(node, options, config);
         } else if (kind === 'address') {

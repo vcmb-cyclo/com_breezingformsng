@@ -14,6 +14,8 @@ const NODE_CLASSES = Object.freeze({
 
 /** Textfield presets: widget property value => #bfElementType option. */
 const WIDGET_OPTIONS = Object.freeze({
+    email: 'bfElementTypeEmail',
+    url: 'bfElementTypeUrl',
     phone: 'bfElementTypePhone',
     datetime: 'bfElementTypeDateTime',
     country: 'bfElementTypeCountry',
@@ -188,11 +190,28 @@ export class QuickmodeTreeModel {
             return this.getWidgetOption(node.properties.widget) || 'bfElementTypeText';
         }
 
+        if (bfType === 'bfCheckbox' && node.properties.widget === 'consent') {
+            return 'bfElementTypeConsent';
+        }
+
         if (bfType === 'bfNumberInput' && node.properties.range) {
             return 'bfElementTypeSlider';
         }
 
         return 'bfElementType' + bfType.slice(2);
+    }
+
+    /**
+     * Id of the properties panel of a #bfElementType option: the presets share the panel of
+     * their field.
+     */
+    getPropertiesPanel(option) {
+        if (this.getWidgetFromOption(option)) {
+            return 'bfElementTypeText';
+        }
+
+        return { bfElementTypeSlider: 'bfElementTypeNumberInput', bfElementTypeConsent: 'bfElementTypeCheckbox' }[option]
+            || option;
     }
 
     /**

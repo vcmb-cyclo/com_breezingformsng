@@ -10,6 +10,10 @@
             <item>Add a debug bar above the form on the website, shown to Super Users while the form is in debug mode: try any theme, switch between light and dark colours, show or hide the technical names of the fields and read the form details.</item>
             <item>Repeat each error message under its field in Classic forms, in addition to the list at the top.</item>
             <item>Add a sortable Debug column to the forms list, and an Actions menu to publish, unpublish and switch the debug mode of several forms at once.</item>
+            <item>Add the E-mail address and Web address (URL) field types, with the matching phone keyboard and a check by the server.</item>
+            <item>Add a GDPR consent field: its box is never checked beforehand, links your privacy policy, and each submission keeps the date and the accepted text.</item>
+            <item>Show a number as a rating, in stars or as a scale of buttons, with captions, size and colour.</item>
+            <item>Choose the type of a field in a panel with a search, your last choices and one column for each category.</item>
         </addition>
         <change>
             <item>Keep a form in debug mode until you turn it off: opening, saving or closing the editor no longer changes it.</item>
@@ -17,6 +21,7 @@
             <item>Count the same trashed items in the audit as in the Tools screen.</item>
             <item>Name the CB network in the Stripe payment methods of the editor and recall how to turn it on in Stripe.</item>
             <item>Use a slightly darker blue in the VCMB J5 and J6 themes so that white text keeps a sufficient contrast.</item>
+            <item>Order the field types by likely use, and shorten the French name of the number field.</item>
         </change>
         <fix>
             <item>Restore the country selector of the phone field in the Aqua, Breeze, Glossy Blue and Glossy Gray themes.</item>

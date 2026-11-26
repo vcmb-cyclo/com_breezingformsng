@@ -86,6 +86,35 @@ final class WidgetMarkupTest extends TestCase
         );
     }
 
+    public function testEmailStaysATextFieldWithTheMailKeyboardAndSuggestions(): void
+    {
+        $html = $this->render(self::field(['widget' => 'email', 'maxLength' => '120', 'value' => 'name@example.org']));
+
+        // The themes style the text inputs: the type does not change.
+        self::assertStringContainsString('type="text"', $html);
+        self::assertStringContainsString('inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false"', $html);
+        self::assertStringContainsString('maxlength="120"', $html);
+        self::assertStringContainsString('data-bfng-widget="email"', $html);
+        self::assertSame(['validate' => true], $this->options($html));
+    }
+
+    public function testTheRatingBelongsToTheNumberFieldAndBoundsItsOptions(): void
+    {
+        $field = self::field(['bfType' => 'bfNumberInput', 'widget' => 'rating', 'ratingStyle' => 'stars', 'max' => '50',
+            'ratingColor' => 'red" onload="x']);
+
+        self::assertTrue(WidgetFieldBuilder::hasWidget($field));
+        self::assertFalse(WidgetFieldBuilder::hasWidget(self::field(['widget' => 'rating'])));
+        self::assertFalse(WidgetFieldBuilder::hasWidget(['bfType' => 'bfNumberInput', 'widget' => 'email']));
+        self::assertSame(
+            ['style' => 'stars', 'min' => 1, 'max' => 10, 'low' => '', 'high' => '', 'large' => false, 'color' => ''],
+            WidgetOptions::options('rating', $field)
+        );
+        $scale = WidgetOptions::options('rating', ['ratingStyle' => 'scale', 'ratingColor' => '#336699']);
+        self::assertSame([0, 10, '#336699'], [$scale['min'], $scale['max'], $scale['color']]);
+        self::assertSame(20, WidgetOptions::options('rating', ['ratingStyle' => 'scale', 'max' => '999'])['max']);
+    }
+
     public function testDatetimePicksTheNativeInputTypeFromTheMode(): void
     {
         foreach (['datetime' => 'datetime-local', 'date' => 'date', 'time' => 'time'] as $mode => $type) {

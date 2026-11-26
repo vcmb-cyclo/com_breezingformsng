@@ -4,7 +4,7 @@ This guide lists every field type you can pick in the QuickMode editor. For each
 
 The editor screens themselves are described in [the QuickMode editor guide](03-quickmode-editor.md). Here we only talk about the field types.
 
-You choose a type in the **Type** list of the element properties. The list is split in four groups: **Input**, **Choice**, **Security and payment** and **Action and view**.
+You choose a type in the **Type** panel of the element properties. It shows four columns side by side: **Input**, **Choice**, **Security and payment** and **Action and view**. Type in the search box to keep only the matching types: it also knows other words, such as *card* for Stripe. Your last three choices are shown at the top. With the keyboard, the arrows move between types and columns, **Enter** chooses and **Escape** closes.
 
 ## How to read this guide
 
@@ -21,6 +21,8 @@ You choose a type in the **Type** list of the element properties. The list is sp
 | Type | Use | Stored value | Notes |
 |---|---|---|---|
 | Textfield | One line of text | The text | Can be a password field and can send a mailback |
+| E-mail address | An e-mail address | The address | Checked on the server |
+| Web address (URL) | The address of a page | The address | Checked on the server |
 | International phone | Phone number with country prefix | `+33612345678` style | Checked on the server |
 | Date and time | Date, time, or both | `2026-11-18T09:00`, `2026-11-18` or `09:00` | Optional earliest and latest value |
 | Country | Pick a country | Two-letter ISO code, for example `FR` | Optional list of allowed countries |
@@ -48,6 +50,7 @@ You choose a type in the **Type** list of the element properties. The list is sp
 
 - **Free text, short**: Textfield. Use a more specific type when one fits (phone, date, country).
 - **Free text, long**: Textarea.
+- **An e-mail address**: E-mail address. The phone keyboard shows the @ sign.
 - **A phone number**: International phone. It gives a clean `+` number.
 - **A date**: Date and time in "Date only" mode, or Calendar if you need a specific date format.
 - **A country**: Country. The value is always a valid code.
@@ -75,6 +78,30 @@ You choose a type in the **Type** list of the element properties. The list is sp
 **Accessibility.** If Required is on, the asterisk is hidden from screen readers and replaced by a hidden "Required" text. The field also gets `aria-required="true"`. Validation errors are announced in a message box with `role="alert"`.
 
 **Example.** Name `lastname`, Label "Last name", Required on, Validation Library `ff_valuenotempty`, Error Message "Please enter your last name".
+
+## E-mail address
+
+**Use.** An e-mail address.
+
+**Options.** The options of a Textfield, mailback included, plus **Check the entry** (on by default).
+
+**In the browser.** The field offers the e-mail keyboard on phones and the address the browser remembers. For a message while the visitor is still on the form, also set **Validation** to `ff_validemail`.
+
+**On the server.** When **Check the entry** is on, an address that is not valid is refused.
+
+**Stored.** The address as typed.
+
+## Web address (URL)
+
+**Use.** The address of a web page.
+
+**Options.** The options of a Textfield, plus **Check the entry** (on by default).
+
+**In the browser.** The field offers the web keyboard on phones.
+
+**On the server.** When **Check the entry** is on, the address must start with `http://` or `https://` and name a domain. Nothing checks that the site exists.
+
+**Stored.** The address as typed.
 
 ## International phone
 
@@ -151,6 +178,8 @@ You choose a type in the **Type** list of the element properties. The list is sp
 **Example.** Name `guests`, Minimal value 1, Maximum value 10, Step 1.
 
 ## Slider
+
+**Rating.** The option **Rating** of a Number input or a Slider shows **Stars** (3 to 10, from **Maximum**, 5 by default) or a **Scale** of buttons (from **Minimum** to **Maximum**, 0 to 10 by default, 21 choices at most), with an optional caption on each side, a large size and a colour. Nothing is chosen at first, so a **Required** rating with the `ff_valuenotempty` validation must be answered; a second click on the chosen note clears it. The stored value is the number, and the server refuses a number outside the scale.
 
 **Use.** A number chosen on a slider with its value displayed.
 
@@ -231,6 +260,16 @@ When a file is refused, the visitor sees: "The file '...' has an invalid extensi
 **Accessibility.** Required marker and `aria-required` apply.
 
 **Example.** Name `terms`, Label "I accept the terms", Required on, Validation Library `ff_valuenotempty`.
+
+## GDPR consent
+
+**Use.** The agreement of the visitor to the use of their information.
+
+**Options.** The **Label** is the short name of the field; **Text to accept** is the sentence next to the box. Then the options of a Checkbox, plus **Privacy policy address** (a web address or `index.php?…`), linked next to the box. The box is never checked beforehand. A new one is required, with the `ff_checked` validation and a default text that you should adapt.
+
+**Stored.** The proof written by the server, for example `Accepted on 2026-11-26 19:05:09 UTC: “I agree …” — https://example.org/privacy`: the date, the text of the box and the linked address. An unchecked box stores nothing. The IP address is not part of the proof.
+
+**Watch out.** Like other required fields, the box is required by the form in the browser; a submission without it is stored without any consent. A script that compares the value of this box with `yes` must now look for a non-empty value.
 
 ## Checkbox group
 

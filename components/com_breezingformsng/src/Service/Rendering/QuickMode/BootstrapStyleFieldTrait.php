@@ -745,7 +745,9 @@ trait BootstrapStyleFieldTrait
             $mdata,
             'ff_elem form-check-input',
             $tabIndex . $onclick . $onblur . $onchange . $onfocus . $onselect,
-            $readonly !== ''
+            $readonly !== '',
+            Text::_('COM_BREEZINGFORMSNG_CONSENT_POLICY'),
+            (string) $this->language_tag
         );
         echo '</span>';
         echo '</div>';
