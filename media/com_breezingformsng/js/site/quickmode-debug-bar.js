@@ -6,6 +6,17 @@
         }
     });
 
+    // A click keeps the help tooltip open (some browsers do not focus a clicked button), Escape closes it.
+    document.addEventListener('click', (event) => {
+        event.target.closest('.bfng-debug__help')?.focus();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && event.target.matches('.bfng-debug__help')) {
+            event.target.blur();
+        }
+    });
+
     // Force light or dark: Bootstrap attribute, native controls and prefers-color-scheme rules.
     const applyColorMode = (mode) => {
         document.documentElement.setAttribute('data-bs-theme', mode);

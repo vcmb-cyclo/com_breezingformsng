@@ -106,9 +106,11 @@ final class FormDebugBarBuilder
             . self::escape($data['account']) . '</span>'
             . '<span class="bfng-debug__tag">' . $this->label('RENDER_TIME') . ' '
             . $data['renderTime'] . '&nbsp;ms</span>'
-            . '<span class="bfng-debug__help" tabindex="0" role="note" title="' . $help
-            . '" aria-label="' . $help . '">'
-            . self::icon('circle-question') . '</span>';
+            // Own tooltip: the one of a title attribute is slow and absent on click, keyboard and touch.
+            . '<span class="bfng-debug__help-box">'
+            . '<button type="button" class="bfng-debug__help" aria-label="' . $help . '">'
+            . self::icon('circle-question') . '</button>'
+            . '<span class="bfng-debug__tooltip" aria-hidden="true">' . $help . '</span></span>';
 
         $html .= '</div><details class="bfng-debug__details"><summary>' . $this->label('DETAILS') . '</summary><dl>';
 

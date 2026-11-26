@@ -136,6 +136,20 @@ final class FormDebugBarTest extends TestCase
         self::assertStringContainsString('<td>JYES</td>', $html);
     }
 
+    public function testHelpIsAButtonWithItsOwnTooltip(): void
+    {
+        $html = $this->build([]);
+
+        self::assertStringContainsString(
+            '<button type="button" class="bfng-debug__help" aria-label="COM_BREEZINGFORMSNG_DEBUG_BAR_HELP">',
+            $html
+        );
+        self::assertStringContainsString(
+            '<span class="bfng-debug__tooltip" aria-hidden="true">COM_BREEZINGFORMSNG_DEBUG_BAR_HELP</span></span>',
+            $html
+        );
+    }
+
     public function testBarHasNoThemeListWhenTheRendererCannotChangeIt(): void
     {
         self::assertStringNotContainsString('<select', $this->build([]));

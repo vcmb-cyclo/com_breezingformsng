@@ -67,8 +67,42 @@
     overflow-wrap: anywhere;
 }
 
+/* At the end of its row, so the tooltip opening towards the start stays on screen. */
+.bfng-debug__help-box {
+    position: relative;
+    margin-inline-start: auto;
+}
+
 .bfng-debug__help {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    font-size: 1.25rem;
     cursor: help;
+}
+
+.bfng-debug__tooltip {
+    display: none;
+    position: absolute;
+    /* No gap under the button: the pointer can move onto the tooltip. */
+    inset-block-start: 100%;
+    inset-inline-end: 0;
+    z-index: 1000;
+    width: max-content;
+    max-width: min(24rem, 75vw);
+    padding: .5rem .75rem;
+    color: #fff;
+    background: #212529;
+    border: 1px solid #adb5bd;
+    border-radius: .25rem;
+}
+
+.bfng-debug__help-box:is(:hover, :focus-within) .bfng-debug__tooltip {
+    display: block;
 }
 
 /* Technical name shown next to each field of the form. */
