@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // WCAG 2.2 contrast of the VCMB QuickMode themes, in a light and a dark host page: 4.5:1 for text (3:1 for large
 // text, SC 1.4.3) and 3:1 for the border and the focus indicator of the controls (SC 1.4.11, 2.4.13).
-const themes = ['vcmb_j5', 'vcmb_j6'];
+const themes = ['vcmb_j5b', 'vcmb_j6'];
 const hosts = {
     light: { scheme: 'light', background: '#ffffff', color: '#212529' },
     dark: { scheme: 'dark', background: '#212529', color: '#dee2e6' },
@@ -172,6 +172,31 @@ test('vcmb_j6 puts the label close to its field, on the same line, with the help
     expect(focused.background).toBe('rgb(255, 255, 255)');
 });
 
+test('vcmb_j5b rings the active field and ignores the rollover colour of the form', async ({ page }) => {
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"></head><body>${markup('vcmb_j5b')}</body></html>`);
+    await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j5b/theme.css' });
+    await page.evaluate(() => {
+        const row = document.querySelector('#name').closest('.bfElemWrap');
+        row.style.background = 'rgb(255, 255, 204)';
+        row.classList.add('bfRolloverBg');
+    });
+    await page.focus('#name');
+
+    const focused = await page.evaluate(() => {
+        const field = document.querySelector('#name');
+        const style = getComputedStyle(field);
+
+        return {
+            outline: style.outlineColor,
+            shadow: style.boxShadow,
+            row: getComputedStyle(field.closest('.bfElemWrap')).backgroundColor,
+        };
+    });
+    expect(focused.outline).toBe('rgb(91, 140, 197)');
+    expect(focused.shadow).not.toBe('none');
+    expect(focused.row).toBe('rgb(239, 245, 250)');
+});
+
 test('vcmb_j6 draws the fieldsets in light grey and keeps the blue for their title', async ({ page }) => {
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"></head><body>${markup()}</body></html>`);
     await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j6/theme.css' });
@@ -260,9 +285,9 @@ test('loading VCMB J6 preserves the layout and tooltip of a sibling Classic form
     const form = (theme) => `<div class="bfFormDiv" data-bf-theme="${theme}"><form class="bfQuickMode">
         <section class="bfElemWrap bfLabelLeft"><label>Name <span class="editlinktip">Help</span></label>
         <input type="text"></section></form></div>`;
-    await page.setContent(form('vcmb_j5') + form('vcmb_j6'));
-    await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j5/theme.css' });
-    const classic = page.locator('[data-bf-theme="vcmb_j5"]');
+    await page.setContent(form('vcmb_j5b') + form('vcmb_j6'));
+    await page.addStyleTag({ path: 'media/breezingforms/themes/vcmb_j5b/theme.css' });
+    const classic = page.locator('[data-bf-theme="vcmb_j5b"]');
     const layout = (root) => root.evaluate((node) => ['section', '.editlinktip'].map((selector) =>
         getComputedStyle(node.querySelector(selector)).display));
     const before = await layout(classic);

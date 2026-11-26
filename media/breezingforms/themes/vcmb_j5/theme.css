@@ -37,14 +37,18 @@
     margin: 0px 0px 10px 0px;
     width: auto;
     border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
 }
 
 .bfQuickMode legend {
     padding: 5px;
-    background: #23568a;
+    background: #92c1ff;
     color: #fff;
     font-size: 120%;
     border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
     line-height: normal !important;
     margin-top: -28px !important;
     border: none !important;
@@ -54,16 +58,18 @@
     padding: 5px;
     margin: 15px 0px 10px 0px;
     background: #eff5fa;
-    color: #212529;
     border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
 }
 
 .bfQuickMode span.bfElemWrap {
     padding: 5px;
     background: #eff5fa;
-    color: #212529;
     margin: 10px 10px 30px 0px;
     border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
 }
 
 /* ##### inline ##### */
@@ -73,10 +79,12 @@
     border-style: solid !important;
     padding: 5px;
     background: #fff;
-    color: #23568a;
-    border-color: #23568a;
+    color: #92c1ff;
+    border-color: #92c1ff;
     font-size: 110%;
     border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
     line-height: normal !important;
     margin-top: -28px !important;
 }
@@ -94,22 +102,17 @@
 /* ##### Input Fields ##### */
 
 .bfQuickMode input[type=text], .bfQuickMode input[type=password], .bfQuickMode textarea, .bfQuickMode select {
-    border: 1px solid #767676;
+    border: 1px solid #ccc;
     padding: 2px;
     line-height: normal;
 }
 
 .bfQuickMode textarea:hover, .bfQuickMode input[type='text']:hover, .bfQuickMode input[type='password']:hover, .bfQuickMode select:hover {
-    border-color: #23568a;
+    border-color: #92c1ff;
 }
 
 .bfQuickMode textarea:focus, .bfQuickMode input[type='text']:focus, .bfQuickMode input[type='password']:focus, .bfQuickMode select:focus {
-    border-color: #0071bc; outline: 2px solid #23568a;
-}
-
-.bfQuickMode :is(input, textarea, select):focus-visible {
-    outline: 2px solid #23568a;
-    outline-offset: 1px;
+    border-color: #0071bc; outline: 2px solid #92c1ff;
 }
 
 .bfQuickMode input[type='button'], .bfQuickMode input[type='submit'], .bfQuickMode input[type='checkbox'], .bfQuickMode input[type='image'], .bfQuickMode input[type='radio'], .bfQuickMode input[type='reset'], .bfQuickMode select, .bfQuickMode button {
@@ -135,8 +138,10 @@
     font-weight: bold;
     float: none;
     display: block;
-    color: #a01515;
+    color: red;
     border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
 }
 
 /* ##### max length message ##### */
@@ -170,7 +175,7 @@
     border: none;
     padding: 0px 0px 0px 5px;
     margin: 0px;
-    color: #b32020;
+    color: #f00;
     float: none;
 }
 
@@ -179,6 +184,7 @@
 .bfQuickMode button[type='submit'], .bfQuickMode button[type='reset']  {
     padding: 2px 5px 2px 5px;
     margin: 0px;
+    outline: none;
     color: #fff;
     font-weight: bold;
     font-size: 100%;
@@ -186,6 +192,8 @@
     text-shadow:#000 0px 0px 2px;
     border: 1px solid #00388a;
     border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
 }
 
 .bfQuickMode .bfNextButton, .bfQuickMode .bfSubmitButton, .bfQuickMode .bfCancelButton {
@@ -197,15 +205,10 @@
 }
 
 .bfQuickMode .bfPrevButton {
-    float: left;
+    float: left
 }
 
 .bfQuickMode button.bfCalendar {
     height: 21px;
     margin: 0px 0px 0px 5px;
-}
-
-.bfQuickMode button:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: -3px;
 }

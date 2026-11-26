@@ -177,7 +177,7 @@ On the form (top item), tab **Advanced**, group "Form Themes", use **Choose a th
 
 **BreezingForms engine** ("BreezingForms Themes"):
 
-- Pick a **Theme** from the list. The list reads the folders in `media/breezingforms/themes/`. In the package these are: aqua, breeze, default, glossy_blue, glossy_gray, qmtheme, vcmb_j5.
+- Pick a **Theme** from the list. The list reads the folders in `media/breezingforms/themes/`. In the package these are: aqua, breeze, default, glossy_blue, glossy_gray, qmtheme, vcmb_j5, vcmb_j5b, vcmb_j6.
 - This is the Classic renderer (the original BreezingForms look, independent of Bootstrap).
 
 **Bootstrap engine** ("Bootstrap Themes"):
