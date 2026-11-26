@@ -41,7 +41,7 @@
 
 .bfQuickMode legend {
     padding: 5px;
-    background: #23568a;
+    background: #397bb8;
     color: #fff;
     font-size: 120%;
     border-radius: 5px;
@@ -73,8 +73,8 @@
     border-style: solid !important;
     padding: 5px;
     background: #fff;
-    color: #23568a;
-    border-color: #23568a;
+    color: #397bb8;
+    border-color: #397bb8;
     font-size: 110%;
     border-radius: 5px;
     line-height: normal !important;
@@ -100,15 +100,15 @@
 }
 
 .bfQuickMode textarea:hover, .bfQuickMode input[type='text']:hover, .bfQuickMode input[type='password']:hover, .bfQuickMode select:hover {
-    border-color: #23568a;
+    border-color: #397bb8;
 }
 
 .bfQuickMode textarea:focus, .bfQuickMode input[type='text']:focus, .bfQuickMode input[type='password']:focus, .bfQuickMode select:focus {
-    border-color: #0071bc; outline: 2px solid #23568a;
+    border-color: #0071bc; outline: 2px solid #397bb8;
 }
 
 .bfQuickMode :is(input, textarea, select):focus-visible {
-    outline: 2px solid #23568a;
+    outline: 2px solid #397bb8;
     outline-offset: 1px;
 }
 
@@ -182,9 +182,9 @@
     color: #fff;
     font-weight: bold;
     font-size: 100%;
-    background: #0071bc;
+    background: #397bb8;
     text-shadow:#000 0px 0px 2px;
-    border: 1px solid #00388a;
+    border: 1px solid #2f679b;
     border-radius: 5px;
 }
 

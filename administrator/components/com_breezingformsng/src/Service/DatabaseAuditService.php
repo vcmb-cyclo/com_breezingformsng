@@ -995,6 +995,8 @@ final class DatabaseAuditService
      */
     private function findExtensionIssues(): array
     {
+        $excludedType = 'template';
+
         try {
             $query = $this->db->createQuery()
                 ->select($this->db->quoteName([
@@ -1008,7 +1010,9 @@ final class DatabaseAuditService
                 ]))
                 ->from($this->db->quoteName('#__extensions'))
                 ->where($this->db->quoteName('element') . ' LIKE ' . $this->db->quote('%breezingforms%'))
-                ->order($this->db->quoteName('extension_id') . ' ASC');
+                ->where($this->db->quoteName('type') . ' <> :excludedType')
+                ->order($this->db->quoteName('extension_id') . ' ASC')
+                ->bind(':excludedType', $excludedType);
             $this->db->setQuery($query);
             $rows = $this->loadAssocRows();
         } catch (\Throwable $exception) {

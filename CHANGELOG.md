@@ -1,5 +1,19 @@
 # Changelog
 
+## 6.1.1-RC3
+
+### Changed
+
+- Manage uninstallation in Joomla's Extensions Manager. About Extensions still lets permitted administrators enable and disable plugins.
+- Give extension descriptions more room in About Extensions and keep the full text available on hover.
+- Soften the blue accents in the VCMB J5 and J6 form themes while keeping white text readable.
+
+### Fixed
+
+- Exclude Joomla templates from the BreezingForms extension list and audit so site templates are not flagged as legacy or offered for removal.
+- Let administrators delete selected values of missing elements from the audit, with an explicit warning when values of existing records are included.
+- Put audit repair actions above each orphan results table so they stay accessible without scrolling through long lists.
+
 ## 6.1.1-RC2
 
 ### Added

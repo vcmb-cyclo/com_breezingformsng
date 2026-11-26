@@ -5,7 +5,7 @@ import { runAuditAndOpen } from './audit.mjs';
 import { loginAsAdmin } from './login.mjs';
 
 // The Extensions screen of the About page: every BreezingForms extension (the former BreezingForms
-// too), the identifier first, the description of the extension itself, and an uninstall button.
+// too), the identifier first, the description of the extension itself, and plugin state controls.
 
 const ADMIN = 'administrator/index.php';
 const CONTAINER = process.env.BFNG_E2E_CONTAINER;
@@ -13,11 +13,13 @@ const db = (...args) => execFileSync('docker', ['exec', '-i', CONTAINER, 'php', 
     input: readFileSync(new URL('./db.php', import.meta.url)),
 }).toString();
 
-test('the extensions screen lists the whole family, with ID first, and uninstalls one extension', async ({ browser }) => {
+test('the extensions screen lists the BF family and lets admins toggle plugins', async ({ browser }) => {
     const probe = Number(db('probe-plugin', 'breezingformsprobe'));
     const page = await browser.newPage();
+    let template;
 
     try {
+        template = JSON.parse(db('probe-template'));
         await page.route('**/plg_system_guidedtours/**', (route) => route.abort());
         await page.goto(ADMIN);
         await loginAsAdmin(page);
@@ -32,6 +34,7 @@ test('the extensions screen lists the whole family, with ID first, and uninstall
         await expect(legacy.filter({ hasText: 'module/mod_breezingformsng' })).toHaveCount(0);
         await expect(legacy.filter({ hasText: 'plugin/content/breezingformsng' })).toHaveCount(0);
         await expect(legacy.locator('a.btn')).toHaveCount(0);
+        await expect(page.locator('#bf-audit-section')).not.toContainText(template.element);
 
         await page.goto(`${ADMIN}?option=com_breezingformsng&task=about.display&view=about&layout=extensions`);
 
@@ -47,14 +50,18 @@ test('the extensions screen lists the whole family, with ID first, and uninstall
 
         // The identifier is the first column.
         await expect(table.locator('thead th').first()).toHaveText(/ID/);
-        const row = table.locator('tbody tr', { has: page.locator(`button[value="${probe}"]`) });
+        await expect(table.locator('thead th')).toHaveCount(7);
+        const row = table.locator('tbody tr', { has: page.locator(`button[data-item-form-id="${probe}"]`) });
         await expect(row.locator('td').first()).toHaveText(String(probe));
 
         // The former BreezingForms is listed, with the description of its own manifest, and the component
         // and the module of BreezingForms NG are listed too.
         await expect(row).toContainText('Probe plugin of the former BreezingForms.');
+        await expect(row.locator('.bf-extension-description'))
+            .toHaveAttribute('title', 'Probe plugin of the former BreezingForms.');
         await expect(table.locator('tbody')).toContainText('com_breezingformsng');
         await expect(table.locator('tbody')).toContainText('mod_breezingforms');
+        await expect(table.locator('tbody')).not.toContainText(template.element);
 
         const componentRow = table.locator('tbody tr', { hasText: 'com_breezingformsng' });
         const versionButton = componentRow.locator('button[data-joomla-dialog]');
@@ -79,19 +86,22 @@ test('the extensions screen lists the whole family, with ID first, and uninstall
         // The generic text that used to be repeated on every row is gone.
         await expect(table).not.toContainText('Used by BreezingForms when enabled.');
 
-        // The running component cannot be uninstalled from here.
-        await expect(table.locator('tbody tr', { hasText: 'com_breezingformsng' }).locator('button[name="extension_id"]')).toHaveCount(0);
-
-        // A confirmation first, then the extension is uninstalled with its files.
-        page.once('dialog', (dialog) => dialog.accept());
-        await Promise.all([page.waitForNavigation(), row.locator('button[name="extension_id"]').click()]);
-
-        expect(db('extension-exists', String(probe))).toBe('0');
-        await expect(page.locator('#bf-extensions-table tbody')).not.toContainText('breezingformsprobe');
-        await expect(page.locator('joomla-alert, .alert-success').first()).toBeVisible();
+        await expect(table.locator('button[name="extension_id"]')).toHaveCount(0);
+        const toggle = row.locator('button[data-item-task="about.setPluginState"]');
+        await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+        await toggle.click();
+        await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+        await page.reload();
+        await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+        await toggle.click();
+        await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+        expect(db('extension-exists', String(probe))).toBe('1');
+        expect(db('extension-exists', String(template.id))).toBe('1');
     } finally {
+        if (template) {
+            db('extension-delete', String(template.id));
+        }
         if (db('extension-exists', String(probe)) === '1') {
-            // The journey failed before the uninstall: leave no probe behind.
             db('extension-delete', String(probe));
         }
         await page.close();

@@ -27,6 +27,19 @@ final class OrphanValuesLiveDeletionGuardsTest extends TestCase
         self::assertStringContainsString('InvalidArgumentException', $method);
     }
 
+    public function testBulkDeletionUsesTheSubmittedMissingElementIds(): void
+    {
+        $source = (string) file_get_contents(self::ADMIN . '/src/Controller/AboutController.php');
+        $methodStart = strpos($source, 'public function deleteOrphanValues(): void');
+        $method = substr($source, (int) $methodStart);
+        $method = substr($method, 0, (int) strpos($method, 'public function deleteOrphanSubrecords'));
+
+        self::assertStringContainsString('$selectedIds = $this->orphanParentIds(false) ?? [];', $method);
+        self::assertStringContainsString('foreach ($selectedIds as $selectedId)', $method);
+        self::assertStringContainsString('$repair->deleteOrphanValuesOfRecords($selectedId)', $method);
+        self::assertStringContainsString('$repair->deleteOrphanValues($selectedId)', $method);
+    }
+
     public function testServiceDeletesOneMissingElementOnly(): void
     {
         $source = (string) file_get_contents(self::ADMIN . '/src/Service/DatabaseRepairService.php');
