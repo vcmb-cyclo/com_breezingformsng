@@ -46,6 +46,7 @@ use CB\Component\Contentbuilderng\Administrator\Helper\RuntimeContextHelper;
 use Vcmb\Component\BreezingformsNG\Site\Service\Upload\TokenizedDirectoryResolver;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\RuntimeAssetLoader;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\ContentBuilderInstallation;
+use Vcmb\Component\BreezingformsNG\Site\Service\Rendering\Debug\FormDebugBar;
 
 /**
  * Page header, ContentBuilder path handling and form view rendering.
@@ -516,6 +517,8 @@ final class RenderingEngine
         ob_start();
         echo $this->processor->header();
         $classicTheme = ($rootMdata['themebootstrapThemeEngine'] ?? '') !== 'bootstrap' ? ($rootMdata['theme'] ?? '') : '';
+        $debugBar = $this->startDebugBar($rootMdata);
+        $classicTheme = $debugBar->themeOverride ?? $classicTheme;
         $this->initializeFormRendering(is_string($classicTheme) ? $classicTheme : '');
 
         if ($this->executeBeforeFormPiece()) {
@@ -732,7 +735,11 @@ final class RenderingEngine
             echo $classicMarkup;
         } else if (trim((string) $this->processor->formrow->template_code_processed) == 'QuickMode') {
 
-            $quickMode = $this->quickModeRendererFactory()->create($this->processor, $rootMdata);
+            $quickMode = $this->quickModeRendererFactory()->create(
+                $this->processor,
+                $rootMdata,
+                $debugBar?->themeOverride
+            );
             $this->processor->quickmode = $quickMode;
 
             $quickMode->render();
@@ -794,8 +801,23 @@ final class RenderingEngine
         }
 
         $this->closeFormRendering();
+        $debugBar?->insert();
         $this->finishViewRendering();
 
+    }
+
+    /**
+     * Mark the place of the debug bar and return it, or null when it must not be shown.
+     *
+     * @param array<string, mixed> $rootMdata
+     */
+    private function startDebugBar(array $rootMdata): ?FormDebugBar
+    {
+        if ((int) ($this->processor->formrow->debug_mode ?? 0) !== 1) {
+            return null;
+        }
+
+        return FormDebugBar::start($this->processor, $rootMdata);
     }
 
     /**

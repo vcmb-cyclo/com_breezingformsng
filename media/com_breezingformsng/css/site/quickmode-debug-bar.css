@@ -1,0 +1,106 @@
+/* Frontend debug bar. Fixed colours: it stays readable whatever the form theme and the site template. */
+.bfng-debug {
+    color: #212529;
+    background: #fff;
+    border: 2px solid #b02a37;
+    border-radius: .4rem;
+    margin-block-end: 1rem;
+    font-size: .9rem;
+    line-height: 1.5;
+}
+
+.bfng-debug__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem 1rem;
+    padding: .5rem .75rem;
+    color: #58151c;
+    background: #f8d7da;
+}
+
+.bfng-debug__badge {
+    color: #fff;
+    background: #b02a37;
+    border-radius: .25rem;
+    padding: .1rem .5rem;
+}
+
+.bfng-debug__theme {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    margin: 0;
+}
+
+.bfng-debug__theme select {
+    color: #212529;
+    background: #fff;
+    border: 1px solid #767676;
+    border-radius: .25rem;
+    padding: .2rem .4rem;
+    max-width: 100%;
+}
+
+.bfng-debug__details > summary {
+    padding: .4rem .75rem;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.bfng-debug__details > :not(summary) {
+    margin: 0 .75rem .75rem;
+}
+
+.bfng-debug dl {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: .2rem 1rem;
+}
+
+.bfng-debug dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.bfng-debug__table {
+    overflow-x: auto;
+}
+
+.bfng-debug table {
+    width: 100%;
+    border-collapse: collapse;
+    color: inherit;
+}
+
+.bfng-debug caption {
+    caption-side: top;
+    color: inherit;
+    font-weight: 700;
+    text-align: start;
+}
+
+.bfng-debug :is(th, td) {
+    padding: .2rem .5rem;
+    border-block-end: 1px solid #dee2e6;
+    text-align: start;
+}
+
+.bfng-debug code {
+    color: #58151c;
+}
+
+@media (prefers-color-scheme: dark) {
+    html:not([data-bs-theme="light"]) .bfng-debug { color: #e7edf6; background: #111a24; border-color: #ea868f; }
+    html:not([data-bs-theme="light"]) .bfng-debug__bar { color: #ffd7dc; background: #3a1720; }
+    html:not([data-bs-theme="light"]) .bfng-debug code { color: #f6cdd3; }
+    html:not([data-bs-theme="light"]) .bfng-debug :is(th, td) { border-color: #3b4756; }
+    html:not([data-bs-theme="light"]) .bfng-debug__theme select { color: #e7edf6; background: #111a24; }
+}
+
+html[data-bs-theme="dark"] .bfng-debug { color: #e7edf6; background: #111a24; border-color: #ea868f; }
+html[data-bs-theme="dark"] .bfng-debug__bar { color: #ffd7dc; background: #3a1720; }
+html[data-bs-theme="dark"] .bfng-debug code { color: #f6cdd3; }
+html[data-bs-theme="dark"] .bfng-debug :is(th, td) { border-color: #3b4756; }
+html[data-bs-theme="dark"] .bfng-debug__theme select { color: #e7edf6; background: #111a24; }

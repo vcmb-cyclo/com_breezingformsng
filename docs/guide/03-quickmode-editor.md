@@ -196,6 +196,10 @@ How the site chooses the renderer (`QuickModeRendererFactory.php`): Bootstrap en
 
 QuickMode has no "columns" setting. Use a section with **Display type** set to **All in a row**. With the Bootstrap engine, the elements of that section are placed in one Bootstrap row, in equal-width columns. Two elements give two columns. Check the result with **Site Preview**, because the exact look depends on the theme and the engine.
 
+### Debug mode
+
+Turn on the **Debug** switch at the top of the editor. While it is on (closing the editor turns it off), Super Users logged in to the site see a bar above the form with the render time, the form details and its fields (never the submitted values). With the Classic engine, the bar also lets you try any installed theme: the choice is carried by the page address and nothing is saved. Other visitors see no change.
+
 ## 5. The Options tab (e-mail, scripts and more)
 
 The **Options** tab shows only for the form item, and only for a form that has been saved once. A new form shows: "Save the form first to access these options."

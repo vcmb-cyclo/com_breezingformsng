@@ -389,7 +389,7 @@ float:left;
         return $this->quickModeSubmitActionBuilderService ??= new QuickModeSubmitActionBuilder();
     }
 
-    public function __construct(HTML_facileFormsProcessor $p)
+    public function __construct(HTML_facileFormsProcessor $p, ?string $theme = null)
     {
         $this->p = $p;
 
@@ -411,6 +411,9 @@ float:left;
                 [],
                 'none'
             );
+        }
+        if ($theme !== null) {
+            $this->rootMdata['theme'] = $theme;
         }
 
         if ($this->p->app->getInput()->getString('ff_applic', '') != 'mod_facileforms' && $this->p->app->getInput()->getString('ff_applic', '') != 'plg_facileforms') {
