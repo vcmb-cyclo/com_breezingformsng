@@ -54,6 +54,10 @@ $elementIcons = [
 $iconClassOf = static fn(string $type): string => isset($elementIcons[$type])
     ? ' class="bfng-type-icon--' . $elementIcons[$type] . '"'
     : '';
+// The same icon, faded, before an element named in a table row.
+$typeLabelOf = static fn(string $type): string => isset($elementIcons[$type])
+    ? ' class="bfng bfng-type-label bfng-type-icon--' . $elementIcons[$type] . '"'
+    : '';
 ?>
 
 <form action="<?= $baseUrl; ?>" method="post" id="integratorActionForm">
@@ -129,9 +133,23 @@ $iconClassOf = static fn(string $type): string => isset($elementIcons[$type])
           <div class="form-control-plaintext"><?= htmlspecialchars($rule->type); ?></div>
         </div>
         <?php endif; ?>
+
+        <div class="col-12">
+          <label class="form-label" for="bf-integrator-comment">
+            <?= Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_COMMENT'); ?>
+          </label>
+          <textarea name="comment" id="bf-integrator-comment" class="form-control" rows="3" maxlength="5000"
+                    aria-describedby="bf-integrator-comment-hint"
+          ><?= htmlspecialchars($rule->comment ?? ''); ?></textarea>
+          <div class="form-text" id="bf-integrator-comment-hint">
+            <?= Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_COMMENT_HINT'); ?>
+          </div>
+        </div>
       </div>
 
-      <input type="hidden" name="task" value="<?= $isNew ? 'integrator.save' : 'integrator.edit'; ?>">
+      <?php /* Filled from the editor of an existing rule when the toolbar saves it. */ ?>
+      <input type="hidden" name="finalizeCode" value="" disabled>
+      <input type="hidden" name="task" value="integrator.apply">
       <input type="hidden" name="id" value="<?= $ruleId; ?>">
       <?= HTMLHelper::_('form.token'); ?>
     </form>
@@ -184,7 +202,11 @@ $iconClassOf = static fn(string $type): string => isset($elementIcons[$type])
 
           <?php foreach ($this->items as $item): ?>
             <tr>
-              <td><?= htmlspecialchars($item->element_name); ?> (<?= htmlspecialchars($item->element_type); ?>)</td>
+              <td>
+                <span<?= $typeLabelOf($item->element_type); ?>>
+                  <?= htmlspecialchars($item->element_name); ?> (<?= htmlspecialchars($item->element_type); ?>)
+                </span>
+              </td>
               <td class="text-center">=&gt;</td>
               <td>
                 <?= htmlspecialchars($item->reference_column); ?>
@@ -283,7 +305,11 @@ $iconClassOf = static fn(string $type): string => isset($elementIcons[$type])
             <tr>
               <td><?= htmlspecialchars($crit->reference_column); ?> (<?= htmlspecialchars($this->tableColumns[$crit->reference_column] ?? ''); ?>)</td>
               <td><?= htmlspecialchars($crit->operator); ?></td>
-              <td><?= htmlspecialchars($crit->element_name); ?> (<?= htmlspecialchars($crit->element_type); ?>)</td>
+              <td>
+                <span<?= $typeLabelOf($crit->element_type); ?>>
+                    <?= htmlspecialchars($crit->element_name); ?> (<?= htmlspecialchars($crit->element_type); ?>)
+                </span>
+              </td>
               <td><?= htmlspecialchars($crit->andor); ?></td>
               <td>
                 <button type="button" class="btn btn-link text-danger p-0 border-0 align-baseline"

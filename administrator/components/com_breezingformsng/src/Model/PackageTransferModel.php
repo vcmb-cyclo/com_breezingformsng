@@ -941,6 +941,10 @@ final class PackageTransferModel extends BaseDatabaseModel
                 return null;
             }
             $entry = ['data' => $this->plainValues($this->only($rule['data'], $ruleColumns, ['id', 'form_id', ...self::RULE_AUDIT_COLUMNS]))];
+            // A file written before rules had a comment matches a rule without one.
+            if (($entry['data']['comment'] ?? '') === '') {
+                unset($entry['data']['comment']);
+            }
             foreach (self::INTEGRATOR_CHILDREN as $key => [$table, $elementColumn]) {
                 $entry[$key] = [];
                 $columns = $this->tableColumns($table);

@@ -239,7 +239,7 @@ final class AdminControllerAccessTest extends TestCase
         }
 
         foreach (
-            ['save', 'remove', 'trash', 'setPublished', 'publish', 'unpublish', 'addItem', 'removeItem', 'saveCode', 'saveFinalizeCode', 'addCriteria',
+            ['save', 'remove', 'trash', 'setPublished', 'publish', 'unpublish', 'addItem', 'removeItem', 'saveCode', 'saveFinalizeCode', 'apply', 'addCriteria',
                 'removeCriteria', 'addCriteriaJoomla', 'removeCriteriaJoomla', 'addCriteriaFixed', 'removeCriteriaFixed', 'publishItem', 'unpublishItem'] as $task
         ) {
             yield 'integrator ' . $task => ['integrator', $task, ['id' => 5, 'state' => 1, 'cid' => [3], 'publish_id' => 3]];
@@ -473,7 +473,7 @@ final class AdminControllerAccessTest extends TestCase
     public static function integratorTasks(): iterable
     {
         foreach (
-            ['save', 'remove', 'trash', 'setPublished', 'publish', 'unpublish', 'addItem', 'removeItem', 'saveCode', 'saveFinalizeCode', 'addCriteria',
+            ['save', 'remove', 'trash', 'setPublished', 'publish', 'unpublish', 'addItem', 'removeItem', 'saveCode', 'saveFinalizeCode', 'apply', 'addCriteria',
                 'removeCriteria', 'addCriteriaJoomla', 'removeCriteriaJoomla', 'addCriteriaFixed', 'removeCriteriaFixed', 'publishItem', 'unpublishItem'] as $task
         ) {
             yield $task => [$task];

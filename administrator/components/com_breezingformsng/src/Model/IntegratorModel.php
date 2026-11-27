@@ -122,8 +122,13 @@ class IntegratorModel extends BaseDatabaseModel
         return $db->loadObjectList() ?: [];
     }
 
-    public function saveRule(string $name, int $formId, string $referenceTable, string $type): int
-    {
+    public function saveRule(
+        string $name,
+        int $formId,
+        string $referenceTable,
+        string $type,
+        string $comment = ''
+    ): int {
         $db  = $this->db();
         $pfx = $db->getPrefix();
         $tbl = str_starts_with($referenceTable, $pfx)
@@ -132,11 +137,16 @@ class IntegratorModel extends BaseDatabaseModel
         $type = \in_array($type, ['insert', 'update'], true) ? $type : 'insert';
         $now = (new Date())->toSql();
         $username = (string) $this->getCurrentUser()->username;
+        $comment = trim($comment);
 
         $query = $db->createQuery()
             ->insert($db->quoteName('#__facileforms_integrator_rules'))
-            ->columns($db->quoteName(['name', 'form_id', 'reference_table', 'type', 'created', 'created_by', 'modified', 'modified_by']))
-            ->values(':name, :formId, :referenceTable, :type, :now, :username, :now2, :username2')
+            ->columns($db->quoteName([
+                'name', 'comment', 'form_id', 'reference_table', 'type',
+                'created', 'created_by', 'modified', 'modified_by',
+            ]))
+            ->values(':name, :comment, :formId, :referenceTable, :type, :now, :username, :now2, :username2')
+            ->bind(':comment', $comment, ParameterType::STRING)
             ->bind(':now', $now, ParameterType::STRING)
             ->bind(':now2', $now, ParameterType::STRING)
             ->bind(':username', $username, ParameterType::STRING)
@@ -480,6 +490,30 @@ class IntegratorModel extends BaseDatabaseModel
             ->bind(':code', $code, ParameterType::STRING)
             ->bind(':itemId', $itemId, ParameterType::INTEGER)
             ->bind(':ruleId', $ruleId, ParameterType::INTEGER);
+        $db->setQuery($query)->execute();
+        $this->touchRule($ruleId);
+    }
+
+    /**
+     * Saves the comment of a rule, shown in the administration only, and its
+     * finalize code when given, as one version.
+     */
+    public function saveDetails(int $ruleId, string $comment, ?string $finalizeCode = null): void
+    {
+        $db      = $this->db();
+        $comment = trim($comment);
+        $query   = $db->createQuery()
+            ->update($db->quoteName('#__facileforms_integrator_rules'))
+            ->set($db->quoteName('comment') . ' = :comment')
+            ->where($db->quoteName('id') . ' = :ruleId')
+            ->bind(':comment', $comment, ParameterType::STRING)
+            ->bind(':ruleId', $ruleId, ParameterType::INTEGER);
+
+        if ($finalizeCode !== null) {
+            $query->set($db->quoteName('finalize_code') . ' = :code')
+                ->bind(':code', $finalizeCode, ParameterType::STRING);
+        }
+
         $db->setQuery($query)->execute();
         $this->touchRule($ruleId);
     }
