@@ -25,7 +25,10 @@ class IntegratorRulesModel extends ListModel implements ListPositionInterface
 {
     use ListPositionTrait;
 
-    private const SORTS = ['rules.id', 'rules.name', 'rules.type', 'forms.name', 'rules.reference_table', 'rules.published'];
+    private const SORTS = [
+        'rules.id', 'rules.name', 'rules.type', 'forms.name', 'rules.reference_table', 'rules.published',
+        'rules.created', 'rules.created_by', 'rules.modified', 'rules.modified_by',
+    ];
 
     /**
      * @param array<string, mixed> $config
@@ -59,7 +62,10 @@ class IntegratorRulesModel extends ListModel implements ListPositionInterface
     {
         $db = $this->getDatabase();
         $query = $db->createQuery()
-            ->select($db->quoteName(['rules.id', 'rules.name', 'rules.type', 'rules.published']))
+            ->select($db->quoteName([
+                'rules.id', 'rules.name', 'rules.type', 'rules.published',
+                'rules.created', 'rules.created_by', 'rules.modified', 'rules.modified_by',
+            ]))
             ->select('CONCAT(' . $db->quote($db->getPrefix()) . ', ' . $db->quoteName('rules.reference_table') . ') AS ' . $db->quoteName('reference_table'))
             ->select($db->quoteName('forms.name', 'form_name'))
             ->from($db->quoteName('#__facileforms_integrator_rules', 'rules'))

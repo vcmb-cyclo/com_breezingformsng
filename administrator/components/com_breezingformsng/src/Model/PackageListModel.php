@@ -27,7 +27,10 @@ abstract class PackageListModel extends ListModel implements ListPositionInterfa
 
     abstract protected function getTableName(): string;
 
-    private const SORTS = ['id', 'package', 'title', 'name', 'type', 'description', 'modified', 'published'];
+    private const SORTS = [
+        'id', 'package', 'title', 'name', 'type', 'description', 'created', 'created_by', 'modified', 'modified_by',
+        'published',
+    ];
 
     /**
      * @param array<string, mixed> $config
@@ -71,8 +74,8 @@ abstract class PackageListModel extends ListModel implements ListPositionInterfa
             ->where($db->quoteName('editor.id') . ' = ' . $db->quoteName($this->getTableName() . '.checked_out'));
         $query = $db->createQuery()
             ->select($db->quoteName([
-                'id', 'package', 'title', 'name', 'type', 'description', 'created', 'modified', 'published',
-                'checked_out', 'checked_out_time',
+                'id', 'package', 'title', 'name', 'type', 'description', 'created', 'created_by', 'modified',
+                'modified_by', 'published', 'checked_out', 'checked_out_time',
             ]))
             ->select('(' . $editor . ') AS ' . $db->quoteName('editor'))
             ->from($db->quoteName($this->getTableName()));

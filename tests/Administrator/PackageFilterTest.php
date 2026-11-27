@@ -113,7 +113,7 @@ final class PackageFilterTest extends TestCase
         self::assertStringContainsString("'com_breezingformsng.forms-columns'", $view);
 
         // Package is the fifth cell of the row, index 4 for table-columns.js.
-        self::assertStringContainsString("'joomla-tablecolumns-bfng-forms', '4'", $script);
+        self::assertStringContainsString("forms: ['4', '9', '10', '12'],", $script);
     }
 
     public function testTheNoPackageValueIsNotThePackageOfANewForm(): void

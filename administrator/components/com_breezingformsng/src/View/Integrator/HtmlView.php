@@ -34,6 +34,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
 {
     /** @var list<\stdClass> */
     public array $rules = [];
+    /** @var array<string, string> Names of the creators and last editors, by stored value */
+    public array $authorNames = [];
     public Pagination $pagination;
     public Registry $state;
     public ?Form $filterForm = null;
@@ -102,6 +104,17 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         }
 
         $this->rules = $list->getItems() ?: [];
+        $authors = [];
+
+        foreach ($this->rules as $item) {
+            $authors[] = (string) ($item->created_by ?? '');
+            $authors[] = (string) ($item->modified_by ?? '');
+        }
+
+        $this->authorNames = AuditUserNames::resolve(
+            Factory::getContainer()->get(DatabaseInterface::class),
+            $authors
+        );
         $this->pagination = $list->getPagination();
         $this->state = $list->getState();
         $this->filterForm = $list->getFilterForm();
@@ -144,6 +157,12 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
 
         $document = $this->getDocument();
         $wa       = $document->getWebAssetManager();
+        // Not deferred: it must run before the table.columns module reads the state.
+        $wa->registerAndUseScript(
+            'com_breezingformsng.forms-columns',
+            'media/com_breezingformsng/js/admin/forms-columns.js',
+            ['version' => 'auto']
+        );
         $wa->useScript('table.columns')->useScript('multiselect');
         $wa->registerAndUseScript(
             'com_breezingformsng.admin-form',
