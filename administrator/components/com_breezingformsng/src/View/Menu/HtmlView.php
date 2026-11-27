@@ -14,6 +14,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Menu;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Access\Exception\NotAllowed;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
@@ -28,6 +29,14 @@ class HtmlView extends BaseHtmlView
 
     public function display($tpl = null)
     {
+        // Any controller can display a view: the screen checks the right itself.
+        $id = Factory::getApplication()->getInput()->getInt('id', 0);
+        $action = $id > 0 ? 'core.edit' : 'core.create';
+
+        if (!$this->getCurrentUser()->authorise($action, 'com_breezingformsng')) {
+            throw new NotAllowed(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+        }
+
         $model = $this->getModel();
 
         if (!$model instanceof MenuModel) {

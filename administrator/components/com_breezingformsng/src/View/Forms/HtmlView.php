@@ -9,6 +9,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Forms;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Access\Exception\NotAllowed;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
@@ -74,9 +75,15 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         $formModel = $factory->createModel('FormOptions', 'Administrator', ['ignore_request' => true]);
 
         if ($layout === 'edit') {
+            // The options show the code and the settings of the form: opening
+            // them takes the right that saving them takes.
+            $action = $input->getInt('id', 0) > 0 ? 'core.edit' : 'core.create';
+
+            if (!$this->getCurrentUser()->authorise($action, 'com_breezingformsng')) {
+                throw new NotAllowed(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+            }
 
             $input->set('hidemainmenu', 1);
-
         }
 
         if ($layout === 'edit') {

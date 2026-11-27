@@ -14,6 +14,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Record;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Access\Exception\NotAllowed;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
@@ -41,6 +42,11 @@ class HtmlView extends BaseHtmlView
 
     public function display($tpl = null)
     {
+        // Any controller can display a view: the screen checks the right itself.
+        if (!$this->getCurrentUser()->authorise('core.edit', 'com_breezingformsng')) {
+            throw new NotAllowed(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+        }
+
         /** @var CMSApplication $app */
         $app = Factory::getApplication();
         $model = $this->getModel();

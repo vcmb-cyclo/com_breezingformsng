@@ -9,6 +9,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Quickmode;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Access\Exception\NotAllowed;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
@@ -86,6 +87,14 @@ class HtmlView extends BaseHtmlView
         if ($layout === 'editor') {
             parent::display($tpl);
             return;
+        }
+
+        // Any controller can display a view: the screen checks the right itself,
+        // the one of the quickmode.display task, before the form and its code are read.
+        $action = $input->getInt('form', 0) > 0 ? 'core.edit' : 'core.create';
+
+        if (!$this->getCurrentUser()->authorise($action, 'com_breezingformsng')) {
+            throw new NotAllowed(Text::_('JERROR_ALERTNOAUTHOR'), 403);
         }
 
         $model  = $this->getQuickmodeModel();
