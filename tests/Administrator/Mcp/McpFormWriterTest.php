@@ -437,6 +437,59 @@ final class McpFormWriterTest extends TestCase
         );
     }
 
+    /** @return iterable<string, array{string, string}> */
+    public static function protectedWidgetChanges(): iterable
+    {
+        foreach (['consent', 'robot', 'rating'] as $widget) {
+            yield 'remove ' . $widget => [$widget, ''];
+            yield 'replace ' . $widget => [$widget, 'email'];
+        }
+    }
+
+    #[DataProvider('protectedWidgetChanges')]
+    public function testAWidgetMcpCannotConfigureStaysOnItsField(string $widget, string $replacement): void
+    {
+        $tree = json_decode(self::quickmodeTemplate(), true, 512, JSON_THROW_ON_ERROR);
+        $tree['children'][0]['children'][0]['properties']['widget'] = $widget;
+        $this->options->method('getForm')->willReturn(self::storedForm());
+        $this->quickmode->method('getTemplateCode')->willReturn(json_encode($tree, JSON_THROW_ON_ERROR));
+        $this->quickmode->expects(self::never())->method('save');
+
+        $this->expectRefusal('cannot be changed or removed through MCP');
+        $this->writer->manageFields(
+            ['id' => 7, 'update' => [['name' => 'email', 'widget' => $replacement]]],
+            McpTestDoubles::user(['core.edit'])
+        );
+    }
+
+    public function testACaseOnlyRenameFollowsIntoTheVisibilityRules(): void
+    {
+        $saved = [];
+        $this->options->method('getForm')->willReturn(self::storedForm());
+        $this->quickmode->method('getTemplateCode')->willReturn(self::templateWithVisibility());
+        $this->forms->method('checkout')->willReturn(true);
+        // Stops once the tree to save is known: nothing after it is looked at here.
+        $this->quickmode->method('save')->willReturnCallback(
+            function (int $id, array $tree) use (&$saved): int {
+                $saved = $tree;
+
+                throw new \RuntimeException('Tree captured.');
+            }
+        );
+
+        try {
+            $this->writer->manageFields(
+                ['id' => 7, 'update' => [['name' => 'email', 'new_name' => 'Email']]],
+                McpTestDoubles::user(['core.edit'])
+            );
+            self::fail('The form was not saved.');
+        } catch (\RuntimeException $e) {
+            self::assertSame('Tree captured.', $e->getMessage());
+        }
+
+        self::assertSame('turn on element message if Email is yes', $saved['properties']['toggleFields']);
+    }
+
     private static function templateWithVisibility(): string
     {
         $tree = json_decode(self::quickmodeTemplate(), true, 512, JSON_THROW_ON_ERROR);

@@ -390,6 +390,11 @@ final class McpFormWriter
                     throw new ToolException('Widgets can only be used on text fields.');
                 }
                 $change['widget'] = $this->input->normalizeEditableWidget($change['widget']);
+                // A consent box, an anti-robot or a rating would be lost with its settings.
+                $storedWidget = \Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions::widget($current[$key]);
+                if (!$this->input->mayReplaceWidget($storedWidget)) {
+                    throw new ToolException('The consent, anti-robot and rating widgets cannot be changed or removed through MCP; edit the field in the QuickMode editor.');
+                }
             }
             $targetWidget = array_key_exists('widget', $change)
                 ? $change['widget']
@@ -750,9 +755,13 @@ final class McpFormWriter
                 throw new ToolException('This form has visibility rules that MCP cannot safely preserve. Edit them in the QuickMode editor.');
             }
             try {
-                McpVisibilityRules::serialize($existingVisibility['rules'], $allFields);
+                $rewritten = McpVisibilityRules::serialize($existingVisibility['rules'], $allFields);
             } catch (ToolException) {
                 throw new ToolException('Update visibility rules when renaming or removing a field referenced by them.');
+            }
+            // The form script matches names with their case: a rename of the case only must follow.
+            if ($existingVisibility['rules'] !== []) {
+                $tree['properties']['toggleFields'] = $rewritten;
             }
         }
         $tree['properties']['name'] = (string) $form->name;

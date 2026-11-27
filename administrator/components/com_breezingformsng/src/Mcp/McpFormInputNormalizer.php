@@ -219,6 +219,12 @@ final class McpFormInputNormalizer
         return $normalized;
     }
 
+    /** Whether MCP may replace or remove this widget: none, or one it can configure itself. */
+    public function mayReplaceWidget(string $widget): bool
+    {
+        return $widget === '' || in_array($widget, self::EDITABLE_WIDGETS, true);
+    }
+
     public function normalizeEditableWidget(mixed $widget): string
     {
         if (!is_string($widget) || !in_array($widget, [...self::EDITABLE_WIDGETS, ''], true)) {

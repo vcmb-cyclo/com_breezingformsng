@@ -128,6 +128,8 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   Les champs texte peuvent aussi activer les widgets courriel, URL, téléphone,
   date/heure, pays ou adresse, avec leurs réglages QuickMode sûrs par défaut ;
   les réglages spécifiques à ces widgets restent dans l’éditeur QuickMode.
+  Les widgets de consentement, anti-robots et de note ne peuvent être ni
+  remplacés ni retirés par MCP.
   `visibility_rules` remplace les règles de visibilité compatibles entre les
   champs : une règle affiche ou masque un champ lorsque la valeur d’un autre
   champ est égale ou différente d’un texte simple. Les règles existantes dont
