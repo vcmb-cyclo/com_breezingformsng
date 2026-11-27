@@ -3,6 +3,31 @@
     <changelog>
         <element>com_breezingformsng</element>
         <type>component</type>
+        <version>6.1.1-RC6</version>
+        <security>
+            <item>Editing screens check permissions, even when opened by direct address.</item>
+            <item>Scripts and pieces need the code permission, even to read them.</item>
+            <item>Record exports need the Edit permission.</item>
+        </security>
+        <addition>
+            <item>Integrator: rule comment, Save buttons and table origin icons.</item>
+            <item>Classic forms: each listed error links to its field.</item>
+            <item>Extensions screen: enable or disable the module.</item>
+            <item>Audit information shows the required permissions.</item>
+        </addition>
+        <change>
+            <item>Integrator: clearer labels, translated actions and comparisons.</item>
+            <item>Carte theme: framed sections.</item>
+            <item>Tools: sample data is collapsed by default.</item>
+        </change>
+        <fix>
+            <item>A submission is saved completely or not at all.</item>
+            <item>Integrator update rules no longer duplicate rows.</item>
+        </fix>
+    </changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
         <version>6.1.1-RC5</version>
         <addition>
             <item>Debug mode: move and edit fields on the website, then save them as one version with a note.</item>
