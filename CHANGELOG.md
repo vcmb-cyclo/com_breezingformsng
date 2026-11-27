@@ -1,5 +1,24 @@
 # Changelog
 
+## 6.1.1-RC5
+
+### Added
+
+- Move fields from the website while a form is in debug mode: Super Users drag a field name, or press Alt and an arrow, to reorder fields of the same page or section.
+- Edit a field from the website in debug mode: label, help text, required setting, maximum length, minimum and maximum, where the field type allows them.
+- Save the moves and field settings made on the website together, as one form version with an optional version note, or cancel them all.
+- Show the type icon of the editor on each field name in debug mode, with the name, label, type and validation of the field in a tooltip.
+- Show when and by whom each item was created and modified, in optional columns of the forms, scripts, pieces and integrator rules lists.
+- Let AI assistants connected through MCP set rules that show or hide fields, and turn text fields into e-mail, web address, phone, date, time, country or address fields.
+
+### Changed
+
+- Update the bundled libraries: PhpSpreadsheet 5.12.0, Stripe 23.1.0, tc-lib-pdf 8.85.1, SweetAlert2 11.26.26 and intl-tel-input 29.5.12.
+
+### Fixed
+
+- Record who imported a form, script or piece and when, while a replaced item keeps its creator.
+
 ## 6.1.1-RC4
 
 ### Added
