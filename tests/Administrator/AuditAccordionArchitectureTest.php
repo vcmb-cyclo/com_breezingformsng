@@ -31,6 +31,25 @@ final class AuditAccordionArchitectureTest extends TestCase
         self::assertStringContainsString("'id' => '" . $id . "'", $source);
     }
 
+    #[DataProvider('editors')]
+    public function testEditorNamesTheRightsOfItsScreen(string $template, string $id): void
+    {
+        $source = (string) file_get_contents(self::ROOT . $template);
+        // As checked by the controllers: the code area for the code items, core.edit for a form.
+        [$view, $edit] = match ($id) {
+            'bf-form-audit' => ['JACTION_EDIT', 'JACTION_EDIT'],
+            'bf-integrator-audit' => ['COM_BREEZINGFORMSNG_ACTION_CODE', 'COM_BREEZINGFORMSNG_ACTION_CODE'],
+            default => ['COM_BREEZINGFORMSNG_ACTION_CODE', 'COM_BREEZINGFORMSNG_ACTION_CODE'],
+        };
+
+        self::assertStringContainsString("'viewRight' => '" . $view . "'", $source);
+        self::assertStringContainsString("'editRight' => '" . $edit . "'", $source);
+        self::assertStringContainsString(
+            'COM_BREEZINGFORMSNG_AUDIT_MINIMUM_RIGHT',
+            (string) file_get_contents(self::ROOT . 'layouts/audit/accordion.php')
+        );
+    }
+
     public function testQuickmodeAccordionFollowsTheDebugMode(): void
     {
         $template = (string) file_get_contents(self::ROOT . 'tmpl/quickmode/default.php');

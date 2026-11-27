@@ -8,6 +8,7 @@
 \defined('_JEXEC') or die;
 
 /** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Integrator\HtmlView $this */
+use Vcmb\Component\BreezingformsNG\Administrator\Service\TableOwner;
 use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
@@ -20,15 +21,15 @@ $baseUrl     = 'index.php?option=com_breezingformsng&view=integrator';
 $editUrl     = $baseUrl . '&layout=edit&id=' . $ruleId;
 
 $operators = [
-    '='     => 'equals',
-    '<>'    => 'not equal',
-    '>'     => 'greater than',
-    '<'     => 'less than',
-    '>='    => 'equals or greater than',
-    '<='    => 'equals or less than',
-    '%...%' => 'in value',
-    '%...'  => 'starts with',
-    '...%'  => 'ends with',
+    '='     => Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_OPERATOR_EQUALS'),
+    '<>'    => Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_OPERATOR_NOT_EQUAL'),
+    '>'     => Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_OPERATOR_GREATER'),
+    '<'     => Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_OPERATOR_LESS'),
+    '>='    => Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_OPERATOR_GREATER_EQUAL'),
+    '<='    => Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_OPERATOR_LESS_EQUAL'),
+    '%...%' => Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_OPERATOR_CONTAINS'),
+    '%...'  => Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_OPERATOR_STARTS_WITH'),
+    '...%'  => Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_OPERATOR_ENDS_WITH'),
 ];
 
 $fakeName = static fn(string $n): bool => \in_array($n, ['bfFakeName', 'bfFakeName2', 'bfFakeName3', 'bfFakeName4'], true);
@@ -53,6 +54,10 @@ $elementIcons = [
 ];
 $iconClassOf = static fn(string $type): string => isset($elementIcons[$type])
     ? ' class="bfng-type-icon--' . $elementIcons[$type] . '"'
+    : '';
+// The same icon, faded, before an element named in a table row.
+$typeLabelOf = static fn(string $type): string => isset($elementIcons[$type])
+    ? ' class="bfng bfng-type-label bfng-type-icon--' . $elementIcons[$type] . '"'
     : '';
 ?>
 
@@ -82,15 +87,15 @@ $iconClassOf = static fn(string $type): string => isset($elementIcons[$type])
         <div class="col-md-2">
           <label class="form-label"><?= Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_SHOWING'); ?></label>
           <select name="formfilter" class="form-select" onchange="this.form.task.value='integrator.edit';this.form.submit();">
-            <option value="all" <?= $this->formFilter === 'all' ? 'selected' : ''; ?>>All</option>
-            <option value="published" <?= $this->formFilter === 'published' ? 'selected' : ''; ?>>Published</option>
-            <option value="unpublished" <?= $this->formFilter === 'unpublished' ? 'selected' : ''; ?>>Unpublished</option>
+            <option value="all" <?= $this->formFilter === 'all' ? 'selected' : ''; ?>><?= Text::_('JALL'); ?></option>
+            <option value="published" <?= $this->formFilter === 'published' ? 'selected' : ''; ?>><?= Text::_('JPUBLISHED'); ?></option>
+            <option value="unpublished" <?= $this->formFilter === 'unpublished' ? 'selected' : ''; ?>><?= Text::_('JUNPUBLISHED'); ?></option>
           </select>
         </div>
         <?php endif; ?>
 
         <div class="col-md-3">
-          <label class="form-label"><?= Text::_('COM_BREEZINGFORMSNG_FORM'); ?></label>
+          <label class="form-label"><?= Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_SOURCE_FORM'); ?></label>
           <select name="form_id" class="form-select" <?= $rule ? 'disabled' : ''; ?>>
             <?php foreach ($this->forms as $form): ?>
               <option value="<?= (int) $form->id; ?>" <?= ($rule && $rule->form_id == $form->id) ? 'selected' : ''; ?>>
@@ -103,18 +108,38 @@ $iconClassOf = static fn(string $type): string => isset($elementIcons[$type])
         <div class="col-md-3">
           <label class="form-label"><?= Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_TABLE'); ?></label>
           <select name="reference_table" class="form-select" <?= $rule ? 'disabled' : ''; ?>>
-            <?php foreach ($this->tableNames as $tblName): ?>
-              <option value="<?= htmlspecialchars($tblName); ?>"
-                <?= ($rule && $tblName === $rule->reference_table) ? 'selected' : ''; ?>>
-                <?= htmlspecialchars($tblName); ?>
-              </option>
+            <?php /* Free tables first, then one group per tool. */ ?>
+            <?php foreach (TableOwner::ALL as $owner) : ?>
+                <?php $owned = array_keys($this->tableOwners, $owner, true); ?>
+                <?php if ($owned === []) {
+                    continue;
+                } ?>
+              <optgroup label="<?= htmlspecialchars(Text::_(
+                  'COM_BREEZINGFORMSNG_INTEGRATOR_TABLE_OWNER_' . strtoupper($owner)
+              )); ?>">
+                <?php foreach ($owned as $tblName) : ?>
+                  <option value="<?= htmlspecialchars($tblName); ?>"
+                    <?= ($rule && $tblName === $rule->reference_table) ? 'selected' : ''; ?>>
+                    <?= htmlspecialchars($tblName); ?>
+                  </option>
+                <?php endforeach; ?>
+              </optgroup>
             <?php endforeach; ?>
           </select>
+          <?php if ($rule) : ?>
+            <div class="form-text">
+                <?= LayoutHelper::render(
+                    'integrator.table_owner',
+                    ['owner' => $this->tableOwners[$rule->reference_table] ?? TableOwner::FREE, 'label' => true],
+                    JPATH_ADMINISTRATOR . '/components/com_breezingformsng/layouts'
+                ); ?>
+            </div>
+          <?php endif; ?>
         </div>
 
         <?php if ($isNew): ?>
         <div class="col-md-2">
-          <label class="form-label"><?= Text::_('COM_BREEZINGFORMSNG_TYPE'); ?></label>
+          <label class="form-label"><?= Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_ACTION'); ?></label>
           <div>
             <?= Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_INSERT'); ?>
             <input type="radio" name="type" value="insert" checked class="form-check-input ms-1">
@@ -125,13 +150,31 @@ $iconClassOf = static fn(string $type): string => isset($elementIcons[$type])
         </div>
         <?php else: ?>
         <div class="col-md-2">
-          <label class="form-label"><?= Text::_('COM_BREEZINGFORMSNG_TYPE'); ?></label>
-          <div class="form-control-plaintext"><?= htmlspecialchars($rule->type); ?></div>
+          <label class="form-label"><?= Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_ACTION'); ?></label>
+          <div class="form-control-plaintext">
+            <?= Text::_($rule->type === 'update'
+                ? 'COM_BREEZINGFORMSNG_INTEGRATOR_UPDATE'
+                : 'COM_BREEZINGFORMSNG_INTEGRATOR_INSERT'); ?>
+          </div>
         </div>
         <?php endif; ?>
+
+        <div class="col-12">
+          <label class="form-label" for="bf-integrator-comment">
+            <?= Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_COMMENT'); ?>
+          </label>
+          <textarea name="comment" id="bf-integrator-comment" class="form-control" rows="3" maxlength="5000"
+                    aria-describedby="bf-integrator-comment-hint"
+          ><?= htmlspecialchars($rule->comment ?? ''); ?></textarea>
+          <div class="form-text" id="bf-integrator-comment-hint">
+            <?= Text::_('COM_BREEZINGFORMSNG_INTEGRATOR_COMMENT_HINT'); ?>
+          </div>
+        </div>
       </div>
 
-      <input type="hidden" name="task" value="<?= $isNew ? 'integrator.save' : 'integrator.edit'; ?>">
+      <?php /* Filled from the editor of an existing rule when the toolbar saves it. */ ?>
+      <input type="hidden" name="finalizeCode" value="" disabled>
+      <input type="hidden" name="task" value="integrator.apply">
       <input type="hidden" name="id" value="<?= $ruleId; ?>">
       <?= HTMLHelper::_('form.token'); ?>
     </form>
@@ -184,7 +227,11 @@ $iconClassOf = static fn(string $type): string => isset($elementIcons[$type])
 
           <?php foreach ($this->items as $item): ?>
             <tr>
-              <td><?= htmlspecialchars($item->element_name); ?> (<?= htmlspecialchars($item->element_type); ?>)</td>
+              <td>
+                <span<?= $typeLabelOf($item->element_type); ?>>
+                  <?= htmlspecialchars($item->element_name); ?> (<?= htmlspecialchars($item->element_type); ?>)
+                </span>
+              </td>
               <td class="text-center">=&gt;</td>
               <td>
                 <?= htmlspecialchars($item->reference_column); ?>
@@ -283,7 +330,11 @@ $iconClassOf = static fn(string $type): string => isset($elementIcons[$type])
             <tr>
               <td><?= htmlspecialchars($crit->reference_column); ?> (<?= htmlspecialchars($this->tableColumns[$crit->reference_column] ?? ''); ?>)</td>
               <td><?= htmlspecialchars($crit->operator); ?></td>
-              <td><?= htmlspecialchars($crit->element_name); ?> (<?= htmlspecialchars($crit->element_type); ?>)</td>
+              <td>
+                <span<?= $typeLabelOf($crit->element_type); ?>>
+                    <?= htmlspecialchars($crit->element_name); ?> (<?= htmlspecialchars($crit->element_type); ?>)
+                </span>
+              </td>
               <td><?= htmlspecialchars($crit->andor); ?></td>
               <td>
                 <button type="button" class="btn btn-link text-danger p-0 border-0 align-baseline"
@@ -446,6 +497,8 @@ $iconClassOf = static fn(string $type): string => isset($elementIcons[$type])
         'modified' => $rule->modified ?? null,
         'modifiedBy' => $this->auditModifiedBy,
         'timezone' => $this->timezone,
+        'viewRight' => 'COM_BREEZINGFORMSNG_ACTION_CODE',
+        'editRight' => 'COM_BREEZINGFORMSNG_ACTION_CODE',
     ], JPATH_ADMINISTRATOR . '/components/com_breezingformsng/layouts');
     ?>
 

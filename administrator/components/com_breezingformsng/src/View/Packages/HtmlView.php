@@ -202,6 +202,7 @@ final class HtmlView extends BaseHtmlView
             }
             $this->canInstallSample = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
             $this->canConfigure = $this->getCurrentUser()->authorise('core.admin', 'com_breezingformsng');
+            HTMLHelper::_('bootstrap.collapse');
             $this->getDocument()->getWebAssetManager()
                 ->useStyle('com_breezingformsng.mcp-status')
                 ->useStyle('com_breezingformsng.tools-samples-style')

@@ -251,6 +251,13 @@
     color: red;
 }
 
+/* ##### link of an error to its field ##### */
+
+.bfQuickMode .bfErrorMessage a[data-bf-field] {
+    color: inherit;
+    text-decoration: underline;
+}
+
 /* ##### message under a field in error ##### */
 
 .bfQuickMode .bf-field-error {

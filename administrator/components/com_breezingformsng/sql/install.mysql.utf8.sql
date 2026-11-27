@@ -355,6 +355,7 @@ CREATE TABLE IF NOT EXISTS `#__facileforms_integrator_items` (
 CREATE TABLE IF NOT EXISTS `#__facileforms_integrator_rules` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
+  `comment` text,
   `form_id` int(11) DEFAULT NULL,
   `reference_table` varchar(255) DEFAULT NULL,
   `type` varchar(255) NOT NULL DEFAULT 'insert',

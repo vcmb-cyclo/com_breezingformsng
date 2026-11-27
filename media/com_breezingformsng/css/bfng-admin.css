@@ -345,6 +345,22 @@ a.bfng-seg__opt {
   .bfng-field__help { margin-inline-start: 0; }
 }
 
+/* The type icon of an element named in a table, faded so the name stays first. */
+/* .bfng brings the type colours; the text keeps the size of the table. */
+.bfng.bfng-type-label {
+  font-size: inherit;
+}
+.bfng-type-label::before {
+  background: var(--bfng-type-color);
+  content: "";
+  display: inline-block;
+  height: 16px;
+  margin-inline-end: var(--bfng-space-3);
+  mask: var(--bfng-type-icon) center / 16px 16px no-repeat;
+  opacity: .5;
+  vertical-align: text-bottom;
+  width: 16px;
+}
 #bfElementExplorer .bfng-tree__icon {
   background: var(--bfng-type-color);
   mask: var(--bfng-type-icon) center / 16px 16px no-repeat;

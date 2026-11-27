@@ -18,14 +18,6 @@ use Vcmb\Component\BreezingformsNG\Administrator\Service\ActionLogger;
 
 class ScriptController extends PackageItemController
 {
-    /**
-     * A script runs in the browser, so its test page changes nothing.
-     */
-    protected function readOnlyTasks(): array
-    {
-        return ['edit', 'cancel', 'navigate', 'test'];
-    }
-
     protected function logType(): string
     {
         return ActionLogger::SCRIPT;

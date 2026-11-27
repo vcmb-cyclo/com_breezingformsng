@@ -1,5 +1,31 @@
 # Changelog
 
+## 6.1.1-RC6
+
+### Security
+
+- Editing screens check permissions, even when opened by direct address.
+- Scripts and pieces need the code permission, even to read them.
+- Record exports need the Edit permission.
+
+### Added
+
+- Integrator: rule comment, Save buttons and table origin icons.
+- Classic forms: each listed error links to its field.
+- Extensions screen: enable or disable the module.
+- Audit information shows the required permissions.
+
+### Changed
+
+- Integrator: clearer labels, translated actions and comparisons.
+- Carte theme: framed sections.
+- Tools: sample data is collapsed by default.
+
+### Fixed
+
+- A submission is saved completely or not at all.
+- Integrator update rules no longer duplicate rows.
+
 ## 6.1.1-RC5
 
 ### Added

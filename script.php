@@ -4231,6 +4231,12 @@ class com_breezingformsngInstallerScript implements InstallerScriptInterface
             }
         }
 
+        // The administrator's comment on a rule.
+        if (isset($tables[$rulesTable]) && !isset($tables[$rulesTable]['comment'])) {
+            $db->setQuery("ALTER TABLE `{$rulesTable}` ADD `comment` TEXT{$textCollationClause} NULL AFTER `name`")->execute();
+            $this->log('Added column comment to facileforms_integrator_rules.');
+        }
+
         $this->migrateElementData1FunctionNames();
         $this->migrateQuickmodeFunctionNames();
         $this->migrateQuickmodeIconPaths();

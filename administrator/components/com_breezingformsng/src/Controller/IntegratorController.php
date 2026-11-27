@@ -68,18 +68,23 @@ class IntegratorController extends BaseController
         $this->setRedirect($targetId !== null ? $this->editUrl($targetId) : $this->listUrl());
     }
 
+    /**
+     * Saves the rule and stays on it.
+     */
+    public function apply(): void
+    {
+        $this->checkToken();
+        $this->setRedirect($this->editUrl($this->storeRule()));
+    }
+
+    /**
+     * Saves the rule and goes back to the list.
+     */
     public function save(): void
     {
         $this->checkToken();
-        $input  = $this->app->getInput();
-        $model  = $this->getIntegratorModel();
-        $name   = $input->getString('rule_name', '');
-        $formId = $input->getInt('form_id', 0);
-        $table  = $input->getString('reference_table', '');
-        $type   = $input->getString('type', 'insert');
-
-        $id = $model->saveRule($name, $formId, $table, $type);
-        $this->setRedirect($this->editUrl($id));
+        $this->storeRule();
+        $this->setRedirect($this->listUrl());
     }
 
     /**
@@ -344,6 +349,37 @@ class IntegratorController extends BaseController
         $this->getIntegratorModel()->publishItem($input->getInt('publish_id', 0), 0);
         $this->getIntegratorModel()->touchRule($ruleId);
         $this->setRedirect($this->editUrl($ruleId));
+    }
+
+    /**
+     * Creates the posted rule, or saves the comment and the finalize code of an
+     * existing one: its other base data cannot change.
+     *
+     * @return int The id of the rule
+     */
+    private function storeRule(): int
+    {
+        $input  = $this->app->getInput();
+        $model  = $this->getIntegratorModel();
+        $id     = $input->getInt('id', 0);
+        // Plain text, escaped on output: the string filter would cut at a "<".
+        $comment = (string) $input->post->getRaw('comment');
+
+        if ($id <= 0) {
+            return $model->saveRule(
+                $input->getString('rule_name', ''),
+                $input->getInt('form_id', 0),
+                $input->getString('reference_table', ''),
+                $input->getString('type', 'insert'),
+                $comment
+            );
+        }
+
+        // Absent when the editor could not be read: the stored code then stays.
+        $code = $input->post->getRaw('finalizeCode');
+        $model->saveDetails($id, $comment, $code === null ? null : (string) $code);
+
+        return $id;
     }
 
     private function editUrl(int $id): string

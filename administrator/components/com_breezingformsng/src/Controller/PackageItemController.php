@@ -73,13 +73,6 @@ abstract class PackageItemController extends FormController
     }
 
     /**
-     * Tasks that only display the item; every other task changes or runs code.
-     *
-     * @return string[]
-     */
-    abstract protected function readOnlyTasks(): array;
-
-    /**
      * The type of the item in the action log.
      */
     abstract protected function logType(): string;
@@ -92,9 +85,8 @@ abstract class PackageItemController extends FormController
             throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
         }
 
-        if (!\in_array(strtolower((string) $task), $this->readOnlyTasks(), true)) {
-            AreaAccess::assert($user, AreaAccess::CODE);
-        }
+        // Reading the code takes the right too: it can hold keys and passwords.
+        AreaAccess::assert($user, AreaAccess::CODE);
 
         return parent::execute($task);
     }

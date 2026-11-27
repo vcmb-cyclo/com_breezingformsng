@@ -24,14 +24,6 @@ use Vcmb\Component\BreezingformsNG\Administrator\View\Piece\HtmlView;
 
 class PieceController extends PackageItemController
 {
-    /**
-     * A piece is PHP run on the server: its test page is not read-only.
-     */
-    protected function readOnlyTasks(): array
-    {
-        return ['edit', 'cancel', 'navigate'];
-    }
-
     protected function logType(): string
     {
         return ActionLogger::PIECE;

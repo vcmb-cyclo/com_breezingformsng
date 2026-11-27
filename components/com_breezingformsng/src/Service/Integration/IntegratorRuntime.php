@@ -33,6 +33,9 @@ class IntegratorRuntime
 {
     private ?StoredPhpExecutor $codeExecutorService = null;
 
+    /** The date of the "Date" criteria, the same for every query of this submission. */
+    private ?string $criteriaDate = null;
+
     /** @var array<int, list<\stdClass>> */
     private array $itemsByRule = [];
 
@@ -372,8 +375,8 @@ class IntegratorRuntime
             $db->setQuery($query);
             $db->execute();
 
-            // on update and no affected rows, we might like to add the row
-            if ($db->getAffectedRows() <= 0) {
+            // The row is added when none matches. MySQL does not count an unchanged row as affected.
+            if ($db->getAffectedRows() <= 0 && !$this->referenceRowExists($rule['rule']->reference_table, $criteria)) {
                 $this->executeInsert($rule['rule']->reference_table, $collected['columns'], $collected['values']);
             }
 
@@ -387,6 +390,29 @@ class IntegratorRuntime
                 'com_breezingformsng'
             );
         }
+    }
+
+    /**
+     * Whether the reference table holds a row matching the criteria (any row without criteria).
+     *
+     * @param array{form: list<\stdClass>, joomla: list<\stdClass>, fixed: list<\stdClass>} $criteria
+     */
+    private function referenceRowExists(string $table, array $criteria): bool
+    {
+        $db = $this->db;
+        $query = $db->createQuery()
+            ->select('1')
+            ->from($db->quoteName($table))
+            ->setLimit(1);
+
+        $bindIndex = 0;
+        $whereString = $this->buildCriteriaClauses($criteria, $query, $bindIndex);
+
+        if ($whereString !== '') {
+            $query->where($whereString);
+        }
+
+        return $db->setQuery($query)->loadResult() !== null;
     }
 
     /**
@@ -468,7 +494,7 @@ class IntegratorRuntime
                         $jobject = Factory::getApplication()->getLanguage()->getName();
                         break;
                     case 'Date':
-                        $jobject = (new \Joomla\CMS\Date\Date())->toSql();
+                        $jobject = $this->criteriaDate ??= (new \Joomla\CMS\Date\Date())->toSql();
                         break;
                     default:
                         $jobject = '';

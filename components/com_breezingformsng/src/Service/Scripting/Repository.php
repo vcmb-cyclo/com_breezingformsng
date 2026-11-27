@@ -16,12 +16,26 @@ use Joomla\Database\ParameterType;
 
 final class Repository
 {
+    /**
+     * Code already read during this request: a form asks for the same entry
+     * many times. A missing entry is kept too.
+     *
+     * @var array<string, StoredCode|null>
+     */
+    private array $found = [];
+
     public function __construct(private readonly DatabaseInterface $database)
     {
     }
 
     public function findPublishedPieceById(int $id): ?StoredCode
     {
+        $key = 'piece-id:' . $id;
+
+        if (\array_key_exists($key, $this->found)) {
+            return $this->found[$key];
+        }
+
         $query = $this->database->createQuery()
             ->select($this->database->quoteName(['id', 'name', 'code']))
             ->from($this->database->quoteName('#__facileforms_pieces'))
@@ -31,11 +45,17 @@ final class Repository
 
         $this->database->setQuery($query, 0, 1);
 
-        return $this->toStoredCode($this->database->loadAssoc());
+        return $this->found[$key] = $this->toStoredCode($this->database->loadAssoc());
     }
 
     public function findPublishedPieceByName(string $name): ?StoredCode
     {
+        $key = 'piece-name:' . $name;
+
+        if (\array_key_exists($key, $this->found)) {
+            return $this->found[$key];
+        }
+
         $query = $this->database->createQuery()
             ->select($this->database->quoteName(['id', 'name', 'code']))
             ->from($this->database->quoteName('#__facileforms_pieces'))
@@ -46,11 +66,17 @@ final class Repository
 
         $this->database->setQuery($query, 0, 1);
 
-        return $this->toStoredCode($this->database->loadAssoc());
+        return $this->found[$key] = $this->toStoredCode($this->database->loadAssoc());
     }
 
     public function findPublishedScriptById(int $id): ?StoredCode
     {
+        $key = 'script-id:' . $id;
+
+        if (\array_key_exists($key, $this->found)) {
+            return $this->found[$key];
+        }
+
         $query = $this->database->createQuery()
             ->select($this->database->quoteName(['id', 'name', 'code']))
             ->from($this->database->quoteName('#__facileforms_scripts'))
@@ -60,7 +86,7 @@ final class Repository
 
         $this->database->setQuery($query, 0, 1);
 
-        return $this->toStoredCode($this->database->loadAssoc());
+        return $this->found[$key] = $this->toStoredCode($this->database->loadAssoc());
     }
 
     /**

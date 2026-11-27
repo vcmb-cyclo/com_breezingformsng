@@ -8,6 +8,7 @@
 \defined('_JEXEC') or die;
 
 /** @var \Vcmb\Component\BreezingformsNG\Administrator\View\Integrator\HtmlView $this */
+use Vcmb\Component\BreezingformsNG\Administrator\Service\TableOwner;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
@@ -29,6 +30,11 @@ $author = static function (mixed $value) use ($authorNames, $view): string {
 
     return $value !== '' ? $view->escape($authorNames[$value] ?? $value) : '-';
 };
+$ownerIcon = static fn (string $owner, bool $label = false): string => LayoutHelper::render(
+    'integrator.table_owner',
+    ['owner' => $owner, 'label' => $label],
+    JPATH_ADMINISTRATOR . '/components/com_breezingformsng/layouts'
+);
 ?>
 <form action="index.php?option=com_breezingformsng&amp;view=integrator" method="post" name="adminForm" id="adminForm" class="bf-list-filters">
   <div id="j-main-container" class="j-main-container">
@@ -42,8 +48,8 @@ $author = static function (mixed $value) use ($authorNames, $view): string {
         </td>
         <th class="w-1"><?= HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'rules.id', $listDirn, $listOrder); ?></th>
         <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_INTEGRATOR_RULENAME', 'rules.name', $listDirn, $listOrder); ?></th>
-        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_TYPE', 'rules.type', $listDirn, $listOrder); ?></th>
-        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORM', 'forms.name', $listDirn, $listOrder); ?></th>
+        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_INTEGRATOR_ACTION', 'rules.type', $listDirn, $listOrder); ?></th>
+        <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_INTEGRATOR_SOURCE_FORM', 'forms.name', $listDirn, $listOrder); ?></th>
         <th><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_INTEGRATOR_TABLE', 'rules.reference_table', $listDirn, $listOrder); ?></th>
         <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JPUBLISHED', 'rules.published', $listDirn, $listOrder); ?></th>
         <th class="d-none text-nowrap"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_CREATED', 'rules.created', $listDirn, $listOrder); ?></th>
@@ -65,9 +71,15 @@ $author = static function (mixed $value) use ($authorNames, $view): string {
                 <?= htmlspecialchars($rule->name); ?>
               </a>
             </td>
-            <td><?= htmlspecialchars($rule->type); ?></td>
+            <td>
+                <?= Text::_($rule->type === 'update'
+                    ? 'COM_BREEZINGFORMSNG_INTEGRATOR_UPDATE'
+                    : 'COM_BREEZINGFORMSNG_INTEGRATOR_INSERT'); ?>
+            </td>
             <td><?= htmlspecialchars($rule->form_name); ?></td>
-            <td><?= htmlspecialchars($rule->reference_table); ?></td>
+            <td>
+                <?= $ownerIcon($this->tableOwners[$rule->reference_table] ?? TableOwner::FREE); ?><?= htmlspecialchars($rule->reference_table); ?>
+            </td>
             <td class="text-center">
                 <?php $isPublished = (int) $rule->published === 1; ?>
                 <?php if ((int) $rule->published === -2) : ?>
@@ -92,6 +104,13 @@ $author = static function (mixed $value) use ($authorNames, $view): string {
   </table>
 
   <?= $this->pagination->getListFooter(); ?>
+
+  <?php /* What the icons before the table names mean. */ ?>
+  <p class="text-muted small">
+    <?php foreach (TableOwner::ALL as $owner) : ?>
+      <span class="me-3 d-inline-block"><?= $ownerIcon($owner, true); ?></span>
+    <?php endforeach; ?>
+  </p>
 
   <input type="hidden" name="task" value="">
   <input type="hidden" name="publish_id" value="0">

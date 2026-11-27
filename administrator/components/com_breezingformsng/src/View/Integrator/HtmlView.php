@@ -46,6 +46,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
     public array $items        = [];
     /** @var string[] */
     public array $tableNames   = [];
+    /** @var array<string, string> The TableOwner of each shown table */
+    public array $tableOwners  = [];
     /** @var array<string, mixed> */
     public array $tableColumns = [];
     /** @var list<\stdClass> */
@@ -84,6 +86,10 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             // The help layout is self-contained.
         } else {
             $this->prepareList();
+            $this->tableOwners = $model->getTableOwners(array_values(array_map(
+                static fn (\stdClass $rule): string => (string) $rule->reference_table,
+                $this->rules
+            )));
         }
 
         parent::display($tpl);
@@ -194,6 +200,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         $this->formFilter  = $input->getCmd('formfilter', 'all');
         $this->forms       = $model->getForms($this->formFilter);
         $this->tableNames  = $model->getTableNames();
+        $this->tableOwners = $model->getTableOwners(array_values($this->tableNames));
 
         if ($this->rule !== null) {
             $model->versions()->keepOrigin($id);
@@ -216,22 +223,29 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             $this->criteriaFixed  = $model->getCriteriaFixed($id);
         }
 
-        if ($id === 0) {
-            ToolbarHelper::save('integrator.save');
+        /** @var HtmlDocument $document */
+        $document = $this->getDocument();
+        $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
+        $toolbar->apply('integrator.apply');
+        $toolbar->save('integrator.save');
+
+        if ($this->rule !== null && FormVersioning::isEnabled()) {
+            $toolbar->versions(IntegratorVersioning::TYPE_ALIAS, $id);
         }
+
+        $toolbar->cancel('integrator.display', $this->rule !== null ? 'JTOOLBAR_CLOSE' : 'JTOOLBAR_CANCEL');
+
+        // Last: it takes the end of the toolbar, as on the scripts.
         if ($this->rule !== null) {
-            /** @var HtmlDocument $document */
-            $document = $this->getDocument();
-            $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
             $this->addItemPagination($toolbar, 'IntegratorRules', $id, 'integrator.navigate');
-
-            if (FormVersioning::isEnabled()) {
-                $toolbar->versions(IntegratorVersioning::TYPE_ALIAS, $id);
-            }
+            $document->getWebAssetManager()->registerAndUseScript(
+                'com_breezingformsng.integrator-edit',
+                'media/com_breezingformsng/js/admin/integrator-edit.js',
+                ['version' => 'auto'],
+                ['defer' => true],
+                ['core']
+            );
         }
-
-        // Last, after the Versions button.
-        ToolbarHelper::cancel('integrator.display', 'JTOOLBAR_CLOSE');
     }
 
     protected function getDetailLabel(): ?string

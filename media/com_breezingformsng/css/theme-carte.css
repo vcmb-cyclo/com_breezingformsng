@@ -151,7 +151,7 @@
     margin-top: 0.75rem;
 }
 
-/* Sections: a small uppercase title, no rule and no frame */
+/* Section titles: small and uppercase */
 .bfFormDiv legend {
     border: 0;
     color: var(--bf-accent-ink);
@@ -163,6 +163,41 @@
     padding: 0;
     text-transform: uppercase;
     width: auto;
+}
+
+/* Sections of a page: a light frame, its title inside with a thin rule under it */
+.bfFormDiv .bfPage > fieldset {
+    background: color-mix(in srgb, var(--bf-field) 40%, var(--bf-card));
+    border: 1px solid var(--bf-line);
+    border-radius: 10px;
+    border-top: 3px solid var(--bf-accent);
+    margin: 1.5rem 0 0;
+    min-width: 0;
+    padding: 1.25rem 1.5rem 0.5rem;
+}
+
+/* Floated, the legend stays inside the frame instead of cutting its border. */
+.bfFormDiv .bfPage > fieldset > legend {
+    border-bottom: 1px solid var(--bf-line);
+    float: left;
+    margin: 0 0 1.25rem;
+    padding-bottom: 0.75rem;
+    width: 100%;
+}
+
+.bfFormDiv .bfPage > fieldset > legend + * {
+    clear: both;
+}
+
+/* On a phone, the card and its frames leave the width to the fields. */
+@media (max-width: 575.98px) {
+    .bfFormDiv .bfQuickMode {
+        padding: 1.5rem 0.9rem;
+    }
+
+    .bfFormDiv .bfPage > fieldset {
+        padding-inline: 0.9rem;
+    }
 }
 
 /* The legend of a choice group is the label of the group, not a section title */
@@ -316,6 +351,7 @@
 }
 
 .bfFormDiv .form-check-label {
+    background: var(--bf-card);
     border: 1px solid var(--bf-line);
     border-radius: 999px;
     cursor: pointer;
