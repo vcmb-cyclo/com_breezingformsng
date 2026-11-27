@@ -146,3 +146,35 @@ test('keeps the message close to its field in the Bootstrap renderers', async ({
     expect(gap).toBeLessThanOrEqual(6);
     await expect(page.locator('#right').locator('..')).toHaveCSS('margin-bottom', '16px');
 });
+
+for (const theme of ['vcmb_j5', 'vcmb_j5b', 'breeze']) {
+    test(`links each error of the list to its field (${theme})`, async ({ page }) => {
+        await open(page, theme);
+        await showErrors(page, [...errors, ['Unknown', 'No such field.\n']]);
+
+        const links = page.locator('.bfErrorMessage a[data-bf-field]');
+        await expect(links).toHaveCount(3);
+        await expect(links.first()).toHaveCSS('text-decoration-line', 'underline');
+        await links.first().click();
+        await expect(page.locator('#last')).toBeFocused();
+        // The phone keeps its value in a hidden input: the visible control is reached.
+        await links.nth(2).click();
+        await expect(page.locator('#visiblePhone')).toBeFocused();
+    });
+}
+
+test('links messages sent without newlines and opens the page of the field', async ({ page }) => {
+    await open(page, 'vcmb_j5b');
+    await page.evaluate(() => {
+        window.ff_currentpage = 1;
+        window.ff_getPageByName = () => 2;
+        window.ff_switchpage = (number) => {
+            window.ff_currentpage = number;
+        };
+    });
+    await showErrors(page, errors.map(([name, message]) => [name, message.trim()]));
+
+    await expect(page.locator('.bfErrorMessage a[data-bf-field]')).toHaveCount(3);
+    await page.locator('.bfErrorMessage a[data-bf-field="LastName"]').click();
+    await expect.poll(() => page.evaluate(() => window.ff_currentpage)).toBe(2);
+});
