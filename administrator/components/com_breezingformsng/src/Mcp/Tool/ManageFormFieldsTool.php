@@ -36,10 +36,10 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
     #[\Override]
     public function description(): string
     {
-        return 'Adds, updates or removes text, textarea, select, radio, checkbox-group and checkbox fields on compatible QuickMode forms. '
+        return 'Adds, updates or removes text, textarea, select, radio, checkbox-group and checkbox fields on compatible QuickMode forms. Text fields can use safe email, URL, phone, date/time, country or address widgets. '
             . 'Pages can be added, have plain-text intro text updated or empty pages removed; new fields can target existing or new pages, and existing fields can move between pages. Updates can change safe field names, text/textarea type, labels, placeholders, help hints, dimensions, default values, maximum lengths, read-only and required state, checkbox values, select multiplicity or choice options. Renaming requires no submissions, scripts, validations, templates or integrations that could refer to the field. '
             . 'Existing custom scripts and settings are preserved; the required option uses only the standard non-empty validation. Fields cannot be removed after submissions exist. '
-            . 'Forms with other field types or nested field structures are not changed. Choice options cannot be changed after submissions exist.';
+            . 'It can also replace the supported visibility rules between fields. Forms with other field types or nested field structures are not changed. Choice options cannot be changed after submissions exist.';
     }
 
     #[\Override]
@@ -49,6 +49,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
             'type' => 'object',
             'properties' => [
                 'type' => ['type' => 'string', 'enum' => ['text', 'textarea', 'select', 'radio', 'checkbox_group', 'checkbox'], 'description' => 'Field type.'],
+                'widget' => ['type' => 'string', 'enum' => ['email', 'url', 'phone', 'datetime', 'country', 'address'], 'description' => 'Optional widget for a text field. Widget-specific options are not configured through MCP.'],
                 'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100, 'description' => 'Unique field name.'],
                 'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Plain-text field label.'],
                 'placeholder' => ['type' => 'string', 'maxLength' => 255, 'default' => '', 'description' => 'Optional plain-text placeholder.'],
@@ -76,6 +77,7 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
                 'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100, 'description' => 'Existing field name.'],
                 'new_name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100, 'description' => 'Optional new field name. Rename is refused if submissions, scripts, validations, templates or integrations could refer to the field.'],
                 'type' => ['type' => 'string', 'enum' => ['text', 'textarea'], 'description' => 'Optional new text or textarea type.'],
+                'widget' => ['type' => 'string', 'enum' => ['', 'email', 'url', 'phone', 'datetime', 'country', 'address'], 'description' => 'Optional widget for a text field. To remove a widget, provide an empty string. Widget-specific options are not configured through MCP.'],
                 'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Optional new plain-text label.'],
                 'placeholder' => ['type' => 'string', 'maxLength' => 255, 'description' => 'Optional new plain-text placeholder.'],
                 'hint' => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optional new plain-text help shown with the field; an empty string clears it.'],
@@ -121,6 +123,23 @@ final class ManageFormFieldsTool implements DestructiveMcpTool
                 'add' => ['type' => 'array', 'maxItems' => 30, 'default' => [], 'items' => $newField, 'description' => 'Fields to add.'],
                 'update' => ['type' => 'array', 'maxItems' => 30, 'default' => [], 'items' => $updateField, 'description' => 'Existing fields to update.'],
                 'remove' => ['type' => 'array', 'maxItems' => 30, 'default' => [], 'items' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100], 'description' => 'Existing field names to remove.'],
+                'visibility_rules' => [
+                    'type' => 'array',
+                    'maxItems' => 30,
+                    'description' => 'Optional complete replacement for supported field visibility rules. An empty list clears them. A rule shows or hides one field when another equals or does not equal a plain-text value.',
+                    'items' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'target' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100, 'description' => 'Existing field to show or hide.'],
+                            'source' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100, 'description' => 'Existing field whose value is tested.'],
+                            'operator' => ['type' => 'string', 'enum' => ['equals', 'not_equals'], 'description' => 'Whether the source equals the value.'],
+                            'value' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Plain-text value to compare.'],
+                            'visible' => ['type' => 'boolean', 'description' => 'Whether the target is shown when the condition matches.'],
+                        ],
+                        'required' => ['target', 'source', 'operator', 'value', 'visible'],
+                        'additionalProperties' => false,
+                    ],
+                ],
             ],
             'required' => ['id'],
             'additionalProperties' => false,

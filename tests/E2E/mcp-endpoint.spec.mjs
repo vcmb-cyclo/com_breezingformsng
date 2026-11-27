@@ -14,6 +14,7 @@ function db(...args) {
 }
 
 const plugin = (...state) => JSON.parse(db('plugin', 'webservices', 'breezingformsng', ...state));
+const formRow = (id) => JSON.parse(db('form', String(id)));
 
 test.describe.configure({ mode: 'serial' });
 
@@ -48,6 +49,13 @@ test.describe('MCP endpoint', () => {
             ...headers,
         },
     });
+
+    const callTool = async (id, name, args) => {
+        const response = await send({ id, method: 'tools/call', params: { name, arguments: args } });
+        expect(response.status()).toBe(200);
+
+        return (await response.json()).result;
+    };
 
     test.beforeAll(async ({ baseURL, browser }) => {
         api = await request.newContext({ baseURL });
@@ -177,6 +185,112 @@ test.describe('MCP endpoint', () => {
         expect(JSON.stringify(audit)).not.toMatch(/secret-key|owner@example/);
         // The report gives identifiers and codes, not the place of the site on the server.
         expect(JSON.stringify(audit)).not.toMatch(/\/var\/www|\/home\//);
+    });
+
+    test('a client creates, changes, publishes, restores and trashes a QuickMode form', async () => {
+        const name = `e2e_mcp_write_${Date.now()}`;
+        const created = await callTool(8, 'bfng_create_form', {
+            name,
+            title: 'MCP write journey',
+            description: 'Created through MCP.',
+            page_intro: 'Tell us about your request.',
+            fields: [
+                {
+                    type: 'text', name: 'email', label: 'Email', placeholder: 'you@example.invalid',
+                    hint: 'We only use this to reply.', required: true, required_message: 'Email is required.', max_length: 254,
+                },
+                {
+                    type: 'select', name: 'topic', label: 'Topic',
+                    options: [{ label: 'Support', value: 'support', selected: true }, { label: 'Sales', value: 'sales' }],
+                },
+                { type: 'text', name: 'phone', label: 'Phone', widget: 'phone' },
+            ],
+        });
+        expect(created.isError).toBe(false);
+        expect(created.structuredContent).toEqual(expect.objectContaining({
+            name, title: 'MCP write journey', published: false, field_count: 3,
+        }));
+        const formId = created.structuredContent.id;
+        expect(formId).toBeGreaterThan(0);
+
+        const changedFields = await callTool(9, 'bfng_manage_form_fields', {
+            id: formId,
+            add_pages: 1,
+            update_pages: [{ page: 2, intro: 'Describe your request in detail.' }],
+            update: [{ name: 'email', label: 'Reply-to email', placeholder: 'reply@example.invalid', widget: 'email' }],
+            add: [{
+                type: 'textarea', name: 'message', label: 'Message', page: 2,
+                default_value: 'Hello', width: '100%', height: '8rem', max_length: 500, required: true,
+            }],
+            visibility_rules: [{
+                target: 'message', source: 'topic', operator: 'equals', value: 'support', visible: true,
+            }],
+        });
+        expect(changedFields.isError).toBe(false);
+        expect(changedFields.structuredContent).toEqual(expect.objectContaining({
+            id: formId, added: ['message'], updated: ['email'], pages_added: 1, pages_updated: [2],
+            visibility_rules_updated: true, visibility_rule_count: 1, field_count: 4,
+        }));
+
+        const updated = await callTool(10, 'bfng_update_form', {
+            id: formId,
+            title: 'Published MCP write journey',
+            widthmode: 1,
+            width: 90,
+            email_notifications: true,
+            notification_recipient: 'mcp@example.invalid',
+            published: true,
+        });
+        expect(updated.isError).toBe(false);
+        expect(updated.structuredContent).toEqual(expect.objectContaining({
+            id: formId, title: 'Published MCP write journey', published: true,
+            settings: expect.objectContaining({ width: 90, widthmode: 1, email_notifications: true }),
+        }));
+
+        const saved = await callTool(11, 'bfng_get_form', { id: formId });
+        expect(saved.isError).toBe(false);
+        expect(saved.structuredContent).toEqual(expect.objectContaining({
+            id: formId, editor: 'quickmode', published: true, pages: 2,
+            settings: expect.objectContaining({ notification_address_set: true, width: 90, widthmode: 1 }),
+            quickmode_pages: expect.arrayContaining([{ page: 2, intro_text: 'Describe your request in detail.', intro_is_rich: false }]),
+            visibility_rules: [{
+                target: 'message', source: 'topic', operator: 'equals', value: 'support', visible: true,
+            }],
+            visibility_rules_supported: true,
+        }));
+        expect(saved.structuredContent.elements).toEqual(expect.arrayContaining([
+            expect.objectContaining({
+                name: 'email', title: 'Reply-to email',
+                quickmode_settings: expect.objectContaining({
+                    placeholder: 'reply@example.invalid', required: true, widget: 'email',
+                }),
+            }),
+            expect.objectContaining({
+                name: 'message', title: 'Message', page: 2,
+                quickmode_settings: expect.objectContaining({
+                    initial_value: 'Hello', width: '100%', height: '8rem', maximum_length: 500, required: true,
+                }),
+            }),
+            expect.objectContaining({
+                name: 'phone', title: 'Phone',
+                quickmode_settings: expect.objectContaining({ widget: 'phone' }),
+            }),
+        ]));
+        expect(JSON.stringify(saved)).not.toContain('mcp@example.invalid');
+        expect(formRow(formId).history).toBeGreaterThan(0);
+
+        const trashed = await callTool(12, 'bfng_trash_form', { id: formId });
+        expect(trashed.structuredContent).toEqual({ id: formId, state: 'trashed' });
+        const restored = await callTool(13, 'bfng_restore_form', { id: formId });
+        expect(restored.structuredContent).toEqual({ id: formId, state: 'unpublished' });
+
+        const restoredForm = await callTool(14, 'bfng_get_form', { id: formId });
+        expect(restoredForm.isError).toBe(false);
+        expect(restoredForm.structuredContent.published).toBe(false);
+
+        // The throwaway Joomla is left without a visible form created by this journey.
+        const cleanedUp = await callTool(15, 'bfng_trash_form', { id: formId });
+        expect(cleanedUp.structuredContent).toEqual({ id: formId, state: 'trashed' });
     });
 
     test('legacy protocol batches are accepted but newer protocol batches are rejected', async () => {

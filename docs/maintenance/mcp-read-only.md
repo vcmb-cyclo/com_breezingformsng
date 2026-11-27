@@ -125,6 +125,14 @@ exige `core.delete` et `core.edit.state`; la restauration exige
   champ obligatoire pour les champs texte et zone de texte. L’opération est
   verrouillée, versionnée et synchronisée avec
   les vues ContentBuilder NG associées.
+  Les champs texte peuvent aussi activer les widgets courriel, URL, téléphone,
+  date/heure, pays ou adresse, avec leurs réglages QuickMode sûrs par défaut ;
+  les réglages spécifiques à ces widgets restent dans l’éditeur QuickMode.
+  `visibility_rules` remplace les règles de visibilité compatibles entre les
+  champs : une règle affiche ou masque un champ lorsque la valeur d’un autre
+  champ est égale ou différente d’un texte simple. Les règles existantes dont
+  la structure ne peut pas être préservée sont refusées, sans modification du
+  formulaire.
 - `bfng_trash_form` et `bfng_restore_form` : déplacent un formulaire dans la
   corbeille Joomla, puis le restaurent à l’état dépublié. Le déplacement à la
   corbeille conserve le formulaire et ses soumissions ; aucune suppression

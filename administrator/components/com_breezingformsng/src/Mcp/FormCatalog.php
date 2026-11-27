@@ -160,6 +160,9 @@ final class FormCatalog
         $form['elements'] = $this->elements(self::intValue($row['id'] ?? null), $withCode);
         if (self::intValue($row['quickmode'] ?? null) === 1) {
             $form['quickmode_pages'] = $this->appendQuickModeSettings($form['elements'], $row['template_code']);
+            $visibility = $this->visibilityRules($row['template_code'], $form['elements']);
+            $form['visibility_rules'] = $visibility['rules'];
+            $form['visibility_rules_supported'] = $visibility['supported'];
         }
 
         return $form;
@@ -313,6 +316,28 @@ final class FormCatalog
         unset($element);
 
         return $quickModePages;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $elements
+     * @return array{rules: list<array{target: string, source: string, operator: string, value: string, visible: bool}>,
+     *                supported: bool}
+     */
+    private function visibilityRules(mixed $templateCode, array $elements): array
+    {
+        if (!is_string($templateCode) || $templateCode === '' || strlen($templateCode) > 700000) {
+            return ['rules' => [], 'supported' => false];
+        }
+        $json = base64_decode($templateCode, true);
+        $tree = $json === false ? null : json_decode($json, true);
+        if (!is_array($tree) || !is_array($tree['properties'] ?? null)) {
+            return ['rules' => [], 'supported' => false];
+        }
+
+        return McpVisibilityRules::read(
+            $tree['properties']['toggleFields'] ?? '',
+            array_values(array_filter(array_column($elements, 'name'), 'is_string'))
+        );
     }
 
     /**

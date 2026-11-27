@@ -85,6 +85,8 @@ final class McpFormWriterTest extends TestCase
         ], 'unique'];
         yield 'a choice field without choices' => [[['type' => 'select', 'name' => 'c', 'label' => 'L']], 'at least one choice'];
         yield 'a submit control name' => [[['type' => 'text', 'name' => 'bfFakeName', 'label' => 'L']], 'reserved'];
+        yield 'an unknown widget' => [[['type' => 'text', 'name' => 'phone', 'label' => 'Phone', 'widget' => 'robot']], 'Supported text-field widgets'];
+        yield 'a widget on a textarea' => [[['type' => 'textarea', 'name' => 'phone', 'label' => 'Phone', 'widget' => 'phone']], 'Widgets can only'];
     }
 
     /** @param list<array<string, mixed>> $fields */
@@ -116,18 +118,23 @@ final class McpFormWriterTest extends TestCase
         $result = $this->writer->create([
             'name' => ' contact ',
             'title' => 'Contact us',
-            'fields' => [['type' => 'text', 'name' => 'email', 'label' => 'Email'], ['type' => 'textarea', 'name' => 'msg', 'label' => 'Message']],
+            'fields' => [
+                ['type' => 'text', 'name' => 'email', 'label' => 'Email'],
+                ['type' => 'textarea', 'name' => 'msg', 'label' => 'Message'],
+                ['type' => 'text', 'name' => 'phone', 'label' => 'Phone', 'widget' => 'phone'],
+            ],
         ], McpTestDoubles::user(['core.create']));
 
         self::assertSame(42, $result['id']);
         self::assertSame('contact', $result['name']);
         self::assertFalse($result['published']);
-        self::assertSame(2, $result['field_count']);
+        self::assertSame(3, $result['field_count']);
         self::assertSame(0, $saved[0], 'A new form has no id yet.');
         self::assertSame(0, $saved[2], 'A form created through MCP is not published.');
         self::assertSame('contact', $saved[1]['properties']['name']);
         $names = array_map(static fn (array $node): string => $node['properties']['bfName'], $saved[1]['children'][0]['children']);
-        self::assertSame(['email', 'msg'], $names);
+        self::assertSame(['email', 'msg', 'phone'], $names);
+        self::assertSame('phone', $saved[1]['children'][0]['children'][2]['properties']['widget']);
         self::assertSame('start', $this->db->log[0]);
         self::assertContains('commit', $this->db->log);
         self::assertNotContains('rollback', $this->db->log);

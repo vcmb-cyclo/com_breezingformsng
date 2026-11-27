@@ -16,6 +16,9 @@ use Joomla\Database\ParameterType;
 /** Validates and normalizes MCP form and field input at the write boundary. */
 final class McpFormInputNormalizer
 {
+    /** Widgets that are safe to configure as bounded text fields through MCP. */
+    private const EDITABLE_WIDGETS = ['email', 'url', 'phone', 'datetime', 'country', 'address'];
+
     private ?int $requiredValidationId = null;
 
     public function __construct(private readonly DatabaseInterface $db)
@@ -53,7 +56,7 @@ final class McpFormInputNormalizer
     }
 
     /**
-     * @return list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}>
+     * @return list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, widget: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}>
      * @throws ToolException
      */
     public function normalizeFields(mixed $fields): array
@@ -80,6 +83,7 @@ final class McpFormInputNormalizer
             $defaultValue = $this->stringValue($field['default_value'] ?? '');
             $maxLength = $field['max_length'] ?? 0;
             $readOnly = $field['readonly'] ?? false;
+            $widget = $this->normalizeEditableWidget($field['widget'] ?? '');
             if (!in_array($type, ['text', 'textarea', 'select', 'radio', 'checkbox_group', 'checkbox'], true)) {
                 throw new ToolException('Supported field types are text, textarea, select, radio, checkbox_group and checkbox.');
             }
@@ -88,6 +92,12 @@ final class McpFormInputNormalizer
                 || (array_key_exists('default_value', $field) && !in_array($type, ['text', 'textarea'], true))
             ) {
                 throw new ToolException('Default values are limited to 4000 characters and are only supported on text or textarea fields.');
+            }
+            if ($widget !== '' && $type !== 'text') {
+                throw new ToolException('Widgets can only be used on text fields.');
+            }
+            if ($widget !== '' && (array_key_exists('size', $field) || array_key_exists('max_length', $field))) {
+                throw new ToolException('Widget fields cannot set a size or maximum length through MCP.');
             }
             $this->assertPlainText($defaultValue);
             if (mb_strlen($hint) > 1000) {
@@ -195,6 +205,7 @@ final class McpFormInputNormalizer
                 'default_value' => $defaultValue,
                 'max_length' => $maxLength,
                 'readonly' => $readOnly,
+                'widget' => $widget,
                 'options' => $choices,
                 'multiple' => $multiple,
                 'checked' => $checked,
@@ -206,6 +217,15 @@ final class McpFormInputNormalizer
         }
 
         return $normalized;
+    }
+
+    public function normalizeEditableWidget(mixed $widget): string
+    {
+        if (!is_string($widget) || !in_array($widget, [...self::EDITABLE_WIDGETS, ''], true)) {
+            throw new ToolException('Supported text-field widgets are email, url, phone, datetime, country and address.');
+        }
+
+        return $widget;
     }
 
     public function normalizePageIntro(mixed $intro): string

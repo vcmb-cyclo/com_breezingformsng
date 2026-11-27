@@ -42,7 +42,7 @@ final class McpQuickModeTree
     }
 
     /**
-     * @param list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields
+     * @param list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, widget: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields
      * @return array<string, mixed>
      */
     public function create(string $name, string $title, string $description, array $fields, string $pageIntro): array
@@ -73,7 +73,7 @@ final class McpQuickModeTree
     }
 
     /**
-     * @param array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field
+     * @param array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, widget: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field
      * @return array<string, mixed>
      */
     public function element(array $field, int $order): array
@@ -117,6 +117,9 @@ final class McpQuickModeTree
         if ($type === 'bfTextfield') {
             $properties['maxLength'] = $field['max_length'] > 0 ? $field['max_length'] : '';
             $properties['size'] = $field['size'];
+            if ($field['widget'] !== '') {
+                $properties['widget'] = $field['widget'];
+            }
         } elseif ($type === 'bfTextarea') {
             $properties['maxlength'] = $field['max_length'];
             $properties['showMaxlengthCounter'] = true;
