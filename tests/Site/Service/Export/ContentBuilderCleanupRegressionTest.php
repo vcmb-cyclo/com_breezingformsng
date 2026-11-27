@@ -24,12 +24,26 @@ final class ContentBuilderCleanupRegressionTest extends TestCase
     {
         $source = (string) file_get_contents(dirname(__DIR__, 4) . self::SOURCES . 'Export/ExportEngine.php');
 
-        $cleanup = strpos($source, "))->remove((int) \$editableFormValue, array_column(\$records, 'id'));");
+        $cleanup = strpos($source, "\$cleanup->removeData((int) \$editableFormValue, array_column(\$records, 'id'));");
         $sourceDelete = strpos($source, "->delete(\$this->processor->database->quoteName('#__facileforms_records'))");
 
         self::assertNotFalse($cleanup);
         self::assertNotFalse($sourceDelete);
         self::assertLessThan($sourceDelete, $cleanup);
+    }
+
+    public function testArticlesAreDeletedAfterTheTransaction(): void
+    {
+        $source = (string) file_get_contents(dirname(__DIR__, 4) . self::SOURCES . 'Export/ExportEngine.php');
+
+        $transaction = strpos($source, '$stored = (new DatabaseTransaction($db))->run(');
+        $end = strpos($source, 'if ($stored && $cleanup !== null) {');
+        $articles = strpos($source, '$cleanup->deleteArticles($articleIds);');
+
+        self::assertNotFalse($transaction);
+        self::assertNotFalse($end);
+        self::assertGreaterThan($end, $articles);
+        self::assertGreaterThan($transaction, $end);
     }
 
     public function testCleanupCoversEveryContentBuilderTable(): void
