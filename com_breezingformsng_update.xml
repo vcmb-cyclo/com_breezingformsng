@@ -7,13 +7,13 @@
 		<element>com_breezingformsng</element>
 		<type>component</type>
 		<client>1</client>
-		<version>6.1.1-RC4</version>
+		<version>6.1.1-RC5</version>
 		<infourl title="BreezingForms NG">https://breezingforms-ng.vcmb.fr/</infourl>
 		<changelogurl>https://raw.githubusercontent.com/vcmb-cyclo/com_breezingformsng/main/com_breezingformsng_changelog.xml</changelogurl>
 		<downloads>
-			<downloadurl type="full" format="zip">https://github.com/vcmb-cyclo/com_breezingformsng/releases/download/v6.1.1-RC4/com_breezingformsng-6.1.1-RC4.zip</downloadurl>
+			<downloadurl type="full" format="zip">https://github.com/vcmb-cyclo/com_breezingformsng/releases/download/v6.1.1-RC5/com_breezingformsng-6.1.1-RC5.zip</downloadurl>
 		</downloads>
-		<sha256>cc55ae67b1641c7cfd67c7a216e51be7fb73befbb1ab15aa363d1ecade3e771a</sha256>
+		<sha256>eb4140c5c9a0c8b7680d93b574a0c50651453a6d3f1b1b9d92ec30aefc57cdb2</sha256>
 		<tags>
 			<tag>rc</tag>
 		</tags>
