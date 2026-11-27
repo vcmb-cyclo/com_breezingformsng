@@ -23,10 +23,11 @@ $date = static function (mixed $value): string {
         : '-';
 };
 $authorNames = $this->authorNames;
-$author = function (mixed $value) use ($authorNames): string {
+$view = $this;
+$author = static function (mixed $value) use ($authorNames, $view): string {
     $value = (string) ($value ?? '');
 
-    return $value !== '' ? $this->escape($authorNames[$value] ?? $value) : '-';
+    return $value !== '' ? $view->escape($authorNames[$value] ?? $value) : '-';
 };
 ?>
 <form action="index.php?option=com_breezingformsng&amp;view=integrator" method="post" name="adminForm" id="adminForm" class="bf-list-filters">

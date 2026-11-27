@@ -28,10 +28,11 @@ $user = Factory::getApplication()->getIdentity() ?? throw new \RuntimeException(
 $userId = (int) $user->id;
 $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
 $authorNames = $this->authorNames;
-$author = function (mixed $value) use ($authorNames): string {
+$view = $this;
+$author = static function (mixed $value) use ($authorNames, $view): string {
     $value = (string) ($value ?? '');
 
-    return $value !== '' ? $this->escape($authorNames[$value] ?? $value) : '-';
+    return $value !== '' ? $view->escape($authorNames[$value] ?? $value) : '-';
 };
 ?>
 <form action="<?= Route::_('index.php?option=com_breezingformsng&view=scripts'); ?>" method="post" name="adminForm" id="adminForm" class="bf-list-filters">
