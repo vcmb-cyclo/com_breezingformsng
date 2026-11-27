@@ -103,6 +103,8 @@ if ($this->formId > 0) {
         'modified' => $this->auditModified,
         'modifiedBy' => $this->auditModifiedBy,
         'timezone' => $this->timezone,
+        'viewRight' => 'JACTION_EDIT',
+        'editRight' => 'JACTION_EDIT',
         'hidden' => !$debugMode,
     ], JPATH_ADMINISTRATOR . '/components/com_breezingformsng/layouts');
 }

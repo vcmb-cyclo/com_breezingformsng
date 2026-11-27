@@ -472,6 +472,8 @@ $typeLabelOf = static fn(string $type): string => isset($elementIcons[$type])
         'modified' => $rule->modified ?? null,
         'modifiedBy' => $this->auditModifiedBy,
         'timezone' => $this->timezone,
+        'viewRight' => 'COM_BREEZINGFORMSNG_ACTION_CODE',
+        'editRight' => 'COM_BREEZINGFORMSNG_ACTION_CODE',
     ], JPATH_ADMINISTRATOR . '/components/com_breezingformsng/layouts');
     ?>
 

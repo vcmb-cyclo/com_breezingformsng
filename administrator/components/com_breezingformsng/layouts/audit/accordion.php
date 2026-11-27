@@ -11,14 +11,14 @@ defined('_JEXEC') or die;
 /**
  * Collapsed "Audit information" table of an item editor.
  *
- * @var array{id: string, created: ?string, createdBy: string, modified: ?string, modifiedBy: string, timezone: \DateTimeZone, hidden?: bool} $displayData
+ * @var array{id: string, created: ?string, createdBy: string, modified: ?string, modifiedBy: string, timezone: \DateTimeZone, viewRight: string, editRight: string, hidden?: bool} $displayData
  */
 
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 
 /**
- * @var array{id: string, created: ?string, createdBy: string, modified: ?string, modifiedBy: string, timezone: \DateTimeZone, hidden?: bool} $layoutData
+ * @var array{id: string, created: ?string, createdBy: string, modified: ?string, modifiedBy: string, timezone: \DateTimeZone, viewRight: string, editRight: string, hidden?: bool} $layoutData
  * @psalm-suppress UndefinedGlobalVariable
  */
 $layoutData = $displayData;
@@ -38,6 +38,7 @@ $line = static function (mixed $utc, mixed $author) use ($date, $text): string {
         ? Text::sprintf('COM_BREEZINGFORMSNG_AUDIT_DATE_BY', $dateText, $authorText)
         : ($dateText . $authorText !== '' ? $dateText . $authorText : '-');
 };
+$right = static fn (string $key, string $action): string => $text(Text::sprintf($key, Text::_($action)));
 ?>
 <table class="table table-striped mt-4" id="<?= $id; ?>"<?= !empty($layoutData['hidden']) ? ' hidden' : ''; ?>>
     <tbody><tr class="table-primary"><th colspan="2">
@@ -50,5 +51,13 @@ $line = static function (mixed $utc, mixed $author) use ($date, $text): string {
     <tbody id="<?= $id; ?>-content" class="collapse">
         <tr><th class="w-25"><?= Text::_('COM_BREEZINGFORMSNG_TEST_CREATED'); ?></th><td><?= $line($layoutData['created'], $layoutData['createdBy']); ?></td></tr>
         <tr><th><?= Text::_('COM_BREEZINGFORMSNG_FORMS_MODIFIED'); ?></th><td><?= $line($layoutData['modified'], $layoutData['modifiedBy']); ?></td></tr>
+        <tr>
+            <th><?= Text::_('COM_BREEZINGFORMSNG_AUDIT_MINIMUM_RIGHT'); ?></th>
+            <td>
+                <?php /* The names of the Permissions tab, where these rights are granted. */ ?>
+                <div><?= $right('COM_BREEZINGFORMSNG_AUDIT_RIGHT_VIEW', $layoutData['viewRight']); ?></div>
+                <div><?= $right('COM_BREEZINGFORMSNG_AUDIT_RIGHT_EDIT', $layoutData['editRight']); ?></div>
+            </td>
+        </tr>
     </tbody>
 </table>
