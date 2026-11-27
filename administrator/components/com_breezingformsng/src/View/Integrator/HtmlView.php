@@ -46,6 +46,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
     public array $items        = [];
     /** @var string[] */
     public array $tableNames   = [];
+    /** @var array<string, string> The TableOwner of each shown table */
+    public array $tableOwners  = [];
     /** @var array<string, mixed> */
     public array $tableColumns = [];
     /** @var list<\stdClass> */
@@ -84,6 +86,10 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             // The help layout is self-contained.
         } else {
             $this->prepareList();
+            $this->tableOwners = $model->getTableOwners(array_values(array_map(
+                static fn (\stdClass $rule): string => (string) $rule->reference_table,
+                $this->rules
+            )));
         }
 
         parent::display($tpl);
@@ -194,6 +200,7 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
         $this->formFilter  = $input->getCmd('formfilter', 'all');
         $this->forms       = $model->getForms($this->formFilter);
         $this->tableNames  = $model->getTableNames();
+        $this->tableOwners = $model->getTableOwners(array_values($this->tableNames));
 
         if ($this->rule !== null) {
             $model->versions()->keepOrigin($id);

@@ -11,6 +11,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 
 \defined('_JEXEC') or die;
 
+use Vcmb\Component\BreezingformsNG\Administrator\Service\TableOwner;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseInterface;
@@ -65,6 +66,29 @@ class IntegratorModel extends BaseDatabaseModel
             ->bind(':ruleId', $ruleId, ParameterType::INTEGER);
         $db->setQuery($query);
         return $db->loadObjectList() ?: [];
+    }
+
+    /**
+     * @param list<string> $tables Full table names
+     *
+     * @return array<string, string> The TableOwner of each table
+     */
+    public function getTableOwners(array $tables): array
+    {
+        $db = $this->db();
+        $components = $db->setQuery(
+            $db->createQuery()
+                ->select($db->quoteName('element'))
+                ->from($db->quoteName('#__extensions'))
+                ->where($db->quoteName('type') . ' = ' . $db->quote('component'))
+        )->loadColumn() ?: [];
+        $owners = [];
+
+        foreach ($tables as $table) {
+            $owners[$table] = TableOwner::of($table, $db->getPrefix(), array_map('strval', array_values($components)));
+        }
+
+        return $owners;
     }
 
     /**
