@@ -90,61 +90,6 @@ final class ExportEngine
         $user = $this->processor->app->getIdentity()
             ?? throw new \RuntimeException('The current user is not loaded.');
 
-        if (!is_object($cbForm) && $this->processor->editable && $this->processor->editable_override) {
-            $editableFormValue = $this->processor->form;
-            $editableUserId = $user->get('id', 0);
-            $recordsQuery = $this->processor->database->createQuery()
-                ->select('id')
-                ->from($this->processor->database->quoteName('#__facileforms_records'))
-                ->where($this->processor->database->quoteName('form') . ' = :editableFormValue')
-                ->where($this->processor->database->quoteName('user_id') . ' = :editableUserId')
-                ->where($this->processor->database->quoteName('user_id') . ' <> 0')
-                ->bind(':editableFormValue', $editableFormValue, ParameterType::STRING)
-                ->bind(':editableUserId', $editableUserId, ParameterType::INTEGER);
-            $this->processor->database->setQuery($recordsQuery);
-            $records = [];
-            $rawRecords = $this->processor->database->loadObjectList();
-            if (is_array($rawRecords)) {
-                foreach ($rawRecords as $record) {
-                    if (!is_object($record)) {
-                        continue;
-                    }
-
-                    $recordData = get_object_vars($record);
-                    $recordId = $recordData['id'] ?? null;
-                    if (is_int($recordId)) {
-                        $records[] = ['id' => $recordId];
-                        continue;
-                    }
-
-                    if (is_string($recordId) && is_numeric($recordId)) {
-                        $records[] = ['id' => (int) $recordId];
-                    }
-                }
-            }
-
-            (new ContentBuilderRecordCleanup(
-                $this->processor->database,
-                $this->processor->app,
-                $this->cacheControllerFactory
-            ))->remove((int) $editableFormValue, array_column($records, 'id'));
-            foreach ($records as $record) {
-                $recordIdToDelete = $record['id'];
-                $delSubrecordsQuery = $this->processor->database->createQuery()
-                    ->delete($this->processor->database->quoteName('#__facileforms_subrecords'))
-                    ->where($this->processor->database->quoteName('record') . ' = :recordIdToDelete')
-                    ->bind(':recordIdToDelete', $recordIdToDelete, ParameterType::INTEGER);
-                $this->processor->database->setQuery($delSubrecordsQuery);
-                $this->processor->database->execute();
-                $delRecordQuery = $this->processor->database->createQuery()
-                    ->delete($this->processor->database->quoteName('#__facileforms_records'))
-                    ->where($this->processor->database->quoteName('id') . ' = :recordIdToDelete')
-                    ->bind(':recordIdToDelete', $recordIdToDelete, ParameterType::INTEGER);
-                $this->processor->database->setQuery($delRecordQuery);
-                $this->processor->database->execute();
-            }
-        }
-
         $record = new RecordTable($this->processor->database);
         $record->submitted = $this->processor->submitted;
         $record->form = $this->processor->form;
@@ -169,73 +114,20 @@ final class ExportEngine
         // CONTENTBUILDER WILL TAKE OVER SAVING/UPDATE IF EXISTS
         $cbFileFields = array();
         if (!is_object($cbForm)) {
-            if (!$record->store()) {
-                $this->processor->status = _FF_STATUS_SAVERECORD_FAILED;
-                $this->processor->message = Text::_('COM_BREEZINGFORMSNG_PROCESS_SAVERECFAILED');
+            $replacedUserId = $this->processor->editable && $this->processor->editable_override
+                ? (int) $user->get('id', 0)
+                : null;
+
+            if (!$this->storeRecordWithValues($record, $replacedUserId)) {
                 return;
-            } // if
+            }
 
             $record_return = $record->id;
-
-            if ($record_return && ContentBuilderInstallation::isInstalled()) {
-                $last_update = new \Joomla\CMS\Date\Date();
-                $last_update = $last_update->toSql();
-                $db = $this->processor->database;
-                $cbFormValue = $this->processor->form;
-                $cbRecordReturn = $record_return;
-                $existsQuery = $db->createQuery()
-                    ->select('id')
-                    ->from($db->quoteName('#__contentbuilderng_records'))
-                    ->where($db->quoteName('type') . ' = ' . $db->quote('com_breezingformsng'))
-                    ->where($db->quoteName('reference_id') . ' = :cbFormValue')
-                    ->where($db->quoteName('record_id') . ' = :cbRecordReturn')
-                    ->bind(':cbFormValue', $cbFormValue, ParameterType::STRING)
-                    ->bind(':cbRecordReturn', $cbRecordReturn, ParameterType::STRING);
-                $db->setQuery($existsQuery);
-                $res = $db->loadResult();
-                if (!$res) {
-                    $sessionId = $this->processor->app->getSession()->getId();
-                    $cbType = 'com_breezingformsng';
-                    $insertQuery = $db->createQuery()
-                        ->insert($db->quoteName('#__contentbuilderng_records'))
-                        ->columns($db->quoteName([
-                            'session_id',
-                            'type',
-                            'last_update',
-                            'published',
-                            'record_id',
-                            'reference_id',
-                        ]))
-                        ->values(':sessionId, :cbType, :lastUpdate, 0, :cbRecordReturn, :cbFormValue')
-                        ->bind(':sessionId', $sessionId, ParameterType::STRING)
-                        ->bind(':cbType', $cbType, ParameterType::STRING)
-                        ->bind(':lastUpdate', $last_update, ParameterType::STRING)
-                        ->bind(':cbRecordReturn', $cbRecordReturn, ParameterType::STRING)
-                        ->bind(':cbFormValue', $cbFormValue, ParameterType::STRING);
-                    $db->setQuery($insertQuery);
-                    $db->execute();
-                } else {
-                    $updateQuery = $db->createQuery()
-                        ->update($db->quoteName('#__contentbuilderng_records'))
-                        ->set($db->quoteName('last_update') . ' = :lastUpdate')
-                        ->set($db->quoteName('edited') . ' = ' . $db->quoteName('edited') . ' + 1')
-                        ->where($db->quoteName('type') . ' = ' . $db->quote('com_breezingformsng'))
-                        ->where($db->quoteName('reference_id') . ' = :cbFormValue')
-                        ->where($db->quoteName('record_id') . ' = :cbRecordReturn')
-                        ->bind(':lastUpdate', $last_update, ParameterType::STRING)
-                        ->bind(':cbFormValue', $cbFormValue, ParameterType::STRING)
-                        ->bind(':cbRecordReturn', $cbRecordReturn, ParameterType::STRING);
-                    $db->setQuery($updateQuery);
-                    $db->execute();
-                }
-            }
+        } else {
+            $this->processor->record_id = $record->id;
         }
 
-        $this->processor->record_id = $record->id;
-
         $names = array();
-        $subrecord = new SubrecordTable($this->processor->database);
-        $subrecord->record = $record->id;
         if (count($this->processor->savedata ?? [])) {
             $cbData = array();
 
@@ -332,67 +224,32 @@ final class ExportEngine
                     }
                 }
             }
-            $_savedata = array();
-            if (!is_object($cbForm)) {
-                foreach ($this->processor->savedata ?? [] as $data) {
-                    if ($data[_FF_DATA_TYPE] == 'File Upload') {
-                        if (!isset($_savedata[$data[_FF_DATA_ID]])) {
-                            $_savedata[$data[_FF_DATA_ID]] = '';
-                        }
-                        $_savedata[$data[_FF_DATA_ID]] .= $data[_FF_DATA_VALUE] . "\n";
-                    }
-                }
-            }
-            $isset = array();
-            foreach ($this->processor->savedata ?? [] as $data) {
-                // CONTENTBUILDER WILL TAKE OVER SAVING/UPDATE IF EXISTS
-                if (!is_object($cbForm)) {
-                    $subrecord->id = null;
-                    $subrecord->element = $data[_FF_DATA_ID];
-                    $subrecord->name = $data[_FF_DATA_NAME];
-                    $subrecord->title = strip_tags($data[_FF_DATA_TITLE]);
-                    $subrecord->type = $data[_FF_DATA_TYPE];
-                    if (isset($_savedata[$data[_FF_DATA_ID]]) && !isset($isset[$data[_FF_DATA_ID]])) {
-                        $subrecord->value = trim($_savedata[$data[_FF_DATA_ID]]);
-                    } else {
-                        $subrecord->value = $data[_FF_DATA_VALUE];
-                    }
-                    if (!isset($isset[$data[_FF_DATA_ID]])) {
-                        if (!$subrecord->store()) {
-                            $this->processor->status = _FF_STATUS_SAVESUBRECORD_FAILED;
-                            $this->processor->message = Text::_('COM_BREEZINGFORMSNG_PROCESS_SAVESUBFAILED');
-                            return;
-                        }
-                    }
-                    if ($data[_FF_DATA_TYPE] == 'File Upload') {
-                        $isset[$data[_FF_DATA_ID]] = true;
-                    }
-                } else {
-                    $cbNonEditableFields = ListSupportService::createFromRuntimeContext()
-                        ->getListNonEditableElements($cbResult['data']['id']);
+            // CONTENTBUILDER WILL TAKE OVER SAVING/UPDATE IF EXISTS
+            foreach (is_object($cbForm) ? ($this->processor->savedata ?? []) : [] as $data) {
+                $cbNonEditableFields = ListSupportService::createFromRuntimeContext()
+                    ->getListNonEditableElements($cbResult['data']['id']);
 
-                    if (!in_array($data[_FF_DATA_ID], $cbNonEditableFields)) {
-                        switch ($data[_FF_DATA_TYPE]) {
-                            case 'Checkbox':
-                            case 'Checkbox Group':
-                            case 'Radio Button':
-                            case 'Radio Group':
-                            case 'Select List':
-                                if (!isset($cbData[$data[_FF_DATA_ID]])) {
-                                    $cbData[$data[_FF_DATA_ID]] = array();
-                                }
-                                $cbData[$data[_FF_DATA_ID]][] = $data[_FF_DATA_VALUE];
-                                break;
-                            case 'File Upload':
-                                if (!isset($cbData[$data[_FF_DATA_ID]])) {
-                                    $cbData[$data[_FF_DATA_ID]] = '';
-                                    $cbFileFields[] = $data[_FF_DATA_ID];
-                                }
-                                $cbData[$data[_FF_DATA_ID]] .= $data[_FF_DATA_VALUE] . "\n";
-                                break;
-                            default:
-                                $cbData[$data[_FF_DATA_ID]] = $data[_FF_DATA_VALUE];
-                        }
+                if (!in_array($data[_FF_DATA_ID], $cbNonEditableFields)) {
+                    switch ($data[_FF_DATA_TYPE]) {
+                        case 'Checkbox':
+                        case 'Checkbox Group':
+                        case 'Radio Button':
+                        case 'Radio Group':
+                        case 'Select List':
+                            if (!isset($cbData[$data[_FF_DATA_ID]])) {
+                                $cbData[$data[_FF_DATA_ID]] = array();
+                            }
+                            $cbData[$data[_FF_DATA_ID]][] = $data[_FF_DATA_VALUE];
+                            break;
+                        case 'File Upload':
+                            if (!isset($cbData[$data[_FF_DATA_ID]])) {
+                                $cbData[$data[_FF_DATA_ID]] = '';
+                                $cbFileFields[] = $data[_FF_DATA_ID];
+                            }
+                            $cbData[$data[_FF_DATA_ID]] .= $data[_FF_DATA_VALUE] . "\n";
+                            break;
+                        default:
+                            $cbData[$data[_FF_DATA_ID]] = $data[_FF_DATA_VALUE];
                     }
                 }
             } // foreach
@@ -698,6 +555,225 @@ final class ExportEngine
     }
 
     // logToDatabase
+
+    /**
+     * Saves the record, its ContentBuilder NG link and its values in one
+     * transaction: one commit instead of one per value, no partial record, and
+     * the replaced records are kept when the new one cannot be saved.
+     *
+     * @param int|null $replacedUserId User whose records of this form are replaced.
+     */
+    private function storeRecordWithValues(RecordTable $record, ?int $replacedUserId = null): bool
+    {
+        $db = $this->processor->database;
+        // Built before the transaction: a table reads its columns when created.
+        $subrecord = new SubrecordTable($db);
+
+        $cleanup = $replacedUserId === null ? null : new ContentBuilderRecordCleanup(
+            $db,
+            $this->processor->app,
+            $this->cacheControllerFactory
+        );
+        $articleIds = [];
+
+        $stored = (new DatabaseTransaction($db))->run(function () use (
+            $db,
+            $record,
+            $subrecord,
+            $cleanup,
+            $replacedUserId,
+            &$articleIds
+        ): bool {
+            if ($cleanup !== null) {
+                $articleIds = $this->deleteReplacedRecords($cleanup, (int) $replacedUserId);
+            }
+
+            if (!$record->store()) {
+                $this->processor->status = _FF_STATUS_SAVERECORD_FAILED;
+                $this->processor->message = Text::_('COM_BREEZINGFORMSNG_PROCESS_SAVERECFAILED');
+
+                return false;
+            }
+
+            if ($record->id && ContentBuilderInstallation::isInstalled()) {
+                $this->linkContentBuilderRecord($db, $record->id);
+            }
+
+            $subrecord->record = $record->id;
+
+            // The files of one upload element are stored as a single value.
+            $uploads = [];
+            foreach ($this->processor->savedata ?? [] as $data) {
+                if ($data[_FF_DATA_TYPE] == 'File Upload') {
+                    $uploads[$data[_FF_DATA_ID]] ??= '';
+                    $uploads[$data[_FF_DATA_ID]] .= $data[_FF_DATA_VALUE] . "\n";
+                }
+            }
+
+            $storedUploads = [];
+            foreach ($this->processor->savedata ?? [] as $data) {
+                if (isset($storedUploads[$data[_FF_DATA_ID]])) {
+                    continue;
+                }
+
+                $subrecord->id = null;
+                $subrecord->element = $data[_FF_DATA_ID];
+                $subrecord->name = $data[_FF_DATA_NAME];
+                $subrecord->title = strip_tags($data[_FF_DATA_TITLE]);
+                $subrecord->type = $data[_FF_DATA_TYPE];
+                $subrecord->value = isset($uploads[$data[_FF_DATA_ID]])
+                    ? trim($uploads[$data[_FF_DATA_ID]])
+                    : $data[_FF_DATA_VALUE];
+
+                if (!$subrecord->store()) {
+                    $this->processor->status = _FF_STATUS_SAVESUBRECORD_FAILED;
+                    $this->processor->message = Text::_('COM_BREEZINGFORMSNG_PROCESS_SAVESUBFAILED');
+
+                    return false;
+                }
+
+                if ($data[_FF_DATA_TYPE] == 'File Upload') {
+                    $storedUploads[$data[_FF_DATA_ID]] = true;
+                }
+            }
+
+            $this->processor->record_id = $record->id;
+
+            return true;
+        });
+
+        if ($stored && $cleanup !== null) {
+            try {
+                $cleanup->deleteArticles($articleIds);
+            } catch (Throwable $exception) {
+                // The new record is saved: the submission goes on.
+                Log::add(
+                    'Articles of replaced records were not deleted (' . implode(', ', $articleIds) . '): '
+                    . $exception->getMessage(),
+                    Log::WARNING,
+                    'com_breezingformsng'
+                );
+            }
+        }
+
+        return $stored;
+    }
+
+    /**
+     * Deletes the records an editable form replaces, within the transaction
+     * that saves the new one.
+     *
+     * @return list<int> The articles to delete after the commit.
+     */
+    private function deleteReplacedRecords(ContentBuilderRecordCleanup $cleanup, int $userId): array
+    {
+        $editableFormValue = $this->processor->form;
+        $recordsQuery = $this->processor->database->createQuery()
+            ->select('id')
+            ->from($this->processor->database->quoteName('#__facileforms_records'))
+            ->where($this->processor->database->quoteName('form') . ' = :editableFormValue')
+            ->where($this->processor->database->quoteName('user_id') . ' = :editableUserId')
+            ->where($this->processor->database->quoteName('user_id') . ' <> 0')
+            ->bind(':editableFormValue', $editableFormValue, ParameterType::STRING)
+            ->bind(':editableUserId', $userId, ParameterType::INTEGER);
+        $this->processor->database->setQuery($recordsQuery);
+        $records = [];
+        $rawRecords = $this->processor->database->loadObjectList();
+        if (is_array($rawRecords)) {
+            foreach ($rawRecords as $record) {
+                if (!is_object($record)) {
+                    continue;
+                }
+
+                $recordData = get_object_vars($record);
+                $recordId = $recordData['id'] ?? null;
+                if (is_int($recordId)) {
+                    $records[] = ['id' => $recordId];
+                    continue;
+                }
+
+                if (is_string($recordId) && is_numeric($recordId)) {
+                    $records[] = ['id' => (int) $recordId];
+                }
+            }
+        }
+
+        $articleIds = $cleanup->removeData((int) $editableFormValue, array_column($records, 'id'));
+
+        foreach ($records as $record) {
+            $recordIdToDelete = $record['id'];
+            $delSubrecordsQuery = $this->processor->database->createQuery()
+                ->delete($this->processor->database->quoteName('#__facileforms_subrecords'))
+                ->where($this->processor->database->quoteName('record') . ' = :recordIdToDelete')
+                ->bind(':recordIdToDelete', $recordIdToDelete, ParameterType::INTEGER);
+            $this->processor->database->setQuery($delSubrecordsQuery);
+            $this->processor->database->execute();
+            $delRecordQuery = $this->processor->database->createQuery()
+                ->delete($this->processor->database->quoteName('#__facileforms_records'))
+                ->where($this->processor->database->quoteName('id') . ' = :recordIdToDelete')
+                ->bind(':recordIdToDelete', $recordIdToDelete, ParameterType::INTEGER);
+            $this->processor->database->setQuery($delRecordQuery);
+            $this->processor->database->execute();
+        }
+
+        return $articleIds;
+    }
+
+    /**
+     * @param int|string $recordId
+     */
+    private function linkContentBuilderRecord(DatabaseInterface $db, $recordId): void
+    {
+        $last_update = new \Joomla\CMS\Date\Date();
+        $last_update = $last_update->toSql();
+        $cbFormValue = $this->processor->form;
+        $cbRecordReturn = $recordId;
+        $existsQuery = $db->createQuery()
+            ->select('id')
+            ->from($db->quoteName('#__contentbuilderng_records'))
+            ->where($db->quoteName('type') . ' = ' . $db->quote('com_breezingformsng'))
+            ->where($db->quoteName('reference_id') . ' = :cbFormValue')
+            ->where($db->quoteName('record_id') . ' = :cbRecordReturn')
+            ->bind(':cbFormValue', $cbFormValue, ParameterType::STRING)
+            ->bind(':cbRecordReturn', $cbRecordReturn, ParameterType::STRING);
+        $db->setQuery($existsQuery);
+        $res = $db->loadResult();
+        if (!$res) {
+            $sessionId = $this->processor->app->getSession()->getId();
+            $cbType = 'com_breezingformsng';
+            $insertQuery = $db->createQuery()
+                ->insert($db->quoteName('#__contentbuilderng_records'))
+                ->columns($db->quoteName([
+                    'session_id',
+                    'type',
+                    'last_update',
+                    'published',
+                    'record_id',
+                    'reference_id',
+                ]))
+                ->values(':sessionId, :cbType, :lastUpdate, 0, :cbRecordReturn, :cbFormValue')
+                ->bind(':sessionId', $sessionId, ParameterType::STRING)
+                ->bind(':cbType', $cbType, ParameterType::STRING)
+                ->bind(':lastUpdate', $last_update, ParameterType::STRING)
+                ->bind(':cbRecordReturn', $cbRecordReturn, ParameterType::STRING)
+                ->bind(':cbFormValue', $cbFormValue, ParameterType::STRING);
+            $db->setQuery($insertQuery);
+            $db->execute();
+        } else {
+            $updateQuery = $db->createQuery()
+                ->update($db->quoteName('#__contentbuilderng_records'))
+                ->set($db->quoteName('last_update') . ' = :lastUpdate')
+                ->set($db->quoteName('edited') . ' = ' . $db->quoteName('edited') . ' + 1')
+                ->where($db->quoteName('type') . ' = ' . $db->quote('com_breezingformsng'))
+                ->where($db->quoteName('reference_id') . ' = :cbFormValue')
+                ->where($db->quoteName('record_id') . ' = :cbRecordReturn')
+                ->bind(':lastUpdate', $last_update, ParameterType::STRING)
+                ->bind(':cbFormValue', $cbFormValue, ParameterType::STRING)
+                ->bind(':cbRecordReturn', $cbRecordReturn, ParameterType::STRING);
+            $db->setQuery($updateQuery);
+            $db->execute();
+        }
+    }
 
     /**
      * @param mixed $from

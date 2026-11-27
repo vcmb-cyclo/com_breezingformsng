@@ -49,10 +49,24 @@ final class ContentBuilderRecordCleanup
      */
     public function remove(int $formId, array $recordIds): void
     {
+        $this->deleteArticles($this->removeData($formId, $recordIds));
+    }
+
+    /**
+     * Removes the ContentBuilder NG rows only, so it can run in a transaction.
+     * The articles to delete are returned for deleteArticles(), to be called
+     * after the commit: deleting an article locks tables, which commits.
+     *
+     * @param int[] $recordIds
+     *
+     * @return list<int>
+     */
+    public function removeData(int $formId, array $recordIds): array
+    {
         $recordIds = array_values(array_filter(array_map('intval', $recordIds)));
 
         if ($recordIds === [] || !ContentBuilderInstallation::isInstalled()) {
-            return;
+            return [];
         }
 
         $db = $this->db;
@@ -78,7 +92,7 @@ final class ContentBuilderRecordCleanup
         $cbFormIds = array_map('intval', array_keys($deletesArticles));
 
         if ($cbFormIds === []) {
-            return;
+            return [];
         }
 
         $query = $db->createQuery()
@@ -100,22 +114,24 @@ final class ContentBuilderRecordCleanup
             }
         }
 
-        if ($articleIds !== []) {
-            $this->deleteArticles(array_values(array_unique($articleIds)));
-        }
-
         $query = $db->createQuery()
             ->delete($db->quoteName('#__contentbuilderng_articles'))
             ->whereIn($db->quoteName('form_id'), $cbFormIds)
             ->whereIn($db->quoteName('record_id'), $recordIds);
         $db->setQuery($query)->execute();
+
+        return array_values(array_unique($articleIds));
     }
 
     /**
      * @param int[] $articleIds
      */
-    private function deleteArticles(array $articleIds): void
+    public function deleteArticles(array $articleIds): void
     {
+        if ($articleIds === []) {
+            return;
+        }
+
         $component = $this->app->bootComponent('com_content');
 
         if (!$component instanceof MVCFactoryServiceInterface) {
