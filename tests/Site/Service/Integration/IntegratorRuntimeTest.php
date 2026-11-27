@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Vcmb\Component\BreezingformsNG\Tests\Site\Service\Integration;
 
 use Joomla\Database\DatabaseInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Vcmb\Component\BreezingformsNG\Site\Service\Integration\IntegratorRuntime;
@@ -25,6 +26,19 @@ if (!interface_exists(DatabaseInterface::class)) {
 
 if (!class_exists('Joomla\\Database\\ParameterType')) {
     eval('namespace Joomla\\Database; final class ParameterType { public const INTEGER = 1; }');
+}
+
+if (!defined('JPATH_SITE')) {
+    define('JPATH_SITE', __DIR__ . '/../../../../');
+}
+
+if (!defined('JPATH_ADMINISTRATOR')) {
+    define('JPATH_ADMINISTRATOR', __DIR__ . '/../../../../administrator');
+}
+
+// Defines the submitted data constants.
+if (!class_exists('HTML_facileFormsProcessor')) {
+    require_once __DIR__ . '/../../../../components/com_breezingformsng/src/Support/processor_facade.php';
 }
 
 if (!class_exists('Joomla\\CMS\\Language\\Text')) {
@@ -271,6 +285,146 @@ final class IntegratorRuntimeTest extends TestCase
 
         self::assertStringContainsString("' failed while updating or inserting the reference row.'", $source);
         self::assertStringNotContainsString('catch (\\Throwable $e) {' . "\n        }", $source);
+    }
+
+    /**
+     * @return iterable<string, array{int, bool, bool, int}>
+     */
+    public static function updateOutcomes(): iterable
+    {
+        foreach (['with a criterion' => true, 'without criteria' => false] as $label => $criterion) {
+            yield 'a changed row is not inserted again, ' . $label => [1, true, $criterion, 0];
+            yield 'an unchanged row is not inserted again, ' . $label => [0, true, $criterion, 0];
+            yield 'a missing row is inserted, ' . $label => [0, false, $criterion, 1];
+        }
+    }
+
+    #[DataProvider('updateOutcomes')]
+    public function testAnUpdateRuleInsertsOnlyWhenNoRowMatches(
+        int $affected,
+        bool $exists,
+        bool $criterion,
+        int $inserts
+    ): void {
+        $database = new class ($affected, $exists, $criterion) implements DatabaseInterface {
+            /** @var list<object> */
+            public array $executed = [];
+            private object $query;
+
+            public function __construct(
+                private readonly int $affected,
+                private readonly bool $exists,
+                private readonly bool $criterion
+            ) {
+            }
+
+            public function createQuery(): object
+            {
+                return new class {
+                    public string $type = 'select';
+                    public string $table = '';
+                    /** @var list<string> */
+                    public array $conditions = [];
+
+                    public function insert(string $table): self
+                    {
+                        $this->type = 'insert';
+
+                        return $this;
+                    }
+
+                    public function update(string $table): self
+                    {
+                        $this->type = 'update';
+
+                        return $this;
+                    }
+
+                    public function from(string $table): self
+                    {
+                        $this->table = $table;
+
+                        return $this;
+                    }
+
+                    public function where(string $condition): self
+                    {
+                        $this->conditions[] = $condition;
+
+                        return $this;
+                    }
+
+                    public function __call(string $name, array $arguments): self
+                    {
+                        return $this;
+                    }
+
+                    public function bind(string $key, mixed $value, mixed $type = null): self
+                    {
+                        return $this;
+                    }
+                };
+            }
+
+            public function quoteName(string $name, ?string $alias = null): string
+            {
+                return $name;
+            }
+
+            public function setQuery(object $query): self
+            {
+                $this->query = $query;
+
+                return $this;
+            }
+
+            public function execute(): bool
+            {
+                $this->executed[] = $this->query;
+
+                return true;
+            }
+
+            public function getAffectedRows(): int
+            {
+                return $this->affected;
+            }
+
+            public function loadResult(): ?string
+            {
+                $this->executed[] = $this->query;
+
+                return $this->exists ? '1' : null;
+            }
+
+            /** @return list<object> */
+            public function loadObjectList(): array
+            {
+                return $this->criterion && str_contains($this->query->table, 'integrator_criteria_fixed')
+                    ? [(object) [
+                        'andor' => 'AND', 'reference_column' => 'locked', 'operator' => '=', 'fixed_value' => '0',
+                    ]]
+                    : [];
+            }
+        };
+
+        $runtime = (new ReflectionClass(IntegratorRuntime::class))->newInstanceWithoutConstructor();
+        $reflection = new ReflectionClass($runtime);
+        $reflection->getProperty('db')->setValue($runtime, $database);
+        $rule = (object) ['id' => 1, 'type' => 'update', 'reference_table' => 'contacts', 'finalize_code' => ''];
+        $reflection->getMethod('commitUpdate')->invoke($runtime, ['rule' => $rule, 'items' => [
+            ['item' => (object) ['code' => '', 'reference_column' => 'email'], 'data' => [4 => 'a@example.invalid']],
+        ]]);
+
+        $types = array_column($database->executed, 'type');
+        self::assertSame($inserts, count(array_keys($types, 'insert', true)));
+        self::assertSame($affected > 0 ? 1 : 2 + $inserts, count($types));
+
+        if ($affected === 0) {
+            // The row is looked up with the criteria of the update.
+            self::assertSame($database->executed[0]->conditions, $database->executed[1]->conditions);
+            self::assertCount($criterion ? 1 : 0, $database->executed[1]->conditions);
+        }
     }
 
     public function testTheCodeOfAnItemChangesTheValueItWrites(): void
