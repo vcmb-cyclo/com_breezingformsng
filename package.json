@@ -26,7 +26,7 @@
     "@playwright/test": "1.65.1",
     "eslint": "10.15.0",
     "globals": "17.14.0",
-    "stylelint": "18.0.0",
+    "stylelint": "18.1.0",
     "stylelint-config-standard": "41.0.0"
   },
   "dependencies": {
