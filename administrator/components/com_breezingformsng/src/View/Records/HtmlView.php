@@ -107,22 +107,24 @@ class HtmlView extends BaseHtmlView
         $toolbar = $document->getToolbar() ?? throw new \RuntimeException('The toolbar is not available.');
         $user = $this->getCurrentUser();
 
-        $exportDropdown = $toolbar->dropdownButton('export-options');
+        if ($user->authorise('core.edit', 'com_breezingformsng')) {
+            $exportDropdown = $toolbar->dropdownButton('export-options');
 
-        if (!$exportDropdown instanceof DropdownButton) {
-            throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            if (!$exportDropdown instanceof DropdownButton) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            $exportDropdown->toggleSplit(false);
+            $exportDropdown
+                ->text(Text::_('COM_BREEZINGFORMSNG_EXPORT_DOWNLOAD'))
+                ->icon('icon-download')
+                ->buttonClass('btn btn-action');
+            $child = $exportDropdown->getChildToolbar();
+            $child->standardButton('exportPdf')->text(Text::_('COM_BREEZINGFORMSNG_PDF'))->task('records.exportPdf')->icon('icon-download')->listCheck(false);
+            $child->standardButton('exportCsv')->text(Text::_('COM_BREEZINGFORMSNG_CSV'))->task('records.exportCsv')->icon('icon-download')->listCheck(false);
+            $child->standardButton('exportXlsx')->text(Text::_('COM_BREEZINGFORMSNG_XLSX'))->task('records.exportXlsx')->icon('icon-download')->listCheck(false);
+            $child->standardButton('exportXml')->text(Text::_('COM_BREEZINGFORMSNG_XML'))->task('records.exportXml')->icon('icon-download')->listCheck(false);
         }
-
-        $exportDropdown->toggleSplit(false);
-        $exportDropdown
-            ->text(Text::_('COM_BREEZINGFORMSNG_EXPORT_DOWNLOAD'))
-            ->icon('icon-download')
-            ->buttonClass('btn btn-action');
-        $child = $exportDropdown->getChildToolbar();
-        $child->standardButton('exportPdf')->text(Text::_('COM_BREEZINGFORMSNG_PDF'))->task('records.exportPdf')->icon('icon-download')->listCheck(false);
-        $child->standardButton('exportCsv')->text(Text::_('COM_BREEZINGFORMSNG_CSV'))->task('records.exportCsv')->icon('icon-download')->listCheck(false);
-        $child->standardButton('exportXlsx')->text(Text::_('COM_BREEZINGFORMSNG_XLSX'))->task('records.exportXlsx')->icon('icon-download')->listCheck(false);
-        $child->standardButton('exportXml')->text(Text::_('COM_BREEZINGFORMSNG_XML'))->task('records.exportXml')->icon('icon-download')->listCheck(false);
 
         if ($user->authorise('core.create', 'com_breezingformsng')) {
             $toolbar->linkButton('import', 'COM_BREEZINGFORMSNG_BTN_IMPORT_CSV')

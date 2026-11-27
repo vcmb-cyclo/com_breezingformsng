@@ -39,7 +39,7 @@ final class AuditAccordionArchitectureTest extends TestCase
         [$view, $edit] = match ($id) {
             'bf-form-audit' => ['JACTION_EDIT', 'JACTION_EDIT'],
             'bf-integrator-audit' => ['COM_BREEZINGFORMSNG_ACTION_CODE', 'COM_BREEZINGFORMSNG_ACTION_CODE'],
-            default => ['JACTION_MANAGE', 'COM_BREEZINGFORMSNG_ACTION_CODE'],
+            default => ['COM_BREEZINGFORMSNG_ACTION_CODE', 'COM_BREEZINGFORMSNG_ACTION_CODE'],
         };
 
         self::assertStringContainsString("'viewRight' => '" . $view . "'", $source);

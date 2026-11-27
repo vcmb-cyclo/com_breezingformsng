@@ -80,6 +80,9 @@ class HtmlView extends BaseHtmlView
 
     public function display($tpl = null)
     {
+        // Any controller can display a view: the screen checks the right itself.
+        AreaAccess::assert($this->getCurrentUser(), AreaAccess::CODE);
+
         /** @var CMSApplication $app */
         $app = Factory::getApplication();
         $model = $this->getModel();

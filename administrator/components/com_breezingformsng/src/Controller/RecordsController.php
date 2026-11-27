@@ -10,6 +10,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Controller;
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Access\Exception\NotAllowed;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
@@ -192,6 +193,7 @@ class RecordsController extends AdminController
     public function exportPdf(): void
     {
         $this->checkToken();
+        $this->assertExportAllowed();
 
         $export = $this->getExporter()->pdf($this->selectedIds());
         $this->getRecordModel()->markExported($export['ids']);
@@ -203,6 +205,7 @@ class RecordsController extends AdminController
     public function exportCsv(): void
     {
         $this->checkToken();
+        $this->assertExportAllowed();
 
         $export = $this->getExporter()->csv($this->selectedIds());
         $this->getRecordModel()->markExported($export['ids']);
@@ -225,6 +228,7 @@ class RecordsController extends AdminController
     public function exportXlsx(): void
     {
         $this->checkToken();
+        $this->assertExportAllowed();
 
         $app = $this->app;
         $ids = $this->selectedIds();
@@ -268,6 +272,7 @@ class RecordsController extends AdminController
     public function exportXml(): void
     {
         $this->checkToken();
+        $this->assertExportAllowed();
 
         $export = $this->getExporter()->xml($this->selectedIds());
         $this->getRecordModel()->markExported($export['ids']);
@@ -285,6 +290,18 @@ class RecordsController extends AdminController
         $app->sendHeaders();
         echo $export['content'];
         $app->close();
+    }
+
+    /**
+     * An export holds the submitted data: it takes the right that opening a record takes.
+     */
+    private function assertExportAllowed(): void
+    {
+        $user = $this->app->getIdentity();
+
+        if ($user === null || !$user->authorise('core.edit', $this->option)) {
+            throw new NotAllowed(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+        }
     }
 
     /**

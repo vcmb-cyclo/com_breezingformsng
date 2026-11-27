@@ -120,6 +120,23 @@ final class AdminControllerAccessTest extends TestCase
 
     // --- the right of the user ---
 
+    /** @return iterable<string, array{string}> */
+    public static function exportTasks(): iterable
+    {
+        foreach (['exportPdf', 'exportCsv', 'exportXlsx', 'exportXml'] as $task) {
+            yield $task => [$task];
+        }
+    }
+
+    #[DataProvider('exportTasks')]
+    public function testExportingRecordsNeedsTheEditRight(string $task): void
+    {
+        $refused = $this->runTask('records', $task, 'valid', 'core.manage,core.create,core.edit.state,core.delete', []);
+
+        self::assertSame(self::NOT_ALLOWED, $refused['stopped']);
+        self::assertSame([], self::models($refused['events']), $task . ' reached a model without the edit right');
+    }
+
     public function testPublishingFromTheListNeedsTheStateRight(): void
     {
         $refused = $this->runTask('forms', 'setPublished', 'valid', 'core.manage,core.edit,core.create', ['id' => 5, 'state' => 1]);
@@ -638,36 +655,32 @@ final class AdminControllerAccessTest extends TestCase
         self::assertContains('parent', array_merge(...array_map('array_keys', $trashed['events'])));
     }
 
-    // a single piece or script: only the display tasks need less than the code right
+    // a single piece or script: every task needs the code right
 
-    /** @return iterable<string, array{string, string, bool}> */
+    /** @return iterable<string, array{string, string}> */
     public static function codeItemTasks(): iterable
     {
-        yield 'piece edit' => ['piece', 'edit', true];
-        yield 'piece cancel' => ['piece', 'cancel', true];
-        yield 'piece navigate' => ['piece', 'navigate', true];
-        yield 'piece test' => ['piece', 'test', false];
-        yield 'piece save' => ['piece', 'save', false];
-        yield 'piece apply' => ['piece', 'apply', false];
-        yield 'piece runTest' => ['piece', 'runTest', false];
-        yield 'piece runTestsAjax' => ['piece', 'runTestsAjax', false];
-        yield 'script edit' => ['script', 'edit', true];
-        yield 'script test' => ['script', 'test', true];
-        yield 'script save' => ['script', 'save', false];
-        yield 'script apply' => ['script', 'apply', false];
+        yield 'piece edit' => ['piece', 'edit'];
+        yield 'piece cancel' => ['piece', 'cancel'];
+        yield 'piece navigate' => ['piece', 'navigate'];
+        yield 'piece test' => ['piece', 'test'];
+        yield 'piece save' => ['piece', 'save'];
+        yield 'piece apply' => ['piece', 'apply'];
+        yield 'piece runTest' => ['piece', 'runTest'];
+        yield 'piece runTestsAjax' => ['piece', 'runTestsAjax'];
+        yield 'script edit' => ['script', 'edit'];
+        yield 'script test' => ['script', 'test'];
+        yield 'script save' => ['script', 'save'];
+        yield 'script apply' => ['script', 'apply'];
     }
 
     #[DataProvider('codeItemTasks')]
-    public function testASinglePieceOrScriptTaskNeedsTheCodeRightUnlessItOnlyDisplays(string $controller, string $task, bool $readOnly): void
+    public function testASinglePieceOrScriptTaskNeedsTheCodeRight(string $controller, string $task): void
     {
         $manageOnly = $this->runTask($controller, $task, 'valid', 'core.manage', ['id' => 5]);
 
-        if ($readOnly) {
-            self::assertNotSame(self::NOT_ALLOWED, $manageOnly['stopped']);
-        } else {
-            self::assertSame(self::NOT_ALLOWED, $manageOnly['stopped'], $task . ' needs the code right');
-            self::assertSame([], array_filter($manageOnly['events'], static fn (array $e): bool => isset($e['token'])));
-        }
+        self::assertSame(self::NOT_ALLOWED, $manageOnly['stopped'], $task . ' needs the code right');
+        self::assertSame([], array_filter($manageOnly['events'], static fn (array $e): bool => isset($e['token'])));
 
         $noManage = $this->runTask($controller, $task, 'valid', 'breezingformsng.code', ['id' => 5]);
         self::assertSame('RuntimeException', $noManage['stopped'], $task . ' needs core.manage');

@@ -93,7 +93,7 @@ $action = Route::_('index.php?option=com_breezingformsng&view=piece&layout=edit&
         'modified' => $this->item->modified ?? null,
         'modifiedBy' => $this->auditModifiedBy,
         'timezone' => $this->timezone,
-        'viewRight' => 'JACTION_MANAGE',
+        'viewRight' => 'COM_BREEZINGFORMSNG_ACTION_CODE',
         'editRight' => 'COM_BREEZINGFORMSNG_ACTION_CODE',
     ], JPATH_ADMINISTRATOR . '/components/com_breezingformsng/layouts'); ?>
   <?php endif; ?>

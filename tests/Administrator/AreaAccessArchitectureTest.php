@@ -59,33 +59,25 @@ final class AreaAccessArchitectureTest extends TestCase
         self::assertSame(0, substr_count($about, 'AreaAccess::CONFIGURATION);'));
     }
 
-    public function testPiecesAndScriptsStayReadableWithoutTheCodePermission(): void
+    public function testPiecesAndScriptsAreNotReadableWithoutTheCodePermission(): void
     {
-        $item = file_get_contents(self::ADMIN . '/src/Controller/PackageItemController.php');
-        $list = file_get_contents(self::ADMIN . '/src/Controller/PackageListController.php');
-        $script = file_get_contents(self::ADMIN . '/src/Controller/ScriptController.php');
-        $piece = file_get_contents(self::ADMIN . '/src/Controller/PieceController.php');
+        foreach (['PackageItem', 'PackageList'] as $name) {
+            $controller = file_get_contents(self::ADMIN . '/src/Controller/' . $name . 'Controller.php');
 
-        self::assertIsString($item);
-        self::assertIsString($list);
-        self::assertIsString($script);
-        self::assertIsString($piece);
-        self::assertStringContainsString('if (!\\in_array(strtolower((string) $task), $this->readOnlyTasks(), true)) {', $item);
-        self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CODE);', $item);
-        self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CODE);', $list);
-        self::assertStringNotContainsString('readOnlyTasks', $list);
-        self::assertStringContainsString("return ['edit', 'cancel', 'navigate', 'test'];", $script);
-        // A piece is PHP run on the server: testing it is not read-only.
-        self::assertStringContainsString("return ['edit', 'cancel', 'navigate'];", $piece);
+            self::assertIsString($controller);
+            self::assertStringContainsString('AreaAccess::assert($user, AreaAccess::CODE);', $controller);
+            self::assertStringNotContainsString('readOnlyTasks', $controller);
+        }
 
-        foreach (['Script', 'Piece'] as $area) {
+        // A view can be displayed by another controller: each one checks too.
+        foreach (['Script', 'Scripts', 'Piece', 'Pieces'] as $area) {
             $view = file_get_contents(self::ADMIN . '/src/View/' . $area . '/HtmlView.php');
-            $template = file_get_contents(self::ADMIN . '/tmpl/' . strtolower($area) . '/edit.php');
 
             self::assertIsString($view);
-            self::assertIsString($template);
-            self::assertStringNotContainsString('AreaAccess::assert(', $view);
-            self::assertStringContainsString("\$this->canEdit ? '' : ' disabled'", $template);
+            self::assertStringContainsString(
+                'AreaAccess::assert($this->getCurrentUser(), AreaAccess::CODE);',
+                $view
+            );
         }
     }
 
