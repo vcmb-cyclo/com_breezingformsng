@@ -62,6 +62,7 @@ final class FormDebugBarTest extends TestCase
             ['properties' => ['type' => 'section'], 'children' => [
                 ['properties' => [
                     'type' => 'element',
+                    'dbId' => '12',
                     'bfName' => 'Email',
                     'bfType' => 'bfTextfield',
                     'label' => 'E-mail',
@@ -75,15 +76,55 @@ final class FormDebugBarTest extends TestCase
 
         self::assertSame(
             [[
+                'id' => 12,
                 'name' => 'Email',
                 'type' => 'bfTextfield',
+                'editorType' => 'Text',
                 'label' => 'E-mail',
                 'required' => true,
                 'validation' => 'ff_Email_validation',
                 'customValidation' => true,
+                'parent' => '0.0',
             ]],
             FormDebugContext::fields($tree)
         );
+    }
+
+    /** @return array<string, array{array<string, mixed>, string}> */
+    public static function editorTypeCases(): array
+    {
+        return [
+            'plain text' => [['bfType' => 'bfTextfield'], 'Text'],
+            'text preset' => [['bfType' => 'bfTextfield', 'widget' => 'phone'], 'Phone'],
+            'consent' => [['bfType' => 'bfCheckbox', 'widget' => 'consent'], 'Consent'],
+            'slider' => [['bfType' => 'bfNumberInput', 'range' => true], 'Slider'],
+            'other type' => [['bfType' => 'bfRadioGroup'], 'RadioGroup'],
+            'no type' => [[], ''],
+        ];
+    }
+
+    /** @param array<string, mixed> $properties */
+    #[DataProvider('editorTypeCases')]
+    public function testAFieldHasTheTypeThatTheEditorShows(array $properties, string $expected): void
+    {
+        self::assertSame($expected, FormDebugContext::editorType($properties));
+    }
+
+    public function testTypeNamesAreThoseOfTheEditor(): void
+    {
+        $layout = (string) file_get_contents(
+            __DIR__ . '/../../../../administrator/components/com_breezingformsng'
+            . '/layouts/quickmode/properties_element.php'
+        );
+        preg_match_all("/'bfElementType(\\w+)' => Text::_\\('(COM_BREEZINGFORMSNG_\\w+)'\\)/", $layout, $types);
+
+        self::assertCount(26, $types[1]);
+
+        foreach ($types[1] as $index => $type) {
+            self::assertSame($types[2][$index], FormDebugContext::typeLabelKey($type), $type);
+        }
+
+        self::assertSame('', FormDebugContext::typeLabelKey('Slider'));
     }
 
     public function testBootstrapRenderersOfferTheShippedThemeAndNoTheme(): void
@@ -134,6 +175,15 @@ final class FormDebugBarTest extends TestCase
         self::assertStringContainsString('<code>ff_Email_validation</code>', $html);
         self::assertStringContainsString('42&nbsp;ms', $html);
         self::assertStringContainsString('<td>JYES</td>', $html);
+        self::assertStringContainsString(
+            'data-bfng-save-url="/s?a=1&amp;b=2" data-bfng-token="abc" data-bfng-revision="def"',
+            $html
+        );
+        self::assertStringContainsString(
+            'data-bfng-id="12" data-bfng-parent="0.0" data-bfng-type="Email"'
+            . ' data-bfng-type-name="Adresse &lt;e-mail&gt;" data-bfng-edit="{&quot;label&quot;:&quot;&lt;b&gt;',
+            $html
+        );
     }
 
     public function testHelpIsAButtonWithItsOwnTooltip(): void
@@ -187,13 +237,19 @@ final class FormDebugBarTest extends TestCase
             'colorOptions' => [['mode' => 'dark', 'url' => '/f?c=dark']],
             'fieldNames' => true,
             'fieldNamesUrl' => '/f?n=0',
+            'save' => ['url' => '/s?a=1&b=2', 'token' => 'abc', 'revision' => 'def', 'language' => 'zz-ZZ'],
             'fields' => [[
+                'id' => 12,
                 'name' => 'Email',
                 'type' => 'bfTextfield',
+                'editorType' => 'Email',
+                'typeName' => 'Adresse <e-mail>',
                 'label' => 'E-mail',
                 'required' => true,
                 'validation' => 'ff_Email_validation',
                 'customValidation' => false,
+                'parent' => '0.0',
+                'edit' => ['label' => '<b>E-mail</b>'],
             ]],
         ]);
     }

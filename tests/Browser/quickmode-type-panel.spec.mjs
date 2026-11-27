@@ -19,6 +19,7 @@ const open = async (page, width = 1200) => {
     await page.setViewportSize({ width, height: 700 });
     await page.route('http://panel.test/', (route) => route.fulfill({ contentType: 'text/html; charset=utf-8', body: MARKUP }));
     await page.goto('http://panel.test/');
+    await page.addStyleTag({ path: 'media/com_breezingformsng/css/field-type-icons.css' });
     await page.addStyleTag({ path: 'media/com_breezingformsng/css/bfng-admin.css' });
     await page.addScriptTag({ path: 'media/com_breezingformsng/js/admin/quickmode-type-menu.js' });
     await page.evaluate(() => {

@@ -336,10 +336,17 @@
     },
 
     {
+      "name": "com_breezingformsng.field-type-icons",
+      "type": "style",
+      "uri": "media/com_breezingformsng/css/field-type-icons.css",
+      "version": "auto"
+    },
+
+    {
       "name": "com_breezingformsng.bfng-admin",
       "type": "style",
       "uri": "media/com_breezingformsng/css/bfng-admin.css",
-      "dependencies": ["com_breezingformsng.tokens"],
+      "dependencies": ["com_breezingformsng.tokens", "com_breezingformsng.field-type-icons"],
       "version": "auto"
     },
 

@@ -51,7 +51,7 @@ final class QuickmodeElementTypeIconsTest extends TestCase
 
     public function testEveryTypeHasItsOwnIconTintedByItsFamily(): void
     {
-        $css = file_get_contents(self::ROOT . '/media/com_breezingformsng/css/bfng-admin.css');
+        $css = file_get_contents(self::ROOT . '/media/com_breezingformsng/css/field-type-icons.css');
         self::assertIsString($css);
 
         $icons = [];

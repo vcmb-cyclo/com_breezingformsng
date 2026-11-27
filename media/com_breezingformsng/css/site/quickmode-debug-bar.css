@@ -105,19 +105,270 @@
     display: block;
 }
 
-/* Technical name shown next to each field of the form. */
-.bfng-debug-field-name {
+/* Technical name shown next to each field of the form, with its facts in a tooltip below. */
+.bfng-debug-field {
+    position: relative;
     display: inline-block;
     width: fit-content;
     align-self: flex-start;
     justify-self: start;
     margin-inline-end: .5rem;
+    text-align: start;
+}
+
+.bfng-debug-field-name {
+    display: inline-flex;
+    align-items: center;
+    gap: .35em;
     padding: .15em .45em;
+    cursor: help;
     border: 1px solid #0a3622;
     border-radius: .25rem;
     color: #0a3622;
     background: #a3cfbb;
     font: 700 .7rem/1.4 monospace;
+}
+
+.bfng-debug-field-icon {
+    display: inline-flex;
+}
+
+.bfng-debug-field-icon::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    /* The type colour of the editor, darkened to read on the green of the tag. */
+    background: color-mix(in srgb, var(--bfng-type-color, #0a3622) 65%, #000);
+    mask: var(--bfng-type-icon) center / 14px 14px no-repeat;
+}
+
+/* Site templates style every [role="tooltip"] (Cassiopeia caps its width and recolours it). */
+.bfng-debug-field > .bfng-debug-field-tooltip[role="tooltip"] {
+    display: none;
+    margin: 0;
+    position: absolute;
+    /* No gap under the tag: the pointer can move onto the tooltip. */
+    inset-block-start: 100%;
+    inset-inline-start: 0;
+    z-index: 1000;
+    width: max-content;
+    max-width: min(22rem, 75vw);
+    padding: .4rem .6rem;
+    color: #fff;
+    background: #212529;
+    border: 1px solid #adb5bd;
+    border-radius: .25rem;
+    font: 400 .75rem/1.5 system-ui, sans-serif;
+    overflow-wrap: anywhere;
+}
+
+.bfng-debug-field-tooltip > span {
+    display: block;
+}
+
+.bfng-debug-field:is(:hover, :focus-within) .bfng-debug-field-tooltip {
+    display: block;
+}
+
+.bfng-debug-field-name[draggable="true"] {
+    cursor: grab;
+}
+
+.bfng-debug-field-tooltip em {
+    display: block;
+    margin-block-start: .25rem;
+    color: #a3cfbb;
+}
+
+.bfng-debug-dragging .bfng-debug-field > .bfng-debug-field-tooltip[role="tooltip"] {
+    display: none;
+}
+
+/* Where the dragged field will go. */
+[data-bfng-drop="before"] {
+    box-shadow: 0 -4px 0 #198754;
+}
+
+[data-bfng-drop="after"] {
+    box-shadow: 0 4px 0 #198754;
+}
+
+/* Moves to save or cancel: always in sight, fixed colours as the bar. */
+.bfng-debug-pending {
+    position: fixed;
+    /* Above the debug toolbar of Joomla, itself fixed at the bottom. */
+    inset-block-end: 3rem;
+    inset-inline: 1rem;
+    z-index: 1100;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem 1rem;
+    max-width: 36rem;
+    margin-inline: auto;
+    padding: .6rem 1rem;
+    color: #58151c;
+    background: #f8d7da;
+    border: 2px solid #b02a37;
+    border-radius: .4rem;
+    box-shadow: 0 .25rem 1rem rgb(0 0 0 / 30%);
+    font: 400 .9rem/1.5 system-ui, sans-serif;
+}
+
+/* That toolbar takes two lines on a narrow screen. */
+@media (max-width: 600px) {
+    .bfng-debug-pending {
+        inset-block-end: 5rem;
+    }
+}
+
+.bfng-debug-pending__count {
+    margin: 0;
+    font-weight: 700;
+}
+
+.bfng-debug-pending__note {
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .25rem .5rem;
+    margin: 0;
+}
+
+.bfng-debug-pending__note input {
+    box-sizing: border-box;
+    flex: 1 1 14rem;
+    min-width: 0;
+    padding: .35rem .5rem;
+    color: #212529;
+    background: #fff;
+    border: 1px solid #6c757d;
+    border-radius: .25rem;
+    font: inherit;
+}
+
+/* A field moved or edited, not saved yet. */
+.bfng-debug-field--changed > .bfng-debug-field-name {
+    border-color: #b02a37;
+    box-shadow: 0 0 0 2px #b02a37;
+}
+
+.bfng-debug-pending button {
+    min-height: 2.25rem;
+    padding: .35rem 1rem;
+    border: 1px solid #6c757d;
+    border-radius: .25rem;
+    color: #212529;
+    background: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.bfng-debug-pending .bfng-debug-pending__save {
+    color: #fff;
+    background: #146c43;
+    border-color: #146c43;
+}
+
+.bfng-debug-pending__error {
+    flex-basis: 100%;
+    margin: 0;
+    padding: .35rem .6rem;
+    color: #fff;
+    background: #b02a37;
+    border-radius: .25rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.bfng-debug-pending__error[hidden] {
+    display: none;
+}
+
+/* Window of a field: fixed colours, as the bar. */
+dialog.bfng-debug-window {
+    width: min(32rem, calc(100vw - 2rem));
+    padding: 0;
+    color: #212529;
+    background: #fff;
+    border: 2px solid #b02a37;
+    border-radius: .4rem;
+    font: 400 .9rem/1.5 system-ui, sans-serif;
+}
+
+dialog.bfng-debug-window::backdrop {
+    background: rgb(0 0 0 / 50%);
+}
+
+.bfng-debug-window__form {
+    display: grid;
+    gap: .75rem;
+    margin: 0;
+    padding: 1rem;
+}
+
+.bfng-debug-window .bfng-debug-window__title {
+    margin: 0;
+    color: #58151c;
+    font-size: 1.1rem;
+    overflow-wrap: anywhere;
+}
+
+.bfng-debug-window__field {
+    display: grid;
+    gap: .25rem;
+    margin: 0;
+    font-weight: 700;
+}
+
+.bfng-debug-window__field :is(input, textarea) {
+    box-sizing: border-box;
+    width: 100%;
+    padding: .35rem .5rem;
+    color: #212529;
+    background: #fff;
+    border: 1px solid #6c757d;
+    border-radius: .25rem;
+    font: inherit;
+    font-weight: 400;
+}
+
+.bfng-debug-window__check {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin: 0;
+}
+
+.bfng-debug-window__note {
+    margin: 0;
+    color: #495057;
+    font-size: .8rem;
+}
+
+.bfng-debug-window__buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: .5rem;
+}
+
+.bfng-debug-window__buttons button {
+    min-height: 2.25rem;
+    padding: .35rem 1rem;
+    border: 1px solid #6c757d;
+    border-radius: .25rem;
+    color: #212529;
+    background: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.bfng-debug-window__buttons .bfng-debug-window__save {
+    color: #fff;
+    background: #198754;
+    border-color: #198754;
 }
 
 .bfng-debug__names {

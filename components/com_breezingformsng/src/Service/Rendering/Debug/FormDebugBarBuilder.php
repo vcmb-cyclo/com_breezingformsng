@@ -42,13 +42,19 @@ final class FormDebugBarBuilder
      *     colorOptions: list<array{mode: string, url: string}>,
      *     fieldNames: bool,
      *     fieldNamesUrl: string,
+     *     save: array{url: string, token: string, revision: string, language: string},
      *     fields: list<array{
+     *         id: int,
      *         name: string,
      *         type: string,
+     *         editorType: string,
+     *         typeName: string,
      *         label: string,
      *         required: bool,
      *         validation: string,
-     *         customValidation: bool
+     *         customValidation: bool,
+     *         parent: string,
+     *         edit: array<string, mixed>
      *     }>
      * } $data
      */
@@ -58,7 +64,7 @@ final class FormDebugBarBuilder
 
         $html = '<div class="bfng-debug" id="' . $id . '" data-bfng-debug-color="'
             . self::escape($data['colorMode']) . '" data-bfng-debug-names="' . (int) $data['fieldNames']
-            . '"><div class="bfng-debug__bar">'
+            . '"' . $this->saveAttributes($data['formId'], $data['save']) . '><div class="bfng-debug__bar">'
             . '<strong class="bfng-debug__badge">' . self::icon('eye') . ' ' . $this->label('BADGE') . '</strong>'
             . '<span class="bfng-debug__modes" role="group" aria-label="' . $this->label('COLOR_MODE') . '">';
 
@@ -152,7 +158,13 @@ final class FormDebugBarBuilder
             }
 
             $name = self::escape($field['name']);
-            $html .= '<tr data-bfng-field="' . $name . '"><td><code>' . $name . '</code></td>'
+            // The tag next to the field takes its icon and its tooltip from this row.
+            $html .= '<tr data-bfng-field="' . $name . '" data-bfng-id="' . $field['id']
+                . '" data-bfng-parent="' . self::escape($field['parent'])
+                . '" data-bfng-type="' . self::escape($field['editorType'])
+                . '" data-bfng-type-name="' . self::escape($field['typeName'])
+                . '" data-bfng-edit="' . self::escape((string) json_encode($field['edit']))
+                . '"><td><code>' . $name . '</code></td>'
                 . '<td>' . self::escape(strip_tags($field['label'])) . '</td>'
                 . '<td><code>' . self::escape($field['type']) . '</code></td>'
                 . '<td>' . self::escape(($this->translate)($field['required'] ? 'JYES' : 'JNO')) . '</td>'
@@ -160,6 +172,50 @@ final class FormDebugBarBuilder
         }
 
         return $html . '</tbody></table></div></details></div>';
+    }
+
+    /**
+     * What the script needs to save moved and edited fields, and its texts.
+     *
+     * @param array{url: string, token: string, revision: string, language: string} $save
+     */
+    private function saveAttributes(int $formId, array $save): string
+    {
+        return ' data-bfng-form="' . $formId . '" data-bfng-save-url="' . self::escape($save['url'])
+            . '" data-bfng-token="' . self::escape($save['token'])
+            . '" data-bfng-revision="' . self::escape($save['revision'])
+            . '" data-bfng-language="' . self::escape($save['language'])
+            . '" data-bfng-move-hint="' . $this->label('MOVE_HINT')
+            . '" data-bfng-pending-text="' . $this->label('PENDING')
+            . '" data-bfng-note-label="' . $this->label('NOTE_LABEL')
+            . '" data-bfng-save-label="' . self::escape(($this->translate)('JSAVE'))
+            . '" data-bfng-cancel-label="' . self::escape(($this->translate)('JCANCEL'))
+            . '" data-bfng-save-failed="' . $this->label('SAVE_FAILED')
+            . '" data-bfng-edit-texts="' . self::escape($this->editTexts($save['language'])) . '"';
+    }
+
+    /** Texts of the field window, as JSON. */
+    private function editTexts(string $language): string
+    {
+        $key = static fn (string $name): string => 'COM_BREEZINGFORMSNG_DEBUG_BAR_' . $name;
+
+        return (string) json_encode([
+            'open' => ($this->translate)($key('EDIT_OPEN')),
+            'title' => ($this->translate)($key('EDIT_TITLE')),
+            'label' => ($this->translate)($key('FIELD_LABEL')),
+            'hint' => ($this->translate)($key('EDIT_HELP')),
+            'required' => ($this->translate)($key('FIELD_REQUIRED')),
+            'locked' => ($this->translate)($key('EDIT_REQUIRED_LOCKED')),
+            'length' => ($this->translate)($key('LIMIT_LENGTH')),
+            'min' => ($this->translate)($key('LIMIT_MIN')),
+            'max' => ($this->translate)($key('LIMIT_MAX')),
+            'date' => ($this->translate)($key('LIMIT_DATE')),
+            'language' => $language === FieldEdit::DEFAULT_LANGUAGE
+                ? ''
+                : sprintf(($this->translate)($key('EDIT_LANGUAGE')), $language),
+            'apply' => ($this->translate)($key('APPLY')),
+            'cancel' => ($this->translate)('JCANCEL'),
+        ]);
     }
 
     private function label(string $key): string

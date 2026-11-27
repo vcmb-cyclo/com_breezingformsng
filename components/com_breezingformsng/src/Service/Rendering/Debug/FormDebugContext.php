@@ -31,6 +31,75 @@ final class FormDebugContext
     /** Marks a Classic theme tried on a Bootstrap or one-page form; a theme folder has no dot. */
     public const CLASSIC_PREFIX = 'classic.';
 
+    /** Name of each type of the editor, as translation keys of the administrator. */
+    private const TYPE_LABELS = [
+        'Text' => 'TEXTFIELD',
+        'Textarea' => 'TEXTAREA',
+        'Hidden' => 'HIDDEN',
+        'NumberInput' => 'NUMBER_INPUT',
+        'DateTime' => 'ELEMENT_DATETIME',
+        'Email' => 'ELEMENT_EMAIL',
+        'Phone' => 'ELEMENT_PHONE',
+        'File' => 'FILE',
+        'Address' => 'ELEMENT_ADDRESS',
+        'Country' => 'ELEMENT_COUNTRY',
+        'Url' => 'ELEMENT_URL',
+        'Calendar' => 'CALENDAR',
+        'CalendarResponsive' => 'CALENDAR_RESPONSIVE',
+        'RadioGroup' => 'RADIO_GROUP',
+        'Select' => 'SELECT',
+        'Checkbox' => 'CHECKBOX',
+        'CheckboxGroup' => 'CHECKBOX_GROUP',
+        'Consent' => 'ELEMENT_CONSENT',
+        'Captcha' => 'ELEMENT_ROBOT',
+        'Robot' => 'ELEMENT_ROBOT',
+        'ReCaptcha' => 'ELEMENT_ROBOT',
+        'Stripe' => 'STRIPE',
+        'PayPal' => 'PAYPAL',
+        'Signature' => 'SIGNATURE',
+        'SubmitButton' => 'SUBMIT_BUTTON',
+        'Summarize' => 'SUMMARIZE',
+    ];
+
+    /** Text field presets: widget => type of the editor. */
+    private const WIDGET_TYPES = [
+        'email' => 'Email',
+        'url' => 'Url',
+        'robot' => 'Robot',
+        'phone' => 'Phone',
+        'datetime' => 'DateTime',
+        'country' => 'Country',
+        'address' => 'Address',
+    ];
+
+    /**
+     * Type of an element as the editor shows it (see getElementTypeOption() of its tree model).
+     *
+     * @param array<mixed> $properties Properties of an element of the QuickMode tree.
+     *
+     * @return string The suffix of its "bfElementType…" option, empty without a type.
+     */
+    public static function editorType(array $properties): string
+    {
+        $type = self::text($properties['bfType'] ?? null);
+        $widget = self::text($properties['widget'] ?? null);
+
+        return match (true) {
+            $type === 'bfTextfield' => self::WIDGET_TYPES[$widget] ?? 'Text',
+            $type === 'bfCheckbox' && $widget === 'consent' => 'Consent',
+            $type === 'bfNumberInput' && !empty($properties['range']) => 'Slider',
+            default => substr($type, 2),
+        };
+    }
+
+    /** @return string The translation key of the type name, empty when the name is not translated. */
+    public static function typeLabelKey(string $editorType): string
+    {
+        $key = self::TYPE_LABELS[$editorType] ?? '';
+
+        return $key === '' ? '' : 'COM_BREEZINGFORMSNG_' . $key;
+    }
+
     /**
      * The bar needs both the debug mode of the form and a Super User on the site.
      *
@@ -130,17 +199,21 @@ final class FormDebugContext
 
     /**
      * @param array<mixed> $node A node of the QuickMode form tree.
+     * @param string       $path Place of this node in the tree.
      *
      * @return list<array{
+     *     id: int,
      *     name: string,
      *     type: string,
+     *     editorType: string,
      *     label: string,
      *     required: bool,
      *     validation: string,
-     *     customValidation: bool
+     *     customValidation: bool,
+     *     parent: string
      * }>
      */
-    public static function fields(array $node): array
+    public static function fields(array $node, string $path = '0'): array
     {
         $fields = [];
         $properties = is_array($node['properties'] ?? null) ? $node['properties'] : [];
@@ -150,18 +223,22 @@ final class FormDebugContext
             $validation = (int) self::text($properties['validationCondition'] ?? null);
 
             $fields[] = [
+                'id' => (int) self::text($properties['dbId'] ?? null),
                 'name' => self::text($properties['bfName'] ?? null),
                 'type' => self::text($properties['bfType'] ?? null),
+                'editorType' => self::editorType($properties),
                 'label' => self::text($properties['label'] ?? null),
                 'required' => !empty($properties['required']),
                 'validation' => $validation > 0 ? self::text($properties['validationFunctionName'] ?? null) : '',
                 'customValidation' => $validation === 2,
+                // Fields with the same parent can change places.
+                'parent' => substr($path, 0, (int) strrpos($path, '.')),
             ];
         }
 
-        foreach (is_array($node['children'] ?? null) ? $node['children'] : [] as $child) {
+        foreach (is_array($node['children'] ?? null) ? $node['children'] : [] as $key => $child) {
             if (is_array($child)) {
-                array_push($fields, ...self::fields($child));
+                array_push($fields, ...self::fields($child, $path . '.' . $key));
             }
         }
 
