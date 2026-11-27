@@ -401,6 +401,56 @@ final class McpFormWriterTest extends TestCase
         $this->writer->manageFields(['id' => 7, 'remove' => ['email']], McpTestDoubles::user(['core.edit']));
     }
 
+    /** @return iterable<string, array{array<string, mixed>}> */
+    public static function visibilityFieldChanges(): iterable
+    {
+        yield 'remove source' => [['remove' => ['email']]];
+        yield 'remove target' => [['remove' => ['message']]];
+        yield 'rename source' => [['update' => [['name' => 'email', 'new_name' => 'contact']]]];
+        yield 'rename target' => [['update' => [['name' => 'message', 'new_name' => 'details']]]];
+    }
+
+    /** @param array<string, mixed> $change */
+    #[DataProvider('visibilityFieldChanges')]
+    public function testReferencedFieldsCannotChangeWithoutUpdatingVisibilityRules(array $change): void
+    {
+        $this->options->method('getForm')->willReturn(self::storedForm());
+        $this->quickmode->method('getTemplateCode')->willReturn(self::templateWithVisibility());
+        $this->quickmode->expects(self::never())->method('save');
+
+        $this->expectRefusal('Update visibility rules');
+        $this->writer->manageFields(['id' => 7] + $change, McpTestDoubles::user(['core.edit']));
+    }
+
+    public function testRemovingAReferencedFieldCanReplaceItsRulesInTheSameRequest(): void
+    {
+        $this->options->method('getForm')->willReturn(self::storedForm());
+        $this->quickmode->method('getTemplateCode')->willReturn(self::templateWithVisibility());
+        $this->forms->expects(self::once())->method('checkout')->willReturn(false);
+        $this->quickmode->expects(self::never())->method('save');
+
+        // The request reaches checkout: the replacement was accepted before any write.
+        $this->expectRefusal('checked out');
+        $this->writer->manageFields(
+            ['id' => 7, 'remove' => ['email'], 'visibility_rules' => []],
+            McpTestDoubles::user(['core.edit'])
+        );
+    }
+
+    private static function templateWithVisibility(): string
+    {
+        $tree = json_decode(self::quickmodeTemplate(), true, 512, JSON_THROW_ON_ERROR);
+        $message = $tree['children'][0]['children'][0];
+        $message['attributes']['id'] = 'bfQuickModeElement2_message';
+        $message['properties']['bfName'] = 'message';
+        $message['properties']['dbId'] = 12;
+        $message['properties']['orderNumber'] = 2;
+        $tree['children'][0]['children'][] = $message;
+        $tree['properties']['toggleFields'] = 'turn on element message if email is yes';
+
+        return json_encode($tree, JSON_THROW_ON_ERROR);
+    }
+
     // --- trash and restore ---
 
     /** @return iterable<string, array{list<string>}> */

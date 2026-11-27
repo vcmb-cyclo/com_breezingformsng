@@ -743,6 +743,17 @@ final class McpFormWriter
         }
         if ($visibilityRulesProvided) {
             $tree['properties']['toggleFields'] = McpVisibilityRules::serialize($visibilityRules, $allFields);
+        } elseif ($renameTargets !== [] || $removeByName !== []) {
+            // A rename or deletion must not silently leave references to missing fields.
+            // Unknown legacy syntax cannot be inspected safely, so preserve it by refusing the change.
+            if (!$existingVisibility['supported']) {
+                throw new ToolException('This form has visibility rules that MCP cannot safely preserve. Edit them in the QuickMode editor.');
+            }
+            try {
+                McpVisibilityRules::serialize($existingVisibility['rules'], $allFields);
+            } catch (ToolException) {
+                throw new ToolException('Update visibility rules when renaming or removing a field referenced by them.');
+            }
         }
         $tree['properties']['name'] = (string) $form->name;
         $tree['properties']['title'] = (string) $form->title;

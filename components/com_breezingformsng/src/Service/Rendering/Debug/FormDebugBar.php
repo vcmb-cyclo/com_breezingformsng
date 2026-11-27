@@ -21,6 +21,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\LanguageFactoryInterface;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
 use stdClass;
@@ -173,7 +174,7 @@ final class FormDebugBar
             // The address the checkbox goes to: it reverses the current choice.
             'fieldNamesUrl' => self::url(FormDebugContext::NAMES_PARAM, $fieldNames ? '0' : null),
             'save' => [
-                'url' => Uri::base(true) . '/index.php?option=com_breezingformsng&task=fielddebug.save&format=json',
+                'url' => self::saveUrl($tag),
                 'token' => Session::getFormToken(),
                 'revision' => self::revision($app, $formId),
                 'language' => $language,
@@ -183,6 +184,15 @@ final class FormDebugBar
                 is_array($tree) ? self::withTypeNames(FormDebugContext::fields($tree), $tag) : []
             ),
         ]);
+    }
+
+    private static function saveUrl(string $tag): string
+    {
+        return Route::link(
+            'site',
+            'index.php?option=com_breezingformsng&task=fielddebug.save&format=json&lang=' . rawurlencode($tag),
+            false
+        );
     }
 
     /** The state of the form this page shows: a move starting from another one is refused. */

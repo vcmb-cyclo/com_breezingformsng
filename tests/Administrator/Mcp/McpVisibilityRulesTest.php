@@ -93,4 +93,23 @@ final class McpVisibilityRulesTest extends TestCase
             }
         }
     }
+
+    public function testSpecialLegacyValuePrefixesAreNotTreatedAsLiteralEquality(): void
+    {
+        foreach (['![', '!value', '#a|b'] as $value) {
+            self::assertSame(['rules' => [], 'supported' => false], McpVisibilityRules::read(
+                'turn on element message if topic is ' . $value,
+                ['topic', 'message']
+            ));
+            try {
+                McpVisibilityRules::serialize([[
+                    'target' => 'message', 'source' => 'topic', 'operator' => 'equals',
+                    'value' => $value, 'visible' => true,
+                ]], ['topic', 'message']);
+                self::fail('Special visibility syntax was accepted as literal text.');
+            } catch (ToolException) {
+                self::addToAssertionCount(1);
+            }
+        }
+    }
 }

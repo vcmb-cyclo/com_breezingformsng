@@ -15,12 +15,30 @@ declare(strict_types=1);
 namespace Vcmb\Component\BreezingformsNG\Tests\Site\Service\Rendering;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
+use Vcmb\Component\BreezingformsNG\Site\Service\Rendering\Debug\FormDebugBar;
 use Vcmb\Component\BreezingformsNG\Site\Service\Rendering\Debug\FormDebugBarBuilder;
 use Vcmb\Component\BreezingformsNG\Site\Service\Rendering\Debug\FormDebugContext;
 
 final class FormDebugBarTest extends TestCase
 {
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function testSaveUrlRoutesTheActualPageLanguageWithoutHtmlEscaping(): void
+    {
+        class_alias(DebugBarRouteStub::class, 'Joomla\\CMS\\Router\\Route');
+
+        $method = new \ReflectionMethod(FormDebugBar::class, 'saveUrl');
+        self::assertSame('/fr/debug-save', $method->invoke(null, 'fr-FR'));
+        self::assertSame([
+            'site',
+            'index.php?option=com_breezingformsng&task=fielddebug.save&format=json&lang=fr-FR',
+            false,
+        ], DebugBarRouteStub::$arguments);
+    }
+
     /** @return array<string, array{mixed, bool, bool, bool}> */
     public static function activationCases(): array
     {
@@ -252,5 +270,19 @@ final class FormDebugBarTest extends TestCase
                 'edit' => ['label' => '<b>E-mail</b>'],
             ]],
         ]);
+    }
+}
+
+// phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses -- Isolated router double for the test above.
+final class DebugBarRouteStub
+{
+    /** @var array{string, string, bool} */
+    public static array $arguments;
+
+    public static function link(string $client, string $url, bool $xhtml): string
+    {
+        self::$arguments = [$client, $url, $xhtml];
+
+        return '/fr/debug-save';
     }
 }

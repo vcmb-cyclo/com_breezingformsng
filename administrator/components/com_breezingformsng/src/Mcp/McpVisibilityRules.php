@@ -134,7 +134,7 @@ final class McpVisibilityRules
         $value = trim($value);
         if (
             $value === '' || mb_strlen($value) > 255 || preg_match('/[\x00-\x1F\x7F]/u', $value) === 1
-            || strpbrk($value, '<>{}') !== false
+            || strpbrk($value, '<>{}') !== false || str_starts_with($value, '!') || str_starts_with($value, '#')
         ) {
             throw new ToolException(
                 'A visibility-rule value must be plain single-line text of at most 255 characters.'
