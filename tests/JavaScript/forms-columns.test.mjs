@@ -17,14 +17,33 @@ function memoryStorage(initial = {}) {
 	return { data, getItem: (k) => (k in data ? data[k] : null), setItem: (k, v) => { data[k] = String(v); } };
 }
 
-test('hides the Package column by default', () => {
+test('hides the Package and audit columns by default', () => {
 	const storage = memoryStorage();
 	run(storage);
-	assert.equal(storage.data[KEY], '4');
+	assert.equal(storage.data[KEY], '4,9,10,12');
+});
+
+test('hides the audit columns of the other lists by default', () => {
+	const storage = memoryStorage();
+	run(storage);
+	assert.equal(storage.data['joomla-tablecolumns-bfng-scripts'], '8,9,11');
+	assert.equal(storage.data['joomla-tablecolumns-bfng-pieces'], '8,9,11');
+	assert.equal(storage.data['joomla-tablecolumns-bfng-integrator'], '7,8,10');
+});
+
+test('hides the new audit columns once for a choice stored before them', () => {
+	// Name and Modified, then in ninth place, were hidden.
+	const storage = memoryStorage({ [KEY]: '3,9' });
+	run(storage);
+	assert.equal(storage.data[KEY], '3,11,9,10,12');
+	// Shown again by the user: they stay shown.
+	storage.data[KEY] = '3';
+	run(storage);
+	assert.equal(storage.data[KEY], '3');
 });
 
 test('keeps a stored choice', () => {
-	const storage = memoryStorage({ [KEY]: '' });
+	const storage = memoryStorage({ [KEY]: '', [`${KEY}-audit`]: '2' });
 	run(storage);
 	assert.equal(storage.data[KEY], '');
 });

@@ -36,7 +36,7 @@ final class CreateFormTool implements McpTool
     #[\Override]
     public function description(): string
     {
-        return 'Creates an unpublished BreezingForms NG form with an optional plain-text first-page introduction and up to 30 text, textarea, select, radio, checkbox-group or checkbox fields. '
+        return 'Creates an unpublished BreezingForms NG form with an optional plain-text first-page introduction and up to 30 text, textarea, select, radio, checkbox-group or checkbox fields. Text fields can use safe email, URL, phone, date/time, country or address widgets. '
             . 'Text and textarea fields can use the standard non-empty validation; custom scripts, other validations, integrations, file uploads, payments and notification destinations are not configured.';
     }
 
@@ -59,6 +59,7 @@ final class CreateFormTool implements McpTool
                         'type' => 'object',
                         'properties' => [
                             'type' => ['type' => 'string', 'enum' => ['text', 'textarea', 'select', 'radio', 'checkbox_group', 'checkbox'], 'description' => 'Field type.'],
+                            'widget' => ['type' => 'string', 'enum' => ['email', 'url', 'phone', 'datetime', 'country', 'address'], 'description' => 'Optional email, URL, phone, date/time, country or address widget for a text field. Widget-specific options are not configured through MCP.'],
                             'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 100, 'description' => 'Field name, starting with a letter; letters, numbers and underscores only.'],
                             'label' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255, 'description' => 'Plain-text field label.'],
                             'placeholder' => ['type' => 'string', 'maxLength' => 255, 'default' => '', 'description' => 'Optional plain-text placeholder.'],

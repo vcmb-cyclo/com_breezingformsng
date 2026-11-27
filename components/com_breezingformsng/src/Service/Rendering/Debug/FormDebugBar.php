@@ -15,8 +15,17 @@ declare(strict_types=1);
 namespace Vcmb\Component\BreezingformsNG\Site\Service\Rendering\Debug;
 
 use HTML_facileFormsProcessor;
+use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\LanguageFactoryInterface;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
+use stdClass;
+use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
 use Vcmb\Component\BreezingformsNG\Site\Service\Runtime\RuntimeAssetLoader;
 
 /**
@@ -38,13 +47,19 @@ final class FormDebugBar
      *     colorOptions: list<array{mode: string, url: string}>,
      *     fieldNames: bool,
      *     fieldNamesUrl: string,
+     *     save: array{url: string, token: string, revision: string, language: string},
      *     fields: list<array{
+     *         id: int,
      *         name: string,
      *         type: string,
+     *         editorType: string,
+     *         typeName: string,
      *         label: string,
      *         required: bool,
      *         validation: string,
-     *         customValidation: bool
+     *         customValidation: bool,
+     *         parent: string,
+     *         edit: array<string, mixed>
      *     }>
      * } $data
      */
@@ -121,11 +136,20 @@ final class FormDebugBar
             $app->getInput()->getCmd(FormDebugContext::NAMES_PARAM, '')
         );
 
-        $tree = json_decode(bf_b64dec($processor->formrow->template_code), true);
+        $code = (string) bf_b64dec($processor->formrow->template_code);
+        $tree = json_decode($code, true);
+        $objects = json_decode($code);
+        $default = ComponentHelper::getParams('com_languages')->get('site');
+        $tag = $app->getLanguage()?->getTag() ?? 'en-GB';
+        $language = $tag === $default ? FieldEdit::DEFAULT_LANGUAGE : $tag;
+        $edits = $objects instanceof stdClass ? FieldEdit::values($objects, $language) : [];
         $formId = (int) $processor->form;
 
         $media = Uri::root(true) . '/media/com_breezingformsng';
         RuntimeAssetLoader::fontAwesome($app);
+        // The icons of the field types and their colours, as in the editor.
+        RuntimeAssetLoader::style($app, $media . '/css/bfng-tokens.css');
+        RuntimeAssetLoader::style($app, $media . '/css/field-type-icons.css');
         RuntimeAssetLoader::style($app, $media . '/css/site/quickmode-debug-bar.css');
         RuntimeAssetLoader::script($app, $media . '/js/site/quickmode-debug-bar.js');
 
@@ -149,8 +173,82 @@ final class FormDebugBar
             'fieldNames' => $fieldNames,
             // The address the checkbox goes to: it reverses the current choice.
             'fieldNamesUrl' => self::url(FormDebugContext::NAMES_PARAM, $fieldNames ? '0' : null),
-            'fields' => is_array($tree) ? FormDebugContext::fields($tree) : [],
+            'save' => [
+                'url' => self::saveUrl($tag),
+                'token' => Session::getFormToken(),
+                'revision' => self::revision($app, $formId),
+                'language' => $language,
+            ],
+            'fields' => array_map(
+                static fn (array $field): array => $field + ['edit' => $edits[$field['name']] ?? []],
+                is_array($tree) ? self::withTypeNames(FormDebugContext::fields($tree), $tag) : []
+            ),
         ]);
+    }
+
+    private static function saveUrl(string $tag): string
+    {
+        return Route::link(
+            'site',
+            'index.php?option=com_breezingformsng&task=fielddebug.save&format=json&lang=' . rawurlencode($tag),
+            false
+        );
+    }
+
+    /** The state of the form this page shows: a move starting from another one is refused. */
+    private static function revision(CMSApplication $app, int $formId): string
+    {
+        $component = $app->bootComponent('com_breezingformsng');
+        $options = $component instanceof MVCFactoryServiceInterface
+            ? $component->getMVCFactory()->createModel('FormOptions', 'Administrator', ['ignore_request' => true])
+            : null;
+        $form = $options instanceof FormOptionsModel ? $options->getForm($formId) : null;
+
+        return $form === null ? '' : FormOptionsModel::quickmodeRevision($form);
+    }
+
+    /**
+     * Adds the name of each type, read from the administrator strings in a language object of its
+     * own: they must not replace strings of the site.
+     *
+     * @param list<array{
+     *     id: int,
+     *     name: string,
+     *     type: string,
+     *     editorType: string,
+     *     label: string,
+     *     required: bool,
+     *     validation: string,
+     *     customValidation: bool,
+     *     parent: string
+     * }> $fields
+     *
+     * @return list<array{
+     *     id: int,
+     *     name: string,
+     *     type: string,
+     *     editorType: string,
+     *     label: string,
+     *     required: bool,
+     *     validation: string,
+     *     customValidation: bool,
+     *     parent: string,
+     *     typeName: string
+     * }>
+     */
+    private static function withTypeNames(array $fields, string $tag): array
+    {
+        $language = Factory::getContainer()->get(LanguageFactoryInterface::class)->createLanguage($tag, false);
+
+        if (!$language->load('com_breezingformsng', JPATH_ADMINISTRATOR . '/components/com_breezingformsng')) {
+            $language->load('com_breezingformsng', JPATH_ADMINISTRATOR);
+        }
+
+        return array_map(static function (array $field) use ($language): array {
+            $key = FormDebugContext::typeLabelKey($field['editorType']);
+
+            return $field + ['typeName' => $key === '' ? $field['editorType'] : $language->_($key)];
+        }, $fields);
     }
 
     /**

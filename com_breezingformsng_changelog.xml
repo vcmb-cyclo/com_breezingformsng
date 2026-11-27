@@ -3,6 +3,23 @@
     <changelog>
         <element>com_breezingformsng</element>
         <type>component</type>
+        <version>6.1.1-RC5</version>
+        <addition>
+            <item>Debug mode: move and edit fields on the website, then save them as one version with a note.</item>
+            <item>Debug mode: field type icon and details on each field name.</item>
+            <item>Lists: optional creation and modification columns.</item>
+            <item>MCP: field visibility rules and text field widgets.</item>
+        </addition>
+        <change>
+            <item>Bundled libraries updated.</item>
+        </change>
+        <fix>
+            <item>Package import records author and dates.</item>
+        </fix>
+    </changelog>
+    <changelog>
+        <element>com_breezingformsng</element>
+        <type>component</type>
         <version>6.1.1-RC4</version>
         <addition>
             <item>Add a field demonstration sample form that shows every field type that needs no key.</item>

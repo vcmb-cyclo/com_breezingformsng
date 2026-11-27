@@ -125,7 +125,7 @@ Joomla API token. Every action follows the permissions of the account that owns 
 - Endpoint: `POST <your-site>/api/index.php/v1/breezingformsng/mcp`
 - Tools: list and read forms, check a form for inconsistencies, audit the database
   (read-only); create a form, update its settings, add, change, move or remove fields and
-  pages, and trash or restore a form.
+  pages, configure field visibility rules and safe text-field widgets, and trash or restore a form.
 - PHP code stays out of reach without the `breezingformsng.code` permission.
 - **System → Tools** shows the status and the address. See [`llms.txt`](llms.txt) for agents.
 

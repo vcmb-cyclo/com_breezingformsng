@@ -230,7 +230,7 @@ final class McpFormWriter
 
     /**
      * @param array<string, mixed> $arguments
-     * @return array{id: int, added: list<string>, updated: list<string>, removed: list<string>, pages_added: int, pages_updated: list<int>, pages_removed: list<int>, field_count: int, versioned: bool, contentbuilder_synced: bool, warnings?: list<string>}
+     * @return array{id: int, added: list<string>, updated: list<string>, removed: list<string>, pages_added: int, pages_updated: list<int>, pages_removed: list<int>, visibility_rules_updated: bool, visibility_rule_count: int, field_count: int, versioned: bool, contentbuilder_synced: bool, warnings?: list<string>}
      * @throws ToolException
      */
     public function manageFields(array $arguments, User $user): array
@@ -255,6 +255,11 @@ final class McpFormWriter
         if (!is_array($pageUpdates) || !array_is_list($pageUpdates) || count($pageUpdates) > 10) {
             throw new ToolException('Page updates must be a list of at most 10 items.');
         }
+        $visibilityRulesProvided = array_key_exists('visibility_rules', $arguments);
+        $visibilityRules = $arguments['visibility_rules'] ?? [];
+        if (!is_array($visibilityRules) || !array_is_list($visibilityRules) || count($visibilityRules) > 30) {
+            throw new ToolException('Visibility rules must be a list of at most 30 rules.');
+        }
         $form = $this->options->getForm($id);
         if ($form === null || (int) $form->published === -2) {
             throw new ToolException('Form not found or cannot be edited.');
@@ -265,6 +270,7 @@ final class McpFormWriter
         $current = [];
         $currentPages = [];
         $currentNodeIds = [];
+        $currentFieldNames = [];
         foreach ($tree['children'] as $pageIndex => $page) {
             foreach ($page['children'] as $node) {
                 $properties = $node['properties'];
@@ -275,7 +281,15 @@ final class McpFormWriter
                 $current[$key] = $properties;
                 $currentPages[$key] = $pageIndex + 1;
                 $currentNodeIds[$key] = $this->stringValue($node['attributes']['id'] ?? null);
+                $currentFieldNames[] = $this->stringValue($properties['bfName'] ?? null);
             }
+        }
+        $existingVisibility = McpVisibilityRules::read(
+            $tree['properties']['toggleFields'] ?? '',
+            $currentFieldNames
+        );
+        if ($visibilityRulesProvided && !$existingVisibility['supported']) {
+            throw new ToolException('This form has visibility rules that MCP cannot safely preserve. Edit them in the QuickMode editor.');
         }
 
         $add = $this->normalizeFields($arguments['add'] ?? []);
@@ -311,6 +325,7 @@ final class McpFormWriter
         if (
             $add === [] && $updates === [] && $removals === [] && $pagesToAdd === 0
             && $pagesToRemove === [] && $pageIntroByNumber === []
+            && !$visibilityRulesProvided
         ) {
             throw new ToolException('Give at least one field or page change to make.');
         }
@@ -370,8 +385,22 @@ final class McpFormWriter
                     throw new ToolException('Existing fields can only change between text and textarea types.');
                 }
             }
+            if (array_key_exists('widget', $change)) {
+                if (($current[$key]['bfType'] ?? '') !== 'bfTextfield') {
+                    throw new ToolException('Widgets can only be used on text fields.');
+                }
+                $change['widget'] = $this->input->normalizeEditableWidget($change['widget']);
+                // A consent box, an anti-robot or a rating would be lost with its settings.
+                $storedWidget = \Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions::widget($current[$key]);
+                if (!$this->input->mayReplaceWidget($storedWidget)) {
+                    throw new ToolException('The consent, anti-robot and rating widgets cannot be changed or removed through MCP; edit the field in the QuickMode editor.');
+                }
+            }
+            $targetWidget = array_key_exists('widget', $change)
+                ? $change['widget']
+                : \Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions::widget($current[$key]);
             if (
-                \Vcmb\Component\BreezingformsNG\Site\Service\Widget\WidgetOptions::widget($current[$key]) !== ''
+                $targetWidget !== ''
                 && array_intersect_key($change, ['type' => 1, 'size' => 1, 'max_length' => 1]) !== []
             ) {
                 throw new ToolException('A field that uses a widget (phone, date and time, country or address) cannot change type, size or maximum length through MCP; edit it in the QuickMode editor.');
@@ -587,6 +616,9 @@ final class McpFormWriter
                     if (array_key_exists('hint', $change)) {
                         $node['properties']['hint'] = $change['hint'];
                     }
+                    if (array_key_exists('widget', $change)) {
+                        $node['properties']['widget'] = $change['widget'];
+                    }
                     foreach (['size', 'width', 'height'] as $property) {
                         if (array_key_exists($property, $change)) {
                             $node['properties'][$property] = $change[$property];
@@ -714,6 +746,24 @@ final class McpFormWriter
             }
             unset($page);
         }
+        if ($visibilityRulesProvided) {
+            $tree['properties']['toggleFields'] = McpVisibilityRules::serialize($visibilityRules, $allFields);
+        } elseif ($renameTargets !== [] || $removeByName !== []) {
+            // A rename or deletion must not silently leave references to missing fields.
+            // Unknown legacy syntax cannot be inspected safely, so preserve it by refusing the change.
+            if (!$existingVisibility['supported']) {
+                throw new ToolException('This form has visibility rules that MCP cannot safely preserve. Edit them in the QuickMode editor.');
+            }
+            try {
+                $rewritten = McpVisibilityRules::serialize($existingVisibility['rules'], $allFields);
+            } catch (ToolException) {
+                throw new ToolException('Update visibility rules when renaming or removing a field referenced by them.');
+            }
+            // The form script matches names with their case: a rename of the case only must follow.
+            if ($existingVisibility['rules'] !== []) {
+                $tree['properties']['toggleFields'] = $rewritten;
+            }
+        }
         $tree['properties']['name'] = (string) $form->name;
         $tree['properties']['title'] = (string) $form->title;
         $tree['properties']['description'] = (string) $form->description;
@@ -779,6 +829,8 @@ final class McpFormWriter
             'pages_added' => $pagesToAdd,
             'pages_updated' => $pagesUpdated,
             'pages_removed' => $pagesRemoved,
+            'visibility_rules_updated' => $visibilityRulesProvided,
+            'visibility_rule_count' => $visibilityRulesProvided ? count($visibilityRules) : 0,
             'field_count' => count($allFields),
             'versioned' => $versioned,
             'contentbuilder_synced' => $contentBuilderSynced,
@@ -868,13 +920,13 @@ final class McpFormWriter
         }
     }
 
-    /** @return list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> */
+    /** @return list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, widget: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> */
     private function normalizeFields(mixed $fields): array
     {
         return $this->input->normalizeFields($fields);
     }
 
-    /** @param list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields
+    /** @param list<array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, widget: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int}> $fields
      *  @return array<string, mixed>
      */
     private function quickmodeTree(string $name, string $title, string $description, array $fields, string $pageIntro): array
@@ -882,7 +934,7 @@ final class McpFormWriter
         return $this->tree->create($name, $title, $description, $fields, $pageIntro);
     }
 
-    /** @param array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field
+    /** @param array{type: string, name: string, label: string, placeholder: string, hint: string, size: string, width: string, height: string, default_value: string, max_length: int, readonly: bool, widget: string, options: list<array{label: string, value: string, selected: bool}>, multiple: bool, checked: bool, value: string, required: bool, required_message: string, page: int} $field
      *  @return array<string, mixed>
      */
     private function elementNode(array $field, int $order): array

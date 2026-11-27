@@ -15,6 +15,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\View\Scripts;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Document\HtmlDocument;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Pagination\Pagination;
@@ -22,15 +23,19 @@ use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
+use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageItemModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\ScriptsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AuditUserNames;
 use Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView as BaseHtmlView;
 
 class HtmlView extends BaseHtmlView
 {
     /** @var list<\stdClass> */
     public array $items = [];
+    /** @var array<string, string> Names of the creators and last editors, by stored value */
+    public array $authorNames = [];
     public Pagination $pagination;
     public Registry $state;
     public ?Form $filterForm = null;
@@ -49,6 +54,17 @@ class HtmlView extends BaseHtmlView
         }
 
         $this->items = $model->getItems() ?: [];
+        $authors = [];
+
+        foreach ($this->items as $item) {
+            $authors[] = (string) ($item->created_by ?? '');
+            $authors[] = (string) ($item->modified_by ?? '');
+        }
+
+        $this->authorNames = AuditUserNames::resolve(
+            Factory::getContainer()->get(DatabaseInterface::class),
+            $authors
+        );
         $this->pagination = $model->getPagination();
         $this->state = $model->getState();
         $this->filterForm = $model->getFilterForm();
@@ -105,6 +121,12 @@ class HtmlView extends BaseHtmlView
             Uri::base() . 'index.php?option=com_breezingformsng&view=scripts&layout=help&tmpl=component'
         );
 
+        // Not deferred: it must run before the table.columns module reads the state.
+        $document->getWebAssetManager()->registerAndUseScript(
+            'com_breezingformsng.forms-columns',
+            'media/com_breezingformsng/js/admin/forms-columns.js',
+            ['version' => 'auto']
+        );
         $document->getWebAssetManager()->useScript('table.columns')->useScript('multiselect');
 
         if ($this->canEdit) {

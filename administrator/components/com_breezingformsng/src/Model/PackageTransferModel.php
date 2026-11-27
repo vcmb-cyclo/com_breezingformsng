@@ -1564,6 +1564,7 @@ final class PackageTransferModel extends BaseDatabaseModel
                 continue;
             }
             $action = $id > 0 ? 'replaced' : 'created';
+            $data = array_merge($data, $this->auditStamp($id <= 0));
             if ($id > 0) {
                 // The item replaced keeps its state as its version of origin.
                 $items->keepOrigin($id);
@@ -1585,6 +1586,21 @@ final class PackageTransferModel extends BaseDatabaseModel
         }
 
         return $sourceIds;
+    }
+
+    /**
+     * The audit columns of an imported item, stamped here and never taken from a
+     * file: a replaced item keeps who created it, and when.
+     *
+     * @return array<string, string>
+     */
+    private function auditStamp(bool $isNew): array
+    {
+        $now = (new Date())->toSql();
+        $user = (string) $this->getCurrentUser()->username;
+        $stamp = ['modified' => $now, 'modified_by' => $user];
+
+        return $isNew ? $stamp + ['created' => $now, 'created_by' => $user] : $stamp;
     }
 
     /**
@@ -1656,6 +1672,7 @@ final class PackageTransferModel extends BaseDatabaseModel
             $keptCode = !$this->mayWriteCode && $id > 0 ? $this->storedElementCode($id) : ['elements' => [], 'filepaths' => []];
             $action = $id > 0 ? 'replaced' : 'created';
             $replacedElements = null;
+            $data = array_merge($data, $this->auditStamp($id <= 0));
             if ($id > 0) {
                 // The form replaced keeps its state as its version of origin.
                 $versioning->keepOrigin($id, $this->originNote);

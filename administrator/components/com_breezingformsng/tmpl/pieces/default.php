@@ -27,6 +27,13 @@ $listDirn  = $this->escape((string) $this->state->get('list.direction'));
 $user = Factory::getApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
 $userId = (int) $user->id;
 $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
+$authorNames = $this->authorNames;
+$view = $this;
+$author = static function (mixed $value) use ($authorNames, $view): string {
+    $value = (string) ($value ?? '');
+
+    return $value !== '' ? $view->escape($authorNames[$value] ?? $value) : '-';
+};
 ?>
 <form action="<?= Route::_('index.php?option=com_breezingformsng&view=pieces'); ?>" method="post" name="adminForm" id="adminForm" class="bf-list-filters">
   <div id="j-main-container" class="j-main-container">
@@ -38,7 +45,7 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
         <?= Text::_('JGLOBAL_NO_MATCHING_RESULTS'); ?>
       </div>
     <?php else: ?>
-      <table class="table" id="pieceList">
+      <table class="table" id="pieceList" data-name="bfng-pieces">
         <caption class="visually-hidden"><?= Text::_('COM_BREEZINGFORMSNG_MANAGEPIECES'); ?></caption>
         <thead>
           <tr>
@@ -50,7 +57,10 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
             <th scope="col"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_PIECES_PACKAGE', 'package', $listDirn, $listOrder); ?></th>
             <th scope="col"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_PIECES_TYPE', 'type', $listDirn, $listOrder); ?></th>
             <th scope="col"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_PIECES_DESCRIPTION', 'description', $listDirn, $listOrder); ?></th>
+            <th scope="col" class="d-none text-nowrap"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_CREATED', 'created', $listDirn, $listOrder); ?></th>
+            <th scope="col" class="d-none"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_CREATED_BY', 'created_by', $listDirn, $listOrder); ?></th>
             <th scope="col" class="text-nowrap"><?= HTMLHelper::_('searchtools.sort', 'JGLOBAL_MODIFIED', 'modified', $listDirn, $listOrder); ?></th>
+            <th scope="col" class="d-none"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_MODIFIED_BY', 'modified_by', $listDirn, $listOrder); ?></th>
           </tr>
         </thead>
         <tbody>
@@ -101,10 +111,13 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
               <td><?= $this->escape((string) $row->package); ?></td>
               <td><?= isset(PieceModel::TYPES[$row->type]) ? Text::_(PieceModel::TYPES[$row->type]) : '???'; ?></td>
               <td><?= $this->escape(mb_strimwidth((string) $row->description, 0, 100, '...')); ?></td>
+              <td class="d-none text-nowrap"><?= $row->created ? HTMLHelper::_('date', $row->created, 'Y-m-d H:i') : '-'; ?></td>
+              <td class="d-none"><?= $author($row->created_by); ?></td>
               <td class="text-nowrap">
                 <?php $modified = $row->modified ?: $row->created; ?>
                 <?= $modified ? HTMLHelper::_('date', $modified, 'Y-m-d H:i') : '-'; ?>
               </td>
+              <td class="d-none"><?= $author($row->modified_by); ?></td>
             </tr>
           <?php endforeach; ?>
         </tbody>

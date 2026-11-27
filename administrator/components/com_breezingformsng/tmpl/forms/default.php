@@ -22,6 +22,19 @@ $saveOrder  = $listOrder === 'ordering' && strtolower($listDirn) === 'asc';
 $user = Factory::getApplication()->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
 $userId = (int) $user->id;
 $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
+$date = static function (mixed $value): string {
+    $value = (string) ($value ?? '');
+
+    return $value !== '' && $value !== '0000-00-00 00:00:00'
+        ? HTMLHelper::_('date', $value, Text::_('DATE_FORMAT_LC5'))
+        : '-';
+};
+$authorNames = $this->authorNames;
+$author = function (mixed $value) use ($authorNames): string {
+    $value = (string) ($value ?? '');
+
+    return $value !== '' ? htmlspecialchars($authorNames[$value] ?? $value, ENT_QUOTES, 'UTF-8') : '-';
+};
 ?>
 <form action="index.php?option=com_breezingformsng&amp;view=forms" method="post" name="adminForm" id="adminForm" class="bf-list-filters">
   <div id="j-main-container" class="j-main-container">
@@ -42,12 +55,15 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
         <th class="text-center w-10" title="<?= $this->escape(Text::_('COM_BREEZINGFORMSNG_FORMS_COLUMN_DEBUG_TIP')); ?>"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_COLUMN_DEBUG', 'debug_mode', $listDirn, $listOrder); ?></th>
         <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JPUBLISHED', 'published', $listDirn, $listOrder); ?></th>
         <th class="text-center w-10"><?= HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ORDERING', 'ordering', $listDirn, $listOrder); ?></th>
+        <th class="d-none text-nowrap"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_CREATED', 'created', $listDirn, $listOrder); ?></th>
+        <th class="d-none"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_CREATED_BY', 'created_by', $listDirn, $listOrder); ?></th>
         <th class="text-nowrap"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_MODIFIED', 'modified', $listDirn, $listOrder); ?></th>
+        <th class="d-none"><?= HTMLHelper::_('searchtools.sort', 'COM_BREEZINGFORMSNG_FORMS_MODIFIED_BY', 'modified_by', $listDirn, $listOrder); ?></th>
       </tr>
     </thead>
     <tbody>
       <?php if (empty($this->items)): ?>
-        <tr><td colspan="10" class="text-center"><?= Text::_('JGLOBAL_NO_MATCHING_RESULTS'); ?></td></tr>
+        <tr><td colspan="13" class="text-center"><?= Text::_('JGLOBAL_NO_MATCHING_RESULTS'); ?></td></tr>
       <?php else: ?>
         <?php foreach ($this->items as $i => $form): ?>
                 <?php $debugLabel = Text::_((int) $form->debug_mode === 1 ? 'COM_BREEZINGFORMSNG_DEBUG_MODE_ENABLED' : 'COM_BREEZINGFORMSNG_DEBUG_MODE_DISABLED'); ?>
@@ -124,14 +140,10 @@ $canManageCheckin = $user->authorise('core.manage', 'com_checkin');
                   $saveOrder
               ); ?>
             </td>
-            <td class="text-nowrap">
-              <?php
-              $modified = (string) ($form->modified ?? '');
-              echo $modified !== '' && $modified !== '0000-00-00 00:00:00'
-                  ? HTMLHelper::_('date', $modified, Text::_('DATE_FORMAT_LC5'))
-                  : '-';
-              ?>
-            </td>
+            <td class="d-none text-nowrap"><?= $date($form->created ?? null); ?></td>
+            <td class="d-none"><?= $author($form->created_by ?? null); ?></td>
+            <td class="text-nowrap"><?= $date($form->modified ?? null); ?></td>
+            <td class="d-none"><?= $author($form->modified_by ?? null); ?></td>
           </tr>
         <?php endforeach; ?>
       <?php endif; ?>

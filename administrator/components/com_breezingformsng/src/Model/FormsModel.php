@@ -18,6 +18,7 @@ class FormsModel extends ListModel
 {
     private const array SORTS = [
         'id', 'title', 'name', 'package', 'pages', 'debug_mode', 'published', 'ordering', 'modified',
+        'modified_by', 'created', 'created_by',
     ];
 
     /**
@@ -58,8 +59,8 @@ class FormsModel extends ListModel
             ->where($db->quoteName('editor.id') . ' = ' . $db->quoteName('#__facileforms_forms.checked_out'));
         $query = $db->createQuery()
             ->select($db->quoteName([
-                'id', 'title', 'name', 'package', 'pages', 'debug_mode', 'published', 'ordering', 'modified', 'checked_out',
-                'checked_out_time',
+                'id', 'title', 'name', 'package', 'pages', 'debug_mode', 'published', 'ordering', 'modified',
+                'modified_by', 'created', 'created_by', 'checked_out', 'checked_out_time',
             ]))
             ->select('(' . $editor . ') AS ' . $db->quoteName('editor'))
             // Only a flag: the processed template of a legacy form can be large.

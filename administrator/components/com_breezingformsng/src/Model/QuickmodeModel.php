@@ -645,18 +645,18 @@ class QuickmodeModel extends BaseDatabaseModel
                 // Init
                 $element['script1id']            = $mdata['initId'];
                 $element['script1code']          = $mdata['initCode'];
-                $element['script1flag1']         = $mdata['initFormEntry'] ?? '';
-                $element['script1flag2']         = $mdata['initPageEntry'] ?? '';
+                $element['script1flag1']         = (int) ($mdata['initFormEntry'] ?? 0);
+                $element['script1flag2']         = (int) ($mdata['initPageEntry'] ?? 0);
                 $element['functionNameScript1']  = $mdata['initFunctionName'];
                 $element['script1cond']          = $mdata['initCondition'];
                 // Action
                 $element['script2id']            = $mdata['actionId'];
                 $element['script2code']          = $mdata['actionCode'] ?? '';
-                $element['script2flag1']         = $mdata['actionClick'] ?? '';
-                $element['script2flag2']         = $mdata['actionBlur'] ?? '';
-                $element['script2flag3']         = $mdata['actionChange'] ?? '';
-                $element['script2flag4']         = $mdata['actionFocus'] ?? '';
-                $element['script2flag5']         = $mdata['actionSelect'] ?? '';
+                $element['script2flag1']         = (int) ($mdata['actionClick'] ?? 0);
+                $element['script2flag2']         = (int) ($mdata['actionBlur'] ?? 0);
+                $element['script2flag3']         = (int) ($mdata['actionChange'] ?? 0);
+                $element['script2flag4']         = (int) ($mdata['actionFocus'] ?? 0);
+                $element['script2flag5']         = (int) ($mdata['actionSelect'] ?? 0);
                 $element['functionNameScript2']  = $mdata['actionFunctionName'];
                 $element['script2cond']          = $mdata['actionCondition'] ?? '';
                 $element['hideInMailback']       = $mdata['hideInMailback'] ?? false;

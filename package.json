@@ -30,8 +30,8 @@
     "stylelint-config-standard": "41.1.0"
   },
   "dependencies": {
-    "intl-tel-input": "29.5.11",
+    "intl-tel-input": "29.5.12",
     "jstree": "3.3.17",
-    "sweetalert2": "11.26.25"
+    "sweetalert2": "11.26.26"
   }
 }

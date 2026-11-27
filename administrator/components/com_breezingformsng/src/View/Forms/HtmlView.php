@@ -20,10 +20,12 @@ use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\Button\DropdownButton;
 use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Helper\FormsAdvancedOptionsHtml;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormOptionsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\FormsModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\PackageFilter;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\AuditUserNames;
 
 class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\BreezingformsNG\HtmlView
 {
@@ -35,6 +37,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
     /** @var array<string, mixed> */
     public array $activeFilters = [];
     public string $pkg = '';
+    /** @var array<string, string> Names of the creators and last editors, by stored value */
+    public array $authorNames = [];
     public ?\stdClass $form     = null;
     /** @var list<\stdClass> */
     public array      $initScripts = [];
@@ -128,7 +132,8 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
             // Not deferred: it must run before the table.columns module reads the state.
             $wa->registerAndUseScript(
                 'com_breezingformsng.forms-columns',
-                'media/com_breezingformsng/js/admin/forms-columns.js'
+                'media/com_breezingformsng/js/admin/forms-columns.js',
+                ['version' => 'auto']
             );
             $wa->useScript('table.columns')->useScript('multiselect');
             $wa->registerAndUseScript(
@@ -164,6 +169,18 @@ class HtmlView extends \Vcmb\Component\BreezingformsNG\Administrator\View\Breezi
 
             $this->items = $model->getItems() ?: [];
             $this->pagination = $model->getPagination();
+            $authors = [];
+
+            foreach ($this->items as $item) {
+                $authors[] = (string) ($item->created_by ?? '');
+                $authors[] = (string) ($item->modified_by ?? '');
+            }
+
+            $this->authorNames = AuditUserNames::resolve(
+                Factory::getContainer()->get(DatabaseInterface::class),
+                $authors,
+                true
+            );
             $this->state = $model->getState();
             $this->filterForm = $model->getFilterForm();
             $this->activeFilters = $model->getActiveFilters();

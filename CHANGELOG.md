@@ -1,5 +1,22 @@
 # Changelog
 
+## 6.1.1-RC5
+
+### Added
+
+- Debug mode: move and edit fields on the website, then save them as one version with a note.
+- Debug mode: field type icon and details on each field name.
+- Lists: optional creation and modification columns.
+- MCP: field visibility rules and text field widgets.
+
+### Changed
+
+- Bundled libraries updated.
+
+### Fixed
+
+- Package import records author and dates.
+
 ## 6.1.1-RC4
 
 ### Added
