@@ -17,6 +17,7 @@ namespace Vcmb\Component\BreezingformsNG\Administrator\Model;
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\NgExtensions;
 
 final class AboutModel extends BaseDatabaseModel
 {
@@ -68,6 +69,25 @@ final class AboutModel extends BaseDatabaseModel
         foreach ($this->getInstalledPluginRows() as $row) {
             if ((int) ($row['extension_id'] ?? 0) === $extensionId) {
                 return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * True for the site module of the package: the only module whose state BFNG changes.
+     */
+    public function isPackageModule(int $extensionId): bool
+    {
+        foreach ($this->getBreezingFormsExtensionRows() as $row) {
+            if ((int) ($row['extension_id'] ?? 0) === $extensionId) {
+                return ($row['type'] ?? '') === 'module' && NgExtensions::owns(
+                    'module',
+                    (string) ($row['element'] ?? ''),
+                    '',
+                    (int) ($row['client_id'] ?? 0)
+                );
             }
         }
 

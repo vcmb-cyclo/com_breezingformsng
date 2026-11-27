@@ -72,7 +72,7 @@ $sortHeader = static fn (string $labelKey, string $type, string $class = ''): st
                             <td><?php echo htmlspecialchars((string) ($plugin['category'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                             <?php $isEnabled = !empty($plugin['enabled']); ?>
                             <td class="text-center" data-bf-sort-value="<?php echo $isEnabled ? 1 : 0; ?>">
-                                <?php if ($this->canEditPluginState && $isPlugin && $pluginId > 0) : ?>
+                                <?php if (!empty($plugin['canToggle']) && $pluginId > 0) : ?>
                                     <button type="button"
                                         class="tbody-icon js-bf-form-state<?php echo $isEnabled ? ' active' : ''; ?>"
                                         data-item-task="about.setPluginState"

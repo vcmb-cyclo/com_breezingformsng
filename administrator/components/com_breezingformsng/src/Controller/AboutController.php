@@ -18,6 +18,7 @@ use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Factory\MVCFactoryServiceInterface;
 use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
@@ -69,38 +70,52 @@ class AboutController extends BaseController
             $application = $this->getAuthorizedApplication();
             $user = $application->getIdentity() ?? throw new \RuntimeException('The current user is not loaded.');
 
-            if (!$user->authorise('core.edit.state', 'com_plugins')) {
+            $aboutModel = $this->getMVCFactoryOf($application)
+                ->createModel('About', 'Administrator', ['ignore_request' => true]);
+
+            if (!$aboutModel instanceof AboutModel) {
+                throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+            }
+
+            $isModule = $aboutModel->isPackageModule($id);
+
+            // Each kind keeps the right of the Joomla screen that changes it.
+            $allowed = $isModule
+                ? $user->authorise('core.manage', 'com_installer')
+                    && $user->authorise('core.edit.state', 'com_installer')
+                : $user->authorise('core.edit.state', 'com_plugins');
+
+            if (!$allowed) {
                 $this->sendJson(403, Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'));
 
                 return;
             }
 
-            $aboutModel = $this->getMVCFactoryOf($application)
-                ->createModel('About', 'Administrator', ['ignore_request' => true]);
-
-            if (!$aboutModel instanceof AboutModel || !$aboutModel->isInstalledPlugin($id)) {
+            if (!$isModule && !$aboutModel->isInstalledPlugin($id)) {
                 $this->sendJson(400, Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
 
                 return;
             }
 
-            $pluginsComponent = $application->bootComponent('com_plugins');
+            [$option, $name] = $isModule ? ['com_installer', 'Manage'] : ['com_plugins', 'Plugin'];
+            $stateComponent = $application->bootComponent($option);
 
-            if (!$pluginsComponent instanceof MVCFactoryServiceInterface) {
+            if (!$stateComponent instanceof MVCFactoryServiceInterface) {
                 throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
 
-            $pluginModel = $pluginsComponent->getMVCFactory()
-                ->createModel('Plugin', 'Administrator', ['ignore_request' => true]);
+            $stateModel = $stateComponent->getMVCFactory()
+                ->createModel($name, 'Administrator', ['ignore_request' => true]);
 
-            if (!$pluginModel instanceof AdminModel) {
+            if (!$stateModel instanceof BaseDatabaseModel || !method_exists($stateModel, 'publish')) {
                 throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
             }
 
             $pks = [$id];
 
-            if (!$pluginModel->publish($pks, $state)) {
-                $this->sendJson(400, (string) $pluginModel->getError());
+            if (!$stateModel->publish($pks, $state)) {
+                $error = (string) $stateModel->getError();
+                $this->sendJson(400, $error !== '' ? $error : Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
 
                 return;
             }

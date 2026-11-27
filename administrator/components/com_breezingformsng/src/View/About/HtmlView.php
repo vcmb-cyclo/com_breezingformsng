@@ -23,6 +23,7 @@ use Joomla\Database\DatabaseInterface;
 use Vcmb\Component\BreezingformsNG\Administrator\Model\AboutModel;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\AreaAccess;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\DatabaseAuditService;
+use Vcmb\Component\BreezingformsNG\Administrator\Service\NgExtensions;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\InstallLogReader;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\RecordInventoryService;
 use Vcmb\Component\BreezingformsNG\Administrator\Service\TrashInventoryService;
@@ -33,6 +34,8 @@ class HtmlView extends BaseHtmlView
     /** @var list<array<string, mixed>> */
     public array $plugins = [];
     public bool $canEditPluginState = false;
+    /** The module of the package: its state is a right of the Joomla Installer. */
+    public bool $canEditModuleState = false;
     /** Uninstalling is a right of the Joomla Installer. */
 
     /** The changelog popup is served by the Installer component: it needs the right to manage it. */
@@ -68,6 +71,8 @@ class HtmlView extends BaseHtmlView
         $this->canDeleteOrphans = AreaAccess::canDeleteOrphans($user);
         $this->canEditPluginState = $user->authorise('core.edit.state', 'com_plugins');
         $this->canViewChangelog = $user->authorise('core.manage', 'com_installer');
+        $this->canEditModuleState = $this->canViewChangelog
+            && $user->authorise('core.edit.state', 'com_installer');
         /** @var HtmlDocument $document */
         $document = $app->getDocument();
         $wa = $document->getWebAssetManager();
@@ -139,7 +144,7 @@ class HtmlView extends BaseHtmlView
         if ($layout === 'extensions') {
             $this->plugins = $this->getInstalledPlugins();
 
-            if ($this->canEditPluginState) {
+            if ($this->canEditPluginState || $this->canEditModuleState) {
                 $wa->registerAndUseScript(
                     'com_breezingformsng.admin-toggle-published',
                     'media/com_breezingformsng/js/admin/admin-toggle-published.js',
@@ -259,6 +264,13 @@ class HtmlView extends BaseHtmlView
                 'element' => $element,
                 'version' => (string) ($manifest['version'] ?? ''),
                 'enabled' => (int) ($row['enabled'] ?? 0) === 1,
+                'canToggle' => match ($type) {
+                    'plugin' => $this->canEditPluginState,
+                    // Only the module of the package, not one of a former BreezingForms.
+                    'module' => $this->canEditModuleState
+                        && NgExtensions::owns($type, $element, '', (int) ($row['client_id'] ?? 0)),
+                    default => false,
+                },
                 'description' => $description !== '' ? $description : Text::_('COM_BREEZINGFORMSNG_NOT_AVAILABLE'),
                 'category' => $this->getPluginCategory($group, $element),
             ];
