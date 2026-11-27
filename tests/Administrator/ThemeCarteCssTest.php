@@ -76,6 +76,16 @@ final class ThemeCarteCssTest extends TestCase
         self::assertStringContainsString('.bfErrorSummaryList a', $css);
     }
 
+    public function testTheSectionsOfAPageAreFramed(): void
+    {
+        $css = $this->css();
+
+        // Only the sections: a group of choices is a fieldset too, deeper in the page.
+        self::assertMatchesRegularExpression('/\.bfPage > fieldset \{[^}]*border: 1px solid var\(--bf-line\);/', $css);
+        self::assertMatchesRegularExpression('/\.bfPage > fieldset > legend \{[^}]*float: left;/', $css);
+        self::assertMatchesRegularExpression('/\.bfPage > fieldset > legend \+ \* \{\s*clear: both;/', $css);
+    }
+
     public function testBootstrapErrorSummaryTitlesExistInEverySiteLanguage(): void
     {
         foreach (['en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'hu-HU', 'nl-NL', 'tr-TR'] as $language) {
