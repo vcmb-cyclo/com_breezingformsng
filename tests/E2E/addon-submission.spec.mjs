@@ -27,6 +27,7 @@ const installWidgetsSample = async (browser) => {
         await loginAsAdmin(page);
         await page.goto('administrator/index.php?option=com_breezingformsng&view=packages');
         page.on('dialog', (dialog) => dialog.accept());
+        await page.locator('#bf-tools-sample-title button').click();
         await page.locator('#bf-tools-sample-form input[name="samples[]"][value="widgets"]').check();
         await Promise.all([page.waitForNavigation(), page.locator('#bf-tools-sample-install').click()]);
     } finally {

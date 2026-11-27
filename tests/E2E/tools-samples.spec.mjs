@@ -25,6 +25,18 @@ test.describe('sample data of the Tools screen', () => {
     const boxes = () => page.locator('#bf-tools-sample-form input[name="samples[]"]:not(:disabled)');
     const button = () => page.locator('#bf-tools-sample-install');
 
+    test('the sample data is a closed accordion, opened by its title', async () => {
+        const toggle = page.locator('#bf-tools-sample-title button');
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+        await expect(page.locator('#bf-tools-sample-form')).toBeHidden();
+
+        await toggle.click();
+
+        await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+        await expect(page.locator('#bf-tools-sample-panel')).toHaveClass(/\bshow\b/);
+        await expect(page.locator('#bf-tools-sample-form')).toBeVisible();
+    });
+
     test('nothing is ticked at first: the button is off and shows no number', async () => {
         const total = await boxes().count();
         expect(total).toBeGreaterThan(1);

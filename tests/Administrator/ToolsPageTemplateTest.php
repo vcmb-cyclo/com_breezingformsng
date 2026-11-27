@@ -29,11 +29,12 @@ final class ToolsPageTemplateTest extends TestCase
         );
     }
 
-    public function testFourCardsAndSevenQuickAccessTiles(): void
+    public function testThreeCardsOneAccordionAndSevenQuickAccessTiles(): void
     {
         $template = $this->template();
 
-        self::assertSame(4, substr_count($template, '<section class="card"'));
+        self::assertSame(3, substr_count($template, '<section class="card"'));
+        self::assertSame(1, substr_count($template, '<section class="accordion"'));
         foreach (['bf-tools-maintenance', 'bf-tools-packages', 'bf-mcp-status', 'bf-tools-sample'] as $id) {
             self::assertStringContainsString('aria-labelledby="' . $id . '-title"', $template);
         }
@@ -256,6 +257,16 @@ final class ToolsPageTemplateTest extends TestCase
                 self::assertMatchesRegularExpression('/^' . $key . '="[^"]+"/m', $ini, "$key missing in $lang");
             }
         }
+    }
+
+    public function testTheSampleDataIsAnAccordionClosedByDefault(): void
+    {
+        $template = $this->template();
+
+        self::assertStringContainsString('<section class="accordion" id="bf-tools-sample"', $template);
+        self::assertStringContainsString('class="accordion-button collapsed', $template);
+        self::assertStringContainsString('aria-expanded="false" aria-controls="bf-tools-sample-panel"', $template);
+        self::assertStringContainsString('class="accordion-collapse collapse" id="bf-tools-sample-panel"', $template);
     }
 
     public function testSamplesAreTickedThenInstalledTogetherWithOneButton(): void
